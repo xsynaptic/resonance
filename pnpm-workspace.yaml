@@ -1,0 +1,22 @@
+packages:
+  - packages/**
+
+# Mitigate supply-chain attacks by requiring packages to be at least 24h old
+minimumReleaseAge: 1440
+verifyDepsBeforeRun: error
+strictDepBuilds: true
+
+minimumReleaseAgeExclude:
+  - astro
+  - '@astrojs/*'
+  - '@xsynaptic/*'
+
+peerDependencyRules:
+  allowedVersions:
+    # eslint-plugin-jsx-a11y caps its eslint peer at ^9 but uses no APIs removed in ESLint 10
+    'eslint-plugin-jsx-a11y>eslint': '10'
+
+allowBuilds:
+  esbuild: true
+  # Native binding for Astro image optimization
+  sharp: true

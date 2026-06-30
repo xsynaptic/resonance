@@ -1,0 +1,46 @@
+import { getAstroConfig, getConfig, getWebComponentConfig } from '@xsynaptic/eslint-config';
+import astroPlugin from 'eslint-plugin-astro';
+import globals from 'globals';
+
+export default getConfig(
+	[
+		{
+			ignores: [
+				'node_modules/**/*',
+				'**/.astro/**/*',
+				'**/.cache/**/*',
+				'**/dist/**/*',
+				'packages/content/**/*',
+				'packages/scripts/**/*',
+			],
+		},
+		{
+			rules: {
+				// Intentional compounds such as schema.org's WebSite type
+				'unicorn/consistent-compound-words': 'off',
+				// Zod schema chains legitimately reach 4; depth 5+ still flagged
+				'unicorn/max-nested-calls': ['error', { max: 4 }],
+				// Conflicts with Remeda's sort function
+				'unicorn/no-array-sort': 'off',
+			},
+		},
+		{
+			// These files run in the browser and might need browser globals
+			files: ['src/components/**/*'],
+			languageOptions: {
+				globals: {
+					...Object.fromEntries(Object.keys(globals.node).map((key) => [key, 'off'])),
+					...globals.browser,
+				},
+			},
+			rules: {
+				'unicorn/prefer-global-this': 'off',
+			},
+		},
+		getWebComponentConfig(['src/components/**/*.ts']),
+		...getAstroConfig({ a11y: astroPlugin.configs['jsx-a11y-strict'] }),
+	],
+	{
+		customGlobals: { mode: 'readonly' },
+	},
+);

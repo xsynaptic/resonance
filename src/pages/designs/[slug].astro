@@ -1,0 +1,16 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+
+import DesignDetail from '#layouts/design-detail.astro';
+import { getPublishedDesigns } from '#lib/collections/designs/designs-data.ts';
+
+export const getStaticPaths = (async () => {
+	const designs = await getPublishedDesigns();
+
+	return designs.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+---
+
+<DesignDetail {...Astro.props} />

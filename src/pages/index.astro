@@ -1,0 +1,41 @@
+---
+import MainSite from '#components/main/main-site.astro';
+import HomeSection from '#components/sections/section-home.astro';
+import { getContentItems } from '#lib/catalog/catalog-data.ts';
+import { site } from '#lib/site.ts';
+
+const [mixes, reviews, posts] = await Promise.all([
+	getContentItems('mixes'),
+	getContentItems('reviews'),
+	getContentItems('posts'),
+]);
+
+const mixItems = mixes.slice(0, 4);
+const reviewItems = reviews.slice(0, 4);
+const postItems = posts.slice(0, 4);
+---
+
+<MainSite>
+	<section class="mb-12">
+		<h1 class="text-4xl font-bold text-ink-50">{site.title}</h1>
+		<p class="mt-2 max-w-prose text-ink-300">{site.description}</p>
+	</section>
+	<HomeSection
+		archiveHref="/mixes"
+		archiveLabel="All mixes"
+		heading="Latest Mixes"
+		items={mixItems}
+	/>
+	<HomeSection
+		archiveHref="/reviews"
+		archiveLabel="All reviews"
+		heading="Latest Reviews"
+		items={reviewItems}
+	/>
+	<HomeSection
+		archiveHref="/writing"
+		archiveLabel="All writing"
+		heading="Recent Writing"
+		items={postItems}
+	/>
+</MainSite>

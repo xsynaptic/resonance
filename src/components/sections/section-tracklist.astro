@@ -1,0 +1,34 @@
+---
+interface Props {
+	tracks: Array<Track> | undefined;
+}
+
+interface Track {
+	artist: string;
+	label?: string | undefined;
+	remixer?: string | undefined;
+	time?: string | undefined;
+	title: string;
+	year?: string | undefined;
+}
+
+const { tracks } = Astro.props;
+---
+
+{
+	tracks && tracks.length > 0 ? (
+		<section class="mt-8">
+			<h2 class="mb-3 text-lg font-semibold text-ink-100">Tracklist</h2>
+			<ol class="space-y-1 text-sm text-ink-300">
+				{tracks.map((track) => (
+					<li class="flex flex-wrap items-baseline gap-x-2">
+						<span class="font-medium text-ink-200">{track.artist}</span>
+						<span class="text-ink-600">·</span>
+						<span>{track.title}</span>
+						{track.label ? <span class="text-ink-600">[{track.label}]</span> : undefined}
+					</li>
+				))}
+			</ol>
+		</section>
+	) : undefined
+}

@@ -1,0 +1,16 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+
+import ReviewDetail from '#layouts/review-detail.astro';
+import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
+
+export const getStaticPaths = (async () => {
+	const reviews = await getPublishedReviews();
+
+	return reviews.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+---
+
+<ReviewDetail {...Astro.props} />

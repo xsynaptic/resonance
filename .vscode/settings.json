@@ -1,0 +1,11 @@
+{
+	"cSpell.words": ["mixcloud", "soundcloud", "tracklist"],
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
+	"css.lint.unknownAtRules": "ignore",
+	"stylelint.validate": ["css", "postcss", "tailwindcss", "astro"],
+	"editor.quickSuggestions": {
+		"strings": true
+	}
+}

@@ -1,0 +1,61 @@
+---
+import MainSite from '#components/main/main-site.astro';
+import MediaImage from '#components/parts/media-image.astro';
+import { formatDate } from '#lib/utils/date.ts';
+
+interface Props {
+	date?: Date | undefined;
+	description?: string | undefined;
+	image?: string | undefined;
+	kind?: string | undefined;
+	title: string;
+}
+
+const { date, description, image, kind, title } = Astro.props;
+---
+
+<MainSite title={title} {...description ? { description } : {}}>
+	<article>
+		<header class="mb-6">
+			{
+				kind ? (
+					<p class="mb-1 text-xs font-medium tracking-wide text-accent-400 uppercase">{kind}</p>
+				) : undefined
+			}
+			<h1 class="text-3xl font-semibold text-ink-50">{title}</h1>
+			{
+				date ? (
+					<p class="mt-1 text-sm text-ink-500">
+						<time datetime={date.toISOString()}>{formatDate(date)}</time>
+					</p>
+				) : undefined
+			}
+		</header>
+		{
+			image ? (
+				<MediaImage
+					alt={title}
+					class="mb-6 w-full rounded"
+					path={image}
+					sizes="(min-width: 48rem) 48rem, 100vw"
+					width={1200}
+				/>
+			) : undefined
+		}
+		{
+			Astro.slots.has('media') ? (
+				<div class="mb-6">
+					<slot name="media" />
+				</div>
+			) : undefined
+		}
+		{
+			Astro.slots.has('default') ? (
+				<div class="prose-x">
+					<slot />
+				</div>
+			) : undefined
+		}
+		<slot name="sections" />
+	</article>
+</MainSite>

@@ -1,0 +1,16 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+
+import MixDetail from '#layouts/mix-detail.astro';
+import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
+
+export const getStaticPaths = (async () => {
+	const mixes = await getPublishedMixes();
+
+	return mixes.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+---
+
+<MixDetail {...Astro.props} />

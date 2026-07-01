@@ -1,0 +1,35 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import { render } from 'astro:content';
+
+import TermLinks from '#components/parts/term-links.astro';
+import ContentDetail from '#layouts/content-detail.astro';
+import { resolveTermLinks } from '#lib/utils/terms.ts';
+
+interface Props {
+	entry: CollectionEntry<'posts'>;
+}
+
+const { entry } = Astro.props;
+
+const { Content } = await render(entry);
+
+const categoryTerms = await resolveTermLinks('categories', entry.data.categories);
+const tagTerms = await resolveTermLinks('tags', entry.data.tags);
+---
+
+<ContentDetail
+	date={entry.data.date}
+	kind="Writing"
+	title={entry.data.title}
+	{...entry.data.description ? { description: entry.data.description } : {}}
+>
+	<Content />
+	<Fragment slot="sections">
+		<div class="mt-8 space-y-2">
+			<TermLinks heading="Categories" terms={categoryTerms} />
+			<TermLinks heading="Tags" terms={tagTerms} />
+		</div>
+	</Fragment>
+</ContentDetail>

@@ -1,0 +1,68 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import { render } from 'astro:content';
+
+import TermLinks from '#components/parts/term-links.astro';
+import ContentDetail from '#layouts/content-detail.astro';
+import { resolveTermLinks } from '#lib/utils/terms.ts';
+
+interface Props {
+	entry: CollectionEntry<'reviews'>;
+}
+
+const { entry } = Astro.props;
+
+const { Content } = await render(entry);
+
+const artistTerms = await resolveTermLinks('artists', entry.data.artists);
+const styleTerms = await resolveTermLinks('styles', entry.data.styles);
+const labelTerms = await resolveTermLinks('labels', entry.data.labelsRef);
+
+const { discogsUrl, rating, releaseYear } = entry.data;
+---
+
+<ContentDetail
+	date={entry.data.date}
+	image={entry.data.imageFeatured}
+	kind="Review"
+	title={entry.data.title}
+	{...entry.data.description ? { description: entry.data.description } : {}}
+>
+	<Content />
+	<Fragment slot="sections">
+		<div class="mt-8 space-y-2 text-sm">
+			{
+				releaseYear ? (
+					<p class="text-ink-400">
+						Released: <span class="text-ink-200">{releaseYear}</span>
+					</p>
+				) : undefined
+			}
+			{
+				rating ? (
+					<p class="text-ink-400">
+						Rating: <span class="text-ink-200">{rating}/100</span>
+					</p>
+				) : undefined
+			}
+			{
+				discogsUrl ? (
+					<p>
+						<a
+							class="text-accent-400 hover:text-accent-300"
+							href={discogsUrl}
+							rel="noreferrer"
+							target="_blank"
+						>
+							View on Discogs
+						</a>
+					</p>
+				) : undefined
+			}
+			<TermLinks heading="Artists" terms={artistTerms} />
+			<TermLinks heading="Styles" terms={styleTerms} />
+			<TermLinks heading="Labels" terms={labelTerms} />
+		</div>
+	</Fragment>
+</ContentDetail>

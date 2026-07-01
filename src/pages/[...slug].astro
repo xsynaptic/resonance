@@ -1,0 +1,42 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+
+import PageDetail from '#layouts/page-detail.astro';
+import PostDetail from '#layouts/post-detail.astro';
+import { getPublishedPages } from '#lib/collections/pages/pages-data.ts';
+import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
+
+// Pages and posts both render at the site root
+// On a slug collision the page wins; collision-free today but kept defensive
+export const getStaticPaths = (async () => {
+	const pages = await getPublishedPages();
+	const posts = await getPublishedPosts();
+
+	const pageSlugs = new Set(pages.map((entry) => entry.id));
+
+	const pagePaths = pages.map((entry) => ({
+		params: { slug: entry.id },
+		props: { entry, type: 'page' as const },
+	}));
+
+	const postPaths = posts
+		.filter((entry) => {
+			if (pageSlugs.has(entry.id)) {
+				if (import.meta.env.DEV) {
+					console.warn(`[routing] slug "${entry.id}" exists as page and post; page wins`);
+				}
+				return false;
+			}
+			return true;
+		})
+		.map((entry) => ({ params: { slug: entry.id }, props: { entry, type: 'post' as const } }));
+
+	return [...pagePaths, ...postPaths];
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const props = Astro.props;
+---
+
+{props.type === 'page' ? <PageDetail entry={props.entry} /> : <PostDetail entry={props.entry} />}

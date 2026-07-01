@@ -1,0 +1,36 @@
+---
+import { Font } from 'astro:assets';
+
+import '#styles/main.css';
+import MenuFooter from '#components/menu/menu-footer.astro';
+import MenuHeader from '#components/menu/menu-header.astro';
+import { site } from '#lib/site.ts';
+
+interface Props {
+	description?: string;
+	title?: string;
+}
+
+const { description = site.description, title } = Astro.props;
+const pageTitle = title ? `${title} · ${site.title}` : site.title;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta content="width=device-width, initial-scale=1" name="viewport" />
+		<link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+		<Font cssVariable="--font-manrope" preload />
+		<Font cssVariable="--font-prompt" preload />
+		<title>{pageTitle}</title>
+		<meta content={description} name="description" />
+	</head>
+	<body class="flex min-h-screen flex-col">
+		<MenuHeader />
+		<main class="content-column w-full flex-1 py-12">
+			<slot />
+		</main>
+		<MenuFooter />
+	</body>
+</html>

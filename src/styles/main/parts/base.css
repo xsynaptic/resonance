@@ -1,0 +1,38 @@
+html {
+	scrollbar-gutter: stable;
+}
+
+body {
+	font-family: var(--font-body);
+	font-size: 1.0625rem;
+	line-height: 1.6;
+	color: var(--color-ink-200);
+	background-color: var(--color-surface-900);
+	-webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--color-ink-50);
+	text-wrap: balance;
+}
+
+a {
+	color: var(--color-accent-400);
+	text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+	color: var(--color-highlight-400);
+}
+
+::selection {
+	color: var(--color-surface-900);
+	background-color: var(--color-accent-400);
+}

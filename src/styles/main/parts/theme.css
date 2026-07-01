@@ -1,0 +1,52 @@
+/* Layout widths: 900px body, 675px reading column */
+@theme {
+	--spacing-content: 56.25rem;
+	--spacing-prose: 42.1875rem;
+}
+
+/* Fonts via the Astro Fonts API (Fontsource); trial pairing of Prompt for display, Manrope for body */
+@theme {
+	--font-display: var(--font-prompt, system-ui, sans-serif);
+	--font-body: var(--font-manrope, system-ui, sans-serif);
+	--font-mono: ui-monospace, 'SF Mono', menlo, consolas, monospace;
+}
+
+/* Colors: a curated dark palette (blue-grey surfaces, cyan-tinted ink, lime accent) */
+@theme {
+	/* Surfaces: dark desaturated blue-grey; surface-900 is the page background */
+	--color-surface-100: hsl(205deg 25% 63%);
+	--color-surface-200: hsl(204deg 17% 53%);
+	--color-surface-300: hsl(203deg 15% 43%);
+	--color-surface-400: hsl(203deg 14% 34%);
+	--color-surface-500: hsl(205deg 13% 28%);
+	--color-surface-600: hsl(204deg 13% 23%);
+	--color-surface-700: hsl(205deg 12% 19%);
+	--color-surface-800: hsl(203deg 10% 15%);
+	--color-surface-900: hsl(204deg 8% 12%);
+
+	/* Text: light cyan-tinted off-white; ink-50 brightest, ink-700 dimmest */
+	--color-ink-50: hsl(180deg 26% 93%);
+	--color-ink-100: hsl(184deg 25% 88%);
+	--color-ink-200: hsl(183deg 23% 83%);
+	--color-ink-300: hsl(185deg 24% 78%);
+	--color-ink-400: hsl(184deg 19% 72%);
+	--color-ink-500: hsl(182deg 13% 63%);
+	--color-ink-600: hsl(183deg 10% 55%);
+	--color-ink-700: hsl(183deg 8% 47%);
+
+	/* Accent: lime-green, for links and interactive accents */
+	--color-accent-300: hsl(77deg 68% 70%);
+	--color-accent-400: hsl(77deg 75% 61%);
+	--color-accent-500: hsl(77deg 72% 53%);
+	--color-accent-600: hsl(77deg 68% 48%);
+
+	/* Highlight: orange */
+	--color-highlight-300: hsl(30deg 100% 84%);
+	--color-highlight-400: hsl(26.5deg 98% 59%);
+	--color-highlight-500: hsl(27deg 85% 49%);
+	--color-highlight-600: hsl(26deg 81% 43%);
+
+	/* Crimson secondary */
+	--color-crimson-400: hsl(349deg 63% 59%);
+	--color-crimson-500: hsl(351deg 49% 49%);
+}

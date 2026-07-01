@@ -1,0 +1,36 @@
+---
+import type { Page } from 'astro';
+
+import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+
+import MainSite from '#components/main/main-site.astro';
+import EntryCard from '#components/parts/entry-card.astro';
+import PaginationSelect from '#components/parts/pagination-select.astro';
+
+interface Props {
+	page: Page<ContentItem>;
+	title: string;
+}
+
+const { page, title } = Astro.props;
+---
+
+<MainSite title={title}>
+	<h1 class="mb-6 text-3xl font-semibold text-ink-50">{title}</h1>
+	<ul class="grid gap-4 sm:grid-cols-2">
+		{
+			page.data.map((item) => (
+				<li>
+					<EntryCard
+						date={item.date}
+						href={item.url}
+						image={item.image}
+						subtitle={item.subtitle}
+						title={item.title}
+					/>
+				</li>
+			))
+		}
+	</ul>
+	<PaginationSelect class="mt-8" page={page} />
+</MainSite>

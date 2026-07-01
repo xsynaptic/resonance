@@ -1,0 +1,31 @@
+---
+import { Image } from 'astro:assets';
+
+import { getMediaImage } from '#lib/utils/media.ts';
+
+interface Props {
+	alt: string;
+	class?: string | undefined;
+	layout?: 'constrained' | 'none' | undefined;
+	path: string;
+	sizes?: string | undefined;
+	width: number;
+}
+
+const { alt, class: className, layout = 'constrained', path, sizes, width } = Astro.props;
+
+const image = getMediaImage(path);
+---
+
+{
+	image ? (
+		<Image
+			alt={alt}
+			layout={layout}
+			src={image}
+			width={width}
+			{...(className ? { class: className } : {})}
+			{...(sizes ? { sizes } : {})}
+		/>
+	) : undefined
+}

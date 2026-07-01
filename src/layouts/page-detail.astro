@@ -1,0 +1,22 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import { render } from 'astro:content';
+
+import ContentDetail from '#layouts/content-detail.astro';
+
+interface Props {
+	entry: CollectionEntry<'pages'>;
+}
+
+const { entry } = Astro.props;
+
+const { Content } = await render(entry);
+---
+
+<ContentDetail
+	title={entry.data.title}
+	{...entry.data.description ? { description: entry.data.description } : {}}
+>
+	<Content />
+</ContentDetail>

@@ -1,0 +1,26 @@
+---
+import type { CollectionKey } from 'astro:content';
+
+import { getCollection } from 'astro:content';
+
+import MainSite from '#components/main/main-site.astro';
+import TermCloud from '#components/parts/term-cloud.astro';
+import { getContentUrl } from '#lib/utils/routing.ts';
+
+interface Props {
+	collection: CollectionKey;
+	title: string;
+}
+
+const { collection, title } = Astro.props;
+
+const entries = await getCollection(collection);
+const terms = entries
+	.map((term) => ({ title: term.data.title, url: getContentUrl(collection, term.id) }))
+	.sort((first, second) => first.title.localeCompare(second.title));
+---
+
+<MainSite title={title}>
+	<h1 class="mb-6 text-3xl font-semibold text-ink-50">{title}</h1>
+	<TermCloud terms={terms} />
+</MainSite>

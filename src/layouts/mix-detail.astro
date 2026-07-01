@@ -1,0 +1,45 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import { render } from 'astro:content';
+
+import EmbedAudio from '#components/embed/embed-audio.astro';
+import TermLinks from '#components/parts/term-links.astro';
+import Tracklist from '#components/sections/section-tracklist.astro';
+import ContentDetail from '#layouts/content-detail.astro';
+import { resolveTermLinks } from '#lib/utils/terms.ts';
+
+interface Props {
+	entry: CollectionEntry<'mixes'>;
+}
+
+const { entry } = Astro.props;
+
+const { Content } = await render(entry);
+
+const artistTerms = await resolveTermLinks('artists', entry.data.artists);
+const styleTerms = await resolveTermLinks('styles', entry.data.styles);
+const labelTerms = await resolveTermLinks('labels', entry.data.labelsRef);
+---
+
+<ContentDetail
+	date={entry.data.date}
+	kind="Mix"
+	title={entry.data.title}
+	{...entry.data.description ? { description: entry.data.description } : {}}
+>
+	<Content />
+	<EmbedAudio
+		mixcloudEmbed={entry.data.mixcloudEmbed}
+		slot="media"
+		soundcloudEmbed={entry.data.soundcloudEmbed}
+	/>
+	<Fragment slot="sections">
+		<Tracklist tracks={entry.data.tracks} />
+		<div class="mt-8 space-y-2">
+			<TermLinks heading="Artists" terms={artistTerms} />
+			<TermLinks heading="Styles" terms={styleTerms} />
+			<TermLinks heading="Labels" terms={labelTerms} />
+		</div>
+	</Fragment>
+</ContentDetail>

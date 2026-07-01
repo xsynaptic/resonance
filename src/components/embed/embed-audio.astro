@@ -1,0 +1,14 @@
+---
+import EmbedMixcloud from '#components/embed/embed-mixcloud.astro';
+import EmbedSoundcloud from '#components/embed/embed-soundcloud.astro';
+
+interface Props {
+	mixcloudEmbed?: string | undefined;
+	soundcloudEmbed?: string | undefined;
+}
+
+const { mixcloudEmbed, soundcloudEmbed } = Astro.props;
+---
+
+{mixcloudEmbed ? <EmbedMixcloud tracklist url={mixcloudEmbed} /> : undefined}
+{!mixcloudEmbed && soundcloudEmbed ? <EmbedSoundcloud url={soundcloudEmbed} /> : undefined}

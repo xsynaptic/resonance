@@ -1,0 +1,25 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'iframe'>, 'height' | 'src' | 'title'> {
+	/** CSS aspect-ratio (e.g. '16 / 9') for video; takes precedence over height */
+	aspectRatio?: string;
+	/** Fixed pixel height for audio players */
+	height?: number;
+	src: string;
+	title: string;
+}
+
+const { aspectRatio, class: className, height = 120, src, title, ...props } = Astro.props;
+
+const style = aspectRatio ? `aspect-ratio: ${aspectRatio};` : `height: ${String(height)}px;`;
+---
+
+<div class:list={['embed-frame', className]} style={style}>
+	<iframe
+		allow="autoplay; encrypted-media; fullscreen"
+		loading="lazy"
+		src={src}
+		title={title}
+		{...props}></iframe>
+</div>

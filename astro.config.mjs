@@ -38,11 +38,11 @@ export default defineConfig({
 				autoImport({
 					imports: [
 						{
+							'./src/components/embed/embed-mixcloud.astro': [['default', 'Mixcloud']],
+							'./src/components/embed/embed-soundcloud.astro': [['default', 'Soundcloud']],
 							'./src/components/mdx/img.astro': [['default', 'Img']],
 							'./src/components/mdx/link.astro': [['default', 'Link']],
-							'./src/components/mdx/mixcloud.astro': [['default', 'Mixcloud']],
 							'./src/components/mdx/more.astro': [['default', 'More']],
-							'./src/components/mdx/soundcloud.astro': [['default', 'Soundcloud']],
 						},
 					],
 				}),

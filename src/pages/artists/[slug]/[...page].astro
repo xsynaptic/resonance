@@ -1,0 +1,13 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+
+import TermArchive from '#layouts/term-archive.astro';
+import { getArtistsIndex } from '#lib/collections/taxonomy/taxonomy-data.ts';
+import { createTermArchivePaths } from '#lib/collections/taxonomy/term-routes.ts';
+
+export const getStaticPaths = createTermArchivePaths('artists', getArtistsIndex);
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+---
+
+<TermArchive kind="Artist" {...Astro.props} />

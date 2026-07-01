@@ -1,0 +1,59 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+import MediaImage from '#components/parts/media-image.astro';
+import { formatDate } from '#lib/utils/date.ts';
+
+interface Props extends HTMLAttributes<'a'> {
+	date?: Date | undefined;
+	href: string;
+	image?: string | undefined;
+	imageAspect?: '3/2' | 'square' | undefined;
+	subtitle?: string | undefined;
+	title: string;
+}
+
+const {
+	class: className,
+	date,
+	href,
+	image,
+	imageAspect = 'square',
+	subtitle,
+	title,
+	...props
+} = Astro.props;
+
+// Album artwork is square by default; opt into 3:2 per surface
+const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
+---
+
+<a
+	class:list={[
+		'maze group block rounded border border-surface-700 bg-surface-800 p-4 transition hover:border-accent-500',
+		className,
+	]}
+	href={href}
+	{...props}
+>
+	{
+		image ? (
+			<MediaImage
+				alt=""
+				class={`mb-3 ${aspectClass} w-full rounded object-cover`}
+				layout="none"
+				path={image}
+				width={640}
+			/>
+		) : undefined
+	}
+	<span class="block font-medium text-ink-100 group-hover:text-accent-300">{title}</span>
+	{subtitle ? <span class="mt-1 block text-sm text-ink-400">{subtitle}</span> : undefined}
+	{
+		date ? (
+			<time class="mt-2 block text-xs text-ink-600" datetime={date.toISOString()}>
+				{formatDate(date)}
+			</time>
+		) : undefined
+	}
+</a>

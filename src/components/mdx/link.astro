@@ -1,0 +1,27 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+import { getReferences } from '#lib/references/references-data.ts';
+import { renderSlot } from '#lib/utils/astro.ts';
+
+interface Props extends HTMLAttributes<'a'> {
+	id: string | undefined;
+}
+
+const { id, ...props } = Astro.props;
+
+const content = await renderSlot(Astro.slots, 'default');
+
+if (!id) {
+	throw new Error(`Link component requires an id; rendering path: ${Astro.url.pathname}`);
+}
+
+const references = await getReferences();
+const item = references.get(id);
+
+if (!item && import.meta.env.DEV) {
+	console.warn(`[link] no reference match for id "${id}" (path: ${Astro.url.pathname})`);
+}
+---
+
+{item ? <a href={item.url} {...props} set:html={content} /> : <Fragment set:html={content} />}

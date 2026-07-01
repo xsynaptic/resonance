@@ -1,0 +1,24 @@
+---
+import EmbedFrame from '#components/embed/embed-frame.astro';
+
+interface Props {
+	url: string;
+}
+
+const { url } = Astro.props;
+
+// Player tweaks: mini, no artwork, taller for sets
+const isSet = url.includes('/sets/');
+const params = new URLSearchParams({
+	color: 'a6dd47',
+	hide_related: 'true',
+	show_artwork: 'false',
+	url,
+	visual: 'false',
+});
+
+const src = `https://w.soundcloud.com/player/?${params.toString()}`;
+const height = isSet ? 300 : 166;
+---
+
+<EmbedFrame height={height} src={src} title="SoundCloud player" />

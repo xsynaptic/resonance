@@ -1,0 +1,14 @@
+---
+import { site } from '#lib/site.ts';
+
+const year = new Date().getFullYear();
+---
+
+<footer
+	class="maze mt-16 bg-linear-to-b from-surface-800 to-transparent [--pattern-color:var(--color-surface-700)]"
+>
+	<div class="content-column py-10 text-sm text-ink-600">
+		<p class="font-display text-base text-ink-400">{site.title}</p>
+		<p class="mt-2 text-ink-700">© {year} · Mixes and reviews for the love of it.</p>
+	</div>
+</footer>

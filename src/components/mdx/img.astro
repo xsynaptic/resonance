@@ -1,0 +1,27 @@
+---
+import { Image } from 'astro:assets';
+
+import { getMediaImageById } from '#lib/utils/media.ts';
+
+interface Props {
+	alt?: string | undefined;
+	id: string;
+}
+
+const { alt = '', id } = Astro.props;
+
+const image = getMediaImageById(id);
+---
+
+{
+	image ? (
+		<Image
+			alt={alt}
+			class="my-6 block w-full rounded"
+			layout="constrained"
+			sizes="(min-width: 48rem) 48rem, 100vw"
+			src={image}
+			width={1200}
+		/>
+	) : undefined
+}

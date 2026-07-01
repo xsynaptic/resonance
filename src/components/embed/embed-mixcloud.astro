@@ -1,0 +1,34 @@
+---
+import EmbedFrame from '#components/embed/embed-frame.astro';
+
+interface Props {
+	/** Minimal player (single row) */
+	mini?: boolean;
+	/** Taller player that shows the tracklist */
+	tracklist?: boolean;
+	/** Full MixCloud show URL (e.g. https://www.mixcloud.com/djbasilisk/show-name/) */
+	url: string;
+}
+
+const { mini = false, tracklist = false, url } = Astro.props;
+
+// The widget takes the show path as a URL-encoded `feed` parameter
+// Fail soft on a malformed URL so one bad value can't abort the build, matching the media/link resolvers
+let feed: string | undefined;
+try {
+	feed = new URL(url).pathname;
+} catch {
+	if (import.meta.env.DEV) console.warn(`[mixcloud] invalid url: ${url}`);
+}
+
+const params = feed ? new URLSearchParams({ feed, hide_cover: '1', light: '0' }) : undefined;
+if (params && mini) {
+	params.set('mini', '1');
+}
+
+const src = params ? `https://www.mixcloud.com/widget/iframe/?${params.toString()}` : undefined;
+const fullHeight = tracklist ? 400 : 120;
+const height = mini ? 60 : fullHeight;
+---
+
+{src ? <EmbedFrame height={height} src={src} title="MixCloud player" /> : undefined}

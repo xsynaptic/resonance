@@ -5,6 +5,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
+import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
 import { defineConfig, fontProviders } from 'astro/config';
 
 export default defineConfig({
@@ -40,12 +41,16 @@ export default defineConfig({
 						{
 							'./src/components/embed/embed-mixcloud.astro': [['default', 'Mixcloud']],
 							'./src/components/embed/embed-soundcloud.astro': [['default', 'Soundcloud']],
+							'./src/components/mdx/img-group.astro': [['default', 'ImgGroup']],
 							'./src/components/mdx/img.astro': [['default', 'Img']],
 							'./src/components/mdx/link.astro': [['default', 'Link']],
+							'./src/components/mdx/list-item.astro': [['default', 'ListItem']],
+							'./src/components/mdx/list.astro': [['default', 'List']],
 							'./src/components/mdx/more.astro': [['default', 'More']],
 						},
 					],
 				}),
+				imgGroupSatteriPlugin(),
 			],
 		}),
 	},

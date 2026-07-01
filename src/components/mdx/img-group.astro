@@ -1,0 +1,44 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+import { renderSlot } from '#lib/utils/astro.ts';
+
+// Grid-only by design; the plugin's carousel `layout`/`context` variants are intentionally not ported
+// `imageCount` is injected by the satteri-img-group plugin; `columns` may be authored
+interface Props extends HTMLAttributes<'div'> {
+	columns?: number | string | undefined;
+	imageCount?: number | string | undefined;
+}
+
+const { columns: columnsProp, imageCount: imageCountProp, ...props } = Astro.props;
+
+// Slot children are already-rendered <Img> HTML
+const slotContents = await renderSlot(Astro.slots, 'default');
+const imageCount = imageCountProp ? Number(imageCountProp) : 0;
+
+function getGridColumnCount(itemCount: number): number {
+	if (itemCount % 4 === 0) return 4;
+	if (itemCount % 3 === 0) return 3;
+	if (itemCount % 2 === 0) return 2;
+	return 1;
+}
+
+const columns = getGridColumnCount(columnsProp ? Number(columnsProp) : imageCount);
+---
+
+{
+	imageCount > 0 && slotContents ? (
+		<div
+			class:list={[
+				'c-image-group',
+				columns > 1 ? 'grid grid-cols-1 gap-2 md:gap-4' : undefined,
+				columns === 2 ? 'sm:grid-cols-2' : undefined,
+				columns === 3 ? 'md:grid-cols-3' : undefined,
+				columns === 4 ? 'sm:grid-cols-2 md:grid-cols-4' : undefined,
+			]}
+			{...props}
+		>
+			<Fragment set:html={slotContents} />
+		</div>
+	) : undefined
+}

@@ -1,0 +1,13 @@
+---
+interface Props {
+	order?: 'countdown' | 'ordered' | 'unordered' | undefined;
+}
+
+const { order = 'unordered' } = Astro.props;
+const isOrdered = order === 'ordered' || order === 'countdown';
+const Tag = isOrdered ? 'ol' : 'ul';
+---
+
+<Tag class:list={['c-list my-6 space-y-6', isOrdered && 'c-list-ordered']} data-order={order}>
+	<slot />
+</Tag>

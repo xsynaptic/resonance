@@ -1,7 +1,7 @@
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
-import { contentBaseSchema } from '#lib/schemas/index.ts';
+import { contentBaseSchema, LabelSchema } from '#lib/schemas/index.ts';
 
 export const pageSchema = z
 	.object({
@@ -26,6 +26,6 @@ export const designSchema = z
 	.object({
 		...contentBaseSchema,
 		categories: reference('categories').array().optional(),
-		labelsRef: reference('labels').array().optional(),
+		labels: LabelSchema.array().optional(),
 	})
 	.strict();

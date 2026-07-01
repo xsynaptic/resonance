@@ -3,11 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
-import type { TermLink } from '#lib/utils/terms.ts';
-
-import ListItems from '#components/sections/section-list-items.astro';
 import ContentDetail from '#layouts/content-detail.astro';
-import { resolveSlugLink } from '#lib/utils/entries.ts';
 
 interface Props {
 	entry: CollectionEntry<'lists'>;
@@ -16,13 +12,6 @@ interface Props {
 const { entry } = Astro.props;
 
 const { Content } = await render(entry);
-
-const isOrdered = entry.data.order === 'ordered' || entry.data.order === 'countdown';
-
-const resolved = await Promise.all(
-	(entry.data.listPosts ?? []).map((slug) => resolveSlugLink(slug)),
-);
-const postLinks = resolved.filter((link): link is TermLink => link !== undefined);
 ---
 
 <ContentDetail
@@ -32,27 +21,4 @@ const postLinks = resolved.filter((link): link is TermLink => link !== undefined
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />
-	<Fragment slot="sections">
-		<div class="mt-6 space-y-6">
-			<ListItems items={entry.data.listCustom} ordered={isOrdered} />
-			{
-				postLinks.length > 0 ? (
-					<ul class="space-y-1">
-						{postLinks.map((link) => (
-							<li>
-								<a class="text-accent-400 hover:text-accent-300" href={link.url}>
-									{link.title}
-								</a>
-							</li>
-						))}
-					</ul>
-				) : undefined
-			}
-		</div>
-		{
-			entry.data.postscript ? (
-				<p class="mt-6 text-sm text-ink-400">{entry.data.postscript}</p>
-			) : undefined
-		}
-	</Fragment>
 </ContentDetail>

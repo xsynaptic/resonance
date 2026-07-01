@@ -30,6 +30,7 @@
 		"@xsynaptic/astro-font-devtools": "^0.4.1",
 		"@xsynaptic/eslint-config": "^5.1.0",
 		"@xsynaptic/satteri-auto-import": "^0.1.1",
+		"@xsynaptic/satteri-img-group": "^0.2.1",
 		"@xsynaptic/stylelint-config": "^0.1.1",
 		"eslint": "^10.6.0",
 		"eslint-plugin-astro": "^2.1.1",

@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 
-import { getMediaImageById } from '#lib/utils/media.ts';
+import { getMediaImage } from '#lib/utils/media.ts';
 
 interface Props {
 	alt?: string | undefined;
@@ -10,7 +10,7 @@ interface Props {
 
 const { alt = '', id } = Astro.props;
 
-const image = getMediaImageById(id);
+const image = getMediaImage(id);
 ---
 
 {

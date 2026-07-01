@@ -21,6 +21,8 @@
 
 /** Component layer */
 @import './main/components/embed.css' layer(components);
+@import './main/components/img-group.css' layer(components);
+@import './main/components/list.css' layer(components);
 @import './main/components/maze.css' layer(components);
 @import './main/components/pagination.css' layer(components);
 @import './main/components/prose.css' layer(components);

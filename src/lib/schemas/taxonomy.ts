@@ -9,8 +9,6 @@ const taxonomyBaseSchema = {
 	heroImageId: z.string().optional(),
 	imageId: z.string().optional(),
 	nameVariant: z.string().optional(),
-	teaser: z.string().optional(),
-	teaserSize: z.string().optional(),
 	termLinks: z.string().array().optional(),
 	title: TitleSchema,
 };

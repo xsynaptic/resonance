@@ -1,0 +1,95 @@
+---
+import { Image } from 'astro:assets';
+
+import { resolveSlugLink } from '#lib/utils/entries.ts';
+import { getMediaImage } from '#lib/utils/media.ts';
+
+interface Props {
+	artist?: string | undefined;
+	imageFeatured?: string | undefined;
+	label?: string | undefined;
+	link?: string | undefined;
+	linkDiscogs?: string | undefined;
+	linkId?: string | undefined;
+	linkSource?: string | undefined;
+	linkYoutubeSearch?: boolean | undefined;
+	releaseType?: string | undefined;
+	title?: string | undefined;
+	year?: string | undefined;
+}
+
+const {
+	artist,
+	imageFeatured,
+	label,
+	link,
+	linkDiscogs,
+	linkId,
+	linkSource,
+	linkYoutubeSearch,
+	releaseType,
+	title,
+	year,
+} = Astro.props;
+
+const reviewLink = linkId ? await resolveSlugLink(linkId) : undefined;
+const titleHref = reviewLink?.url ?? link;
+const image = imageFeatured ? getMediaImage(imageFeatured) : undefined;
+const meta = [artist, year, label].filter(Boolean).join(' · ');
+const youtubeSearch =
+	linkYoutubeSearch && (artist ?? title)
+		? `https://www.youtube.com/results?search_query=${encodeURIComponent([artist, title].filter(Boolean).join(' '))}`
+		: undefined;
+---
+
+<li class="c-list-item flex gap-4" data-release-type={releaseType}>
+	{
+		image ? (
+			<Image
+				alt={title ?? ''}
+				class="h-20 w-20 shrink-0 rounded object-cover"
+				height={80}
+				src={image}
+				width={80}
+			/>
+		) : undefined
+	}
+	<div class="min-w-0">
+		{
+			title ? (
+				<div class="font-medium text-ink-100">
+					{titleHref ? (
+						<a class="text-accent-400 hover:text-accent-300" href={titleHref}>
+							{title}
+						</a>
+					) : (
+						title
+					)}
+				</div>
+			) : undefined
+		}
+		{meta ? <div class="text-sm text-ink-500">{meta}</div> : undefined}
+		<div class="mt-1 text-sm text-ink-300"><slot /></div>
+		{
+			linkSource || linkDiscogs || youtubeSearch ? (
+				<div class="mt-1 flex gap-3 text-xs">
+					{linkSource ? (
+						<a class="text-accent-400 hover:text-accent-300" href={linkSource}>
+							Download
+						</a>
+					) : undefined}
+					{linkDiscogs ? (
+						<a class="text-accent-400 hover:text-accent-300" href={linkDiscogs}>
+							Discogs
+						</a>
+					) : undefined}
+					{youtubeSearch ? (
+						<a class="text-accent-400 hover:text-accent-300" href={youtubeSearch}>
+							YouTube
+						</a>
+					) : undefined}
+				</div>
+			) : undefined
+		}
+	</div>
+</li>

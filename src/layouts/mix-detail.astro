@@ -7,7 +7,7 @@ import EmbedAudio from '#components/embed/embed-audio.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import Tracklist from '#components/sections/section-tracklist.astro';
 import ContentDetail from '#layouts/content-detail.astro';
-import { resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveLabelLinks, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	entry: CollectionEntry<'mixes'>;
@@ -19,7 +19,7 @@ const { Content } = await render(entry);
 
 const artistTerms = await resolveTermLinks('artists', entry.data.artists);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
-const labelTerms = await resolveTermLinks('labels', entry.data.labelsRef);
+const labelTerms = await resolveLabelLinks(entry.data.labels);
 ---
 
 <ContentDetail

@@ -5,7 +5,7 @@ import { render } from 'astro:content';
 
 import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
-import { resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveLabelLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	entry: CollectionEntry<'designs'>;
@@ -15,7 +15,7 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const labelTerms = await resolveTermLinks('labels', entry.data.labelsRef);
+const labelTerms = await resolveLabelLinks(entry.data.labels);
 ---
 
 <ContentDetail

@@ -19,13 +19,27 @@ const DateStringSchema = z
 // Cover image as a normalized path string, until originals are hosted
 const ImageFeaturedSchema = z.string();
 
+// A label is either a bare id (resolves to a label taxonomy entry) or an object carrying catalog
+// detail; `id` resolves when present. Not an Astro reference, so resolution/validation is our own.
+export const LabelSchema = z.union([
+	z.string(),
+	z
+		.object({
+			code: z.string().optional(),
+			id: z.string().optional(),
+			title: z.string().optional(),
+		})
+		.strict(),
+]);
+
+export type LabelValue = z.infer<typeof LabelSchema>;
+
 // Shared base fields for document collections (pages, posts, mixes, reviews, lists, designs)
 export const contentBaseSchema = {
 	date: DateStringSchema,
 	dateUpdated: DateStringSchema.optional(),
 	description: z.string().optional(),
 	entities: z.string().array().optional(),
-	excerpt: z.string().optional(),
 	imageFeatured: ImageFeaturedSchema.optional(),
 	imageHero: ImageFeaturedSchema.optional(),
 	title: TitleSchema,

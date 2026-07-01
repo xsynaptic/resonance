@@ -36,6 +36,9 @@ importers:
       '@xsynaptic/satteri-auto-import':
         specifier: ^0.1.1
         version: 0.1.1(satteri@0.9.3)
+      '@xsynaptic/satteri-img-group':
+        specifier: ^0.2.1
+        version: 0.2.1(satteri@0.9.3)
       '@xsynaptic/stylelint-config':
         specifier: ^0.1.1
         version: 0.1.1(stylelint-order@8.1.1(stylelint@17.14.0(typescript@6.0.3)))(stylelint@17.14.0(typescript@6.0.3))
@@ -1594,6 +1597,11 @@ packages:
 
   '@xsynaptic/satteri-auto-import@0.1.1':
     resolution: {integrity: sha512-C0utDXyooFG7ZvTXiIszSQU704Yy5zOv8qyWCfFyoDsUExPWd+OXvCCHLGJFjHz5UBJ+PCY/5grsOXp5cMoFOw==}
+    peerDependencies:
+      satteri: ^0.9.0
+
+  '@xsynaptic/satteri-img-group@0.2.1':
+    resolution: {integrity: sha512-LAYNHbyGx7NHybdEarGU0iIfopaAN5GOa8zD41HvWBZfw0bE27IH9HXMxOUV+ok9/d0gYCV+NRw8ABhgOen2uA==}
     peerDependencies:
       satteri: ^0.9.0
 
@@ -5480,6 +5488,11 @@ snapshots:
       - typescript
 
   '@xsynaptic/satteri-auto-import@0.1.1(satteri@0.9.3)':
+    dependencies:
+      satteri: 0.9.3
+      zod: 4.4.3
+
+  '@xsynaptic/satteri-img-group@0.2.1(satteri@0.9.3)':
     dependencies:
       satteri: 0.9.3
       zod: 4.4.3

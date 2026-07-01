@@ -1,7 +1,7 @@
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
-import { contentBaseSchema } from '#lib/schemas/index.ts';
+import { contentBaseSchema, LabelSchema } from '#lib/schemas/index.ts';
 
 // Only the per-track fields that actually carry data
 // Flat and short-keyed for hand-editing; `year`/`time` stay strings (verbatim, e.g. "62:14")
@@ -16,8 +16,6 @@ const TrackSchema = z
 	})
 	.strict();
 
-const ReleaseLabelSchema = z.object({ code: z.string().optional(), name: z.string() }).strict();
-
 // Shared release metadata for mixes and reviews (enums are supersets; only some values are used)
 // No release-level `project` scalar; the `artists` reference is the canonical artist link
 const audioReleaseFields = {
@@ -26,8 +24,7 @@ const audioReleaseFields = {
 	format: z
 		.enum(['standard', 'mix-live', 'mix-studio', 'compilation', 'album', 'remixes'])
 		.optional(),
-	labels: ReleaseLabelSchema.array().optional(),
-	labelsRef: reference('labels').array().optional(),
+	labels: LabelSchema.array().optional(),
 	links: z.string().array().optional(),
 	notes: z.string().optional(),
 	regions: reference('regions').array().optional(),

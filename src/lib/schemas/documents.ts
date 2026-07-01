@@ -8,7 +8,6 @@ export const pageSchema = z
 		...contentBaseSchema,
 		menuOrder: z.number().optional(),
 		parent: reference('pages').optional(),
-		template: z.string().optional(),
 	})
 	.strict();
 
@@ -16,7 +15,6 @@ export const postSchema = z
 	.object({
 		...contentBaseSchema,
 		categories: reference('categories').array().optional(),
-		seriesOrder: z.number().optional(),
 		tags: reference('tags').array().optional(),
 	})
 	.strict();

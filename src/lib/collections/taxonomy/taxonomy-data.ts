@@ -91,11 +91,49 @@ export const getRegionsIndex = makeTermIndex(async (index) => {
 	collectByTerm('reviews', reviews, (entry) => entry.data.regions, index);
 });
 
-export const getSeriesIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews] = await Promise.all([getCollection('mixes'), getCollection('reviews')]);
-	collectByTerm('mixes', mixes, (entry) => entry.data.series, index);
-	collectByTerm('reviews', reviews, (entry) => entry.data.series, index);
-});
+// A series entry owns its members via `seriesItems` (ordered ids), so resolve those in place rather
+// than scanning content for back-references; array order is the display order, so no date sort.
+// Only audio releases carry series membership today; widen this if the extractor starts emitting it
+// for other collections.
+const SERIES_MEMBER_COLLECTIONS = ['mixes', 'reviews'] as const;
+
+let seriesIndexPromise: Promise<TermIndex> | undefined;
+
+export async function getSeriesIndex(): Promise<TermIndex> {
+	seriesIndexPromise ??= buildSeriesIndex();
+	return seriesIndexPromise;
+}
+
+async function buildSeriesIndex(): Promise<TermIndex> {
+	const series = await getCollection('series');
+	const membersById = await buildSeriesMemberCatalog();
+
+	const index: TermIndex = new Map();
+	for (const entry of series) {
+		const items = (entry.data.seriesItems ?? [])
+			.map((id) => {
+				const item = membersById.get(id);
+				if (item === undefined && import.meta.env.DEV) {
+					console.warn(`[series] "${entry.id}" references unresolved seriesItems id "${id}"`);
+				}
+				return item;
+			})
+			.filter((item): item is ContentItem => item !== undefined);
+		index.set(entry.id, items);
+	}
+	return index;
+}
+
+async function buildSeriesMemberCatalog(): Promise<Map<string, ContentItem>> {
+	const membersById = new Map<string, ContentItem>();
+	for (const collection of SERIES_MEMBER_COLLECTIONS) {
+		const entries = await getCollection(collection);
+		for (const entry of entries) {
+			if (!membersById.has(entry.id)) membersById.set(entry.id, toContentItem(collection, entry));
+		}
+	}
+	return membersById;
+}
 
 export const getStylesIndex = makeTermIndex(async (index) => {
 	const [mixes, reviews, lists] = await Promise.all([

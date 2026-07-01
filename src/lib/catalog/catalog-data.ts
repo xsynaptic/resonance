@@ -7,7 +7,7 @@ import { getContentUrl } from '#lib/utils/routing.ts';
 // Entry fields the catalog projects; optional members are absent on collections that lack them (read as undefined)
 export interface ContentDoc {
 	data: {
-		date: Date;
+		dateCreated: Date;
 		imageFeatured?: string | undefined;
 		releaseYear?: string | undefined;
 		title: string;
@@ -33,7 +33,7 @@ type ContentCollectionKey = 'designs' | 'lists' | 'mixes' | 'posts' | 'reviews';
 export function toContentItem(collection: CollectionKey, entry: ContentDoc): ContentItem {
 	return {
 		collection,
-		date: entry.data.date,
+		date: entry.data.dateCreated,
 		id: entry.id,
 		image: entry.data.imageFeatured,
 		subtitle: entry.data.releaseYear,

@@ -1,15 +1,8 @@
 ---
-interface Props {
-	tracks: Array<Track> | undefined;
-}
+import type { TrackValue } from '#lib/schemas/audio.ts';
 
-interface Track {
-	artist: string;
-	label?: string | undefined;
-	remixer?: string | undefined;
-	time?: string | undefined;
-	title: string;
-	year?: string | undefined;
+interface Props {
+	tracks?: Array<TrackValue> | undefined;
 }
 
 const { tracks } = Astro.props;
@@ -17,7 +10,7 @@ const { tracks } = Astro.props;
 
 {
 	tracks && tracks.length > 0 ? (
-		<section class="mt-8">
+		<section class="not-prose my-8">
 			<h2 class="mb-3 text-lg font-semibold text-ink-100">Tracklist</h2>
 			<ol class="space-y-1 text-sm text-ink-300">
 				{tracks.map((track) => (

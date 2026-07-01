@@ -3,11 +3,10 @@ import { z } from 'zod';
 
 import { TitleSchema } from '#lib/schemas/index.ts';
 
-// Shared term fields
+// Shared term fields; `description` lives in the body, not frontmatter
 const taxonomyBaseSchema = {
-	description: z.string().optional(),
-	heroImageId: z.string().optional(),
-	imageId: z.string().optional(),
+	imageFeatured: z.string().optional(),
+	imageHero: z.string().optional(),
 	nameVariant: z.string().optional(),
 	termLinks: z.string().array().optional(),
 	title: TitleSchema,
@@ -35,6 +34,9 @@ export const eraSchema = z
 	.object({ ...taxonomyBaseSchema, parent: reference('eras').optional() })
 	.strict();
 
+// The series entry owns its members: `seriesItems` is an ordered list of content ids. Plain strings,
+// not references, so a single field can resolve members by bare id across content collections without
+// binding to one target collection. Array order is the display order.
 export const seriesSchema = z
-	.object({ ...taxonomyBaseSchema, ordered: z.boolean().optional() })
+	.object({ ...taxonomyBaseSchema, seriesItems: z.string().array().optional() })
 	.strict();

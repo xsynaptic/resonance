@@ -16,8 +16,11 @@ const TrackSchema = z
 	})
 	.strict();
 
-// Shared release metadata for mixes and reviews (enums are supersets; only some values are used)
-// No release-level `project` scalar; the `artists` reference is the canonical artist link
+export type TrackValue = z.infer<typeof TrackSchema>;
+
+// Shared release metadata for mixes and reviews. One unified `format` enum spanning both (mixes use
+// mix-live/mix-studio, reviews use standard/compilation/album/remixes). Series membership lives on the
+// series entry (`seriesItems`), not here, so releases carry no series reference.
 const audioReleaseFields = {
 	artists: reference('artists').array().optional(),
 	eras: reference('eras').array().optional(),
@@ -26,15 +29,13 @@ const audioReleaseFields = {
 		.optional(),
 	labels: LabelSchema.array().optional(),
 	links: z.string().array().optional(),
-	notes: z.string().optional(),
 	regions: reference('regions').array().optional(),
-	releaseAttributes: z.enum(['various', 'nonexclusive', 'mixed']).array().optional(),
 	releaseTitle: z.string().optional(),
 	releaseType: z.enum(['default', 'major', 'minor', 'other']).optional(),
 	releaseYear: z.string().optional(),
-	series: reference('series').array().optional(),
-	seriesOrder: z.number().optional(),
 	styles: reference('styles').array().optional(),
+	// Verbatim source-of-truth backup, intentionally not rendered; `tracks` drives display. Kept because
+	// the extractor merges multi-tracklist mixes into `tracks` lossily, and this preserves the original
 	tracklistRaw: z.string().optional(),
 	tracks: TrackSchema.array().optional(),
 };

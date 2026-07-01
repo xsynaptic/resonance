@@ -36,7 +36,7 @@ export type LabelValue = z.infer<typeof LabelSchema>;
 
 // Shared base fields for document collections (pages, posts, mixes, reviews, lists, designs)
 export const contentBaseSchema = {
-	date: DateStringSchema,
+	dateCreated: DateStringSchema,
 	dateUpdated: DateStringSchema.optional(),
 	description: z.string().optional(),
 	entities: z.string().array().optional(),

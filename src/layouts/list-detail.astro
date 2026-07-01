@@ -15,7 +15,7 @@ const { Content } = await render(entry);
 ---
 
 <ContentDetail
-	date={entry.data.date}
+	date={entry.data.dateCreated}
 	kind="List"
 	title={entry.data.title}
 	{...entry.data.description ? { description: entry.data.description } : {}}

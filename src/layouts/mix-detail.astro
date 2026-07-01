@@ -5,7 +5,6 @@ import { render } from 'astro:content';
 
 import EmbedAudio from '#components/embed/embed-audio.astro';
 import TermLinks from '#components/parts/term-links.astro';
-import Tracklist from '#components/sections/section-tracklist.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { resolveLabelLinks, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -23,7 +22,7 @@ const labelTerms = await resolveLabelLinks(entry.data.labels);
 ---
 
 <ContentDetail
-	date={entry.data.date}
+	date={entry.data.dateCreated}
 	kind="Mix"
 	title={entry.data.title}
 	{...entry.data.description ? { description: entry.data.description } : {}}
@@ -35,7 +34,6 @@ const labelTerms = await resolveLabelLinks(entry.data.labels);
 		soundcloudEmbed={entry.data.soundcloudEmbed}
 	/>
 	<Fragment slot="sections">
-		<Tracklist tracks={entry.data.tracks} />
 		<div class="mt-8 space-y-2">
 			<TermLinks heading="Artists" terms={artistTerms} />
 			<TermLinks heading="Styles" terms={styleTerms} />

@@ -1,25 +1,17 @@
 ---
 import { Image } from 'astro:assets';
 
+import type { ListItemValue } from '#lib/schemas/lists.ts';
+
 import { resolveSlugLink } from '#lib/utils/entries.ts';
+import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 
-interface Props {
-	artist?: string | undefined;
-	imageFeatured?: string | undefined;
-	label?: string | undefined;
-	link?: string | undefined;
-	linkDiscogs?: string | undefined;
-	linkId?: string | undefined;
-	linkSource?: string | undefined;
-	linkYoutubeSearch?: boolean | undefined;
-	releaseType?: string | undefined;
-	title?: string | undefined;
-	year?: string | undefined;
-}
+type Props = ListItemValue;
 
 const {
 	artist,
+	description,
 	imageFeatured,
 	label,
 	link,
@@ -36,6 +28,7 @@ const reviewLink = linkId ? await resolveSlugLink(linkId) : undefined;
 const titleHref = reviewLink?.url ?? link;
 const image = imageFeatured ? getMediaImage(imageFeatured) : undefined;
 const meta = [artist, year, label].filter(Boolean).join(' · ');
+const descriptionHtml = description ? await renderMarkdown(description) : undefined;
 const youtubeSearch =
 	linkYoutubeSearch && (artist ?? title)
 		? `https://www.youtube.com/results?search_query=${encodeURIComponent([artist, title].filter(Boolean).join(' '))}`
@@ -46,7 +39,7 @@ const youtubeSearch =
 	{
 		image ? (
 			<Image
-				alt={title ?? ''}
+				alt={title}
 				class="h-20 w-20 shrink-0 rounded object-cover"
 				height={80}
 				src={image}
@@ -55,21 +48,19 @@ const youtubeSearch =
 		) : undefined
 	}
 	<div class="min-w-0">
-		{
-			title ? (
-				<div class="font-medium text-ink-100">
-					{titleHref ? (
-						<a class="text-accent-400 hover:text-accent-300" href={titleHref}>
-							{title}
-						</a>
-					) : (
-						title
-					)}
-				</div>
-			) : undefined
-		}
+		<div class="font-medium text-ink-100">
+			{
+				titleHref ? (
+					<a class="text-accent-400 hover:text-accent-300" href={titleHref}>
+						{title}
+					</a>
+				) : (
+					title
+				)
+			}
+		</div>
 		{meta ? <div class="text-sm text-ink-500">{meta}</div> : undefined}
-		<div class="mt-1 text-sm text-ink-300"><slot /></div>
+		{descriptionHtml ? <div class="prose-x mt-1 text-sm" set:html={descriptionHtml} /> : undefined}
 		{
 			linkSource || linkDiscogs || youtubeSearch ? (
 				<div class="mt-1 flex gap-3 text-xs">

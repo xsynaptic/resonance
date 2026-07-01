@@ -20,7 +20,7 @@ const tagTerms = await resolveTermLinks('tags', entry.data.tags);
 ---
 
 <ContentDetail
-	date={entry.data.date}
+	date={entry.data.dateCreated}
 	kind="Writing"
 	title={entry.data.title}
 	{...entry.data.description ? { description: entry.data.description } : {}}

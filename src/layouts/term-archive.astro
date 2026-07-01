@@ -2,11 +2,14 @@
 import type { Page } from 'astro';
 import type { CollectionEntry, CollectionKey } from 'astro:content';
 
+import { render } from 'astro:content';
+
 import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
+import { toExcerpt } from '#lib/utils/text.ts';
 
 interface Props {
 	kind: string;
@@ -18,6 +21,12 @@ interface Props {
 
 const { kind, page, term } = Astro.props;
 
+const { Content } = await render(term);
+
+// Description now lives in the body; derive a plain-text meta description from it for the page head
+const body = term.body?.trim() ?? '';
+const description = body === '' ? undefined : await toExcerpt(body);
+
 const collectionLabels: Partial<Record<CollectionKey, string>> = {
 	designs: 'Album Artwork',
 	lists: 'List',
@@ -27,14 +36,17 @@ const collectionLabels: Partial<Record<CollectionKey, string>> = {
 };
 ---
 
-<MainSite
-	title={term.data.title}
-	{...term.data.description ? { description: term.data.description } : {}}
->
+<MainSite title={term.data.title} {...description ? { description } : {}}>
 	<header class="mb-6">
 		<p class="mb-1 text-xs font-medium tracking-wide text-accent-400 uppercase">{kind}</p>
 		<h1 class="text-3xl font-semibold text-ink-50">{term.data.title}</h1>
-		{term.data.description ? <p class="mt-2 text-ink-300">{term.data.description}</p> : undefined}
+		{
+			body === '' ? undefined : (
+				<div class="prose-x mt-2">
+					<Content />
+				</div>
+			)
+		}
 	</header>
 	{
 		page.data.length > 0 ? (

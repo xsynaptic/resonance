@@ -5,7 +5,6 @@ const rootCollections = new Set<CollectionKey>(['pages', 'posts']);
 
 // Singular route bases for these taxonomy archives
 const routeBaseByCollection: Partial<Record<CollectionKey, string>> = {
-	categories: 'category',
 	tags: 'tag',
 };
 

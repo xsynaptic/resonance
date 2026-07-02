@@ -53,17 +53,6 @@ function sortIndex(index: TermIndex): TermIndex {
 	return index;
 }
 
-export const getCategoriesIndex = makeTermIndex(async (index) => {
-	const [posts, designs, lists] = await Promise.all([
-		getCollection('posts'),
-		getCollection('designs'),
-		getCollection('lists'),
-	]);
-	collectByTerm('posts', posts, (entry) => entry.data.categories, index);
-	collectByTerm('designs', designs, (entry) => entry.data.categories, index);
-	collectByTerm('lists', lists, (entry) => entry.data.categories, index);
-});
-
 export const getLabelsIndex = makeTermIndex(async (index) => {
 	const [mixes, reviews, designs] = await Promise.all([
 		getCollection('mixes'),

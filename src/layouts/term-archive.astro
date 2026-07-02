@@ -16,9 +16,7 @@ import { toExcerpt } from '#lib/utils/text.ts';
 interface Props {
 	kind: string;
 	page: Page<ContentItem>;
-	term: CollectionEntry<
-		'artists' | 'categories' | 'eras' | 'labels' | 'regions' | 'series' | 'styles' | 'tags'
-	>;
+	term: CollectionEntry<'artists' | 'eras' | 'labels' | 'regions' | 'series' | 'styles' | 'tags'>;
 }
 
 const { kind, page, term } = Astro.props;

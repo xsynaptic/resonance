@@ -71,7 +71,7 @@ export async function resolveRefUrl(
 	return getContentUrl(collection, id);
 }
 
-// Resolve a strict reference array (styles, regions, eras, categories, tags) into linkable pairs
+// Resolve a strict reference array (styles, regions, eras, tags) into linkable pairs
 export async function resolveTermLinks(
 	collection: CollectionKey,
 	refs: Array<ReferenceDataEntry<CollectionKey>> | undefined,

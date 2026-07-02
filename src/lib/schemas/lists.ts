@@ -31,7 +31,6 @@ export type ListItemValue = z.infer<typeof ListItemSchema>;
 export const listSchema = z
 	.object({
 		...contentBaseSchema,
-		categories: reference('categories').array().optional(),
 		listItems: ListItemSchema.array().optional(),
 		styles: reference('styles').array().optional(),
 	})

@@ -5,7 +5,7 @@ export interface MenuItem {
 	url: string;
 }
 
-// Header menu; mirrors the production site. The Blog submenu is provisional until the categories model is settled
+// Header menu; mirrors the production site
 export const menuItems: Array<MenuItem> = [
 	{ title: 'Mixes', url: '/mixes' },
 	{
@@ -46,4 +46,5 @@ export const footerMenuItems: Array<MenuItem> = [
 	{ title: 'Labels', url: '/labels' },
 	{ title: 'Series', url: '/series' },
 	{ title: 'Eras', url: '/eras' },
+	{ title: 'Tags', url: '/tag' },
 ];

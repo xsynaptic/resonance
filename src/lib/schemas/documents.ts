@@ -15,16 +15,14 @@ export const pageSchema = z
 export const postSchema = z
 	.object({
 		...contentBaseSchema,
-		categories: reference('categories').array().optional(),
 		tags: reference('tags').array().optional(),
 	})
 	.strict();
 
-// "Album Artwork" / visual-work showcase; featured image + category + label taxonomy, no audio meta
+// "Album Artwork" / visual-work showcase; featured image + label taxonomy, no audio meta
 export const designSchema = z
 	.object({
 		...contentBaseSchema,
-		categories: reference('categories').array().optional(),
 		labels: LabelRefSchema.array().optional(),
 	})
 	.strict();

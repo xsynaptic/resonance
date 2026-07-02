@@ -7,7 +7,6 @@ import { designSchema, pageSchema, postSchema } from '#lib/schemas/documents.ts'
 import { listSchema } from '#lib/schemas/lists.ts';
 import {
 	artistSchema,
-	categorySchema,
 	eraSchema,
 	labelSchema,
 	regionSchema,
@@ -27,7 +26,6 @@ function collectionLoader(name: string) {
 
 export const collections = {
 	artists: defineCollection({ loader: collectionLoader('artists'), schema: artistSchema }),
-	categories: defineCollection({ loader: collectionLoader('categories'), schema: categorySchema }),
 	designs: defineCollection({ loader: collectionLoader('designs'), schema: designSchema }),
 	eras: defineCollection({ loader: collectionLoader('eras'), schema: eraSchema }),
 	labels: defineCollection({ loader: collectionLoader('labels'), schema: labelSchema }),

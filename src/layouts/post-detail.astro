@@ -15,7 +15,6 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const categoryTerms = await resolveTermLinks('categories', entry.data.categories);
 const tagTerms = await resolveTermLinks('tags', entry.data.tags);
 ---
 
@@ -28,7 +27,6 @@ const tagTerms = await resolveTermLinks('tags', entry.data.tags);
 	<Content />
 	<Fragment slot="sections">
 		<div class="mt-8 space-y-2">
-			<TermLinks heading="Categories" terms={categoryTerms} />
 			<TermLinks heading="Tags" terms={tagTerms} />
 		</div>
 	</Fragment>

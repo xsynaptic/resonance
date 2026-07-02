@@ -31,8 +31,6 @@ export const labelSchema = z
 	.object({ ...taxonomyBaseSchema, parent: reference('labels').optional() })
 	.strict();
 
-export const categorySchema = z.object({ ...taxonomyBaseSchema }).strict();
-
 export const tagSchema = z.object({ ...taxonomyBaseSchema }).strict();
 
 export const regionSchema = z

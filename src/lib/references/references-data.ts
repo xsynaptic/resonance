@@ -19,7 +19,6 @@ const linkableCollections = [
 	'regions',
 	'eras',
 	'series',
-	'categories',
 	'tags',
 ] as const;
 

@@ -5,7 +5,7 @@ import { render } from 'astro:content';
 
 import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
-import { resolveLabelLinks, resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	entry: CollectionEntry<'reviews'>;
@@ -15,9 +15,9 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const artistTerms = await resolveTermLinks('artists', entry.data.artists);
+const artistTerms = await resolveRefs('artists', entry.data.artists);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
-const labelTerms = await resolveLabelLinks(entry.data.labels);
+const labelTerms = await resolveRefs('labels', entry.data.labels);
 
 const { discogsUrl, rating, releaseYear } = entry.data;
 ---

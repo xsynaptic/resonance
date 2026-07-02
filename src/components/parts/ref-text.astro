@@ -1,0 +1,20 @@
+---
+// Renders a resolved reference: a link when a url is present, plain text otherwise
+interface Props {
+	class?: string | undefined;
+	label: string;
+	url?: string | undefined;
+}
+
+const { class: className, label, url } = Astro.props;
+---
+
+{
+	url ? (
+		<a class:list={['text-accent-400 hover:text-accent-300', className]} href={url}>
+			{label}
+		</a>
+	) : (
+		<span class={className}>{label}</span>
+	)
+}

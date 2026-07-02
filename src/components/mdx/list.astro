@@ -11,15 +11,23 @@ interface Props {
 const { items, order = 'unordered' } = Astro.props;
 const isOrdered = order === 'ordered' || order === 'countdown';
 const Tag = isOrdered ? 'ol' : 'ul';
+
+// Countdown lists are authored best-first (rank order) but revealed best-last: reverse them for
+// display and number descending (N->1) via the CSS counter (see list.css), so #1 lands at the
+// bottom. The counter must start at the item count + 1 and step down.
+const displayItems = order === 'countdown' && items ? items.toReversed() : items;
+const countdownStyle =
+	order === 'countdown' && items ? `counter-reset: c-list ${String(items.length + 1)}` : undefined;
 ---
 
 {
-	items && items.length > 0 ? (
+	displayItems && displayItems.length > 0 ? (
 		<Tag
 			class:list={['c-list not-prose my-6 space-y-6', isOrdered && 'c-list-ordered']}
 			data-order={order}
+			style={countdownStyle}
 		>
-			{items.map((item) => (
+			{displayItems.map((item) => (
 				<ListItem {...item} />
 			))}
 		</Tag>

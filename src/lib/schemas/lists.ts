@@ -8,9 +8,11 @@ import { contentBaseSchema } from '#lib/schemas/index.ts';
 const ListItemSchema = z
 	.object({
 		artist: z.string().optional(),
+		artistId: z.string().optional(),
 		description: z.string().optional(),
 		imageFeatured: z.string().optional(),
 		label: z.string().optional(),
+		labelId: z.string().optional(),
 		link: z.string().optional(),
 		linkDiscogs: z.string().optional(),
 		linkId: z.string().optional(),

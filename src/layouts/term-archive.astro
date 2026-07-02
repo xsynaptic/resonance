@@ -9,6 +9,8 @@ import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
+import TermLinks from '#components/parts/term-links.astro';
+import { resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
 
 interface Props {
@@ -22,6 +24,12 @@ interface Props {
 const { kind, page, term } = Astro.props;
 
 const { Content } = await render(term);
+
+// Artists carry relationships (a group's members, a person's projects); other taxonomies do not
+const memberLinks =
+	term.collection === 'artists' ? await resolveRefs('artists', term.data.members) : [];
+const projectLinks =
+	term.collection === 'artists' ? await resolveRefs('artists', term.data.projects) : [];
 
 // Description now lives in the body; derive a plain-text meta description from it for the page head
 const body = term.body?.trim() ?? '';
@@ -48,6 +56,14 @@ const collectionLabels: Partial<Record<CollectionKey, string>> = {
 			)
 		}
 	</header>
+	{
+		memberLinks.length > 0 || projectLinks.length > 0 ? (
+			<div class="mb-6 space-y-1">
+				<TermLinks heading="Members" terms={memberLinks} />
+				<TermLinks heading="Projects" terms={projectLinks} />
+			</div>
+		) : undefined
+	}
 	{
 		page.data.length > 0 ? (
 			<ul class="grid gap-4 sm:grid-cols-2">

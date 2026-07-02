@@ -2,6 +2,7 @@ import { reference } from 'astro:content';
 import { z } from 'zod';
 
 import { TitleSchema } from '#lib/schemas/index.ts';
+import { RefSchema } from '#lib/schemas/refs.ts';
 
 // Shared term fields; `description` lives in the body, not frontmatter
 const taxonomyBaseSchema = {
@@ -12,7 +13,15 @@ const taxonomyBaseSchema = {
 	title: TitleSchema,
 };
 
-export const artistSchema = z.object({ ...taxonomyBaseSchema }).strict();
+// members: the people/acts that make up this artist (a group's lineup)
+// projects: the acts this artist is part of (a person's groups)
+export const artistSchema = z
+	.object({
+		...taxonomyBaseSchema,
+		members: RefSchema.array().optional(),
+		projects: RefSchema.array().optional(),
+	})
+	.strict();
 
 export const styleSchema = z
 	.object({ ...taxonomyBaseSchema, parent: reference('styles').optional() })

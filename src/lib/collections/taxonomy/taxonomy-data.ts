@@ -3,6 +3,7 @@ import type { CollectionKey } from 'astro:content';
 import { getCollection } from 'astro:content';
 
 import type { ContentDoc, ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { RefValue } from '#lib/schemas/refs.ts';
 
 import { toContentItem } from '#lib/catalog/catalog-data.ts';
 import { labelIds } from '#lib/utils/terms.ts';
@@ -74,6 +75,16 @@ export const getLabelsIndex = makeTermIndex(async (index) => {
 	collectByTerm('designs', designs, (entry) => labelIdRefs(entry.data.labels), index);
 });
 
+// Adapt the polymorphic artist refs to {id} shape, keeping only linked (object) refs, not free text
+function artistIdRefs(artists: Array<RefValue> | undefined): Array<{ id: string }> {
+	if (!artists) return [];
+	const refs: Array<{ id: string }> = [];
+	for (const artist of artists) {
+		if (typeof artist !== 'string') refs.push({ id: artist.id });
+	}
+	return refs;
+}
+
 // Adapt the unified labels array to the {id} reference shape collectByTerm expects
 function labelIdRefs(labels: Parameters<typeof labelIds>[0]): Array<{ id: string }> {
 	return labelIds(labels).map((id) => ({ id }));
@@ -81,8 +92,8 @@ function labelIdRefs(labels: Parameters<typeof labelIds>[0]): Array<{ id: string
 
 export const getArtistsIndex = makeTermIndex(async (index) => {
 	const [mixes, reviews] = await Promise.all([getCollection('mixes'), getCollection('reviews')]);
-	collectByTerm('mixes', mixes, (entry) => entry.data.artists, index);
-	collectByTerm('reviews', reviews, (entry) => entry.data.artists, index);
+	collectByTerm('mixes', mixes, (entry) => artistIdRefs(entry.data.artists), index);
+	collectByTerm('reviews', reviews, (entry) => artistIdRefs(entry.data.artists), index);
 });
 
 export const getRegionsIndex = makeTermIndex(async (index) => {

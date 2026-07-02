@@ -9,6 +9,11 @@ ol.c-list > .c-list-item {
 	counter-increment: c-list;
 }
 
+/* Countdown lists start the counter at the item count (set inline) and step down to 1 */
+ol.c-list[data-order='countdown'] > .c-list-item {
+	counter-increment: c-list -1;
+}
+
 ol.c-list > .c-list-item::before {
 	@apply shrink-0 text-sm font-medium text-ink-500 tabular-nums;
 

@@ -1,15 +1,20 @@
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
-import { contentBaseSchema, LabelSchema } from '#lib/schemas/index.ts';
+import { contentBaseSchema } from '#lib/schemas/index.ts';
+import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
 
 // Only the per-track fields that actually carry data
 // Flat and short-keyed for hand-editing; `year`/`time` stay strings (verbatim, e.g. "62:14")
+// artist/label/remixer are free text; the optional *Id fields link them to a catalog entry
 const TrackSchema = z
 	.object({
 		artist: z.string(),
+		artistId: z.string().optional(),
 		label: z.string().optional(),
+		labelId: z.string().optional(),
 		remixer: z.string().optional(),
+		remixerId: z.string().optional(),
 		time: z.string().optional(),
 		title: z.string(),
 		year: z.string().optional(),
@@ -22,12 +27,12 @@ export type TrackValue = z.infer<typeof TrackSchema>;
 // mix-live/mix-studio, reviews use standard/compilation/album/remixes). Series membership lives on the
 // series entry (`seriesItems`), not here, so releases carry no series reference.
 const audioReleaseFields = {
-	artists: reference('artists').array().optional(),
+	artists: RefSchema.array().optional(),
 	eras: reference('eras').array().optional(),
 	format: z
 		.enum(['standard', 'mix-live', 'mix-studio', 'compilation', 'album', 'remixes'])
 		.optional(),
-	labels: LabelSchema.array().optional(),
+	labels: LabelRefSchema.array().optional(),
 	links: z.string().array().optional(),
 	regions: reference('regions').array().optional(),
 	releaseTitle: z.string().optional(),

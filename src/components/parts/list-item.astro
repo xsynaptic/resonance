@@ -3,17 +3,21 @@ import { Image } from 'astro:assets';
 
 import type { ListItemValue } from '#lib/schemas/lists.ts';
 
+import RefText from '#components/parts/ref-text.astro';
 import { resolveSlugLink } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
+import { resolveRefUrl } from '#lib/utils/terms.ts';
 
 type Props = ListItemValue;
 
 const {
 	artist,
+	artistId,
 	description,
 	imageFeatured,
 	label,
+	labelId,
 	link,
 	linkDiscogs,
 	linkId,
@@ -27,7 +31,14 @@ const {
 const reviewLink = linkId ? await resolveSlugLink(linkId) : undefined;
 const titleHref = reviewLink?.url ?? link;
 const image = imageFeatured ? getMediaImage(imageFeatured) : undefined;
-const meta = [artist, year, label].filter(Boolean).join(' · ');
+
+// Artist and label link when their sibling id resolves; year stays plain
+const artistUrl = await resolveRefUrl('artists', artistId);
+const labelUrl = await resolveRefUrl('labels', labelId);
+const metaParts: Array<{ label: string; url?: string | undefined }> = [];
+if (artist) metaParts.push({ label: artist, url: artistUrl });
+if (year) metaParts.push({ label: String(year) });
+if (label) metaParts.push({ label, url: labelUrl });
 const descriptionHtml = description ? await renderMarkdown(description) : undefined;
 const youtubeSearch =
 	linkYoutubeSearch && (artist ?? title)
@@ -59,7 +70,18 @@ const youtubeSearch =
 				)
 			}
 		</div>
-		{meta ? <div class="text-sm text-ink-500">{meta}</div> : undefined}
+		{
+			metaParts.length > 0 ? (
+				<div class="text-sm text-ink-500">
+					{metaParts.map((part, index) => (
+						<Fragment>
+							{index > 0 ? ' · ' : ''}
+							<RefText label={part.label} url={part.url} />
+						</Fragment>
+					))}
+				</div>
+			) : undefined
+		}
 		{descriptionHtml ? <div class="prose-x mt-1 text-sm" set:html={descriptionHtml} /> : undefined}
 		{
 			linkSource || linkDiscogs || youtubeSearch ? (

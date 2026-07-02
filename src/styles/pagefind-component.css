@@ -1,0 +1,60 @@
+/** Note: this CSS file does not import Tailwind but relies on variables in the global context */
+@import '@pagefind/component-ui/css/pagefind-component-ui.css';
+
+:root {
+	--pf-text: var(--color-ink-300);
+	--pf-text-secondary: var(--color-ink-500);
+	--pf-text-muted: var(--color-ink-600);
+	--pf-background: var(--color-surface-700);
+	--pf-border: var(--color-surface-500);
+	--pf-border-focus: var(--color-surface-300);
+	--pf-skeleton: var(--color-surface-600);
+	--pf-skeleton-shine: var(--color-surface-700);
+	--pf-hover: var(--color-surface-600);
+	--pf-mark: var(--color-accent-400);
+	--pf-scroll-shadow: rgb(0 0 0 / 20%);
+	--pf-outline-focus: var(--color-accent-500);
+	--pf-font: var(--font-body);
+	--pf-input-height: 36px;
+	--pf-border-radius: 3px;
+}
+
+/*
+ * Pagefind 1.5.0 fix
+ * `all: initial` on custom elements breaks font inheritance for child buttons
+ */
+pagefind-modal button,
+pagefind-searchbox button {
+	font-family: var(--pf-font) !important;
+}
+
+/* Backdrop blur when modal is open */
+dialog.pf-modal::backdrop {
+	backdrop-filter: blur(4px);
+}
+
+.pf-result-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/** Result link colors */
+.pf-result-link {
+	--pf-text: var(--color-accent-400);
+
+	&:hover,
+	&:focus {
+		--pf-text: var(--color-accent-300);
+	}
+}
+
+/* Sub-result link colors */
+.pf-heading-link {
+	--pf-text: var(--color-ink-500);
+
+	&:hover,
+	&:focus {
+		--pf-text: var(--color-ink-400);
+	}
+}

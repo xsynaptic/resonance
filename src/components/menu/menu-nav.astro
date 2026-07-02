@@ -1,34 +1,64 @@
 ---
-import { site } from '#lib/site.ts';
+import type { MenuItem } from '#lib/menu.ts';
+
+import { menuItems } from '#lib/menu.ts';
 
 const { pathname } = Astro.url;
 
-function isActive(href: string): boolean {
-	return pathname === href || pathname.startsWith(`${href}/`);
+function isActiveMenuItem(item: MenuItem): boolean {
+	return isActivePath(item.url) || (item.children ?? []).some((child) => isActiveMenuItem(child));
+}
+
+function isActivePath(url: string): boolean {
+	if (url.startsWith('http')) return false;
+
+	return pathname === url || pathname.startsWith(`${url}/`);
 }
 ---
 
-<nav aria-label="Primary">
-	<ul class="flex flex-wrap items-center gap-x-5 gap-y-1">
-		{
-			site.nav.map((item) => {
-				const isCurrent = isActive(item.href);
-
-				return (
-					<li>
-						<a
-							aria-current={isCurrent ? 'page' : undefined}
-							class:list={[
-								'font-display text-lg hover:text-accent-400',
-								isCurrent ? 'text-accent-400' : 'text-ink-400',
-							]}
-							href={item.href}
-						>
-							{item.label}
-						</a>
+<menu-navigation>
+	<nav aria-label="Primary" class="nav-menu">
+		<ul class="nav-ul">
+			{
+				menuItems.map((item) => (
+					<li class="nav-item">
+						<div class:list={['nav-trigger', isActiveMenuItem(item) ? 'nav-current' : undefined]}>
+							<a
+								aria-current={isActivePath(item.url) ? 'page' : undefined}
+								class="nav-link"
+								href={item.url}
+							>
+								{item.title}
+							</a>
+							{item.children?.length ? (
+								<svg aria-hidden="true" class="nav-icon">
+									<use href="#icon:chevron-down" />
+								</svg>
+							) : undefined}
+						</div>
+						{item.children?.length ? (
+							<ul class="nav-sub">
+								{item.children.map((child) => (
+									<li>
+										<a
+											aria-current={isActivePath(child.url) ? 'page' : undefined}
+											class="nav-sub-link"
+											href={child.url}
+											{...(child.rel ? { rel: child.rel } : undefined)}
+										>
+											{child.title}
+										</a>
+									</li>
+								))}
+							</ul>
+						) : undefined}
 					</li>
-				);
-			})
-		}
-	</ul>
-</nav>
+				))
+			}
+		</ul>
+	</nav>
+</menu-navigation>
+
+<script>
+	import '#components/menu/menu-navigation.ts';
+</script>

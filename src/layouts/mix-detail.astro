@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 
 import EmbedAudio from '#components/embed/embed-audio.astro';
+import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { resolveLabelLinks, resolveTermLinks } from '#lib/utils/terms.ts';
@@ -34,6 +35,9 @@ const labelTerms = await resolveLabelLinks(entry.data.labels);
 		soundcloudEmbed={entry.data.soundcloudEmbed}
 	/>
 	<Fragment slot="sections">
+		<div class="mt-8">
+			<AudioLinks links={entry.data.links} />
+		</div>
 		<div class="mt-8 space-y-2">
 			<TermLinks heading="Artists" terms={artistTerms} />
 			<TermLinks heading="Styles" terms={styleTerms} />

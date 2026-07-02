@@ -6,19 +6,41 @@ interface Props {
 }
 
 const { tracks } = Astro.props;
+
+function getLabelYear(track: TrackValue): string {
+	return [track.label, track.year].filter(Boolean).join(', ');
+}
+
+// Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
+function getRemixer(track: TrackValue): string | undefined {
+	if (!track.remixer) return undefined;
+
+	return track.title.toLowerCase().includes(track.remixer.toLowerCase())
+		? undefined
+		: track.remixer;
+}
 ---
 
 {
 	tracks && tracks.length > 0 ? (
 		<section class="not-prose my-8">
-			<h2 class="mb-3 text-lg font-semibold text-ink-100">Tracklist</h2>
-			<ol class="space-y-1 text-sm text-ink-300">
-				{tracks.map((track) => (
-					<li class="flex flex-wrap items-baseline gap-x-2">
-						<span class="font-medium text-ink-200">{track.artist}</span>
-						<span class="text-ink-600">·</span>
-						<span>{track.title}</span>
-						{track.label ? <span class="text-ink-600">[{track.label}]</span> : undefined}
+			<h2 class="mb-3 font-display text-lg font-bold text-accent-400">Tracklist</h2>
+			<ol class="track-list">
+				{tracks.map((track, index) => (
+					<li class="track">
+						<span aria-hidden="true" class="track-index">
+							{index + 1}.
+						</span>
+						<span class="track-title-line">
+							<strong class="text-ink-100">{track.artist}</strong>
+							<span class="text-ink-600">{' - '}</span>
+							<span class="font-medium">{track.title}</span>
+							{getRemixer(track) ? <span>{` (${getRemixer(track)} remix)`}</span> : undefined}
+						</span>
+						{getLabelYear(track) ? (
+							<span class="track-label-year">{getLabelYear(track)}</span>
+						) : undefined}
+						{track.time ? <span class="track-time">{track.time}</span> : undefined}
 					</li>
 				))}
 			</ol>

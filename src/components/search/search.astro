@@ -1,0 +1,70 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+import { pagefindResultTemplate } from '#components/search/search-result-template.ts';
+import pagefindCssUrl from '#styles/pagefind-component.css?url';
+
+type Props = HTMLAttributes<'div'>;
+
+const props = Astro.props;
+
+const bundlePath = `${import.meta.env.BASE_URL}pagefind/`;
+
+/** Note: the styles at the bottom apply before web component JS loads */
+---
+
+<script>
+	import '#components/search/search-toggle.ts';
+</script>
+
+<pagefind-config bundle-path={bundlePath} preload={false}></pagefind-config>
+
+<search-toggle
+	class="flex cursor-pointer items-center justify-center"
+	data-pagefind-css-url={pagefindCssUrl}
+	{...props}
+>
+	<button
+		aria-expanded="false"
+		aria-haspopup="dialog"
+		aria-label="Search"
+		class="text-ink-600 transition-colors hover:text-highlight-400"
+		title="Search this site"
+	>
+		<svg aria-hidden="true" class="size-5">
+			<use href="#icon:magnifying-glass"></use>
+		</svg>
+	</button>
+</search-toggle>
+<pagefind-modal reset-on-close={true}>
+	<pagefind-modal-header>
+		<pagefind-input placeholder="Search the site…"></pagefind-input>
+	</pagefind-modal-header>
+	<pagefind-modal-body>
+		<pagefind-summary></pagefind-summary>
+		<pagefind-results max-sub-results="3" set:html={pagefindResultTemplate} show-images={true} />
+	</pagefind-modal-body>
+	<pagefind-modal-footer>
+		<pagefind-keyboard-hints></pagefind-keyboard-hints>
+	</pagefind-modal-footer>
+</pagefind-modal>
+
+<style>
+	search-toggle:not(:defined) {
+		pointer-events: none;
+		opacity: 0.3;
+	}
+
+	/* Eager layout rules so the header never shifts while the deferred stylesheet loads */
+	pagefind-config {
+		display: none;
+	}
+
+	pagefind-modal {
+		display: contents;
+	}
+
+	pagefind-modal:not(:defined) {
+		display: none;
+	}
+</style>

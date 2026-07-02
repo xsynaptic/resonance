@@ -1,0 +1,86 @@
+/* Mix tracklist: subtly striped rows that read as one rounded container (matches the production design) */
+.track-list {
+	font-feature-settings: 'lnum';
+}
+
+/* Zero out the global list margins so the striped rows read as one contiguous container */
+.track {
+	display: block;
+	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+	margin: 0;
+}
+
+.track:nth-child(odd) {
+	background-color: var(--color-surface-600);
+}
+
+.track:nth-child(even) {
+	background-color: var(--color-surface-700);
+}
+
+.track:first-child {
+	border-radius: 3px 3px 0 0;
+}
+
+.track:last-child {
+	border-radius: 0 0 3px 3px;
+}
+
+/* Decorative: the <ol> already numbers tracks for assistive tech */
+.track-index {
+	display: none;
+	font-size: 0.75rem;
+	color: var(--color-ink-700);
+	text-align: right;
+}
+
+.track-title-line {
+	display: block;
+	font-size: 1.125rem;
+	line-height: 1.4;
+}
+
+.track-label-year,
+.track-time {
+	font-size: 0.9375rem;
+	color: var(--color-ink-600);
+}
+
+/* Inline separation when the label/year and time share a line (stacked layout only) */
+.track-label-year + .track-time {
+	margin-inline-start: calc(var(--spacing) * 2);
+}
+
+@media (width >= 550px) {
+	.track {
+		display: grid;
+		grid-template-areas:
+			'index title title'
+			'. label time';
+		grid-template-columns: 25px 2fr 1fr;
+		column-gap: calc(var(--spacing) * 2);
+		align-items: baseline;
+	}
+
+	.track-index {
+		display: block;
+		grid-area: index;
+	}
+
+	.track-title-line {
+		grid-area: title;
+	}
+
+	.track-label-year {
+		grid-area: label;
+	}
+
+	.track-time {
+		grid-area: time;
+		text-align: right;
+	}
+
+	.track-label-year + .track-time {
+		margin-inline-start: 0;
+	}
+}

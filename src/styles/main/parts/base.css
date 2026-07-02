@@ -16,7 +16,8 @@ h2,
 h3,
 h4 {
 	font-family: var(--font-display);
-	font-weight: 600;
+	font-weight: 700;
+	font-feature-settings: 'lnum';
 	line-height: 1.2;
 	color: var(--color-ink-50);
 	text-wrap: balance;

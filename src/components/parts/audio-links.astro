@@ -1,0 +1,42 @@
+---
+import ButtonLink from '#components/parts/button-link.astro';
+
+// Mix frontmatter also carries `files` (bare filenames); there is no download host yet so they are not rendered
+interface Props {
+	links?: Array<string> | undefined;
+}
+
+const { links } = Astro.props;
+
+interface LinkMeta {
+	icon?: string | undefined;
+	label: string;
+}
+
+function getLinkMeta(url: string): LinkMeta {
+	const { hostname } = new URL(url);
+
+	if (hostname.endsWith('mixcloud.com')) return { icon: 'mixcloud', label: 'Mixcloud' };
+	if (hostname.endsWith('soundcloud.com')) return { icon: 'soundcloud', label: 'SoundCloud' };
+
+	return { label: hostname.replace(/^www\./, '') };
+}
+---
+
+{
+	links && links.length > 0 ? (
+		<ul class="flex flex-wrap gap-2">
+			{links.map((link) => {
+				const { icon, label } = getLinkMeta(link);
+
+				return (
+					<li>
+						<ButtonLink href={link} {...(icon ? { icon } : {})}>
+							{label}
+						</ButtonLink>
+					</li>
+				);
+			})}
+		</ul>
+	) : undefined
+}

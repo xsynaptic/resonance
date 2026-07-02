@@ -13,6 +13,8 @@ minimumReleaseAgeExclude:
 
 peerDependencyRules:
   allowedVersions:
+    # astro-pagefind@2.0.0 caps its astro peer at ^6; the integration works on 7
+    'astro-pagefind>astro': '7'
     # eslint-plugin-jsx-a11y caps its eslint peer at ^9 but uses no APIs removed in ESLint 10
     'eslint-plugin-jsx-a11y>eslint': '10'
 

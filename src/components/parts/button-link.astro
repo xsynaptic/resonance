@@ -1,0 +1,38 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+const buttonVariants = {
+	small: 'h-[22px] gap-1.5 px-2 text-xs',
+	standard: 'h-[30px] gap-2 px-3 text-sm',
+} as const;
+
+type ButtonVariant = keyof typeof buttonVariants;
+
+interface Props extends HTMLAttributes<'a'> {
+	icon?: string | undefined;
+	variant?: ButtonVariant | undefined;
+}
+
+const { class: className, icon, variant = 'standard', ...props } = Astro.props;
+---
+
+<a
+	class:list={[
+		'group inline-flex items-center rounded-[3px] bg-surface-400 font-bold text-ink-100 transition-colors hover:bg-surface-300 hover:text-ink-50',
+		buttonVariants[variant],
+		className,
+	]}
+	{...props}
+>
+	{
+		icon ? (
+			<svg
+				aria-hidden="true"
+				class="size-4 shrink-0 text-highlight-400 transition-colors group-hover:text-highlight-300"
+			>
+				<use href={`#icon:${icon}`} />
+			</svg>
+		) : undefined
+	}
+	<slot />
+</a>

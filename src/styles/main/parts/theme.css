@@ -4,9 +4,9 @@
 	--spacing-prose: 42.1875rem;
 }
 
-/* Fonts via the Astro Fonts API (Fontsource); trial pairing of Prompt for display, Manrope for body */
+/* Fonts via the Astro Fonts API (Fontsource); Fira Sans for display (as in production), Manrope for body */
 @theme {
-	--font-display: var(--font-prompt, system-ui, sans-serif);
+	--font-display: var(--font-fira-sans, system-ui, sans-serif);
 	--font-body: var(--font-manrope, system-ui, sans-serif);
 	--font-mono: ui-monospace, 'SF Mono', menlo, consolas, monospace;
 }
@@ -34,11 +34,11 @@
 	--color-ink-600: hsl(183deg 10% 55%);
 	--color-ink-700: hsl(183deg 8% 47%);
 
-	/* Accent: lime-green, for links and interactive accents */
-	--color-accent-300: hsl(77deg 68% 70%);
-	--color-accent-400: hsl(77deg 75% 61%);
-	--color-accent-500: hsl(77deg 72% 53%);
-	--color-accent-600: hsl(77deg 68% 48%);
+	/* Accent: lime-green, for links and interactive accents; accent-400 matches the production lime */
+	--color-accent-300: hsl(70deg 68% 70%);
+	--color-accent-400: hsl(70deg 75% 61%);
+	--color-accent-500: hsl(70deg 72% 53%);
+	--color-accent-600: hsl(70deg 68% 48%);
 
 	/* Highlight: orange */
 	--color-highlight-300: hsl(30deg 100% 84%);

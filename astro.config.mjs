@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
+import pagefind from 'astro-pagefind';
 import { defineConfig, fontProviders } from 'astro/config';
 
 export default defineConfig({
@@ -21,18 +22,18 @@ export default defineConfig({
 			weights: [400, 500, 600, 700],
 		},
 		{
-			cssVariable: '--font-prompt',
-			name: 'Prompt',
+			cssVariable: '--font-fira-sans',
+			name: 'Fira Sans',
 			provider: fontProviders.fontsource(),
 			styles: ['normal'],
-			weights: [400, 500, 600, 700],
+			weights: [400, 600, 700],
 		},
 	],
 	image: {
 		layout: 'constrained',
 		responsiveStyles: true,
 	},
-	integrations: [mdx(), sitemap(), fontDevtools({ providers: ['fontsource'] })],
+	integrations: [mdx(), sitemap(), fontDevtools({ providers: ['fontsource'] }), pagefind()],
 	markdown: {
 		processor: satteri({
 			mdastPlugins: [

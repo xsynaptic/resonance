@@ -1,0 +1,127 @@
+/* Header dropdown navigation: lime links with submenus that open below like attached tab panels */
+
+/* Interactive state (data-has-submenu, data-open, ARIA roles) is injected by menu-navigation.ts */
+
+.nav-menu {
+	position: relative;
+}
+
+.nav-ul {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+/* Below 40rem the submenu anchors to the whole nav instead, so it can span full width without overflow */
+.nav-item {
+	@media (width >= 40rem) {
+		position: relative;
+	}
+}
+
+.nav-trigger {
+	display: flex;
+	column-gap: calc(var(--spacing) * 1);
+	align-items: center;
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
+	border-radius: 3px;
+	transition: background-color 150ms ease-out;
+}
+
+.nav-trigger.nav-current {
+	background-color: var(--color-surface-500);
+}
+
+.nav-link {
+	@apply font-display text-lg;
+
+	color: var(--color-accent-500);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+	color: var(--color-accent-400);
+}
+
+.nav-link:active {
+	color: var(--color-highlight-400);
+}
+
+.nav-icon {
+	@apply transition-transform transition-discrete duration-100;
+
+	width: 12px;
+	height: 12px;
+	color: var(--color-ink-600);
+}
+
+.nav-sub {
+	@apply transition-[opacity,visibility] transition-discrete duration-150;
+
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 50;
+	visibility: hidden;
+	width: 100%;
+	padding: calc(var(--spacing) * 1.5);
+	pointer-events: none;
+	background-color: var(--color-surface-700);
+	border-radius: 0 3px 3px;
+	opacity: 0;
+
+	@media (width >= 40rem) {
+		width: max-content;
+		min-width: 100%;
+		max-width: 16rem;
+	}
+}
+
+/* The rightmost panel hugs the right edge so it never overflows the viewport */
+@media (width >= 40rem) {
+	.nav-item:last-child > .nav-sub {
+		right: 0;
+		left: auto;
+		border-radius: 3px 0 3px 3px;
+	}
+}
+
+.nav-sub-link {
+	@apply font-display;
+
+	display: block;
+	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+	color: var(--color-accent-600);
+	white-space: nowrap;
+	border-radius: 3px;
+}
+
+.nav-sub-link:hover,
+.nav-sub-link:focus-visible {
+	color: var(--color-accent-400);
+	background-color: var(--color-surface-600);
+}
+
+/* Reveal on hover/focus (pointer and keyboard) and on JS-driven open (touch, arrow keys) */
+.nav-item:hover > .nav-sub,
+.nav-item:focus-within > .nav-sub,
+.nav-item[data-open] > .nav-sub {
+	visibility: visible;
+	pointer-events: auto;
+	opacity: 1;
+}
+
+/* The open trigger flattens its bottom corners and takes the submenu color, reading as an attached tab */
+.nav-item[data-open] > .nav-trigger,
+.nav-item[data-has-submenu]:hover > .nav-trigger,
+.nav-item[data-has-submenu]:focus-within > .nav-trigger {
+	background-color: var(--color-surface-700);
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+.nav-item:hover > .nav-trigger > .nav-icon,
+.nav-item:focus-within > .nav-trigger > .nav-icon,
+.nav-item[data-open] > .nav-trigger > .nav-icon {
+	transform: scaleY(-1);
+}

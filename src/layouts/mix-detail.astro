@@ -36,7 +36,7 @@ const labelTerms = await resolveLabelLinks(entry.data.labels);
 	/>
 	<Fragment slot="sections">
 		<div class="mt-8">
-			<AudioLinks links={entry.data.links} />
+			<AudioLinks files={entry.data.files} links={entry.data.links} />
 		</div>
 		<div class="mt-8 space-y-2">
 			<TermLinks heading="Artists" terms={artistTerms} />

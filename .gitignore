@@ -4,6 +4,7 @@ dist/
 # generated types and caches
 .astro/
 .cache/
+.wrangler/
 
 # dependencies
 node_modules/
@@ -14,6 +15,8 @@ node_modules/
 # environment variables
 .env
 .env.*
+# but the committed deploy template must ship
+!deploy/.env.example
 
 # macOS
 .DS_Store
@@ -31,4 +34,4 @@ backups/
 packages/content/
 
 # WP extract scripts: one-off, iterated locally, not checked in yet
-packages/scripts/
+packages/scripts/src/wp-extract/

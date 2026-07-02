@@ -11,7 +11,7 @@ export default getConfig(
 				'**/.cache/**/*',
 				'**/dist/**/*',
 				'packages/content/**/*',
-				'packages/scripts/**/*',
+				'packages/scripts/src/wp-extract/**/*',
 			],
 		},
 		{

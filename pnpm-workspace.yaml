@@ -22,3 +22,5 @@ allowBuilds:
   esbuild: true
   # Native binding for Astro image optimization
   sharp: true
+  # Cloudflare Workers runtime, pulled in by wrangler for deploys
+  workerd: true

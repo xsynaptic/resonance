@@ -2,8 +2,13 @@
 	"$schema": "https://unpkg.com/knip@6/schema.json",
 	"workspaces": {
 		".": {
-			"entry": ["src/components/mdx/**/*.astro"]
+			"entry": ["src/components/mdx/**/*.astro"],
+			"ignoreDependencies": ["wrangler"]
+		},
+		"packages/scripts": {
+			"ignoreBinaries": ["ffmpeg", "which", "ssh-add"],
+			"ignoreDependencies": ["mysql2"]
 		}
 	},
-	"ignoreWorkspaces": ["packages/content", "packages/scripts"]
+	"ignoreWorkspaces": ["packages/content"]
 }

@@ -1,0 +1,24 @@
+{
+	"name": "@xsynaptic/scripts",
+	"version": "1.0.0",
+	"description": "Build, deploy, and WordPress-to-MDX migration scripts for Resonance",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"extract": "tsx src/wp-extract/extract.ts",
+		"audio-validate": "tsx ./src/audio/validate.cli.ts",
+		"audio-renditions": "tsx ./src/audio/renditions.cli.ts",
+		"deploy-app": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-app.cli.ts",
+		"deploy-audio": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-audio.cli.ts",
+		"deploy-server-config": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-server-config.cli.ts",
+		"deploy-site": "NODE_ENV=production tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy.ts"
+	},
+	"devDependencies": {
+		"chalk": "^5.6.2",
+		"mysql2": "^3.15.3",
+		"p-limit": "^7.3.0",
+		"tsx": "^4.22.4",
+		"yaml": "^2.8.1",
+		"zx": "^8.8.5"
+	}
+}

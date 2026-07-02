@@ -1,16 +1,21 @@
 ---
 import ButtonLink from '#components/parts/button-link.astro';
+import { downloadBaseUrl } from '#lib/site.ts';
 
-// Mix frontmatter also carries `files` (bare filenames); there is no download host yet so they are not rendered
 interface Props {
+	files?: Array<string> | undefined;
 	links?: Array<string> | undefined;
 }
 
-const { links } = Astro.props;
+const { files, links } = Astro.props;
 
 interface LinkMeta {
 	icon?: string | undefined;
 	label: string;
+}
+
+function getFileLabel(file: string): string {
+	return file.slice(file.lastIndexOf('.') + 1).toUpperCase();
 }
 
 function getLinkMeta(url: string): LinkMeta {
@@ -21,12 +26,15 @@ function getLinkMeta(url: string): LinkMeta {
 
 	return { label: hostname.replace(/^www\./, '') };
 }
+
+const hasLinks = links && links.length > 0;
+const hasFiles = files && files.length > 0;
 ---
 
 {
-	links && links.length > 0 ? (
+	hasLinks || hasFiles ? (
 		<ul class="flex flex-wrap gap-2">
-			{links.map((link) => {
+			{links?.map((link) => {
 				const { icon, label } = getLinkMeta(link);
 
 				return (
@@ -37,6 +45,13 @@ function getLinkMeta(url: string): LinkMeta {
 					</li>
 				);
 			})}
+			{files?.map((file) => (
+				<li>
+					<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
+						{getFileLabel(file)}
+					</ButtonLink>
+				</li>
+			))}
 		</ul>
 	) : undefined
 }

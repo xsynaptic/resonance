@@ -23,9 +23,8 @@ const TrackSchema = z
 
 export type TrackValue = z.infer<typeof TrackSchema>;
 
-// Shared release metadata for mixes and reviews. One unified `format` enum spanning both (mixes use
-// mix-live/mix-studio, reviews use standard/compilation/album/remixes). Series membership lives on the
-// series entry (`seriesItems`), not here, so releases carry no series reference.
+// Shared release metadata for mixes and reviews; one unified `format` enum spans both (mix-live/
+// mix-studio vs standard/compilation/album/remixes); series membership lives on the series entry
 const audioReleaseFields = {
 	artists: RefSchema.array().optional(),
 	eras: reference('eras').array().optional(),
@@ -39,8 +38,8 @@ const audioReleaseFields = {
 	releaseType: z.enum(['default', 'major', 'minor', 'other']).optional(),
 	releaseYear: z.string().optional(),
 	styles: reference('styles').array().optional(),
-	// Verbatim source-of-truth backup, intentionally not rendered; `tracks` drives display. Kept because
-	// the extractor merges multi-tracklist mixes into `tracks` lossily, and this preserves the original
+	// Verbatim backup, not rendered (`tracks` drives display); kept because the extractor merges
+	// multi-tracklist mixes into `tracks` lossily
 	tracklistRaw: z.string().optional(),
 	tracks: TrackSchema.array().optional(),
 };

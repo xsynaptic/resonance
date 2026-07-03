@@ -3,18 +3,14 @@ import type { CollectionKey } from 'astro:content';
 import { getCollection } from 'astro:content';
 
 import type { ContentDoc, ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { HierarchicalCollection } from '#lib/collections/taxonomy/hierarchy.ts';
 import type { RefValue } from '#lib/schemas/refs.ts';
 
 import { toContentItem } from '#lib/catalog/catalog-data.ts';
+import { descendantsOf } from '#lib/collections/taxonomy/hierarchy.ts';
 import { labelIds } from '#lib/utils/terms.ts';
 
 export type TermIndex = Map<string, Array<ContentItem>>;
-
-async function buildIndex(collect: (index: TermIndex) => Promise<void>): Promise<TermIndex> {
-	const index: TermIndex = new Map();
-	await collect(index);
-	return sortIndex(index);
-}
 
 // Add each entry to the index under every term it references via `getRefs`
 function collectByTerm<Entry extends ContentDoc>(
@@ -36,14 +32,48 @@ function collectByTerm<Entry extends ContentDoc>(
 	}
 }
 
-// Data-layer factory: each taxonomy supplies a `collect` callback that loads and indexes its collections
-// Memoizes, sorts, and returns a lazy getter
-function makeTermIndex(collect: (index: TermIndex) => Promise<void>): () => Promise<TermIndex> {
+function dedupeById(items: Array<ContentItem>): Array<ContentItem> {
+	const seen = new Set<string>();
+	const out: Array<ContentItem> = [];
+	for (const item of items) {
+		if (seen.has(item.id)) continue;
+		seen.add(item.id);
+		out.push(item);
+	}
+	return out;
+}
+
+// Memoized index factory: collect into a fresh map, then finalize; flat taxonomies date-sort (default),
+// hierarchical ones pass `rollUpHierarchy`
+function makeTermIndex(
+	collect: (index: TermIndex) => Promise<void>,
+	finalize: (index: TermIndex) => Promise<TermIndex> | TermIndex = sortIndex,
+): () => Promise<TermIndex> {
 	let cached: Promise<TermIndex> | undefined;
 	return () => {
-		cached ??= buildIndex(collect);
+		cached ??= (async () => {
+			const index: TermIndex = new Map();
+			await collect(index);
+			return finalize(index);
+		})();
 		return cached;
 	};
+}
+
+// Fold each term's descendants' entries into its bucket, deduped and date-sorted, so a parent archive
+// (e.g. /regions/africa/) shows everything below it, not just direct tags
+async function rollUpHierarchy(
+	base: TermIndex,
+	collection: HierarchicalCollection,
+): Promise<TermIndex> {
+	const entries = await getCollection(collection);
+	const rolled: TermIndex = new Map();
+	for (const entry of entries) {
+		const termIds = [entry.id, ...(await descendantsOf(collection, entry.id))];
+		const items = dedupeById(termIds.flatMap((termId) => base.get(termId) ?? []));
+		if (items.length > 0) rolled.set(entry.id, items);
+	}
+	return sortIndex(rolled);
 }
 
 function sortIndex(index: TermIndex): TermIndex {
@@ -53,16 +83,19 @@ function sortIndex(index: TermIndex): TermIndex {
 	return index;
 }
 
-export const getLabelsIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews, designs] = await Promise.all([
-		getCollection('mixes'),
-		getCollection('reviews'),
-		getCollection('designs'),
-	]);
-	collectByTerm('mixes', mixes, (entry) => labelIdRefs(entry.data.labels), index);
-	collectByTerm('reviews', reviews, (entry) => labelIdRefs(entry.data.labels), index);
-	collectByTerm('designs', designs, (entry) => labelIdRefs(entry.data.labels), index);
-});
+export const getLabelsIndex = makeTermIndex(
+	async (index) => {
+		const [mixes, reviews, designs] = await Promise.all([
+			getCollection('mixes'),
+			getCollection('reviews'),
+			getCollection('designs'),
+		]);
+		collectByTerm('mixes', mixes, (entry) => labelIdRefs(entry.data.labels), index);
+		collectByTerm('reviews', reviews, (entry) => labelIdRefs(entry.data.labels), index);
+		collectByTerm('designs', designs, (entry) => labelIdRefs(entry.data.labels), index);
+	},
+	(index) => rollUpHierarchy(index, 'labels'),
+);
 
 // Adapt the polymorphic artist refs to {id} shape, keeping only linked (object) refs, not free text
 function artistIdRefs(artists: Array<RefValue> | undefined): Array<{ id: string }> {
@@ -85,16 +118,17 @@ export const getArtistsIndex = makeTermIndex(async (index) => {
 	collectByTerm('reviews', reviews, (entry) => artistIdRefs(entry.data.artists), index);
 });
 
-export const getRegionsIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews] = await Promise.all([getCollection('mixes'), getCollection('reviews')]);
-	collectByTerm('mixes', mixes, (entry) => entry.data.regions, index);
-	collectByTerm('reviews', reviews, (entry) => entry.data.regions, index);
-});
+export const getRegionsIndex = makeTermIndex(
+	async (index) => {
+		const [mixes, reviews] = await Promise.all([getCollection('mixes'), getCollection('reviews')]);
+		collectByTerm('mixes', mixes, (entry) => entry.data.regions, index);
+		collectByTerm('reviews', reviews, (entry) => entry.data.regions, index);
+	},
+	(index) => rollUpHierarchy(index, 'regions'),
+);
 
-// A series entry owns its members via `seriesItems` (ordered ids), so resolve those in place rather
-// than scanning content for back-references; array order is the display order, so no date sort.
-// Only audio releases carry series membership today; widen this if the extractor starts emitting it
-// for other collections.
+// A series entry owns its members via `seriesItems` (ordered ids); resolve in place (no back-ref scan);
+// array order is display order (no date sort); only audio releases carry membership today
 const SERIES_MEMBER_COLLECTIONS = ['mixes', 'reviews'] as const;
 
 let seriesIndexPromise: Promise<TermIndex> | undefined;
@@ -135,24 +169,30 @@ async function buildSeriesMemberCatalog(): Promise<Map<string, ContentItem>> {
 	return membersById;
 }
 
-export const getStylesIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews, lists] = await Promise.all([
-		getCollection('mixes'),
-		getCollection('reviews'),
-		getCollection('lists'),
-	]);
-	collectByTerm('mixes', mixes, (entry) => entry.data.styles, index);
-	collectByTerm('reviews', reviews, (entry) => entry.data.styles, index);
-	collectByTerm('lists', lists, (entry) => entry.data.styles, index);
-});
+export const getStylesIndex = makeTermIndex(
+	async (index) => {
+		const [mixes, reviews, lists] = await Promise.all([
+			getCollection('mixes'),
+			getCollection('reviews'),
+			getCollection('lists'),
+		]);
+		collectByTerm('mixes', mixes, (entry) => entry.data.styles, index);
+		collectByTerm('reviews', reviews, (entry) => entry.data.styles, index);
+		collectByTerm('lists', lists, (entry) => entry.data.styles, index);
+	},
+	(index) => rollUpHierarchy(index, 'styles'),
+);
 
 export const getTagsIndex = makeTermIndex(async (index) => {
 	const posts = await getCollection('posts');
 	collectByTerm('posts', posts, (entry) => entry.data.tags, index);
 });
 
-export const getErasIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews] = await Promise.all([getCollection('mixes'), getCollection('reviews')]);
-	collectByTerm('mixes', mixes, (entry) => entry.data.eras, index);
-	collectByTerm('reviews', reviews, (entry) => entry.data.eras, index);
-});
+export const getErasIndex = makeTermIndex(
+	async (index) => {
+		const [mixes, reviews] = await Promise.all([getCollection('mixes'), getCollection('reviews')]);
+		collectByTerm('mixes', mixes, (entry) => entry.data.eras, index);
+		collectByTerm('reviews', reviews, (entry) => entry.data.eras, index);
+	},
+	(index) => rollUpHierarchy(index, 'eras'),
+);

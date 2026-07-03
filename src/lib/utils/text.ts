@@ -8,8 +8,7 @@ const entities: Record<string, string> = {
 	'&quot;': '"',
 };
 
-// Plain-text excerpt for meta descriptions: render markdown properly, then strip HTML rather than
-// regex-stripping raw markdown (which mangles literal #, *, _ in prose)
+// Render markdown then strip HTML for the excerpt; regex-stripping raw markdown mangles literal #, *, _
 export async function toExcerpt(markdown: string, maxLength = 160): Promise<string> {
 	const html = await renderMarkdown(markdown);
 	const text = html

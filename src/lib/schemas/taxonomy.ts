@@ -41,9 +41,8 @@ export const eraSchema = z
 	.object({ ...taxonomyBaseSchema, parent: reference('eras').optional() })
 	.strict();
 
-// The series entry owns its members: `seriesItems` is an ordered list of content ids. Plain strings,
-// not references, so a single field can resolve members by bare id across content collections without
-// binding to one target collection. Array order is the display order.
+// The series entry owns its members: `seriesItems` is an ordered list of content ids (plain strings,
+// not references, so one field resolves members across collections); array order is display order
 export const seriesSchema = z
 	.object({ ...taxonomyBaseSchema, seriesItems: z.string().array().optional() })
 	.strict();

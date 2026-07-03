@@ -11,9 +11,9 @@ interface ValidateAudioOptions {
 	rootPath: string;
 }
 
-// Cross-checks every `files[]` entry in the mixes frontmatter against the audio source directory.
-// Missing files are fatal (a deploy must never publish a dead download link); orphans and
-// flac-less mixes are warnings. Returns the referenced filenames that are present on disk.
+// Cross-check every mixes `files[]` entry against the audio source directory
+// Missing files are fatal (never publish a dead download link); orphans and flac-less mixes warn
+// Returns the referenced filenames present on disk
 export async function validateAudio(options: ValidateAudioOptions): Promise<Array<string>> {
 	const { rootPath } = options;
 

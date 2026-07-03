@@ -3,8 +3,7 @@ import type { ImageMetadata } from 'astro';
 // Frontmatter media paths are relative to packages/content/_media (e.g. 2017/01/x.jpg)
 const MEDIA_ROOT = '/packages/content/_media';
 
-// astro:assets only optimizes statically-analyzable images, so the glob must be a string literal;
-// MEDIA_ROOT can't be interpolated here, it only rebuilds lookup keys
+// Glob must be a string literal; astro:assets only optimizes statically-analyzable image paths
 const mediaImages = import.meta.glob<{ default: ImageMetadata }>(
 	'/packages/content/_media/**/*.{avif,jpeg,jpg,png,webp}',
 	{ eager: true },

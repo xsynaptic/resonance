@@ -13,9 +13,9 @@ interface DeployAudioOptions {
 	rootPath: string;
 }
 
-// Uploads originals to /artifacts/ and streaming renditions to /stream/. Uses mtime+size
-// (not checksum) and never --delete: audio is append-only and multi-gigabyte, so a no-op
-// run is near-instant and a local mistake can never wipe the remote archive.
+// Upload originals to /artifacts/ and streaming renditions to /stream/
+// mtime+size (not checksum), never --delete: audio is append-only and multi-gigabyte, so a no-op run
+// is near-instant and a local mistake can't wipe the remote archive
 export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 

@@ -2,12 +2,13 @@ import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 
 import { getCollection, getEntries } from 'astro:content';
 
+import type { HierarchicalCollection } from '#lib/collections/taxonomy/hierarchy.ts';
 import type { LabelRefValue, RefValue } from '#lib/schemas/refs.ts';
 
+import { ancestorsOf } from '#lib/collections/taxonomy/hierarchy.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 
-// A resolved reference for display: `url` is present only when the ref links to a catalog entry;
-// free-text refs (and unresolved ids) render as plain text
+// url is set only when the ref links to a catalog entry; free-text and unresolved ids render plain
 export interface ResolvedRef {
 	label: string;
 	url?: string;
@@ -32,8 +33,23 @@ export function labelIds(labels: Array<LabelRefValue> | undefined): Array<string
 	return ids;
 }
 
-// Resolve the polymorphic ref array (artists, labels, members, projects). A bare string is free text;
-// an object links via its id, with an optional name overriding the taxonomy-derived title.
+// Resolve a term's parent chain (root-first) to breadcrumb links; empty for a root term
+export async function resolveAncestors(
+	collection: HierarchicalCollection,
+	id: string,
+): Promise<Array<ResolvedRef>> {
+	const ids = await ancestorsOf(collection, id);
+	if (ids.length === 0) return [];
+
+	const titles = await getTitles(collection);
+
+	return ids.map((ancestorId) => ({
+		label: titles.get(ancestorId) ?? ancestorId,
+		url: getContentUrl(collection, ancestorId),
+	}));
+}
+
+// Resolve polymorphic refs: a bare string is free text; an object links via id, name overrides the title
 export async function resolveRefs(
 	collection: CollectionKey,
 	refs: Array<RefValue> | undefined,

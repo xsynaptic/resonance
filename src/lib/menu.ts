@@ -20,7 +20,6 @@ export const menuItems: Array<MenuItem> = [
 	{ title: 'Reviews', url: '/reviews' },
 	{
 		children: [
-			{ title: 'Writing', url: '/writing' },
 			{ title: 'Lists', url: '/lists' },
 			{ title: 'Designs', url: '/designs' },
 		],

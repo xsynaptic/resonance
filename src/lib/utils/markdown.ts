@@ -1,8 +1,7 @@
 import { createSatteriMarkdownProcessor } from '@astrojs/markdown-satteri';
 
-// Render list-item descriptions, which live in frontmatter as raw markdown. This is a bare processor
-// for simple inline markdown (links, emphasis); it does NOT carry the astro.config MDX pipeline, so
-// component syntax like <Link>/<Img> would render as literal text. Memoized (expensive to build).
+// Bare inline-markdown processor for list-item descriptions; NOT the astro.config MDX pipeline, so
+// <Link>/<Img> render as literal text; memoized (expensive to build)
 type Processor = Awaited<ReturnType<typeof createSatteriMarkdownProcessor>>;
 
 let processorPromise: Promise<Processor> | undefined;

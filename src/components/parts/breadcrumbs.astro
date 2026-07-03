@@ -1,0 +1,29 @@
+---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
+// Crumbs link; the current term renders plain
+interface Props {
+	crumbs: Array<ResolvedRef>;
+	current: string;
+}
+
+const { crumbs, current } = Astro.props;
+---
+
+<nav aria-label="Breadcrumb" class="mb-4">
+	<ol class="flex flex-wrap items-center gap-x-2 text-sm text-ink-500">
+		{
+			crumbs.map((crumb) => (
+				<li class="flex items-center gap-x-2">
+					<a class="text-accent-400 hover:text-accent-300" href={crumb.url}>
+						{crumb.label}
+					</a>
+					<span aria-hidden="true" class="text-ink-600">
+						/
+					</span>
+				</li>
+			))
+		}
+		<li aria-current="page" class="text-ink-300">{current}</li>
+	</ol>
+</nav>

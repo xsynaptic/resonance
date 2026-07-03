@@ -3,8 +3,8 @@ import { z } from 'zod';
 
 import { contentBaseSchema } from '#lib/schemas/index.ts';
 
-// One curated entry in a list; `description` is markdown, rendered at runtime. `linkId` associates a
-// review or other entry by bare slug (resolved like the <Link> component).
+// One curated list entry; `description` is runtime-rendered markdown; `linkId` links a review/entry by
+// bare slug (like the <Link> component)
 const ListItemSchema = z
 	.object({
 		artist: z.string().optional(),
@@ -26,8 +26,8 @@ const ListItemSchema = z
 
 export type ListItemValue = z.infer<typeof ListItemSchema>;
 
-// Only the items are structured data; list-level props (order, etc.) are authored on the <List> in the
-// body, so `listItems` is a bare root array the body component references via frontmatter
+// Only the items are structured data; list-level props (order) live on the <List> in the body, so
+// `listItems` is a bare root array referenced via frontmatter
 export const listSchema = z
 	.object({
 		...contentBaseSchema,

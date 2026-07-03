@@ -20,8 +20,8 @@ interface RenditionsOptions {
 	rootPath: string;
 }
 
-// Derives 192kbps AAC .m4a streaming renditions from each source (flac preferred, mp3 fallback).
-// Incremental: skips outputs newer than their source. Atomic: encodes to a tmp file then renames.
+// 192kbps AAC .m4a streaming renditions per source (flac preferred, mp3 fallback)
+// Incremental: skips outputs newer than their source; atomic: encodes to a tmp file then renames
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 

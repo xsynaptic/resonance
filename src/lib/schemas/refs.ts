@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
-// A reference to an artist (or self-referential act/person). A bare string is free text with no link;
-// an object must carry an `id` matching a catalog entry, with an optional `name` that overrides the
-// taxonomy-derived display name. Free text is the default because most names are not in the catalog.
+// Artist ref: a bare string is free text (no link); an object links via `id` (must match the catalog),
+// with optional `name` overriding the derived title; free text is the default (most names aren't cataloged)
 export const RefSchema = z.union([
 	z.string(),
 	z.object({ id: z.string(), name: z.string().optional() }).strict(),

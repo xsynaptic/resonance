@@ -28,6 +28,14 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 			`  fail2ban: ${deployDir}/fail2ban/ -> ${remoteHost}:${remoteServerConfigPath}/fail2ban/`,
 		),
 	);
+	console.log(
+		chalk.gray(`  stats:    ${deployDir}/stats/ -> ${remoteHost}:${remoteServerConfigPath}/stats/`),
+	);
+	console.log(
+		chalk.gray(
+			`  cron:     ${deployDir}/cron.d/ -> ${remoteHost}:${remoteServerConfigPath}/cron.d/`,
+		),
+	);
 
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
@@ -38,6 +46,16 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 		dryRun,
 	});
 	await rsyncTo(`${deployDir}/fail2ban/`, `${remoteHost}:${remoteServerConfigPath}/fail2ban/`, {
+		config,
+		dryRun,
+	});
+	// Fixtures and tests stay local; only the script itself belongs on the box
+	await rsyncTo(`${deployDir}/stats/`, `${remoteHost}:${remoteServerConfigPath}/stats/`, {
+		config,
+		dryRun,
+		excludes: ['fixtures', 'test-*.py', '__pycache__'],
+	});
+	await rsyncTo(`${deployDir}/cron.d/`, `${remoteHost}:${remoteServerConfigPath}/cron.d/`, {
 		config,
 		dryRun,
 	});
@@ -53,6 +71,13 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 	await sshExec(
 		config,
 		`sudo rsync -av --chown=root:root ${remoteServerConfigPath}/fail2ban/ /etc/fail2ban/ && sudo systemctl reload fail2ban`,
+		{ dryRun },
+	);
+
+	// Cron picks up /etc/cron.d changes on its own; no reload needed
+	await sshExec(
+		config,
+		`sudo rsync -av --chown=root:root ${remoteServerConfigPath}/stats/download-stats.py /usr/local/bin/download-stats.py && sudo rsync -av --chown=root:root ${remoteServerConfigPath}/cron.d/ /etc/cron.d/`,
 		{ dryRun },
 	);
 

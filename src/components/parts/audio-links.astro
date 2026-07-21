@@ -3,11 +3,12 @@ import ButtonLink from '#components/parts/button-link.astro';
 import { downloadBaseUrl } from '#lib/site.ts';
 
 interface Props {
+	downloadCounts?: Map<string, number> | undefined;
 	files?: Array<string> | undefined;
 	links?: Array<string> | undefined;
 }
 
-const { files, links } = Astro.props;
+const { downloadCounts, files, links } = Astro.props;
 
 interface LinkMeta {
 	icon?: string | undefined;
@@ -45,13 +46,20 @@ const hasFiles = files && files.length > 0;
 					</li>
 				);
 			})}
-			{files?.map((file) => (
-				<li>
-					<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
-						{getFileLabel(file)}
-					</ButtonLink>
-				</li>
-			))}
+			{files?.map((file) => {
+				const count = downloadCounts?.get(file);
+
+				return (
+					<li class="flex items-center gap-1.5">
+						<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
+							{getFileLabel(file)}
+						</ButtonLink>
+						{count ? (
+							<span class="text-xs text-ink-500">{count.toLocaleString('en-US')} downloads</span>
+						) : undefined}
+					</li>
+				);
+			})}
 		</ul>
 	) : undefined
 }

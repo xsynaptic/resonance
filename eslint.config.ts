@@ -1,5 +1,4 @@
 import { getAstroConfig, getConfig, getWebComponentConfig } from '@xsynaptic/eslint-config';
-import astroPlugin from 'eslint-plugin-astro';
 import globals from 'globals';
 
 export default getConfig(
@@ -38,7 +37,7 @@ export default getConfig(
 			},
 		},
 		getWebComponentConfig(['src/components/**/*.ts']),
-		...getAstroConfig({ a11y: astroPlugin.configs['jsx-a11y-strict'] }),
+		...getAstroConfig({ a11y: 'strict' }),
 	],
 	{
 		customGlobals: { mode: 'readonly' },

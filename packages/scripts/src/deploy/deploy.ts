@@ -9,6 +9,7 @@ import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
 import { deployAudio } from './deploy-audio.js';
 import { loadDeployConfig, printDeployConfig } from './deploy-config.js';
+import { pullStats } from './stats-pull.js';
 
 const rootPath = findWorkspaceRoot();
 
@@ -82,6 +83,9 @@ try {
 	const validatedFiles = await validateAudio({ rootPath });
 
 	await generateRenditions({ dryRun: isDryRun, rootPath });
+
+	// Soft-fail by design: fresh counts are nice, a deploy blocked on them is not
+	await pullStats({ dryRun: isDryRun, rootPath });
 
 	await build();
 

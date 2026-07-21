@@ -11,6 +11,15 @@ interface RsyncOptions {
 	extraFlags?: Array<string>;
 }
 
+// Remote-to-local pull; same command shape, named for call-site readability
+export async function rsyncFrom(
+	source: string,
+	destination: string,
+	options: RsyncOptions,
+): Promise<void> {
+	await $({ stdio: 'inherit' })`rsync ${buildRsyncArgs(source, destination, options)}`;
+}
+
 export async function rsyncTo(
 	source: Array<string> | string,
 	destination: string,

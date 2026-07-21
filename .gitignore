@@ -5,6 +5,7 @@ dist/
 .astro/
 .cache/
 .wrangler/
+__pycache__/
 
 # dependencies
 node_modules/

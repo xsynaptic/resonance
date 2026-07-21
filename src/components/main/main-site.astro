@@ -1,7 +1,9 @@
 ---
 import { Font } from 'astro:assets';
+import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
 
 import '#styles/main.css';
+import MainAnalytics from '#components/main/main-analytics.astro';
 import MainSprites from '#components/main/main-sprites.astro';
 import MenuFooter from '#components/menu/menu-footer.astro';
 import MenuHeader from '#components/menu/menu-header.astro';
@@ -26,6 +28,11 @@ const pageTitle = title ? `${title} · ${site.title}` : site.title;
 		<Font cssVariable="--font-fira-sans" preload />
 		<title>{pageTitle}</title>
 		<meta content={description} name="description" />
+		{
+			import.meta.env.PROD && UMAMI_ID && UMAMI_DOMAIN ? (
+				<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
+			) : undefined
+		}
 	</head>
 	<body class="flex min-h-screen flex-col">
 		<MainSprites />

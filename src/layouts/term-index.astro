@@ -1,14 +1,14 @@
 ---
-import type { CollectionKey } from 'astro:content';
-
 import { getCollection } from 'astro:content';
+
+import type { TitledCollectionKey } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import TermCloud from '#components/parts/term-cloud.astro';
 import { getContentUrl } from '#lib/utils/routing.ts';
 
 interface Props {
-	collection: CollectionKey;
+	collection: TitledCollectionKey;
 	title: string;
 }
 

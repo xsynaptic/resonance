@@ -7,9 +7,15 @@ import fontDevtools from '@xsynaptic/astro-font-devtools';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
 import pagefind from 'astro-pagefind';
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 
 export default defineConfig({
+	env: {
+		schema: {
+			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
+			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),
+		},
+	},
 	experimental: {
 		contentIntellisense: true,
 	},

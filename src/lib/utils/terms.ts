@@ -20,8 +20,11 @@ export interface TermLink {
 	url: string;
 }
 
+// Every collection with a `title` field; `downloads` is data-only (no title, no routes)
+export type TitledCollectionKey = Exclude<CollectionKey, 'downloads'>;
+
 // Cache id->title per collection so ref resolution is one build-time scan per collection
-const titleMaps = new Map<CollectionKey, Promise<Map<string, string>>>();
+const titleMaps = new Map<TitledCollectionKey, Promise<Map<string, string>>>();
 
 // Ids from a labels array that link to a term (bare strings are free text; objects carry the id)
 export function labelIds(labels: Array<LabelRefValue> | undefined): Array<string> {
@@ -51,7 +54,7 @@ export async function resolveAncestors(
 
 // Resolve polymorphic refs: a bare string is free text; an object links via id, name overrides the title
 export async function resolveRefs(
-	collection: CollectionKey,
+	collection: TitledCollectionKey,
 	refs: Array<RefValue> | undefined,
 ): Promise<Array<ResolvedRef>> {
 	if (!refs || refs.length === 0) return [];
@@ -73,7 +76,7 @@ export async function resolveRefs(
 
 // Resolve a single optional id to a link url (for track/list items where the display text is separate)
 export async function resolveRefUrl(
-	collection: CollectionKey,
+	collection: TitledCollectionKey,
 	id: string | undefined,
 ): Promise<string | undefined> {
 	if (id === undefined) return undefined;
@@ -89,8 +92,8 @@ export async function resolveRefUrl(
 
 // Resolve a strict reference array (styles, regions, eras, tags) into linkable pairs
 export async function resolveTermLinks(
-	collection: CollectionKey,
-	refs: Array<ReferenceDataEntry<CollectionKey>> | undefined,
+	collection: TitledCollectionKey,
+	refs: Array<ReferenceDataEntry<TitledCollectionKey>> | undefined,
 ): Promise<Array<ResolvedRef>> {
 	if (!refs || refs.length === 0) return [];
 
@@ -102,12 +105,12 @@ export async function resolveTermLinks(
 	}));
 }
 
-async function buildTitles(collection: CollectionKey): Promise<Map<string, string>> {
+async function buildTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {
 	const entries = await getCollection(collection);
 	return new Map(entries.map((entry) => [entry.id, entry.data.title]));
 }
 
-function getTitles(collection: CollectionKey): Promise<Map<string, string>> {
+function getTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {
 	let promise = titleMaps.get(collection);
 	if (promise === undefined) {
 		promise = buildTitles(collection);

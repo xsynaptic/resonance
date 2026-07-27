@@ -7,7 +7,7 @@ import RefText from '#components/parts/ref-text.astro';
 import { resolveSlugLink } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
-import { resolveRefUrl } from '#lib/utils/terms.ts';
+import { resolveRefs, resolveRefUrl } from '#lib/utils/terms.ts';
 
 type Props = ListItemValue;
 
@@ -16,8 +16,7 @@ const {
 	artistId,
 	description,
 	imageFeatured,
-	label,
-	labelId,
+	labels,
 	link,
 	linkDiscogs,
 	linkId,
@@ -32,13 +31,12 @@ const reviewLink = linkId ? await resolveSlugLink(linkId) : undefined;
 const titleHref = reviewLink?.url ?? link;
 const image = imageFeatured ? getMediaImage(imageFeatured) : undefined;
 
-// Artist and label link when their sibling id resolves; year stays plain
+// Artist links when its sibling id resolves, labels when the ref carries one; year stays plain
 const artistUrl = await resolveRefUrl('artists', artistId);
-const labelUrl = await resolveRefUrl('labels', labelId);
 const metaParts: Array<{ label: string; url?: string | undefined }> = [];
 if (artist) metaParts.push({ label: artist, url: artistUrl });
 if (year) metaParts.push({ label: String(year) });
-if (label) metaParts.push({ label, url: labelUrl });
+metaParts.push(...(await resolveRefs('labels', labels)));
 const descriptionHtml = description ? await renderMarkdown(description) : undefined;
 const youtubeSearch =
 	linkYoutubeSearch && (artist ?? title)

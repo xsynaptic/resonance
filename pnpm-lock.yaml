@@ -105,9 +105,6 @@ importers:
       textlint-plugin-mdx:
         specifier: ^1.1.0
         version: 1.1.0(typescript@6.0.3)
-      textlint-rule-diacritics:
-        specifier: ^2.1.4
-        version: 2.1.4(textlint@15.7.1)
 
   packages/scripts:
     devDependencies:
@@ -3650,9 +3647,6 @@ packages:
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
 
-  match-casing@2.0.1:
-    resolution: {integrity: sha512-LeCq9FI5u4nppJnt4hklxcchkH9qH9+uFjX17f74a99lLkRXfVE49iL0hCtM5DZolps483viAy5zjvlTz/JNoA==}
-
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -4985,12 +4979,6 @@ packages:
     resolution: {integrity: sha512-iEeQO5wW7X0TKChILS45FoPW/e9wrQp8gypAmNTg4DdgYgU3gWT+MbSIshvujD2roCFYVyh2TouZBlsckOYVAA==}
     peerDependencies:
       typescript: ^5.0.0
-
-  textlint-rule-diacritics@2.1.4:
-    resolution: {integrity: sha512-BiE9sYEpIuN/g5LuDmB1ksLKOd6pwr4KwU+1e0eNQX1SFZwSmOZqqIxaBA91yvoHExb+/hQZrop4lrpfM4JbIQ==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      textlint: '>=13'
 
   textlint-rule-helper@2.5.0:
     resolution: {integrity: sha512-QIbFPtyqLy0g5BJn8mryk9iHzGYicNaFIpLFPiEnb4RXxrEGeQ2W2aARQ9yEXLIAqo+OwK4ndWBAWkbgJEPzTQ==}
@@ -9362,8 +9350,6 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  match-casing@2.0.1: {}
-
   math-intrinsics@1.1.0: {}
 
   mathml-tag-names@4.0.0: {}
@@ -11530,12 +11516,6 @@ snapshots:
   textlint-plugin-mdx@1.1.0(typescript@6.0.3):
     dependencies:
       typescript: 6.0.3
-
-  textlint-rule-diacritics@2.1.4(textlint@15.7.1):
-    dependencies:
-      match-casing: 2.0.1
-      strip-json-comments: 5.0.3
-      textlint: 15.7.1
 
   textlint-rule-helper@2.5.0:
     dependencies:

@@ -2,6 +2,7 @@ import { reference } from 'astro:content';
 import { z } from 'zod';
 
 import { contentBaseSchema } from '#lib/schemas/index.ts';
+import { LabelRefSchema } from '#lib/schemas/refs.ts';
 
 // One curated list entry; `description` is runtime-rendered markdown; `linkId` links a review/entry by
 // bare slug (like the <Link> component)
@@ -11,8 +12,7 @@ const ListItemSchema = z
 		artistId: z.string().optional(),
 		description: z.string().optional(),
 		imageFeatured: z.string().optional(),
-		label: z.string().optional(),
-		labelId: z.string().optional(),
+		labels: LabelRefSchema.array().optional(),
 		link: z.string().optional(),
 		linkDiscogs: z.string().optional(),
 		linkId: z.string().optional(),

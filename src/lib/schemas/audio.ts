@@ -5,17 +5,15 @@ import { contentBaseSchema } from '#lib/schemas/index.ts';
 import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
 
 // Only the per-track fields that actually carry data
-// Flat and short-keyed for hand-editing; `year`/`time` stay strings (verbatim, e.g. "62:14")
-// artist/label/remixer are free text; the optional *Id fields link them to a catalog entry
+// Flat and short-keyed for hand-editing; `year`/`timestamp` stay strings (verbatim, e.g. "00:07:51")
+// Every ref field is polymorphic, matching top-level artists/labels: bare string is free text,
+// {id} links. The extractor emits one-element arrays; multiples are for hand-editing
 const TrackSchema = z
 	.object({
-		artist: z.string(),
-		artistId: z.string().optional(),
-		label: z.string().optional(),
-		labelId: z.string().optional(),
-		remixer: z.string().optional(),
-		remixerId: z.string().optional(),
-		time: z.string().optional(),
+		artists: RefSchema.array(),
+		labels: LabelRefSchema.array().optional(),
+		mixArtists: RefSchema.array().optional(),
+		timestamp: z.string().optional(),
 		title: z.string(),
 		year: z.string().optional(),
 	})
@@ -34,9 +32,6 @@ const audioReleaseFields = {
 	labels: LabelRefSchema.array().optional(),
 	links: z.string().array().optional(),
 	regions: reference('regions').array().optional(),
-	releaseTitle: z.string().optional(),
-	releaseType: z.enum(['default', 'major', 'minor', 'other']).optional(),
-	releaseYear: z.string().optional(),
 	styles: reference('styles').array().optional(),
 	// Verbatim backup, not rendered (`tracks` drives display); kept because the extractor merges
 	// multi-tracklist mixes into `tracks` lossily
@@ -60,6 +55,12 @@ export const reviewSchema = z
 		...audioReleaseFields,
 		discogsUrl: z.string().optional(),
 		rating: z.number().min(1).max(100).optional(),
+		// Reviews only: on mixes all three were redundant (releaseTitle duplicated title, releaseYear
+		// duplicated dateCreated's year, releaseType was an Ektoplazm concept). Here releaseTitle is the
+		// album title without the "Artist - " prefix, so it is not recoverable from title
+		releaseTitle: z.string().optional(),
+		releaseType: z.enum(['default', 'major', 'minor', 'other']).optional(),
+		releaseYear: z.string().optional(),
 		reviewAttributes: z.enum(['recommended', 'dj_fodder', 'youtube_link']).array().optional(),
 		youtubeSearch: z.boolean().optional(),
 	})

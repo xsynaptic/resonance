@@ -1,0 +1,21 @@
+---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
+import RefText from '#components/parts/ref-text.astro';
+
+// Renders a group of resolved references inline, slash-separated; renders nothing when empty
+interface Props {
+	refs: Array<ResolvedRef>;
+}
+
+const { refs } = Astro.props;
+---
+
+{
+	refs.map((ref, index) => (
+		<Fragment>
+			{index > 0 ? ' / ' : ''}
+			<RefText label={ref.label} url={ref.url} />
+		</Fragment>
+	))
+}

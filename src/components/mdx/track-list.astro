@@ -1,8 +1,9 @@
 ---
 import type { TrackValue } from '#lib/schemas/audio.ts';
+import type { ResolvedRef } from '#lib/utils/terms.ts';
 
-import RefText from '#components/parts/ref-text.astro';
-import { resolveRefUrl } from '#lib/utils/terms.ts';
+import RefList from '#components/parts/ref-list.astro';
+import { resolveRefs } from '#lib/utils/terms.ts';
 
 interface Props {
 	tracks?: Array<TrackValue> | undefined;
@@ -10,21 +11,23 @@ interface Props {
 
 const { tracks } = Astro.props;
 
-// Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
-function getRemixer(track: TrackValue): string | undefined {
-	if (!track.remixer) return undefined;
+// Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)"); suppress
+// the credit only when every named artist already appears, so a partial group still renders
+function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array<ResolvedRef> {
+	if (mixArtists.length === 0) return [];
 
-	return track.title.toLowerCase().includes(track.remixer.toLowerCase())
-		? undefined
-		: track.remixer;
+	const lowerTitle = title.toLowerCase();
+	const allNamed = mixArtists.every((ref) => lowerTitle.includes(ref.label.toLowerCase()));
+
+	return allNamed ? [] : mixArtists;
 }
 
-// Resolve the optional linking ids to urls up front (title maps are cached, so this is cheap)
-const links = await Promise.all(
+// Resolve the polymorphic refs up front (title maps are cached, so this is cheap)
+const resolved = await Promise.all(
 	(tracks ?? []).map(async (track) => ({
-		artistUrl: await resolveRefUrl('artists', track.artistId),
-		labelUrl: await resolveRefUrl('labels', track.labelId),
-		remixerUrl: await resolveRefUrl('artists', track.remixerId),
+		artists: await resolveRefs('artists', track.artists),
+		labels: await resolveRefs('labels', track.labels),
+		mixArtists: await resolveRefs('artists', track.mixArtists),
 	})),
 );
 ---
@@ -35,8 +38,10 @@ const links = await Promise.all(
 			<h2 class="mb-3 font-display text-lg font-bold text-accent-400">Tracklist</h2>
 			<ol class="track-list">
 				{tracks.map((track, index) => {
-					const { artistUrl, labelUrl, remixerUrl } = links[index] ?? {};
-					const remixer = getRemixer(track);
+					const { artists, labels, mixArtists } = resolved[index] ?? {};
+					const trackArtists = artists ?? [];
+					const trackLabels = labels ?? [];
+					const remixCredit = visibleMixArtists(track.title, mixArtists ?? []);
 
 					return (
 						<li class="track">
@@ -44,27 +49,31 @@ const links = await Promise.all(
 								{index + 1}.
 							</span>
 							<span class="track-title-line">
-								<strong class="text-ink-100">
-									<RefText label={track.artist} url={artistUrl} />
-								</strong>
-								<span class="text-ink-600">{' - '}</span>
+								{trackArtists.length > 0 ? (
+									<Fragment>
+										<strong class="text-ink-100">
+											<RefList refs={trackArtists} />
+										</strong>
+										<span class="text-ink-600">{' - '}</span>
+									</Fragment>
+								) : undefined}
 								<span class="font-medium">{track.title}</span>
-								{remixer ? (
+								{remixCredit.length > 0 ? (
 									<span>
 										{' ('}
-										<RefText label={remixer} url={remixerUrl} />
+										<RefList refs={remixCredit} />
 										{' remix)'}
 									</span>
 								) : undefined}
 							</span>
-							{track.label || track.year ? (
+							{trackLabels.length > 0 || track.year ? (
 								<span class="track-label-year">
-									{track.label ? <RefText label={track.label} url={labelUrl} /> : undefined}
-									{track.label && track.year ? ', ' : ''}
+									<RefList refs={trackLabels} />
+									{trackLabels.length > 0 && track.year ? ', ' : ''}
 									{track.year}
 								</span>
 							) : undefined}
-							{track.time ? <span class="track-time">{track.time}</span> : undefined}
+							{track.timestamp ? <span class="track-time">{track.timestamp}</span> : undefined}
 						</li>
 					);
 				})}

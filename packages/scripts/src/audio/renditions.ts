@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import pLimit from 'p-limit';
@@ -7,8 +8,30 @@ import { $ } from 'zx';
 import { AUDIO_SOURCE_DIR, STREAMS_DIR } from './audio-paths.js';
 
 const CONCURRENCY = 3;
-const RENDITION_EXTENSION = '.m4a';
-const TMP_EXTENSION = '.m4a.tmp';
+const RENDITION_EXTENSION = '.webm';
+const TMP_EXTENSION = '.webm.tmp';
+
+const ENCODER_ARGS = [
+	'-vn', // -vn drops cover art; webm would otherwise re-encode the 6MB embedded image as a VP9 video track
+	'-map_metadata', // -map_metadata 0 keeps tags, minus WAVEFORM, reducing time to first byte
+	'0',
+	'-metadata',
+	'WAVEFORM=',
+	'-c:a',
+	'libopus',
+	'-b:a',
+	'160k',
+	'-cues_to_front', // Puts the seek index before the clusters so a seek needs no round trip to the tail
+	'1',
+];
+
+// Stamped into every rendition and checked on the next run
+// mtime alone cannot see a settings change, so without this an edit to ENCODER_ARGS would silently leave old encodes in place
+const RENDITION_PROFILE = crypto
+	.createHash('sha256')
+	.update(ENCODER_ARGS.join(' '))
+	.digest('hex')
+	.slice(0, 12);
 
 interface RenditionJob {
 	output: string;
@@ -20,8 +43,9 @@ interface RenditionsOptions {
 	rootPath: string;
 }
 
-// 192kbps AAC .m4a streaming renditions per source (flac preferred, mp3 fallback)
-// Incremental: skips outputs newer than their source; atomic: encodes to a tmp file then renames
+// 160kbps Opus .webm streaming renditions per source (FLAC preferred, MP# fallback)
+// Incremental: skips outputs newer than their source and stamped with the current encoder profile
+// Atomic: encodes to a tmp file then renames
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
@@ -125,7 +149,7 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	);
 }
 
-// Interrupted encodes leave `.m4a.tmp` files behind; clear them so none masquerade as complete
+// Interrupted encodes leave `.webm.tmp` files behind; clear them so none masquerade as complete
 async function cleanStaleTmp(dir: string): Promise<void> {
 	let existing: Array<string>;
 
@@ -145,10 +169,8 @@ async function cleanStaleTmp(dir: string): Promise<void> {
 async function encode(job: RenditionJob): Promise<void> {
 	const tmp = `${job.output}.tmp`;
 
-	// -vn drops cover art (a video track breaks faststart); -map_metadata 0 keeps tags;
-	// +faststart moves the moov atom first for progressive playback and seeking;
-	// -f mp4 is explicit because the .tmp suffix hides the container format
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} -vn -map_metadata 0 -c:a aac -b:a 192k -movflags +faststart -f mp4 ${tmp}`;
+	// -f webm is explicit because the .tmp suffix hides the container format
+	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${ENCODER_ARGS} -metadata ${`RENDITION_PROFILE=${RENDITION_PROFILE}`} -f webm ${tmp}`;
 
 	await fs.rename(tmp, job.output);
 }
@@ -156,8 +178,21 @@ async function encode(job: RenditionJob): Promise<void> {
 async function isUpToDate(source: string, output: string): Promise<boolean> {
 	try {
 		const [sourceStat, outputStat] = await Promise.all([fs.stat(source), fs.stat(output)]);
-		return outputStat.mtimeMs >= sourceStat.mtimeMs;
+		if (outputStat.mtimeMs < sourceStat.mtimeMs) return false;
 	} catch {
 		return false;
+	}
+
+	return (await readProfile(output)) === RENDITION_PROFILE;
+}
+
+// Reads only the header, which -cues_to_front keeps at the front of the file
+async function readProfile(output: string): Promise<string> {
+	try {
+		const result =
+			await $`ffprobe -v error -show_entries format_tags=RENDITION_PROFILE -of default=nw=1:nk=1 ${output}`.quiet();
+		return result.stdout.trim();
+	} catch {
+		return '';
 	}
 }

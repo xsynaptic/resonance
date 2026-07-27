@@ -4,6 +4,13 @@ import { z } from 'zod';
 import { contentBaseSchema } from '#lib/schemas/index.ts';
 import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
 
+// Timestamps drive cue sheet generation, so the shape is enforced rather than warned about: minutes
+// and seconds must be in range, hours carry the overflow. The extractor normalizes to this, and a
+// failed parse here is a build error naming the entry and field, which is the point
+const TimestampSchema = z.string().regex(/^\d{2}:[0-5]\d:[0-5]\d(\.\d{1,2})?$/, {
+	message: 'Use HH:MM:SS or HH:MM:SS.dd, with minutes and seconds under 60',
+});
+
 // Only the per-track fields that actually carry data
 // Flat and short-keyed for hand-editing; `year`/`timestamp` stay strings (verbatim, e.g. "00:07:51")
 // Every ref field is polymorphic, matching top-level artists/labels: bare string is free text,
@@ -13,7 +20,7 @@ const TrackSchema = z
 		artists: RefSchema.array(),
 		labels: LabelRefSchema.array().optional(),
 		mixArtists: RefSchema.array().optional(),
-		timestamp: z.string().optional(),
+		timestamp: TimestampSchema.optional(),
 		title: z.string(),
 		year: z.string().optional(),
 	})

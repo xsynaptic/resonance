@@ -3,12 +3,14 @@ import ButtonLink from '#components/parts/button-link.astro';
 import { downloadBaseUrl } from '#lib/site.ts';
 
 interface Props {
+	// Set only when the mix has timestamps; each file then gets a paired cue sheet link
+	cueSlug?: string | undefined;
 	downloadCounts?: Map<string, number> | undefined;
 	files?: Array<string> | undefined;
 	links?: Array<string> | undefined;
 }
 
-const { downloadCounts, files, links } = Astro.props;
+const { cueSlug, downloadCounts, files, links } = Astro.props;
 
 interface LinkMeta {
 	icon?: string | undefined;
@@ -56,6 +58,15 @@ const hasFiles = files && files.length > 0;
 						</ButtonLink>
 						{count ? (
 							<span class="text-xs text-ink-500">{count.toLocaleString('en-US')} downloads</span>
+						) : undefined}
+						{cueSlug ? (
+							<ButtonLink
+								href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
+								title={`Cue sheet for ${file}`}
+								variant="small"
+							>
+								CUE
+							</ButtonLink>
 						) : undefined}
 					</li>
 				);

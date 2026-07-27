@@ -8,6 +8,7 @@ import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
+import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -42,6 +43,7 @@ const downloadCounts = await getDownloadCounts();
 				downloadCounts={downloadCounts}
 				files={entry.data.files}
 				links={entry.data.links}
+				{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
 			/>
 		</div>
 		<div class="mt-8 space-y-2">

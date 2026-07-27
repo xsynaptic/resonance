@@ -27,7 +27,7 @@ const columns = getGridColumnCount(columnsProp ? Number(columnsProp) : imageCoun
 ---
 
 {
-	imageCount > 0 && slotContents ? (
+	slotContents && imageCount > 0 ? (
 		<div
 			class:list={[
 				'c-image-group',

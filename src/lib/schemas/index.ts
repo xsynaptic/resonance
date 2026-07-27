@@ -12,7 +12,7 @@ const DateStringSchema = z
 		message: 'Use ISO YYYY-MM-DD (optionally " HH:mm")',
 	})
 	.transform((value) => {
-		const [datePart = '', timePart] = value.split(' ');
+		const [datePart = '', timePart] = value.split(' ', 2);
 		return new Date(`${datePart}T${timePart ?? '00:00'}:00Z`);
 	});
 

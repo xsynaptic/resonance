@@ -80,7 +80,7 @@ class PaginationSelect extends HTMLElement {
 		const pageNumber = Number(this.#select.value);
 		const currentPage = Number(this.dataset.currentPage);
 
-		if (!Number.isSafeInteger(pageNumber) || pageNumber === currentPage) return;
+		if (pageNumber === currentPage || !Number.isSafeInteger(pageNumber)) return;
 
 		location.assign(this.#getPageUrl(pageNumber));
 	};

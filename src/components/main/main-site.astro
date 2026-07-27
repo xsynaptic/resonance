@@ -29,7 +29,7 @@ const pageTitle = title ? `${title} · ${site.title}` : site.title;
 		<title>{pageTitle}</title>
 		<meta content={description} name="description" />
 		{
-			import.meta.env.PROD && UMAMI_ID && UMAMI_DOMAIN ? (
+			UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (
 				<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
 			) : undefined
 		}

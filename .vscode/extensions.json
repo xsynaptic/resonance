@@ -4,6 +4,7 @@
 		"bradlc.vscode-tailwindcss",
 		"stylelint.vscode-stylelint",
 		"esbenp.prettier-vscode",
+		"redhat.vscode-yaml",
 		"streetsidesoftware.code-spell-checker",
 		"remcohaszing.vscode-mdxlint",
 		"unifiedjs.vscode-mdx"

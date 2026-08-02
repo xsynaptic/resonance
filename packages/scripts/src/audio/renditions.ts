@@ -6,6 +6,7 @@ import pLimit from 'p-limit';
 import { $ } from 'zx';
 
 import { AUDIO_SOURCE_DIR, STREAMS_DIR } from './audio-paths.js';
+import { collectAudioSources } from './audio-sources.js';
 
 const CONCURRENCY = 3;
 const RENDITION_EXTENSION = '.webm';
@@ -55,43 +56,13 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 		throw new Error('ffmpeg not found on PATH. Install it with: brew install ffmpeg');
 	}
 
-	const sourceDir = path.join(rootPath, AUDIO_SOURCE_DIR);
 	const streamsDir = path.join(rootPath, STREAMS_DIR);
+	const sources = await collectAudioSources(path.join(rootPath, AUDIO_SOURCE_DIR));
 
-	let entries: Array<string>;
-
-	try {
-		entries = await fs.readdir(sourceDir);
-	} catch {
-		throw new Error(`Audio source directory not found: ${sourceDir}`);
-	}
-
-	const sources = new Map<string, { flac?: string; mp3?: string }>();
-
-	for (const entry of entries) {
-		const ext = path.extname(entry).toLowerCase();
-		if (ext !== '.mp3' && ext !== '.flac') continue;
-
-		const base = entry.slice(0, -ext.length);
-		const record = sources.get(base) ?? {};
-
-		if (ext === '.flac') record.flac = entry;
-		else record.mp3 = entry;
-
-		sources.set(base, record);
-	}
-
-	const jobs: Array<RenditionJob> = [];
-
-	for (const [base, record] of sources) {
-		const sourceName = record.flac ?? record.mp3;
-		if (sourceName === undefined) continue;
-
-		jobs.push({
-			output: path.join(streamsDir, `${base}${RENDITION_EXTENSION}`),
-			source: path.join(sourceDir, sourceName),
-		});
-	}
+	const jobs = sources.map((source): RenditionJob => ({
+		output: path.join(streamsDir, `${source.base}${RENDITION_EXTENSION}`),
+		source: source.path,
+	}));
 
 	await fs.mkdir(streamsDir, { recursive: true });
 	await cleanStaleTmp(streamsDir);

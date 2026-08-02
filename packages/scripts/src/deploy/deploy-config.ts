@@ -10,12 +10,14 @@ export interface DeployConfig {
 }
 
 const EXAMPLE_ENV = [
-	'  DEPLOY_REMOTE_HOST=deploy@files.djbasilisk.com',
-	'  DEPLOY_SSH_KEY_PATH=/path/to/ssh/key (optional)',
-	'  DEPLOY_AUDIO_PATH=<audio-path>',
-	'  DEPLOY_SERVER_CONFIG_PATH=<staging-path>',
-	'  DEPLOY_SITE_URL=https://djbasilisk.<account>.workers.dev/',
-	'  DEPLOY_FILES_URL=https://files.djbasilisk.com/',
+	'  deploy/.env:',
+	'    DEPLOY_REMOTE_HOST=deploy@files.djbasilisk.com',
+	'    DEPLOY_SSH_KEY_PATH=/path/to/ssh/key (optional)',
+	'    DEPLOY_AUDIO_PATH=<audio-path>',
+	'    DEPLOY_SERVER_CONFIG_PATH=<staging-path>',
+	'    DEPLOY_SITE_URL=https://djbasilisk.<account>.workers.dev/',
+	'  .env:',
+	'    FILES_URL=https://files.djbasilisk.com/',
 ];
 
 export function loadDeployConfig(): DeployConfig {
@@ -24,7 +26,7 @@ export function loadDeployConfig(): DeployConfig {
 	const remoteAudioPath = process.env.DEPLOY_AUDIO_PATH;
 	const remoteServerConfigPath = process.env.DEPLOY_SERVER_CONFIG_PATH;
 	const siteUrl = process.env.DEPLOY_SITE_URL;
-	const filesUrl = process.env.DEPLOY_FILES_URL;
+	const filesUrl = process.env.FILES_URL;
 
 	const missing: Array<string> = [];
 
@@ -32,11 +34,11 @@ export function loadDeployConfig(): DeployConfig {
 	if (!remoteAudioPath) missing.push('DEPLOY_AUDIO_PATH');
 	if (!remoteServerConfigPath) missing.push('DEPLOY_SERVER_CONFIG_PATH');
 	if (!siteUrl) missing.push('DEPLOY_SITE_URL');
-	if (!filesUrl) missing.push('DEPLOY_FILES_URL');
+	if (!filesUrl) missing.push('FILES_URL');
 
 	if (!remoteHost || !remoteAudioPath || !remoteServerConfigPath || !siteUrl || !filesUrl) {
 		console.error(chalk.red(`Missing required environment variables: ${missing.join(', ')}`));
-		console.error(chalk.gray('\nExample deploy/.env configuration:'));
+		console.error(chalk.gray('\nExample configuration:'));
 		for (const line of EXAMPLE_ENV) console.error(chalk.gray(line));
 		throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
 	}

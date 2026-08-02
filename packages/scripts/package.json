@@ -8,6 +8,7 @@
 		"extract": "tsx src/wp-extract/extract.ts",
 		"audio-validate": "tsx ./src/audio/validate.cli.ts",
 		"audio-renditions": "tsx ./src/audio/renditions.cli.ts",
+		"audio-waveforms": "tsx ./src/audio/waveforms.cli.ts",
 		"deploy-app": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-app.cli.ts",
 		"deploy-audio": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-audio.cli.ts",
 		"deploy-server-config": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-server-config.cli.ts",

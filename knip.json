@@ -6,7 +6,7 @@
 			"ignoreDependencies": ["wrangler"]
 		},
 		"packages/scripts": {
-			"ignoreBinaries": ["ffmpeg", "ffprobe", "which", "ssh-add"],
+			"ignoreBinaries": ["audiowaveform", "ffmpeg", "ffprobe", "which", "ssh-add"],
 			"ignoreDependencies": ["mysql2"]
 		}
 	},

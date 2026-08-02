@@ -5,6 +5,7 @@ import { $ } from 'zx';
 
 import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
+import { generateWaveforms } from '../audio/waveforms.js';
 import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
 import { deployAudio } from './deploy-audio.js';
@@ -83,6 +84,13 @@ try {
 	const validatedFiles = await validateAudio({ rootPath });
 
 	await generateRenditions({ dryRun: isDryRun, rootPath });
+
+	// Warn-only until a player consumes the previews; a missing brew package must not block a deploy
+	try {
+		await generateWaveforms({ dryRun: isDryRun, rootPath });
+	} catch (error) {
+		console.warn(chalk.yellow(`Waveforms skipped: ${String(error)}`));
+	}
 
 	// Soft-fail by design: fresh counts are nice, a deploy blocked on them is not
 	await pullStats({ dryRun: isDryRun, rootPath });

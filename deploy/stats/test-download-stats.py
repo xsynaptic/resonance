@@ -33,7 +33,7 @@ class DownloadStatsTest(unittest.TestCase):
         (self.media_root / "stream").mkdir(parents=True)
         (self.media_root / "artifacts" / "Test Mix.mp3").write_bytes(b"x" * 1000)
         (self.media_root / "artifacts" / "Quiet Mix.flac").write_bytes(b"x" * 2000)
-        (self.media_root / "stream" / "Test Mix.m4a").write_bytes(b"x" * 800)
+        (self.media_root / "stream" / "Test Mix.webm").write_bytes(b"x" * 800)
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
@@ -72,10 +72,23 @@ class DownloadStatsTest(unittest.TestCase):
         # Stream traffic is rolled up in SQLite for the future player, just not emitted
         db = sqlite3.connect(self.state_dir / "stats.sqlite")
         stream_bytes = db.execute(
-            "SELECT bytes_sent FROM daily_rollup WHERE file_key = 'stream/Test Mix.m4a'"
+            "SELECT bytes_sent FROM daily_rollup WHERE file_key = 'stream/Test Mix.webm'"
         ).fetchone()
         db.close()
         self.assertEqual(stream_bytes, (500,))
+
+    def test_untracked_extensions_are_ignored(self):
+        # .m4a is the abandoned AAC rendition format; a webm under /artifacts/ is equally out of place
+        template = "2026-01-10T10:00:00+00:00\t{uri}\t200\t800\tOK\t-\t1.000\t203.0.113.70\tMozilla/5.0 (Macintosh)\t-\n"
+        self.log.write_text(
+            template.format(uri="/stream/Test%20Mix.m4a") + template.format(uri="/artifacts/Test%20Mix.webm")
+        )
+        self.run_script()
+
+        db = sqlite3.connect(self.state_dir / "stats.sqlite")
+        rollups = db.execute("SELECT COUNT(*) FROM daily_rollup").fetchone()
+        db.close()
+        self.assertEqual(rollups, (0,))
 
     def test_idempotency(self):
         shutil.copy(FIXTURE_LOG, self.log)

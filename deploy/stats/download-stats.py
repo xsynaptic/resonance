@@ -33,7 +33,9 @@ UA_BLOCKLIST = ("bot", "crawl", "spider", "python-requests", "go-http-client", "
 HEURISTIC_MIN_BYTES = 16 * 1024 * 1024
 MAX_PLAUSIBLE_BYTES_PER_SEC = 50 * 1024 * 1024
 
-FILE_KEY_RE = re.compile(r"^/(artifacts|stream)/[^/]+\.(mp3|flac|m4a)$")
+# Extensions are per-directory: downloads are mp3/flac, streaming renditions are webm
+MEDIA_SUFFIXES = {"artifacts": (".mp3", ".flac"), "stream": (".webm",)}
+FILE_KEY_RE = re.compile(r"^/artifacts/[^/]+\.(mp3|flac)$|^/stream/[^/]+\.webm$")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS files (
@@ -136,12 +138,12 @@ def is_bot(entry):
 def scan_media_sizes(media_root):
     sizes = {}
     root = Path(media_root)
-    for subdir in ("artifacts", "stream"):
+    for subdir, suffixes in MEDIA_SUFFIXES.items():
         base = root / subdir
         if not base.is_dir():
             continue
         for file_path in base.iterdir():
-            if file_path.is_file() and file_path.suffix in (".mp3", ".flac", ".m4a"):
+            if file_path.is_file() and file_path.suffix in suffixes:
                 sizes[f"{subdir}/{file_path.name}"] = file_path.stat().st_size
     return sizes
 
@@ -270,6 +272,7 @@ def emit_json(db, output_path, now):
     files = []
     totals = {"completions": 0, "bytes_sent": 0}
 
+    # Artifacts only; stream/ rollups keep accruing in SQLite for whenever a player makes play counts mean something
     rows = db.execute(
         "SELECT file_key, size_bytes, first_seen FROM files WHERE file_key LIKE 'artifacts/%' ORDER BY file_key"
     ).fetchall()

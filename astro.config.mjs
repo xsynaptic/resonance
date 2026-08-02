@@ -12,6 +12,12 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 export default defineConfig({
 	env: {
 		schema: {
+			// Root of the audio file server; the default keeps a fresh clone building without a .env
+			FILES_URL: envField.string({
+				access: 'public',
+				context: 'server',
+				default: 'https://files.djbasilisk.com/',
+			}),
 			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
 			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),
 		},

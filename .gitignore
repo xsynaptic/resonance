@@ -16,7 +16,7 @@ node_modules/
 # environment variables
 .env
 .env.*
-# but the committed deploy template must ship
+!.env.example
 !deploy/.env.example
 
 # macOS

@@ -16,6 +16,7 @@
 		"test": "vitest",
 		"audio-validate": "pnpm -F @xsynaptic/scripts audio-validate",
 		"audio-renditions": "pnpm -F @xsynaptic/scripts audio-renditions",
+		"audio-waveforms": "pnpm -F @xsynaptic/scripts audio-waveforms",
 		"deploy-app": "pnpm -F @xsynaptic/scripts deploy-app",
 		"deploy-audio": "pnpm -F @xsynaptic/scripts deploy-audio",
 		"deploy-server-config": "pnpm -F @xsynaptic/scripts deploy-server-config",

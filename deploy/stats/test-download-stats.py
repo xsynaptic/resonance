@@ -57,8 +57,8 @@ class DownloadStatsTest(unittest.TestCase):
         self.assertEqual(keys, ["artifacts/Quiet Mix.flac", "artifacts/Test Mix.mp3"])
 
         test_mix = doc["files"][1]
-        # Clean 200 + curl 200 count; truncated fails threshold, bot UA dropped,
-        # same-hour repeat deduped, 404 and malformed skipped
+        # Clean 200 + curl 200 count; truncated fails threshold, bot UA dropped
+        # Same-hour repeat deduped, 404 and malformed skipped
         self.assertEqual(test_mix["completions"], 2)
         # 1000 + 400 + 300 + 300 + 1000 (curl) + 1000 (deduped repeat still ships bytes)
         self.assertEqual(test_mix["byte_equivalents"], 4.0)

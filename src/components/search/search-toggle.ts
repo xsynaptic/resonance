@@ -31,7 +31,7 @@ class SearchToggle extends HTMLElement {
 			this,
 		);
 
-		// Hover or focus the toggle and the stylesheet starts loading, so it's ready before the modal opens
+		// Hover or focus the toggle and the stylesheet loads, so it's ready before the modal opens
 		this.addEventListener('pointerenter', this.#preloadPagefindCss, { once: true });
 		this.addEventListener('focusin', this.#preloadPagefindCss, { once: true });
 
@@ -47,7 +47,7 @@ class SearchToggle extends HTMLElement {
 		document.removeEventListener('keydown', this.#handleKeydown);
 	}
 
-	// Called by <pagefind-modal> when it closes. Matches the built-in trigger's contract
+	// Called by <pagefind-modal> when it closes; matches the built-in trigger's contract
 	handleModalClose() {
 		this.buttonEl?.setAttribute('aria-expanded', 'false');
 		this.buttonEl?.focus();

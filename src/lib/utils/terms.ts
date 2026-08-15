@@ -2,10 +2,10 @@ import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 
 import { getCollection, getEntries } from 'astro:content';
 
-import type { HierarchicalCollection } from '#lib/collections/taxonomy/hierarchy.ts';
+import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { LabelRefValue, RefValue } from '#lib/schemas/refs.ts';
 
-import { ancestorsOf } from '#lib/collections/taxonomy/hierarchy.ts';
+import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 
 // url is set only when the ref links to a catalog entry; free-text and unresolved ids render plain
@@ -52,7 +52,8 @@ export async function resolveAncestors(
 	}));
 }
 
-// Resolve polymorphic refs: a bare string is free text; an object links via id, name overrides the title
+// Resolve polymorphic refs: a bare string is free text, an object links via id
+// `name` overrides the derived title
 export async function resolveRefs(
 	collection: TitledCollectionKey,
 	refs: Array<RefValue> | undefined,
@@ -74,7 +75,7 @@ export async function resolveRefs(
 	});
 }
 
-// Resolve a single optional id to a link url (for track/list items where the display text is separate)
+// Resolve a single optional id to a link url, for track/list items where display text is separate
 export async function resolveRefUrl(
 	collection: TitledCollectionKey,
 	id: string | undefined,
@@ -90,7 +91,7 @@ export async function resolveRefUrl(
 	return getContentUrl(collection, id);
 }
 
-// Resolve a strict reference array (styles, regions, eras, tags) into linkable pairs
+// Resolve a strict reference array (styles, regions, eras, formats, topics) into linkable pairs
 export async function resolveTermLinks(
 	collection: TitledCollectionKey,
 	refs: Array<ReferenceDataEntry<TitledCollectionKey>> | undefined,

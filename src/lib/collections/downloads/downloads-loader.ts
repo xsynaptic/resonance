@@ -13,8 +13,8 @@ const downloadsDocumentSchema = z.object({
 	version: z.literal(1),
 });
 
-// Reads the locally pulled downloads.json; a missing or invalid file must never fail
-// the build (counts are decoration, the site works without them)
+// Reads the locally pulled downloads.json
+// A missing or invalid file must never fail the build; counts are decoration
 export function downloadsLoader(): Loader {
 	return {
 		load: async (context) => {

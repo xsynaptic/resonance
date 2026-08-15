@@ -2,9 +2,8 @@
  * Custom Pagefind result template to extend the default with `srcset` for retina-ready thumbnails
  * @reference https://pagefind.app/docs/components/results/
  *
- * Lives in a separate .ts file so that the embedded `<script type="text/pagefind-template">`
- * string literal doesn't confuse knip's Astro parser (which counts raw `<script>` occurrences
- * when extracting script blocks from .astro files)
+ * Separate .ts file so the embedded `<script type="text/pagefind-template">` literal stays out of .astro
+ * knip's Astro parser counts raw `<script>` occurrences when extracting script blocks
  */
 /* eslint-disable no-useless-escape -- the <\/script> escape below keeps the template from closing its host script tag */
 export const pagefindResultTemplate = `<script type="text/pagefind-template">

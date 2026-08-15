@@ -1,7 +1,6 @@
 # Resonance
 
-An Astro project for [djbasilisk.com](https://djbasilisk.com), a personal DJ and
-electronic music site previously running on WordPress.
+An Astro project for [djbasilisk.com](https://djbasilisk.com), a personal DJ and electronic music site previously running on WordPress.
 
 ## Stack
 

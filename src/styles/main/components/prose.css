@@ -1,6 +1,6 @@
 /* Prose styles for MDX content (hand-rolled, not @tailwindcss/typography) */
 
-/* Element selectors are wrapped in :where() so prose rules stay at (0,1,0) specificity and are easy to override */
+/* :where() keeps prose element rules at (0,1,0) specificity, so they are easy to override */
 .prose-x {
 	max-width: var(--spacing-prose);
 	font-family: var(--font-body);
@@ -21,7 +21,6 @@
 		margin-bottom: 0;
 	}
 
-	/* Headings */
 	& :where(h1) {
 		margin-top: 0;
 		margin-bottom: calc(var(--spacing) * 3);
@@ -90,7 +89,6 @@
 		color: inherit;
 	}
 
-	/* Text elements */
 	& :where(p) {
 		margin-top: 0;
 		margin-bottom: calc(var(--spacing) * 5);
@@ -101,7 +99,6 @@
 		color: var(--color-ink-50);
 	}
 
-	/* Lists */
 	& :where(ul) {
 		padding: 0;
 		margin: 0 0 calc(var(--spacing) * 5);
@@ -132,7 +129,6 @@
 		margin-bottom: calc(var(--spacing) * 2);
 	}
 
-	/* Blockquote */
 	& :where(blockquote) {
 		padding-inline-start: calc(var(--spacing) * 5);
 		margin: calc(var(--spacing) * 6) 0;
@@ -142,14 +138,12 @@
 		border-inline-start: 0.25rem solid var(--color-surface-500);
 	}
 
-	/* Inline code */
 	& :where(code) {
 		font-size: 0.875em;
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-ink-50);
 	}
 
-	/* Highlight */
 	& :where(mark) {
 		padding-inline: 0.2em;
 		color: var(--color-surface-900);
@@ -157,7 +151,6 @@
 		border-radius: 0.125rem;
 	}
 
-	/* Horizontal rule */
 	& :where(hr) {
 		margin: calc(var(--spacing) * 10) 0;
 		border: 0;
@@ -169,7 +162,7 @@
 	}
 }
 
-/** Compact size variant; body shrinks but rem-based margins stay constant */
+/* Compact size variant; body shrinks but rem-based margins stay constant */
 .prose-compact {
 	font-size: 0.875rem;
 	line-height: 1.7;

@@ -4,19 +4,19 @@ import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 import EntryCard from '#components/parts/entry-card.astro';
 
 interface Props {
-	archiveHref: string;
-	archiveLabel: string;
 	heading: string;
 	items: Array<ContentItem>;
+	listHref: string;
+	listLabel: string;
 }
 
-const { archiveHref, archiveLabel, heading, items } = Astro.props;
+const { heading, items, listHref, listLabel } = Astro.props;
 ---
 
 <section class="mb-12">
 	<div class="mb-4 flex items-baseline justify-between">
 		<h2 class="text-2xl font-semibold text-ink-50">{heading}</h2>
-		<a class="text-sm text-accent-400 hover:text-accent-300" href={archiveHref}>{archiveLabel}</a>
+		<a class="text-sm text-accent-400 hover:text-accent-300" href={listHref}>{listLabel}</a>
 	</div>
 	<ul class="grid gap-4 sm:grid-cols-2">
 		{

@@ -11,7 +11,7 @@ export interface Reference {
 	url: string;
 }
 
-// Taxonomy collections an inline <Link id> can resolve to; order is collision priority (earlier wins)
+// Term collections an inline <Link id> can resolve to; order is collision priority (earlier wins)
 const linkableCollections = [
 	'artists',
 	'labels',
@@ -19,7 +19,8 @@ const linkableCollections = [
 	'regions',
 	'eras',
 	'series',
-	'tags',
+	'formats',
+	'topics',
 ] as const;
 
 let referencesPromise: Promise<Map<string, Reference>> | undefined;

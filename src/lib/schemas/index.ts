@@ -1,4 +1,7 @@
+import { reference } from 'astro:content';
 import { z } from 'zod';
+
+import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
 
 // Titles can be long (e.g. "Album Artwork: The Beginning Is at the End"), no upper bound
 export const TitleSchema = z.string().min(1);
@@ -19,7 +22,7 @@ const DateStringSchema = z
 // Cover image as a normalized path string, until originals are hosted
 const ImageFeaturedSchema = z.string();
 
-// Shared base fields for document collections (pages, posts, mixes, reviews, lists, designs)
+// Shared base fields for document collections (pages, posts, mixes, reviews, lists)
 export const contentBaseSchema = {
 	dateCreated: DateStringSchema,
 	dateUpdated: DateStringSchema.optional(),
@@ -27,4 +30,19 @@ export const contentBaseSchema = {
 	imageFeatured: ImageFeaturedSchema.optional(),
 	imageHero: ImageFeaturedSchema.optional(),
 	title: TitleSchema,
+};
+
+// Term reference fields; these are what place an entry into a term index
+// See lib/collections/terms/term-index.ts
+// `artists` is split out because a mix carries an `alias` (the persona it was published as) instead
+export const termFieldsShared = {
+	eras: reference('eras').array().optional(),
+	labels: LabelRefSchema.array().optional(),
+	regions: reference('regions').array().optional(),
+	styles: reference('styles').array().optional(),
+};
+
+export const termFields = {
+	...termFieldsShared,
+	artists: RefSchema.array().optional(),
 };

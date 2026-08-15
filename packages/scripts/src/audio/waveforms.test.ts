@@ -10,8 +10,8 @@ interface DatOverrides {
 	version?: number;
 }
 
-// Hand-built `.dat` matching the audiowaveform header:
-// version, flags, sample_rate, samples_per_pixel, length in PAIRS, then interleaved signed 8-bit min/max values
+// Hand-built `.dat` matching the audiowaveform header
+// Layout: version, flags, sample_rate, samples_per_pixel, length in PAIRS, then 8-bit min/max pairs
 function buildDat(pairs: Array<[number, number]>, overrides: DatOverrides = {}): Buffer {
 	const buffer = Buffer.alloc(20 + pairs.length * 2);
 

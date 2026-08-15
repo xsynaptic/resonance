@@ -6,13 +6,8 @@ import type { TermLink } from '#lib/utils/terms.ts';
 
 import { getContentUrl } from '#lib/utils/routing.ts';
 
-// Lists associate entries by bare slug (cross-collection), so resolve against these in priority order
-const listPostCollections = [
-	'mixes',
-	'reviews',
-	'posts',
-	'designs',
-] as const satisfies Array<CollectionKey>;
+// A list item's `linkId` names an entry by bare slug (cross-collection); resolve in priority order
+const linkableCollections = ['mixes', 'reviews', 'posts'] as const satisfies Array<CollectionKey>;
 
 interface SlugMatch {
 	collection: CollectionKey;
@@ -27,7 +22,7 @@ export async function resolveSlugLink(slug: string): Promise<TermLink | undefine
 
 	if (!match) {
 		if (import.meta.env.DEV) {
-			console.warn(`[lists] slug "${slug}" not found in ${listPostCollections.join(', ')}`);
+			console.warn(`[list-item] slug "${slug}" not found in ${linkableCollections.join(', ')}`);
 		}
 		return undefined;
 	}
@@ -38,7 +33,7 @@ export async function resolveSlugLink(slug: string): Promise<TermLink | undefine
 async function buildSlugMap(): Promise<Map<string, SlugMatch>> {
 	const slugMap = new Map<string, SlugMatch>();
 
-	for (const collection of listPostCollections) {
+	for (const collection of linkableCollections) {
 		const entries = await getCollection(collection);
 
 		for (const entry of entries) {

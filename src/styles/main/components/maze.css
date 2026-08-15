@@ -1,8 +1,8 @@
-/* Maze: a tiling SVG pattern masked to a color, behind content and beneath a gradient, for subtle depth */
+/* Maze: a tiling SVG pattern masked to a color, behind content and beneath a gradient */
 
-/* Usage: add `maze` + a gradient via Tailwind bg utilities (e.g. bg-linear-to-t from-surface-800 to-transparent) */
+/* Usage: add `maze` plus a gradient via Tailwind bg utilities (e.g. bg-linear-to-t from-surface-800) */
 
-/* Tune per element: [--pattern-color:...], [--pattern-opacity:.2], [--pattern-image:url('/patterns/clouds.svg')] */
+/* Tune per element: [--pattern-color:...], [--pattern-opacity:.2], [--pattern-image:url('...')] */
 .maze {
 	position: relative;
 	isolation: isolate;

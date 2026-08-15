@@ -2,12 +2,12 @@
 import type { InferGetStaticPropsType } from 'astro';
 
 import TermDetail from '#layouts/term-detail.astro';
-import { getStylesIndex } from '#lib/collections/terms/term-index.ts';
+import { getFormatsIndex } from '#lib/collections/terms/term-index.ts';
 import { createTermDetailPaths } from '#lib/collections/terms/term-routes.ts';
 
-export const getStaticPaths = createTermDetailPaths('styles', getStylesIndex);
+export const getStaticPaths = createTermDetailPaths('formats', getFormatsIndex);
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<TermDetail kind="Style" {...Astro.props} />
+<TermDetail kind="Format" {...Astro.props} />

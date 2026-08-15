@@ -4,8 +4,8 @@ import type { Page } from 'astro';
 import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import ArchiveYearHeading from '#components/parts/archive-year-heading.astro';
 import EntryCard from '#components/parts/entry-card.astro';
+import ListYearHeading from '#components/parts/list-year-heading.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import { groupByYear } from '#lib/utils/group-by-year.ts';
 
@@ -24,7 +24,7 @@ const groups = groupByYear(page.data);
 	{
 		groups.map((group) => (
 			<section class="mb-8">
-				<ArchiveYearHeading year={group.year} />
+				<ListYearHeading year={group.year} />
 				<ul class="grid gap-4 sm:grid-cols-2">
 					{group.items.map((item) => (
 						<li>

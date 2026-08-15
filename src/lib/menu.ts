@@ -20,8 +20,8 @@ export const menuItems: Array<MenuItem> = [
 	{ title: 'Reviews', url: '/reviews' },
 	{
 		children: [
-			{ title: 'Lists', url: '/lists' },
-			{ title: 'Designs', url: '/designs' },
+			{ title: 'Selections', url: '/formats/selections' },
+			{ title: 'Album Artwork', url: '/formats/album-artwork' },
 		],
 		title: 'Blog',
 		url: '/blog',
@@ -38,12 +38,13 @@ export const menuItems: Array<MenuItem> = [
 	},
 ];
 
-// Taxonomy indexes not in the header
+// Term list pages not in the header
 export const footerMenuItems: Array<MenuItem> = [
 	{ title: 'Artists', url: '/artists' },
 	{ title: 'Styles', url: '/styles' },
 	{ title: 'Labels', url: '/labels' },
 	{ title: 'Series', url: '/series' },
 	{ title: 'Eras', url: '/eras' },
-	{ title: 'Tags', url: '/tag' },
+	{ title: 'Formats', url: '/formats' },
+	{ title: 'Topics', url: '/topics' },
 ];

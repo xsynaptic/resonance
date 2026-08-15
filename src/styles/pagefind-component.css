@@ -1,4 +1,4 @@
-/** Note: this CSS file does not import Tailwind but relies on variables in the global context */
+/* Does not import Tailwind; relies on variables from the global context */
 @import '@pagefind/component-ui/css/pagefind-component-ui.css';
 
 :root {
@@ -19,10 +19,7 @@
 	--pf-border-radius: 3px;
 }
 
-/*
- * Pagefind 1.5.0 fix
- * `all: initial` on custom elements breaks font inheritance for child buttons
- */
+/* Pagefind 1.5.0: `all: initial` on custom elements breaks font inheritance for child buttons */
 pagefind-modal button,
 pagefind-searchbox button {
 	font-family: var(--pf-font) !important;
@@ -39,7 +36,6 @@ dialog.pf-modal::backdrop {
 	object-fit: cover;
 }
 
-/** Result link colors */
 .pf-result-link {
 	--pf-text: var(--color-accent-400);
 

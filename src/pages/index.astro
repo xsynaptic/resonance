@@ -20,22 +20,12 @@ const postItems = posts.slice(0, 4);
 		<h1 class="text-4xl font-bold text-ink-50">{site.title}</h1>
 		<p class="mt-2 max-w-prose text-ink-300">{site.description}</p>
 	</section>
+	<HomeSection heading="Latest Mixes" items={mixItems} listHref="/mixes" listLabel="All mixes" />
 	<HomeSection
-		archiveHref="/mixes"
-		archiveLabel="All mixes"
-		heading="Latest Mixes"
-		items={mixItems}
-	/>
-	<HomeSection
-		archiveHref="/reviews"
-		archiveLabel="All reviews"
 		heading="Latest Reviews"
 		items={reviewItems}
+		listHref="/reviews"
+		listLabel="All reviews"
 	/>
-	<HomeSection
-		archiveHref="/blog"
-		archiveLabel="All posts"
-		heading="Recent Posts"
-		items={postItems}
-	/>
+	<HomeSection heading="Recent Posts" items={postItems} listHref="/blog" listLabel="All posts" />
 </MainSite>

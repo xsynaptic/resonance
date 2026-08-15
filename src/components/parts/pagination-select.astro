@@ -10,7 +10,7 @@ const { class: className, page, ...props } = Astro.props;
 
 const { currentPage, lastPage, url } = page;
 
-// Root-relative base path for client-built URLs: strip the trailing slash and page number, re-add slash
+// Root-relative base for client-built URLs: strip the trailing slash and page number, re-add slash
 const trimmed = url.current.replace(/\/$/, '');
 const pageBasePath = `${
 	currentPage === 1 ? trimmed : trimmed.replace(new RegExp(`/${String(currentPage)}$`), '')

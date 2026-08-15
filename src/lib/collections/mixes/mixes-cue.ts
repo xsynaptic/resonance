@@ -5,15 +5,15 @@ import type { RefValue } from '#lib/schemas/refs.ts';
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
-// One sheet per downloadable file; the tracklist is shared and only the FILE line differs, which is
-// why a FLAC cue is useless against the MP3 and the two are presented as a pair
+// One sheet per downloadable file: the tracklist is shared and only the FILE line differs
+// A FLAC cue is useless against the MP3, so the two are presented as a pair
 export async function getMixCueSheets(
 	entry: CollectionEntry<'mixes'>,
 ): Promise<Array<{ audioFile: string; text: string }>> {
 	const files = entry.data.files ?? [];
 	if (files.length === 0 || !hasMixTimestamps(entry)) return [];
 
-	const performer = await joinArtists(entry.data.artists);
+	const performer = await joinArtists(entry.data.alias ? [entry.data.alias] : undefined);
 	const tracks = await Promise.all(
 		(entry.data.tracks ?? []).map(async (track) => ({
 			performer: await joinArtists(track.artists),
@@ -35,9 +35,8 @@ export async function getMixCueSheets(
 	}));
 }
 
-// The presence of timestamps is the whole gate: WP had an opt-in checkbox but it was set on every mix
-// that had them. Shared by the endpoint and the layout so the two cannot disagree about which mixes
-// offer a download
+// The presence of timestamps is the whole gate: WP's opt-in checkbox was set on every mix that had them
+// Shared by the endpoint and the layout so the two cannot disagree about which mixes offer a download
 export function hasMixTimestamps(entry: CollectionEntry<'mixes'>): boolean {
 	return entry.data.tracks?.some((track) => track.timestamp !== undefined) ?? false;
 }

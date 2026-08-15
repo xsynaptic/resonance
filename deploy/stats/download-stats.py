@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Roll up nginx download logs into SQLite and emit downloads.json.
 
-Runs hourly from cron (see deploy/cron.d/download-stats). Stdlib only; must stay
-runnable on a bare Ubuntu box and readable in a text editor. Idempotent: progress
-is tracked as a byte offset + inode watermark, so re-runs never double-count.
+Runs hourly from cron (see deploy/cron.d/download-stats)
+Stdlib only; must stay runnable on a bare Ubuntu box and readable in a text editor
+Idempotent: progress is a byte offset + inode watermark, so re-runs never double-count
 """
 
 import argparse
@@ -28,8 +28,8 @@ WINDOW_DAYS = 90
 DEDUPE_RETENTION_DAYS = 2
 # curl/wget deliberately absent: command-line downloads are legitimate here
 UA_BLOCKLIST = ("bot", "crawl", "spider", "python-requests", "go-http-client", "monitor", "uptime", "headless")
-# Throughput heuristic: real transfers are capped by limit_rate (~3MB/s past 8MB),
-# so a large body claiming a much faster rate never reached a real client
+# Throughput heuristic: real transfers are capped by limit_rate (~3MB/s past 8MB)
+# A large body claiming a much faster rate never reached a real client
 HEURISTIC_MIN_BYTES = 16 * 1024 * 1024
 MAX_PLAUSIBLE_BYTES_PER_SEC = 50 * 1024 * 1024
 
@@ -83,8 +83,8 @@ def get_salt(db, day):
 
 
 def normalise_uri(raw_uri):
-    # Strip query, decode, and require a canonical media path; returns a file key
-    # like "artifacts/DJ Basilisk - Foo.mp3" or None for anything untracked
+    # Strip query, decode, and require a canonical media path
+    # Returns a file key like "artifacts/DJ Basilisk - Foo.mp3", or None when untracked
     from urllib.parse import unquote
 
     path = raw_uri.split("?", 1)[0]
@@ -162,13 +162,9 @@ def refresh_files_table(db, sizes, today):
 def read_new_lines(log_path, rotated_log_path, watermark):
     """Yield unprocessed lines, honoring the inode+offset watermark.
 
-    On rotation, drain the tail of the rotated file first (if its inode still
-    matches the stored one) so no lines are lost between the last run and rotation.
-
-    Assumes create-style logrotate (the nginx.org package default): rotation renames
-    the file, so the new log gets a new inode and .1 keeps the old one. A copytruncate
-    policy keeps the inode while shrinking the file; the size guard below catches that
-    (restart from zero) instead of seeking past EOF and silently reading nothing forever.
+    On rotation, drain the tail of the rotated file first when its inode still matches the stored one
+    Assumes create-style logrotate (the nginx.org default): the new log gets a new inode, .1 keeps the old
+    A copytruncate policy keeps the inode while shrinking, so the size guard below restarts from zero
     """
     lines = []
     stored_inode, stored_offset = watermark
@@ -265,14 +261,14 @@ def prune(db, now):
 
 
 def emit_json(db, output_path, now):
-    # Wire format consumed by src/lib/schemas/downloads.ts + downloads-loader.ts (strict
-    # schemas, soft-fail): change the shape or bump "version" only in lockstep with both
+    # Wire format consumed by src/lib/schemas/downloads.ts + downloads-loader.ts (strict, soft-fail)
+    # Change the shape or bump "version" only in lockstep with both
     # Completions and byte_equivalents are all-time; the daily series is windowed
     window_start = (now - timedelta(days=WINDOW_DAYS)).strftime("%Y-%m-%d")
     files = []
     totals = {"completions": 0, "bytes_sent": 0}
 
-    # Artifacts only; stream/ rollups keep accruing in SQLite for whenever a player makes play counts mean something
+    # Artifacts only; stream/ rollups keep accruing in SQLite for whenever a player lands
     rows = db.execute(
         "SELECT file_key, size_bytes, first_seen FROM files WHERE file_key LIKE 'artifacts/%' ORDER BY file_key"
     ).fetchall()

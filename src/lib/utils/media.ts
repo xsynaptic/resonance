@@ -9,7 +9,7 @@ const mediaImages = import.meta.glob<{ default: ImageMetadata }>(
 	{ eager: true },
 );
 
-// Fail-soft: originals are gitignored and may be absent, so a miss warns in DEV and falls back to a placeholder
+// Fail-soft: originals are gitignored and may be absent, so a miss warns in DEV and falls back
 export function getMediaImage(mediaPath: string): ImageMetadata | undefined {
 	const image = mediaImages[`${MEDIA_ROOT}/${mediaPath}`];
 	if (!image) {

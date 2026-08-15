@@ -13,8 +13,8 @@ const RENDITION_EXTENSION = '.webm';
 const TMP_EXTENSION = '.webm.tmp';
 
 const ENCODER_ARGS = [
-	'-vn', // -vn drops cover art; webm would otherwise re-encode the 6MB embedded image as a VP9 video track
-	'-map_metadata', // -map_metadata 0 keeps tags, minus WAVEFORM, reducing time to first byte
+	'-vn', // Drops cover art; webm would otherwise re-encode the 6MB embedded image as a VP9 video track
+	'-map_metadata', // Keeps tags, minus WAVEFORM, reducing time to first byte
 	'0',
 	'-metadata',
 	'WAVEFORM=',
@@ -27,7 +27,7 @@ const ENCODER_ARGS = [
 ];
 
 // Stamped into every rendition and checked on the next run
-// mtime alone cannot see a settings change, so without this an edit to ENCODER_ARGS would silently leave old encodes in place
+// mtime can't see a settings change; without this an ENCODER_ARGS edit leaves old encodes in place
 const RENDITION_PROFILE = crypto
 	.createHash('sha256')
 	.update(ENCODER_ARGS.join(' '))
@@ -44,7 +44,7 @@ interface RenditionsOptions {
 	rootPath: string;
 }
 
-// 160kbps Opus .webm streaming renditions per source (FLAC preferred, MP# fallback)
+// 160kbps Opus .webm streaming renditions per source (FLAC preferred, MP3 fallback)
 // Incremental: skips outputs newer than their source and stamped with the current encoder profile
 // Atomic: encodes to a tmp file then renames
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {

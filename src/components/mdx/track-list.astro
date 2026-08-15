@@ -11,8 +11,8 @@ interface Props {
 
 const { tracks } = Astro.props;
 
-// Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)"); suppress
-// the credit only when every named artist already appears, so a partial group still renders
+// Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
+// Suppress the credit only when every named artist appears, so a partial group still renders
 function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array<ResolvedRef> {
 	if (mixArtists.length === 0) return [];
 

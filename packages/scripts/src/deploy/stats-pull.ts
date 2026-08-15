@@ -16,8 +16,8 @@ interface StatsPullOptions {
 }
 
 // Pull downloads.json for the build, plus the SQLite rollup as an offsite backup
-// (the JSON is derived; the database is the only irreplaceable artifact on the box).
-// Backups are dated so a corrupted remote DB can never clobber the last good copy.
+// The JSON is derived; the database is the only irreplaceable artifact on the box
+// Backups are dated so a corrupted remote DB can never clobber the last good copy
 // Never fatal: an unreachable box means building with the last-pulled copy
 export async function pullStats(options: StatsPullOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;

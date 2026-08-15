@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
 
-import { fileExists } from '../shared/utils.js';
+import { isPathPresent } from '../shared/utils.js';
 
 // Cloudflare Workers free tier allows 20,000 assets per version and 25 MiB per asset
 const FILE_COUNT_ERROR = 19_500;
@@ -20,7 +20,7 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 
 	const distPath = path.join(rootPath, 'dist');
 
-	if (!(await fileExists(distPath))) {
+	if (!(await isPathPresent(distPath))) {
 		throw new Error(`dist/ not found at ${distPath}. Run \`pnpm build\` (or omit --skip-build).`);
 	}
 

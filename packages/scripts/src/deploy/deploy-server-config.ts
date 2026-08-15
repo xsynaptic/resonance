@@ -60,8 +60,8 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 		dryRun,
 	});
 
-	// Apply is fatal by design: a failing `nginx -t` means broken config was just pushed, never mask it
-	// as success; the first push to a not-yet-provisioned box also fails loudly (expected on setup)
+	// Apply is fatal by design: a failing `nginx -t` means broken config was just pushed
+	// The first push to a not-yet-provisioned box also fails loudly (expected on setup)
 	await sshExec(
 		config,
 		`sudo rsync -av --chown=root:root ${remoteServerConfigPath}/nginx/ /etc/nginx/ && sudo nginx -t && sudo systemctl reload nginx`,

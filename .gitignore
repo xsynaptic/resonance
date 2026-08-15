@@ -23,9 +23,9 @@ node_modules/
 .DS_Store
 
 # local editor / tooling
-.claude
-.claude/settings.local.json
-.cursor/
+.claude/reference
+.claude/tasks*
+.claude/settings*.json
 .impeccable/
 
 # database backups (large, not for VCS)

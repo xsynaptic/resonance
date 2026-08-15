@@ -85,7 +85,8 @@ class PaginationSelect extends HTMLElement {
 		location.assign(this.#getPageUrl(pageNumber));
 	};
 
-	// Pin a width floor to the widest label so changing pages never resizes the control (0.5ch buffer absorbs variance)
+	// Pin a width floor to the widest label so changing pages never resizes the control
+	// The 0.5ch buffer absorbs metric variance
 	#lockSelectWidth(select: HTMLSelectElement, lastPage: number) {
 		const lockWidth = () => {
 			const selectedValue = select.value;

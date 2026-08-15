@@ -19,7 +19,10 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const artistTerms = await resolveRefs('artists', entry.data.artists);
+const aliasTerms = await resolveTermLinks(
+	'artists',
+	entry.data.alias ? [entry.data.alias] : undefined,
+);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloadCounts = await getDownloadCounts();
@@ -47,7 +50,7 @@ const downloadCounts = await getDownloadCounts();
 			/>
 		</div>
 		<div class="mt-8 space-y-2">
-			<TermLinks heading="Artists" terms={artistTerms} />
+			<TermLinks heading="Artist" terms={aliasTerms} />
 			<TermLinks heading="Styles" terms={styleTerms} />
 			<TermLinks heading="Labels" terms={labelTerms} />
 		</div>

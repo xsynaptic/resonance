@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// One entry from downloads.json (emitted by deploy/stats/download-stats.py on the file
-// server, pulled via stats-pull); snake_case keys are kept verbatim from the wire format
+// One entry from downloads.json, emitted by deploy/stats/download-stats.py and pulled via stats-pull
+// snake_case keys are kept verbatim from the wire format
 export const downloadStatsSchema = z
 	.object({
 		byte_equivalents: z.number(),

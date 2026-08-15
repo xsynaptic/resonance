@@ -4,7 +4,7 @@
 	--spacing-prose: 42.1875rem;
 }
 
-/* Fonts via the Astro Fonts API (Fontsource); Fira Sans for display (as in production), Manrope for body */
+/* Fonts via the Astro Fonts API (Fontsource); Fira Sans display, Manrope body, as in production */
 @theme {
 	--font-display: var(--font-fira-sans, system-ui, sans-serif);
 	--font-body: var(--font-manrope, system-ui, sans-serif);

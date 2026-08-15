@@ -1,4 +1,4 @@
-/* Chromium supports styling select but most other browsers don't; here we do progressive enhancement */
+/* Chromium can style <select>, most other browsers can't, so this is progressive enhancement */
 .p-control {
 	appearance: none;
 }

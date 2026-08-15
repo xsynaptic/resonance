@@ -2,7 +2,8 @@ import type { CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-// Taxonomies whose terms nest via a `parent` reference; flat taxonomies (artists, tags, series) are absent
+// Term collections whose terms nest via a `parent` reference
+// Flat ones (artists, formats, topics, series) are absent
 export type HierarchicalCollection = 'eras' | 'labels' | 'regions' | 'styles';
 
 const HIERARCHICAL_COLLECTIONS = new Set<CollectionKey>(['eras', 'labels', 'regions', 'styles']);
@@ -59,7 +60,7 @@ async function buildHierarchy(collection: HierarchicalCollection): Promise<Hiera
 	const parentById = new Map<string, string>();
 	const childrenByParent = new Map<string, Array<string>>();
 	for (const entry of entries) {
-		// the collection union hides the optional `parent` reference; read it through a minimal shape cast
+		// The collection union hides the optional `parent` reference; read it through a minimal cast
 		const parentId = (entry.data as { parent?: { id: string } }).parent?.id;
 		if (parentId === undefined) continue;
 		parentById.set(entry.id, parentId);

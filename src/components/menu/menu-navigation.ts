@@ -12,7 +12,7 @@
  *   </nav>
  * </menu-navigation>
  *
- * Note: use <a> for navigable triggers, <button> for text-only labels with children, <span> for text-only
+ * Use <a> for navigable triggers, <button> for text-only labels with children, <span> for text-only
  *
  * State exposed for CSS:
  *   data-has-submenu  on every <li> that has a submenu

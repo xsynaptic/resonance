@@ -1,6 +1,7 @@
-// A cue sheet is a seek index for a long mix: a header naming the release and its audio file, then one
-// TRACK entry per timestamped track. Pure string work, no content imports, so the format is testable
-// on its own. Callers supply the tracklist as-is; entries without a usable timestamp are dropped here
+// A cue sheet is a seek index for a long mix: a header, then one TRACK entry per timestamped track
+// The header names the release and its audio file
+// Pure string work, no content imports, so the format is testable on its own
+// Callers supply the tracklist as-is; entries without a usable timestamp are dropped here
 
 const FRAMES_PER_SECOND = 75;
 
@@ -18,9 +19,9 @@ interface CueSheetTrack {
 	title: string;
 }
 
-// Long mixes exceed what a CD can hold, so MM and the track counter both run past their conventional
-// two-digit ceiling. Players read these as plain integers; only CD-burning tools object, and an
-// eight-hour set was never burnable anyway
+// Long mixes exceed a CD, so MM and the track counter both run past their two-digit ceiling
+// Players read these as plain integers; only CD-burning tools object
+// An eight-hour set was never burnable anyway
 export function buildCueSheet({ date, fileName, performer, title, tracks }: CueSheetInput): string {
 	const lines = [
 		...(performer ? [`PERFORMER ${quote(performer)}`] : []),
@@ -48,8 +49,8 @@ export function buildCueSheet({ date, fileName, performer, title, tracks }: CueS
 	return `${lines.join('\r\n')}\r\n`;
 }
 
-// Cue time is MM:SS:FF with no hours field and frames running at 75/second, so hours fold into
-// minutes. The fractional part of an input timestamp is hundredths of a second, not frames
+// Cue time is MM:SS:FF with no hours field and frames at 75/second, so hours fold into minutes
+// The fractional part of an input timestamp is hundredths of a second, not frames
 function formatCueTime(timestamp: string): string | undefined {
 	const match = /^(\d+):(\d+):(\d+)(?:\.(\d{1,2}))?$/.exec(timestamp);
 	if (!match) return undefined;

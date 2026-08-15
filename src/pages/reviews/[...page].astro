@@ -1,12 +1,12 @@
 ---
 import type { InferGetStaticPropsType } from 'astro';
 
-import CollectionArchive from '#layouts/collection-archive.astro';
-import { createCollectionArchivePaths } from '#lib/collections/collection-routes.ts';
+import EntryList from '#layouts/entry-list.astro';
+import { createEntryListPaths } from '#lib/collections/collection-routes.ts';
 
-export const getStaticPaths = createCollectionArchivePaths('reviews');
+export const getStaticPaths = createEntryListPaths('reviews');
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<CollectionArchive title="Reviews" {...Astro.props} />
+<EntryList title="Reviews" {...Astro.props} />

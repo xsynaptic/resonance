@@ -45,9 +45,9 @@ interface WaveformsOptions {
 }
 
 // Reduces the archive to at most 2000 buckets of 0..255, ready to inline
-// Per pair take the envelope amplitude, per bucket take the RMS of those amplitudes: a peak-per-bucket
-// envelope renders a featureless rectangle on a mastered mix, where every bucket holds a full-scale transient
-// Values are normalized here rather than in a renderer, so consumers never need to know the source units
+// Per pair take the envelope amplitude, per bucket the RMS of those amplitudes
+// Peak-per-bucket would render a featureless rectangle: a mastered mix peaks in every bucket
+// Values are normalized here rather than in a renderer, so consumers never need the source units
 export function distillWaveform(buffer: Buffer): WaveformPreview {
 	const { pairs, sampleRate, samplesPerPixel } = parseWaveformHeader(buffer);
 	if (buffer.length < HEADER_BYTES + pairs * 2) throw new Error('Waveform data is truncated');
@@ -227,7 +227,7 @@ async function isArchiveCurrent(source: string, archive: string): Promise<boolea
 	if (!(await isNewerThan(archive, source))) return false;
 
 	// Reads the 20-byte header alone, never the whole 4MB archive
-	// A stale zoom level or bit depth reads as not current, which is why no external version constant is needed
+	// A stale zoom level or bit depth reads as not current, so no external version constant is needed
 	try {
 		const handle = await fs.open(archive, 'r');
 

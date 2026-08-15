@@ -3,13 +3,13 @@ import type { CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-import type { TermIndex } from '#lib/collections/taxonomy/taxonomy-data.ts';
+import type { TermIndex } from '#lib/collections/terms/term-index.ts';
 
-import { ARCHIVE_PAGE_SIZE } from '#constants.ts';
+import { LIST_PAGE_SIZE } from '#constants.ts';
 
-// Paginated static paths for every taxonomy archive: page 1 bare, pages 2+ at /<term>/<n>/;
-// generic over the collection so each route keeps the term's specific type
-export function createTermArchivePaths<Collection extends CollectionKey>(
+// Paginated static paths for every term's detail page: page 1 bare, pages 2+ at /<term>/<n>/
+// Generic over the collection so each route keeps the term's specific type
+export function createTermDetailPaths<Collection extends CollectionKey>(
 	collection: Collection,
 	getIndex: () => Promise<TermIndex>,
 ) {
@@ -18,7 +18,7 @@ export function createTermArchivePaths<Collection extends CollectionKey>(
 
 		return terms.flatMap((term) =>
 			paginate(index.get(term.id) ?? [], {
-				pageSize: ARCHIVE_PAGE_SIZE,
+				pageSize: LIST_PAGE_SIZE,
 				params: { slug: term.id },
 				props: { term },
 			}),

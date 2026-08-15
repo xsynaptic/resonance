@@ -3,9 +3,9 @@ import type { APIRoute, GetStaticPaths, InferGetStaticPropsType } from 'astro';
 import { getMixCueSheets, hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
 
-// Cue files land beside the mix page: build.format is 'directory', so /mixes/<slug>/ is already a
-// directory and each <audio file>.cue sits inside it. Static builds discard response headers, so the
-// content type is whatever the host serves an unknown extension as, which downloads either way
+// Cue files land beside the mix page: build.format is 'directory', so /mixes/<slug>/ already exists
+// Static builds discard response headers, so the host decides the content type for .cue
+// Either way it downloads rather than renders
 export const getStaticPaths = (async () => {
 	const mixes = await getPublishedMixes();
 

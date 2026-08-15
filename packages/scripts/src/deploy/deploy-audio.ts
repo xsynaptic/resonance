@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import path from 'node:path';
 
 import { AUDIO_SOURCE_DIR, STREAMS_DIR } from '../audio/audio-paths.js';
-import { fileExists } from '../shared/utils.js';
+import { isPathPresent } from '../shared/utils.js';
 import { loadDeployConfig } from './deploy-config.js';
 import { rsyncTo } from './rsync-exec.js';
 
@@ -14,8 +14,8 @@ interface DeployAudioOptions {
 }
 
 // Upload originals to /artifacts/ and streaming renditions to /stream/
-// mtime+size (not checksum), never --delete: audio is append-only and multi-gigabyte, so a no-op run
-// is near-instant and a local mistake can't wipe the remote archive
+// mtime+size, not checksum: audio is append-only and multi-gigabyte, so a no-op run is near-instant
+// Never --delete, so a local mistake can't wipe the remote archive
 export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
@@ -23,7 +23,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 
 	const sourceDir = path.join(rootPath, AUDIO_SOURCE_DIR);
 
-	if (!(await fileExists(sourceDir))) {
+	if (!(await isPathPresent(sourceDir))) {
 		throw new Error(`Audio source directory not found: ${sourceDir}`);
 	}
 
@@ -47,7 +47,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 		extraFlags: ['--partial'],
 	});
 
-	if (await fileExists(streamsDir)) {
+	if (await isPathPresent(streamsDir)) {
 		console.log(
 			chalk.gray(
 				`  Renditions: ${streamsDir}/ -> ${config.remoteHost}:${config.remoteAudioPath}/stream/`,

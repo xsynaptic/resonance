@@ -5,7 +5,7 @@ import { render } from 'astro:content';
 
 import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
-import { resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	entry: CollectionEntry<'posts'>;
@@ -15,7 +15,12 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const tagTerms = await resolveTermLinks('tags', entry.data.tags);
+const formatTerms = await resolveTermLinks(
+	'formats',
+	entry.data.format ? [entry.data.format] : undefined,
+);
+const topicTerms = await resolveTermLinks('topics', entry.data.topics);
+const labelTerms = await resolveRefs('labels', entry.data.labels);
 ---
 
 <ContentDetail
@@ -27,7 +32,9 @@ const tagTerms = await resolveTermLinks('tags', entry.data.tags);
 	<Content />
 	<Fragment slot="sections">
 		<div class="mt-8 space-y-2">
-			<TermLinks heading="Tags" terms={tagTerms} />
+			<TermLinks heading="Format" terms={formatTerms} />
+			<TermLinks heading="Topics" terms={topicTerms} />
+			<TermLinks heading="Labels" terms={labelTerms} />
 		</div>
 	</Fragment>
 </ContentDetail>

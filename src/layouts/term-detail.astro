@@ -8,12 +8,12 @@ import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import ArchiveYearHeading from '#components/parts/archive-year-heading.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import EntryCard from '#components/parts/entry-card.astro';
+import ListYearHeading from '#components/parts/list-year-heading.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
-import { isHierarchical } from '#lib/collections/taxonomy/hierarchy.ts';
+import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { groupByYear } from '#lib/utils/group-by-year.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
@@ -21,14 +21,16 @@ import { toExcerpt } from '#lib/utils/text.ts';
 interface Props {
 	kind: string;
 	page: Page<ContentItem>;
-	term: CollectionEntry<'artists' | 'eras' | 'labels' | 'regions' | 'series' | 'styles' | 'tags'>;
+	term: CollectionEntry<
+		'artists' | 'eras' | 'formats' | 'labels' | 'regions' | 'series' | 'styles' | 'topics'
+	>;
 }
 
 const { kind, page, term } = Astro.props;
 
 const { Content } = await render(term);
 
-// Artists carry relationships (a group's members, a person's projects); other taxonomies do not
+// Artists carry relationships (a group's members, a person's projects); other terms do not
 const memberLinks =
 	term.collection === 'artists' ? await resolveRefs('artists', term.data.members) : [];
 const projectLinks =
@@ -39,18 +41,16 @@ const body = term.body?.trim() ?? '';
 const description = body === '' ? undefined : await toExcerpt(body);
 
 const collectionLabels: Partial<Record<CollectionKey, string>> = {
-	designs: 'Album Artwork',
-	lists: 'List',
 	mixes: 'Mix',
 	posts: 'Blog',
 	reviews: 'Review',
 };
 
-// Series archives are curated order (not chronological), so they stay flat; everything else groups by year
+// A series is a curated order (not chronological), so it stays flat; everything else groups by year
 const yearGroups: Array<{ items: Array<ContentItem>; year?: number }> =
 	term.collection === 'series' ? [{ items: page.data }] : groupByYear(page.data);
 
-// Hierarchical taxonomies get a breadcrumb trail: the taxonomy index, then the term's ancestor chain
+// Hierarchical terms get a breadcrumb trail: the term list page, then the term's ancestor chain
 const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 	? [
 			{
@@ -91,7 +91,7 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 		page.data.length > 0 ? (
 			yearGroups.map((group) => (
 				<section class="mb-8">
-					{group.year === undefined ? undefined : <ArchiveYearHeading year={group.year} />}
+					{group.year === undefined ? undefined : <ListYearHeading year={group.year} />}
 					<ul class="grid gap-4 sm:grid-cols-2">
 						{group.items.map((entry) => (
 							<li>

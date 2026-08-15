@@ -4,22 +4,13 @@
 @source './main/**/*.css';
 @source '../**/*.astro';
 
-/** Safelist utilities applied to HTML we don't author directly */
+/* Safelist utilities applied to HTML we don't author directly */
 @source inline('sr-only');
 
-/** Theme tokens */
 @import './main/parts/theme.css';
-
-/** Custom utilities */
 @import './main/parts/utilities.css';
-
-/** Root variables */
 @import './main/parts/root.css';
-
-/** Base layer */
 @import './main/parts/base.css' layer(base);
-
-/** Component layer */
 @import './main/components/embed.css' layer(components);
 @import './main/components/img-group.css' layer(components);
 @import './main/components/list.css' layer(components);

@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 
 import { getContentUrl } from '#lib/utils/routing.ts';
 
-// Entry fields the catalog projects; optional members are absent on collections that lack them (read as undefined)
+// Entry fields the catalog projects; optional members are absent on collections that lack them
 export interface ContentDoc {
 	data: {
 		dateCreated: Date;
@@ -15,7 +15,8 @@ export interface ContentDoc {
 	id: string;
 }
 
-// A content entry projected to the flat shape cards render; extras stay optional so each card reads only what it shows
+// A content entry projected to the flat shape cards render
+// Extras stay optional so each card reads only what it shows
 export interface ContentItem {
 	collection: CollectionKey;
 	date: Date;
@@ -26,13 +27,13 @@ export interface ContentItem {
 	url: string;
 }
 
-// Content collections that surface as cards; taxonomy collections are excluded
-type ContentCollectionKey = 'designs' | 'lists' | 'mixes' | 'posts' | 'reviews';
+// Content collections that surface as cards; term collections are excluded
+type ContentCollectionKey = 'mixes' | 'posts' | 'reviews';
 
-// Only releases show a year subtitle; other collections already sit under a year heading on archives
+// Only releases show a year subtitle; other collections already sit under a year heading when listed
 const RELEASE_COLLECTIONS = new Set<CollectionKey>(['mixes', 'reviews']);
 
-// Projects a path string for the image, never resolving the asset here (the card does the lazy astro:assets lookup)
+// Projects a path string for the image; the card does the lazy astro:assets lookup
 export function toContentItem(collection: CollectionKey, entry: ContentDoc): ContentItem {
 	return {
 		collection,
@@ -45,8 +46,8 @@ export function toContentItem(collection: CollectionKey, entry: ContentDoc): Con
 	};
 }
 
-// Mixes no longer carry releaseYear (it always matched dateCreated's year); reviews keep theirs since
-// a release can predate its review by years
+// Mixes no longer carry releaseYear; it always matched dateCreated's year
+// Reviews keep theirs, since a release can predate its review by years
 function releaseSubtitle(collection: CollectionKey, entry: ContentDoc): string | undefined {
 	if (!RELEASE_COLLECTIONS.has(collection)) return undefined;
 	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());

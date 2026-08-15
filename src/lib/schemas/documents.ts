@@ -1,28 +1,26 @@
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
-import { contentBaseSchema } from '#lib/schemas/index.ts';
-import { LabelRefSchema } from '#lib/schemas/refs.ts';
+import { contentBaseSchema, termFields } from '#lib/schemas/index.ts';
+import { listFields } from '#lib/schemas/lists.ts';
 
 export const pageSchema = z
 	.object({
 		...contentBaseSchema,
+		...listFields,
 		menuOrder: z.number().optional(),
 		parent: reference('pages').optional(),
 	})
 	.strict();
 
+// `format` is what shape the post takes and `topics` what it is about
+// format stays optional because a couple of posts are only ever "about this site"
 export const postSchema = z
 	.object({
 		...contentBaseSchema,
-		tags: reference('tags').array().optional(),
-	})
-	.strict();
-
-// "Album Artwork" / visual-work showcase; featured image + label taxonomy, no audio meta
-export const designSchema = z
-	.object({
-		...contentBaseSchema,
-		labels: LabelRefSchema.array().optional(),
+		...termFields,
+		...listFields,
+		format: reference('formats').optional(),
+		topics: reference('topics').array().optional(),
 	})
 	.strict();

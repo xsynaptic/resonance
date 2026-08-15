@@ -3,10 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
 
-/**
- * Walk up the directory tree looking for `pnpm-workspace.yaml` to locate the monorepo root.
- * Cached at module load: scripts only ever run from one place per invocation.
- */
+// Cached for the process: scripts only ever run from one place per invocation
 let cachedWorkspaceRoot: string | undefined;
 
 export async function ensureSshKeychain(): Promise<void> {
@@ -14,15 +11,6 @@ export async function ensureSshKeychain(): Promise<void> {
 		await $`ssh-add --apple-load-keychain 2>/dev/null`;
 	} catch {
 		// Ignore: not on macOS, or no keychain identities
-	}
-}
-
-export async function fileExists(filePath: string): Promise<boolean> {
-	try {
-		await fs.access(filePath);
-		return true;
-	} catch {
-		return false;
 	}
 }
 
@@ -41,4 +29,13 @@ export function findWorkspaceRoot(startDir: string = process.cwd()): string {
 	}
 
 	throw new Error(`Could not locate pnpm-workspace.yaml above ${startDir}`);
+}
+
+export async function isPathPresent(targetPath: string): Promise<boolean> {
+	try {
+		await fs.access(targetPath);
+		return true;
+	} catch {
+		return false;
+	}
 }

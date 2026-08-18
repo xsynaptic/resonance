@@ -16,7 +16,7 @@
 		"deploy-site": "NODE_ENV=production tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy.ts"
 	},
 	"devDependencies": {
-		"chalk": "^5.6.2",
+		"chalk": "^6.0.0",
 		"mysql2": "^3.23.3",
 		"p-limit": "^7.3.1",
 		"tsx": "^4.23.12",

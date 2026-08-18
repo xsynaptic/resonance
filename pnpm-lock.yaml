@@ -31,8 +31,8 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3(vite@8.1.0(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
       '@xsynaptic/astro-font-devtools':
-        specifier: ^1.0.0
-        version: 1.0.0(astro@7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+        specifier: ^1.0.1
+        version: 1.0.1(astro@7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
       '@xsynaptic/eslint-config':
         specifier: ^6.2.1
         version: 6.2.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@typescript-eslint/parser@8.66.0(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint-plugin-jsx-a11y@6.10.2(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2)))(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
@@ -43,11 +43,11 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1(satteri@0.9.5)
       '@xsynaptic/satteri-img-group':
-        specifier: ^0.2.1
-        version: 0.2.1(satteri@0.9.5)
+        specifier: ^1.0.0
+        version: 1.0.0(satteri@0.9.5)
       '@xsynaptic/stylelint-config':
-        specifier: ^1.1.0
-        version: 1.1.0(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
+        specifier: ^1.1.1
+        version: 1.1.1(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
       astro-pagefind:
         specifier: ^2.0.1
         version: 2.0.1(astro@7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
@@ -109,8 +109,8 @@ importers:
   packages/scripts:
     devDependencies:
       chalk:
-        specifier: ^5.6.2
-        version: 5.6.2
+        specifier: ^6.0.0
+        version: 6.0.0
       mysql2:
         specifier: ^3.23.3
         version: 3.23.3(@types/node@24.13.2)
@@ -1861,8 +1861,8 @@ packages:
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
 
-  '@xsynaptic/astro-font-devtools@1.0.0':
-    resolution: {integrity: sha512-v7NextsvI+JF7bOK54wqSLkkIKBM6JSCNZkCIzUDymC0W4WfHt5+zrzHmJkqAbnxqWg+OKlHLx+1fGHo+crMGg==}
+  '@xsynaptic/astro-font-devtools@1.0.1':
+    resolution: {integrity: sha512-wngaw8SMfCTj4ub+bCvV4MA+AusdLTRC96k+LcuaQyJyRGMRS5FOS9LJjMrXiJgdjuuQqf888eC8UlJoRCEw+g==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
       astro: ^6.3.8 || ^7.0.0
@@ -1880,13 +1880,13 @@ packages:
     peerDependencies:
       satteri: ^0.9.0
 
-  '@xsynaptic/satteri-img-group@0.2.1':
-    resolution: {integrity: sha512-LAYNHbyGx7NHybdEarGU0iIfopaAN5GOa8zD41HvWBZfw0bE27IH9HXMxOUV+ok9/d0gYCV+NRw8ABhgOen2uA==}
+  '@xsynaptic/satteri-img-group@1.0.0':
+    resolution: {integrity: sha512-8tp9Sdl0t25KHsKrnaXUNcKqoUQgo/IP3htKrmAdm2wyZ+A/Kucitf06Pu9Jmj+AMB+5yWb4ayTg6H7PFo/crg==}
     peerDependencies:
       satteri: ^0.9.0
 
-  '@xsynaptic/stylelint-config@1.1.0':
-    resolution: {integrity: sha512-URTrAZn3LkwW5fIeOpeWhISmtPN0OfPA5FJMX8GyvmMLY0Z6tS/j3spPVvuEUPwt2TUQr9Y3iu7wKcue7ZbWNg==}
+  '@xsynaptic/stylelint-config@1.1.1':
+    resolution: {integrity: sha512-WBpnwoQdakub4le6OnTVEUyhMo1pt+h6bNGKwQv6XDrFhbKnUFE8n+3aQLSPJzJooz6d2E+WLxj6kQQFkvWCdw==}
     peerDependencies:
       stylelint: '>=17.0.0'
 
@@ -4486,8 +4486,8 @@ packages:
   style-to-object@1.0.14:
     resolution: {integrity: sha512-LIN7rULI0jBscWQYaSswptyderlarFkjQ+t79nzty8tcIAceVomEVlLzH5VP4Cmsv6MtKhs7qaAiwlcp+Mgaxw==}
 
-  stylelint-config-recess-order@7.7.0:
-    resolution: {integrity: sha512-TWRkg+BrwHOki4pi9y1emWgx6pFwZXOYZhNsbEObke/mzYUJVJvDEzJJQXhH7ajslQJGcrExy8ZvJqDiUbhFpA==}
+  stylelint-config-recess-order@7.8.0:
+    resolution: {integrity: sha512-ObYusdkXavm8ulgb5xvmU1l8wgCdveNYG12hOTUEdjS8bNhSRggl4or0mE0JaOnQz+Ve2xZemVpwqERCgJbntg==}
     peerDependencies:
       stylelint: ^16.18.0 || ^17.0.0
       stylelint-order: ^7.0.0 || ^8.0.0
@@ -4695,6 +4695,10 @@ packages:
     resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
 
+  undici@8.10.0:
+    resolution: {integrity: sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==}
+    engines: {node: '>=22.19.0'}
+
   unenv@2.0.0-rc.24:
     resolution: {integrity: sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw==}
 
@@ -4719,6 +4723,9 @@ packages:
 
   unifont@0.7.4:
     resolution: {integrity: sha512-oHeis4/xl42HUIeHuNZRGEvxj5AaIKR+bHPNegRq5LV1gdc3jundpONbjglKpihmJf+dswygdMJn3eftGIMemg==}
+
+  unifont@0.7.5:
+    resolution: {integrity: sha512-ULe/Cs+ZIsq+dcFofNkhqielCrUJnb5mr+Yc4EBM2VlL+6OZR6+cjtI2mT1bJvRBrVncqHAbLURxmPLcCXzWMg==}
 
   unist-util-find-after@5.0.0:
     resolution: {integrity: sha512-amQa0Ep2m6hE2g72AugUItjbuM8X8cGQnFoHk0pGfrFeT9GZhzN5SW8nRsiGKK7Aif4CrACPENkA6P/Lw6fHGQ==}
@@ -6724,10 +6731,10 @@ snapshots:
 
   '@vscode/l10n@0.0.18': {}
 
-  '@xsynaptic/astro-font-devtools@1.0.0(astro@7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))':
+  '@xsynaptic/astro-font-devtools@1.0.1(astro@7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))':
     dependencies:
       astro: 7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0)
-      unifont: 0.7.4
+      unifont: 0.7.5
       zod: 4.4.3
 
   '@xsynaptic/eslint-config@6.2.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@typescript-eslint/parser@8.66.0(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint-plugin-jsx-a11y@6.10.2(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2)))(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)':
@@ -6768,17 +6775,17 @@ snapshots:
       satteri: 0.9.5
       zod: 4.4.3
 
-  '@xsynaptic/satteri-img-group@0.2.1(satteri@0.9.5)':
+  '@xsynaptic/satteri-img-group@1.0.0(satteri@0.9.5)':
     dependencies:
       satteri: 0.9.5
       zod: 4.4.3
 
-  '@xsynaptic/stylelint-config@1.1.0(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))':
+  '@xsynaptic/stylelint-config@1.1.1(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))':
     dependencies:
       '@double-great/stylelint-a11y': 3.5.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
       postcss-html: 2.0.0(postcss@8.5.26)
       stylelint: 17.14.1(supports-color@10.2.2)(typescript@6.0.3)
-      stylelint-config-recess-order: 7.7.0(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
+      stylelint-config-recess-order: 7.8.0(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
       stylelint-config-standard: 40.0.0(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
       stylelint-plugin-defensive-css: 2.9.6(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
     transitivePeerDependencies:
@@ -10318,7 +10325,7 @@ snapshots:
     dependencies:
       inline-style-parser: 0.2.7
 
-  stylelint-config-recess-order@7.7.0(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)):
+  stylelint-config-recess-order@7.8.0(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)):
     dependencies:
       stylelint: 17.14.1(supports-color@10.2.2)(typescript@6.0.3)
       stylelint-order: 8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
@@ -10558,6 +10565,8 @@ snapshots:
 
   undici@7.29.0: {}
 
+  undici@8.10.0: {}
+
   unenv@2.0.0-rc.24:
     dependencies:
       pathe: 2.0.3
@@ -10639,6 +10648,12 @@ snapshots:
       css-tree: 3.2.1
       ofetch: 1.5.1
       ohash: 2.0.11
+
+  unifont@0.7.5:
+    dependencies:
+      css-tree: 3.2.1
+      ohash: 2.0.11
+      undici: 8.10.0
 
   unist-util-find-after@5.0.0:
     dependencies:

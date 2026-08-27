@@ -6,6 +6,7 @@ import { $ } from 'zx';
 import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
+import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
 import { deployAudio } from './deploy-audio.js';
@@ -96,6 +97,9 @@ try {
 	await pullStats({ dryRun: isDryRun, rootPath });
 
 	await build();
+
+	// After the build, because the cards are published into the dist/ that deploy-app ships
+	await generateOpenGraphImages({ rootPath });
 
 	// Audio before site: new pages must never go live while their files are still uploading
 	await deployAudio({ dryRun: isDryRun, rootPath });

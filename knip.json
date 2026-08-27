@@ -7,7 +7,7 @@
 		},
 		"packages/scripts": {
 			"ignoreBinaries": ["audiowaveform", "ffmpeg", "ffprobe", "which", "ssh-add"],
-			"ignoreDependencies": ["mysql2"]
+			"ignoreDependencies": ["mysql2", "@fontsource/.+", "@types/react", "react"]
 		}
 	},
 	"ignoreWorkspaces": ["packages/content"]

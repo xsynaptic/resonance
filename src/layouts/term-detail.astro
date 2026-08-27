@@ -15,6 +15,7 @@ import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { groupByYear } from '#lib/utils/group-by-year.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
 
@@ -62,7 +63,11 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 	: [];
 ---
 
-<MainSite title={term.data.title} {...description ? { description } : {}}>
+<MainSite
+	openGraphId={getOpenGraphId(term.collection, term.id)}
+	title={term.data.title}
+	{...description ? { description } : {}}
+>
 	{
 		breadcrumbs.length > 0 ? (
 			<Breadcrumbs crumbs={breadcrumbs} current={term.data.title} />

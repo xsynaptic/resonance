@@ -9,6 +9,7 @@ import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -31,6 +32,7 @@ const downloadCounts = await getDownloadCounts();
 <ContentDetail
 	date={entry.data.dateCreated}
 	kind="Mix"
+	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	title={entry.data.title}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >

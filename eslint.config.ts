@@ -15,6 +15,8 @@ export default getConfig(
 		},
 		{
 			rules: {
+				complexity: ['warn', { max: 18, variant: 'modified' }],
+				'max-depth': ['warn', 4],
 				// Intentional compounds such as schema.org's WebSite type
 				'unicorn/consistent-compound-words': 'off',
 				// Zod schema chains legitimately reach 4; depth 5+ still flagged

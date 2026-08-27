@@ -13,12 +13,21 @@
 		"deploy-audio": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-audio.cli.ts",
 		"deploy-server-config": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-server-config.cli.ts",
 		"stats-pull": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/stats-pull.cli.ts",
-		"deploy-site": "NODE_ENV=production tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy.ts"
+		"deploy-site": "NODE_ENV=production tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy.ts",
+		"og-image": "tsx ./src/og-image/og-image.cli.ts"
 	},
 	"devDependencies": {
+		"@fontsource/fira-sans": "^5.3.0",
+		"@fontsource/manrope": "^5.3.0",
+		"@types/react": "^19.2.18",
+		"@xsynaptic/shared": "workspace:*",
 		"chalk": "^6.0.0",
-		"mysql2": "^3.23.3",
+		"devalue": "^5.9.1",
+		"mysql2": "^3.24.2",
 		"p-limit": "^7.3.1",
+		"react": "^19.2.8",
+		"sharp": "^0.35.4",
+		"takumi-js": "^2.12.0",
 		"tsx": "^4.23.12",
 		"yaml": "^2.8.1",
 		"zx": "^8.8.5"

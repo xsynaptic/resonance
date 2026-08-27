@@ -5,6 +5,7 @@ import { render } from 'astro:content';
 
 import TermLinks from '#components/parts/term-links.astro';
 import ContentDetail from '#layouts/content-detail.astro';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -26,6 +27,7 @@ const { discogsUrl, rating, releaseYear } = entry.data;
 	date={entry.data.dateCreated}
 	image={entry.data.imageFeatured}
 	kind="Review"
+	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	title={entry.data.title}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >

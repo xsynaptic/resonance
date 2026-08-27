@@ -8,13 +8,19 @@ interface Props {
 	description?: string | undefined;
 	image?: string | undefined;
 	kind?: string | undefined;
+	openGraphId: string;
 	title: string;
 }
 
-const { date, description, image, kind, title } = Astro.props;
+const { date, description, image, kind, openGraphId, title } = Astro.props;
 ---
 
-<MainSite title={title} {...description ? { description } : {}}>
+<MainSite
+	openGraphId={openGraphId}
+	openGraphType="article"
+	title={title}
+	{...description ? { description } : {}}
+>
 	<article>
 		<header class="mb-6">
 			{

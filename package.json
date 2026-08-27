@@ -25,42 +25,44 @@
 		"stats-test": "python3 deploy/stats/test-download-stats.py",
 		"check": "stylelint \"src/**/*.{css,astro}\" && prettier --check . && eslint && astro check && tsc --noEmit --extendedDiagnostics && vitest run && knip",
 		"fix": "stylelint \"src/**/*.{css,astro}\" --fix --cache --cache-location node_modules/.cache/stylelint/ && prettier --write . --cache && eslint --fix --cache --cache-location node_modules/.cache/eslint/ && astro check && tsc --noEmit --extendedDiagnostics && knip",
-		"check-types": "tsc --noEmit --extendedDiagnostics"
+		"check-types": "tsc --noEmit --extendedDiagnostics",
+		"og-image": "pnpm -F @xsynaptic/scripts og-image"
 	},
 	"imports": {
 		"#*": "./src/*"
 	},
 	"dependencies": {
-		"astro": "^7.2.2"
+		"astro": "^7.2.8"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
-		"@astrojs/markdown-satteri": "^0.3.5",
-		"@astrojs/mdx": "^7.0.5",
+		"@astrojs/markdown-satteri": "^0.3.8",
+		"@astrojs/mdx": "^7.0.8",
 		"@astrojs/sitemap": "^3.7.3",
 		"@pagefind/component-ui": "^1.5.2",
 		"@tailwindcss/vite": "^4.3.3",
-		"@xsynaptic/astro-font-devtools": "^1.0.1",
+		"@xsynaptic/astro-font-devtools": "^1.0.2",
 		"@xsynaptic/eslint-config": "^6.2.1",
 		"@xsynaptic/mdxlint-config": "^2.0.0",
-		"@xsynaptic/satteri-auto-import": "^0.1.1",
-		"@xsynaptic/satteri-img-group": "^1.0.0",
+		"@xsynaptic/satteri-auto-import": "^0.2.1",
+		"@xsynaptic/satteri-img-group": "^2.0.1",
+		"@xsynaptic/shared": "workspace:*",
 		"@xsynaptic/stylelint-config": "^1.1.1",
 		"astro-pagefind": "^2.0.1",
-		"eslint": "^10.8.1",
+		"eslint": "^10.9.1",
 		"eslint-plugin-jsx-a11y": "^6.10.2",
 		"globals": "^17.11.0",
 		"knip": "^6.32.2",
 		"prettier": "^3.9.6",
 		"prettier-plugin-astro": "^0.14.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
-		"satteri": "^0.9.5",
-		"sharp": "^0.35.3",
+		"satteri": "^0.10.5",
+		"sharp": "^0.35.4",
 		"stylelint": "^17.14.1",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.10",
-		"wrangler": "^4.123.0",
+		"vitest": "^4.1.11",
+		"wrangler": "^4.126.0",
 		"zod": "^4.4.3"
 	},
 	"packageManager": "pnpm@11.21.0"

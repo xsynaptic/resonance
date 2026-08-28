@@ -13,6 +13,6 @@ export async function renderMarkdown(text: string): Promise<string> {
 }
 
 async function getProcessor(): Promise<Processor> {
-	processorPromise ??= createSatteriMarkdownProcessor({});
+	if (!processorPromise) processorPromise = createSatteriMarkdownProcessor({});
 	return processorPromise;
 }

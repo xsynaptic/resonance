@@ -47,6 +47,6 @@ async function buildSlugMap(): Promise<Map<string, SlugMatch>> {
 }
 
 async function getSlugMap(): Promise<Map<string, SlugMatch>> {
-	slugMapPromise ??= buildSlugMap();
+	if (!slugMapPromise) slugMapPromise = buildSlugMap();
 	return slugMapPromise;
 }

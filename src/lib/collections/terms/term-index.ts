@@ -51,11 +51,13 @@ function makeTermIndex(
 ): () => Promise<TermIndex> {
 	let cached: Promise<TermIndex> | undefined;
 	return () => {
-		cached ??= (async () => {
-			const index: TermIndex = new Map();
-			await collect(index);
-			return finalize(index);
-		})();
+		if (!cached) {
+			cached = (async () => {
+				const index: TermIndex = new Map();
+				await collect(index);
+				return finalize(index);
+			})();
+		}
 		return cached;
 	};
 }
@@ -145,7 +147,7 @@ const SERIES_MEMBER_COLLECTIONS = ['mixes', 'reviews', 'posts'] as const;
 let seriesIndexPromise: Promise<TermIndex> | undefined;
 
 export async function getSeriesIndex(): Promise<TermIndex> {
-	seriesIndexPromise ??= buildSeriesIndex();
+	if (!seriesIndexPromise) seriesIndexPromise = buildSeriesIndex();
 	return seriesIndexPromise;
 }
 

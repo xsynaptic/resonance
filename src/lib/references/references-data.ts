@@ -26,7 +26,7 @@ const linkableCollections = [
 let referencesPromise: Promise<Map<string, Reference>> | undefined;
 
 export async function getReferences(): Promise<Map<string, Reference>> {
-	referencesPromise ??= buildReferences();
+	if (!referencesPromise) referencesPromise = buildReferences();
 	return referencesPromise;
 }
 
@@ -40,11 +40,7 @@ async function buildReferences(): Promise<Map<string, Reference>> {
 			const existing = referencesById.get(entry.id);
 
 			if (existing) {
-				if (import.meta.env.DEV) {
-					console.warn(
-						`[references] slug "${entry.id}" exists in both "${existing.collection}" and "${collection}"; keeping "${existing.collection}"`,
-					);
-				}
+				warnCollision(entry.id, existing.collection, collection);
 			} else {
 				referencesById.set(entry.id, {
 					collection,
@@ -57,4 +53,12 @@ async function buildReferences(): Promise<Map<string, Reference>> {
 	}
 
 	return referencesById;
+}
+
+function warnCollision(id: string, kept: CollectionKey, skipped: CollectionKey): void {
+	if (!import.meta.env.DEV) return;
+
+	console.warn(
+		`[references] slug "${id}" exists in both "${kept}" and "${skipped}"; keeping "${kept}"`,
+	);
 }

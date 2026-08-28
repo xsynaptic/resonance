@@ -93,6 +93,28 @@ class NavMenu extends HTMLElement {
 		}
 	}
 
+	#connectSubmenu(li: HTMLElement, submenu: HTMLElement, id: string) {
+		li.dataset.hasSubmenu = '';
+
+		submenu.id = id;
+		submenu.setAttribute('role', 'menu');
+
+		const trigger = this.#getTrigger(li);
+
+		if (!trigger) return;
+
+		trigger.setAttribute('aria-haspopup', 'true');
+		trigger.setAttribute('aria-expanded', 'false');
+		trigger.setAttribute('aria-controls', id);
+	}
+
+	#expand(li: HTMLElement) {
+		if (li.dataset.hasSubmenu === undefined) return;
+
+		this.#open(li);
+		this.#focusFirstItem(li);
+	}
+
 	#focusEdgeItem(li: HTMLElement, edge: 'first' | 'last') {
 		const parentUl = li.closest<HTMLElement>('ul');
 
@@ -118,6 +140,18 @@ class NavMenu extends HTMLElement {
 			this.#setRovingTabindex(firstTrigger);
 			firstTrigger.focus();
 		}
+	}
+
+	// Leaving the top of a submenu returns to the trigger that opened it
+	#focusPreviousItem(li: HTMLElement) {
+		const siblings = this.#getSiblingItems(li);
+
+		if (siblings[0] === li) {
+			this.#closeAndFocusTrigger(li);
+			return;
+		}
+
+		this.#focusSibling(li, 'prev');
 	}
 
 	#focusSibling(li: HTMLElement, direction: 'next' | 'prev') {
@@ -180,37 +214,24 @@ class NavMenu extends HTMLElement {
 			return;
 		}
 
-		const trigger = this.#getTrigger(li);
-		const isOnTrigger = trigger ? trigger.contains(target) : false;
-		const isInTrigger = this.#triggerContains(li, target);
-		const isTouch = this.#lastPointerType === 'touch';
-		const isAnchor = trigger instanceof HTMLAnchorElement;
+		// Clicks inside the submenu belong to its own items
+		if (!this.#triggerContains(li, target)) return;
 
-		// Touch taps on an anchor menuitem: first tap opens, second tap navigates
-		if (isOnTrigger && isTouch && isAnchor) {
-			if (isInTrigger && li.dataset.open === undefined) {
-				event.preventDefault();
-				this.#closeSiblings(li);
-				this.#open(li);
-			}
+		const trigger = this.#getTrigger(li);
+		const isAnchorTrigger = trigger instanceof HTMLAnchorElement && trigger.contains(target);
+
+		if (isAnchorTrigger && this.#lastPointerType === 'touch') {
+			this.#openOnFirstTap(event, li);
 			return;
 		}
 
 		// Non-touch click on an anchor: let it navigate normally
-		if (isOnTrigger && isAnchor) return;
-
-		// Button triggers, chevron clicks, or anything else in the trigger zone: toggle
-		if (!isInTrigger) return;
+		if (isAnchorTrigger) return;
 
 		event.preventDefault();
 
 		this.#closeSiblings(li);
-
-		if (li.dataset.open === undefined) {
-			this.#open(li);
-		} else {
-			this.#close(li);
-		}
+		this.#toggle(li);
 	};
 
 	#handleClickOutside = (event: Event) => {
@@ -235,94 +256,103 @@ class NavMenu extends HTMLElement {
 
 		if (!li) return;
 
-		const parentUl = li.closest<HTMLElement>('ul');
-		const isMenubar = parentUl?.getAttribute('role') === 'menubar';
+		const isMenubar = li.closest<HTMLElement>('ul')?.getAttribute('role') === 'menubar';
 
-		switch (event.key) {
+		const wasHandled = isMenubar
+			? this.#handleMenubarKey(event.key, li)
+			: this.#handleSubmenuKey(event.key, li);
+
+		if (wasHandled) event.preventDefault();
+	};
+
+	// Horizontal axis: siblings run left/right, down opens into the submenu
+	// Returns whether the key was consumed, so the caller knows to suppress the default action
+	#handleMenubarKey(key: string, li: HTMLElement): boolean {
+		switch (key) {
 			case ' ':
 			case 'Enter': {
-				if (li.dataset.hasSubmenu !== undefined) {
-					event.preventDefault();
-
-					if (li.dataset.open === undefined) {
-						this.#open(li);
-						this.#focusFirstItem(li);
-					} else {
-						this.#close(li);
-					}
-				}
-				// Enter without children: default trigger behavior (link navigation or button click)
-				break;
+				return this.#toggleAndFocus(li);
 			}
 			case 'ArrowDown': {
-				event.preventDefault();
-
-				if (isMenubar) {
-					if (li.dataset.hasSubmenu !== undefined) {
-						this.#open(li);
-						this.#focusFirstItem(li);
-					}
-				} else {
-					this.#focusSibling(li, 'next');
-				}
-				break;
+				this.#expand(li);
+				return true;
 			}
 			case 'ArrowLeft': {
-				event.preventDefault();
-				if (isMenubar) {
-					this.#focusSibling(li, 'prev');
-				} else {
-					this.#closeAndFocusTrigger(li);
-				}
-				break;
+				this.#focusSibling(li, 'prev');
+				return true;
 			}
 			case 'ArrowRight': {
-				if (isMenubar) {
-					event.preventDefault();
-					this.#focusSibling(li, 'next');
-				} else if (li.dataset.hasSubmenu !== undefined) {
-					event.preventDefault();
-					this.#open(li);
-					this.#focusFirstItem(li);
-				}
-				break;
+				this.#focusSibling(li, 'next');
+				return true;
 			}
+			// Nothing above the menubar, but the page must not scroll either
 			case 'ArrowUp': {
-				event.preventDefault();
-
-				if (!isMenubar) {
-					const siblings = this.#getSiblingItems(li);
-					const isFirst = siblings[0] === li;
-
-					if (isFirst) {
-						this.#closeAndFocusTrigger(li);
-					} else {
-						this.#focusSibling(li, 'prev');
-					}
-				}
-				break;
+				return true;
 			}
 			case 'End': {
-				event.preventDefault();
 				this.#focusEdgeItem(li, 'last');
-				break;
+				return true;
 			}
 			case 'Escape': {
-				event.preventDefault();
 				this.#closeAndFocusTrigger(li);
-				break;
+				return true;
 			}
 			case 'Home': {
-				event.preventDefault();
 				this.#focusEdgeItem(li, 'first');
-				break;
+				return true;
+			}
+			default: {
+				return false;
 			}
 		}
-	};
+	}
 
 	#handlePointerDown = (event: PointerEvent) => {
 		this.#lastPointerType = event.pointerType;
 	};
+
+	// Vertical axis: siblings run up/down, right opens a nested submenu, left backs out
+	#handleSubmenuKey(key: string, li: HTMLElement): boolean {
+		switch (key) {
+			case ' ':
+			case 'Enter': {
+				return this.#toggleAndFocus(li);
+			}
+			case 'ArrowDown': {
+				this.#focusSibling(li, 'next');
+				return true;
+			}
+			case 'ArrowLeft': {
+				this.#closeAndFocusTrigger(li);
+				return true;
+			}
+			case 'ArrowRight': {
+				if (li.dataset.hasSubmenu === undefined) return false;
+
+				this.#expand(li);
+				return true;
+			}
+			case 'ArrowUp': {
+				this.#focusPreviousItem(li);
+				return true;
+			}
+			case 'End': {
+				this.#focusEdgeItem(li, 'last');
+				return true;
+			}
+			case 'Escape': {
+				this.#closeAndFocusTrigger(li);
+				return true;
+			}
+			case 'Home': {
+				this.#focusEdgeItem(li, 'first');
+				return true;
+			}
+			default: {
+				return false;
+			}
+		}
+	}
 
 	#injectAria() {
 		// Root <ul> becomes menubar
@@ -343,20 +373,9 @@ class NavMenu extends HTMLElement {
 
 			const submenu = this.#getSubmenu(li);
 
-			if (submenu) {
-				li.dataset.hasSubmenu = '';
+			if (!submenu) continue;
 
-				const id = `${this.#instanceId}-sub-menu-${String(submenuId++)}`;
-
-				submenu.id = id;
-				submenu.setAttribute('role', 'menu');
-
-				if (trigger) {
-					trigger.setAttribute('aria-haspopup', 'true');
-					trigger.setAttribute('aria-expanded', 'false');
-					trigger.setAttribute('aria-controls', id);
-				}
-			}
+			this.#connectSubmenu(li, submenu, `${this.#instanceId}-sub-menu-${String(submenuId++)}`);
 		}
 
 		// Roving tabindex on menubar items
@@ -371,6 +390,16 @@ class NavMenu extends HTMLElement {
 		const trigger = this.#getTrigger(li);
 
 		if (trigger) trigger.setAttribute('aria-expanded', 'true');
+	}
+
+	// Touch taps on an anchor menuitem: first tap opens the submenu, second tap navigates
+	#openOnFirstTap(event: Event, li: HTMLElement) {
+		if (li.dataset.open !== undefined) return;
+
+		event.preventDefault();
+
+		this.#closeSiblings(li);
+		this.#open(li);
 	}
 
 	#resetItem(li: HTMLElement) {
@@ -389,6 +418,24 @@ class NavMenu extends HTMLElement {
 		for (const trigger of this.#getMenuitems(parentUl)) {
 			trigger.setAttribute('tabindex', trigger === activeTrigger ? '0' : '-1');
 		}
+	}
+
+	#toggle(li: HTMLElement) {
+		if (li.dataset.open === undefined) this.#open(li);
+		else this.#close(li);
+	}
+
+	// Keyboard toggling moves focus into the submenu; a pointer toggle must not
+	#toggleAndFocus(li: HTMLElement): boolean {
+		if (li.dataset.hasSubmenu === undefined) return false;
+
+		const wasClosed = li.dataset.open === undefined;
+
+		this.#toggle(li);
+
+		if (wasClosed) this.#focusFirstItem(li);
+
+		return true;
 	}
 
 	#triggerContains(li: HTMLElement, target: Node): boolean {

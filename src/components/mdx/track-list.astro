@@ -9,7 +9,39 @@ interface Props {
 	tracks?: Array<TrackValue> | undefined;
 }
 
+interface TrackRow {
+	artists: Array<ResolvedRef>;
+	hasMeta: boolean;
+	labels: Array<ResolvedRef>;
+	metaSeparator: string;
+	position: number;
+	remixCredit: Array<ResolvedRef>;
+	timestamp: string | undefined;
+	title: string;
+	year: string | undefined;
+}
+
 const { tracks } = Astro.props;
+
+async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
+	const [artists, labels, mixArtists] = await Promise.all([
+		resolveRefs('artists', track.artists),
+		resolveRefs('labels', track.labels),
+		resolveRefs('artists', track.mixArtists),
+	]);
+
+	return {
+		artists,
+		hasMeta: labels.length > 0 || Boolean(track.year),
+		labels,
+		metaSeparator: labels.length > 0 && track.year ? ', ' : '',
+		position: index + 1,
+		remixCredit: visibleMixArtists(track.title, mixArtists),
+		timestamp: track.timestamp,
+		title: track.title,
+		year: track.year,
+	};
+}
 
 // Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
 // Suppress the credit only when every named artist appears, so a partial group still renders
@@ -23,60 +55,47 @@ function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array
 }
 
 // Resolve the polymorphic refs up front (title maps are cached, so this is cheap)
-const resolved = await Promise.all(
-	(tracks ?? []).map(async (track) => ({
-		artists: await resolveRefs('artists', track.artists),
-		labels: await resolveRefs('labels', track.labels),
-		mixArtists: await resolveRefs('artists', track.mixArtists),
-	})),
-);
+const rows = await Promise.all((tracks ?? []).map(buildRow));
 ---
 
 {
-	tracks && tracks.length > 0 ? (
+	rows.length > 0 ? (
 		<section class="not-prose my-8">
 			<h2 class="mb-3 font-display text-lg font-bold text-accent-400">Tracklist</h2>
 			<ol class="track-list">
-				{tracks.map((track, index) => {
-					const { artists, labels, mixArtists } = resolved[index] ?? {};
-					const trackArtists = artists ?? [];
-					const trackLabels = labels ?? [];
-					const remixCredit = visibleMixArtists(track.title, mixArtists ?? []);
-
-					return (
-						<li class="track">
-							<span aria-hidden="true" class="track-index">
-								{index + 1}.
-							</span>
-							<span class="track-title-line">
-								{trackArtists.length > 0 ? (
-									<Fragment>
-										<strong class="text-ink-100">
-											<RefList refs={trackArtists} />
-										</strong>
-										<span class="text-ink-600">{' - '}</span>
-									</Fragment>
-								) : undefined}
-								<span class="font-medium">{track.title}</span>
-								{remixCredit.length > 0 ? (
-									<span>
-										{' ('}
-										<RefList refs={remixCredit} />
-										{' remix)'}
-									</span>
-								) : undefined}
-							</span>
-							{trackLabels.length > 0 || track.year ? (
-								<span class="track-label-year">
-									<RefList refs={trackLabels} />
-									{trackLabels.length > 0 && track.year ? ', ' : ''}
-									{track.year}
+				{rows.map((row) => (
+					<li class="track">
+						<span aria-hidden="true" class="track-index">
+							{row.position}.
+						</span>
+						<span class="track-title-line">
+							{row.artists.length > 0 ? (
+								<Fragment>
+									<strong class="text-ink-100">
+										<RefList refs={row.artists} />
+									</strong>
+									<span class="text-ink-600">{' - '}</span>
+								</Fragment>
+							) : undefined}
+							<span class="font-medium">{row.title}</span>
+							{row.remixCredit.length > 0 ? (
+								<span>
+									{' ('}
+									<RefList refs={row.remixCredit} />
+									{' remix)'}
 								</span>
 							) : undefined}
-							{track.timestamp ? <span class="track-time">{track.timestamp}</span> : undefined}
-						</li>
-					);
-				})}
+						</span>
+						{row.hasMeta ? (
+							<span class="track-label-year">
+								<RefList refs={row.labels} />
+								{row.metaSeparator}
+								{row.year}
+							</span>
+						) : undefined}
+						{row.timestamp ? <span class="track-time">{row.timestamp}</span> : undefined}
+					</li>
+				))}
 			</ol>
 		</section>
 	) : undefined

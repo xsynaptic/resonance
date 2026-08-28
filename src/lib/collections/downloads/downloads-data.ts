@@ -5,7 +5,7 @@ let countsPromise: Promise<Map<string, number>> | undefined;
 
 // Filename -> completions, for lookup against mix frontmatter `files[]` entries
 export function getDownloadCounts(): Promise<Map<string, number>> {
-	countsPromise ??= buildCounts();
+	if (!countsPromise) countsPromise = buildCounts();
 	return countsPromise;
 }
 

@@ -9,6 +9,14 @@ export interface DeployConfig {
 	sshKeyPath?: string;
 }
 
+const REQUIRED_ENV = {
+	filesUrl: 'FILES_URL',
+	remoteAudioPath: 'DEPLOY_AUDIO_PATH',
+	remoteHost: 'DEPLOY_REMOTE_HOST',
+	remoteServerConfigPath: 'DEPLOY_SERVER_CONFIG_PATH',
+	siteUrl: 'DEPLOY_SITE_URL',
+} as const;
+
 const EXAMPLE_ENV = [
 	'  deploy/.env:',
 	'    DEPLOY_REMOTE_HOST=deploy@files.djbasilisk.com',
@@ -20,37 +28,12 @@ const EXAMPLE_ENV = [
 	'    FILES_URL=https://files.djbasilisk.com/',
 ];
 
+type RequiredConfig = Record<keyof typeof REQUIRED_ENV, string>;
+
 export function loadDeployConfig(): DeployConfig {
-	const remoteHost = process.env.DEPLOY_REMOTE_HOST;
 	const sshKeyPath = process.env.DEPLOY_SSH_KEY_PATH;
-	const remoteAudioPath = process.env.DEPLOY_AUDIO_PATH;
-	const remoteServerConfigPath = process.env.DEPLOY_SERVER_CONFIG_PATH;
-	const siteUrl = process.env.DEPLOY_SITE_URL;
-	const filesUrl = process.env.FILES_URL;
 
-	const missing: Array<string> = [];
-
-	if (!remoteHost) missing.push('DEPLOY_REMOTE_HOST');
-	if (!remoteAudioPath) missing.push('DEPLOY_AUDIO_PATH');
-	if (!remoteServerConfigPath) missing.push('DEPLOY_SERVER_CONFIG_PATH');
-	if (!siteUrl) missing.push('DEPLOY_SITE_URL');
-	if (!filesUrl) missing.push('FILES_URL');
-
-	if (!remoteHost || !remoteAudioPath || !remoteServerConfigPath || !siteUrl || !filesUrl) {
-		console.error(chalk.red(`Missing required environment variables: ${missing.join(', ')}`));
-		console.error(chalk.gray('\nExample configuration:'));
-		for (const line of EXAMPLE_ENV) console.error(chalk.gray(line));
-		throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-	}
-
-	return {
-		filesUrl,
-		remoteAudioPath,
-		remoteHost,
-		remoteServerConfigPath,
-		siteUrl,
-		...(sshKeyPath ? { sshKeyPath } : {}),
-	};
+	return { ...readRequiredEnv(), ...(sshKeyPath ? { sshKeyPath } : {}) };
 }
 
 export function printDeployConfig(config: DeployConfig): void {
@@ -62,4 +45,30 @@ export function printDeployConfig(config: DeployConfig): void {
 	console.log(chalk.gray(`  Site URL:     ${config.siteUrl}`));
 	console.log(chalk.gray(`  Files URL:    ${config.filesUrl}`));
 	console.log('');
+}
+
+// Reports every absent variable at once rather than failing on the first
+function readRequiredEnv(): RequiredConfig {
+	const entries = Object.entries(REQUIRED_ENV) as Array<[keyof typeof REQUIRED_ENV, string]>;
+	const values: Partial<RequiredConfig> = {};
+	const missing: Array<string> = [];
+
+	for (const [key, name] of entries) {
+		const value = process.env[name];
+
+		if (value) values[key] = value;
+		else missing.push(name);
+	}
+
+	if (missing.length > 0) {
+		const message = `Missing required environment variables: ${missing.join(', ')}`;
+
+		console.error(chalk.red(message));
+		console.error(chalk.gray('\nExample configuration:'));
+		for (const line of EXAMPLE_ENV) console.error(chalk.gray(line));
+
+		throw new Error(message);
+	}
+
+	return values as RequiredConfig;
 }

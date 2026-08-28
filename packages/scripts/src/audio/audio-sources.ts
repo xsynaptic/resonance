@@ -6,40 +6,39 @@ export interface AudioSource {
 	path: string;
 }
 
-// One entry per mix, keyed by filename minus extension, FLAC preferred over MP3
+// Ordered by preference; the earliest match claims the base name
+const SOURCE_EXTENSIONS = ['.flac', '.mp3'];
+
+// One entry per mix, keyed by filename minus extension
 // Shared by every derivation that reads the source directory rather than frontmatter
 export async function collectAudioSources(sourceDir: string): Promise<Array<AudioSource>> {
-	let entries: Array<string>;
+	const entries = await readSourceDir(sourceDir);
+	const sources = new Map<string, AudioSource>();
 
+	for (const entry of entries) {
+		const rank = preferenceRank(entry);
+
+		if (rank === -1) continue;
+
+		const base = entry.slice(0, -path.extname(entry).length);
+		const existing = sources.get(base);
+
+		if (existing && preferenceRank(existing.path) <= rank) continue;
+
+		sources.set(base, { base, path: path.join(sourceDir, entry) });
+	}
+
+	return [...sources.values()].sort((left, right) => left.base.localeCompare(right.base));
+}
+
+function preferenceRank(file: string): number {
+	return SOURCE_EXTENSIONS.indexOf(path.extname(file).toLowerCase());
+}
+
+async function readSourceDir(sourceDir: string): Promise<Array<string>> {
 	try {
-		entries = await fs.readdir(sourceDir);
+		return await fs.readdir(sourceDir);
 	} catch {
 		throw new Error(`Audio source directory not found: ${sourceDir}`);
 	}
-
-	const paired = new Map<string, { flac?: string; mp3?: string }>();
-
-	for (const entry of entries) {
-		const ext = path.extname(entry).toLowerCase();
-		if (ext !== '.mp3' && ext !== '.flac') continue;
-
-		const base = entry.slice(0, -ext.length);
-		const record = paired.get(base) ?? {};
-
-		if (ext === '.flac') record.flac = entry;
-		else record.mp3 = entry;
-
-		paired.set(base, record);
-	}
-
-	const sources: Array<AudioSource> = [];
-
-	for (const [base, record] of paired) {
-		const name = record.flac ?? record.mp3;
-		if (name === undefined) continue;
-
-		sources.push({ base, path: path.join(sourceDir, name) });
-	}
-
-	return sources;
 }

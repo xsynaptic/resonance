@@ -28,9 +28,26 @@ class PaginationSelect extends HTMLElement {
 		this.#abortController?.abort();
 	}
 
+	#buildOptions(lastPage: number): Array<HTMLOptionElement> {
+		const currentPage = Number(this.dataset.currentPage);
+		const options: Array<HTMLOptionElement> = [];
+
+		for (let pageNumber = 1; pageNumber <= lastPage; pageNumber++) {
+			const option = document.createElement('option');
+
+			option.value = String(pageNumber);
+			option.textContent = `Page ${String(pageNumber)}`;
+			option.selected = pageNumber === currentPage;
+			if (pageNumber === currentPage) option.dataset.currentPage = '';
+
+			options.push(option);
+		}
+
+		return options;
+	}
+
 	#enhance() {
 		const lastPage = Number(this.dataset.lastPage);
-		const currentPage = Number(this.dataset.currentPage);
 
 		if (!Number.isSafeInteger(lastPage) || lastPage <= 1) return;
 
@@ -41,15 +58,7 @@ class PaginationSelect extends HTMLElement {
 
 		const counter = this.querySelector<HTMLElement>('[data-pagination-counter]');
 
-		for (let pageNumber = 1; pageNumber <= lastPage; pageNumber++) {
-			const option = document.createElement('option');
-
-			option.value = String(pageNumber);
-			option.textContent = `Page ${String(pageNumber)}`;
-			option.selected = pageNumber === currentPage;
-			if (pageNumber === currentPage) option.dataset.currentPage = '';
-			select.append(option);
-		}
+		select.append(...this.#buildOptions(lastPage));
 
 		if (counter) counter.hidden = true;
 		form.hidden = false;

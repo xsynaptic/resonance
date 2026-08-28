@@ -17,77 +17,71 @@ interface ValidateAudioOptions {
 export async function validateAudio(options: ValidateAudioOptions): Promise<Array<string>> {
 	const { rootPath } = options;
 
-	const mixesDir = path.join(rootPath, MIXES_CONTENT_DIR);
-	const audioDir = path.join(rootPath, AUDIO_SOURCE_DIR);
+	const referenced = await collectReferenced(path.join(rootPath, MIXES_CONTENT_DIR));
+	const onDisk = await collectOnDisk(path.join(rootPath, AUDIO_SOURCE_DIR));
 
-	const mixEntries = await fs.readdir(mixesDir);
-	const mdxFiles = mixEntries.filter((name) => name.endsWith('.mdx'));
-
-	const referenced = new Set<string>();
-
-	const frontmatterList = await Promise.all(
-		mdxFiles.map((name) => fs.readFile(path.join(mixesDir, name), 'utf8')),
+	const missing = sortFiles([...referenced].filter((file) => !onDisk.has(file)));
+	const orphaned = sortFiles([...onDisk].filter((file) => !referenced.has(file)));
+	const flacless = sortFiles(
+		[...referenced].filter((file) => isMissingFlacSibling(file, referenced)),
 	);
+	const present = sortFiles([...referenced].filter((file) => onDisk.has(file)));
 
-	for (const source of frontmatterList) {
-		for (const file of parseFrontmatterFiles(source)) referenced.add(file);
-	}
-
-	const onDisk = new Set<string>();
-
-	try {
-		const diskEntries = await fs.readdir(audioDir);
-		for (const entry of diskEntries) {
-			if (AUDIO_EXTENSIONS.has(path.extname(entry).toLowerCase())) onDisk.add(entry);
-		}
-	} catch {
-		// audioDir may not exist yet; the missing check below reports every referenced file
-	}
-
-	const missing = [...referenced]
-		.filter((file) => !onDisk.has(file))
-		.sort((left, right) => left.localeCompare(right));
-	const orphaned = [...onDisk]
-		.filter((file) => !referenced.has(file))
-		.sort((left, right) => left.localeCompare(right));
-	const flacless = [...referenced]
-		.filter((file) => file.toLowerCase().endsWith('.mp3'))
-		.filter((file) => !referenced.has(`${file.slice(0, -'.mp3'.length)}.flac`))
-		.sort((left, right) => left.localeCompare(right));
-
-	if (orphaned.length > 0) {
-		console.log(chalk.yellow(`Orphaned audio (on disk, unreferenced): ${String(orphaned.length)}`));
-		for (const file of orphaned) console.log(chalk.yellow(`  ${file}`));
-	}
-
-	if (flacless.length > 0) {
-		console.log(
-			chalk.yellow(
-				`Referenced .mp3 without a .flac sibling (rendition uses mp3): ${String(flacless.length)}`,
-			),
-		);
-		for (const file of flacless) console.log(chalk.yellow(`  ${file}`));
-	}
+	report(orphaned, `Orphaned audio (on disk, unreferenced): ${String(orphaned.length)}`, warn);
+	report(
+		flacless,
+		`Referenced .mp3 without a .flac sibling (rendition uses mp3): ${String(flacless.length)}`,
+		warn,
+	);
+	report(missing, `Missing audio (referenced, absent on disk): ${String(missing.length)}`, fail);
 
 	if (missing.length > 0) {
-		console.error(
-			chalk.red(`Missing audio (referenced, absent on disk): ${String(missing.length)}`),
-		);
-		for (const file of missing) console.error(chalk.red(`  ${file}`));
 		throw new Error(
 			`Audio validation failed: ${String(missing.length)} referenced file(s) missing from ${AUDIO_SOURCE_DIR}`,
 		);
 	}
-
-	const present = [...referenced]
-		.filter((file) => onDisk.has(file))
-		.sort((left, right) => left.localeCompare(right));
 
 	console.log(
 		chalk.green(`Audio validation passed: ${String(present.length)} referenced file(s) present`),
 	);
 
 	return present;
+}
+
+async function collectOnDisk(audioDir: string): Promise<Set<string>> {
+	let entries: Array<string>;
+
+	try {
+		entries = await fs.readdir(audioDir);
+	} catch {
+		// audioDir may not exist yet; the missing check reports every referenced file in that case
+		return new Set();
+	}
+
+	return new Set(
+		entries.filter((entry) => AUDIO_EXTENSIONS.has(path.extname(entry).toLowerCase())),
+	);
+}
+
+async function collectReferenced(mixesDir: string): Promise<Set<string>> {
+	const entries = await fs.readdir(mixesDir);
+	const sources = await Promise.all(
+		entries
+			.filter((name) => name.endsWith('.mdx'))
+			.map((name) => fs.readFile(path.join(mixesDir, name), 'utf8')),
+	);
+
+	return new Set(sources.flatMap((source) => parseFrontmatterFiles(source)));
+}
+
+function fail(line: string): void {
+	console.error(chalk.red(line));
+}
+
+function isMissingFlacSibling(file: string, referenced: Set<string>): boolean {
+	if (!file.toLowerCase().endsWith('.mp3')) return false;
+
+	return !referenced.has(`${file.slice(0, -'.mp3'.length)}.flac`);
 }
 
 function parseFrontmatterFiles(source: string): Array<string> {
@@ -104,4 +98,19 @@ function parseFrontmatterFiles(source: string): Array<string> {
 	if (!Array.isArray(files)) return [];
 
 	return files.filter((entry): entry is string => typeof entry === 'string');
+}
+
+function report(files: Array<string>, heading: string, log: (line: string) => void): void {
+	if (files.length === 0) return;
+
+	log(heading);
+	for (const file of files) log(`  ${file}`);
+}
+
+function sortFiles(files: Array<string>): Array<string> {
+	return files.sort((left, right) => left.localeCompare(right));
+}
+
+function warn(line: string): void {
+	console.log(chalk.yellow(line));
 }

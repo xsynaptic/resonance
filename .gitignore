@@ -31,8 +31,12 @@ node_modules/
 # database backups (large, not for VCS)
 backups/
 
-# content
-packages/content/
+# content: the generated MDX and media stay out, the package's own tooling config is tracked
+packages/content/*
+!packages/content/.mdxlintrc.mjs
+!packages/content/global.d.ts
+!packages/content/package.json
+!packages/content/tsconfig.json
 
 # WP extract scripts: one-off, iterated locally, not checked in yet
 packages/scripts/src/wp-extract/

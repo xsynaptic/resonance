@@ -1,6 +1,7 @@
+*.mdx
 pnpm-lock.yaml
-packages/content
-packages/scripts/src/wp-extract
 dist
 .astro
 .claude
+packages/content/_archive
+packages/scripts/src/wp-extract

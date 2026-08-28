@@ -1,0 +1,5 @@
+# Git hooks; `pnpm install` syncs them into .git/hooks via lefthook's postinstall
+pre-push:
+  commands:
+    quality-gate:
+      run: pnpm check

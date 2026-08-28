@@ -1,7 +1,7 @@
 {
 	"extends": "astro/tsconfigs/strictest",
 	"include": [".astro/types.d.ts", "**/*"],
-	"exclude": [".vscode", "dist", "packages/content", "packages/scripts/src/wp-extract"],
+	"exclude": ["dist", "packages/content", "packages/scripts/src/wp-extract"],
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": ".",

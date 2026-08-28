@@ -1,0 +1,12 @@
+{
+	"extends": "astro/tsconfigs/strictest",
+	"compilerOptions": {
+		"strictNullChecks": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "react"
+	},
+	"include": ["../../.astro/types.d.ts", "global.d.ts", "collections/**/*"],
+	"mdx": {
+		"checkMdx": true
+	}
+}

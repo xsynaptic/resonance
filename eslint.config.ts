@@ -9,14 +9,16 @@ export default getConfig(
 				'**/.astro/**/*',
 				'**/.cache/**/*',
 				'**/dist/**/*',
-				'packages/content/**/*',
+				'packages/content/{_archive,collections}/**/*',
 				'packages/scripts/src/wp-extract/**/*',
 			],
 		},
 		{
 			rules: {
-				complexity: ['warn', { max: 18, variant: 'modified' }],
-				'max-depth': ['warn', 4],
+				complexity: ['warn', { max: 8, variant: 'modified' }],
+				// The expanded form reads more clearly than ??=, ||=, and &&=
+				'logical-assignment-operators': ['error', 'never'],
+				'max-depth': ['warn', 3],
 				// Intentional compounds such as schema.org's WebSite type
 				'unicorn/consistent-compound-words': 'off',
 				// Zod schema chains legitimately reach 4; depth 5+ still flagged

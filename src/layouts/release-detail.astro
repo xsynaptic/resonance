@@ -1,0 +1,88 @@
+---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
+import MainSite from '#components/main/main-site.astro';
+import MediaFeatured from '#components/parts/media-featured.astro';
+import SectionReleaseHeader from '#components/sections/section-release-header.astro';
+
+interface Props {
+	artist?: ResolvedRef | undefined;
+	date?: Date | undefined;
+	description?: string | undefined;
+	image?: string | undefined;
+	kind: ResolvedRef;
+	labels?: Array<ResolvedRef> | undefined;
+	openGraphId: string;
+	// The title half of the split heading; equals `title` when there is no artist prefix to split off
+	releaseTitle: string;
+	releaseYear?: string | undefined;
+	title: string;
+}
+
+const {
+	artist,
+	date,
+	description,
+	image,
+	kind,
+	labels,
+	openGraphId,
+	releaseTitle,
+	releaseYear,
+	title,
+} = Astro.props;
+---
+
+<MainSite
+	blocks
+	openGraphId={openGraphId}
+	openGraphType="article"
+	title={title}
+	{...description ? { description } : {}}
+>
+	<article>
+		<div class="content-column">
+			<SectionReleaseHeader
+				date={date}
+				kind={kind}
+				labels={labels}
+				releaseTitle={releaseTitle}
+				releaseYear={releaseYear}
+				{...artist ? { artist } : {}}
+			/>
+		</div>
+		<div class="release-grid content-wide mt-10">
+			{
+				image ? (
+					<div class="release-cover">
+						<MediaFeatured alt={title} path={image} />
+					</div>
+				) : undefined
+			}
+			<div class="release-body">
+				{
+					Astro.slots.has('media') ? (
+						<div class="mb-8">
+							<slot name="media" />
+						</div>
+					) : undefined
+				}
+				{
+					Astro.slots.has('default') ? (
+						<div class="prose-x">
+							<slot />
+						</div>
+					) : undefined
+				}
+			</div>
+			{
+				Astro.slots.has('sections') ? (
+					<div class="release-footer">
+						<slot name="sections" />
+					</div>
+				) : undefined
+			}
+		</div>
+		<slot name="related" />
+	</article>
+</MainSite>

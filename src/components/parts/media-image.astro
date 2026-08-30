@@ -15,6 +15,9 @@ interface Props {
 const { alt, class: className, layout = 'constrained', path, sizes, width } = Astro.props;
 
 const image = getMediaImage(path);
+
+// astro:assets upscales whatever width it is handed; most source artwork is only ~600px wide
+const intrinsicWidth = image ? Math.min(width, image.width) : width;
 ---
 
 {
@@ -23,7 +26,7 @@ const image = getMediaImage(path);
 			alt={alt}
 			layout={layout}
 			src={image}
-			width={width}
+			width={intrinsicWidth}
 			{...(className ? { class: className } : {})}
 			{...(sizes ? { sizes } : {})}
 		/>

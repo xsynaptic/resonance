@@ -9,20 +9,20 @@ const year = new Date().getFullYear();
 ---
 
 <footer
-	class="maze mt-16 bg-linear-to-b from-surface-800 to-transparent [--pattern-color:var(--color-surface-700)]"
+	class="maze bg-surface-900 bg-linear-to-b from-surface-800 to-transparent [--pattern-color:var(--color-surface-700)]"
 >
-	<div class="content-column grid gap-8 py-10 text-sm sm:grid-cols-3">
+	<div class="content-wide grid gap-8 py-12 text-meta text-ink-600 sm:grid-cols-3">
 		<section>
 			<h2 class="font-display text-sm font-bold tracking-wide text-accent-400 uppercase">
 				{site.title}
 			</h2>
-			<p class="mt-3 text-ink-600">
+			<p class="mt-3">
 				An electronic music resource operated by <a
-					class="text-ink-400 hover:text-accent-400"
+					class="text-ink-400 hover:text-ink-300"
 					href="/profile">Basilisk</a
 				>, a veteran DJ and record label owner. Mixes, charts, reviews, and articles on psytrance,
 				techno, house, IDM, electro, ambient, and adjacent genres. For more information, <a
-					class="text-ink-400 hover:text-accent-400"
+					class="text-ink-400 hover:text-ink-300"
 					href="/about">read on</a
 				>.
 			</p>
@@ -31,11 +31,11 @@ const year = new Date().getFullYear();
 			<h2 class="font-display text-sm font-bold tracking-wide text-accent-400 uppercase">
 				Explore
 			</h2>
-			<ul class="mt-3 space-y-1">
+			<ul class="mt-3">
 				{
 					footerMenuItems.map((item) => (
 						<li>
-							<a class="text-ink-400 hover:text-accent-400" href={item.url}>
+							<a class="text-ink-400 hover:text-ink-300" href={item.url}>
 								{item.title}
 							</a>
 						</li>
@@ -47,11 +47,11 @@ const year = new Date().getFullYear();
 			<h2 class="font-display text-sm font-bold tracking-wide text-accent-400 uppercase">
 				Recent Mixes
 			</h2>
-			<ul class="mt-3 space-y-1">
+			<ul class="mt-3">
 				{
 					recentMixes.map((mix) => (
 						<li>
-							<a class="text-ink-400 hover:text-accent-400" href={`/mixes/${mix.id}`}>
+							<a class="text-ink-400 hover:text-ink-300" href={`/mixes/${mix.id}`}>
 								{mix.data.title}
 							</a>
 						</li>
@@ -60,9 +60,9 @@ const year = new Date().getFullYear();
 			</ul>
 		</section>
 	</div>
-	<div class="content-column border-t border-surface-700 py-6 text-xs text-ink-700">
+	<div class="content-wide border-t border-surface-700 py-6 text-xs text-ink-700">
 		© 2001–{year} Basilisk · Powered by <a
-			class="text-ink-600 hover:text-accent-400"
+			class="text-ink-600 hover:text-highlight-400"
 			href="https://astro.build">Astro</a
 		>
 	</div>

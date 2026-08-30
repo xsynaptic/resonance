@@ -74,8 +74,8 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 		) : undefined
 	}
 	<header class="mb-6">
-		<p class="mb-1 text-xs font-medium tracking-wide text-accent-400 uppercase">{kind}</p>
-		<h1 class="text-3xl font-semibold text-ink-50">{term.data.title}</h1>
+		<p class="mb-1 text-xs font-bold tracking-wide text-highlight-500 uppercase">{kind}</p>
+		<h1 class="text-h1">{term.data.title}</h1>
 		{
 			body === '' ? undefined : (
 				<div class="prose-x mt-2">
@@ -113,7 +113,7 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 				</section>
 			))
 		) : (
-			<p class="text-ink-500">Nothing here yet.</p>
+			<p class="text-ink-600">Nothing here yet.</p>
 		)
 	}
 	<PaginationSelect class="mt-8" page={page} />

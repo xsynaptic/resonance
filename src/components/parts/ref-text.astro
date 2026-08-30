@@ -11,7 +11,7 @@ const { class: className, label, url } = Astro.props;
 
 {
 	url ? (
-		<a class:list={['text-accent-400 hover:text-accent-300', className]} href={url}>
+		<a class:list={['text-highlight-500 hover:text-highlight-400', className]} href={url}>
 			{label}
 		</a>
 	) : (

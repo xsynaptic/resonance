@@ -1,18 +1,18 @@
 ---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
 import MainSite from '#components/main/main-site.astro';
-import MediaImage from '#components/parts/media-image.astro';
 import { formatDate } from '#lib/utils/date.ts';
 
 interface Props {
 	date?: Date | undefined;
 	description?: string | undefined;
-	image?: string | undefined;
-	kind?: string | undefined;
+	kind?: ResolvedRef | undefined;
 	openGraphId: string;
 	title: string;
 }
 
-const { date, description, image, kind, openGraphId, title } = Astro.props;
+const { date, description, kind, openGraphId, title } = Astro.props;
 ---
 
 <MainSite
@@ -22,46 +22,30 @@ const { date, description, image, kind, openGraphId, title } = Astro.props;
 	{...description ? { description } : {}}
 >
 	<article>
-		<header class="mb-6">
+		<header class="mb-10">
+			<h1 class="text-h1">{title}</h1>
 			{
-				kind ? (
-					<p class="mb-1 text-xs font-medium tracking-wide text-accent-400 uppercase">{kind}</p>
-				) : undefined
-			}
-			<h1 class="text-3xl font-semibold text-ink-50">{title}</h1>
-			{
-				date ? (
-					<p class="mt-1 text-sm text-ink-500">
-						<time datetime={date.toISOString()}>{formatDate(date)}</time>
-					</p>
+				kind || date ? (
+					<div class="meta-row mt-3">
+						{kind ? (
+							<span>
+								<a class="text-highlight-400 hover:text-highlight-300" href={kind.url}>
+									{kind.label}
+								</a>
+							</span>
+						) : undefined}
+						{date ? (
+							<span>
+								Posted: <time datetime={date.toISOString()}>{formatDate(date)}</time>
+							</span>
+						) : undefined}
+					</div>
 				) : undefined
 			}
 		</header>
-		{
-			image ? (
-				<MediaImage
-					alt={title}
-					class="mb-6 w-full rounded"
-					path={image}
-					sizes="(min-width: 48rem) 48rem, 100vw"
-					width={1200}
-				/>
-			) : undefined
-		}
-		{
-			Astro.slots.has('media') ? (
-				<div class="mb-6">
-					<slot name="media" />
-				</div>
-			) : undefined
-		}
-		{
-			Astro.slots.has('default') ? (
-				<div class="prose-x">
-					<slot />
-				</div>
-			) : undefined
-		}
+		<div class="prose-x">
+			<slot />
+		</div>
 		<slot name="sections" />
 	</article>
 </MainSite>

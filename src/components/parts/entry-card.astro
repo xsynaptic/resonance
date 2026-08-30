@@ -30,28 +30,31 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 
 <a
 	class:list={[
-		'maze group block rounded border border-surface-700 bg-surface-800 p-4 transition hover:border-accent-500',
+		'maze group block rounded border border-surface-700 bg-surface-800 p-4 transition [--pattern-color:var(--color-surface-600)] hover:border-accent-500',
 		className,
 	]}
 	href={href}
 	{...props}
 >
+	{/* The frame holds the card's shape when an original is missing, which is routine in dev */}
 	{
 		image ? (
-			<MediaImage
-				alt=""
-				class={`mb-3 ${aspectClass} w-full rounded object-cover`}
-				layout="none"
-				path={image}
-				width={640}
-			/>
+			<div class={`mb-3 ${aspectClass} w-full overflow-hidden rounded bg-surface-900`}>
+				<MediaImage
+					alt=""
+					class="h-full w-full object-cover"
+					layout="none"
+					path={image}
+					width={640}
+				/>
+			</div>
 		) : undefined
 	}
-	<span class="block font-medium text-ink-100 group-hover:text-accent-300">{title}</span>
-	{subtitle ? <span class="mt-1 block text-sm text-ink-400">{subtitle}</span> : undefined}
+	<span class="block font-display font-bold text-ink-100 group-hover:text-ink-50">{title}</span>
+	{subtitle ? <span class="mt-1 block text-meta text-ink-600">{subtitle}</span> : undefined}
 	{
 		date ? (
-			<time class="mt-2 block text-xs text-ink-600" datetime={date.toISOString()}>
+			<time class="mt-1 block text-xs text-ink-700" datetime={date.toISOString()}>
 				{formatDate(date)}
 			</time>
 		) : undefined

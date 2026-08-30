@@ -41,12 +41,12 @@ const pageBasePath = `${
 						<span class="relative inline-flex items-center">
 							<select
 								aria-label="Go to page"
-								class="p-control rounded-sm border border-surface-600 bg-surface-800 py-1 pr-7 pl-2 text-ink-100 transition-colors hover:border-surface-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-500"
+								class="p-control rounded-sm border border-surface-600 bg-surface-800 py-1 pr-7 pl-2 text-ink-100 transition-colors hover:border-surface-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 								data-pagination-control
 							/>
 							<span
 								aria-hidden="true"
-								class="p-arrow pointer-events-none absolute flex items-center text-accent-400"
+								class="p-arrow pointer-events-none absolute flex items-center text-highlight-500"
 							>
 								<svg
 									fill="none"
@@ -61,7 +61,7 @@ const pageBasePath = `${
 							</span>
 						</span>
 						<button
-							class="p-button ml-2 cursor-pointer rounded px-2 py-1 font-medium text-accent-400 hover:text-accent-300 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-500"
+							class="p-button ml-2 cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 							data-pagination-submit
 							type="submit"
 						>
@@ -72,10 +72,10 @@ const pageBasePath = `${
 				<div class="flex items-center gap-6">
 					{url.prev ? (
 						<span class="flex flex-wrap gap-1">
-							<span class="text-accent-400 select-none">&lsaquo;</span>
+							<span class="text-highlight-500 select-none">&lsaquo;</span>
 							<a
 								aria-label="Previous page"
-								class="text-accent-400 transition-colors hover:text-accent-300"
+								class="text-highlight-500 transition-colors hover:text-highlight-400"
 								href={url.prev}
 							>
 								Previous
@@ -86,12 +86,12 @@ const pageBasePath = `${
 						<span class="flex flex-wrap gap-1">
 							<a
 								aria-label="Next page"
-								class="text-accent-400 transition-colors hover:text-accent-300"
+								class="text-highlight-500 transition-colors hover:text-highlight-400"
 								href={url.next}
 							>
 								Next
 							</a>
-							<span class="text-accent-400 select-none">&rsaquo;</span>
+							<span class="text-highlight-500 select-none">&rsaquo;</span>
 						</span>
 					) : undefined}
 				</div>

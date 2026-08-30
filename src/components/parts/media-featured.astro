@@ -1,0 +1,20 @@
+---
+import MediaImage from '#components/parts/media-image.astro';
+
+interface Props {
+	alt: string;
+	path: string;
+}
+
+const { alt, path } = Astro.props;
+---
+
+<figure class="w-fit max-w-xl rounded-md bg-surface-800 p-2.5">
+	<MediaImage
+		alt={alt}
+		class="block rounded-sm"
+		path={path}
+		sizes="(min-width: 950px) 35rem, (min-width: 34rem) 32rem, 100vw"
+		width={928}
+	/>
+</figure>

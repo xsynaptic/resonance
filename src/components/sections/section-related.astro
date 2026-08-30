@@ -1,0 +1,32 @@
+---
+import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+
+import Carousel from '#components/parts/carousel.astro';
+import EntryCard from '#components/parts/entry-card.astro';
+
+interface Props {
+	items: Array<ContentItem>;
+}
+
+const { items } = Astro.props;
+---
+
+{
+	items.length > 0 ? (
+		<section class="content-wide mt-16">
+			<h2 class="mb-4 text-h2">Related</h2>
+			<Carousel label="related releases">
+				{items.map((item) => (
+					<li class="carousel-slide">
+						<EntryCard
+							href={item.url}
+							image={item.image}
+							subtitle={item.subtitle}
+							title={item.title}
+						/>
+					</li>
+				))}
+			</Carousel>
+		</section>
+	) : undefined
+}

@@ -4,7 +4,10 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 
 import TermLinks from '#components/parts/term-links.astro';
-import ContentDetail from '#layouts/content-detail.astro';
+import SectionRelated from '#components/sections/section-related.astro';
+import ReleaseDetail from '#layouts/release-detail.astro';
+import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
+import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -19,32 +22,33 @@ const { Content } = await render(entry);
 const artistTerms = await resolveRefs('artists', entry.data.artists);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
+const relatedItems = await getRelatedItems(entry);
 
-const { discogsUrl, rating, releaseYear } = entry.data;
+const { discogsUrl, imageFeatured, rating, releaseYear } = entry.data;
+
+// Contributors beyond the matched artist stay in the term links below, not in the heading
+const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.releaseTitle, artistTerms);
 ---
 
-<ContentDetail
+<ReleaseDetail
 	date={entry.data.dateCreated}
-	image={entry.data.imageFeatured}
-	kind="Review"
+	kind={{ label: 'Reviews', url: '/reviews/' }}
+	labels={labelTerms}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
+	releaseTitle={title}
 	title={entry.data.title}
+	{...artist ? { artist } : {}}
+	{...imageFeatured ? { image: imageFeatured } : {}}
+	{...releaseYear ? { releaseYear } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />
 	<Fragment slot="sections">
-		<div class="mt-8 space-y-2 text-sm">
-			{
-				releaseYear ? (
-					<p class="text-ink-400">
-						Released: <span class="text-ink-200">{releaseYear}</span>
-					</p>
-				) : undefined
-			}
+		<div class="space-y-2 text-meta">
 			{
 				rating ? (
-					<p class="text-ink-400">
-						Rating: <span class="text-ink-200">{rating}/100</span>
+					<p>
+						Rating: <span class="text-ink-300">{rating}/100</span>
 					</p>
 				) : undefined
 			}
@@ -52,7 +56,7 @@ const { discogsUrl, rating, releaseYear } = entry.data;
 				discogsUrl ? (
 					<p>
 						<a
-							class="text-accent-400 hover:text-accent-300"
+							class="text-highlight-500 hover:text-highlight-400"
 							href={discogsUrl}
 							rel="noreferrer"
 							target="_blank"
@@ -64,7 +68,7 @@ const { discogsUrl, rating, releaseYear } = entry.data;
 			}
 			<TermLinks heading="Artists" terms={artistTerms} />
 			<TermLinks heading="Styles" terms={styleTerms} />
-			<TermLinks heading="Labels" terms={labelTerms} />
 		</div>
 	</Fragment>
-</ContentDetail>
+	<SectionRelated items={relatedItems} slot="related" />
+</ReleaseDetail>

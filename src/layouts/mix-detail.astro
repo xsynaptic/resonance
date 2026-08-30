@@ -6,7 +6,9 @@ import { render } from 'astro:content';
 import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
-import ContentDetail from '#layouts/content-detail.astro';
+import SectionRelated from '#components/sections/section-related.astro';
+import ReleaseDetail from '#layouts/release-detail.astro';
+import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
@@ -27,13 +29,20 @@ const aliasTerms = await resolveTermLinks(
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloadCounts = await getDownloadCounts();
+const relatedItems = await getRelatedItems(entry);
+
+const [alias] = aliasTerms;
 ---
 
-<ContentDetail
+<ReleaseDetail
 	date={entry.data.dateCreated}
-	kind="Mix"
+	kind={{ label: 'Mixes', url: '/mixes/' }}
+	labels={labelTerms}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
+	releaseTitle={entry.data.title}
 	title={entry.data.title}
+	{...alias ? { artist: alias } : {}}
+	{...entry.data.imageFeatured ? { image: entry.data.imageFeatured } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />
@@ -43,18 +52,15 @@ const downloadCounts = await getDownloadCounts();
 		soundcloudEmbed={entry.data.soundcloudEmbed}
 	/>
 	<Fragment slot="sections">
-		<div class="mt-8">
-			<AudioLinks
-				downloadCounts={downloadCounts}
-				files={entry.data.files}
-				links={entry.data.links}
-				{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
-			/>
-		</div>
+		<AudioLinks
+			downloadCounts={downloadCounts}
+			files={entry.data.files}
+			links={entry.data.links}
+			{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
+		/>
 		<div class="mt-8 space-y-2">
-			<TermLinks heading="Artist" terms={aliasTerms} />
 			<TermLinks heading="Styles" terms={styleTerms} />
-			<TermLinks heading="Labels" terms={labelTerms} />
 		</div>
 	</Fragment>
-</ContentDetail>
+	<SectionRelated items={relatedItems} slot="related" />
+</ReleaseDetail>

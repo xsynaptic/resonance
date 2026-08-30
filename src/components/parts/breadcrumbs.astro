@@ -15,7 +15,7 @@ const { crumbs, current } = Astro.props;
 		{
 			crumbs.map((crumb) => (
 				<li class="flex items-center gap-x-2">
-					<a class="text-accent-400 hover:text-accent-300" href={crumb.url}>
+					<a class="text-highlight-500 hover:text-highlight-400" href={crumb.url}>
 						{crumb.label}
 					</a>
 					<span aria-hidden="true" class="text-ink-600">

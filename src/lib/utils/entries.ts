@@ -2,7 +2,7 @@ import type { CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-import type { TermLink } from '#lib/utils/terms.ts';
+import type { ResolvedRef, TermLink } from '#lib/utils/terms.ts';
 
 import { getContentUrl } from '#lib/utils/routing.ts';
 
@@ -16,6 +16,11 @@ interface SlugMatch {
 
 let slugMapPromise: Promise<Map<string, SlugMatch>> | undefined;
 
+interface ReleaseTitle {
+	artist?: ResolvedRef;
+	title: string;
+}
+
 export async function resolveSlugLink(slug: string): Promise<TermLink | undefined> {
 	const slugMap = await getSlugMap();
 	const match = slugMap.get(slug);
@@ -28,6 +33,24 @@ export async function resolveSlugLink(slug: string): Promise<TermLink | undefine
 	}
 
 	return { title: match.title, url: getContentUrl(match.collection, slug) };
+}
+
+// Reviews carry the full "Artist - Release" title plus a bare releaseTitle, so the artist half can link
+// The prefix links only when it matches a resolved artist ref exactly; anything else renders unsplit
+export function splitReleaseTitle(
+	title: string,
+	releaseTitle: string | undefined,
+	artists: Array<ResolvedRef>,
+): ReleaseTitle {
+	if (releaseTitle === undefined) return { title };
+
+	const suffix = ` - ${releaseTitle}`;
+	if (!title.endsWith(suffix)) return { title };
+
+	const artist = artists.find((ref) => ref.label === title.slice(0, -suffix.length));
+	if (!artist) return { title };
+
+	return { artist, title: releaseTitle };
 }
 
 async function buildSlugMap(): Promise<Map<string, SlugMatch>> {

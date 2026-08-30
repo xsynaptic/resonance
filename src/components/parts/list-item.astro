@@ -57,10 +57,10 @@ const youtubeSearch =
 		) : undefined
 	}
 	<div class="min-w-0">
-		<div class="font-medium text-ink-100">
+		<div class="font-display font-bold text-ink-100">
 			{
 				titleHref ? (
-					<a class="text-accent-400 hover:text-accent-300" href={titleHref}>
+					<a class="text-ink-100 hover:text-ink-50" href={titleHref}>
 						{title}
 					</a>
 				) : (
@@ -70,7 +70,7 @@ const youtubeSearch =
 		</div>
 		{
 			metaParts.length > 0 ? (
-				<div class="text-sm text-ink-500">
+				<div class="text-meta text-ink-600">
 					{metaParts.map((part, index) => (
 						<Fragment>
 							{index > 0 ? ' · ' : ''}
@@ -85,17 +85,17 @@ const youtubeSearch =
 			linkSource || linkDiscogs || youtubeSearch ? (
 				<div class="mt-1 flex gap-3 text-xs">
 					{linkSource ? (
-						<a class="text-accent-400 hover:text-accent-300" href={linkSource}>
+						<a class="text-highlight-500 hover:text-highlight-400" href={linkSource}>
 							Download
 						</a>
 					) : undefined}
 					{linkDiscogs ? (
-						<a class="text-accent-400 hover:text-accent-300" href={linkDiscogs}>
+						<a class="text-highlight-500 hover:text-highlight-400" href={linkDiscogs}>
 							Discogs
 						</a>
 					) : undefined}
 					{youtubeSearch ? (
-						<a class="text-accent-400 hover:text-accent-300" href={youtubeSearch}>
+						<a class="text-highlight-500 hover:text-highlight-400" href={youtubeSearch}>
 							YouTube
 						</a>
 					) : undefined}

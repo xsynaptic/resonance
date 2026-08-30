@@ -8,11 +8,11 @@ import { getMenuItemAriaLabel } from '#components/menu/menu-utils.ts';
 
 type Props = HTMLAttributes<'nav'>;
 
-const props = Astro.props;
+const { class: className, ...props } = Astro.props;
 ---
 
 <menu-navigation>
-	<nav aria-label="Primary" class="nav-menu" data-nosnippet {...props}>
+	<nav aria-label="Primary" class:list={['nav-menu', className]} data-nosnippet {...props}>
 		<ul class="nav-ul">
 			{
 				menuHeaderItems.map((item) => {

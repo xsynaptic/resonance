@@ -2,6 +2,11 @@
 
 /* Interactive state (data-has-submenu, data-open, ARIA roles) is injected by menu-navigation.ts */
 
+/* The custom element is a JS host only; the nav itself has to be the flex item in the header row */
+menu-navigation {
+	display: contents;
+}
+
 .nav-menu {
 	position: relative;
 }
@@ -21,7 +26,7 @@
 
 .nav-trigger {
 	display: flex;
-	column-gap: calc(var(--spacing) * 1);
+	column-gap: calc(var(--spacing) * 2);
 	align-items: center;
 	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
 	border-radius: 3px;
@@ -52,7 +57,7 @@
 
 	width: 12px;
 	height: 12px;
-	color: var(--color-ink-600);
+	color: var(--color-highlight-500);
 }
 
 /* Submenu panel, shared by both depths */
@@ -118,7 +123,7 @@
 }
 
 .nav-sub-link {
-	@apply font-display;
+	@apply font-display text-sm;
 
 	display: block;
 	flex: 1;
@@ -144,8 +149,8 @@
 .nav-sub-icon {
 	width: 10px;
 	height: 10px;
-	margin-right: calc(var(--spacing) * 1);
-	color: var(--color-ink-600);
+	margin-left: calc(var(--spacing) * 2);
+	color: var(--color-highlight-500);
 }
 
 /* Reveal on hover/focus (pointer and keyboard) and on JS-driven open (touch, arrow keys) */

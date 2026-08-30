@@ -16,5 +16,5 @@
 	content: '';
 	background-color: var(--pattern-color, var(--color-surface-600));
 	opacity: var(--pattern-opacity, 0.2);
-	mask: var(--pattern-image, url('/patterns/maze.svg')) 0 0 / var(--pattern-size, 40px 40px) repeat;
+	mask: var(--pattern-image, url('/patterns/maze.svg')) 0 0 / var(--pattern-size, 60px 60px) repeat;
 }

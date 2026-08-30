@@ -4,10 +4,10 @@ html {
 
 body {
 	font-family: var(--font-body);
-	font-size: 1.0625rem;
-	line-height: 1.6;
-	color: var(--color-ink-200);
-	background-color: var(--color-surface-900);
+	font-size: 1rem;
+	line-height: 1.75;
+	color: var(--color-ink-400);
+	background-color: var(--color-surface-800);
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -19,21 +19,30 @@ h4 {
 	font-weight: 700;
 	font-feature-settings: 'lnum';
 	line-height: 1.2;
-	color: var(--color-ink-50);
+	color: var(--color-accent-400);
 	text-wrap: balance;
 }
 
+/* Page titles are cyan; the lime is reserved for section-level headings */
+h1 {
+	color: var(--color-ink-200);
+}
+
 a {
-	color: var(--color-accent-400);
+	color: var(--color-ink-300);
 	text-decoration: none;
 }
 
 a:hover,
 a:focus-visible {
+	color: var(--color-ink-50);
+}
+
+a:active {
 	color: var(--color-highlight-400);
 }
 
 ::selection {
-	color: var(--color-surface-900);
-	background-color: var(--color-accent-400);
+	color: var(--color-surface-700);
+	background-color: var(--color-ink-100);
 }

@@ -1,19 +1,36 @@
-/* Layout widths: 900px body, 675px reading column */
+/* Layout widths: 880px page column (an 800px block plus gutters), 1280px wide block, 800px prose */
 @theme {
-	--spacing-content: 56.25rem;
-	--spacing-prose: 42.1875rem;
+	--spacing-content: 55rem;
+	--spacing-content-wide: 80rem;
+	--spacing-prose: 50rem;
 }
 
-/* Fonts via the Astro Fonts API (Fontsource); Fira Sans display, Manrope body, as in production */
+/* Fonts via the Astro Fonts API (Fontsource); Fira Sans display, Archivo body, as in production */
 @theme {
 	--font-display: var(--font-fira-sans, system-ui, sans-serif);
-	--font-body: var(--font-manrope, system-ui, sans-serif);
+	--font-body: var(--font-archivo, system-ui, sans-serif);
 	--font-mono: ui-monospace, 'SF Mono', menlo, consolas, monospace;
+}
+
+/* Type scale from production: 35/26/22/19px headings over a 16px base, 14px meta lines */
+@theme {
+	--text-h1: 2.1875rem;
+	--text-h1--line-height: 1.29;
+	--text-h2: 1.625rem;
+	--text-h2--line-height: 1.15;
+	--text-h3: 1.375rem;
+	--text-h3--line-height: 1.25;
+	--text-h4: 1.1875rem;
+	--text-h4--line-height: 1.3;
+	--text-meta: 0.875rem;
+	--text-meta--line-height: 1.9;
 }
 
 /* Colors: a curated dark palette (blue-grey surfaces, cyan-tinted ink, lime accent) */
 @theme {
-	/* Surfaces: dark desaturated blue-grey; surface-900 is the page background */
+	/* Surfaces: dark desaturated blue-grey; four steps are production anchors, the rest interpolate */
+
+	/* 500 is the content well, 700 the header band, 800 the page and inset panels, 900 the footer band */
 	--color-surface-100: hsl(205deg 25% 63%);
 	--color-surface-200: hsl(204deg 17% 53%);
 	--color-surface-300: hsl(203deg 15% 43%);
@@ -25,6 +42,8 @@
 	--color-surface-900: hsl(204deg 8% 12%);
 
 	/* Text: light cyan-tinted off-white; ink-50 brightest, ink-700 dimmest */
+
+	/* 100 bright, 200 content links, 300 body links, 400 body text, 600 muted, 700 dim */
 	--color-ink-50: hsl(180deg 26% 93%);
 	--color-ink-100: hsl(184deg 25% 88%);
 	--color-ink-200: hsl(183deg 23% 83%);
@@ -34,14 +53,14 @@
 	--color-ink-600: hsl(183deg 10% 55%);
 	--color-ink-700: hsl(183deg 8% 47%);
 
-	/* Accent: lime-green, for links and interactive accents; accent-400 matches the production lime */
+	/* Accent: lime-green, for headings and header navigation; 400 is the production heading lime */
 	--color-accent-300: hsl(70deg 68% 70%);
 	--color-accent-400: hsl(70deg 75% 61%);
 	--color-accent-500: hsl(70deg 72% 53%);
 	--color-accent-600: hsl(70deg 68% 48%);
 
-	/* Highlight: orange */
-	--color-highlight-300: hsl(30deg 100% 84%);
+	/* Highlight: orange, for meta lines, dates and taxonomy links; 500 base, 400 hover, 300 active */
+	--color-highlight-300: hsl(27deg 100% 68%);
 	--color-highlight-400: hsl(26.5deg 98% 59%);
 	--color-highlight-500: hsl(27deg 85% 49%);
 	--color-highlight-600: hsl(26deg 81% 43%);

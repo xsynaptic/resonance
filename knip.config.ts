@@ -7,8 +7,12 @@ export default {
 		'.': {
 			// MDX auto-import components; referenced via satteri-auto-import, not static imports
 			entry: ['src/components/mdx/**/*.astro'],
-			// Used via wrangler.jsonc and the deploy script, neither traceable
-			ignoreDependencies: ['wrangler'],
+			ignoreDependencies: [
+				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })
+				'eslint-plugin-jsx-a11y',
+				// Used via wrangler.jsonc and the deploy script, neither traceable
+				'wrangler',
+			],
 		},
 		'packages/content': {
 			// The content scripts delegate to root via `pnpm -w run`, which knip reads as a binary

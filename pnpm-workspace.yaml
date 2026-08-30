@@ -20,9 +20,6 @@ peerDependencyRules:
 
 allowBuilds:
   esbuild: true
-  # Git hook manager; postinstall drops the lefthook binary into node_modules/.bin
   lefthook: true
-  # Native binding for Astro image optimization
   sharp: true
-  # Cloudflare Workers runtime, pulled in by wrangler for deploys
   workerd: true

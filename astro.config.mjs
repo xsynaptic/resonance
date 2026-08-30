@@ -18,8 +18,7 @@ export default defineConfig({
 				context: 'server',
 				default: 'https://files.djbasilisk.com/',
 			}),
-			// Origin the Open Graph cards are served from; unset means the site's own origin
-			// The seam for moving them to their own subdomain; see `.claude/tasks-backlog/00-backlog.md`
+			// Domain the Open Graph cards are served from; unset means the site's own origin
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
 			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
 			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),
@@ -30,17 +29,17 @@ export default defineConfig({
 	},
 	fonts: [
 		{
-			cssVariable: '--font-manrope',
-			name: 'Manrope',
+			cssVariable: '--font-archivo',
+			name: 'Archivo',
 			provider: fontProviders.fontsource(),
-			styles: ['normal'],
-			weights: [400, 500, 600, 700],
+			styles: ['normal', 'italic'],
+			weights: [400, 500, 700],
 		},
 		{
 			cssVariable: '--font-fira-sans',
 			name: 'Fira Sans',
 			provider: fontProviders.fontsource(),
-			styles: ['normal'],
+			styles: ['normal', 'italic'],
 			weights: [400, 600, 700],
 		},
 	],
@@ -66,7 +65,6 @@ export default defineConfig({
 						},
 					],
 				}),
-				// One context, no layouts: img-group.astro is grid-only and the carousel variants are not ported
 				imgGroupSatteriPlugin({
 					contexts: { grid: {} },
 					defaultContext: 'grid',

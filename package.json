@@ -32,7 +32,7 @@
 		"#*": "./src/*"
 	},
 	"dependencies": {
-		"astro": "^7.2.8"
+		"astro": "^7.2.9"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
@@ -42,7 +42,7 @@
 		"@pagefind/component-ui": "^1.5.2",
 		"@tailwindcss/vite": "^4.3.3",
 		"@xsynaptic/astro-font-devtools": "^1.0.2",
-		"@xsynaptic/eslint-config": "^6.2.1",
+		"@xsynaptic/eslint-config": "^6.2.2",
 		"@xsynaptic/mdxlint-config": "^2.0.0",
 		"@xsynaptic/satteri-auto-import": "^0.2.1",
 		"@xsynaptic/satteri-img-group": "^2.0.1",
@@ -52,8 +52,8 @@
 		"eslint": "^10.9.1",
 		"eslint-plugin-jsx-a11y": "^6.10.2",
 		"globals": "^17.11.0",
-		"knip": "^6.32.2",
-		"lefthook": "^2.1.10",
+		"knip": "^6.33.0",
+		"lefthook": "^2.1.12",
 		"prettier": "^3.9.6",
 		"prettier-plugin-astro": "^0.14.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
@@ -63,8 +63,8 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.11",
-		"wrangler": "^4.126.0",
-		"zod": "^4.4.3"
+		"wrangler": "^4.127.1",
+		"zod": "^4.5.2"
 	},
 	"packageManager": "pnpm@11.21.0"
 }

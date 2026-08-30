@@ -2,6 +2,5 @@
 pnpm-lock.yaml
 dist
 .astro
-.claude
 packages/content/_archive
 packages/scripts/src/wp-extract

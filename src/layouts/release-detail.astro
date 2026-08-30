@@ -4,6 +4,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 import MainSite from '#components/main/main-site.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
 import SectionReleaseHeader from '#components/sections/section-release-header.astro';
+import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
 	artist?: ResolvedRef | undefined;
@@ -31,27 +32,28 @@ const {
 	releaseYear,
 	title,
 } = Astro.props;
+
+const media = await renderSlot(Astro.slots, 'media');
+const body = await renderSlot(Astro.slots, 'default');
+const sections = await renderSlot(Astro.slots, 'sections');
 ---
 
 <MainSite
-	blocks
 	openGraphId={openGraphId}
 	openGraphType="article"
 	title={title}
 	{...description ? { description } : {}}
 >
 	<article>
-		<div class="content-column">
-			<SectionReleaseHeader
-				date={date}
-				kind={kind}
-				labels={labels}
-				releaseTitle={releaseTitle}
-				releaseYear={releaseYear}
-				{...artist ? { artist } : {}}
-			/>
-		</div>
-		<div class="release-grid content-wide mt-10">
+		<SectionReleaseHeader
+			date={date}
+			kind={kind}
+			labels={labels}
+			releaseTitle={releaseTitle}
+			releaseYear={releaseYear}
+			{...artist ? { artist } : {}}
+		/>
+		<div class="release-grid mt-10">
 			{
 				image ? (
 					<div class="release-cover">
@@ -61,24 +63,24 @@ const {
 			}
 			<div class="release-body">
 				{
-					Astro.slots.has('media') ? (
+					media ? (
 						<div class="mb-8">
-							<slot name="media" />
+							<Fragment set:html={media} />
 						</div>
 					) : undefined
 				}
 				{
-					Astro.slots.has('default') ? (
+					body ? (
 						<div class="prose-x">
-							<slot />
+							<Fragment set:html={body} />
 						</div>
 					) : undefined
 				}
 			</div>
 			{
-				Astro.slots.has('sections') ? (
+				sections ? (
 					<div class="release-footer">
-						<slot name="sections" />
+						<Fragment set:html={sections} />
 					</div>
 				) : undefined
 			}

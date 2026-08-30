@@ -3,8 +3,8 @@
 	display: flex;
 	flex-wrap: wrap;
 	column-gap: calc(var(--spacing) * 2);
-	font-size: var(--text-meta);
-	line-height: var(--text-meta--line-height);
+	font-size: var(--text-sm);
+	line-height: var(--leading-loose);
 	color: var(--color-ink-500);
 }
 

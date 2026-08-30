@@ -1,22 +1,42 @@
 ---
-import MenuNav from '#components/menu/menu-nav.astro';
-import Search from '#components/search/search.astro';
-import { site } from '#lib/site.ts';
+import type { HTMLAttributes } from 'astro/types';
+
+import MenuHeaderSubmenu from '#components/menu/menu-header-submenu.astro';
+import MenuHeaderTrigger from '#components/menu/menu-header-trigger.astro';
+import { menuHeaderItems } from '#components/menu/menu-header.ts';
+import { getMenuItemAriaLabel } from '#components/menu/menu-utils.ts';
+
+type Props = HTMLAttributes<'nav'>;
+
+const props = Astro.props;
 ---
 
-<header
-	class="maze bg-surface-700 bg-linear-to-t from-surface-800 to-transparent [--pattern-color:var(--color-surface-500)]"
->
-	<div class="content-wide flex flex-wrap items-center justify-between gap-4 pt-8 pb-5">
-		<a
-			class="font-display text-3xl font-semibold tracking-tight text-highlight-500 hover:text-highlight-400"
-			href="/"
-		>
-			{site.title}
-		</a>
-		<Search />
-	</div>
-	<div class="content-wide pb-6">
-		<MenuNav />
-	</div>
-</header>
+<menu-navigation>
+	<nav aria-label="Primary" class="nav-menu" data-nosnippet {...props}>
+		<ul class="nav-ul">
+			{
+				menuHeaderItems.map((item) => {
+					const children = item.children ?? [];
+					const hasChildren = children.length > 0;
+
+					return (
+						<li class="nav-item">
+							<MenuHeaderTrigger hasChildren={hasChildren} item={item} />
+							{hasChildren ? (
+								<MenuHeaderSubmenu
+									ariaLabel={getMenuItemAriaLabel(item)}
+									depth={1}
+									menuItems={children}
+								/>
+							) : undefined}
+						</li>
+					);
+				})
+			}
+		</ul>
+	</nav>
+</menu-navigation>
+
+<script>
+	import '#components/menu/menu-navigation.ts';
+</script>

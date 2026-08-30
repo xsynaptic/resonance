@@ -51,7 +51,7 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 		) : undefined
 	}
 	<span class="block font-display font-bold text-ink-100 group-hover:text-ink-50">{title}</span>
-	{subtitle ? <span class="mt-1 block text-meta text-ink-600">{subtitle}</span> : undefined}
+	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}
 	{
 		date ? (
 			<time class="mt-1 block text-xs text-ink-700" datetime={date.toISOString()}>

@@ -1,13 +1,11 @@
-/* Page column: the base width content blocks center at, with the page gutters */
-@utility content-column {
-	@apply mx-auto px-6 sm:px-10;
-
-	max-width: var(--spacing-content);
-}
-
-/* Wide block: escapes the base column for two-column release areas and carousels */
+/* Page wrapper: the one width and gutter every band aligns to, chrome and content alike */
 @utility content-wide {
 	@apply mx-auto px-6 sm:px-10;
 
 	max-width: var(--spacing-content-wide);
+}
+
+/* Readable measure: caps a run of text where it sits, without centering it */
+@utility content-measure {
+	max-width: var(--spacing-prose);
 }

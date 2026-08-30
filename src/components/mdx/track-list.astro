@@ -61,7 +61,7 @@ const rows = await Promise.all((tracks ?? []).map(buildRow));
 {
 	rows.length > 0 ? (
 		<section class="not-prose my-8">
-			<h2 class="mb-3 text-h3">Tracklist</h2>
+			<h2 class="mb-3 text-xl">Tracklist</h2>
 			<ol class="track-list">
 				{rows.map((row) => (
 					<li class="track">

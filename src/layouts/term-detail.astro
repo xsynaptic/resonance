@@ -75,7 +75,7 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 	}
 	<header class="mb-6">
 		<p class="mb-1 text-xs font-bold tracking-wide text-highlight-500 uppercase">{kind}</p>
-		<h1 class="text-h1">{term.data.title}</h1>
+		<h1 class="text-4xl">{term.data.title}</h1>
 		{
 			body === '' ? undefined : (
 				<div class="prose-x mt-2">
@@ -97,7 +97,7 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 			yearGroups.map((group) => (
 				<section class="mb-8">
 					{group.year === undefined ? undefined : <ListYearHeading year={group.year} />}
-					<ul class="grid gap-4 sm:grid-cols-2">
+					<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 						{group.items.map((entry) => (
 							<li>
 								<EntryCard

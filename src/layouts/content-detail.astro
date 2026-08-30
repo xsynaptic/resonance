@@ -22,8 +22,8 @@ const { date, description, kind, openGraphId, title } = Astro.props;
 	{...description ? { description } : {}}
 >
 	<article>
-		<header class="mb-10">
-			<h1 class="text-h1">{title}</h1>
+		<header class="mb-10 content-measure">
+			<h1 class="text-4xl">{title}</h1>
 			{
 				kind || date ? (
 					<div class="meta-row mt-3">

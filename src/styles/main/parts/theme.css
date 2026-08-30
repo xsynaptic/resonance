@@ -1,6 +1,5 @@
-/* Layout widths: 880px page column (an 800px block plus gutters), 1280px wide block, 800px prose */
+/* Layout widths: 1280px page wrapper, 800px readable measure for prose and text blocks */
 @theme {
-	--spacing-content: 55rem;
 	--spacing-content-wide: 80rem;
 	--spacing-prose: 50rem;
 }
@@ -12,18 +11,13 @@
 	--font-mono: ui-monospace, 'SF Mono', menlo, consolas, monospace;
 }
 
-/* Type scale from production: 35/26/22/19px headings over a 16px base, 14px meta lines */
+/* Tailwind's size scale, unchanged; leading tightens 0.05 per step because the stock values are body copy */
 @theme {
-	--text-h1: 2.1875rem;
-	--text-h1--line-height: 1.29;
-	--text-h2: 1.625rem;
-	--text-h2--line-height: 1.15;
-	--text-h3: 1.375rem;
-	--text-h3--line-height: 1.25;
-	--text-h4: 1.1875rem;
-	--text-h4--line-height: 1.3;
-	--text-meta: 0.875rem;
-	--text-meta--line-height: 1.9;
+	--text-lg--line-height: 1.3;
+	--text-xl--line-height: 1.25;
+	--text-2xl--line-height: 1.2;
+	--text-3xl--line-height: 1.15;
+	--text-4xl--line-height: 1.1;
 }
 
 /* Colors: a curated dark palette (blue-grey surfaces, cyan-tinted ink, lime accent) */

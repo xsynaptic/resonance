@@ -1,0 +1,22 @@
+---
+import MenuHeader from '#components/menu/menu-header.astro';
+import Search from '#components/search/search.astro';
+import { site } from '#lib/site.ts';
+---
+
+<header
+	class="maze bg-surface-700 bg-linear-to-t from-surface-800 to-transparent [--pattern-color:var(--color-surface-500)]"
+>
+	<div class="content-wide flex flex-wrap items-center justify-between gap-4 pt-8 pb-5">
+		<a
+			class="font-display text-3xl font-semibold tracking-tight text-highlight-500 hover:text-highlight-400"
+			href="/"
+		>
+			{site.title}
+		</a>
+		<Search />
+	</div>
+	<div class="content-wide pb-6">
+		<MenuHeader />
+	</div>
+</header>

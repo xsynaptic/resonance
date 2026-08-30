@@ -55,20 +55,25 @@
 	color: var(--color-ink-600);
 }
 
+/* Submenu panel, shared by both depths */
 .nav-sub {
 	@apply transition-[opacity,visibility] transition-discrete duration-150;
 
 	position: absolute;
-	top: 100%;
-	left: 0;
 	z-index: 50;
 	visibility: hidden;
-	width: 100%;
 	padding: calc(var(--spacing) * 1.5);
 	pointer-events: none;
 	background-color: var(--color-surface-600);
-	border-radius: 0 3px 3px;
 	opacity: 0;
+}
+
+/* Depth 1 drops below its trigger, squared off at the top left so the pair reads as one tab */
+.nav-sub-d1 {
+	top: 100%;
+	left: 0;
+	width: 100%;
+	border-radius: 0 3px 3px;
 
 	@media (width >= 40rem) {
 		width: max-content;
@@ -79,19 +84,47 @@
 
 /* The rightmost panel hugs the right edge so it never overflows the viewport */
 @media (width >= 40rem) {
-	.nav-item:last-child > .nav-sub {
+	.nav-item:last-child > .nav-sub-d1 {
 		right: 0;
 		left: auto;
 		border-radius: 3px 0 3px 3px;
 	}
 }
 
+/* Depth 2 sits directly under its own item, and flies out to the right once there is room */
+.nav-sub-d2 {
+	left: 0;
+	z-index: 51;
+	width: max-content;
+	max-width: 14rem;
+	background-color: var(--color-surface-500);
+	border-radius: 3px;
+
+	@media (width >= 40rem) {
+		top: 0;
+		left: 100%;
+		min-width: 10rem;
+	}
+}
+
+.nav-sub-item {
+	position: relative;
+}
+
+/* A bare flex row, so the link keeps the padding that draws its own hover pill */
+.nav-sub-trigger {
+	display: flex;
+	align-items: center;
+}
+
 .nav-sub-link {
 	@apply font-display;
 
 	display: block;
+	flex: 1;
 	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
 	color: var(--color-accent-600);
+	text-align: left;
 	white-space: nowrap;
 	border-radius: 3px;
 }
@@ -102,10 +135,26 @@
 	background-color: var(--color-surface-500);
 }
 
+/* Depth 2 sits on surface-500, so its hover pill has to step up a level to stay visible */
+.nav-sub-d2 .nav-sub-link:hover,
+.nav-sub-d2 .nav-sub-link:focus-visible {
+	background-color: var(--color-surface-400);
+}
+
+.nav-sub-icon {
+	width: 10px;
+	height: 10px;
+	margin-right: calc(var(--spacing) * 1);
+	color: var(--color-ink-600);
+}
+
 /* Reveal on hover/focus (pointer and keyboard) and on JS-driven open (touch, arrow keys) */
-.nav-item:hover > .nav-sub,
-.nav-item:focus-within > .nav-sub,
-.nav-item[data-open] > .nav-sub {
+.nav-item:hover > .nav-sub-d1,
+.nav-item:focus-within > .nav-sub-d1,
+.nav-item[data-open] > .nav-sub-d1,
+.nav-sub-item:hover > .nav-sub-d2,
+.nav-sub-item:focus-within > .nav-sub-d2,
+.nav-sub-item[data-open] > .nav-sub-d2 {
 	visibility: visible;
 	pointer-events: auto;
 	opacity: 1;

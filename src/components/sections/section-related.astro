@@ -13,8 +13,8 @@ const { items } = Astro.props;
 
 {
 	items.length > 0 ? (
-		<section class="content-wide mt-16">
-			<h2 class="mb-4 text-h2">Related</h2>
+		<section class="mt-16">
+			<h2 class="mb-4 text-2xl">Related</h2>
 			<Carousel label="related releases">
 				{items.map((item) => (
 					<li class="carousel-slide">

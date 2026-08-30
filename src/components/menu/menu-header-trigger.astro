@@ -1,0 +1,50 @@
+---
+import type { MenuItem } from '#components/menu/menu-types.ts';
+
+import {
+	getMenuItemTriggerType,
+	isActiveMenuItem,
+	isActiveMenuPath,
+} from '#components/menu/menu-utils.ts';
+
+interface Props {
+	hasChildren: boolean;
+	item: MenuItem;
+}
+
+const { hasChildren, item } = Astro.props;
+
+const { pathname } = Astro.url;
+
+const triggerType = getMenuItemTriggerType(item);
+---
+
+<div class:list={['nav-trigger', isActiveMenuItem(item, pathname) ? 'nav-current' : undefined]}>
+	{
+		triggerType === 'anchor' ? (
+			<a
+				aria-current={isActiveMenuPath(item.url, pathname) ? 'page' : undefined}
+				class="nav-link"
+				href={item.url}
+				{...(item.rel ? { rel: item.rel } : undefined)}
+			>
+				{item.title}
+			</a>
+		) : undefined
+	}
+	{
+		triggerType === 'button' ? (
+			<button class="nav-link" type="button">
+				{item.title}
+			</button>
+		) : undefined
+	}
+	{triggerType === 'span' ? <span class="nav-link">{item.title}</span> : undefined}
+	{
+		hasChildren ? (
+			<svg aria-hidden="true" class="nav-icon">
+				<use href="#icon:chevron-down" />
+			</svg>
+		) : undefined
+	}
+</div>

@@ -5,15 +5,13 @@ import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
 
 import '#styles/main.css';
 import MainAnalytics from '#components/main/main-analytics.astro';
+import MainFooter from '#components/main/main-footer.astro';
+import MainHeader from '#components/main/main-header.astro';
 import MainSprites from '#components/main/main-sprites.astro';
-import MenuFooter from '#components/menu/menu-footer.astro';
-import MenuHeader from '#components/menu/menu-header.astro';
 import { site } from '#lib/site.ts';
 import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 
 interface Props {
-	// Layouts that compose their own blocks (a wide release grid, a carousel) opt out of the shared column
-	blocks?: boolean;
 	description?: string;
 	openGraphId?: string;
 	openGraphType?: 'article' | 'website';
@@ -21,7 +19,6 @@ interface Props {
 }
 
 const {
-	blocks = false,
 	description = site.description,
 	openGraphId,
 	openGraphType = 'website',
@@ -62,18 +59,12 @@ const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
 	</head>
 	<body class="flex min-h-screen flex-col">
 		<MainSprites />
-		<MenuHeader />
+		<MainHeader />
 		<main class="w-full flex-1 bg-surface-500 py-12">
-			{
-				blocks ? (
-					<slot />
-				) : (
-					<div class="content-column">
-						<slot />
-					</div>
-				)
-			}
+			<div class="content-wide">
+				<slot />
+			</div>
 		</main>
-		<MenuFooter />
+		<MainFooter />
 	</body>
 </html>

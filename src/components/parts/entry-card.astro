@@ -30,7 +30,7 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 
 <a
 	class:list={[
-		'maze group block rounded border border-surface-700 bg-surface-800 p-4 transition [--pattern-color:var(--color-surface-600)] hover:border-accent-500',
+		'group block rounded-lg border border-surface-700 bg-surface-800 p-2 transition hover:border-surface-300',
 		className,
 	]}
 	href={href}
@@ -39,7 +39,7 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 	{/* The frame holds the card's shape when an original is missing, which is routine in dev */}
 	{
 		image ? (
-			<div class={`mb-3 ${aspectClass} w-full overflow-hidden rounded bg-surface-900`}>
+			<div class={`mb-2.5 ${aspectClass} w-full overflow-hidden rounded-xs bg-surface-900`}>
 				<MediaImage
 					alt=""
 					class="h-full w-full object-cover"

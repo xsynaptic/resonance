@@ -12,6 +12,8 @@ import { site } from '#lib/site.ts';
 import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 
 interface Props {
+	// Layouts that compose their own blocks (a wide release grid, a carousel) opt out of the shared column
+	blocks?: boolean;
 	description?: string;
 	openGraphId?: string;
 	openGraphType?: 'article' | 'website';
@@ -19,6 +21,7 @@ interface Props {
 }
 
 const {
+	blocks = false,
 	description = site.description,
 	openGraphId,
 	openGraphType = 'website',
@@ -35,8 +38,10 @@ const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
 	<head>
 		<meta charset="utf-8" />
 		<meta content="width=device-width, initial-scale=1" name="viewport" />
-		<link href="/favicon.svg" rel="icon" type="image/svg+xml" />
-		<Font cssVariable="--font-manrope" preload />
+		<link href="/favicon.ico" rel="icon" sizes="32x32" />
+		<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
+		<link href="/apple-touch-icon.png" rel="apple-touch-icon" />
+		<Font cssVariable="--font-archivo" preload />
 		<Font cssVariable="--font-fira-sans" preload />
 		<title>{pageTitle}</title>
 		<meta content={description} name="description" />
@@ -58,8 +63,16 @@ const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
 	<body class="flex min-h-screen flex-col">
 		<MainSprites />
 		<MenuHeader />
-		<main class="content-column w-full flex-1 py-12">
-			<slot />
+		<main class="w-full flex-1 bg-surface-500 py-12">
+			{
+				blocks ? (
+					<slot />
+				) : (
+					<div class="content-column">
+						<slot />
+					</div>
+				)
+			}
 		</main>
 		<MenuFooter />
 	</body>

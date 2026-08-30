@@ -1,0 +1,95 @@
+/* Related carousel: a scroll-snap track that works unenhanced; the element adds prev/next controls */
+.carousel {
+	position: relative;
+	display: block;
+}
+
+.carousel-track {
+	display: flex;
+	column-gap: calc(var(--spacing) * 4);
+	padding: 0;
+	margin: 0;
+	overflow-x: auto;
+	scroll-behavior: smooth;
+	list-style: none;
+	scroll-snap-type: x mandatory;
+}
+
+/* Without JS the scrollbar is the only affordance, so it stays until the buttons arrive */
+.carousel[data-enhanced] .carousel-track {
+	scrollbar-width: none;
+}
+
+.carousel[data-enhanced] .carousel-track::-webkit-scrollbar {
+	display: none;
+}
+
+.carousel-slide {
+	flex: 0 0 auto;
+	width: 12.5rem;
+	margin: 0;
+	scroll-snap-align: start;
+}
+
+.carousel-slide > * {
+	height: 100%;
+}
+
+/* The chevron glyph paints narrower than its box, so the row hangs out past the content edge */
+.carousel-controls {
+	display: none;
+	justify-content: space-between;
+	margin-inline: -0.5rem;
+	margin-bottom: calc(var(--spacing) * 3);
+}
+
+.carousel[data-enhanced] .carousel-controls {
+	display: flex;
+}
+
+/* Free-floating chevrons; the slow fade out against a quicker fade in is production's */
+.carousel-nav {
+	display: inline-flex;
+	color: var(--color-ink-600);
+	cursor: pointer;
+	transition: color 500ms ease-out;
+}
+
+.carousel-nav:hover,
+.carousel-nav:focus-visible {
+	color: var(--color-ink-200);
+	transition: color 300ms ease;
+}
+
+.carousel-nav:active {
+	color: var(--color-ink-100);
+}
+
+.carousel-nav svg {
+	width: 2.25rem;
+	height: 2.25rem;
+}
+
+/* Four across with room in the page gutters, so the controls move out to the sides */
+@media (width >= 950px) {
+	.carousel-slide {
+		width: calc(25% - calc(var(--spacing) * 3));
+	}
+
+	.carousel[data-enhanced] .carousel-controls {
+		display: contents;
+	}
+
+	.carousel-nav {
+		position: absolute;
+		top: calc(50% - 1.125rem);
+	}
+
+	.carousel-nav-prev {
+		left: -2.5rem;
+	}
+
+	.carousel-nav-next {
+		right: -2.5rem;
+	}
+}

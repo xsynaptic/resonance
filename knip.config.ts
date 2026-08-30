@@ -16,7 +16,7 @@ export default {
 		},
 		'packages/content': {
 			// The content scripts delegate to root via `pnpm -w run`, which knip reads as a binary
-			ignoreBinaries: ['check-content', 'fix-content'],
+			ignoreBinaries: ['check-content', 'fix-content', 'validate-content'],
 			ignoreDependencies: [
 				'mdxlint', // enables knip's MDX plugin here; there is no `astro` devDep to do it
 				'react', // type-only: jsxImportSource in tsconfig, React.JSX in the MDX ambient types

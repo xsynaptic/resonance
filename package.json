@@ -26,7 +26,8 @@
 		"check": "stylelint \"src/**/*.{css,astro}\" --cache --cache-location node_modules/.cache/stylelint/ && prettier --check . --cache && eslint --cache --cache-location node_modules/.cache/eslint/ && astro check && tsc --noEmit --extendedDiagnostics && vitest run && knip",
 		"fix": "stylelint \"src/**/*.{css,astro}\" --fix --cache --cache-location node_modules/.cache/stylelint/ && prettier --write . --cache && eslint --fix --cache --cache-location node_modules/.cache/eslint/ && astro check && tsc --noEmit --extendedDiagnostics && knip",
 		"check-types": "tsc --noEmit --extendedDiagnostics",
-		"og-image": "pnpm -F @xsynaptic/scripts og-image"
+		"og-image": "pnpm -F @xsynaptic/scripts og-image",
+		"validate-content": "astro sync && pnpm -F @xsynaptic/scripts validate-content"
 	},
 	"imports": {
 		"#*": "./src/*"

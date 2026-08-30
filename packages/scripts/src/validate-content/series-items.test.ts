@@ -1,0 +1,32 @@
+import { describe, expect, test } from 'vitest';
+
+import { validateSeriesItems } from './series-items.js';
+import { makeEntry } from './validate-test-utils.js';
+
+const members = [makeEntry({ id: 'all-stars-2011' }), makeEntry({ id: 'a-review' })];
+
+describe('validateSeriesItems', () => {
+	test('passes when every item resolves', () => {
+		const series = [
+			makeEntry({ data: { seriesItems: ['all-stars-2011', 'a-review'] }, id: 'korner' }),
+		];
+
+		expect(validateSeriesItems(series, members).status).toBe('pass');
+	});
+
+	test('fails on an item that resolves to nothing, naming it', () => {
+		const series = [
+			makeEntry({
+				data: { seriesItems: ['all-stars-2011', 'gone'] },
+				filePath: 'collections/series/korner.mdx',
+				id: 'korner',
+			}),
+		];
+
+		expect(validateSeriesItems(series, members)).toEqual({
+			issues: [{ message: 'collections/series/korner.mdx: unknown series item "gone"' }],
+			status: 'fail',
+			summary: 'Found 1 unknown series item(s)',
+		});
+	});
+});

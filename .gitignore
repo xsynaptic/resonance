@@ -28,15 +28,11 @@ node_modules/
 .claude/settings*.json
 .impeccable/
 
+# content lives within a private repo
+packages/content/
+
 # database backups (large, not for VCS)
 backups/
-
-# content: the generated MDX and media stay out, the package's own tooling config is tracked
-packages/content/*
-!packages/content/.mdxlintrc.mjs
-!packages/content/global.d.ts
-!packages/content/package.json
-!packages/content/tsconfig.json
 
 # WP extract scripts: one-off, iterated locally, not checked in yet
 packages/scripts/src/wp-extract/

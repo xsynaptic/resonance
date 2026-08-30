@@ -14,7 +14,8 @@
 		"deploy-server-config": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-server-config.cli.ts",
 		"stats-pull": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/stats-pull.cli.ts",
 		"deploy-site": "NODE_ENV=production tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy.ts",
-		"og-image": "tsx ./src/og-image/og-image.cli.ts"
+		"og-image": "tsx ./src/og-image/og-image.cli.ts",
+		"validate-content": "tsx ./src/validate-content/index.ts"
 	},
 	"devDependencies": {
 		"@fontsource/fira-sans": "^5.3.0",

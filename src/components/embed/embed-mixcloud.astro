@@ -4,13 +4,11 @@ import EmbedFrame from '#components/embed/embed-frame.astro';
 interface Props {
 	/** Minimal player (single row) */
 	mini?: boolean;
-	/** Taller player that shows the tracklist */
-	tracklist?: boolean;
 	/** Full MixCloud show URL (e.g. https://www.mixcloud.com/djbasilisk/show-name/) */
 	url: string;
 }
 
-const { mini = false, tracklist = false, url } = Astro.props;
+const { mini = false, url } = Astro.props;
 
 // The widget takes the show path as a URL-encoded `feed` parameter
 // Fail soft on a malformed URL so one bad value can't abort the build, matching other resolvers
@@ -27,8 +25,7 @@ if (params && mini) {
 }
 
 const src = params ? `https://www.mixcloud.com/widget/iframe/?${params.toString()}` : undefined;
-const fullHeight = tracklist ? 400 : 120;
-const height = mini ? 60 : fullHeight;
+const height = mini ? 60 : 120;
 ---
 
 {src ? <EmbedFrame height={height} src={src} title="MixCloud player" /> : undefined}

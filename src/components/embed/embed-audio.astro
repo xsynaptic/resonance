@@ -10,5 +10,5 @@ interface Props {
 const { mixcloudEmbed, soundcloudEmbed } = Astro.props;
 ---
 
-{mixcloudEmbed ? <EmbedMixcloud tracklist url={mixcloudEmbed} /> : undefined}
+{mixcloudEmbed ? <EmbedMixcloud url={mixcloudEmbed} /> : undefined}
 {!mixcloudEmbed && soundcloudEmbed ? <EmbedSoundcloud url={soundcloudEmbed} /> : undefined}

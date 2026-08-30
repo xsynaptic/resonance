@@ -3,7 +3,7 @@ import type { CollectionKey } from 'astro:content';
 import { getCollection } from 'astro:content';
 
 // Term collections whose terms nest via a `parent` reference
-// Flat ones (artists, formats, topics, series) are absent
+// Flat ones (artists, formats, themes, series) are absent
 export type HierarchicalCollection = 'eras' | 'labels' | 'regions' | 'styles';
 
 const HIERARCHICAL_COLLECTIONS = new Set<CollectionKey>(['eras', 'labels', 'regions', 'styles']);

@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import type { RefValue } from '#lib/schemas/refs.ts';
 
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
-import { resolveRefs } from '#lib/utils/terms.ts';
+import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 
 // One sheet per downloadable file: the tracklist is shared and only the FILE line differs
 // A FLAC cue is useless against the MP3, so the two are presented as a pair
@@ -16,7 +16,7 @@ export async function getMixCueSheets(
 	const performer = await joinArtists(entry.data.alias ? [entry.data.alias] : undefined);
 	const tracks = await Promise.all(
 		(entry.data.tracks ?? []).map(async (track) => ({
-			performer: await joinArtists(track.artists),
+			performer: await joinArtists(toRefArray(track.artists)),
 			timestamp: track.timestamp,
 			title: track.title,
 		})),

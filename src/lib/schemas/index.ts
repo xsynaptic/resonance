@@ -40,6 +40,7 @@ export const termFieldsShared = {
 	labels: LabelRefSchema.array().optional(),
 	regions: reference('regions').array().optional(),
 	styles: reference('styles').array().optional(),
+	themes: reference('themes').array().optional(),
 };
 
 export const termFields = {

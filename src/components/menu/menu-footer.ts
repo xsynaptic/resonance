@@ -8,5 +8,5 @@ export const menuFooterItems = [
 	{ title: 'Series', url: '/series' },
 	{ title: 'Eras', url: '/eras' },
 	{ title: 'Formats', url: '/formats' },
-	{ title: 'Topics', url: '/topics' },
+	{ title: 'Themes', url: '/themes' },
 ] satisfies Array<MenuItem>;

@@ -91,7 +91,7 @@ export async function resolveRefUrl(
 	return getContentUrl(collection, id);
 }
 
-// Resolve a strict reference array (styles, regions, eras, formats, topics) into linkable pairs
+// Resolve a strict reference array (styles, regions, eras, formats, themes) into linkable pairs
 export async function resolveTermLinks(
 	collection: TitledCollectionKey,
 	refs: Array<ReferenceDataEntry<TitledCollectionKey>> | undefined,
@@ -104,6 +104,12 @@ export async function resolveTermLinks(
 		label: entry.data.title,
 		url: getContentUrl(collection, entry.id),
 	}));
+}
+
+// A track's artists may be a single ref or an array of them; resolution takes an array either way
+export function toRefArray(value: Array<RefValue> | RefValue | undefined): Array<RefValue> {
+	if (value === undefined) return [];
+	return Array.isArray(value) ? value : [value];
 }
 
 async function buildTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {

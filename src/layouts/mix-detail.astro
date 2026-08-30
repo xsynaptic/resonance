@@ -27,6 +27,7 @@ const aliasTerms = await resolveTermLinks(
 	entry.data.alias ? [entry.data.alias] : undefined,
 );
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
+const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloadCounts = await getDownloadCounts();
 const relatedItems = await getRelatedItems(entry);
@@ -60,6 +61,7 @@ const [alias] = aliasTerms;
 		/>
 		<div class="mt-8 space-y-2">
 			<TermLinks heading="Styles" terms={styleTerms} />
+			<TermLinks heading="Themes" terms={themeTerms} />
 		</div>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />

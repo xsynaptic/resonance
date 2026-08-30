@@ -3,7 +3,7 @@ import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import RefList from '#components/parts/ref-list.astro';
-import { resolveRefs } from '#lib/utils/terms.ts';
+import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 
 interface Props {
 	tracks?: Array<TrackValue> | undefined;
@@ -14,9 +14,9 @@ interface TrackRow {
 	hasMeta: boolean;
 	labels: Array<ResolvedRef>;
 	metaSeparator: string;
-	position: number;
+	position: string;
 	remixCredit: Array<ResolvedRef>;
-	timestamp: string | undefined;
+	time: string | undefined;
 	title: string;
 	year: string | undefined;
 }
@@ -25,9 +25,9 @@ const { tracks } = Astro.props;
 
 async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
 	const [artists, labels, mixArtists] = await Promise.all([
-		resolveRefs('artists', track.artists),
+		resolveRefs('artists', toRefArray(track.artists)),
 		resolveRefs('labels', track.labels),
-		resolveRefs('artists', track.mixArtists),
+		resolveRefs('artists', toRefArray(track.mixArtists)),
 	]);
 
 	return {
@@ -35,9 +35,11 @@ async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
 		hasMeta: labels.length > 0 || Boolean(track.year),
 		labels,
 		metaSeparator: labels.length > 0 && track.year ? ', ' : '',
-		position: index + 1,
+		// A release track carries its own position ("A1"); a mix track falls back to the ordinal
+		position: track.position ?? String(index + 1),
 		remixCredit: visibleMixArtists(track.title, mixArtists),
-		timestamp: track.timestamp,
+		// A mix track is placed by its cue point into the set, a release track by its own length
+		time: track.timestamp ?? track.duration,
 		title: track.title,
 		year: track.year,
 	};
@@ -93,7 +95,7 @@ const rows = await Promise.all((tracks ?? []).map(buildRow));
 								{row.year}
 							</span>
 						) : undefined}
-						{row.timestamp ? <span class="track-time">{row.timestamp}</span> : undefined}
+						{row.time ? <span class="track-time">{row.time}</span> : undefined}
 					</li>
 				))}
 			</ol>

@@ -30,7 +30,7 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Format**: What shape a Post takes: a quotation, an interview, a set of album artwork, a gallery of flyers. Format answers "what kind of thing is this", never "what is it about". A Format graduates to a Collection when it needs fields, not when it needs styling. _Avoid_: category, type, kind, tag.
 
-**Topic**: What a Post is about, as opposed to what shape it takes. A Post carries one Format and any number of Topics, and the two vocabularies never overlap. _Avoid_: tag, category, subject.
+**Theme**: What an Entry is about, as opposed to what shape it takes. Any Entry in the editorial stream may carry Themes; a Post also carries one Format, and the two vocabularies never overlap. _Avoid_: tag, category, subject, topic.
 
 **Album Artwork**: The Format for cover art made for a Release, presented with commentary. It held its own collection until it was found to carry no fields of its own. _Avoid_: design, artwork, cover, sleeve.
 
@@ -44,11 +44,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 ### Vocabulary and reference
 
-**Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Format, Topic, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
+**Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Format, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
 
 Terms come in two idioms, and the difference is real rather than accidental. In both, the bare form is whatever that vocabulary does most of the time, which is why the two read as opposites.
 
-**Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Formats, Topics. A bare slug links, and an unknown slug is a build error. _Avoid_: taxonomy, enum, closed list.
+**Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Formats, Themes. A bare slug links, and an unknown slug is a build error. _Avoid_: taxonomy, enum, closed list.
 
 **Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A bare string is free text that renders plainly, and an object carrying an id links. _Avoid_: taxonomy, freeform, loose reference.
 

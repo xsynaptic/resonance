@@ -13,7 +13,7 @@ const COLLECTION_LABELS = {
 	reviews: 'Review',
 	series: 'Series',
 	styles: 'Style',
-	topics: 'Topic',
+	themes: 'Theme',
 } satisfies Record<string, string | undefined>;
 
 export const OPEN_GRAPH_COLLECTIONS = Object.keys(COLLECTION_LABELS);

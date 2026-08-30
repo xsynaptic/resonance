@@ -14,7 +14,7 @@ import {
 	regionSchema,
 	seriesSchema,
 	styleSchema,
-	topicSchema,
+	themeSchema,
 } from '#lib/schemas/terms.ts';
 
 // Draft `_slug.mdx` files are excluded by the `[^_]` glob; ID is the bare filename slug
@@ -39,5 +39,5 @@ export const collections = {
 	reviews: defineCollection({ loader: collectionLoader('reviews'), schema: reviewSchema }),
 	series: defineCollection({ loader: collectionLoader('series'), schema: seriesSchema }),
 	styles: defineCollection({ loader: collectionLoader('styles'), schema: styleSchema }),
-	topics: defineCollection({ loader: collectionLoader('topics'), schema: topicSchema }),
+	themes: defineCollection({ loader: collectionLoader('themes'), schema: themeSchema }),
 };

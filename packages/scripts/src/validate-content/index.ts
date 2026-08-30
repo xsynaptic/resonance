@@ -28,7 +28,7 @@ const CONTENT_COLLECTIONS = [
 	'reviews',
 	'series',
 	'styles',
-	'topics',
+	'themes',
 ];
 
 // Mirrors `linkableCollections` in references-data.ts; the two have to stay in step
@@ -40,7 +40,7 @@ const LINKABLE_COLLECTIONS = [
 	'eras',
 	'series',
 	'formats',
-	'topics',
+	'themes',
 ];
 
 // Mirrors SERIES_MEMBER_COLLECTIONS in term-index.ts

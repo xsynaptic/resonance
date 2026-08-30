@@ -196,15 +196,21 @@ export const getStylesIndex = makeTermIndex(
 	(index) => rollUpHierarchy(index, 'styles'),
 );
 
-// Formats and topics are post-only vocabularies; a post carries at most one format
+// Formats are a post-only vocabulary; a post carries at most one format
 export const getFormatsIndex = makeTermIndex(async (index) => {
 	const posts = await getCollection('posts');
 	collectByTerm('posts', posts, (entry) => (entry.data.format ? [entry.data.format] : []), index);
 });
 
-export const getTopicsIndex = makeTermIndex(async (index) => {
-	const posts = await getCollection('posts');
-	collectByTerm('posts', posts, (entry) => entry.data.topics, index);
+export const getThemesIndex = makeTermIndex(async (index) => {
+	const [mixes, reviews, posts] = await Promise.all([
+		getCollection('mixes'),
+		getCollection('reviews'),
+		getCollection('posts'),
+	]);
+	collectByTerm('mixes', mixes, (entry) => entry.data.themes, index);
+	collectByTerm('reviews', reviews, (entry) => entry.data.themes, index);
+	collectByTerm('posts', posts, (entry) => entry.data.themes, index);
 });
 
 export const getErasIndex = makeTermIndex(

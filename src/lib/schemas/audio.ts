@@ -14,12 +14,17 @@ const TimestampSchema = z.string().regex(/^\d{2}:[0-5]\d:[0-5]\d(\.\d{1,2})?$/, 
 // Only the per-track fields that actually carry data
 // Flat and short-keyed for hand-editing; `year`/`timestamp` stay strings (verbatim, e.g. "00:07:51")
 // Ref fields are polymorphic, matching top-level artists/labels: bare string is free text, {id} links
-// The extractor emits one-element arrays; multiples are for hand-editing
+// One schema serves a mix and a release tracklist; which optionals are filled is the only difference
 const TrackSchema = z
 	.object({
-		artists: RefSchema.array(),
+		// The extractor emits one name, kept whole; an array is for hand-editing a credit worth splitting
+		artists: z.union([RefSchema, RefSchema.array()]),
+		// A release track's own length, display only, where `timestamp` is a cue point into a set
+		duration: z.string().optional(),
 		labels: LabelRefSchema.array().optional(),
-		mixArtists: RefSchema.array().optional(),
+		mixArtists: z.union([RefSchema, RefSchema.array()]).optional(),
+		// Vinyl side and index on a release ("A1"), standing in for the ordinal
+		position: z.string().optional(),
 		timestamp: TimestampSchema.optional(),
 		title: z.string(),
 		year: z.string().optional(),
@@ -61,13 +66,9 @@ export const reviewSchema = z
 		...termFields,
 		...audioFields,
 		discogsUrl: z.string().optional(),
-		// Ektoplazm's editorial weighting of a release, never a type of anything
-		prominence: z.enum(['default', 'major', 'minor', 'other']).optional(),
 		rating: z.number().min(1).max(100).optional(),
-		// Reviews only: on mixes all three were redundant
-		// releaseTitle duplicated title, releaseYear duplicated dateCreated's year
-		// prominence was an Ektoplazm concept
-		// Here releaseTitle is the album title without the "Artist - " prefix, so title can't yield it
+		// Reviews only: on a mix releaseTitle duplicates title and releaseYear duplicates its date
+		// releaseTitle is the album title without the "Artist - " prefix, so `title` can't yield it
 		releaseTitle: z.string().optional(),
 		releaseYear: z.string().optional(),
 		reviewAttributes: z.enum(['recommended', 'dj_fodder', 'youtube_link']).array().optional(),

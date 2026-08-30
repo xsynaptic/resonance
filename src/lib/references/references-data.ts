@@ -20,7 +20,7 @@ const linkableCollections = [
 	'eras',
 	'series',
 	'formats',
-	'topics',
+	'themes',
 ] as const;
 
 let referencesPromise: Promise<Map<string, Reference>> | undefined;

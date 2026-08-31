@@ -49,8 +49,8 @@ importers:
         specifier: workspace:*
         version: link:packages/shared
       '@xsynaptic/stylelint-config':
-        specifier: ^1.1.1
-        version: 1.1.1(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
+        specifier: ^1.1.4
+        version: 1.1.4(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
       astro-pagefind:
         specifier: ^2.0.1
         version: 2.0.1(astro@7.2.9(@astrojs/markdown-remark@7.2.4(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
@@ -527,8 +527,8 @@ packages:
     peerDependencies:
       postcss-selector-parser: ^7.1.1
 
-  '@double-great/stylelint-a11y@3.5.1':
-    resolution: {integrity: sha512-DNOxsyT1O49B1lpzdQ3LCWStdt5WAwfvU/2dUZ4W6SUaaicFr09YqiixZ2/btInzw3chACw61IfVJJOZ3WJA+w==}
+  '@double-great/stylelint-a11y@3.5.2':
+    resolution: {integrity: sha512-tzCK6ItlIiUJwGnATxO54ELtSaQwiMtghhIy6G5umOsp6wTPyMfTUKXt9g/TIGO2+APG1NM4V/V3aiG5W6R8Rw==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       stylelint: '>=16.0.0'
@@ -2113,8 +2113,8 @@ packages:
     peerDependencies:
       satteri: ^0.10.0
 
-  '@xsynaptic/stylelint-config@1.1.1':
-    resolution: {integrity: sha512-WBpnwoQdakub4le6OnTVEUyhMo1pt+h6bNGKwQv6XDrFhbKnUFE8n+3aQLSPJzJooz6d2E+WLxj6kQQFkvWCdw==}
+  '@xsynaptic/stylelint-config@1.1.4':
+    resolution: {integrity: sha512-f9d19zi9VcL99oXQ4e2lfTz8L9psS3N1M++eb2sGT0iBSXnowojOLw7fW0ftAuNLI6rNGdFCBefOgb9ZiWSuew==}
     peerDependencies:
       stylelint: '>=17.0.0'
 
@@ -5853,7 +5853,7 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.4
 
-  '@double-great/stylelint-a11y@3.5.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))':
+  '@double-great/stylelint-a11y@3.5.2(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))':
     dependencies:
       postcss: 8.5.26
       stylelint: 17.14.1(supports-color@10.2.2)(typescript@6.0.3)
@@ -7219,9 +7219,9 @@ snapshots:
       satteri: 0.10.5
       zod: 4.5.4
 
-  '@xsynaptic/stylelint-config@1.1.1(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))':
+  '@xsynaptic/stylelint-config@1.1.4(postcss@8.5.26)(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))':
     dependencies:
-      '@double-great/stylelint-a11y': 3.5.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
+      '@double-great/stylelint-a11y': 3.5.2(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))
       postcss-html: 2.0.0(postcss@8.5.26)
       stylelint: 17.14.1(supports-color@10.2.2)(typescript@6.0.3)
       stylelint-config-recess-order: 7.8.0(stylelint-order@8.1.1(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.14.1(supports-color@10.2.2)(typescript@6.0.3))

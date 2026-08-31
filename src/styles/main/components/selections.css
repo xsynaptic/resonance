@@ -1,0 +1,138 @@
+/* The px rhythm below is production's, read off the live theme rather than derived from the grid */
+
+/* Renders inside .prose-x, whose list rules would otherwise indent and bullet the rows */
+.selections {
+	padding: 0;
+	margin: 0 0 calc(var(--spacing) * 5);
+	list-style: none;
+}
+
+.selection {
+	margin: 0 0 10px;
+}
+
+.selection-prose {
+	margin-bottom: 60px;
+}
+
+.selection::after {
+	clear: both;
+	display: block;
+	content: '';
+}
+
+/* Only the prose keeps .prose-x link decoration; the credits and meta are too dense for it */
+.selection-artist,
+.selection-title a,
+.selection-meta a,
+.selection-links a {
+	text-decoration: none;
+	text-shadow: none;
+}
+
+.selection-artist,
+.selection-title a {
+	color: var(--color-ink-200);
+}
+
+.selection-meta a {
+	color: var(--color-ink-400);
+}
+
+.selection-title a:hover,
+.selection-title a:focus-visible,
+.selection-meta a:hover,
+.selection-meta a:focus-visible,
+a.selection-artist:hover,
+a.selection-artist:focus-visible {
+	color: var(--color-ink-50);
+}
+
+.selection-artist {
+	font-weight: var(--font-weight-bold);
+}
+
+.selection-divider {
+	font-weight: var(--font-weight-normal);
+	color: var(--color-ink-500);
+}
+
+.selection-title {
+	font-style: italic;
+}
+
+.selection-thumb {
+	max-width: 360px;
+	margin: 0 0 10px;
+}
+
+/* 15px over a doubled line box is what gives the rank a 30px circle to sit in */
+.selection-header {
+	display: flex;
+	margin: 0;
+	font-size: 15px;
+	font-weight: var(--font-weight-bold);
+	line-height: 2;
+	color: var(--color-ink-200);
+}
+
+.selection-rank {
+	flex: 0 0 auto;
+	width: 30px;
+	height: 30px;
+	margin-inline-end: 7.5px;
+	font-family: var(--font-display);
+	font-variant-numeric: tabular-nums;
+	color: var(--color-highlight-400);
+	text-align: center;
+	background-color: var(--color-surface-700);
+	border-radius: 50%;
+}
+
+.selection-meta {
+	font-size: var(--text-sm);
+	line-height: 2.15;
+	color: var(--color-ink-600);
+}
+
+.selection-description {
+	margin-top: 10px;
+}
+
+/* The description is prose, so its own last paragraph must not double the row's foot */
+.selection-description > :last-child {
+	margin-bottom: 0;
+}
+
+.selection-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: calc(var(--spacing) * 2);
+	align-items: center;
+	margin-top: 10px;
+	font-size: var(--text-sm);
+	color: var(--color-ink-600);
+}
+
+@media (width >= 550px) {
+	.selection-prose {
+		margin-bottom: 45px;
+	}
+
+	.selection-thumb {
+		float: right;
+		max-width: 40%;
+		margin-inline-start: 15px;
+	}
+}
+
+@media (width >= 950px) {
+	.selection-thumb {
+		margin-inline-start: 20px;
+	}
+
+	/* The rank hangs left of the measure into the page gutter, production's signature for this list */
+	.selection-rank {
+		margin-inline-start: -37.5px;
+	}
+}

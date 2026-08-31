@@ -1,4 +1,4 @@
-/* Mix tracklist: subtly striped rows that read as one rounded container (matches the production design) */
+/* The px rhythm below is production's, which is what sits the small italic index just above the title's baseline */
 .track-list {
 	font-feature-settings: 'lnum';
 }
@@ -6,7 +6,7 @@
 /* Zero out the global list margins so the striped rows read as one contiguous container */
 .track {
 	display: block;
-	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+	padding: 0 5px;
 	margin: 0;
 }
 
@@ -26,27 +26,60 @@
 	border-radius: 0 0 3px 3px;
 }
 
+/* The section renders inside .prose-x, whose underline and halo are too heavy for rows this dense */
+.track a {
+	text-decoration: none;
+	text-shadow: none;
+}
+
 /* Decorative: the <ol> already numbers tracks for assistive tech */
 .track-index {
 	display: none;
-	font-size: 0.75rem;
-	color: var(--color-ink-700);
+	margin: 5px 5px 0 0;
+	font-size: var(--text-xs);
+	font-style: italic;
+	line-height: 25px;
+	color: var(--color-ink-600);
 	text-align: right;
 }
 
 .track-title-line {
 	display: block;
-	font-size: 1.125rem;
-	line-height: 1.4;
+	margin-top: 5px;
+	font-size: var(--text-lg);
+	font-weight: var(--font-weight-normal);
+	line-height: 25px;
+}
+
+/* The section sits inside .prose-x, which tints and thickens every <strong> it contains */
+.track-title-line strong {
+	font-weight: var(--font-weight-bold);
+	color: inherit;
+}
+
+.track-title-line a {
+	color: var(--color-ink-200);
 }
 
 .track-label-year,
 .track-time {
-	font-size: 0.9375rem;
+	margin-bottom: 10px;
+	font-size: var(--text-sm);
+	line-height: 20px;
 	color: var(--color-ink-600);
 }
 
-/* Inline separation when the label/year and time share a line (stacked layout only) */
+.track-label-year a {
+	color: var(--color-ink-400);
+}
+
+.track-title-line a:hover,
+.track-title-line a:focus-visible,
+.track-label-year a:hover,
+.track-label-year a:focus-visible {
+	color: var(--color-ink-50);
+}
+
 .track-label-year + .track-time {
 	margin-inline-start: calc(var(--spacing) * 2);
 }
@@ -58,8 +91,6 @@
 			'index title title'
 			'. label time';
 		grid-template-columns: 25px 2fr 1fr;
-		column-gap: calc(var(--spacing) * 2);
-		align-items: baseline;
 	}
 
 	.track-index {

@@ -1,10 +1,8 @@
-/* Layout widths: 1280px page wrapper, 800px readable measure for prose and text blocks */
 @theme {
 	--spacing-content-wide: 80rem;
 	--spacing-prose: 50rem;
 }
 
-/* Fonts via the Astro Fonts API (Fontsource); Fira Sans display, Archivo body, as in production */
 @theme {
 	--font-display: var(--font-fira-sans, system-ui, sans-serif);
 	--font-body: var(--font-archivo, system-ui, sans-serif);
@@ -20,7 +18,6 @@
 	--text-4xl--line-height: 1.1;
 }
 
-/* Colors: a curated dark palette (blue-grey surfaces, cyan-tinted ink, lime accent) */
 @theme {
 	/* Surfaces: dark desaturated blue-grey; four steps are production anchors, the rest interpolate */
 
@@ -34,8 +31,6 @@
 	--color-surface-700: hsl(205deg 12% 19%);
 	--color-surface-800: hsl(203deg 10% 15%);
 	--color-surface-900: hsl(204deg 8% 12%);
-
-	/* Text: light cyan-tinted off-white; ink-50 brightest, ink-700 dimmest */
 
 	/* 100 bright, 200 content links, 300 body links, 400 body text, 600 muted, 700 dim */
 	--color-ink-50: hsl(180deg 26% 93%);
@@ -58,8 +53,6 @@
 	--color-highlight-400: hsl(26.5deg 98% 59%);
 	--color-highlight-500: hsl(27deg 85% 49%);
 	--color-highlight-600: hsl(26deg 81% 43%);
-
-	/* Crimson secondary */
 	--color-crimson-400: hsl(349deg 63% 59%);
 	--color-crimson-500: hsl(351deg 49% 49%);
 }

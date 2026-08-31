@@ -25,7 +25,6 @@ pagefind-searchbox button {
 	font-family: var(--pf-font) !important;
 }
 
-/* Backdrop blur when modal is open */
 dialog.pf-modal::backdrop {
 	backdrop-filter: blur(4px);
 }
@@ -45,7 +44,6 @@ dialog.pf-modal::backdrop {
 	}
 }
 
-/* Sub-result link colors */
 .pf-heading-link {
 	--pf-text: var(--color-ink-500);
 

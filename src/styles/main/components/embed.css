@@ -1,4 +1,3 @@
-/* Responsive media embed wrapper (MixCloud / SoundCloud players, video) */
 .embed-frame {
 	overflow: hidden;
 	background-color: var(--color-surface-800);

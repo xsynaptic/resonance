@@ -28,7 +28,6 @@
 	}
 }
 
-/* Modern Customizable Select styling, scoped to engines that support it (Chromium today) */
 @supports (appearance: base-select) {
 	.p-control,
 	.p-control::picker(select) {

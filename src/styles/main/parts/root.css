@@ -1,4 +1,3 @@
-/* Custom properties defined outside Tailwind's system (meta separators, etc.) */
 :root {
 	--content-bar: '|';
 	--content-bullet: '\2022';

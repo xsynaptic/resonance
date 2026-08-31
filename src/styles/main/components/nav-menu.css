@@ -1,5 +1,3 @@
-/* Header dropdown navigation: lime links with submenus that open below like attached tab panels */
-
 /* Interactive state (data-has-submenu, data-open, ARIA roles) is injected by menu-navigation.ts */
 
 /* The custom element is a JS host only; the nav itself has to be the flex item in the header row */
@@ -60,12 +58,14 @@ menu-navigation {
 	color: var(--color-highlight-500);
 }
 
-/* Submenu panel, shared by both depths */
+/* The header is the stacking context these sit in; `zIndexScaleEnum` reserves the band */
 .nav-sub {
 	@apply transition-[opacity,visibility] transition-discrete duration-150;
 
+	--z-sub-menu: 50;
+
 	position: absolute;
-	z-index: 50;
+	z-index: var(--z-sub-menu);
 	visibility: hidden;
 	padding: calc(var(--spacing) * 1.5);
 	pointer-events: none;
@@ -73,7 +73,6 @@ menu-navigation {
 	opacity: 0;
 }
 
-/* Depth 1 drops below its trigger, squared off at the top left so the pair reads as one tab */
 .nav-sub-d1 {
 	top: 100%;
 	left: 0;
@@ -96,10 +95,9 @@ menu-navigation {
 	}
 }
 
-/* Depth 2 sits directly under its own item, and flies out to the right once there is room */
 .nav-sub-d2 {
 	left: 0;
-	z-index: 51;
+	z-index: calc(var(--z-sub-menu) + 1);
 	width: max-content;
 	max-width: 14rem;
 	background-color: var(--color-surface-500);
@@ -153,7 +151,6 @@ menu-navigation {
 	color: var(--color-highlight-500);
 }
 
-/* Reveal on hover/focus (pointer and keyboard) and on JS-driven open (touch, arrow keys) */
 .nav-item:hover > .nav-sub-d1,
 .nav-item:focus-within > .nav-sub-d1,
 .nav-item[data-open] > .nav-sub-d1,
@@ -165,7 +162,6 @@ menu-navigation {
 	opacity: 1;
 }
 
-/* The open trigger flattens its bottom corners and takes the submenu color, reading as an attached tab */
 .nav-item[data-open] > .nav-trigger,
 .nav-item[data-has-submenu]:hover > .nav-trigger,
 .nav-item[data-has-submenu]:focus-within > .nav-trigger {

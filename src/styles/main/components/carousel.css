@@ -70,7 +70,6 @@
 	height: 2.25rem;
 }
 
-/* Four across with room in the page gutters, so the controls move out to the sides */
 @media (width >= 950px) {
 	.carousel-slide {
 		width: calc(25% - calc(var(--spacing) * 3));

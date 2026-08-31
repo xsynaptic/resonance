@@ -36,13 +36,18 @@ async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
 		labels,
 		metaSeparator: labels.length > 0 && track.year ? ', ' : '',
 		// A release track carries its own position ("A1"); a mix track falls back to the ordinal
-		position: track.position ?? String(index + 1),
+		position: padOrdinal(track.position ?? String(index + 1)),
 		remixCredit: visibleMixArtists(track.title, mixArtists),
 		// A mix track is placed by its cue point into the set, a release track by its own length
 		time: track.timestamp ?? track.duration,
 		title: track.title,
 		year: track.year,
 	};
+}
+
+// A leading zero keeps the numeral column a rectangle; a vinyl position ("A1") is left alone
+function padOrdinal(position: string): string {
+	return /^\d$/.test(position) ? `0${position}` : position;
 }
 
 // Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
@@ -56,13 +61,12 @@ function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array
 	return allNamed ? [] : mixArtists;
 }
 
-// Resolve the polymorphic refs up front (title maps are cached, so this is cheap)
 const rows = await Promise.all((tracks ?? []).map(buildRow));
 ---
 
 {
 	rows.length > 0 ? (
-		<section class="not-prose my-8">
+		<section class="my-8">
 			<h2 class="mb-3 text-xl">Tracklist</h2>
 			<ol class="track-list">
 				{rows.map((row) => (
@@ -73,7 +77,7 @@ const rows = await Promise.all((tracks ?? []).map(buildRow));
 						<span class="track-title-line">
 							{row.artists.length > 0 ? (
 								<Fragment>
-									<strong class="text-ink-100">
+									<strong>
 										<RefList refs={row.artists} />
 									</strong>
 									<span class="text-ink-600">{' - '}</span>

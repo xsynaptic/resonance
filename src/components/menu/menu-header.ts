@@ -1,6 +1,5 @@
 import type { MenuItem } from '#components/menu/menu-types.ts';
 
-// Header menu; mirrors the production site
 export const menuHeaderItems = [
 	{ title: 'Mixes', url: '/mixes' },
 	{ title: 'Reviews', url: '/reviews' },

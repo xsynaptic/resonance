@@ -4,7 +4,6 @@ import { getInstanceManager } from '@pagefind/component-ui';
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent);
 
-// An icon-based modal trigger integrating with Pagefind's instance API
 class SearchToggle extends HTMLElement {
 	// eslint-disable-next-line unicorn/no-null -- matches Pagefind's PagefindComponent interface
 	instance: Instance | null = null;
@@ -53,7 +52,6 @@ class SearchToggle extends HTMLElement {
 		this.buttonEl?.focus();
 	}
 
-	// Load the deferred stylesheet on intent; resolves once applied
 	#ensurePagefindCss = (): Promise<void> => {
 		if (this.#cssReady) return this.#cssReady;
 
@@ -103,7 +101,6 @@ class SearchToggle extends HTMLElement {
 		modal?.open();
 	};
 
-	// Void-returning wrapper for use as a click listener
 	#handleClickEvent = () => {
 		void this.#handleClick();
 	};
@@ -123,7 +120,6 @@ class SearchToggle extends HTMLElement {
 		void this.#handleClick();
 	};
 
-	// Void-returning wrapper so the listener ignores the preload promise
 	#preloadPagefindCss = () => {
 		void this.#ensurePagefindCss();
 	};

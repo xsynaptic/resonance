@@ -1,5 +1,4 @@
 // A cue sheet is a seek index for a long mix: a header, then one TRACK entry per timestamped track
-// The header names the release and its audio file
 // Pure string work, no content imports, so the format is testable on its own
 // Callers supply the tracklist as-is; entries without a usable timestamp are dropped here
 

@@ -1,38 +1,31 @@
-import type { CollectionKey } from 'astro:content';
+import type { CollectionEntry, CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-import type { ResolvedRef, TermLink } from '#lib/utils/terms.ts';
+import type { ResolvedRef } from '#lib/utils/terms.ts';
 
-import { getContentUrl } from '#lib/utils/routing.ts';
-
-// A list item's `linkId` names an entry by bare slug (cross-collection); resolve in priority order
+// A selection's `entryId` names an entry by bare slug (cross-collection); resolve in priority order
 const linkableCollections = ['mixes', 'reviews', 'posts'] as const satisfies Array<CollectionKey>;
 
-interface SlugMatch {
-	collection: CollectionKey;
-	title: string;
-}
+export type LinkableEntry = CollectionEntry<(typeof linkableCollections)[number]>;
 
-let slugMapPromise: Promise<Map<string, SlugMatch>> | undefined;
+let slugMapPromise: Promise<Map<string, LinkableEntry>> | undefined;
 
 interface ReleaseTitle {
 	artist?: ResolvedRef;
 	title: string;
 }
 
-export async function resolveSlugLink(slug: string): Promise<TermLink | undefined> {
+export async function getEntryBySlug(slug: string): Promise<LinkableEntry | undefined> {
 	const slugMap = await getSlugMap();
-	const match = slugMap.get(slug);
+	const entry = slugMap.get(slug);
 
-	if (!match) {
-		if (import.meta.env.DEV) {
-			console.warn(`[list-item] slug "${slug}" not found in ${linkableCollections.join(', ')}`);
-		}
+	if (!entry) {
+		console.warn(`[entries] slug "${slug}" not found in ${linkableCollections.join(', ')}`);
 		return undefined;
 	}
 
-	return { title: match.title, url: getContentUrl(match.collection, slug) };
+	return entry;
 }
 
 // Reviews carry the full "Artist - Release" title plus a bare releaseTitle, so the artist half can link
@@ -53,23 +46,21 @@ export function splitReleaseTitle(
 	return { artist, title: releaseTitle };
 }
 
-async function buildSlugMap(): Promise<Map<string, SlugMatch>> {
-	const slugMap = new Map<string, SlugMatch>();
+async function buildSlugMap(): Promise<Map<string, LinkableEntry>> {
+	const slugMap = new Map<string, LinkableEntry>();
 
 	for (const collection of linkableCollections) {
 		const entries = await getCollection(collection);
 
 		for (const entry of entries) {
-			if (!slugMap.has(entry.id)) {
-				slugMap.set(entry.id, { collection, title: entry.data.title });
-			}
+			if (!slugMap.has(entry.id)) slugMap.set(entry.id, entry);
 		}
 	}
 
 	return slugMap;
 }
 
-async function getSlugMap(): Promise<Map<string, SlugMatch>> {
+async function getSlugMap(): Promise<Map<string, LinkableEntry>> {
 	if (!slugMapPromise) slugMapPromise = buildSlugMap();
 	return slugMapPromise;
 }

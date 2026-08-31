@@ -7,13 +7,11 @@ import { z } from 'zod';
 
 import { DOWNLOADS_STATS_PATH } from '#constants.ts';
 
-// Per-entry validation happens via parseData against the collection schema
 const downloadsDocumentSchema = z.object({
 	files: z.record(z.string(), z.unknown()).array(),
 	version: z.literal(1),
 });
 
-// Reads the locally pulled downloads.json
 // A missing or invalid file must never fail the build; counts are decoration
 export function downloadsLoader(): Loader {
 	return {

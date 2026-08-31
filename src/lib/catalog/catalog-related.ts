@@ -11,7 +11,6 @@ const RELATED_LIMIT = 12;
 
 type ReleaseEntry = CollectionEntry<'mixes' | 'reviews'>;
 
-// Naive relatedness: shared style terms, then recency, within the entry's own collection
 // Entries with no overlap are dropped rather than padded with recency, so "Related" stays honest
 // Returns Catalog Items so the scoring can be replaced without touching the carousel
 export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<ContentItem>> {
@@ -21,7 +20,7 @@ export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<Conten
 
 	const entries = await getCollection(entry.collection);
 
-	return entries
+	const related = entries
 		.filter((candidate) => candidate.id !== entry.id)
 		.map((candidate) => ({
 			candidate,
@@ -33,6 +32,7 @@ export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<Conten
 				second.score - first.score ||
 				second.candidate.data.dateCreated.getTime() - first.candidate.data.dateCreated.getTime(),
 		)
-		.slice(0, RELATED_LIMIT)
-		.map((scored) => toContentItem(entry.collection, scored.candidate));
+		.slice(0, RELATED_LIMIT);
+
+	return Promise.all(related.map((scored) => toContentItem(entry.collection, scored.candidate)));
 }

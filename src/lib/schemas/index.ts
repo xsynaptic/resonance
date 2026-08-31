@@ -22,7 +22,6 @@ const DateStringSchema = z
 // Cover image as a normalized path string, until originals are hosted
 const ImageFeaturedSchema = z.string();
 
-// Shared base fields for document collections (pages, posts, mixes, reviews, lists)
 export const contentBaseSchema = {
 	dateCreated: DateStringSchema,
 	dateUpdated: DateStringSchema.optional(),

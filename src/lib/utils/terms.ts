@@ -7,6 +7,7 @@ import type { LabelRefValue, RefValue } from '#lib/schemas/refs.ts';
 
 import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
+import { toSlug } from '#lib/utils/text.ts';
 
 // url is set only when the ref links to a catalog entry; free-text and unresolved ids render plain
 export interface ResolvedRef {
@@ -14,17 +15,14 @@ export interface ResolvedRef {
 	url?: string;
 }
 
-// Content-slug links (resolveSlugLink) always resolve, so url is required
-export interface TermLink {
-	title: string;
-	url: string;
-}
-
 // Every collection with a `title` field; `downloads` is data-only (no title, no routes)
 export type TitledCollectionKey = Exclude<CollectionKey, 'downloads'>;
 
 // Cache id->title per collection so ref resolution is one build-time scan per collection
 const titleMaps = new Map<TitledCollectionKey, Promise<Map<string, string>>>();
+
+// Cache slugified-title->id per collection, so a free-text ref can find the term it names
+const slugMaps = new Map<TitledCollectionKey, Promise<Map<string, string>>>();
 
 // Ids from a labels array that link to a term (bare strings are free text; objects carry the id)
 export function labelIds(labels: Array<LabelRefValue> | undefined): Array<string> {
@@ -36,7 +34,6 @@ export function labelIds(labels: Array<LabelRefValue> | undefined): Array<string
 	return ids;
 }
 
-// Resolve a term's parent chain (root-first) to breadcrumb links; empty for a root term
 export async function resolveAncestors(
 	collection: HierarchicalCollection,
 	id: string,
@@ -52,7 +49,7 @@ export async function resolveAncestors(
 	}));
 }
 
-// Resolve polymorphic refs: a bare string is free text, an object links via id
+// Resolve polymorphic refs: an object links via id, a bare string links only if it names a term
 // `name` overrides the derived title
 export async function resolveRefs(
 	collection: TitledCollectionKey,
@@ -60,10 +57,14 @@ export async function resolveRefs(
 ): Promise<Array<ResolvedRef>> {
 	if (!refs || refs.length === 0) return [];
 
-	const titles = await getTitles(collection);
+	const [titles, slugs] = await Promise.all([getTitles(collection), getSlugs(collection)]);
 
 	return refs.map((ref) => {
-		if (typeof ref === 'string') return { label: ref };
+		if (typeof ref === 'string') {
+			const id = slugs.get(toSlug(ref));
+			// Keep the written spelling; only the link comes from the catalog
+			return id === undefined ? { label: ref } : { label: ref, url: getContentUrl(collection, id) };
+		}
 
 		const title = titles.get(ref.id);
 		if (title === undefined) {
@@ -73,22 +74,6 @@ export async function resolveRefs(
 
 		return { label: ref.name ?? title, url: getContentUrl(collection, ref.id) };
 	});
-}
-
-// Resolve a single optional id to a link url, for track/list items where display text is separate
-export async function resolveRefUrl(
-	collection: TitledCollectionKey,
-	id: string | undefined,
-): Promise<string | undefined> {
-	if (id === undefined) return undefined;
-
-	const titles = await getTitles(collection);
-	if (!titles.has(id)) {
-		console.warn(`[refs] no ${collection} entry for id "${id}"`);
-		return undefined;
-	}
-
-	return getContentUrl(collection, id);
 }
 
 // Resolve a strict reference array (styles, regions, eras, formats, themes) into linkable pairs
@@ -112,9 +97,29 @@ export function toRefArray(value: Array<RefValue> | RefValue | undefined): Array
 	return Array.isArray(value) ? value : [value];
 }
 
+async function buildSlugs(collection: TitledCollectionKey): Promise<Map<string, string>> {
+	const entries = await getCollection(collection);
+	const slugs = new Map<string, string>();
+	for (const entry of entries) {
+		const slug = toSlug(entry.data.title);
+		// First entry wins; a duplicate name is too ambiguous to link on anyway
+		if (slug !== '' && !slugs.has(slug)) slugs.set(slug, entry.id);
+	}
+	return slugs;
+}
+
 async function buildTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {
 	const entries = await getCollection(collection);
 	return new Map(entries.map((entry) => [entry.id, entry.data.title]));
+}
+
+function getSlugs(collection: TitledCollectionKey): Promise<Map<string, string>> {
+	let promise = slugMaps.get(collection);
+	if (promise === undefined) {
+		promise = buildSlugs(collection);
+		slugMaps.set(collection, promise);
+	}
+	return promise;
 }
 
 function getTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {

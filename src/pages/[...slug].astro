@@ -6,7 +6,6 @@ import PostDetail from '#layouts/post-detail.astro';
 import { getPublishedPages } from '#lib/collections/pages/pages-data.ts';
 import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 
-// Pages and posts both render at the site root
 // On a slug collision the page wins; collision-free today but kept defensive
 export const getStaticPaths = (async () => {
 	const pages = await getPublishedPages();

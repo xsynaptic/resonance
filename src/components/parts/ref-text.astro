@@ -1,5 +1,4 @@
 ---
-// Renders a resolved reference: a link when a url is present, plain text otherwise
 interface Props {
 	class?: string | undefined;
 	label: string;
@@ -11,7 +10,7 @@ const { class: className, label, url } = Astro.props;
 
 {
 	url ? (
-		<a class:list={['text-highlight-500 hover:text-highlight-400', className]} href={url}>
+		<a class={className} href={url}>
 			{label}
 		</a>
 	) : (

@@ -2,20 +2,23 @@ import type { CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
+import type { LabelRefValue } from '#lib/schemas/refs.ts';
+
 import { getContentUrl } from '#lib/utils/routing.ts';
+import { resolveRefs } from '#lib/utils/terms.ts';
 
 // Entry fields the catalog projects; optional members are absent on collections that lack them
 export interface ContentDoc {
 	data: {
 		dateCreated: Date;
 		imageFeatured?: string | undefined;
+		labels?: Array<LabelRefValue> | undefined;
 		releaseYear?: string | undefined;
 		title: string;
 	};
 	id: string;
 }
 
-// A content entry projected to the flat shape cards render
 // Extras stay optional so each card reads only what it shows
 export interface ContentItem {
 	collection: CollectionKey;
@@ -34,21 +37,34 @@ type ContentCollectionKey = 'mixes' | 'posts' | 'reviews';
 const RELEASE_COLLECTIONS = new Set<CollectionKey>(['mixes', 'reviews']);
 
 // Projects a path string for the image; the card does the lazy astro:assets lookup
-export function toContentItem(collection: CollectionKey, entry: ContentDoc): ContentItem {
+export async function toContentItem(
+	collection: CollectionKey,
+	entry: ContentDoc,
+): Promise<ContentItem> {
 	return {
 		collection,
 		date: entry.data.dateCreated,
 		id: entry.id,
 		image: entry.data.imageFeatured,
-		subtitle: releaseSubtitle(collection, entry),
+		subtitle: await metaLine(collection, entry),
 		title: entry.data.title,
 		url: getContentUrl(collection, entry.id),
 	};
 }
 
+async function metaLine(collection: CollectionKey, entry: ContentDoc): Promise<string | undefined> {
+	const refs = await resolveRefs('labels', entry.data.labels);
+	const labels = refs.map((ref) => ref.label).join(' / ');
+	const year = releaseYear(collection, entry);
+
+	if (labels === '') return year;
+
+	return year === undefined ? labels : `${labels}, ${year}`;
+}
+
 // Mixes no longer carry releaseYear; it always matched dateCreated's year
 // Reviews keep theirs, since a release can predate its review by years
-function releaseSubtitle(collection: CollectionKey, entry: ContentDoc): string | undefined {
+function releaseYear(collection: CollectionKey, entry: ContentDoc): string | undefined {
 	if (!RELEASE_COLLECTIONS.has(collection)) return undefined;
 	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
 }
@@ -67,7 +83,7 @@ export function getContentItems(collection: ContentCollectionKey): Promise<Array
 
 async function buildContentItems(collection: ContentCollectionKey): Promise<Array<ContentItem>> {
 	const entries = await getCollection(collection);
-	return entries
-		.map((entry) => toContentItem(collection, entry))
-		.sort((first, second) => second.date.getTime() - first.date.getTime());
+	const items = await Promise.all(entries.map((entry) => toContentItem(collection, entry)));
+
+	return items.sort((first, second) => second.date.getTime() - first.date.getTime());
 }

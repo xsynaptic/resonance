@@ -37,6 +37,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 	labels={labelTerms}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	releaseTitle={title}
+	styles={styleTerms}
 	title={entry.data.title}
 	{...artist ? { artist } : {}}
 	{...imageFeatured ? { image: imageFeatured } : {}}
@@ -68,7 +69,6 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 				) : undefined
 			}
 			<TermLinks heading="Artists" terms={artistTerms} />
-			<TermLinks heading="Styles" terms={styleTerms} />
 			<TermLinks heading="Themes" terms={themeTerms} />
 		</div>
 	</Fragment>

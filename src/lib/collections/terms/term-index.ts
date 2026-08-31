@@ -12,22 +12,23 @@ import { labelIds } from '#lib/utils/terms.ts';
 
 export type TermIndex = Map<string, Array<ContentItem>>;
 
-// Add each entry to the index under every term it references via `getRefs`
-function collectByTerm<Entry extends ContentDoc>(
+async function collectByTerm<Entry extends ContentDoc>(
 	collection: CollectionKey,
 	entries: Array<Entry>,
 	getRefs: (entry: Entry) => Array<{ id: string }> | undefined,
 	index: TermIndex,
-): void {
+): Promise<void> {
 	for (const entry of entries) {
 		const refs = getRefs(entry);
 
-		if (refs) {
-			for (const ref of refs) {
-				const list = index.get(ref.id) ?? [];
-				list.push(toContentItem(collection, entry));
-				index.set(ref.id, list);
-			}
+		if (!refs || refs.length === 0) continue;
+
+		const item = await toContentItem(collection, entry);
+
+		for (const ref of refs) {
+			const list = index.get(ref.id) ?? [];
+			list.push(item);
+			index.set(ref.id, list);
 		}
 	}
 }
@@ -43,7 +44,6 @@ function dedupeById(items: Array<ContentItem>): Array<ContentItem> {
 	return out;
 }
 
-// Memoized index factory: collect into a fresh map, then finalize
 // Flat term collections date-sort (the default); hierarchical ones pass `rollUpHierarchy`
 function makeTermIndex(
 	collect: (index: TermIndex) => Promise<void>,
@@ -62,7 +62,6 @@ function makeTermIndex(
 	};
 }
 
-// Fold each term's descendants' entries into its bucket, deduped and date-sorted
 // A parent's page (e.g. /regions/africa/) then shows everything below it, not just direct tags
 async function rollUpHierarchy(
 	base: TermIndex,
@@ -92,9 +91,9 @@ export const getLabelsIndex = makeTermIndex(
 			getCollection('reviews'),
 			getCollection('posts'),
 		]);
-		collectByTerm('mixes', mixes, (entry) => labelIdRefs(entry.data.labels), index);
-		collectByTerm('reviews', reviews, (entry) => labelIdRefs(entry.data.labels), index);
-		collectByTerm('posts', posts, (entry) => labelIdRefs(entry.data.labels), index);
+		await collectByTerm('mixes', mixes, (entry) => labelIdRefs(entry.data.labels), index);
+		await collectByTerm('reviews', reviews, (entry) => labelIdRefs(entry.data.labels), index);
+		await collectByTerm('posts', posts, (entry) => labelIdRefs(entry.data.labels), index);
 	},
 	(index) => rollUpHierarchy(index, 'labels'),
 );
@@ -109,7 +108,6 @@ function artistIdRefs(artists: Array<RefValue> | undefined): Array<{ id: string 
 	return refs;
 }
 
-// Adapt the unified labels array to the {id} reference shape collectByTerm expects
 function labelIdRefs(labels: Parameters<typeof labelIds>[0]): Array<{ id: string }> {
 	return labelIds(labels).map((id) => ({ id }));
 }
@@ -121,9 +119,14 @@ export const getArtistsIndex = makeTermIndex(async (index) => {
 		getCollection('reviews'),
 		getCollection('posts'),
 	]);
-	collectByTerm('mixes', mixes, (entry) => (entry.data.alias ? [entry.data.alias] : []), index);
-	collectByTerm('reviews', reviews, (entry) => artistIdRefs(entry.data.artists), index);
-	collectByTerm('posts', posts, (entry) => artistIdRefs(entry.data.artists), index);
+	await collectByTerm(
+		'mixes',
+		mixes,
+		(entry) => (entry.data.alias ? [entry.data.alias] : []),
+		index,
+	);
+	await collectByTerm('reviews', reviews, (entry) => artistIdRefs(entry.data.artists), index);
+	await collectByTerm('posts', posts, (entry) => artistIdRefs(entry.data.artists), index);
 });
 
 export const getRegionsIndex = makeTermIndex(
@@ -133,9 +136,9 @@ export const getRegionsIndex = makeTermIndex(
 			getCollection('reviews'),
 			getCollection('posts'),
 		]);
-		collectByTerm('mixes', mixes, (entry) => entry.data.regions, index);
-		collectByTerm('reviews', reviews, (entry) => entry.data.regions, index);
-		collectByTerm('posts', posts, (entry) => entry.data.regions, index);
+		await collectByTerm('mixes', mixes, (entry) => entry.data.regions, index);
+		await collectByTerm('reviews', reviews, (entry) => entry.data.regions, index);
+		await collectByTerm('posts', posts, (entry) => entry.data.regions, index);
 	},
 	(index) => rollUpHierarchy(index, 'regions'),
 );
@@ -176,7 +179,9 @@ async function buildSeriesMemberCatalog(): Promise<Map<string, ContentItem>> {
 	for (const collection of SERIES_MEMBER_COLLECTIONS) {
 		const entries = await getCollection(collection);
 		for (const entry of entries) {
-			if (!membersById.has(entry.id)) membersById.set(entry.id, toContentItem(collection, entry));
+			if (!membersById.has(entry.id)) {
+				membersById.set(entry.id, await toContentItem(collection, entry));
+			}
 		}
 	}
 	return membersById;
@@ -189,9 +194,9 @@ export const getStylesIndex = makeTermIndex(
 			getCollection('reviews'),
 			getCollection('posts'),
 		]);
-		collectByTerm('mixes', mixes, (entry) => entry.data.styles, index);
-		collectByTerm('reviews', reviews, (entry) => entry.data.styles, index);
-		collectByTerm('posts', posts, (entry) => entry.data.styles, index);
+		await collectByTerm('mixes', mixes, (entry) => entry.data.styles, index);
+		await collectByTerm('reviews', reviews, (entry) => entry.data.styles, index);
+		await collectByTerm('posts', posts, (entry) => entry.data.styles, index);
 	},
 	(index) => rollUpHierarchy(index, 'styles'),
 );
@@ -199,7 +204,12 @@ export const getStylesIndex = makeTermIndex(
 // Formats are a post-only vocabulary; a post carries at most one format
 export const getFormatsIndex = makeTermIndex(async (index) => {
 	const posts = await getCollection('posts');
-	collectByTerm('posts', posts, (entry) => (entry.data.format ? [entry.data.format] : []), index);
+	await collectByTerm(
+		'posts',
+		posts,
+		(entry) => (entry.data.format ? [entry.data.format] : []),
+		index,
+	);
 });
 
 export const getThemesIndex = makeTermIndex(async (index) => {
@@ -208,9 +218,9 @@ export const getThemesIndex = makeTermIndex(async (index) => {
 		getCollection('reviews'),
 		getCollection('posts'),
 	]);
-	collectByTerm('mixes', mixes, (entry) => entry.data.themes, index);
-	collectByTerm('reviews', reviews, (entry) => entry.data.themes, index);
-	collectByTerm('posts', posts, (entry) => entry.data.themes, index);
+	await collectByTerm('mixes', mixes, (entry) => entry.data.themes, index);
+	await collectByTerm('reviews', reviews, (entry) => entry.data.themes, index);
+	await collectByTerm('posts', posts, (entry) => entry.data.themes, index);
 });
 
 export const getErasIndex = makeTermIndex(
@@ -220,9 +230,9 @@ export const getErasIndex = makeTermIndex(
 			getCollection('reviews'),
 			getCollection('posts'),
 		]);
-		collectByTerm('mixes', mixes, (entry) => entry.data.eras, index);
-		collectByTerm('reviews', reviews, (entry) => entry.data.eras, index);
-		collectByTerm('posts', posts, (entry) => entry.data.eras, index);
+		await collectByTerm('mixes', mixes, (entry) => entry.data.eras, index);
+		await collectByTerm('reviews', reviews, (entry) => entry.data.eras, index);
+		await collectByTerm('posts', posts, (entry) => entry.data.eras, index);
 	},
 	(index) => rollUpHierarchy(index, 'eras'),
 );

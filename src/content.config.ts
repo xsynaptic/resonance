@@ -17,7 +17,6 @@ import {
 	themeSchema,
 } from '#lib/schemas/terms.ts';
 
-// Draft `_slug.mdx` files are excluded by the `[^_]` glob; ID is the bare filename slug
 function collectionLoader(name: string) {
 	return glob({
 		base: `${CONTENT_COLLECTIONS_PATH}/${name}`,

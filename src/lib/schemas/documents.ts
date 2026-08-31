@@ -2,12 +2,12 @@ import { reference } from 'astro:content';
 import { z } from 'zod';
 
 import { contentBaseSchema, termFields } from '#lib/schemas/index.ts';
-import { listFields } from '#lib/schemas/lists.ts';
+import { selectionFields } from '#lib/schemas/selections.ts';
 
 export const pageSchema = z
 	.object({
 		...contentBaseSchema,
-		...listFields,
+		...selectionFields,
 		menuOrder: z.number().optional(),
 		parent: reference('pages').optional(),
 	})
@@ -18,7 +18,7 @@ export const postSchema = z
 	.object({
 		...contentBaseSchema,
 		...termFields,
-		...listFields,
+		...selectionFields,
 		format: reference('formats').optional(),
 	})
 	.strict();

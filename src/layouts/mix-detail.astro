@@ -41,6 +41,7 @@ const [alias] = aliasTerms;
 	labels={labelTerms}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	releaseTitle={entry.data.title}
+	styles={styleTerms}
 	title={entry.data.title}
 	{...alias ? { artist: alias } : {}}
 	{...entry.data.imageFeatured ? { image: entry.data.imageFeatured } : {}}
@@ -52,17 +53,15 @@ const [alias] = aliasTerms;
 		slot="media"
 		soundcloudEmbed={entry.data.soundcloudEmbed}
 	/>
+	<AudioLinks
+		downloadCounts={downloadCounts}
+		files={entry.data.files}
+		links={entry.data.links}
+		slot="links"
+		{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
+	/>
 	<Fragment slot="sections">
-		<AudioLinks
-			downloadCounts={downloadCounts}
-			files={entry.data.files}
-			links={entry.data.links}
-			{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
-		/>
-		<div class="mt-8 space-y-2">
-			<TermLinks heading="Styles" terms={styleTerms} />
-			<TermLinks heading="Themes" terms={themeTerms} />
-		</div>
+		<TermLinks heading="Themes" terms={themeTerms} />
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
 </ReleaseDetail>

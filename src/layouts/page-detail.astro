@@ -18,6 +18,7 @@ const { Content } = await render(entry);
 <ContentDetail
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	title={entry.data.title}
+	{...entry.data.imageHero ? { imageHero: entry.data.imageHero } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />

@@ -1,0 +1,25 @@
+---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
+import MediaImage from '#components/parts/media-image.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+
+interface Props {
+	date?: Date | undefined;
+	kind?: ResolvedRef | undefined;
+	path: string;
+	styles?: Array<ResolvedRef> | undefined;
+	title: string;
+}
+
+const { date, kind, path, styles, title } = Astro.props;
+---
+
+<div class="hero">
+	<MediaImage alt={title} layout="none" path={path} priority sizes="100vw" width={1600} />
+	<div class="hero-overlay">
+		<div class="content-wide">
+			<SectionDetailHeader date={date} kind={kind} styles={styles} title={title} />
+		</div>
+	</div>
+</div>

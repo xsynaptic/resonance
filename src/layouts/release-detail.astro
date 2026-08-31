@@ -3,7 +3,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
-import SectionReleaseHeader from '#components/sections/section-release-header.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
@@ -17,6 +17,7 @@ interface Props {
 	// The title half of the split heading; equals `title` when there is no artist prefix to split off
 	releaseTitle: string;
 	releaseYear?: string | undefined;
+	styles?: Array<ResolvedRef> | undefined;
 	title: string;
 }
 
@@ -30,10 +31,12 @@ const {
 	openGraphId,
 	releaseTitle,
 	releaseYear,
+	styles,
 	title,
 } = Astro.props;
 
 const media = await renderSlot(Astro.slots, 'media');
+const links = await renderSlot(Astro.slots, 'links');
 const body = await renderSlot(Astro.slots, 'default');
 const sections = await renderSlot(Astro.slots, 'sections');
 ---
@@ -45,12 +48,14 @@ const sections = await renderSlot(Astro.slots, 'sections');
 	{...description ? { description } : {}}
 >
 	<article>
-		<SectionReleaseHeader
+		<SectionDetailHeader
 			date={date}
 			kind={kind}
 			labels={labels}
 			releaseTitle={releaseTitle}
 			releaseYear={releaseYear}
+			styles={styles}
+			title={title}
 			{...artist ? { artist } : {}}
 		/>
 		<div class="release-grid mt-10">
@@ -64,8 +69,15 @@ const sections = await renderSlot(Astro.slots, 'sections');
 			<div class="release-body">
 				{
 					media ? (
-						<div class="mb-8">
+						<div class="mb-4">
 							<Fragment set:html={media} />
+						</div>
+					) : undefined
+				}
+				{
+					links ? (
+						<div class="mb-8">
+							<Fragment set:html={links} />
 						</div>
 					) : undefined
 				}

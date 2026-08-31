@@ -1,4 +1,3 @@
-// Progressive-enhancement dropdown pagination
 // No JS: prev/next links and the "Page X of Y" counter work, the empty form stays hidden
 // With JS: the <select> is filled from data attributes, the form revealed, the counter hidden
 // Navigation commits only on the Go submit, never on change, so keyboard browsing stays safe

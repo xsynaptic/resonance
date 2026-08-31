@@ -1,5 +1,5 @@
 ---
-// The "read more" boundary; the full entry renders, so this only leaves a `#more` anchor
+import { CONTENT_EXCERPT_MARKER } from '#constants.ts';
 ---
 
-<span hidden id="more"></span>
+<Fragment set:html={CONTENT_EXCERPT_MARKER} />

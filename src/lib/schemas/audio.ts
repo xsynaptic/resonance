@@ -11,7 +11,6 @@ const TimestampSchema = z.string().regex(/^\d{2}:[0-5]\d:[0-5]\d(\.\d{1,2})?$/, 
 	message: 'Use HH:MM:SS or HH:MM:SS.dd, with minutes and seconds under 60',
 });
 
-// Only the per-track fields that actually carry data
 // Flat and short-keyed for hand-editing; `year`/`timestamp` stay strings (verbatim, e.g. "00:07:51")
 // Ref fields are polymorphic, matching top-level artists/labels: bare string is free text, {id} links
 // One schema serves a mix and a release tracklist; which optionals are filled is the only difference
@@ -33,7 +32,6 @@ const TrackSchema = z
 
 export type TrackValue = z.infer<typeof TrackSchema>;
 
-// Audio-only release metadata for mixes and reviews
 // One unified `releaseType` enum spans both (mix-live/mix-studio vs standard/compilation/album/remixes)
 // Series membership lives on the series entry
 const audioFields = {

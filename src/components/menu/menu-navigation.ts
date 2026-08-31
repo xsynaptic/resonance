@@ -358,7 +358,6 @@ class NavMenu extends HTMLElement {
 	}
 
 	#injectAria() {
-		// Root <ul> becomes menubar
 		const menubar = this.querySelector<HTMLElement>(':scope > nav > ul');
 
 		if (!menubar) return;

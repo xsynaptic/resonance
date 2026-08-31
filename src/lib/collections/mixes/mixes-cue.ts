@@ -35,7 +35,7 @@ export async function getMixCueSheets(
 	}));
 }
 
-// The presence of timestamps is the whole gate: WP's opt-in checkbox was set on every mix that had them
+// The presence of timestamps is the whole gate
 // Shared by the endpoint and the layout so the two cannot disagree about which mixes offer a download
 export function hasMixTimestamps(entry: CollectionEntry<'mixes'>): boolean {
 	return entry.data.tracks?.some((track) => track.timestamp !== undefined) ?? false;

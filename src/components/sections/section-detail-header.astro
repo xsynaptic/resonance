@@ -1,0 +1,81 @@
+---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
+import RefList from '#components/parts/ref-list.astro';
+import RefText from '#components/parts/ref-text.astro';
+import { formatDate } from '#lib/utils/date.ts';
+
+// `releaseTitle` marks the title as a work, which splits the artist off and italicises the rest
+interface Props {
+	artist?: ResolvedRef | undefined;
+	date?: Date | undefined;
+	kind?: ResolvedRef | undefined;
+	labels?: Array<ResolvedRef> | undefined;
+	releaseTitle?: string | undefined;
+	releaseYear?: string | undefined;
+	styles?: Array<ResolvedRef> | undefined;
+	title: string;
+}
+
+const { artist, date, kind, labels, releaseTitle, releaseYear, styles, title } = Astro.props;
+
+const styleTerms = styles ?? [];
+const releaseLabels = labels ?? [];
+const hasRelease = Boolean(releaseYear) || releaseLabels.length > 0;
+const releaseLead = releaseLabels.length > 0 ? 'Released by: ' : 'Released: ';
+const releaseYearText =
+	releaseYear && releaseLabels.length > 0 ? `, ${releaseYear}` : (releaseYear ?? '');
+---
+
+<header>
+	{
+		styleTerms.length > 0 ? (
+			<div class="title-above">
+				{styleTerms.map((term) => (
+					<RefText label={term.label} url={term.url} />
+				))}
+			</div>
+		) : undefined
+	}
+	<h1 class="title-main">
+		{
+			releaseTitle ? (
+				<Fragment>
+					{artist ? (
+						<Fragment>
+							<RefText label={artist.label} url={artist.url} />
+							<span class="title-divider"> - </span>
+						</Fragment>
+					) : undefined}
+					{/* Work titles are italicized, and sit a weight below the artist half */}
+					<span class="font-semibold italic">{releaseTitle}</span>
+				</Fragment>
+			) : (
+				title
+			)
+		}
+	</h1>
+	{
+		kind || hasRelease || date ? (
+			<div class="title-below">
+				{kind ? (
+					<span class="title-kind">
+						<RefText label={kind.label} url={kind.url} />
+					</span>
+				) : undefined}
+				{hasRelease ? (
+					<span>
+						{releaseLead}
+						<RefList refs={releaseLabels} />
+						{releaseYearText}
+					</span>
+				) : undefined}
+				{date ? (
+					<span>
+						Posted: <time datetime={date.toISOString()}>{formatDate(date)}</time>
+					</span>
+				) : undefined}
+			</div>
+		) : undefined
+	}
+</header>

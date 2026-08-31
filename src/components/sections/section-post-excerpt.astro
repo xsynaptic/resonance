@@ -1,0 +1,52 @@
+---
+import type { ResolvedRef } from '#lib/utils/terms.ts';
+
+import RefText from '#components/parts/ref-text.astro';
+import { CONTENT_EXCERPT_MARKER } from '#constants.ts';
+import { renderSlot } from '#lib/utils/astro.ts';
+import { formatDate } from '#lib/utils/date.ts';
+
+interface Props {
+	date: Date;
+	format?: ResolvedRef | undefined;
+	href: string;
+	title: string;
+}
+
+const { date, format, href, title } = Astro.props;
+
+const body = await renderSlot(Astro.slots);
+const [excerpt, ...remainder] = body?.split(CONTENT_EXCERPT_MARKER) ?? [];
+
+const isTruncated = remainder.length > 0;
+---
+
+<article class="mb-16">
+	<header class="mb-6">
+		<h2 class="title-main"><a href={href}>{title}</a></h2>
+		<div class="title-below">
+			{
+				format ? (
+					<span class="title-kind">
+						<RefText label={format.label} url={format.url} />
+					</span>
+				) : undefined
+			}
+			<span>
+				Posted: <time datetime={date.toISOString()}>{formatDate(date)}</time>
+			</span>
+		</div>
+	</header>
+	<div class="prose-x">
+		<Fragment set:html={excerpt} />
+	</div>
+	{
+		isTruncated ? (
+			<p class="mt-6">
+				<a class="text-highlight-500 hover:text-highlight-400" href={href}>
+					Continue reading &rsaquo;
+				</a>
+			</p>
+		) : undefined
+	}
+</article>

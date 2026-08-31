@@ -1,11 +1,25 @@
 ---
 import MenuHeader from '#components/menu/menu-header.astro';
 import Search from '#components/search/search.astro';
+import { zIndexScaleEnum } from '#components/types.ts';
 import { site } from '#lib/site.ts';
+
+interface Props {
+	hero?: boolean;
+}
+
+const { hero = false } = Astro.props;
 ---
 
 <header
-	class="maze bg-surface-700 bg-linear-to-t from-surface-800 to-transparent [--pattern-color:var(--color-surface-500)]"
+	class:list={[
+		'maze relative bg-surface-700 bg-linear-to-t from-surface-800 to-transparent',
+		'[--pattern-color:var(--color-surface-500)]',
+		hero
+			? 'md:absolute md:inset-x-0 md:top-0 md:bg-transparent md:bg-linear-to-b md:from-surface-600/90 md:to-surface-600/70 md:[--pattern-opacity:0]'
+			: undefined,
+	]}
+	style={{ zIndex: zIndexScaleEnum.MainHeader }}
 >
 	<div class="content-wide flex flex-wrap items-center gap-x-8 gap-y-2 pt-8 pb-6">
 		<a

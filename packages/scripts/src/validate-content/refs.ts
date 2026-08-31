@@ -13,7 +13,7 @@ const TOP_LEVEL_REF_FIELDS = {
 } as const;
 
 const NESTED_REF_FIELDS = {
-	listItems: { labels: 'labels' },
+	selections: { artist: 'artists', labels: 'labels' },
 	tracks: { artists: 'artists', labels: 'labels', mixArtists: 'artists' },
 } as const;
 

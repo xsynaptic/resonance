@@ -2,17 +2,20 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import { formatDate } from '#lib/utils/date.ts';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 
 interface Props {
 	date?: Date | undefined;
 	description?: string | undefined;
+	imageHero?: string | undefined;
 	kind?: ResolvedRef | undefined;
 	openGraphId: string;
+	styles?: Array<ResolvedRef> | undefined;
 	title: string;
 }
 
-const { date, description, kind, openGraphId, title } = Astro.props;
+const { date, description, imageHero, kind, openGraphId, styles, title } = Astro.props;
 ---
 
 <MainSite
@@ -21,28 +24,26 @@ const { date, description, kind, openGraphId, title } = Astro.props;
 	title={title}
 	{...description ? { description } : {}}
 >
+	{
+		imageHero ? (
+			<SectionDetailHero
+				date={date}
+				kind={kind}
+				path={imageHero}
+				slot="hero"
+				styles={styles}
+				title={title}
+			/>
+		) : undefined
+	}
 	<article>
-		<header class="mb-10 content-measure">
-			<h1 class="text-4xl">{title}</h1>
-			{
-				kind || date ? (
-					<div class="meta-row mt-3">
-						{kind ? (
-							<span>
-								<a class="text-highlight-400 hover:text-highlight-300" href={kind.url}>
-									{kind.label}
-								</a>
-							</span>
-						) : undefined}
-						{date ? (
-							<span>
-								Posted: <time datetime={date.toISOString()}>{formatDate(date)}</time>
-							</span>
-						) : undefined}
-					</div>
-				) : undefined
-			}
-		</header>
+		{
+			imageHero ? undefined : (
+				<div class="mb-10 content-measure">
+					<SectionDetailHeader date={date} kind={kind} styles={styles} title={title} />
+				</div>
+			)
+		}
 		<div class="prose-x">
 			<slot />
 		</div>

@@ -1,0 +1,48 @@
+---
+import type { SelectionValue } from '#lib/schemas/selections.ts';
+
+import Selection from '#components/parts/selection.astro';
+import { resolveSelections } from '#lib/collections/selections/selections-resolve.ts';
+
+interface Props {
+	items?: Array<SelectionValue> | undefined;
+	order?: 'countdown' | 'ordered' | 'unordered' | undefined;
+}
+
+const { items, order = 'unordered' } = Astro.props;
+
+const isOrdered = order === 'ordered' || order === 'countdown';
+const Tag = isOrdered ? 'ol' : 'ul';
+
+const selections = await resolveSelections(items ?? []);
+
+// A countdown is authored best-first but revealed best-last, so it reverses and counts N down to 1
+const ordered = order === 'countdown' ? selections.toReversed() : selections;
+
+function rankOf(index: number): number | undefined {
+	if (!isOrdered) return undefined;
+
+	return order === 'countdown' ? ordered.length - index : index + 1;
+}
+
+const rows = ordered.map((selection, index) => ({
+	Body: selection.Content,
+	rank: rankOf(index),
+	selection,
+}));
+---
+
+{
+	rows.length > 0 ? (
+		<Tag class="selections" {...(order === 'countdown' ? { reversed: true } : {})}>
+			{rows.map(({ Body, rank, selection }) => (
+				<Selection rank={rank} selection={selection}>
+					{selection.descriptionHtml ? (
+						<Fragment set:html={selection.descriptionHtml} />
+					) : undefined}
+					{Body ? <Body /> : undefined}
+				</Selection>
+			))}
+		</Tag>
+	) : undefined
+}

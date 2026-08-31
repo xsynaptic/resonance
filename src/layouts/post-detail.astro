@@ -20,6 +20,7 @@ const formatTerms = await resolveTermLinks(
 	'formats',
 	entry.data.format ? [entry.data.format] : undefined,
 );
+const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 ---
@@ -28,7 +29,9 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 	date={entry.data.dateCreated}
 	kind={{ label: 'Blog', url: '/blog/' }}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
+	styles={styleTerms}
 	title={entry.data.title}
+	{...entry.data.imageHero ? { imageHero: entry.data.imageHero } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />

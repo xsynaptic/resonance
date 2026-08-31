@@ -10,7 +10,6 @@ interface Props {
 
 const { mini = false, url } = Astro.props;
 
-// The widget takes the show path as a URL-encoded `feed` parameter
 // Fail soft on a malformed URL so one bad value can't abort the build, matching other resolvers
 let feed: string | undefined;
 try {

@@ -1,0 +1,47 @@
+---
+import type { Page } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+
+import { render } from 'astro:content';
+
+import MainSite from '#components/main/main-site.astro';
+import PaginationSelect from '#components/parts/pagination-select.astro';
+import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
+import { getContentUrl } from '#lib/utils/routing.ts';
+import { resolveTermLinks } from '#lib/utils/terms.ts';
+
+interface Props {
+	page: Page<CollectionEntry<'posts'>>;
+	title: string;
+}
+
+const { page, title } = Astro.props;
+
+const posts = await Promise.all(
+	page.data.map(async (entry) => {
+		const [{ Content }, formats] = await Promise.all([
+			render(entry),
+			resolveTermLinks('formats', entry.data.format ? [entry.data.format] : undefined),
+		]);
+
+		return { Content, entry, format: formats.at(0) };
+	}),
+);
+---
+
+<MainSite title={title}>
+	<h1 class="mb-10 text-4xl">{title}</h1>
+	{
+		posts.map(({ Content, entry, format }) => (
+			<SectionPostExcerpt
+				date={entry.data.dateCreated}
+				href={getContentUrl('posts', entry.id)}
+				title={entry.data.title}
+				{...(format ? { format } : {})}
+			>
+				<Content />
+			</SectionPostExcerpt>
+		))
+	}
+	<PaginationSelect class="mt-8" page={page} />
+</MainSite>

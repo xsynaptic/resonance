@@ -80,13 +80,13 @@ describe('collectRefIssues', () => {
 	test('reaches into a list item', () => {
 		const entries = [
 			makeEntry({
-				data: { listItems: [{ labels: [{ id: 'nowhere' }], title: 'X' }] },
+				data: { selections: [{ labels: [{ id: 'nowhere' }], title: 'X' }] },
 				id: 'a-post',
 			}),
 		];
 
 		expect(collectRefIssues(entries, catalog)).toEqual([
-			{ collection: 'labels', field: 'listItems[0].labels', id: 'nowhere', location: 'a-post' },
+			{ collection: 'labels', field: 'selections[0].labels', id: 'nowhere', location: 'a-post' },
 		]);
 	});
 

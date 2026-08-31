@@ -19,3 +19,13 @@ export async function toExcerpt(markdown: string, maxLength = 160): Promise<stri
 	if (text.length <= maxLength) return text;
 	return `${text.slice(0, maxLength).replace(/\s+\S*$/, '')}…`;
 }
+
+// Name to slug, matching the extractor's rule so a free-text name lines up with a term's id
+export function toSlug(input: string): string {
+	return input
+		.toLowerCase()
+		.normalize('NFKD')
+		.replaceAll(/[\u{300}-\u{36F}]/gu, '')
+		.replaceAll(/[^a-z0-9]+/gu, '-')
+		.replaceAll(/^-+|-+$/gu, '');
+}

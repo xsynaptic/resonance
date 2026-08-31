@@ -7,7 +7,6 @@ interface Props {
 
 const { url } = Astro.props;
 
-// Player tweaks: mini, no artwork, taller for sets
 const isSet = url.includes('/sets/');
 const params = new URLSearchParams({
 	color: 'a6dd47',

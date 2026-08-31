@@ -1,0 +1,110 @@
+---
+import type { ResolvedSelection } from '#lib/collections/selections/selections-resolve.ts';
+
+import ButtonLink from '#components/parts/button-link.astro';
+import MediaImage from '#components/parts/media-image.astro';
+import RefList from '#components/parts/ref-list.astro';
+import RefText from '#components/parts/ref-text.astro';
+import { renderSlot } from '#lib/utils/astro.ts';
+
+interface Props {
+	rank?: number | undefined;
+	selection: ResolvedSelection;
+}
+
+interface SelectionLink {
+	href: string;
+	icon?: string | undefined;
+	label: string;
+}
+
+const { rank, selection } = Astro.props;
+const {
+	anchor,
+	artist,
+	href,
+	imagePath,
+	labels,
+	linkDiscogs,
+	linkSource,
+	linkYoutube,
+	title,
+	year,
+} = selection;
+
+function getSourceLabel(url: string): string {
+	const host = new URL(url).hostname.replace(/^www\./, '');
+	const name = host.split('.').at(-2) ?? host;
+
+	return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+const links: Array<SelectionLink> = [];
+
+if (linkSource)
+	links.push({ href: linkSource, icon: 'download', label: getSourceLabel(linkSource) });
+if (linkDiscogs) links.push({ href: linkDiscogs, label: 'Discogs' });
+if (linkYoutube) links.push({ href: linkYoutube, icon: 'youtube', label: 'YouTube' });
+
+const body = await renderSlot(Astro.slots);
+
+// A row carrying prose takes a heading and the wider spacing; a bare credits line stays tight
+const hasProse = body !== undefined;
+const Heading = hasProse ? 'h3' : 'div';
+
+const hasMeta = labels.length > 0 || Boolean(year);
+const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
+---
+
+<li class:list={['selection', hasProse && 'selection-prose']} id={anchor}>
+	{
+		imagePath ? (
+			<figure class="selection-thumb">
+				<MediaImage
+					alt={title}
+					class="rounded-sm"
+					path={imagePath}
+					sizes="(width >= 950px) 360px, (width >= 550px) 40vw, 100vw"
+					width={360}
+				/>
+			</figure>
+		) : undefined
+	}
+	<Heading class="selection-header">
+		{rank ? <span class="selection-rank">{rank}</span> : undefined}
+		<span class="selection-title-line">
+			{
+				artist ? (
+					<Fragment>
+						<RefText class="selection-artist" label={artist.label} url={artist.url} />
+						<span class="selection-divider"> - </span>
+					</Fragment>
+				) : undefined
+			}
+			<span class="selection-title">
+				{href ? <a href={href}>{title}</a> : title}
+			</span>
+		</span>
+	</Heading>
+	{
+		hasMeta ? (
+			<div class="selection-meta">
+				<RefList refs={labels} />
+				{yearText}
+			</div>
+		) : undefined
+	}
+	{body ? <div class="selection-description" set:html={body} /> : undefined}
+	{
+		links.length > 0 ? (
+			<div class="selection-links">
+				<span class="selection-links-lead">Links:</span>
+				{links.map((link) => (
+					<ButtonLink href={link.href} variant="small" {...(link.icon ? { icon: link.icon } : {})}>
+						{link.label}
+					</ButtonLink>
+				))}
+			</div>
+		) : undefined
+	}
+</li>

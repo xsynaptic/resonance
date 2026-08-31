@@ -33,7 +33,7 @@ export default defineConfig({
 			name: 'Archivo',
 			provider: fontProviders.fontsource(),
 			styles: ['normal', 'italic'],
-			weights: [400, 500, 700],
+			weights: ['400 700'],
 		},
 		{
 			cssVariable: '--font-fira-sans',
@@ -59,8 +59,8 @@ export default defineConfig({
 							'./src/components/mdx/img-group.astro': [['default', 'ImgGroup']],
 							'./src/components/mdx/img.astro': [['default', 'Img']],
 							'./src/components/mdx/link.astro': [['default', 'Link']],
-							'./src/components/mdx/list.astro': [['default', 'List']],
 							'./src/components/mdx/more.astro': [['default', 'More']],
+							'./src/components/mdx/selections.astro': [['default', 'Selections']],
 							'./src/components/mdx/track-list.astro': [['default', 'TrackList']],
 						},
 					],

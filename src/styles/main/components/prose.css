@@ -19,6 +19,10 @@
 		margin-bottom: 0;
 	}
 
+	& > :where(img, .img-group) {
+		margin-block: calc(var(--spacing) * 6);
+	}
+
 	& :where(h1) {
 		margin-top: 0;
 		margin-bottom: calc(var(--spacing) * 3);
@@ -156,10 +160,4 @@
 	& :where(hr + *) {
 		margin-top: 0;
 	}
-}
-
-/* Compact size variant; body shrinks but rem-based margins stay constant */
-.prose-compact {
-	font-size: 0.875rem;
-	line-height: 1.7;
 }

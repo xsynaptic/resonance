@@ -1,0 +1,26 @@
+.release-grid {
+	display: grid;
+	row-gap: calc(var(--spacing) * 8);
+}
+
+@media (width >= 950px) {
+	.release-grid {
+		grid-template-areas:
+			'body cover'
+			'footer footer';
+		grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
+		column-gap: calc(var(--spacing) * 10);
+	}
+
+	.release-body {
+		grid-area: body;
+	}
+
+	.release-cover {
+		grid-area: cover;
+	}
+
+	.release-footer {
+		grid-area: footer;
+	}
+}

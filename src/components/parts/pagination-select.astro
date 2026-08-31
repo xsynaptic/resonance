@@ -2,6 +2,8 @@
 import type { Page } from 'astro';
 import type { HTMLAttributes } from 'astro/types';
 
+import Anchor from '#components/parts/anchor.astro';
+
 interface Props extends HTMLAttributes<'nav'> {
 	page: Page;
 }
@@ -41,12 +43,12 @@ const pageBasePath = `${
 						<span class="relative inline-flex items-center">
 							<select
 								aria-label="Go to page"
-								class="p-control rounded-sm border border-surface-600 bg-surface-800 py-1 pr-7 pl-2 text-ink-100 transition-colors hover:border-surface-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+								class="pg-control rounded-sm border border-surface-600 bg-surface-800 py-1 pr-7 pl-2 text-ink-100 transition-colors hover:border-surface-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 								data-pagination-control
 							/>
 							<span
 								aria-hidden="true"
-								class="p-arrow pointer-events-none absolute flex items-center text-highlight-500"
+								class="pg-arrow pointer-events-none absolute flex items-center text-highlight-500"
 							>
 								<svg
 									fill="none"
@@ -61,7 +63,7 @@ const pageBasePath = `${
 							</span>
 						</span>
 						<button
-							class="p-button ml-2 cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+							class="pg-button ml-2 cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 							data-pagination-submit
 							type="submit"
 						>
@@ -73,24 +75,16 @@ const pageBasePath = `${
 					{url.prev ? (
 						<span class="flex flex-wrap gap-1">
 							<span class="text-highlight-500 select-none">&lsaquo;</span>
-							<a
-								aria-label="Previous page"
-								class="text-highlight-500 transition-colors hover:text-highlight-400"
-								href={url.prev}
-							>
+							<Anchor aria-label="Previous page" href={url.prev}>
 								Previous
-							</a>
+							</Anchor>
 						</span>
 					) : undefined}
 					{url.next ? (
 						<span class="flex flex-wrap gap-1">
-							<a
-								aria-label="Next page"
-								class="text-highlight-500 transition-colors hover:text-highlight-400"
-								href={url.next}
-							>
+							<Anchor aria-label="Next page" href={url.next}>
 								Next
-							</a>
+							</Anchor>
 							<span class="text-highlight-500 select-none">&rsaquo;</span>
 						</span>
 					) : undefined}

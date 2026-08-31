@@ -1,6 +1,7 @@
 ---
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
+import Anchor from '#components/parts/anchor.astro';
 import RefText from '#components/parts/ref-text.astro';
 import { CONTENT_EXCERPT_MARKER } from '#constants.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
@@ -28,7 +29,7 @@ const isTruncated = remainder.length > 0;
 			{
 				format ? (
 					<span class="title-kind">
-						<RefText label={format.label} url={format.url} />
+						<RefText anchorColor="highlight" label={format.label} url={format.url} />
 					</span>
 				) : undefined
 			}
@@ -43,9 +44,7 @@ const isTruncated = remainder.length > 0;
 	{
 		isTruncated ? (
 			<p class="mt-6">
-				<a class="text-highlight-500 hover:text-highlight-400" href={href}>
-					Continue reading &rsaquo;
-				</a>
+				<Anchor href={href}>Continue reading &rsaquo;</Anchor>
 			</p>
 		) : undefined
 	}

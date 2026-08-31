@@ -1,0 +1,67 @@
+/* Hooks are title-*; the block is shared by section-detail-header and section-post-excerpt */
+
+/* The three sit on their own line boxes with no margins, which is what keeps the block tight */
+.title-above,
+.title-below {
+	display: flex;
+	flex-wrap: wrap;
+	column-gap: calc(var(--spacing) * 2);
+	font-size: var(--text-sm);
+	line-height: var(--leading-loose);
+}
+
+.title-above {
+	color: var(--color-highlight-500);
+}
+
+.title-main {
+	font-size: var(--text-4xl);
+	line-height: var(--text-4xl--line-height);
+}
+
+h2.title-main {
+	font-size: var(--text-3xl);
+	line-height: var(--text-3xl--line-height);
+}
+
+.title-divider {
+	font-weight: var(--font-weight-normal);
+	color: var(--color-ink-600);
+}
+
+.title-below {
+	color: var(--color-ink-600);
+}
+
+.title-kind {
+	font-weight: var(--font-weight-bold);
+}
+
+.title-above > * + *::before,
+.title-below > * + *::before {
+	margin-inline-end: calc(var(--spacing) * 2);
+	color: var(--color-ink-700);
+}
+
+.title-above > * + *::before {
+	content: var(--content-dot);
+}
+
+.title-below > * + *::before {
+	content: var(--content-slash);
+}
+
+.title-main a {
+	color: var(--color-ink-200);
+}
+
+.title-below :where(a) {
+	color: var(--color-ink-300);
+}
+
+.title-main a:hover,
+.title-main a:focus-visible,
+.title-below :where(a):hover,
+.title-below :where(a):focus-visible {
+	color: var(--color-ink-50);
+}

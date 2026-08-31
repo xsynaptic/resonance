@@ -18,7 +18,7 @@ const { class: className, icon, variant = 'standard', ...props } = Astro.props;
 
 <a
 	class:list={[
-		'group inline-flex items-center rounded-[3px] bg-surface-400 font-bold text-ink-200 transition-colors hover:bg-surface-300 hover:text-ink-100',
+		'group inline-flex items-center rounded-[3px] bg-surface-400 font-bold text-ink-200 transition-colors hover:bg-surface-300 hover:text-ink-100 focus-visible:bg-surface-300 focus-visible:text-ink-100',
 		buttonVariants[variant],
 		className,
 	]}
@@ -28,7 +28,7 @@ const { class: className, icon, variant = 'standard', ...props } = Astro.props;
 		icon ? (
 			<svg
 				aria-hidden="true"
-				class="size-4 shrink-0 text-highlight-400 transition-colors group-hover:text-highlight-300"
+				class="size-4 shrink-0 text-highlight-400 transition-colors group-hover:text-highlight-300 group-focus-visible:text-highlight-300"
 			>
 				<use href={`#icon:${icon}`} />
 			</svg>

@@ -3,6 +3,7 @@ import type { HTMLAttributes } from 'astro/types';
 
 import { menuFooterItems } from '#components/menu/menu-footer.ts';
 import { isActiveMenuPath } from '#components/menu/menu-utils.ts';
+import Anchor from '#components/parts/anchor.astro';
 
 type Props = HTMLAttributes<'nav'>;
 
@@ -17,13 +18,13 @@ const { pathname } = Astro.url;
 		{
 			menuFooterItems.map((item) => (
 				<li>
-					<a
+					<Anchor
+						anchorColor="muted"
 						aria-current={isActiveMenuPath(item.url, pathname) ? 'page' : undefined}
-						class="text-ink-400 hover:text-ink-300"
 						href={item.url}
 					>
 						{item.title}
-					</a>
+					</Anchor>
 				</li>
 			))
 		}

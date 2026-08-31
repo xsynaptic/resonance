@@ -1,5 +1,6 @@
 ---
 import MenuFooter from '#components/menu/menu-footer.astro';
+import Anchor from '#components/parts/anchor.astro';
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
 import { site } from '#lib/site.ts';
 
@@ -17,13 +18,12 @@ const year = new Date().getFullYear();
 				{site.title}
 			</h2>
 			<p class="mt-3">
-				An electronic music resource operated by <a
-					class="text-ink-400 hover:text-ink-300"
-					href="/profile">Basilisk</a
+				An electronic music resource operated by <Anchor anchorColor="muted" href="/profile"
+					>Basilisk</Anchor
 				>, a veteran DJ and record label owner. Mixes, charts, reviews, and articles on psytrance,
-				techno, house, IDM, electro, ambient, and adjacent genres. For more information, <a
-					class="text-ink-400 hover:text-ink-300"
-					href="/about">read on</a
+				techno, house, IDM, electro, ambient, and adjacent genres. For more information, <Anchor
+					anchorColor="muted"
+					href="/about">read on</Anchor
 				>.
 			</p>
 		</section>
@@ -36,9 +36,9 @@ const year = new Date().getFullYear();
 				{
 					recentMixes.map((mix) => (
 						<li>
-							<a class="text-ink-400 hover:text-ink-300" href={`/mixes/${mix.id}`}>
+							<Anchor anchorColor="muted" href={`/mixes/${mix.id}`}>
 								{mix.data.title}
-							</a>
+							</Anchor>
 						</li>
 					))
 				}
@@ -47,7 +47,7 @@ const year = new Date().getFullYear();
 	</div>
 	<div class="content-wide border-t border-surface-700 py-6 text-xs text-ink-700">
 		© 2001–{year} Basilisk · Powered by <a
-			class="text-ink-600 hover:text-highlight-400"
+			class="text-ink-600 hover:text-highlight-400 focus-visible:text-highlight-400"
 			href="https://astro.build">Astro</a
 		>
 	</div>

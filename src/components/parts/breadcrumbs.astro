@@ -1,6 +1,8 @@
 ---
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
+import Anchor from '#components/parts/anchor.astro';
+
 interface Props {
 	crumbs: Array<ResolvedRef>;
 	current: string;
@@ -14,9 +16,7 @@ const { crumbs, current } = Astro.props;
 		{
 			crumbs.map((crumb) => (
 				<li class="flex items-center gap-x-2">
-					<a class="text-highlight-500 hover:text-highlight-400" href={crumb.url}>
-						{crumb.label}
-					</a>
+					<Anchor href={crumb.url}>{crumb.label}</Anchor>
 					<span aria-hidden="true" class="text-ink-600">
 						/
 					</span>

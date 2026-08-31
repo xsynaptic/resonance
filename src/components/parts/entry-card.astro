@@ -50,7 +50,8 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 			</div>
 		) : undefined
 	}
-	<span class="block font-display text-xl font-bold text-ink-100 transition group-hover:text-ink-50"
+	<span
+		class="block font-display text-xl font-bold text-ink-100 transition group-hover:text-ink-50 group-focus-visible:text-ink-50"
 		>{title}</span
 	>
 	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}

@@ -1,14 +1,14 @@
 /* Chromium can style <select>, most other browsers can't, so this is progressive enhancement */
-.p-control {
+.pg-control {
 	appearance: none;
 }
 
-.p-arrow {
+.pg-arrow {
 	inset-block: 0;
 	right: calc(var(--spacing) * 1);
 }
 
-.p-button {
+.pg-button {
 	position: absolute;
 	top: 50%;
 	left: 100%;
@@ -29,40 +29,41 @@
 }
 
 @supports (appearance: base-select) {
-	.p-control,
-	.p-control::picker(select) {
+	.pg-control,
+	.pg-control::picker(select) {
 		appearance: base-select;
 	}
 
 	/* Hide the base-appearance picker icon; we render our own chevron */
-	.p-control::picker-icon {
+	.pg-control::picker-icon {
 		display: none;
 	}
 
-	.p-control option::checkmark {
+	.pg-control option::checkmark {
 		display: none;
 	}
 
-	.p-control option[data-current-page]::after {
+	.pg-control option[data-current-page]::after {
 		order: 1;
 		margin-inline-start: calc(var(--spacing) * 2);
 		color: var(--color-accent-400);
 		content: var(--content-bullet);
 	}
 
-	.p-control:open {
+	.pg-control:open {
 		border-color: var(--color-accent-500);
 	}
 
-	.p-arrow {
-		@apply transition-transform transition-discrete duration-100;
+	.pg-arrow {
+		transition: transform 100ms var(--default-transition-timing-function);
+		transition-behavior: allow-discrete;
 	}
 
-	.p-control:open ~ .p-arrow {
+	.pg-control:open ~ .pg-arrow {
 		transform: scaleY(-1);
 	}
 
-	.p-control::picker(select) {
+	.pg-control::picker(select) {
 		min-inline-size: anchor-size(width);
 		max-height: 240px;
 		overflow-y: auto;
@@ -79,7 +80,7 @@
 		}
 	}
 
-	.p-control option {
+	.pg-control option {
 		display: flex;
 		align-items: center;
 		height: 30px;
@@ -90,13 +91,13 @@
 		cursor: pointer;
 	}
 
-	.p-control option:hover,
-	.p-control option:focus {
+	.pg-control option:hover,
+	.pg-control option:focus {
 		color: var(--color-accent-300);
 		background-color: var(--color-surface-700);
 	}
 
-	.p-control option:checked {
+	.pg-control option:checked {
 		font-weight: 600;
 		color: var(--color-accent-400);
 	}

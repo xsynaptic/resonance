@@ -1,0 +1,27 @@
+/* A context retunes a role by setting the two variables under its own selector */
+.anchor {
+	color: var(--anchor-color);
+	transition: color 150ms ease-in;
+}
+
+.anchor:hover,
+.anchor:focus-visible {
+	color: var(--anchor-hover);
+}
+
+/* Restates the base a:active, which this layer would otherwise override */
+.anchor:active {
+	color: var(--color-highlight-400);
+}
+
+/* Taxonomy, meta and navigation links */
+.anchor-highlight {
+	--anchor-color: var(--color-highlight-500);
+	--anchor-hover: var(--color-highlight-400);
+}
+
+/* Footer links, a step dimmer than body links */
+.anchor-muted {
+	--anchor-color: var(--color-ink-400);
+	--anchor-hover: var(--color-ink-300);
+}

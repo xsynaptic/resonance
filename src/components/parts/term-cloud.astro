@@ -1,4 +1,6 @@
 ---
+import Anchor from '#components/parts/anchor.astro';
+
 interface Props {
 	terms: Array<Term>;
 }
@@ -15,9 +17,7 @@ const { terms } = Astro.props;
 	{
 		terms.map((term) => (
 			<li>
-				<a class="text-highlight-500 hover:text-highlight-400" href={term.url}>
-					{term.title}
-				</a>
+				<Anchor href={term.url}>{term.title}</Anchor>
 			</li>
 		))
 	}

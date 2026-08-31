@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
+import Anchor from '#components/parts/anchor.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
@@ -57,14 +58,9 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 			{
 				discogsUrl ? (
 					<p>
-						<a
-							class="text-highlight-500 hover:text-highlight-400"
-							href={discogsUrl}
-							rel="noreferrer"
-							target="_blank"
-						>
+						<Anchor href={discogsUrl} rel="noreferrer" target="_blank">
 							View on Discogs
-						</a>
+						</Anchor>
 					</p>
 				) : undefined
 			}

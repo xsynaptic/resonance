@@ -1,8 +1,0 @@
-.c-image-group {
-	@apply my-6;
-}
-
-/* Grid gap governs spacing; !important overrides the utilities-layer my-6 the Img component sets */
-.c-image-group :where(img) {
-	margin-block: 0 !important;
-}

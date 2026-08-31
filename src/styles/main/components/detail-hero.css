@@ -1,116 +1,5 @@
-/* The three sit on their own line boxes with no margins, which is what keeps the block tight */
-.title-above,
-.title-below {
-	display: flex;
-	flex-wrap: wrap;
-	column-gap: calc(var(--spacing) * 2);
-	font-size: var(--text-sm);
-	line-height: var(--leading-loose);
-}
-
-.title-above {
-	color: var(--color-highlight-500);
-}
-
-.title-main {
-	font-size: var(--text-4xl);
-	line-height: var(--text-4xl--line-height);
-}
-
-h2.title-main {
-	font-size: var(--text-3xl);
-	line-height: var(--text-3xl--line-height);
-}
-
-.title-divider {
-	font-weight: var(--font-weight-normal);
-	color: var(--color-ink-600);
-}
-
-.title-below {
-	color: var(--color-ink-600);
-}
-
-.title-kind {
-	font-weight: var(--font-weight-bold);
-}
-
-.title-above > * + *::before,
-.title-below > * + *::before {
-	margin-inline-end: calc(var(--spacing) * 2);
-	color: var(--color-ink-700);
-}
-
-.title-above > * + *::before {
-	content: var(--content-dot);
-}
-
-.title-below > * + *::before {
-	content: var(--content-slash);
-}
-
-.title-above a {
-	color: var(--color-highlight-500);
-}
-
-.title-main a {
-	color: var(--color-ink-200);
-}
-
-.title-below a {
-	color: var(--color-ink-300);
-}
-
-.title-kind a {
-	color: var(--color-highlight-500);
-}
-
-.title-above a:hover,
-.title-above a:focus-visible,
-.title-kind a:hover,
-.title-kind a:focus-visible {
-	color: var(--color-highlight-400);
-}
-
-.title-main a:hover,
-.title-main a:focus-visible,
-.title-below a:hover,
-.title-below a:focus-visible {
-	color: var(--color-ink-50);
-}
-
-.release-grid {
-	display: grid;
-	row-gap: calc(var(--spacing) * 8);
-}
-
-@media (width >= 950px) {
-	.release-grid {
-		grid-template-areas:
-			'body cover'
-			'footer footer';
-		grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
-		column-gap: calc(var(--spacing) * 10);
-	}
-
-	.release-body {
-		grid-area: body;
-	}
-
-	.release-cover {
-		grid-area: cover;
-	}
-
-	.release-footer {
-		grid-area: footer;
-	}
-}
-
-/* The ratios and scrim depths are production's, on Tailwind's breakpoint scale rather than its own
-   Layers are local to this block; `zIndexScaleEnum` reserves the 10-12 band they sit in */
+/* The ratios and scrim depths are production's, on Tailwind's breakpoint scale rather than its own */
 .hero {
-	--z-hero: 10;
-
 	position: relative;
 	width: 100%;
 	max-height: 100vh;
@@ -130,7 +19,7 @@ h2.title-main {
 	position: absolute;
 	inset-inline: 0;
 	bottom: -1px;
-	z-index: calc(var(--z-hero) + 1);
+	z-index: var(--z-index-hero-scrim);
 	display: block;
 	height: 33vh;
 	content: '';
@@ -157,7 +46,7 @@ h2.title-main {
 	position: absolute;
 	inset-inline: 0;
 	bottom: 0;
-	z-index: calc(var(--z-hero) + 2);
+	z-index: var(--z-index-hero-header);
 }
 
 .hero-overlay .title-main {
@@ -193,7 +82,7 @@ h2.title-main {
 		position: absolute;
 		inset-inline: 0;
 		top: 0;
-		z-index: calc(var(--z-hero) + 1);
+		z-index: var(--z-index-hero-scrim);
 		display: block;
 		height: 15vh;
 		content: '';

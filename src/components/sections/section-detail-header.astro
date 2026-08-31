@@ -32,7 +32,7 @@ const releaseYearText =
 		styleTerms.length > 0 ? (
 			<div class="title-above">
 				{styleTerms.map((term) => (
-					<RefText label={term.label} url={term.url} />
+					<RefText anchorColor="highlight" label={term.label} url={term.url} />
 				))}
 			</div>
 		) : undefined
@@ -60,7 +60,7 @@ const releaseYearText =
 			<div class="title-below">
 				{kind ? (
 					<span class="title-kind">
-						<RefText label={kind.label} url={kind.url} />
+						<RefText anchorColor="highlight" label={kind.label} url={kind.url} />
 					</span>
 				) : undefined}
 				{hasRelease ? (

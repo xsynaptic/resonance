@@ -9,3 +9,21 @@
 @utility content-measure {
 	max-width: var(--spacing-prose);
 }
+
+/* Pair with a bg gradient utility; tune per element via [--pattern-color:...], [--pattern-opacity:.2], [--pattern-image:url('...')] */
+@utility maze {
+	position: relative;
+	isolation: isolate;
+
+	/* Paints above the element's own (gradient) background but below its content */
+	&::before {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		content: '';
+		background-color: var(--pattern-color, var(--color-surface-600));
+		opacity: var(--pattern-opacity, 0.2);
+		mask: var(--pattern-image, url('/patterns/maze.svg')) 0 0 / var(--pattern-size, 60px 60px)
+			repeat;
+	}
+}

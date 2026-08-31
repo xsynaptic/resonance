@@ -1,3 +1,5 @@
+/* Hooks are nav-*; menu-navigation.ts selects by structure, so they are styling-only */
+
 /* Interactive state (data-has-submenu, data-open, ARIA roles) is injected by menu-navigation.ts */
 
 /* The custom element is a JS host only; the nav itself has to be the flex item in the header row */
@@ -36,8 +38,10 @@ menu-navigation {
 }
 
 .nav-link {
-	@apply font-display text-lg font-semibold;
-
+	font-family: var(--font-display);
+	font-size: var(--text-lg);
+	font-weight: var(--font-weight-semibold);
+	line-height: var(--text-lg--line-height);
 	color: var(--color-accent-500);
 }
 
@@ -51,26 +55,26 @@ menu-navigation {
 }
 
 .nav-icon {
-	@apply transition-transform transition-discrete duration-100;
-
 	width: 12px;
 	height: 12px;
 	color: var(--color-highlight-500);
+	transition: transform 100ms var(--default-transition-timing-function);
+	transition-behavior: allow-discrete;
 }
 
-/* The header is the stacking context these sit in; `zIndexScaleEnum` reserves the band */
+/* The header (z-header) is the stacking context these sit in */
 .nav-sub {
-	@apply transition-[opacity,visibility] transition-discrete duration-150;
-
-	--z-sub-menu: 50;
-
 	position: absolute;
-	z-index: var(--z-sub-menu);
+	z-index: var(--z-index-submenu);
 	visibility: hidden;
 	padding: calc(var(--spacing) * 1.5);
 	pointer-events: none;
 	background-color: var(--color-surface-600);
 	opacity: 0;
+	transition:
+		opacity 150ms var(--default-transition-timing-function),
+		visibility 150ms var(--default-transition-timing-function);
+	transition-behavior: allow-discrete;
 }
 
 .nav-sub-d1 {
@@ -97,7 +101,7 @@ menu-navigation {
 
 .nav-sub-d2 {
 	left: 0;
-	z-index: calc(var(--z-sub-menu) + 1);
+	z-index: calc(var(--z-index-submenu) + 1);
 	width: max-content;
 	max-width: 14rem;
 	background-color: var(--color-surface-500);
@@ -121,11 +125,12 @@ menu-navigation {
 }
 
 .nav-sub-link {
-	@apply font-display text-sm;
-
 	display: block;
 	flex: 1;
 	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+	font-family: var(--font-display);
+	font-size: var(--text-sm);
+	line-height: var(--text-sm--line-height);
 	color: var(--color-accent-600);
 	text-align: left;
 	white-space: nowrap;

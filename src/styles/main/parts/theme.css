@@ -3,6 +3,15 @@
 	--spacing-prose: 50rem;
 }
 
+/* Stacking order; the hero band sits under the header so the chrome can overlap the image */
+@theme {
+	--z-index-hero: 10;
+	--z-index-hero-scrim: 11;
+	--z-index-hero-header: 12;
+	--z-index-header: 40;
+	--z-index-submenu: 50;
+}
+
 @theme {
 	--font-display: var(--font-fira-sans, system-ui, sans-serif);
 	--font-body: var(--font-archivo, system-ui, sans-serif);

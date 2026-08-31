@@ -10,11 +10,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Collection**: A named set of Entries sharing one schema. A Collection earns its existence by carrying fields that change behaviour; a difference of length, tone, or subject is a Format, not a Collection. _Avoid_: content type, post type, model.
 
-**Draft**: An Entry withheld from the site by an `_` filename prefix, which the loader skips. Drafts here are complete pieces awaiting review, not stubs. _Avoid_: unpublished, hidden, private.
+**Draft**: An Entry withheld from the site. Drafts here are complete pieces awaiting review, not stubs. _Avoid_: unpublished, hidden, private.
 
 **Mix**: A recorded DJ set published as an Entry, carrying a Tracklist and downloadable audio. The central noun of the project; most other collections exist to describe, group, or connect the music in one. _Avoid_: session, podcast, episode.
 
-**Tracklist**: The ordered sequence of Tracks in a Mix. Its timestamps, where available, are load-bearing: they drive Cue Sheet generation, which is why their shape is enforced rather than warned about. _Avoid_: playlist, setlist.
+**Tracklist**: The ordered sequence of Tracks in a Mix. Its timestamps, where available, are load-bearing: they drive Cue Sheet generation. _Avoid_: playlist, setlist.
 
 **Track**: One piece of music inside a Tracklist, credited to its own Artists and Labels. A Track is never an Entry of its own. _Avoid_: song, tune, cut.
 
@@ -46,11 +46,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Format, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
 
-Terms come in two idioms, and the difference is real rather than accidental. In both, the bare form is whatever that vocabulary does most of the time, which is why the two read as opposites.
+Terms come in two idioms, and the difference is real rather than accidental. Each is written the way it is used most of the time, which is why the two read as opposites.
 
-**Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Formats, Themes. A bare slug links, and an unknown slug is a build error. _Avoid_: taxonomy, enum, closed list.
+**Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Formats, Themes. _Avoid_: taxonomy, enum, closed list.
 
-**Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A bare string is free text that renders plainly, and an object carrying an id links. _Avoid_: taxonomy, freeform, loose reference.
+**Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A reference is written as the name itself, and links when that name matches a cataloged Term; naming the Term outright is what you do when the name alone would miss it, or find the wrong one. _Avoid_: taxonomy, freeform, loose reference.
 
 **Artist**: A person or act that made music, a Mix, or a visual work. An Open Vocabulary Term. _Avoid_: act, performer, musician, project.
 
@@ -70,16 +70,16 @@ Terms come in two idioms, and the difference is real rather than accidental. In 
 
 **Catalog**: The unified cross-collection view of every user-facing Entry reduced to one common shape, used for listing, sorting, and pagination. _Avoid_: index, registry, manifest.
 
-**Catalog Item**: One Entry projected into the flat shape a card renders: id, collection, title, date, image, url. _Avoid_: card, row, record, entry.
+**Catalog Item**: One Entry projected into the flat shape a card renders. _Avoid_: card, row, record, entry.
 
 Every page on the site is one of two shapes, and its layout is named for which one. Between them they cover everything, so a third name is a sign the shape was misread rather than a new kind of page.
 
-**Detail Page**: The page for a single subject, laid out in `<x>-detail.astro`. A Term's Detail Page is still a Detail Page even though most of it is a paginated listing: the Term is the subject and the listing is what the Term has to say. _Avoid_: single, permalink, archive.
+**Detail Page**: The page for a single subject. A Term's Detail Page is still a Detail Page even though most of it is a paginated listing: the Term is the subject and the listing is what the Term has to say. _Avoid_: single, permalink, archive.
 
-**List Page**: A paginated listing of many Entries with no subject of its own, laid out in `<x>-list.astro`. Listing a Collection's Entries and listing a vocabulary's Terms are the same shape. _Avoid_: archive, index, feed, stream.
+**List Page**: A paginated listing of many Entries with no subject of its own. Listing a Collection's Entries and listing a vocabulary's Terms are the same shape. _Avoid_: archive, index, feed, stream.
 
 ### Provenance
 
-**Extraction**: The generation of the content tree from the WordPress dump. It wipes every collection directory and re-emits, which makes it the writer of record for frontmatter shape and destructive to anything edited by hand. _Avoid_: import, migration, sync.
+**Extraction**: The generation of the content tree from the WordPress dump. It is the writer of record for frontmatter shape, and destructive to anything edited by hand. _Avoid_: import, migration, sync.
 
 **Triage**: The manual pass over Drafts, un-prefixing what should publish. It is the one hand edit that matters in generated content, and the reason a re-Extraction has a real cost. _Avoid_: cleanup, review, curation.

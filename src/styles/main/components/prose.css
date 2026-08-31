@@ -78,10 +78,16 @@
 			text-decoration-color 150ms ease-in;
 	}
 
-	& :where(a):hover,
 	& :where(a):focus-visible {
 		color: var(--color-ink-50);
 		text-decoration-color: color-mix(in oklab, var(--color-ink-500) 60%, transparent);
+	}
+
+	@media (hover: hover) {
+		& :where(a):hover {
+			color: var(--color-ink-50);
+			text-decoration-color: color-mix(in oklab, var(--color-ink-500) 60%, transparent);
+		}
 	}
 
 	& :where(a):active {
@@ -148,7 +154,7 @@
 		padding-inline: 0.2em;
 		color: var(--color-surface-800);
 		background-color: var(--color-highlight-400);
-		border-radius: 0.125rem;
+		border-radius: var(--radius-xs);
 	}
 
 	& :where(hr) {

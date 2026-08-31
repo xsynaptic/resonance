@@ -1,0 +1,17 @@
+search-toggle:not(:defined) {
+	pointer-events: none;
+	opacity: 0.3;
+}
+
+/* Eager layout rules so the header never shifts while the deferred stylesheet loads */
+pagefind-config {
+	display: none;
+}
+
+pagefind-modal {
+	display: contents;
+}
+
+pagefind-modal:not(:defined) {
+	display: none;
+}

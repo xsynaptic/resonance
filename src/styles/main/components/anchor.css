@@ -4,9 +4,14 @@
 	transition: color 150ms ease-in;
 }
 
-.anchor:hover,
 .anchor:focus-visible {
 	color: var(--anchor-hover);
+}
+
+@media (hover: hover) {
+	.anchor:hover {
+		color: var(--anchor-hover);
+	}
 }
 
 /* Restates the base a:active, which this layer would otherwise override */

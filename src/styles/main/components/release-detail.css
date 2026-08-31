@@ -3,7 +3,7 @@
 	row-gap: calc(var(--spacing) * 8);
 }
 
-@media (width >= 950px) {
+@media (width >= 64rem) {
 	.release-grid {
 		grid-template-areas:
 			'body cover'

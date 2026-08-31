@@ -39,13 +39,18 @@
 	color: var(--color-ink-400);
 }
 
-.selection-title a:hover,
 .selection-title a:focus-visible,
-.selection-meta a:hover,
 .selection-meta a:focus-visible,
-a.selection-artist:hover,
 a.selection-artist:focus-visible {
 	color: var(--color-ink-50);
+}
+
+@media (hover: hover) {
+	.selection-title a:hover,
+	.selection-meta a:hover,
+	a.selection-artist:hover {
+		color: var(--color-ink-50);
+	}
 }
 
 .selection-artist {
@@ -114,7 +119,7 @@ a.selection-artist:focus-visible {
 	color: var(--color-ink-600);
 }
 
-@media (width >= 550px) {
+@media (width >= 40rem) {
 	.selection-prose {
 		margin-bottom: 45px;
 	}
@@ -126,7 +131,7 @@ a.selection-artist:focus-visible {
 	}
 }
 
-@media (width >= 950px) {
+@media (width >= 64rem) {
 	.selection-thumb {
 		margin-inline-start: 20px;
 	}

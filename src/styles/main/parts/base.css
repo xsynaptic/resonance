@@ -33,9 +33,14 @@ a {
 	text-decoration: none;
 }
 
-a:hover,
 a:focus-visible {
 	color: var(--color-ink-50);
+}
+
+@media (hover: hover) {
+	a:hover {
+		color: var(--color-ink-50);
+	}
 }
 
 a:active {

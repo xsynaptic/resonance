@@ -19,11 +19,11 @@
 }
 
 .track:first-child {
-	border-radius: 3px 3px 0 0;
+	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .track:last-child {
-	border-radius: 0 0 3px 3px;
+	border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 /* The section renders inside .prose-x, whose underline and halo are too heavy for rows this dense */
@@ -73,18 +73,23 @@
 	color: var(--color-ink-400);
 }
 
-.track-title-line a:hover,
 .track-title-line a:focus-visible,
-.track-label-year a:hover,
 .track-label-year a:focus-visible {
 	color: var(--color-ink-50);
+}
+
+@media (hover: hover) {
+	.track-title-line a:hover,
+	.track-label-year a:hover {
+		color: var(--color-ink-50);
+	}
 }
 
 .track-label-year + .track-time {
 	margin-inline-start: calc(var(--spacing) * 2);
 }
 
-@media (width >= 550px) {
+@media (width >= 40rem) {
 	.track {
 		display: grid;
 		grid-template-areas:

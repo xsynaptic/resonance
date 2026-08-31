@@ -1,7 +1,7 @@
 .embed-frame {
 	overflow: hidden;
 	background-color: var(--color-surface-800);
-	border-radius: 0.375rem;
+	border-radius: var(--radius-md);
 }
 
 .embed-frame iframe {

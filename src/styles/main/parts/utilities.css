@@ -27,3 +27,12 @@
 			repeat;
 	}
 }
+
+/* Belongs to the footer bands; page and section headings take the base h1-h4 styling */
+@utility heading-label {
+	@apply font-display text-sm font-bold tracking-wide text-accent-400 uppercase;
+}
+
+@utility entry-grid {
+	@apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}

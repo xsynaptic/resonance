@@ -97,7 +97,7 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 			yearGroups.map((group) => (
 				<section class="mb-8">
 					{group.year === undefined ? undefined : <ListYearHeading year={group.year} />}
-					<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+					<ul class="entry-grid">
 						{group.items.map((entry) => (
 							<li>
 								<EntryCard

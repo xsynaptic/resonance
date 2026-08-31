@@ -16,7 +16,7 @@
 	--pf-outline-focus: var(--color-accent-500);
 	--pf-font: var(--font-body);
 	--pf-input-height: 36px;
-	--pf-border-radius: 3px;
+	--pf-border-radius: var(--radius-sm);
 }
 
 /* Pagefind 1.5.0: `all: initial` on custom elements breaks font inheritance for child buttons */
@@ -38,17 +38,27 @@ dialog.pf-modal::backdrop {
 .pf-result-link {
 	--pf-text: var(--color-accent-400);
 
-	&:hover,
 	&:focus {
 		--pf-text: var(--color-accent-300);
+	}
+
+	@media (hover: hover) {
+		&:hover {
+			--pf-text: var(--color-accent-300);
+		}
 	}
 }
 
 .pf-heading-link {
 	--pf-text: var(--color-ink-500);
 
-	&:hover,
 	&:focus {
 		--pf-text: var(--color-ink-400);
+	}
+
+	@media (hover: hover) {
+		&:hover {
+			--pf-text: var(--color-ink-400);
+		}
 	}
 }

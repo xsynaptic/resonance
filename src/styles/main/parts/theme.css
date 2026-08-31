@@ -5,7 +5,6 @@
 
 /* Stacking order; the hero band sits under the header so the chrome can overlap the image */
 @theme {
-	--z-index-hero: 10;
 	--z-index-hero-scrim: 11;
 	--z-index-hero-header: 12;
 	--z-index-header: 40;

@@ -20,5 +20,6 @@
 @import './main/components/pagination-select.css' layer(components);
 @import './main/components/prose.css' layer(components);
 @import './main/components/release-detail.css' layer(components);
+@import './main/components/search.css' layer(components);
 @import './main/components/selections.css' layer(components);
 @import './main/components/track-list.css' layer(components);

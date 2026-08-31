@@ -55,10 +55,16 @@
 	transition: color 500ms ease-out;
 }
 
-.carousel-nav:hover,
 .carousel-nav:focus-visible {
 	color: var(--color-ink-200);
 	transition: color 300ms ease;
+}
+
+@media (hover: hover) {
+	.carousel-nav:hover {
+		color: var(--color-ink-200);
+		transition: color 300ms ease;
+	}
 }
 
 .carousel-nav:active {
@@ -70,7 +76,7 @@
 	height: 2.25rem;
 }
 
-@media (width >= 950px) {
+@media (width >= 64rem) {
 	.carousel-slide {
 		width: calc(25% - calc(var(--spacing) * 3));
 	}

@@ -10,4 +10,4 @@ export const getStaticPaths = createTermDetailPaths('artists', getArtistsIndex);
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<TermDetail kind="Artist" {...Astro.props} />
+<TermDetail {...Astro.props} />

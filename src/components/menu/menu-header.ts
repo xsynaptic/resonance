@@ -7,6 +7,10 @@ export const menuHeaderItems = [
 		children: [
 			{ title: 'Selections', url: '/formats/selections' },
 			{ title: 'Album Artwork', url: '/formats/album-artwork' },
+			{ title: 'Notes', url: '/formats/notes' },
+			{ title: 'Quotations', url: '/formats/quotations' },
+			{ title: 'Tracks', url: '/formats/tracks' },
+			{ title: 'Articles', url: '/formats/articles' },
 		],
 		title: 'Blog',
 		url: '/blog',

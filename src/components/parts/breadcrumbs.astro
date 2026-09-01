@@ -1,28 +1,23 @@
 ---
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
-import Anchor from '#components/parts/anchor.astro';
+import RefText from '#components/parts/ref-text.astro';
 
 interface Props {
-	crumbs: Array<ResolvedRef>;
-	current: string;
+	trail: Array<ResolvedRef>;
 }
 
-const { crumbs, current } = Astro.props;
+const { trail } = Astro.props;
 ---
 
-<nav aria-label="Breadcrumb" class="mb-4">
-	<ol class="flex flex-wrap items-center gap-x-2 text-sm text-ink-500">
+<nav aria-label="Breadcrumb">
+	<ol class="title-above title-above-chevron">
 		{
-			crumbs.map((crumb) => (
-				<li class="flex items-center gap-x-2">
-					<Anchor href={crumb.url}>{crumb.label}</Anchor>
-					<span aria-hidden="true" class="text-ink-600">
-						/
-					</span>
+			trail.map((breadcrumb) => (
+				<li>
+					<RefText anchorColor="highlight" label={breadcrumb.label} url={breadcrumb.url} />
 				</li>
 			))
 		}
-		<li aria-current="page" class="text-ink-300">{current}</li>
 	</ol>
 </nav>

@@ -10,4 +10,4 @@ export const getStaticPaths = createTermDetailPaths('formats', getFormatsIndex);
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<TermDetail kind="Format" {...Astro.props} />
+<TermDetail {...Astro.props} />

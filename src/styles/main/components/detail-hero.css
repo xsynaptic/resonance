@@ -49,6 +49,13 @@
 	z-index: var(--z-index-hero-header);
 }
 
+/* As inline boxes the plates' line boxes leave a sub-pixel seam; flex items butt exactly */
+.hero-overlay header {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
 .hero-overlay .title-main {
 	display: inline-block;
 	padding: 5px 15px;

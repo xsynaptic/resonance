@@ -8,11 +8,11 @@ import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import ListYearHeading from '#components/parts/list-year-heading.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { groupByYear } from '#lib/utils/group-by-year.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
@@ -20,14 +20,13 @@ import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
 
 interface Props {
-	kind: string;
 	page: Page<ContentItem>;
 	term: CollectionEntry<
 		'artists' | 'eras' | 'formats' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'
 	>;
 }
 
-const { kind, page, term } = Astro.props;
+const { page, term } = Astro.props;
 
 const { Content } = await render(term);
 
@@ -51,16 +50,13 @@ const collectionLabels: Partial<Record<CollectionKey, string>> = {
 const yearGroups: Array<{ items: Array<ContentItem>; year?: number }> =
 	term.collection === 'series' ? [{ items: page.data }] : groupByYear(page.data);
 
-// Hierarchical terms get a breadcrumb trail: the term list page, then the term's ancestor chain
-const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
-	? [
-			{
-				label: term.collection.charAt(0).toUpperCase() + term.collection.slice(1),
-				url: `/${term.collection}/`,
-			},
-			...(await resolveAncestors(term.collection, term.id)),
-		]
-	: [];
+const breadcrumbTrail: Array<ResolvedRef> = [
+	{
+		label: term.collection.charAt(0).toUpperCase() + term.collection.slice(1),
+		url: `/${term.collection}/`,
+	},
+	...(isHierarchical(term.collection) ? await resolveAncestors(term.collection, term.id) : []),
+];
 ---
 
 <MainSite
@@ -68,14 +64,8 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 	title={term.data.title}
 	{...description ? { description } : {}}
 >
-	{
-		breadcrumbs.length > 0 ? (
-			<Breadcrumbs crumbs={breadcrumbs} current={term.data.title} />
-		) : undefined
-	}
-	<header class="mb-6">
-		<p class="mb-1 text-xs font-bold tracking-wide text-highlight-500 uppercase">{kind}</p>
-		<h1 class="text-4xl">{term.data.title}</h1>
+	<div class="mb-6">
+		<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />
 		{
 			body === '' ? undefined : (
 				<div class="prose-x mt-2">
@@ -83,7 +73,7 @@ const breadcrumbs: Array<ResolvedRef> = isHierarchical(term.collection)
 				</div>
 			)
 		}
-	</header>
+	</div>
 	{
 		memberLinks.length > 0 || projectLinks.length > 0 ? (
 			<div class="mb-6 space-y-1">

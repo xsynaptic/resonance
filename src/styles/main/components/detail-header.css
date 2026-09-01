@@ -1,4 +1,4 @@
-/* Hooks are title-*; the block is shared by section-detail-header and section-post-excerpt */
+/* Hooks are title-*; the block is shared by section-detail-header, section-post-excerpt and breadcrumbs */
 
 /* The three sit on their own line boxes with no margins, which is what keeps the block tight */
 .title-above,
@@ -47,6 +47,10 @@ h2.title-main {
 	content: var(--content-dot);
 }
 
+.title-above-chevron > * + *::before {
+	content: var(--content-chevron);
+}
+
 .title-below > * + *::before {
 	content: var(--content-slash);
 }
@@ -55,18 +59,19 @@ h2.title-main {
 	color: var(--color-ink-200);
 }
 
-.title-below :where(a) {
+/* Without the exclusion this lands after anchor.css at equal specificity, overriding the role colour */
+.title-below :where(a:not(.anchor)) {
 	color: var(--color-ink-300);
 }
 
 .title-main a:focus-visible,
-.title-below :where(a):focus-visible {
+.title-below :where(a:not(.anchor)):focus-visible {
 	color: var(--color-ink-50);
 }
 
 @media (hover: hover) {
 	.title-main a:hover,
-	.title-below :where(a):hover {
+	.title-below :where(a:not(.anchor)):hover {
 		color: var(--color-ink-50);
 	}
 }

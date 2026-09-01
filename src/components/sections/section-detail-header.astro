@@ -1,6 +1,7 @@
 ---
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
+import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import RefList from '#components/parts/ref-list.astro';
 import RefText from '#components/parts/ref-text.astro';
 import { formatDate } from '#lib/utils/date.ts';
@@ -8,6 +9,7 @@ import { formatDate } from '#lib/utils/date.ts';
 // `releaseTitle` marks the title as a work, which splits the artist off and italicises the rest
 interface Props {
 	artist?: ResolvedRef | undefined;
+	breadcrumbTrail?: Array<ResolvedRef> | undefined;
 	date?: Date | undefined;
 	kind?: ResolvedRef | undefined;
 	labels?: Array<ResolvedRef> | undefined;
@@ -17,7 +19,8 @@ interface Props {
 	title: string;
 }
 
-const { artist, date, kind, labels, releaseTitle, releaseYear, styles, title } = Astro.props;
+const { artist, breadcrumbTrail, date, kind, labels, releaseTitle, releaseYear, styles, title } =
+	Astro.props;
 
 const styleTerms = styles ?? [];
 const releaseLabels = labels ?? [];
@@ -28,6 +31,11 @@ const releaseYearText =
 ---
 
 <header>
+	{
+		breadcrumbTrail && breadcrumbTrail.length > 0 ? (
+			<Breadcrumbs trail={breadcrumbTrail} />
+		) : undefined
+	}
 	{
 		styleTerms.length > 0 ? (
 			<div class="title-above">

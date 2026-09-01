@@ -10,4 +10,4 @@ export const getStaticPaths = createTermDetailPaths('eras', getErasIndex);
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<TermDetail kind="Era" {...Astro.props} />
+<TermDetail {...Astro.props} />

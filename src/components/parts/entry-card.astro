@@ -1,10 +1,9 @@
 ---
-import type { HTMLAttributes } from 'astro/types';
-
 import MediaImage from '#components/parts/media-image.astro';
 import { formatDate } from '#lib/utils/date.ts';
 
-interface Props extends HTMLAttributes<'a'> {
+interface Props {
+	class?: string | undefined;
 	date?: Date | undefined;
 	href: string;
 	image?: string | undefined;
@@ -21,25 +20,23 @@ const {
 	imageAspect = 'square',
 	subtitle,
 	title,
-	...props
 } = Astro.props;
 
 // Album artwork is square by default; opt into 3:2 per surface
 const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 ---
 
-<a
-	class:list={[
-		'group block h-full rounded-lg border border-surface-700 bg-surface-600 p-2',
-		className,
-	]}
-	href={href}
-	{...props}
->
+<div class:list={['h-full rounded-lg border border-surface-700 bg-surface-600 p-2', className]}>
 	{/* The frame holds the card's shape when an original is missing, which is routine in dev */}
 	{
 		image ? (
-			<div class={`mb-2.5 ${aspectClass} w-full overflow-hidden rounded-xs bg-surface-900`}>
+			<a
+				class:list={[
+					'mb-2.5 block w-full overflow-hidden rounded-xs bg-surface-900 transition-opacity hover:opacity-85 focus-visible:opacity-85',
+					aspectClass,
+				]}
+				href={href}
+			>
 				<MediaImage
 					alt=""
 					class="h-full w-full object-cover"
@@ -47,12 +44,12 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 					path={image}
 					width={640}
 				/>
-			</div>
+			</a>
 		) : undefined
 	}
-	<span
-		class="block font-display text-xl font-bold text-ink-100 transition group-hover:text-ink-50 group-focus-visible:text-ink-50"
-		>{title}</span
+	<a
+		class="block font-display text-xl font-bold text-ink-100 transition hover:text-ink-50 focus-visible:text-ink-50"
+		href={href}>{title}</a
 	>
 	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}
 	{
@@ -62,4 +59,4 @@ const aspectClass = imageAspect === 'square' ? 'aspect-square' : 'aspect-[3/2]';
 			</time>
 		) : undefined
 	}
-</a>
+</div>

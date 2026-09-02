@@ -23,6 +23,7 @@
 @import './main/components/detail-hero.css' layer(components);
 @import './main/components/embed-frame.css' layer(components);
 @import './main/components/headings.css' layer(components);
+@import './main/components/img-figure.css' layer(components);
 @import './main/components/menu-header.css' layer(components);
 @import './main/components/pagination-select.css' layer(components);
 @import './main/components/prose.css' layer(components);

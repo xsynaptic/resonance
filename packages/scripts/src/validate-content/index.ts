@@ -7,10 +7,13 @@ import type { ValidationResult } from './validation-result.js';
 
 import { getDataStoreCollection, loadDataStore } from '../shared/data-store.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
+import { validateBodyMarkers } from './body-markers.js';
 import { validateEntryIds } from './entry-ids.js';
+import { validateImages } from './images.js';
 import { validateLinkIds } from './link-ids.js';
 import { validateReferences } from './references.js';
 import { validateRefs } from './refs.js';
+import { validateReviewFolders } from './review-folders.js';
 import { validateSeriesItems } from './series-items.js';
 import { validateTrackTimestamps } from './track-timestamps.js';
 import { reportValidationResult } from './validation-result.js';
@@ -49,6 +52,12 @@ const seriesMemberCollections = ['mixes', 'reviews', 'posts'];
 // The only collections `audioFields` is spread into, so the only ones that can carry `tracks`
 const audioCollections = ['mixes', 'reviews'];
 
+// The two collections `selectionFields` is spread into, plus the two that can carry `tracks`
+const markerCollections = ['mixes', 'pages', 'posts', 'reviews'];
+
+// Frontmatter media paths are relative to this directory; mirrors `mediaRoot` in lib/utils/media.ts
+const mediaPath = 'packages/content/_media';
+
 const rootPath = findWorkspaceRoot();
 
 const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
@@ -57,11 +66,14 @@ const allEntries = getDataStoreCollection(collections, contentCollections);
 
 // Keys double as the CLI subcommand names
 const validations = {
+	'body-markers': () => validateBodyMarkers(getDataStoreCollection(collections, markerCollections)),
 	'entry-ids': () => validateEntryIds(allEntries),
+	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
 	'link-ids': () =>
 		validateLinkIds(allEntries, getDataStoreCollection(collections, linkableCollections)),
 	references: () => validateReferences(collections, contentCollections),
 	refs: () => validateRefs(allEntries, collections),
+	'review-folders': () => validateReviewFolders(getDataStoreCollection(collections, ['reviews'])),
 	'series-items': () =>
 		validateSeriesItems(
 			getDataStoreCollection(collections, ['series']),

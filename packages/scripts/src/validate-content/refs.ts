@@ -4,7 +4,7 @@ import { toReferenceIds } from '../shared/data-store.js';
 import { toValidationResult } from './validation-result.js';
 
 // Every schema carrying these is `.strict()`, so a field name here cannot mean anything else
-// The extractor emits bare strings only, so every `{ id }` in the tree is hand-written
+// The extractor emits both forms: `{ id }` where the name resolved to a term, a bare string where not
 const topLevelRefFields = {
 	artists: 'artists',
 	labels: 'labels',
@@ -13,7 +13,7 @@ const topLevelRefFields = {
 } as const;
 
 const nestedRefFields = {
-	selections: { artist: 'artists', labels: 'labels' },
+	selections: { artists: 'artists', labels: 'labels' },
 	tracks: { artists: 'artists', labels: 'labels', mixArtists: 'artists' },
 } as const;
 

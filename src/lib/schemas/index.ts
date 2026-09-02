@@ -6,26 +6,28 @@ import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
 // Titles can be long (e.g. "Album Artwork: The Beginning Is at the End"), no upper bound
 export const TitleSchema = z.string().min(1);
 
-// Frontmatter dates are ISO `YYYY-MM-DD`, optionally with ` HH:mm` (24-hour), transformed to Date
-const dateRegex = /^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/;
+// Dates are wall-clock days anchored to UTC; a day of slack covers authoring from any timezone
+function isNotFutureDate(date: Date) {
+	const now = new Date();
 
-const DateStringSchema = z
-	.string()
-	.refine((value) => dateRegex.test(value), {
-		message: 'Use ISO YYYY-MM-DD (optionally " HH:mm")',
-	})
-	.transform((value) => {
-		const [datePart = '', timePart] = value.split(' ', 2);
-		return new Date(`${datePart}T${timePart ?? '00:00'}:00Z`);
-	});
+	return date.getTime() < Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 2);
+}
+
+// YAML parses `YYYY-MM-DD` and `YYYY-MM-DD HH:mm:ss` into UTC dates, so frontmatter leaves them bare
+// A time without seconds stays a string and fails here, which is the quirk to know
+const DateSchema = z.date().refine(isNotFutureDate, {
+	message: 'Dates must not be in the future.',
+});
 
 // Cover image as a normalized path string, until originals are hosted
 const ImageFeaturedSchema = z.string();
 
 export const contentBaseSchema = {
-	dateCreated: DateStringSchema,
-	dateUpdated: DateStringSchema.optional(),
+	dateCreated: DateSchema,
+	dateUpdated: DateSchema.optional(),
 	description: z.string().optional(),
+	// Permalinks this entry used to answer to; generate-redirects is the only consumer
+	formerIds: z.string().array().optional(),
 	imageFeatured: ImageFeaturedSchema.optional(),
 	imageHero: ImageFeaturedSchema.optional(),
 	title: TitleSchema,

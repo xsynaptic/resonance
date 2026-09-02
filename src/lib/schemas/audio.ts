@@ -39,9 +39,6 @@ const audioFields = {
 	releaseType: z
 		.enum(['standard', 'mix-live', 'mix-studio', 'compilation', 'album', 'remixes'])
 		.optional(),
-	// Verbatim backup, not rendered (`tracks` drives display)
-	// Kept because the extractor merges multi-tracklist mixes into `tracks` lossily
-	tracklistRaw: z.string().optional(),
 	tracks: TrackSchema.array().optional(),
 };
 

@@ -1,0 +1,60 @@
+#!/usr/bin/env tsx
+import { astroCacheDir } from '@xsynaptic/shared/constants';
+import chalk from 'chalk';
+import { writeFileSync } from 'node:fs';
+import path from 'node:path';
+
+import { loadDataStore } from '../shared/data-store.js';
+import { findWorkspaceRoot } from '../shared/utils.js';
+import { buildRedirectPairs } from './build-redirect-pairs.js';
+
+// Cloudflare serves `_redirects` from the assets directory, which is where `public/` lands
+const outputFile = 'public/_redirects';
+
+// WordPress permalinks the site no longer answers to, written by hand because no field records them
+// Lists and designs became plain Posts; three taxonomies were renamed
+// `/keywords/best-mixes/` and `/keywords/branding/` are deliberately absent: neither term survived
+const structuralRedirects: Array<[string, string]> = [
+	['/lists/*', '/:splat'],
+	['/designs/*', '/:splat'],
+	['/projects/*', '/artists/:splat'],
+	['/time-periods/*', '/eras/:splat'],
+	['/sections/articles/', '/formats/articles/'],
+	['/sections/notes/', '/formats/notes/'],
+	['/sections/quotations/', '/formats/quotations/'],
+	['/sections/tracks/', '/formats/tracks/'],
+	['/keywords/album-artwork/', '/formats/album-artwork/'],
+	['/sections/meta/', '/themes/meta/'],
+	['/keywords/interviews/', '/themes/interviews/'],
+	['/keywords/music-strategy/', '/themes/music-strategy/'],
+	['/keywords/musicology/', '/themes/musicology/'],
+	['/keywords/physical-media/', '/themes/physical-media/'],
+	['/keywords/toolkit/', '/themes/toolkit/'],
+];
+
+const rootPath = findWorkspaceRoot();
+
+const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
+
+const { pairs, skipped } = buildRedirectPairs(collections);
+
+const lines = [
+	'# Structural moves off WordPress, hand-written',
+	...structuralRedirects.map(([from, to]) => `${from} ${to} 301`),
+	'',
+	'# Generated from `formerIds` by `pnpm generate-redirects`; do not edit below this line',
+	...pairs.map(({ from, to }) => `${from} ${to} 301`),
+	'',
+];
+
+writeFileSync(path.resolve(rootPath, outputFile), lines.join('\n'));
+
+for (const note of skipped) {
+	console.log(chalk.yellow(`⚠️  skipped ${note}`));
+}
+
+console.log(
+	chalk.green(
+		`✓ ${structuralRedirects.length.toString()} structural and ${pairs.length.toString()} generated redirects → ${outputFile}`,
+	),
+);

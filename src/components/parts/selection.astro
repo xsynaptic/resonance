@@ -5,7 +5,6 @@ import type { IconId } from '#lib/utils/icon-types.ts';
 import ButtonLink from '#components/parts/button-link.astro';
 import MediaImage from '#components/parts/media-image.astro';
 import RefList from '#components/parts/ref-list.astro';
-import RefText from '#components/parts/ref-text.astro';
 import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
@@ -20,18 +19,8 @@ interface SelectionLink {
 }
 
 const { rank, selection } = Astro.props;
-const {
-	anchor,
-	artist,
-	href,
-	imagePath,
-	labels,
-	linkDiscogs,
-	linkSource,
-	linkYoutube,
-	title,
-	year,
-} = selection;
+const { anchor, artists, discogsUrl, href, imagePath, labels, linkYoutube, title, year } =
+	selection;
 
 function getSourceLabel(url: string): string {
 	const host = new URL(url).hostname.replace(/^www\./, '');
@@ -40,12 +29,15 @@ function getSourceLabel(url: string): string {
 	return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-const links: Array<SelectionLink> = [];
+// Every outbound link on a selection is a place to get the release, so all of them read as one
+const buttons: Array<SelectionLink> = selection.links.map((url) => ({
+	href: url,
+	icon: 'download' as const,
+	label: getSourceLabel(url),
+}));
 
-if (linkSource)
-	links.push({ href: linkSource, icon: 'download', label: getSourceLabel(linkSource) });
-if (linkDiscogs) links.push({ href: linkDiscogs, label: 'Discogs' });
-if (linkYoutube) links.push({ href: linkYoutube, icon: 'youtube', label: 'YouTube' });
+if (discogsUrl) buttons.push({ href: discogsUrl, label: 'Discogs' });
+if (linkYoutube) buttons.push({ href: linkYoutube, icon: 'youtube', label: 'YouTube' });
 
 const body = await renderSlot(Astro.slots);
 
@@ -75,9 +67,11 @@ const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
 		{rank ? <span class="selection-rank">{rank}</span> : undefined}
 		<span>
 			{
-				artist ? (
+				artists.length > 0 ? (
 					<Fragment>
-						<RefText class="selection-artist" label={artist.label} url={artist.url} />
+						<span class="selection-artist">
+							<RefList refs={artists} />
+						</span>
 						<span class="selection-divider"> - </span>
 					</Fragment>
 				) : undefined
@@ -97,12 +91,16 @@ const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
 	}
 	{body ? <div class="selection-description" set:html={body} /> : undefined}
 	{
-		links.length > 0 ? (
+		buttons.length > 0 ? (
 			<div class="selection-links">
 				<span>Links:</span>
-				{links.map((link) => (
-					<ButtonLink href={link.href} variant="small" {...(link.icon ? { icon: link.icon } : {})}>
-						{link.label}
+				{buttons.map((button) => (
+					<ButtonLink
+						href={button.href}
+						variant="small"
+						{...(button.icon ? { icon: button.icon } : {})}
+					>
+						{button.label}
 					</ButtonLink>
 				))}
 			</div>

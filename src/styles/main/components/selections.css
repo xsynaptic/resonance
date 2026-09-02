@@ -22,7 +22,7 @@
 }
 
 /* Only the prose keeps .prose-x link decoration; the credits and meta are too dense for it */
-.selection-artist,
+.selection-artist a,
 .selection-title a,
 .selection-meta a,
 .selection-links a {
@@ -30,7 +30,7 @@
 	text-shadow: none;
 }
 
-.selection-artist,
+.selection-artist a,
 .selection-title a {
 	color: var(--color-ink-200);
 }
@@ -41,14 +41,14 @@
 
 .selection-title a:focus-visible,
 .selection-meta a:focus-visible,
-a.selection-artist:focus-visible {
+.selection-artist a:focus-visible {
 	color: var(--color-ink-50);
 }
 
 @media (hover: hover) {
 	.selection-title a:hover,
 	.selection-meta a:hover,
-	a.selection-artist:hover {
+	.selection-artist a:hover {
 		color: var(--color-ink-50);
 	}
 }

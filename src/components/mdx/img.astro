@@ -1,5 +1,6 @@
 ---
 import MediaImage from '#components/parts/media-image.astro';
+import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
 	alt?: string | undefined;
@@ -7,12 +8,20 @@ interface Props {
 }
 
 const { alt = '', id } = Astro.props;
+
+const sizes = '(min-width: 48rem) 48rem, 100vw';
+
+// A caption is the slot content; WP recorded one on 23 attachments and nothing else
+const caption = await renderSlot(Astro.slots);
 ---
 
-<MediaImage
-	alt={alt}
-	class="block rounded"
-	path={id}
-	sizes="(min-width: 48rem) 48rem, 100vw"
-	width={1200}
-/>
+{
+	caption ? (
+		<figure class="img-figure">
+			<MediaImage alt={alt} class="block rounded" path={id} sizes={sizes} width={1200} />
+			<figcaption class="img-caption" set:html={caption} />
+		</figure>
+	) : (
+		<MediaImage alt={alt} class="block rounded" path={id} sizes={sizes} width={1200} />
+	)
+}

@@ -3,9 +3,11 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
+import CommentsSection from '#components/comments/comments-section.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import ContentDetail from '#layouts/content-detail.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -28,7 +30,7 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 
 <ContentDetail
 	date={entry.data.dateCreated}
-	kind={{ label: 'Blog', url: '/blog/' }}
+	kind={{ label: t('collection.posts.title'), url: '/blog/' }}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	styles={styleTerms}
 	title={entry.data.title}
@@ -38,9 +40,14 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 	<Content />
 	<Fragment slot="sections">
 		<SectionCoda class="mt-10 content-measure">
-			<TermLinks heading="Format" terms={formatTerms} />
-			<TermLinks heading="Themes" terms={themeTerms} />
-			<TermLinks heading="Labels" terms={labelTerms} />
+			<TermLinks heading={t('collection.formats.label')} terms={formatTerms} />
+			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 		</SectionCoda>
 	</Fragment>
+	{
+		entry.data.commentsEnabled === false ? undefined : (
+			<CommentsSection collection="posts" entryId={entry.id} slot="comments" />
+		)
+	}
 </ContentDetail>

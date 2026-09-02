@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
+import CommentsSection from '#components/comments/comments-section.astro';
 import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
@@ -12,6 +13,7 @@ import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -38,7 +40,7 @@ const [alias] = aliasTerms;
 
 <ReleaseDetail
 	date={entry.data.dateCreated}
-	kind={{ label: 'Mixes', url: '/mixes/' }}
+	kind={{ label: t('collection.mixes.title'), url: '/mixes/' }}
 	labels={labelTerms}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	releaseTitle={entry.data.title}
@@ -63,8 +65,13 @@ const [alias] = aliasTerms;
 	/>
 	<Fragment slot="sections">
 		<SectionCoda>
-			<TermLinks heading="Themes" terms={themeTerms} />
+			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
+	{
+		entry.data.commentsEnabled === false ? undefined : (
+			<CommentsSection collection="mixes" entryId={entry.id} slot="comments" />
+		)
+	}
 </ReleaseDetail>

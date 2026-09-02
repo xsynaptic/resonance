@@ -8,7 +8,6 @@ const entities: Record<string, string> = {
 	'&quot;': '"',
 };
 
-// Interpolate named placeholders in a string, e.g. "Page {current} of {total}"
 export function formatStringTemplate(
 	template: string,
 	values: Record<string, number | string> = {},

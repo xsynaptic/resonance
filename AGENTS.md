@@ -28,13 +28,14 @@ Avoid adding anything to this file unless it is important and relevant.
 
 ## Content
 
-`packages/content/collections/` is **generated** by the WordPress extractor, which wipes the collection directories and re-emits. Do not hand-edit generated MDX from code; the operator's draft triage is the exception, and it is why re-running is destructive. See `.claude/reference/wordpress-origins.md`.
+`packages/content/collections/` was **generated** by the WordPress extractor until handover on 2026-09-03; the tracked content repository is the record now. A re-extraction still wipes the collection directories and re-emits, so it destroys real work rather than merely inconveniencing: if the dump is ever run again it goes onto a branch and is merged by hand. See `.claude/reference/wordpress-origins.md`.
 
 `packages/content` is a **separate private repository**, nested here and gitignored whole. Read `packages/content/AGENTS.md` before writing or editing anything under that directory, and open `packages/content` as its own project for sustained content work, so those rules load automatically. Because the directory is ignored here, `git clean -xdf` in this repo deletes it outright, its own `.git` included, so be careful.
 
 - Content files must be **`.mdx`, never `.md`**. The Satteri auto-import plugin hard-guards on the extension and silently no-ops on `.md`, turning `<Link>` into inert raw HTML with no error.
 - Drafts are `_`-prefixed and skipped by the `[^_]*` glob loader.
 - Schemas import `z` from `'zod'`, **not** `'astro:content'` (deprecated in Astro 7).
+- Dates are `z.date()` and go in **unquoted**: YAML parses `YYYY-MM-DD` and `YYYY-MM-DD HH:mm:ss` as UTC dates, but a time without seconds stays a string and fails the schema. Track timestamps (`"00:07:08"`) stay quoted for the same reason, in reverse.
 - Adding a component to `autoImport()` in the Astro config file means adding its props to `MDXProvidedComponents` in `packages/content/global.d.ts` too. The imports are injected by a mdast plugin, so the MDX language server cannot see them; that declaration is the only thing type-checking `.mdx` bodies in the editor.
 - Prose in `.mdx` is owned by mdxlint (`pnpm check-content` / `pnpm fix-content`), not prettier, which ignores `*.mdx`.
 

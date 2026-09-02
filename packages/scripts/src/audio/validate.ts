@@ -62,7 +62,8 @@ async function collectOnDisk(audioDir: string): Promise<Set<string>> {
 }
 
 async function collectReferenced(mixesDir: string): Promise<Set<string>> {
-	const entries = await fs.readdir(mixesDir);
+	// Mixes are filed under year directories, so a flat read matches nothing
+	const entries = await fs.readdir(mixesDir, { recursive: true });
 	const sources = await Promise.all(
 		entries
 			.filter((name) => name.endsWith('.mdx'))

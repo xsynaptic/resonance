@@ -80,6 +80,6 @@ Every page on the site is one of two shapes, and its layout is named for which o
 
 ### Provenance
 
-**Extraction**: The generation of the content tree from the WordPress dump. It is the writer of record for frontmatter shape, and destructive to anything edited by hand. _Avoid_: import, migration, sync.
+**Extraction**: The generation of the content tree from the WordPress dump. It was the writer of record for frontmatter shape until handover on 2026-09-03; the tracked tree is now, and a re-Extraction would overwrite it. _Avoid_: import, migration, sync.
 
-**Triage**: The manual pass over Drafts, un-prefixing what should publish. It is the one hand edit that matters in generated content, and the reason a re-Extraction has a real cost. _Avoid_: cleanup, review, curation.
+**Triage**: The manual pass over Drafts in the tracked content repository, un-prefixing what should publish, with git behind it. _Avoid_: cleanup, review, curation.

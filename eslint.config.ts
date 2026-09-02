@@ -9,7 +9,7 @@ export default getConfig(
 				'**/.astro/**/*',
 				'**/.cache/**/*',
 				'**/dist/**/*',
-				'packages/content/{_archive,collections}/**/*',
+				'packages/content/{archive,collections}/**/*',
 				'packages/scripts/src/wp-extract/**/*',
 				'**/worker-configuration.d.ts',
 			],

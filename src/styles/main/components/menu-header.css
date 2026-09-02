@@ -56,7 +56,7 @@ menu-navigation {
 }
 
 .nav-link:active {
-	color: var(--color-highlight-400);
+	color: var(--color-accent-300);
 }
 
 .nav-icon {

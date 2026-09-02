@@ -23,10 +23,10 @@
 	color: var(--color-ink-600);
 }
 
-/* Both darker orange steps fail contrast at this size, so the muting goes toward ink instead */
+/* A meta label, not a link, so it sits at the same tier as the ink-600 around it and leans on weight */
 .title-kind {
 	font-weight: var(--font-weight-bold);
-	color: color-mix(in oklab, var(--color-highlight-400) 65%, var(--color-ink-400));
+	color: var(--color-highlight-500);
 }
 
 .title-above > * + *::before,

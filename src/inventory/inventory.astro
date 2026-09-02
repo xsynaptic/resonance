@@ -62,14 +62,9 @@ const {
 	vocabulary,
 } = await getInventoryFixtures();
 
-// Mirrors the ramps in styles/main/parts/theme.css
-const colorRamps = [
-	{ name: 'surface', steps: [100, 200, 300, 400, 500, 600, 700, 800, 900] },
-	{ name: 'ink', steps: [50, 100, 200, 300, 400, 500, 600, 700] },
-	{ name: 'accent', steps: [300, 400, 500, 600] },
-	{ name: 'highlight', steps: [300, 400, 500, 600] },
-	{ name: 'crimson', steps: [400, 500] },
-];
+// Mirrors the ramps in styles/main/parts/theme.css, which define every step for all five
+const rampSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const rampNames = ['surface', 'ink', 'accent', 'highlight', 'crimson'];
 
 const fontFamilies = [
 	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
@@ -182,15 +177,15 @@ const paginationPage: Page<ContentItem> = {
 		>
 			<div class="flex flex-col gap-5">
 				{
-					colorRamps.map((ramp) => (
+					rampNames.map((name) => (
 						<div>
-							<div class="font-mono text-xs text-ink-600">--color-{ramp.name}-*</div>
+							<div class="font-mono text-xs text-ink-600">--color-{name}-*</div>
 							<div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1">
-								{ramp.steps.map((step) => (
+								{rampSteps.map((step) => (
 									<div>
 										<div
 											class="h-12 rounded-xs border border-ink-700"
-											style={`background-color: var(--color-${ramp.name}-${String(step)})`}
+											style={`background-color: var(--color-${name}-${String(step)})`}
 										/>
 										<div class="mt-1 font-mono text-[0.6875rem] text-ink-600">{step}</div>
 									</div>
@@ -218,23 +213,36 @@ const paginationPage: Page<ContentItem> = {
 			</div>
 		</Specimen>
 		<Specimen
-			name="Headings"
-			note="Levels go unstyled: h2 takes four different sizes across the site, so a heading gets a class for the role it plays. <code>title-main</code> steps down on h2, keeping an excerpt title in a stream under the page title. The fifth role, <code>heading-group</code>, is a component, shown under Cards and listings."
+			name="Heading roles"
+			note="A list of roles rather than a type scale, so the sizes below are deliberately unrelated. Outside prose a level carries no styling of its own, because h2 fills four of these roles across the site; a heading takes the class for the role it plays, and each line names where that role is used. Prose is the exception, styling h1 to h4 directly, and is the next section. The sixth role, <code>heading-group</code>, belongs to a component and sits under Cards and listings."
 			source="src/styles/main/components/headings.css"
 		>
 			<div class="space-y-3">
-				<h1 class="title-main">title-main, a page or detail title</h1>
-				<h2 class="title-main">title-main on h2, an excerpt or hero title</h2>
+				<h1 class="title-main">title-main, a Detail Page or List Page title</h1>
+				<h2 class="title-main">title-main on h2, an excerpt or hero title, a step down</h2>
 				<h2 class="heading-section">heading-section, a band on Home or Related</h2>
 				<h2 class="heading-sub">heading-sub, a Tracklist</h2>
 				<h2 class="heading-label">heading-label, a footer band</h2>
 			</div>
 		</Specimen>
-		<Specimen name="Link states" source="src/styles/main/parts/base.css">
-			<p>
-				A <a href="/mixes/">bare anchor</a> at rest, against the body colour around it. Hover, focus and
-				active all differ; tab through for the focus treatment.
-			</p>
+		<Specimen
+			name="Link roles"
+			note="Nothing ships a bare anchor in running text, so the base is a fallback rather than a role: it is deliberately quiet, one step off body colour with no underline. Every context that puts a link in prose claims it first. Hover, focus and active all differ; tab through for the focus treatment."
+			source="src/styles/main/parts/base.css"
+		>
+			<div class="space-y-2">
+				<div class="prose-x">
+					<p>Prose claims a link with <a href="/mixes/">an underline and a lift to ink-200</a>.</p>
+				</div>
+				<p>
+					<Anchor href="/mixes/">Anchor</Anchor> carries taxonomy, meta and navigation in highlight.
+				</p>
+				<p class="title-below">
+					<span><a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.</span
+					>
+				</p>
+				<p>And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.</p>
+			</div>
 		</Specimen>
 	</Section>
 	<Section

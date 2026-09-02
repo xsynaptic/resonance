@@ -170,7 +170,9 @@
 		color: inherit;
 	}
 
+	/* Vertical padding on an inline box grows the band without entering the line box */
 	& :where(mark) {
+		padding-block: 1px;
 		padding-inline: 0.2em;
 		color: var(--color-surface-800);
 		background-color: var(--color-highlight-400);

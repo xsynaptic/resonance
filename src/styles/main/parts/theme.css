@@ -31,6 +31,7 @@
 	/* Surfaces: dark desaturated blue-grey; four steps are production anchors, the rest interpolate */
 
 	/* 500 is the content well, 700 the header band, 800 the page and inset panels, 900 the footer band */
+	--color-surface-50: hsl(205deg 28% 74%);
 	--color-surface-100: hsl(205deg 25% 63%);
 	--color-surface-200: hsl(204deg 17% 53%);
 	--color-surface-300: hsl(203deg 15% 43%);
@@ -40,6 +41,7 @@
 	--color-surface-700: hsl(205deg 12% 19%);
 	--color-surface-800: hsl(203deg 10% 15%);
 	--color-surface-900: hsl(204deg 8% 12%);
+	--color-surface-950: hsl(204deg 7% 9%);
 
 	/* 100 bright, 200 content links, 300 body links, 400 body text, 600 muted, 700 dim */
 	--color-ink-50: hsl(180deg 26% 93%);
@@ -50,18 +52,46 @@
 	--color-ink-500: hsl(182deg 13% 63%);
 	--color-ink-600: hsl(183deg 10% 55%);
 	--color-ink-700: hsl(183deg 8% 47%);
+	--color-ink-800: hsl(183deg 7% 38%);
+	--color-ink-900: hsl(183deg 6% 29%);
+	--color-ink-950: hsl(183deg 5% 22%);
 
 	/* Accent: lime-green, for headings and header navigation; 400 is the production heading lime */
+	--color-accent-50: hsl(70deg 60% 93%);
+	--color-accent-100: hsl(70deg 62% 87%);
+	--color-accent-200: hsl(70deg 64% 79%);
 	--color-accent-300: hsl(70deg 68% 70%);
 	--color-accent-400: hsl(70deg 75% 61%);
 	--color-accent-500: hsl(70deg 72% 53%);
 	--color-accent-600: hsl(70deg 68% 48%);
+	--color-accent-700: hsl(70deg 66% 40%);
+	--color-accent-800: hsl(70deg 62% 31%);
+	--color-accent-900: hsl(70deg 58% 22%);
+	--color-accent-950: hsl(70deg 55% 15%);
 
 	/* Highlight: orange, for meta lines, dates and taxonomy links; 500 base, 400 hover, 300 active */
+	--color-highlight-50: hsl(27deg 95% 93%);
+	--color-highlight-100: hsl(27deg 97% 86%);
+	--color-highlight-200: hsl(27deg 100% 77%);
 	--color-highlight-300: hsl(27deg 100% 68%);
 	--color-highlight-400: hsl(26.5deg 98% 59%);
 	--color-highlight-500: hsl(27deg 85% 49%);
 	--color-highlight-600: hsl(26deg 81% 43%);
+	--color-highlight-700: hsl(26deg 79% 36%);
+	--color-highlight-800: hsl(26deg 76% 28%);
+	--color-highlight-900: hsl(26deg 73% 20%);
+	--color-highlight-950: hsl(26deg 70% 13%);
+
+	/* Crimson: unused in production, kept complete */
+	--color-crimson-50: hsl(349deg 72% 94%);
+	--color-crimson-100: hsl(349deg 70% 88%);
+	--color-crimson-200: hsl(349deg 68% 79%);
+	--color-crimson-300: hsl(349deg 66% 69%);
 	--color-crimson-400: hsl(349deg 63% 59%);
 	--color-crimson-500: hsl(351deg 49% 49%);
+	--color-crimson-600: hsl(351deg 51% 42%);
+	--color-crimson-700: hsl(352deg 53% 35%);
+	--color-crimson-800: hsl(352deg 55% 27%);
+	--color-crimson-900: hsl(353deg 56% 20%);
+	--color-crimson-950: hsl(353deg 58% 13%);
 }

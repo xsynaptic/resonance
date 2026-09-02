@@ -153,11 +153,13 @@
 		color: var(--color-ink-50);
 	}
 
+	/* `scrollbar-width` does not inherit, unlike `scrollbar-color` */
 	& :where(pre) {
 		padding: calc(var(--spacing) * 4);
 		margin: 0 0 calc(var(--spacing) * 5);
 		font-size: 0.875em;
 		line-height: 1.6;
+		scrollbar-width: thin;
 		border-radius: var(--radius-sm);
 	}
 

@@ -1,5 +1,7 @@
 html {
 	scrollbar-gutter: stable;
+	scrollbar-color: color-mix(in srgb, var(--color-surface-300) 70%, transparent) transparent;
+	scrollbar-width: thin;
 }
 
 body {

@@ -76,6 +76,18 @@
 	display: inline-flex;
 	padding-inline: 15px;
 	margin-inline: -15px;
+}
+
+/* Picks up where the title's gradient ends, so the plate fades out of the image in one ramp */
+.hero-overlay .title-above {
+	background: linear-gradient(
+		0deg,
+		color-mix(in oklab, var(--color-surface-600) 70%, transparent),
+		color-mix(in oklab, var(--color-surface-600) 45%, transparent)
+	);
+}
+
+.hero-overlay .title-below {
 	background-color: var(--color-surface-600);
 }
 

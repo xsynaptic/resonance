@@ -23,8 +23,10 @@
 	color: var(--color-ink-600);
 }
 
+/* Both darker orange steps fail contrast at this size, so the muting goes toward ink instead */
 .title-kind {
 	font-weight: var(--font-weight-bold);
+	color: color-mix(in oklab, var(--color-highlight-400) 65%, var(--color-ink-400));
 }
 
 .title-above > * + *::before,

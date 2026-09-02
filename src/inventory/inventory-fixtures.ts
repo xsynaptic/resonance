@@ -77,6 +77,7 @@ export async function getInventoryFixtures() {
 		downloadCounts: await getDownloadCounts(),
 		excerpt: await sampleExcerpt(),
 		formats,
+		heroPath: await sampleHeroPath(),
 		iconIds,
 		imagePaths: await sampleImagePaths(4),
 		labels,
@@ -112,6 +113,20 @@ async function sampleExcerpt(): Promise<ExcerptSample | undefined> {
 		href: getContentUrl('posts', entry.id),
 		title: entry.data.title,
 	};
+}
+
+// Mixes only carry square cover art, which the band's 4/3 crop guts
+async function sampleHeroPath(): Promise<string | undefined> {
+	for (const collection of ['posts', 'pages', 'series'] as const) {
+		const entries = await getCollection(collection);
+
+		for (const entry of entries) {
+			const path = entry.data.imageHero;
+			if (path !== undefined && getMediaImage(path)) return path;
+		}
+	}
+
+	return undefined;
 }
 
 // Originals are gitignored, so collect the paths that resolve rather than naming any

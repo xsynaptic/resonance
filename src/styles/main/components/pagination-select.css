@@ -68,10 +68,9 @@
 		max-height: 240px;
 		overflow-y: auto;
 		overscroll-behavior: none;
-		scrollbar-color: color-mix(in srgb, var(--color-surface-400) 45%, transparent) transparent;
 		scrollbar-width: thin;
-		background-color: var(--color-surface-800);
-		border: 1px solid var(--color-surface-600);
+		background-color: var(--color-surface-600);
+		border: 1px solid var(--color-surface-700);
 		border-radius: var(--radius-sm);
 		box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
 
@@ -93,13 +92,13 @@
 
 	.pg-control option:focus {
 		color: var(--color-accent-300);
-		background-color: var(--color-surface-700);
+		background-color: var(--color-surface-500);
 	}
 
 	@media (hover: hover) {
 		.pg-control option:hover {
 			color: var(--color-accent-300);
-			background-color: var(--color-surface-700);
+			background-color: var(--color-surface-500);
 		}
 	}
 

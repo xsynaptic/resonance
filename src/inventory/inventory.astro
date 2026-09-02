@@ -45,6 +45,7 @@ const {
 	downloadCounts,
 	excerpt,
 	formats,
+	heroPath,
 	iconIds,
 	imagePaths,
 	labels,
@@ -89,8 +90,6 @@ const sectionTitles = [
 	'Empty states',
 	'Utilities',
 ];
-
-const [heroPath] = imagePaths;
 
 const hasHero = !Astro.url.pathname.replace(/\/$/, '').endsWith('/no-hero');
 
@@ -563,7 +562,7 @@ const paginationPage: Page<ContentItem> = {
 		</Specimen>
 		<Specimen
 			name="SectionPostExcerpt"
-			note="The blog list row. The body truncates at the <code><More /></code> marker, and the continue link appears only if something followed it."
+			note="The blog list row. The body truncates at the <code>More</code> fold, and the continue link appears only if something followed it."
 			source="src/components/sections/section-post-excerpt.astro"
 		>
 			{

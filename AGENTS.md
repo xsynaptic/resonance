@@ -21,6 +21,7 @@ Avoid adding anything to this file unless it is important and relevant.
 - A decoration applied like a utility typically becomes a `@utility` in `parts/utilities.css`.
 - No `<style>` blocks (they bundle into the same file, sit outside the cascade layers, and stop at the component's own template); `main-stylesheet.astro` is the one `is:inline` exception (FOUC guard).
 - A hook class carries only what the stylesheet targets and shares a descriptive prefix or short-form representing the target. Avoid Microformat prefixes (`p-`, `h-`, `u-`, `dt-`, `e-`).
+- **A class family's root name should stay greppable**, so it can be found and replaced without reading every hit.
 - Stylesheets read tokens as `var(--…)`; `@apply` where it replaces a media query or composes a project `@utility`.
 - Stacking order is `--z-index-*` applied as `z-*` utilities or `var()`.
 - Every `hover:` on a focusable element has its `focus-visible:` twin where relevant. A stylesheet `:hover` sits under `@media (hover: hover)`, as Tailwind's `hover:` does; its `:focus-visible` partner stays outside it.
@@ -34,7 +35,7 @@ Avoid adding anything to this file unless it is important and relevant.
 - Content files must be **`.mdx`, never `.md`**. The Satteri auto-import plugin hard-guards on the extension and silently no-ops on `.md`, turning `<Link>` into inert raw HTML with no error.
 - Drafts are `_`-prefixed and skipped by the `[^_]*` glob loader.
 - Schemas import `z` from `'zod'`, **not** `'astro:content'` (deprecated in Astro 7).
-- Adding a component to `autoImport()` in `astro.config.mjs` means adding its props to `MDXProvidedComponents` in `packages/content/global.d.ts` too. The imports are injected by a mdast plugin, so the MDX language server cannot see them; that declaration is the only thing type-checking `.mdx` bodies in the editor.
+- Adding a component to `autoImport()` in the Astro config file means adding its props to `MDXProvidedComponents` in `packages/content/global.d.ts` too. The imports are injected by a mdast plugin, so the MDX language server cannot see them; that declaration is the only thing type-checking `.mdx` bodies in the editor.
 - Prose in `.mdx` is owned by mdxlint (`pnpm check-content` / `pnpm fix-content`), not prettier, which ignores `*.mdx`.
 
 **Selections** (the curated-roundup Format) are a `selections` array in a Post's or Page's frontmatter, rendered by the `<Selections>` MDX tag in the body. Data lives in frontmatter, presentation on the tag. A selection's `entryId` names a mix, review, or post by bare slug and **fills in every field the selection itself leaves unset**, the review's own body included, so the workflow is review-first and a complete row can be one line. Inline fields always win. See `src/lib/collections/selections/selections-resolve.ts`.

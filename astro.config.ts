@@ -9,6 +9,7 @@ import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 
 import inventory from './src/inventory/inventory-integration.ts';
+import { shikiTheme } from './src/lib/utils/shiki-theme.ts';
 
 export default defineConfig({
 	env: {
@@ -79,6 +80,7 @@ export default defineConfig({
 				}),
 			],
 		}),
+		shikiConfig: { theme: shikiTheme },
 	},
 	site: import.meta.env.PROD ? 'https://djbasilisk.com/' : 'http://localhost:4321/',
 	vite: {

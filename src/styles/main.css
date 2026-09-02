@@ -8,6 +8,11 @@
 /* Safelist utilities applied to HTML we don't author directly */
 @source inline('sr-only');
 
+/* Shiki writes its theme as inline `var()` on generated HTML, which nothing scans, so these prune away unlisted */
+@source inline(
+	'{bg-surface-800,text-accent-400,text-highlight-300,text-ink-100,text-ink-200,text-ink-300,text-ink-500,text-ink-600}'
+);
+
 @import './main/parts/theme.css';
 @import './main/parts/utilities.css';
 @import './main/parts/root.css';

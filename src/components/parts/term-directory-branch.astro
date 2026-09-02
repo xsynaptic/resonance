@@ -1,0 +1,24 @@
+---
+import type { DirectoryTerm } from '#lib/collections/terms/term-tree.ts';
+
+import Anchor from '#components/parts/anchor.astro';
+import DirectoryBranch from '#components/parts/term-directory-branch.astro';
+
+interface Props {
+	nested?: boolean | undefined;
+	terms: Array<DirectoryTerm>;
+}
+
+const { nested = false, terms } = Astro.props;
+---
+
+<ul class:list={['space-y-1', nested ? 'mt-1 border-l border-surface-400 pl-3' : undefined]}>
+	{
+		terms.map((term) => (
+			<li class:list={[!nested && term.children ? 'break-inside-avoid' : undefined]}>
+				<Anchor href={term.url}>{term.title}</Anchor>
+				{term.children ? <DirectoryBranch nested={true} terms={term.children} /> : undefined}
+			</li>
+		))
+	}
+</ul>

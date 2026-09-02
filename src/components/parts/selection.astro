@@ -1,5 +1,6 @@
 ---
 import type { ResolvedSelection } from '#lib/collections/selections/selections-resolve.ts';
+import type { IconId } from '#lib/utils/icon-types.ts';
 
 import ButtonLink from '#components/parts/button-link.astro';
 import MediaImage from '#components/parts/media-image.astro';
@@ -14,7 +15,7 @@ interface Props {
 
 interface SelectionLink {
 	href: string;
-	icon?: string | undefined;
+	icon?: IconId | undefined;
 	label: string;
 }
 

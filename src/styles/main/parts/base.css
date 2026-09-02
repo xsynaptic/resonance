@@ -8,24 +8,6 @@ body {
 	line-height: 1.75;
 	color: var(--color-ink-400);
 	background-color: var(--color-surface-800);
-	-webkit-font-smoothing: antialiased;
-}
-
-h1,
-h2,
-h3,
-h4 {
-	font-family: var(--font-display);
-	font-weight: 700;
-	font-feature-settings: 'lnum';
-	line-height: 1.2;
-	color: var(--color-accent-400);
-	text-wrap: balance;
-}
-
-/* Page titles are cyan; the lime is reserved for section-level headings */
-h1 {
-	color: var(--color-ink-200);
 }
 
 a {

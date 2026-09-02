@@ -1,8 +1,9 @@
 @import 'tailwindcss' source(none);
 
-/* Explicitly name the paths Tailwind scans for class names, rather than scanning everything (perf) */
 @source './main/**/*.css';
-@source '../**/*.astro';
+@source '../components/**/*.astro';
+@source '../layouts/**/*.astro';
+@source '../pages/**/*.astro';
 
 /* Safelist utilities applied to HTML we don't author directly */
 @source inline('sr-only');
@@ -16,10 +17,12 @@
 @import './main/components/detail-header.css' layer(components);
 @import './main/components/detail-hero.css' layer(components);
 @import './main/components/embed-frame.css' layer(components);
+@import './main/components/headings.css' layer(components);
 @import './main/components/menu-header.css' layer(components);
 @import './main/components/pagination-select.css' layer(components);
 @import './main/components/prose.css' layer(components);
 @import './main/components/release-detail.css' layer(components);
 @import './main/components/search.css' layer(components);
+@import './main/components/top-button.css' layer(components);
 @import './main/components/selections.css' layer(components);
 @import './main/components/track-list.css' layer(components);

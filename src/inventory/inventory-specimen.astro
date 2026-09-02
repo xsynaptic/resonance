@@ -1,0 +1,24 @@
+---
+interface Props {
+	name: string;
+	note?: string | undefined;
+	source?: string | undefined;
+}
+
+const { name, note, source } = Astro.props;
+---
+
+<div class="mb-8">
+	<div
+		class="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-2 border-b border-dashed border-surface-400 pb-1.5"
+	>
+		<span class="font-mono text-sm text-ink-500">{name}</span>
+		{source ? <span class="font-mono text-xs text-ink-700">{source}</span> : undefined}
+	</div>
+	{
+		note ? (
+			<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600" set:html={note} />
+		) : undefined
+	}
+	<slot />
+</div>

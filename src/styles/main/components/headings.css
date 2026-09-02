@@ -1,0 +1,54 @@
+.title-main,
+.heading-section,
+.heading-sub,
+.heading-label,
+.heading-group {
+	font-family: var(--font-display);
+	font-weight: var(--font-weight-bold);
+	font-feature-settings: 'lnum';
+	text-wrap: balance;
+}
+
+/* Detail titles and every List Page h1 */
+.title-main {
+	font-size: var(--text-4xl);
+	line-height: var(--text-4xl--line-height);
+	color: var(--color-ink-200);
+}
+
+/* The same role a step down; the element is what separates an excerpt or hero title from a page title */
+h2.title-main {
+	font-size: var(--text-3xl);
+	line-height: var(--text-3xl--line-height);
+}
+
+/* Home bands and Related */
+.heading-section {
+	font-size: var(--text-2xl);
+	line-height: var(--text-2xl--line-height);
+	color: var(--color-accent-400);
+}
+
+/* Tracklist */
+.heading-sub {
+	font-size: var(--text-xl);
+	line-height: var(--text-xl--line-height);
+	color: var(--color-accent-400);
+}
+
+/* Footer bands: a label rather than a step in the ladder, so it takes caps and tracking */
+.heading-label {
+	font-size: var(--text-sm);
+	line-height: var(--text-sm--line-height);
+	color: var(--color-accent-400);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-wide);
+}
+
+/* The rule above a run on a list page, as much a divider as a heading */
+.heading-group {
+	font-size: var(--text-sm);
+	line-height: var(--text-sm--line-height);
+	color: var(--color-ink-600);
+	letter-spacing: var(--tracking-wide);
+}

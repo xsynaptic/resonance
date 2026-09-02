@@ -1,4 +1,4 @@
-/* Hooks are title-*; the block is shared by section-detail-header, section-post-excerpt and breadcrumbs */
+/* Hooks are title-* */
 
 /* The three sit on their own line boxes with no margins, which is what keeps the block tight */
 .title-above,
@@ -12,16 +12,6 @@
 
 .title-above {
 	color: var(--color-highlight-500);
-}
-
-.title-main {
-	font-size: var(--text-4xl);
-	line-height: var(--text-4xl--line-height);
-}
-
-h2.title-main {
-	font-size: var(--text-3xl);
-	line-height: var(--text-3xl--line-height);
 }
 
 .title-divider {

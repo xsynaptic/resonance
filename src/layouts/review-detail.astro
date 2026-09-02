@@ -5,6 +5,7 @@ import { render } from 'astro:content';
 
 import Anchor from '#components/parts/anchor.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
@@ -47,7 +48,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 >
 	<Content />
 	<Fragment slot="sections">
-		<div class="space-y-2 text-sm">
+		<SectionCoda>
 			{
 				rating ? (
 					<p>
@@ -66,7 +67,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 			}
 			<TermLinks heading="Artists" terms={artistTerms} />
 			<TermLinks heading="Themes" terms={themeTerms} />
-		</div>
+		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
 </ReleaseDetail>

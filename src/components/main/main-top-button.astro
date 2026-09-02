@@ -1,0 +1,22 @@
+---
+
+---
+
+<top-button
+	class="fixed right-2 bottom-2 z-top-button flex cursor-pointer items-center justify-center rounded-full border border-surface-400 bg-surface-700 shadow-lg sm:hidden"
+	inert={true}
+>
+	<button
+		aria-label="Back to top"
+		class="flex p-3 text-ink-400 transition-colors duration-200 hover:text-highlight-400 focus-visible:text-highlight-400"
+		type="button"
+	>
+		<svg aria-hidden="true" height="24" viewBox="0 0 24 24" width="24">
+			<use href="#icon:chevron-up"></use>
+		</svg>
+	</button>
+</top-button>
+
+<script>
+	import '#components/main/main-top-button.ts';
+</script>

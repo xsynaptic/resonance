@@ -1,7 +1,7 @@
 import { glob } from 'astro/loaders';
 import { defineCollection } from 'astro:content';
 
-import { CONTENT_COLLECTIONS_PATH } from '#constants.ts';
+import { contentCollectionsPath } from '#constants.ts';
 import { downloadsLoader } from '#lib/collections/downloads/downloads-loader.ts';
 import { mixSchema, reviewSchema } from '#lib/schemas/audio.ts';
 import { pageSchema, postSchema } from '#lib/schemas/documents.ts';
@@ -19,7 +19,7 @@ import {
 
 function collectionLoader(name: string) {
 	return glob({
-		base: `${CONTENT_COLLECTIONS_PATH}/${name}`,
+		base: `${contentCollectionsPath}/${name}`,
 		generateId: ({ entry }) => entry.replace(/^.*\//, '').replace(/\.(md|mdx)$/, ''),
 		pattern: '**/[^_]*.(md|mdx)',
 	});

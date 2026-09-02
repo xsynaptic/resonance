@@ -5,8 +5,12 @@ import type { KnipConfig } from 'knip';
 export default {
 	workspaces: {
 		'.': {
-			// MDX auto-import components; referenced via satteri-auto-import, not static imports
-			entry: ['src/components/mdx/**/*.astro'],
+			entry: [
+				// MDX auto-import components; referenced via satteri-auto-import, not static imports
+				'src/components/mdx/**/*.astro',
+				// The inventory; injected by entrypoint string in the integration, not imported
+				'src/inventory/inventory.astro',
+			],
 			ignoreDependencies: [
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })
 				'eslint-plugin-jsx-a11y',

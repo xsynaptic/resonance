@@ -7,7 +7,7 @@ import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 import { toContentItem } from '#lib/catalog/catalog-data.ts';
 
 // Three screens of a 4-up carousel; enough to scroll before the scoring is worth refining
-const RELATED_LIMIT = 12;
+const relatedLimit = 12;
 
 type ReleaseEntry = CollectionEntry<'mixes' | 'reviews'>;
 
@@ -32,7 +32,7 @@ export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<Conten
 				second.score - first.score ||
 				second.candidate.data.dateCreated.getTime() - first.candidate.data.dateCreated.getTime(),
 		)
-		.slice(0, RELATED_LIMIT);
+		.slice(0, relatedLimit);
 
 	return Promise.all(related.map((scored) => toContentItem(entry.collection, scored.candidate)));
 }

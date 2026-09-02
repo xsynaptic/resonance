@@ -5,4 +5,4 @@ export interface MenuItem {
 	url?: string | undefined;
 }
 
-export const MENU_DEPTH_MAX = 2;
+export const menuDepthMax = 2;

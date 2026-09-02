@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 
 import type { TermIndex } from '#lib/collections/terms/term-index.ts';
 
-import { LIST_PAGE_SIZE } from '#constants.ts';
+import { listPageSize } from '#constants.ts';
 
 // Paginated static paths for every term's detail page: page 1 bare, pages 2+ at /<term>/<n>/
 // Generic over the collection so each route keeps the term's specific type
@@ -18,7 +18,7 @@ export function createTermDetailPaths<Collection extends CollectionKey>(
 
 		return terms.flatMap((term) =>
 			paginate(index.get(term.id) ?? [], {
-				pageSize: LIST_PAGE_SIZE,
+				pageSize: listPageSize,
 				params: { slug: term.id },
 				props: { term },
 			}),

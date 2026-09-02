@@ -1,5 +1,5 @@
 ---
-import { OPEN_GRAPH_IMAGE_HEIGHT, OPEN_GRAPH_IMAGE_WIDTH } from '@xsynaptic/shared/constants';
+import { openGraphImageHeight, openGraphImageWidth } from '@xsynaptic/shared/constants';
 import { Font } from 'astro:assets';
 import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
 
@@ -8,6 +8,7 @@ import MainAnalytics from '#components/main/main-analytics.astro';
 import MainFooter from '#components/main/main-footer.astro';
 import MainHeader from '#components/main/main-header.astro';
 import MainSprites from '#components/main/main-sprites.astro';
+import MainTopButton from '#components/main/main-top-button.astro';
 import { site } from '#lib/site.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
 import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
@@ -51,8 +52,8 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<meta content={pageUrl} property="og:url" />
 		<meta content={site.title} property="og:site_name" />
 		<meta content={openGraphImageUrl} property="og:image" />
-		<meta content={String(OPEN_GRAPH_IMAGE_WIDTH)} property="og:image:width" />
-		<meta content={String(OPEN_GRAPH_IMAGE_HEIGHT)} property="og:image:height" />
+		<meta content={String(openGraphImageWidth)} property="og:image:width" />
+		<meta content={String(openGraphImageHeight)} property="og:image:height" />
 		<meta content="summary_large_image" name="twitter:card" />
 		{
 			UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (
@@ -63,12 +64,13 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 	<body class="relative flex min-h-screen flex-col">
 		<MainSprites />
 		<MainHeader hero={Boolean(heroSlot)} />
-		<main class="w-full flex-1 bg-surface-500">
+		<main class="w-full flex-1 bg-surface-500" id="main-content">
 			{heroSlot ? <Fragment set:html={heroSlot} /> : undefined}
 			<div class:list={['content-wide pb-12', heroSlot ? 'pt-5' : 'pt-12']}>
 				<slot />
 			</div>
 		</main>
 		<MainFooter />
+		<MainTopButton />
 	</body>
 </html>

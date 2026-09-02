@@ -1,0 +1,634 @@
+---
+import type { Page } from 'astro';
+
+import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { SelectionValue } from '#lib/schemas/selections.ts';
+
+import EmbedFrame from '#components/embed/embed-frame.astro';
+import EmbedMixcloud from '#components/embed/embed-mixcloud.astro';
+import EmbedSoundcloud from '#components/embed/embed-soundcloud.astro';
+import MainSite from '#components/main/main-site.astro';
+import ImgGroup from '#components/mdx/img-group.astro';
+import Img from '#components/mdx/img.astro';
+import Selections from '#components/mdx/selections.astro';
+import TrackList from '#components/mdx/track-list.astro';
+import Anchor from '#components/parts/anchor.astro';
+import AudioLinks from '#components/parts/audio-links.astro';
+import Breadcrumbs from '#components/parts/breadcrumbs.astro';
+import ButtonLink from '#components/parts/button-link.astro';
+import EntryCard from '#components/parts/entry-card.astro';
+import ListGroupHeading from '#components/parts/list-group-heading.astro';
+import MediaFeatured from '#components/parts/media-featured.astro';
+import MediaImage from '#components/parts/media-image.astro';
+import PaginationSelect from '#components/parts/pagination-select.astro';
+import RefList from '#components/parts/ref-list.astro';
+import RefText from '#components/parts/ref-text.astro';
+import TermDirectory from '#components/parts/term-directory.astro';
+import TermLinks from '#components/parts/term-links.astro';
+import SectionCoda from '#components/sections/section-coda.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+import SectionDetailHero from '#components/sections/section-detail-hero.astro';
+import SectionHome from '#components/sections/section-home.astro';
+import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
+import SectionRelated from '#components/sections/section-related.astro';
+import { getInventoryFixtures } from '#inventory/inventory-fixtures.ts';
+import ProseSample from '#inventory/inventory-prose-sample.mdx';
+import Section from '#inventory/inventory-section.astro';
+import Specimen from '#inventory/inventory-specimen.astro';
+import { toSlug } from '#lib/utils/text.ts';
+
+import './inventory.css';
+
+const {
+	artists,
+	card,
+	downloadCounts,
+	excerpt,
+	formats,
+	iconIds,
+	imagePaths,
+	labels,
+	mix,
+	mixcloudUrl,
+	mixItems,
+	regionTree,
+	release,
+	reviewItems,
+	selections,
+	soundcloudUrl,
+	styles,
+	themes,
+	vocabulary,
+} = await getInventoryFixtures();
+
+// Mirrors the ramps in styles/main/parts/theme.css
+const colorRamps = [
+	{ name: 'surface', steps: [100, 200, 300, 400, 500, 600, 700, 800, 900] },
+	{ name: 'ink', steps: [50, 100, 200, 300, 400, 500, 600, 700] },
+	{ name: 'accent', steps: [300, 400, 500, 600] },
+	{ name: 'highlight', steps: [300, 400, 500, 600] },
+	{ name: 'crimson', steps: [400, 500] },
+];
+
+const fontFamilies = [
+	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
+	{ name: 'font-body', note: 'Archivo, for body copy and chrome' },
+	{ name: 'font-mono', note: "System mono, for this page's own labels" },
+];
+
+const sectionTitles = [
+	'Foundations',
+	'Prose',
+	'Links, buttons, icons',
+	'References',
+	'Cards and listings',
+	'Detail headers',
+	'Media',
+	'Audio',
+	'Content blocks',
+	'Empty states',
+	'Utilities',
+];
+
+const [heroPath] = imagePaths;
+
+const hasHero = !Astro.url.pathname.replace(/\/$/, '').endsWith('/no-hero');
+
+function toDirectoryTerms(refs: Array<{ label: string; url?: string | undefined }>) {
+	return refs.flatMap((ref) => (ref.url === undefined ? [] : [{ title: ref.label, url: ref.url }]));
+}
+
+const vocabularyTerms = toDirectoryTerms(vocabulary);
+const shortVocabularyTerms = toDirectoryTerms([...styles, ...themes, ...labels]);
+
+const mixedRefs = [...artists.slice(0, 2), { label: 'An Uncatalogued Artist' }];
+
+const breadcrumbTrail = [{ label: 'Styles', url: '/styles/' }, ...styles.slice(0, 2)];
+
+// A selection's anchor id comes from its entry, so each order variant takes its own rows
+const unorderedSelections = selections.slice(0, 3);
+const orderedSelections = selections.slice(3, 6);
+const countdownSelections = selections.slice(6, 9);
+
+// Every field written inline, the authoring mode that needs no entry behind it
+const inlineSelection: SelectionValue = {
+	artist: 'A Free-Text Artist',
+	labels: ['An Uncatalogued Label'],
+	linkDiscogs: 'https://www.discogs.com/',
+	title: 'A Release Named Inline',
+	year: '2003',
+};
+
+// Astro's own Page interface type-checks this, so a new required field surfaces here as a tsc error
+const paginationPage: Page<ContentItem> = {
+	currentPage: 3,
+	data: [],
+	end: 29,
+	lastPage: 8,
+	size: 10,
+	start: 20,
+	total: 76,
+	url: {
+		current: '/reviews/3',
+		first: '/reviews',
+		last: '/reviews/8',
+		next: '/reviews/4',
+		prev: '/reviews/2',
+	},
+};
+---
+
+<MainSite title="Inventory">
+	{
+		heroPath && hasHero ? (
+			<SectionDetailHero
+				date={new Date()}
+				kind={{ label: 'Development' }}
+				path={heroPath}
+				slot="hero"
+				styles={styles.slice(0, 2)}
+				title="Component gallery"
+			/>
+		) : undefined
+	}
+	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
+		Every component here is the real one, rendered with real props. Content-heavy props are found by
+		predicate rather than by name, so re-running the extractor never stales this page. The route is
+		injected under <code>astro dev</code> only; a build emits nothing for it. The header above is in its
+		{hasHero ? 'overlay' : 'normal'} variant:{' '}
+		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
+			{hasHero ? 'drop the hero band' : 'restore the hero band'}
+		</Anchor> to see the other.
+	</p>
+	<nav
+		aria-label="Gallery sections"
+		class="mb-12 flex flex-wrap gap-x-5 gap-y-2 rounded-md bg-surface-600 px-5 py-4 font-mono text-xs leading-relaxed"
+	>
+		{
+			sectionTitles.map((title) => (
+				<a class="text-ink-500" href={`#${toSlug(title)}`}>
+					{title}
+				</a>
+			))
+		}
+	</nav>
+	<Section
+		note="The header, menu, search toggle and footer have no specimens: this page renders inside MainSite, so they are already on screen."
+		title="Foundations"
+	>
+		<Specimen
+			name="Colour tokens"
+			note="Every token theme.css defines, including steps the site never uses. The stylesheet imports the theme statically so nothing gets tree-shaken out of a ramp."
+			source="src/styles/main/parts/theme.css"
+		>
+			<div class="flex flex-col gap-5">
+				{
+					colorRamps.map((ramp) => (
+						<div>
+							<div class="font-mono text-xs text-ink-600">--color-{ramp.name}-*</div>
+							<div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1">
+								{ramp.steps.map((step) => (
+									<div>
+										<div
+											class="h-12 rounded-xs border border-ink-700"
+											style={`background-color: var(--color-${ramp.name}-${String(step)})`}
+										/>
+										<div class="mt-1 font-mono text-[0.6875rem] text-ink-600">{step}</div>
+									</div>
+								))}
+							</div>
+						</div>
+					))
+				}
+			</div>
+		</Specimen>
+		<Specimen name="Typefaces" source="src/styles/main/parts/theme.css">
+			<div class="flex flex-col gap-4">
+				{
+					fontFamilies.map((family) => (
+						<div class="border-t border-surface-400 pt-4 first:border-0 first:pt-0">
+							<div class="font-mono text-xs text-ink-700">
+								--{family.name}, {family.note}
+							</div>
+							<div class="mt-1 text-2xl" style={`font-family: var(--${family.name})`}>
+								Basilisk 0123456789 <em>italic</em> <strong>bold</strong>
+							</div>
+						</div>
+					))
+				}
+			</div>
+		</Specimen>
+		<Specimen
+			name="Headings"
+			note="Levels go unstyled: h2 takes four different sizes across the site, so a heading gets a class for the role it plays. <code>title-main</code> steps down on h2, keeping an excerpt title in a stream under the page title. The fifth role, <code>heading-group</code>, is a component, shown under Cards and listings."
+			source="src/styles/main/components/headings.css"
+		>
+			<div class="space-y-3">
+				<h1 class="title-main">title-main, a page or detail title</h1>
+				<h2 class="title-main">title-main on h2, an excerpt or hero title</h2>
+				<h2 class="heading-section">heading-section, a band on Home or Related</h2>
+				<h2 class="heading-sub">heading-sub, a Tracklist</h2>
+				<h2 class="heading-label">heading-label, a footer band</h2>
+			</div>
+		</Specimen>
+		<Specimen name="Link states" source="src/styles/main/parts/base.css">
+			<p>
+				A <a href="/mixes/">bare anchor</a> at rest, against the body colour around it. Hover, focus and
+				active all differ; tab through for the focus treatment.
+			</p>
+		</Specimen>
+	</Section>
+	<Section
+		note="Hand-rolled, not @tailwindcss/typography. The sample is MDX run through the site's own markdown pipeline."
+		title="Prose"
+	>
+		<Specimen name=".prose-x" source="src/styles/main/components/prose.css">
+			<div class="prose-x">
+				<ProseSample />
+			</div>
+		</Specimen>
+	</Section>
+	<Section title="Links, buttons, icons">
+		<Specimen
+			name="Anchor"
+			note="Two roles: highlight for taxonomy, meta and navigation; muted a step dimmer, for the footer."
+			source="src/components/parts/anchor.astro"
+		>
+			<div class="flex flex-wrap items-center gap-4">
+				<Anchor href="/mixes/">anchorColor=&quot;highlight&quot; (default)</Anchor>
+				<Anchor anchorColor="muted" href="/mixes/">anchorColor=&quot;muted&quot;</Anchor>
+			</div>
+		</Specimen>
+		<Specimen name="ButtonLink" source="src/components/parts/button-link.astro">
+			<div class="flex flex-wrap items-center gap-4">
+				<ButtonLink href="/mixes/">standard</ButtonLink>
+				<ButtonLink href="/mixes/" icon="download">standard, icon</ButtonLink>
+				<ButtonLink href="/mixes/" variant="small">small</ButtonLink>
+				<ButtonLink href="/mixes/" icon="youtube" variant="small">small, icon</ButtonLink>
+			</div>
+		</Specimen>
+		<Specimen
+			name="Icon sprite"
+			note="A symbol added to the sheet shows up here once its id is in the fixtures, and in IconId, which types every icon prop."
+			source="src/components/main/main-sprites.astro"
+		>
+			<div class="flex flex-wrap gap-4">
+				{
+					iconIds.map((id) => (
+						<span class="flex w-28 flex-col items-center gap-2 rounded-sm bg-surface-600 px-1 py-3 text-center font-mono text-[0.625rem] text-ink-600">
+							<svg aria-hidden="true" class="size-6 text-highlight-400">
+								<use href={`#icon:${id}`} />
+							</svg>
+							{id}
+						</span>
+					))
+				}
+			</div>
+		</Specimen>
+	</Section>
+	<Section
+		note="How a resolved reference renders. A ref with no url is either free text or an id that did not resolve; both stay plain instead of failing."
+		title="References"
+	>
+		<Specimen name="RefText" source="src/components/parts/ref-text.astro">
+			<div class="flex flex-wrap items-center gap-4">
+				<RefText label={mixedRefs[0]?.label ?? 'Linked'} url={mixedRefs[0]?.url} />
+				<RefText anchorColor="highlight" label='anchorColor="highlight"' url="/styles/" />
+				<RefText label="Unlinked, no url" />
+			</div>
+		</Specimen>
+		<Specimen
+			name="RefList"
+			note="Slash-separated, for label and artist credits in dense rows."
+			source="src/components/parts/ref-list.astro"
+		>
+			<RefList refs={mixedRefs} />
+		</Specimen>
+		<Specimen name="TermLinks" source="src/components/parts/term-links.astro">
+			<div class="flex flex-col items-start gap-4">
+				<TermLinks heading="Styles" terms={styles} />
+				<TermLinks heading="Themes" terms={themes} />
+				<TermLinks heading="Artists" terms={mixedRefs} />
+			</div>
+		</Specimen>
+		<Specimen
+			name="SectionCoda"
+			note="The panel that closes a detail page. Every row inside returns undefined on an empty array, so the slot renders first and the box appears only if something came back."
+			source="src/components/sections/section-coda.astro"
+		>
+			<SectionCoda>
+				<TermLinks heading="Format" terms={formats} />
+				<TermLinks heading="Themes" terms={themes} />
+				<TermLinks heading="Labels" terms={labels} />
+			</SectionCoda>
+		</Specimen>
+		<Specimen
+			name="TermDirectory"
+			note="The body of every Term List Page. Sorts and buckets by initial itself, so terms arrive in any order; a name starting with anything but A-Z files under <code>#</code>. Only roots are bucketed, so the threshold counts roots, not terms."
+			source="src/components/parts/term-directory.astro"
+		>
+			<TermDirectory terms={vocabularyTerms} />
+		</Specimen>
+		<Specimen
+			name="TermDirectory"
+			note="Under twenty terms there is barely a term per initial, so the headings drop and the list flows through the same columns. Eras, Formats, Series and Themes render this way."
+		>
+			<TermDirectory terms={shortVocabularyTerms} />
+		</Specimen>
+		<Specimen
+			name="TermDirectory"
+			note="Hierarchical vocabularies nest: a child sits under its parent, not beside it under its own initial. Regions run three levels deep and are why a branch recurses; Labels, Styles and Eras stop at two."
+			source="src/components/parts/term-directory-branch.astro"
+		>
+			<TermDirectory terms={regionTree} />
+		</Specimen>
+		<Specimen name="Breadcrumbs" source="src/components/parts/breadcrumbs.astro">
+			<Breadcrumbs trail={breadcrumbTrail} />
+		</Specimen>
+	</Section>
+	<Section title="Cards and listings">
+		<Specimen
+			name="EntryCard"
+			note="Always square: the Blog stream is mostly Album Artwork, and a mixed-Format grid has to line up. The frame keeps its shape when the original is missing, which is routine in dev."
+			source="src/components/parts/entry-card.astro"
+		>
+			{
+				card ? (
+					<ul class="entry-grid">
+						<li>
+							<EntryCard
+								date={card.date}
+								href={card.url}
+								image={card.image}
+								subtitle={card.subtitle}
+								title={card.title}
+							/>
+						</li>
+						<li>
+							<EntryCard href={card.url} image={card.image} title="No subtitle, no date" />
+						</li>
+						<li>
+							<EntryCard date={card.date} href={card.url} subtitle="No image" title="Title only" />
+						</li>
+					</ul>
+				) : undefined
+			}
+		</Specimen>
+		<Specimen
+			name="ListGroupHeading"
+			note="The <code>heading-group</code> role: the rule between runs on a list page, an initial in <code>TermDirectory</code>, or a year under <code>groupByYear</code>."
+			source="src/components/parts/list-group-heading.astro"
+		>
+			<ListGroupHeading label={String(new Date().getFullYear())} />
+		</Specimen>
+		<Specimen name="SectionHome" source="src/components/sections/section-home.astro">
+			<SectionHome
+				heading="Latest Mixes"
+				items={mixItems.slice(0, 4)}
+				listHref="/mixes"
+				listLabel="All mixes"
+			/>
+		</Specimen>
+		<Specimen
+			name="SectionRelated"
+			note="Wraps Carousel, a scroll-snap track that works unenhanced; the custom element adds the prev and next chevrons."
+			source="src/components/sections/section-related.astro"
+		>
+			<SectionRelated items={reviewItems.slice(0, 8)} />
+		</Specimen>
+		<Specimen
+			name="PaginationSelect"
+			note="The counter becomes a page select once the custom element upgrades."
+			source="src/components/parts/pagination-select.astro"
+		>
+			<PaginationSelect page={paginationPage} />
+		</Specimen>
+	</Section>
+	<Section
+		note="SectionDetailHero is at the top of this page, in MainSite's hero slot, the only place it renders at full bleed. It also flips the site header into transparent overlay mode. A prerendered page cannot read a query parameter, so seeing the page without it takes a second injected route, <code>/inventory/no-hero</code>."
+		title="Detail headers"
+	>
+		<Specimen
+			name="SectionDetailHeader"
+			note="Bare: a title and nothing else, the way a term detail page uses it."
+			source="src/components/sections/section-detail-header.astro"
+		>
+			<SectionDetailHeader title="A title on its own" />
+		</Specimen>
+		<Specimen name="SectionDetailHeader" note="With a breadcrumb trail.">
+			<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title="Under a vocabulary" />
+		</Specimen>
+		<Specimen name="SectionDetailHeader" note="With styles above, and a kind and date below.">
+			<SectionDetailHeader
+				date={new Date()}
+				kind={{ label: 'Mixes', url: '/mixes/' }}
+				styles={styles}
+				title="A mix, without the release split"
+			/>
+		</Specimen>
+		<Specimen
+			name="SectionDetailHeader"
+			note="The full release header: the artist splits off the title, the work half goes italic, labels and year sit below."
+		>
+			{
+				release ? (
+					<SectionDetailHeader
+						artist={release.artist}
+						date={release.date}
+						kind={{ label: 'Reviews', url: '/reviews/' }}
+						labels={release.labels}
+						releaseTitle={release.releaseTitle}
+						releaseYear={release.releaseYear}
+						styles={styles.slice(0, 1)}
+						title={release.title}
+					/>
+				) : undefined
+			}
+		</Specimen>
+	</Section>
+	<Section title="Media">
+		<Specimen
+			name="MediaImage"
+			note="Resolves a frontmatter path against packages/content/_media and renders nothing if the original is absent."
+			source="src/components/parts/media-image.astro"
+		>
+			{heroPath ? <MediaImage alt="" path={heroPath} width={400} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="MediaFeatured"
+			note="The mounted plate a release cover sits on."
+			source="src/components/parts/media-featured.astro"
+		>
+			{release?.image ? <MediaFeatured alt={release.title} path={release.image} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="Img"
+			note="Auto-imported into MDX bodies, and the only image tag content authors write."
+			source="src/components/mdx/img.astro"
+		>
+			<div class="prose-x">{heroPath ? <Img id={heroPath} /> : undefined}</div>
+		</Specimen>
+		<Specimen
+			name="ImgGroup"
+			note="Grid only; the column count comes from the image count, preferring 4, then 3, then 2. In real content the satteri plugin supplies imageCount."
+			source="src/components/mdx/img-group.astro"
+		>
+			<div class="prose-x">
+				<ImgGroup imageCount={imagePaths.length}>
+					{imagePaths.map((path) => <Img id={path} />)}
+				</ImgGroup>
+			</div>
+		</Specimen>
+	</Section>
+	<Section title="Audio">
+		<Specimen
+			name="AudioLinks"
+			note="External links first, then a row per downloadable file. A file gets a paired CUE button only when the mix carries timestamps, and a download count only once the stats job is running."
+			source="src/components/parts/audio-links.astro"
+		>
+			{
+				mix ? (
+					<AudioLinks
+						cueSlug={mix.cueSlug}
+						downloadCounts={downloadCounts}
+						files={mix.files}
+						links={mix.links}
+					/>
+				) : undefined
+			}
+		</Specimen>
+		<Specimen name="EmbedMixcloud" source="src/components/embed/embed-mixcloud.astro">
+			{mixcloudUrl ? <EmbedMixcloud url={mixcloudUrl} /> : undefined}
+		</Specimen>
+		<Specimen name="EmbedMixcloud" note="mini: the single-row player.">
+			{mixcloudUrl ? <EmbedMixcloud mini url={mixcloudUrl} /> : undefined}
+		</Specimen>
+		<Specimen name="EmbedSoundcloud" source="src/components/embed/embed-soundcloud.astro">
+			{soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="EmbedFrame"
+			note="The shared frame both players sit in, here with an aspect ratio instead of a fixed height."
+			source="src/components/embed/embed-frame.astro"
+		>
+			<EmbedFrame
+				aspectRatio="16 / 9"
+				src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+				title="Embed frame sample"
+			/>
+		</Specimen>
+	</Section>
+	<Section
+		note="These render inside .prose-x in production, so they are wrapped in it here too."
+		title="Content blocks"
+	>
+		<Specimen
+			name="TrackList"
+			note="Auto-imported into MDX bodies. The numeral and time columns appear from 40rem up. A time is a track's own <code>duration</code>; a mix's <code>timestamp</code> is cue-sheet data and never renders, so no row here carries one."
+			source="src/components/mdx/track-list.astro"
+		>
+			<div class="prose-x">
+				<TrackList tracks={mix?.tracks.slice(0, 6)} />
+			</div>
+		</Specimen>
+		<Specimen
+			name="Selections"
+			note='order="unordered" (the default): no rank, tight rows.'
+			source="src/components/mdx/selections.astro"
+		>
+			<div class="prose-x">
+				<Selections items={unorderedSelections} />
+			</div>
+		</Specimen>
+		<Specimen name="Selections" note='order="ordered": ranked 1 upward.'>
+			<div class="prose-x">
+				<Selections items={orderedSelections} order="ordered" />
+			</div>
+		</Specimen>
+		<Specimen
+			name="Selections"
+			note='order="countdown": authored best-first, revealed best-last, counting N down to 1.'
+		>
+			<div class="prose-x">
+				<Selections items={countdownSelections} order="countdown" />
+			</div>
+		</Specimen>
+		<Specimen
+			name="Selections"
+			note="Every field written inline, no entryId behind it. With no body the row keeps the tight spacing instead of the prose variant."
+		>
+			<div class="prose-x">
+				<Selections items={[inlineSelection]} />
+			</div>
+		</Specimen>
+		<Specimen
+			name="SectionPostExcerpt"
+			note="The blog list row. The body truncates at the <code><More /></code> marker, and the continue link appears only if something followed it."
+			source="src/components/sections/section-post-excerpt.astro"
+		>
+			{
+				excerpt ? (
+					<SectionPostExcerpt
+						date={excerpt.date}
+						href={excerpt.href}
+						title={excerpt.title}
+						{...(formats[0] ? { format: formats[0] } : {})}
+					>
+						<excerpt.Content />
+					</SectionPostExcerpt>
+				) : undefined
+			}
+		</Specimen>
+	</Section>
+	<Section
+		note="What a component does when its data is missing. The dashed frames belong to this page, not to the components; without them there would be nothing to see."
+		title="Empty states"
+	>
+		<Specimen
+			name="Components that render nothing"
+			note="<code>TermLinks</code>, <code>SectionRelated</code>, <code>Selections</code> and <code>TrackList</code>, each handed an empty array. All four return <code>undefined</code>, with no placeholder and no reserved space."
+		>
+			<div class="rounded-sm border border-dashed border-ink-700 p-4">
+				<TermLinks heading="Styles" terms={[]} />
+				<SectionRelated items={[]} />
+				<Selections items={[]} />
+				<TrackList tracks={[]} />
+			</div>
+		</Specimen>
+		<Specimen
+			name="AudioLinks"
+			note="Links but no files: the download rows and their CUE buttons drop out, leaving the external links. Handed neither, it renders nothing."
+			source="src/components/parts/audio-links.astro"
+		>
+			<div class="rounded-sm border border-dashed border-ink-700 p-4">
+				<AudioLinks links={mix?.links} />
+			</div>
+		</Specimen>
+	</Section>
+	<Section
+		note="Two more are on screen rather than in a box: entry-grid lays out the EntryCard specimen above, and content-wide is the column this page sits in."
+		title="Utilities"
+	>
+		<Specimen
+			name="maze"
+			note="A masked pattern above the element's own background, below its content. Tune with --pattern-color, --pattern-opacity, --pattern-size."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<div
+				class="maze rounded-md bg-surface-800 p-5 [--pattern-color:var(--color-surface-300)] [--pattern-opacity:0.35]"
+			>
+				The header and footer bands both sit on this.
+			</div>
+		</Specimen>
+		<Specimen
+			name="content-measure"
+			note="Caps a run of text at the prose measure without centring it."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<p class="content-measure">
+				This paragraph stops at 50rem however wide the column around it gets, which keeps an
+				introduction readable on a large screen without pulling it out of the grid.
+			</p>
+		</Specimen>
+	</Section>
+</MainSite>

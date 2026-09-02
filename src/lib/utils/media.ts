@@ -1,7 +1,7 @@
 import type { ImageMetadata } from 'astro';
 
 // Frontmatter media paths are relative to packages/content/_media (e.g. 2017/01/x.jpg)
-const MEDIA_ROOT = '/packages/content/_media';
+const mediaRoot = '/packages/content/_media';
 
 // Glob must be a string literal; astro:assets only optimizes statically-analyzable image paths
 const mediaImages = import.meta.glob<{ default: ImageMetadata }>(
@@ -11,7 +11,7 @@ const mediaImages = import.meta.glob<{ default: ImageMetadata }>(
 
 // Fail-soft: originals are gitignored and may be absent, so a miss warns in DEV and falls back
 export function getMediaImage(mediaPath: string): ImageMetadata | undefined {
-	const image = mediaImages[`${MEDIA_ROOT}/${mediaPath}`];
+	const image = mediaImages[`${mediaRoot}/${mediaPath}`];
 	if (!image) {
 		if (import.meta.env.DEV) {
 			console.warn(`[media] no original for path "${mediaPath}"`);

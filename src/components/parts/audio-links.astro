@@ -1,4 +1,6 @@
 ---
+import type { IconId } from '#lib/utils/icon-types.ts';
+
 import ButtonLink from '#components/parts/button-link.astro';
 import { downloadBaseUrl } from '#lib/site.ts';
 
@@ -13,7 +15,7 @@ interface Props {
 const { cueSlug, downloadCounts, files, links } = Astro.props;
 
 interface LinkMeta {
-	icon?: string | undefined;
+	icon?: IconId | undefined;
 	label: string;
 }
 

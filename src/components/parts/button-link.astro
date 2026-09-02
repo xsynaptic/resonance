@@ -1,6 +1,8 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
 
+import type { IconId } from '#lib/utils/icon-types.ts';
+
 const buttonVariants = {
 	small: 'h-[22px] gap-1.5 px-2 text-xs',
 	standard: 'h-[30px] gap-2 px-3 text-sm',
@@ -9,7 +11,7 @@ const buttonVariants = {
 type ButtonVariant = keyof typeof buttonVariants;
 
 interface Props extends HTMLAttributes<'a'> {
-	icon?: string | undefined;
+	icon?: IconId | undefined;
 	variant?: ButtonVariant | undefined;
 }
 

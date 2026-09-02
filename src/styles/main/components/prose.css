@@ -5,9 +5,6 @@
 	max-width: var(--spacing-prose);
 	font-family: var(--font-body);
 	font-size: 1rem;
-
-	/* Production sets the content body a notch heavier than the surrounding chrome */
-	font-weight: var(--font-weight-medium);
 	line-height: 1.75;
 	color: var(--color-ink-400);
 
@@ -21,6 +18,12 @@
 
 	& > :where(img, .img-group) {
 		margin-block: calc(var(--spacing) * 6);
+	}
+
+	& :where(h1, h2, h3, h4) {
+		font-family: var(--font-display);
+		font-feature-settings: 'lnum';
+		text-wrap: balance;
 	}
 
 	& :where(h1) {
@@ -148,6 +151,21 @@
 		font-size: 0.875em;
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-ink-50);
+	}
+
+	& :where(pre) {
+		padding: calc(var(--spacing) * 4);
+		margin: 0 0 calc(var(--spacing) * 5);
+		font-size: 0.875em;
+		line-height: 1.6;
+		border-radius: var(--radius-sm);
+	}
+
+	/* Shiki colours each token inline; the inline-code rule above would otherwise bolden the block */
+	& :where(pre code) {
+		font-size: inherit;
+		font-weight: var(--font-weight-normal);
+		color: inherit;
 	}
 
 	& :where(mark) {

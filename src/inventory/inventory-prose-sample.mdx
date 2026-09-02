@@ -1,0 +1,80 @@
+Body copy sets the measure for everything else on the site. This paragraph is here to be read at
+length rather than skimmed, because the things that go wrong with prose go wrong over several lines:
+the leading, the length of the line, the weight against the surface behind it. A [link inside a
+paragraph](/mixes/) carries a halo so it stays legible where text sits over a busy background, and
+**bold text** lifts a full step toward white while _emphasis_ leans on the italic alone.
+
+An inline `<Link>` resolves a bare term id against the catalog rather than against a URL, so
+<Link id="1990s">the nineties</Link> reaches the era's page without anyone writing the path. When the
+id matches nothing the component renders its text and no anchor at all, which is a failure with
+nothing to see: <Link id="deliberately-unresolvable">this phrase</Link> is a link in the source and
+plain prose on the page. The component warns on the dev server when this happens and nothing at all
+surfaces in the browser, which is what makes the case easy to miss.
+
+## A second-level heading
+
+Section headings take the lime accent and the display face. The heading above sits eight spacing
+steps clear of the paragraph before it and four from the one after, which is what keeps a long
+article from reading as one undifferentiated column.
+
+### A third-level heading
+
+Below the second level the sizes step down quickly, since a piece rarely needs four ranks of
+structure. A `code span` inside a sentence goes a shade brighter than the copy around it, and
+<mark>a highlighted phrase</mark> inverts against the orange.
+
+#### A fourth-level heading
+
+The fourth level is nearly body size and exists mostly for tracklist annotations and appendices.
+
+> A blockquote pulls in from the left with a rule beside it, drops to the regular weight, and takes
+> italics. It is used for quoted press copy and interview answers, so it has to survive being two or
+> three paragraphs long.
+
+Lists carry a marker a step dimmer than the text, and nest one level:
+
+- An unordered item, at the length these usually run to in practice
+- A second item, which nests beneath it
+  - The nested list tightens its top and bottom margins
+  - So a two-level list does not sprawl
+- A third item to close the run
+
+An ordered list numbers in the same dim marker colour:
+
+1. First, the tracklist is transcribed from the recording
+2. Then timestamps are added, which is what generates the cue sheet
+3. Finally the artists and labels are matched against the catalog
+
+Fenced blocks are highlighted by shiki, which sets the background and every token colour inline. All
+24 fences in the corpus are untagged, so this is what a shipping block actually looks like: one
+foreground colour on shiki's plate, and a long line scrolling inside the block rather than widening
+the column.
+
+```
+rsync -avh --progress --exclude={"._","._/"} /Volumes/SourceDrive/Music/ /Volumes/DestinationDrive/Music --dry-run
+```
+
+Tagging the same fence `sh` is what turns the theme on, and it is the only way token colour ever
+reaches the page:
+
+```sh
+rsync -avh --progress --exclude={"._","._/"} /Volumes/SourceDrive/Music/ /Volumes/DestinationDrive/Music --dry-run
+```
+
+A denser language shows the full palette at once, which is what has to sit against the surface ramp:
+
+```ts
+// Cue points are hundredths of a second, not frames
+export function formatCueTime(timestamp: string): string | undefined {
+	const match = /^(\d+):(\d+):(\d+)(?:\.(\d{1,2}))?$/.exec(timestamp);
+	if (!match) return undefined;
+
+	const [, hours = '0', minutes = '0', seconds = '0', hundredths = '0'] = match;
+	return `${String(Number(hours) * 60 + Number(minutes))}:${seconds}:${hundredths}`;
+}
+```
+
+---
+
+A horizontal rule marks a break between passages within one piece. The paragraph after it loses its
+top margin so the rule does not open a gap on both sides.

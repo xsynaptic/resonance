@@ -5,26 +5,29 @@ import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
-import ListYearHeading from '#components/parts/list-year-heading.astro';
+import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
-import { groupByYear } from '#lib/utils/group-by-year.ts';
+import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
+	groupByYear?: boolean | undefined;
 	page: Page<ContentItem>;
 	title: string;
 }
 
-const { page, title } = Astro.props;
+const { groupByYear = false, page, title } = Astro.props;
 
-const groups = groupByYear(page.data);
+const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
+	? getYearGroups(page.data)
+	: [{ items: page.data }];
 ---
 
 <MainSite title={title}>
-	<h1 class="mb-6 text-4xl">{title}</h1>
+	<h1 class="title-main mb-6">{title}</h1>
 	{
 		groups.map((group) => (
 			<section class="mb-8">
-				<ListYearHeading year={group.year} />
+				{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
 				<ul class="entry-grid">
 					{group.items.map((item) => (
 						<li>

@@ -1,6 +1,6 @@
 import type { GetStaticPaths } from 'astro';
 
-import { BLOG_PAGE_SIZE, LIST_PAGE_SIZE } from '#constants.ts';
+import { blogPageSize, listPageSize } from '#constants.ts';
 import { getContentItems } from '#lib/catalog/catalog-data.ts';
 import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 
@@ -9,12 +9,12 @@ export function createEntryListPaths(collection: Parameters<typeof getContentIte
 	return (async ({ paginate }) => {
 		const items = await getContentItems(collection);
 
-		return paginate(items, { pageSize: LIST_PAGE_SIZE });
+		return paginate(items, { pageSize: listPageSize });
 	}) satisfies GetStaticPaths;
 }
 
 export const createPostListPaths = (async ({ paginate }) => {
 	const posts = await getPublishedPosts();
 
-	return paginate(posts, { pageSize: BLOG_PAGE_SIZE });
+	return paginate(posts, { pageSize: blogPageSize });
 }) satisfies GetStaticPaths;

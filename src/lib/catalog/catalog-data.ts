@@ -34,7 +34,7 @@ export interface ContentItem {
 type ContentCollectionKey = 'mixes' | 'posts' | 'reviews';
 
 // Only releases show a year subtitle; other collections already sit under a year heading when listed
-const RELEASE_COLLECTIONS = new Set<CollectionKey>(['mixes', 'reviews']);
+const releaseCollections = new Set<CollectionKey>(['mixes', 'reviews']);
 
 // Projects a path string for the image; the card does the lazy astro:assets lookup
 export async function toContentItem(
@@ -65,7 +65,7 @@ async function metaLine(collection: CollectionKey, entry: ContentDoc): Promise<s
 // Mixes no longer carry releaseYear; it always matched dateCreated's year
 // Reviews keep theirs, since a release can predate its review by years
 function releaseYear(collection: CollectionKey, entry: ContentDoc): string | undefined {
-	if (!RELEASE_COLLECTIONS.has(collection)) return undefined;
+	if (!releaseCollections.has(collection)) return undefined;
 	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
 }
 

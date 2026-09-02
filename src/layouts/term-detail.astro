@@ -9,24 +9,25 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
-import ListYearHeading from '#components/parts/list-year-heading.astro';
+import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
-import { groupByYear } from '#lib/utils/group-by-year.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
+import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
+	groupByYear?: boolean | undefined;
 	page: Page<ContentItem>;
 	term: CollectionEntry<
 		'artists' | 'eras' | 'formats' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'
 	>;
 }
 
-const { page, term } = Astro.props;
+const { groupByYear = false, page, term } = Astro.props;
 
 const { Content } = await render(term);
 
@@ -46,9 +47,9 @@ const collectionLabels: Partial<Record<CollectionKey, string>> = {
 	reviews: 'Review',
 };
 
-// A series is a curated order (not chronological), so it stays flat; everything else groups by year
-const yearGroups: Array<{ items: Array<ContentItem>; year?: number }> =
-	term.collection === 'series' ? [{ items: page.data }] : groupByYear(page.data);
+const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
+	? getYearGroups(page.data)
+	: [{ items: page.data }];
 
 const breadcrumbTrail: Array<ResolvedRef> = [
 	{
@@ -84,9 +85,9 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 	}
 	{
 		page.data.length > 0 ? (
-			yearGroups.map((group) => (
+			groups.map((group) => (
 				<section class="mb-8">
-					{group.year === undefined ? undefined : <ListYearHeading year={group.year} />}
+					{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
 					<ul class="entry-grid">
 						{group.items.map((entry) => (
 							<li>

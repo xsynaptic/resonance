@@ -145,7 +145,7 @@ export const getRegionsIndex = makeTermIndex(
 
 // A series entry owns its members via `seriesItems` (ordered ids), resolved in place, no back-ref scan
 // Array order is display order, so no date sort
-const SERIES_MEMBER_COLLECTIONS = ['mixes', 'reviews', 'posts'] as const;
+const seriesMemberCollections = ['mixes', 'reviews', 'posts'] as const;
 
 let seriesIndexPromise: Promise<TermIndex> | undefined;
 
@@ -176,7 +176,7 @@ async function buildSeriesIndex(): Promise<TermIndex> {
 
 async function buildSeriesMemberCatalog(): Promise<Map<string, ContentItem>> {
 	const membersById = new Map<string, ContentItem>();
-	for (const collection of SERIES_MEMBER_COLLECTIONS) {
+	for (const collection of seriesMemberCollections) {
 		const entries = await getCollection(collection);
 		for (const entry of entries) {
 			if (!membersById.has(entry.id)) {

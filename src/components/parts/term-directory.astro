@@ -1,0 +1,72 @@
+---
+import type { DirectoryTerm } from '#lib/collections/terms/term-tree.ts';
+
+import ListGroupHeading from '#components/parts/list-group-heading.astro';
+import DirectoryBranch from '#components/parts/term-directory-branch.astro';
+
+interface InitialGroup {
+	initial?: string;
+	terms: Array<DirectoryTerm>;
+}
+
+interface Props {
+	terms: Array<DirectoryTerm>;
+}
+
+const groupingMinimum = 20;
+
+const { terms } = Astro.props;
+
+// Decompose so an accented name files under its base letter instead of a bucket of its own
+function getInitial(title: string) {
+	const [initial] = title
+		.normalize('NFD')
+		.replaceAll(/\p{Diacritic}/gu, '')
+		.toUpperCase();
+
+	return initial !== undefined && initial >= 'A' && initial <= 'Z' ? initial : '#';
+}
+
+// Sorting belongs here rather than at the call site: consecutive-run grouping depends on it
+function sortTerms(unsorted: Array<DirectoryTerm>): Array<DirectoryTerm> {
+	return [...unsorted]
+		.sort((first, second) =>
+			(first.sortKey ?? first.title).localeCompare(second.sortKey ?? second.title),
+		)
+		.map((term) => (term.children ? { ...term, children: sortTerms(term.children) } : term));
+}
+
+const sorted = sortTerms(terms);
+
+// Only roots are filed by initial, so a child stays under the parent it belongs to
+function getInitialGroups(): Array<InitialGroup> {
+	if (sorted.length < groupingMinimum) return [{ terms: sorted }];
+
+	const groups: Array<InitialGroup> = [];
+	for (const term of sorted) {
+		const initial = getInitial(term.title);
+		const current = groups.at(-1);
+		if (current?.initial === initial) {
+			current.terms.push(term);
+			continue;
+		}
+		groups.push({ initial, terms: [term] });
+	}
+	return groups;
+}
+
+const groups = getInitialGroups();
+---
+
+<div class="columns-1 gap-x-10 sm:columns-2 lg:columns-3 xl:columns-4">
+	{
+		groups.map((group) => (
+			<section
+				class:list={['mb-8', group.initial === undefined ? undefined : 'break-inside-avoid']}
+			>
+				{group.initial === undefined ? undefined : <ListGroupHeading label={group.initial} />}
+				<DirectoryBranch terms={group.terms} />
+			</section>
+		))
+	}
+</div>

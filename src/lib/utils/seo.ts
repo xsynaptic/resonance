@@ -1,9 +1,9 @@
 import type { CollectionKey } from 'astro:content';
 
 import {
-	OPEN_GRAPH_BASE_PATH,
-	OPEN_GRAPH_DEFAULT_ID,
-	OPEN_GRAPH_IMAGE_FORMAT,
+	openGraphBasePath,
+	openGraphDefaultId,
+	openGraphImageFormat,
 } from '@xsynaptic/shared/constants';
 import { OG_BASE_URL } from 'astro:env/server';
 
@@ -21,7 +21,7 @@ export function getOpenGraphImageUrl(
 	openGraphId: string | undefined,
 	site: undefined | URL,
 ): string {
-	const filename = `${openGraphId ?? OPEN_GRAPH_DEFAULT_ID}.${OPEN_GRAPH_IMAGE_FORMAT}`;
+	const filename = `${openGraphId ?? openGraphDefaultId}.${openGraphImageFormat}`;
 
-	return new URL(`${OPEN_GRAPH_BASE_PATH}/${filename}`, OG_BASE_URL ?? site).href;
+	return new URL(`${openGraphBasePath}/${filename}`, OG_BASE_URL ?? site).href;
 }

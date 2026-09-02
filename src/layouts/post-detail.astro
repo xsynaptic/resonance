@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 
 import TermLinks from '#components/parts/term-links.astro';
+import SectionCoda from '#components/sections/section-coda.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
@@ -36,10 +37,10 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 >
 	<Content />
 	<Fragment slot="sections">
-		<div class="mt-10 space-y-2">
+		<SectionCoda class="mt-10 content-measure">
 			<TermLinks heading="Format" terms={formatTerms} />
 			<TermLinks heading="Themes" terms={themeTerms} />
 			<TermLinks heading="Labels" terms={labelTerms} />
-		</div>
+		</SectionCoda>
 	</Fragment>
 </ContentDetail>

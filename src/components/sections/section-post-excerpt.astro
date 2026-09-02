@@ -3,7 +3,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import Anchor from '#components/parts/anchor.astro';
 import RefText from '#components/parts/ref-text.astro';
-import { CONTENT_EXCERPT_MARKER } from '#constants.ts';
+import { contentExcerptMarker } from '#constants.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
 import { formatDate } from '#lib/utils/date.ts';
 
@@ -17,7 +17,7 @@ interface Props {
 const { date, format, href, title } = Astro.props;
 
 const body = await renderSlot(Astro.slots);
-const [excerpt, ...remainder] = body?.split(CONTENT_EXCERPT_MARKER) ?? [];
+const [excerpt, ...remainder] = body?.split(contentExcerptMarker) ?? [];
 
 const isTruncated = remainder.length > 0;
 ---

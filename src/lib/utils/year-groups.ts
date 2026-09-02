@@ -6,7 +6,7 @@ export interface YearGroup {
 }
 
 // Collapse date-descending items into consecutive year runs; monotonic input means one run per year
-export function groupByYear(items: Array<ContentItem>): Array<YearGroup> {
+export function getYearGroups(items: Array<ContentItem>): Array<YearGroup> {
 	const groups: Array<YearGroup> = [];
 	for (const item of items) {
 		const year = item.date.getFullYear();

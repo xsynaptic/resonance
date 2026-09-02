@@ -2,7 +2,7 @@
 // Pure string work, no content imports, so the format is testable on its own
 // Callers supply the tracklist as-is; entries without a usable timestamp are dropped here
 
-const FRAMES_PER_SECOND = 75;
+const framesPerSecond = 75;
 
 interface CueSheetInput {
 	date?: string | undefined;
@@ -58,7 +58,7 @@ function formatCueTime(timestamp: string): string | undefined {
 
 	const total = Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
 	const hundredths = fraction === undefined ? 0 : Number(fraction.padEnd(2, '0'));
-	const frames = Math.floor((hundredths * FRAMES_PER_SECOND) / 100);
+	const frames = Math.floor((hundredths * framesPerSecond) / 100);
 
 	return [Math.floor(total / 60), total % 60, frames]
 		.map((part) => String(part).padStart(2, '0'))

@@ -30,7 +30,7 @@ const posts = await Promise.all(
 ---
 
 <MainSite title={title}>
-	<h1 class="mb-10 text-4xl">{title}</h1>
+	<h1 class="title-main mb-10">{title}</h1>
 	{
 		posts.map(({ Content, entry, format }) => (
 			<SectionPostExcerpt

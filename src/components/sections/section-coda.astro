@@ -1,0 +1,24 @@
+---
+import { renderSlot } from '#lib/utils/astro.ts';
+
+interface Props {
+	class?: string | undefined;
+}
+
+const { class: className } = Astro.props;
+
+const content = await renderSlot(Astro.slots);
+---
+
+{
+	content ? (
+		<div
+			class:list={[
+				'space-y-2 rounded-lg border border-surface-700 bg-surface-600 px-5 py-4 text-sm',
+				className,
+			]}
+		>
+			<Fragment set:html={content} />
+		</div>
+	) : undefined
+}

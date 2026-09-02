@@ -4,7 +4,7 @@ import type { HTMLAttributes } from 'astro/types';
 import type { MenuItem } from '#components/menu/menu-types.ts';
 
 import MenuHeaderSubmenuTrigger from '#components/menu/menu-header-submenu-trigger.astro';
-import { MENU_DEPTH_MAX } from '#components/menu/menu-types.ts';
+import { menuDepthMax } from '#components/menu/menu-types.ts';
 import { getMenuItemAriaLabel } from '#components/menu/menu-utils.ts';
 
 interface Props extends HTMLAttributes<'ul'> {
@@ -23,7 +23,7 @@ const { ariaLabel, depth, menuItems, ...props } = Astro.props;
 >
 	{
 		menuItems.map((item) => {
-			const children = depth < MENU_DEPTH_MAX ? (item.children ?? []) : [];
+			const children = depth < menuDepthMax ? (item.children ?? []) : [];
 			const hasChildren = children.length > 0;
 
 			return (

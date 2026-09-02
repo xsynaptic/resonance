@@ -6,6 +6,7 @@ import { render } from 'astro:content';
 import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
@@ -61,7 +62,9 @@ const [alias] = aliasTerms;
 		{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
 	/>
 	<Fragment slot="sections">
-		<TermLinks heading="Themes" terms={themeTerms} />
+		<SectionCoda>
+			<TermLinks heading="Themes" terms={themeTerms} />
+		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
 </ReleaseDetail>

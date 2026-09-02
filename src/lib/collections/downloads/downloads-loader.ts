@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
-import { DOWNLOADS_STATS_PATH } from '#constants.ts';
+import { downloadsStatsPath } from '#constants.ts';
 
 const downloadsDocumentSchema = z.object({
 	files: z.record(z.string(), z.unknown()).array(),
@@ -17,7 +17,7 @@ export function downloadsLoader(): Loader {
 	return {
 		load: async (context) => {
 			const { logger, store } = context;
-			const filePath = path.resolve(DOWNLOADS_STATS_PATH);
+			const filePath = path.resolve(downloadsStatsPath);
 
 			store.clear();
 

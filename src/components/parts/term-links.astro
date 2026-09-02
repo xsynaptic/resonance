@@ -13,15 +13,22 @@ const { heading, terms } = Astro.props;
 
 {
 	terms.length > 0 ? (
-		<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
+		<div class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-sm">
 			<span class="font-medium text-ink-500">{heading}:</span>
-			{terms.map((term) =>
-				term.url ? (
-					<Anchor href={term.url}>{term.label}</Anchor>
-				) : (
-					<span class="text-ink-300">{term.label}</span>
-				),
-			)}
+			{terms.map((term, index) => (
+				<span class="flex items-baseline gap-x-1.5">
+					{index > 0 ? (
+						<span aria-hidden="true" class="text-ink-600">
+							·
+						</span>
+					) : undefined}
+					{term.url ? (
+						<Anchor href={term.url}>{term.label}</Anchor>
+					) : (
+						<span class="text-ink-300">{term.label}</span>
+					)}
+				</span>
+			))}
 		</div>
 	) : undefined
 }

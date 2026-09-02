@@ -2,7 +2,9 @@
 import type { IconId } from '#lib/utils/icon-types.ts';
 
 import ButtonLink from '#components/parts/button-link.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { downloadBaseUrl } from '#lib/site.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	// Set only when the mix has timestamps; each file then gets a paired cue sheet link
@@ -26,8 +28,9 @@ function getFileLabel(file: string): string {
 function getLinkMeta(url: string): LinkMeta {
 	const { hostname } = new URL(url);
 
-	if (hostname.endsWith('mixcloud.com')) return { icon: 'mixcloud', label: 'Mixcloud' };
-	if (hostname.endsWith('soundcloud.com')) return { icon: 'soundcloud', label: 'SoundCloud' };
+	if (hostname.endsWith('mixcloud.com')) return { icon: 'mixcloud', label: t('audio.mixcloud') };
+	if (hostname.endsWith('soundcloud.com'))
+		return { icon: 'soundcloud', label: t('audio.soundcloud') };
 
 	return { label: hostname.replace(/^www\./, '') };
 }
@@ -59,15 +62,19 @@ const hasFiles = files && files.length > 0;
 							{getFileLabel(file)}
 						</ButtonLink>
 						{count ? (
-							<span class="text-xs text-ink-500">{count.toLocaleString('en-US')} downloads</span>
+							<span class="text-xs text-ink-500">
+								{formatStringTemplate(t('audio.downloads'), {
+									count: count.toLocaleString('en-US'),
+								})}
+							</span>
 						) : undefined}
 						{cueSlug ? (
 							<ButtonLink
 								href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
-								title={`Cue sheet for ${file}`}
+								title={formatStringTemplate(t('audio.cueTitle'), { file })}
 								variant="small"
 							>
-								CUE
+								{t('audio.cue')}
 							</ButtonLink>
 						) : undefined}
 					</li>

@@ -2,6 +2,7 @@
 import type { HTMLAttributes } from 'astro/types';
 
 import { pagefindResultTemplate } from '#components/search/search-result-template.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import pagefindCssUrl from '#styles/pagefind-component.css?url';
 
 type Props = HTMLAttributes<'div'>;
@@ -20,14 +21,15 @@ const bundlePath = `${import.meta.env.BASE_URL}pagefind/`;
 <search-toggle
 	class:list={['flex cursor-pointer items-center justify-center', className]}
 	data-pagefind-css-url={pagefindCssUrl}
+	data-shortcut-description={t('search.shortcut.description')}
 	{...props}
 >
 	<button
 		aria-expanded="false"
 		aria-haspopup="dialog"
-		aria-label="Search"
+		aria-label={t('search.toggle.label')}
 		class="text-ink-600 transition-colors hover:text-highlight-400 focus-visible:text-highlight-400"
-		title="Search this site"
+		title={t('search.toggle.title')}
 	>
 		<svg aria-hidden="true" class="size-5">
 			<use href="#icon:magnifying-glass"></use>
@@ -36,7 +38,7 @@ const bundlePath = `${import.meta.env.BASE_URL}pagefind/`;
 </search-toggle>
 <pagefind-modal reset-on-close={true}>
 	<pagefind-modal-header>
-		<pagefind-input placeholder="Search the site…"></pagefind-input>
+		<pagefind-input placeholder={t('search.input.placeholder')}></pagefind-input>
 	</pagefind-modal-header>
 	<pagefind-modal-body>
 		<pagefind-summary></pagefind-summary>

@@ -3,10 +3,11 @@ import type { InferGetStaticPropsType } from 'astro';
 
 import PostList from '#layouts/post-list.astro';
 import { createPostListPaths } from '#lib/collections/collection-routes.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 
 export const getStaticPaths = createPostListPaths;
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<PostList title="Blog" {...Astro.props} />
+<PostList title={t('collection.posts.title')} {...Astro.props} />

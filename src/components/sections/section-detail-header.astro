@@ -4,6 +4,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import RefList from '#components/parts/ref-list.astro';
 import RefText from '#components/parts/ref-text.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatDate } from '#lib/utils/date.ts';
 
 // `releaseTitle` marks the title as a work, which splits the artist off and italicises the rest
@@ -25,7 +26,7 @@ const { artist, breadcrumbTrail, date, kind, labels, releaseTitle, releaseYear, 
 const styleTerms = styles ?? [];
 const releaseLabels = labels ?? [];
 const hasRelease = Boolean(releaseYear) || releaseLabels.length > 0;
-const releaseLead = releaseLabels.length > 0 ? 'Released by: ' : 'Released: ';
+const releaseLead = t(releaseLabels.length > 0 ? 'detail.releasedBy' : 'detail.released');
 const releaseYearText =
 	releaseYear && releaseLabels.length > 0 ? `, ${releaseYear}` : (releaseYear ?? '');
 ---
@@ -80,7 +81,8 @@ const releaseYearText =
 				) : undefined}
 				{date ? (
 					<span>
-						Posted: <time datetime={date.toISOString()}>{formatDate(date)}</time>
+						{t('detail.posted')}
+						<time datetime={date.toISOString()}>{formatDate(date)}</time>
 					</span>
 				) : undefined}
 			</div>

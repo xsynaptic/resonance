@@ -2,6 +2,7 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import RefText from '#components/parts/ref-text.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
 	trail: Array<ResolvedRef>;
@@ -10,7 +11,7 @@ interface Props {
 const { trail } = Astro.props;
 ---
 
-<nav aria-label="Breadcrumb">
+<nav aria-label={t('nav.breadcrumb.label')}>
 	<ol class="title-above title-above-chevron">
 		{
 			trail.map((breadcrumb) => (

@@ -1,4 +1,7 @@
 ---
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
+
 interface Props {
 	label: string;
 }
@@ -9,7 +12,7 @@ const { label } = Astro.props;
 <carousel-slides class="carousel">
 	<div class="carousel-controls">
 		<button
-			aria-label={`Previous ${label}`}
+			aria-label={formatStringTemplate(t('carousel.previous'), { label })}
 			class="carousel-nav carousel-nav-prev"
 			data-carousel-nav="prev"
 			type="button"
@@ -17,7 +20,7 @@ const { label } = Astro.props;
 			<svg aria-hidden="true"><use href="#icon:chevron-left"></use></svg>
 		</button>
 		<button
-			aria-label={`Next ${label}`}
+			aria-label={formatStringTemplate(t('carousel.next'), { label })}
 			class="carousel-nav carousel-nav-next"
 			data-carousel-nav="next"
 			type="button"

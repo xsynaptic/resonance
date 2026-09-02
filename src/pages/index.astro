@@ -2,6 +2,7 @@
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
 import { getContentItems } from '#lib/catalog/catalog-data.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
 
 const [mixes, reviews, posts] = await Promise.all([
@@ -18,14 +19,24 @@ const postItems = posts.slice(0, 4);
 <MainSite>
 	<section class="mb-12">
 		<h1 class="title-main">{site.title}</h1>
-		<p class="mt-2 content-measure text-ink-300">{site.description}</p>
+		<p class="mt-2 content-measure text-ink-300">{t('home.intro')}</p>
 	</section>
-	<HomeSection heading="Latest Mixes" items={mixItems} listHref="/mixes" listLabel="All mixes" />
 	<HomeSection
-		heading="Latest Reviews"
+		heading={t('home.mixes.heading')}
+		items={mixItems}
+		listHref="/mixes"
+		listLabel={t('home.mixes.link')}
+	/>
+	<HomeSection
+		heading={t('home.reviews.heading')}
 		items={reviewItems}
 		listHref="/reviews"
-		listLabel="All reviews"
+		listLabel={t('home.reviews.link')}
 	/>
-	<HomeSection heading="Recent Posts" items={postItems} listHref="/blog" listLabel="All posts" />
+	<HomeSection
+		heading={t('home.posts.heading')}
+		items={postItems}
+		listHref="/blog"
+		listLabel={t('home.posts.link')}
+	/>
 </MainSite>

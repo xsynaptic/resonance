@@ -1,5 +1,6 @@
 ---
 import TermList from '#layouts/term-list.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 ---
 
-<TermList collection="eras" title="Eras" />
+<TermList collection="eras" title={t('collection.eras.title')} />

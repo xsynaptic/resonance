@@ -1,7 +1,10 @@
 import type { MenuItem } from '#components/menu/menu-types.ts';
 
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
+
 export function getMenuItemAriaLabel(item: MenuItem) {
-	return `${item.title} submenu`;
+	return formatStringTemplate(t('nav.submenu.label'), { title: item.title });
 }
 
 // Anchors are navigable, buttons open a submenu, spans are plain labels

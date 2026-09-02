@@ -3,6 +3,8 @@ import type { Page } from 'astro';
 import type { HTMLAttributes } from 'astro/types';
 
 import Anchor from '#components/parts/anchor.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props extends HTMLAttributes<'nav'> {
 	page: Page;
@@ -26,9 +28,10 @@ const pageBasePath = `${
 			data-base-path={pageBasePath}
 			data-current-page={String(currentPage)}
 			data-last-page={String(lastPage)}
+			data-page-label={t('pagination.pageNumber')}
 		>
 			<nav
-				aria-label="Pagination"
+				aria-label={t('pagination.label')}
 				class:list={[
 					'flex items-center justify-between gap-4 text-sm font-medium tabular-nums select-none',
 					className,
@@ -37,12 +40,15 @@ const pageBasePath = `${
 			>
 				<div class="flex items-center">
 					<span class="text-ink-500" data-pagination-counter>
-						Page {currentPage} of {lastPage}
+						{formatStringTemplate(t('pagination.counter'), {
+							current: currentPage,
+							total: lastPage,
+						})}
 					</span>
 					<form class="relative flex items-center" data-pagination-form hidden>
 						<span class="relative inline-flex items-center">
 							<select
-								aria-label="Go to page"
+								aria-label={t('pagination.selectLabel')}
 								class="pg-control rounded-sm border border-surface-700 bg-surface-600 py-1 pr-7 pl-2 text-ink-100 transition-colors hover:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 								data-pagination-control
 								name="page"
@@ -68,7 +74,7 @@ const pageBasePath = `${
 							data-pagination-submit
 							type="submit"
 						>
-							Go
+							{t('pagination.submit')}
 						</button>
 					</form>
 				</div>
@@ -76,15 +82,15 @@ const pageBasePath = `${
 					{url.prev ? (
 						<span class="flex flex-wrap gap-1">
 							<span class="text-highlight-500 select-none">&lsaquo;</span>
-							<Anchor aria-label="Previous page" href={url.prev}>
-								Previous
+							<Anchor aria-label={t('pagination.previousPage')} href={url.prev}>
+								{t('pagination.previous')}
 							</Anchor>
 						</span>
 					) : undefined}
 					{url.next ? (
 						<span class="flex flex-wrap gap-1">
-							<Anchor aria-label="Next page" href={url.next}>
-								Next
+							<Anchor aria-label={t('pagination.nextPage')} href={url.next}>
+								{t('pagination.next')}
 							</Anchor>
 							<span class="text-highlight-500 select-none">&rsaquo;</span>
 						</span>

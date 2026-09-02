@@ -5,6 +5,7 @@ import MenuHeaderSubmenu from '#components/menu/menu-header-submenu.astro';
 import MenuHeaderTrigger from '#components/menu/menu-header-trigger.astro';
 import { menuHeaderItems } from '#components/menu/menu-header.ts';
 import { getMenuItemAriaLabel } from '#components/menu/menu-utils.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 
 type Props = HTMLAttributes<'nav'>;
 
@@ -12,7 +13,12 @@ const { class: className, ...props } = Astro.props;
 ---
 
 <menu-navigation>
-	<nav aria-label="Primary" class:list={['nav-menu', className]} data-nosnippet {...props}>
+	<nav
+		aria-label={t('nav.primary.label')}
+		class:list={['nav-menu', className]}
+		data-nosnippet
+		{...props}
+	>
 		<ul class="nav-ul">
 			{
 				menuHeaderItems.map((item) => {

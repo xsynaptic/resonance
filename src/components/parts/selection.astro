@@ -5,6 +5,7 @@ import type { IconId } from '#lib/utils/icon-types.ts';
 import ButtonLink from '#components/parts/button-link.astro';
 import MediaImage from '#components/parts/media-image.astro';
 import RefList from '#components/parts/ref-list.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
@@ -93,7 +94,7 @@ const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
 	{
 		buttons.length > 0 ? (
 			<div class="selection-links">
-				<span>Links:</span>
+				<span>{t('section.selection.links')}</span>
 				{buttons.map((button) => (
 					<ButtonLink
 						href={button.href}

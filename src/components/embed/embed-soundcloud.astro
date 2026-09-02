@@ -1,5 +1,6 @@
 ---
 import EmbedFrame from '#components/embed/embed-frame.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
 	url: string;
@@ -20,4 +21,4 @@ const src = `https://w.soundcloud.com/player/?${params.toString()}`;
 const height = isSet ? 300 : 166;
 ---
 
-<EmbedFrame height={height} src={src} title="SoundCloud player" />
+<EmbedFrame height={height} src={src} title={t('embed.soundcloud.title')} />

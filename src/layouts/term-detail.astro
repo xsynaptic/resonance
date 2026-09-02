@@ -14,6 +14,7 @@ import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
@@ -42,9 +43,9 @@ const body = term.body?.trim() ?? '';
 const description = body === '' ? undefined : await toExcerpt(body);
 
 const collectionLabels: Partial<Record<CollectionKey, string>> = {
-	mixes: 'Mix',
-	posts: 'Blog',
-	reviews: 'Review',
+	mixes: t('collection.mixes.label'),
+	posts: t('collection.posts.title'),
+	reviews: t('collection.reviews.label'),
 };
 
 const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
@@ -53,7 +54,7 @@ const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
 
 const breadcrumbTrail: Array<ResolvedRef> = [
 	{
-		label: term.collection.charAt(0).toUpperCase() + term.collection.slice(1),
+		label: t(`collection.${term.collection}.title`),
 		url: `/${term.collection}/`,
 	},
 	...(isHierarchical(term.collection) ? await resolveAncestors(term.collection, term.id) : []),
@@ -78,8 +79,8 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 	{
 		memberLinks.length > 0 || projectLinks.length > 0 ? (
 			<div class="mb-6 space-y-1">
-				<TermLinks heading="Members" terms={memberLinks} />
-				<TermLinks heading="Projects" terms={projectLinks} />
+				<TermLinks heading={t('artist.members')} terms={memberLinks} />
+				<TermLinks heading={t('artist.projects')} terms={projectLinks} />
 			</div>
 		) : undefined
 	}
@@ -104,7 +105,7 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 				</section>
 			))
 		) : (
-			<p class="text-ink-600">Nothing here yet.</p>
+			<p class="text-ink-600">{t('detail.empty')}</p>
 		)
 	}
 	<PaginationSelect class="mt-8" page={page} />

@@ -1,5 +1,6 @@
 ---
 import EmbedFrame from '#components/embed/embed-frame.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
 	/** Minimal player (single row) */
@@ -27,4 +28,4 @@ const src = params ? `https://www.mixcloud.com/widget/iframe/?${params.toString(
 const height = mini ? 60 : 120;
 ---
 
-{src ? <EmbedFrame height={height} src={src} title="MixCloud player" /> : undefined}
+{src ? <EmbedFrame height={height} src={src} title={t('embed.mixcloud.title')} /> : undefined}

@@ -3,6 +3,7 @@ import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import RefList from '#components/parts/ref-list.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -66,7 +67,7 @@ const rows = await Promise.all((tracks ?? []).map(buildRow));
 {
 	rows.length > 0 ? (
 		<section class="my-8">
-			<h2 class="heading-sub mb-3">Tracklist</h2>
+			<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 			<ol class="track-list">
 				{rows.map((row) => (
 					<li class="track">

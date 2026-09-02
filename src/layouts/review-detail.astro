@@ -3,15 +3,18 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
+import CommentsSection from '#components/comments/comments-section.astro';
 import ButtonLink from '#components/parts/button-link.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	entry: CollectionEntry<'reviews'>;
@@ -37,7 +40,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 
 <ReleaseDetail
 	date={entry.data.dateCreated}
-	kind={{ label: 'Reviews', url: '/reviews/' }}
+	kind={{ label: t('collection.reviews.title'), url: '/reviews/' }}
 	labels={labelTerms}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	releaseTitle={title}
@@ -53,7 +56,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 		{
 			discogsUrl ? (
 				<ButtonLink href={discogsUrl} rel="noreferrer" target="_blank">
-					Discogs
+					{t('detail.discogs')}
 				</ButtonLink>
 			) : undefined
 		}
@@ -63,16 +66,24 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 			{
 				rating ? (
 					<p>
-						Rating: <span class="text-ink-300">{rating}/100</span>
+						{t('detail.rating.label')}{' '}
+						<span class="text-ink-300">
+							{formatStringTemplate(t('detail.rating.value'), { rating })}
+						</span>
 					</p>
 				) : undefined
 			}
-			<TermLinks heading="Artists" terms={artistTerms} />
-			<TermLinks heading="Regions" terms={regionTerms} />
-			<TermLinks heading="Eras" terms={eraTerms} />
-			<TermLinks heading="Styles" terms={styleTerms} />
-			<TermLinks heading="Themes" terms={themeTerms} />
+			<TermLinks heading={t('collection.artists.title')} terms={artistTerms} />
+			<TermLinks heading={t('collection.regions.title')} terms={regionTerms} />
+			<TermLinks heading={t('collection.eras.title')} terms={eraTerms} />
+			<TermLinks heading={t('collection.styles.title')} terms={styleTerms} />
+			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
+	{
+		entry.data.commentsEnabled === false ? undefined : (
+			<CommentsSection collection="reviews" entryId={entry.id} slot="comments" />
+		)
+	}
 </ReleaseDetail>

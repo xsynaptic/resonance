@@ -2,7 +2,9 @@
 import MenuFooter from '#components/menu/menu-footer.astro';
 import Anchor from '#components/parts/anchor.astro';
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 const publishedMixes = await getPublishedMixes();
 const recentMixes = publishedMixes.slice(0, 5);
@@ -18,18 +20,22 @@ const year = new Date().getFullYear();
 				{site.title}
 			</h2>
 			<p class="mt-3">
-				An electronic music resource operated by <Anchor anchorColor="muted" href="/profile"
-					>Basilisk</Anchor
-				>, a veteran DJ and record label owner. Mixes, charts, reviews, and articles on psytrance,
-				techno, house, IDM, electro, ambient, and adjacent genres. For more information, <Anchor
+				{t('footer.about.lead')}{' '}<Anchor anchorColor="muted" href="/profile"
+					>{t('footer.about.profileLink')}</Anchor
+				>{t('footer.about.body')}{' '}<Anchor anchorColor="muted" href="/about"
+					>{t('footer.about.aboutLink')}</Anchor
+				>.
+			</p>
+			<p class="mt-3">
+				{t('footer.support.lead')}{' '}<Anchor
 					anchorColor="muted"
-					href="/about">read on</Anchor
+					href="https://www.patreon.com/ektoplazm">{t('footer.support.link')}</Anchor
 				>.
 			</p>
 		</section>
 		<MenuFooter />
 		<section>
-			<h2 class="heading-label">Recent Mixes</h2>
+			<h2 class="heading-label">{t('footer.recentMixes.heading')}</h2>
 			<ul class="mt-3">
 				{
 					recentMixes.map((mix) => (
@@ -44,9 +50,9 @@ const year = new Date().getFullYear();
 		</section>
 	</div>
 	<div class="content-wide border-t border-surface-700 py-6 text-xs text-ink-700">
-		© 2001–{year} Basilisk · Powered by <a
+		{formatStringTemplate(t('footer.copyright'), { year })} · {t('footer.poweredBy')}{' '}<a
 			class="text-ink-600 hover:text-highlight-400 focus-visible:text-highlight-400"
-			href="https://astro.build">Astro</a
+			href="https://astro.build">{t('footer.astro')}</a
 		>
 	</div>
 </footer>

@@ -9,9 +9,11 @@ import MainFooter from '#components/main/main-footer.astro';
 import MainHeader from '#components/main/main-header.astro';
 import MainSprites from '#components/main/main-sprites.astro';
 import MainTopButton from '#components/main/main-top-button.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
 import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	description?: string;
@@ -26,7 +28,9 @@ const {
 	openGraphType = 'website',
 	title,
 } = Astro.props;
-const pageTitle = title ? `${title} · ${site.title}` : site.title;
+const pageTitle = title
+	? formatStringTemplate(t('site.pageTitle'), { siteTitle: site.title, title })
+	: site.title;
 
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
 const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);

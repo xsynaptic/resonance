@@ -1,4 +1,3 @@
-// @ts-check
 import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
@@ -8,6 +7,8 @@ import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
+
+import inventory from './src/inventory/inventory-integration.ts';
 
 export default defineConfig({
 	env: {
@@ -47,7 +48,13 @@ export default defineConfig({
 		layout: 'constrained',
 		responsiveStyles: true,
 	},
-	integrations: [mdx(), sitemap(), fontDevtools({ providers: ['fontsource'] }), pagefind()],
+	integrations: [
+		mdx(),
+		sitemap(),
+		fontDevtools({ providers: ['fontsource'] }),
+		pagefind(),
+		inventory(),
+	],
 	markdown: {
 		processor: satteri({
 			mdastPlugins: [

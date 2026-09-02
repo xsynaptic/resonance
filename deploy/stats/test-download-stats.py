@@ -18,8 +18,9 @@ spec = importlib.util.spec_from_file_location("download_stats", HERE / "download
 download_stats = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(download_stats)
 
-# Fixed clock near the fixture dates so pruning never eats test state
+# Fixed clock near the fixture dates so the staleness warning stays quiet
 NOW = datetime(2026, 1, 11, 12, 0, 0, tzinfo=timezone.utc)
+LINE = "{ts}\t/artifacts/{name}\t200\t{sent}\tOK\t-\t10.000\t{ip}\tMozilla/5.0 (Macintosh)\t-\n"
 
 
 class DownloadStatsTest(unittest.TestCase):
@@ -27,8 +28,8 @@ class DownloadStatsTest(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.media_root = self.tmp / "media"
         self.state_dir = self.tmp / "state"
-        self.log = self.tmp / "downloads.log"
-        self.rotated_log = self.tmp / "downloads.log.1"
+        self.log_dir = self.tmp / "logs"
+        self.log_dir.mkdir()
         (self.media_root / "artifacts").mkdir(parents=True)
         (self.media_root / "stream").mkdir(parents=True)
         (self.media_root / "artifacts" / "Test Mix.mp3").write_bytes(b"x" * 1000)
@@ -38,16 +39,19 @@ class DownloadStatsTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp)
 
+    def write_log(self, name, text):
+        (self.log_dir / name).write_text(text)
+
     def run_script(self, state_dir=None):
         return download_stats.run(
-            str(self.log), str(self.rotated_log), str(self.media_root), str(state_dir or self.state_dir), now=NOW
+            str(self.log_dir), "downloads-*.log", str(self.media_root), str(state_dir or self.state_dir), now=NOW
         )
 
     def read_json(self, state_dir=None):
         return json.loads(((state_dir or self.state_dir) / "downloads.json").read_text())
 
     def test_fixture_rollup(self):
-        shutil.copy(FIXTURE_LOG, self.log)
+        shutil.copy(FIXTURE_LOG, self.log_dir / "downloads-2026-01-10.log")
         self.run_script()
         doc = self.read_json()
 
@@ -58,12 +62,11 @@ class DownloadStatsTest(unittest.TestCase):
 
         test_mix = doc["files"][1]
         # Clean 200 + curl 200 count; truncated fails threshold, bot UA dropped
-        # Same-hour repeat deduped, 404 and malformed skipped
+        # Same-day repeat from one address deduped, 404 and malformed skipped
         self.assertEqual(test_mix["completions"], 2)
         # 1000 + 400 + 300 + 300 + 1000 (curl) + 1000 (deduped repeat still ships bytes)
         self.assertEqual(test_mix["byte_equivalents"], 4.0)
         self.assertEqual(test_mix["daily"], {"2026-01-10": 2})
-        self.assertEqual(doc["totals"]["completions"], 2)
 
         quiet_mix = doc["files"][0]
         self.assertEqual(quiet_mix["completions"], 0)
@@ -80,8 +83,9 @@ class DownloadStatsTest(unittest.TestCase):
     def test_untracked_extensions_are_ignored(self):
         # .m4a is the abandoned AAC rendition format; a webm under /artifacts/ is equally out of place
         template = "2026-01-10T10:00:00+00:00\t{uri}\t200\t800\tOK\t-\t1.000\t203.0.113.70\tMozilla/5.0 (Macintosh)\t-\n"
-        self.log.write_text(
-            template.format(uri="/stream/Test%20Mix.m4a") + template.format(uri="/artifacts/Test%20Mix.webm")
+        self.write_log(
+            "downloads-2026-01-10.log",
+            template.format(uri="/stream/Test%20Mix.m4a") + template.format(uri="/artifacts/Test%20Mix.webm"),
         )
         self.run_script()
 
@@ -90,70 +94,81 @@ class DownloadStatsTest(unittest.TestCase):
         db.close()
         self.assertEqual(rollups, (0,))
 
-    def test_idempotency(self):
-        shutil.copy(FIXTURE_LOG, self.log)
+    def test_a_log_is_processed_once(self):
+        shutil.copy(FIXTURE_LOG, self.log_dir / "downloads-2026-01-10.log")
         self.run_script()
         first = self.read_json()
         self.run_script()
-        second = self.read_json()
-        self.assertEqual(first, second)
+        self.assertEqual(first, self.read_json())
 
-    def test_rotation_loses_nothing(self):
-        lines = FIXTURE_LOG.read_text().splitlines(keepends=True)
-        chunk_1, chunk_2, chunk_3 = lines[:4], lines[4:7], lines[7:]
+    def test_batched_logs_match_one_pass(self):
+        # A day is one file, so a batch boundary never falls inside one; see collect_days
+        day_one = "".join(
+            LINE.format(ts="2026-01-09T10:00:00+00:00", name="Test%20Mix.mp3", sent=1000, ip=f"203.0.113.{n}")
+            for n in range(3)
+        )
+        day_two = FIXTURE_LOG.read_text()
 
-        # Incremental run, then more lines land, then logrotate moves the file aside
-        self.log.write_text("".join(chunk_1))
+        self.write_log("downloads-2026-01-09.log", day_one)
         self.run_script()
-        self.log.write_text("".join(chunk_1 + chunk_2))
-        self.log.rename(self.rotated_log)
-        self.log.write_text("".join(chunk_3))
+        self.write_log("downloads-2026-01-10.log", day_two)
         self.run_script()
         incremental = self.read_json()
 
-        # Reference: everything in one pass against a fresh state dir
-        self.rotated_log.unlink()
-        self.log.write_text("".join(lines))
+        # Reference: both days handed over in one run against a fresh state dir
         reference_state = self.tmp / "reference-state"
         self.run_script(state_dir=reference_state)
-        reference = self.read_json(state_dir=reference_state)
 
-        self.assertEqual(incremental, reference)
+        self.assertEqual(incremental, self.read_json(state_dir=reference_state))
+        self.assertEqual(incremental["files"][1]["daily"], {"2026-01-09": 3, "2026-01-10": 2})
 
-    def test_salt_rotates_across_days(self):
-        template = (
-            "{ts}\t/artifacts/Test%20Mix.mp3\t200\t1000\tOK\t-\t10.000\t203.0.113.50\tMozilla/5.0 (Macintosh)\t-\n"
-        )
-        self.log.write_text(
-            template.format(ts="2026-01-10T23:59:00+00:00") + template.format(ts="2026-01-11T00:01:00+00:00")
+    def test_todays_log_is_not_read(self):
+        # nginx still holds today's file open; reading it would count a partial day and never revisit it
+        self.write_log(
+            "downloads-2026-01-11.log",
+            LINE.format(ts="2026-01-11T09:00:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.60"),
         )
         self.run_script()
+        self.assertEqual(self.read_json()["files"][1]["completions"], 0)
 
-        db = sqlite3.connect(self.state_dir / "stats.sqlite")
-        salts = db.execute("SELECT day, salt FROM salts ORDER BY day").fetchall()
-        db.close()
-        self.assertEqual([day for day, _salt in salts], ["2026-01-10", "2026-01-11"])
-        self.assertNotEqual(salts[0][1], salts[1][1])
-        # Same client on both sides of midnight: different salt, different bucket, both count
+    def test_dedupe_is_per_day(self):
+        # One address either side of midnight is two downloads; twice in a day is one
+        self.write_log(
+            "downloads-2026-01-09.log",
+            LINE.format(ts="2026-01-09T23:59:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.50"),
+        )
+        self.write_log(
+            "downloads-2026-01-10.log",
+            LINE.format(ts="2026-01-10T00:01:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.50")
+            + LINE.format(ts="2026-01-10T18:00:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.50"),
+        )
+        self.run_script()
         self.assertEqual(self.read_json()["files"][1]["completions"], 2)
 
-    def test_truncated_log_restarts_from_zero(self):
-        template = (
-            "{ts}\t/artifacts/Test%20Mix.mp3\t200\t1000\tOK\t-\t10.000\t{ip}\tMozilla/5.0 (Macintosh)\t-\n"
+
+    def test_corpus_scraper_is_dropped(self):
+        # One address taking the whole corpus in a day counts for none of it; a listener beside it still counts
+        for index in range(download_stats.SCRAPE_FILE_CAP):
+            (self.media_root / "artifacts" / f"Mix {index}.mp3").write_bytes(b"x" * 1000)
+        scrape = "".join(
+            LINE.format(ts="2026-01-10T10:00:00+00:00", name=f"Mix%20{index}.mp3", sent=1000, ip="198.51.100.7")
+            for index in range(download_stats.SCRAPE_FILE_CAP)
         )
-        self.log.write_text(template.format(ip="203.0.113.60", ts="2026-01-10T09:00:00+00:00"))
+        self.write_log(
+            "downloads-2026-01-10.log",
+            scrape + LINE.format(ts="2026-01-10T11:00:00+00:00", name="Mix%200.mp3", sent=1000, ip="203.0.113.80"),
+        )
         self.run_script()
 
-        # Same inode, strictly smaller file: copytruncate-style rotation must not strand the offset
-        self.log.write_text(template.format(ip="1.2.3.4", ts="2026-01-10T11:00:00+00:00"))
-        self.run_script()
+        counts = {entry["key"]: entry["completions"] for entry in self.read_json()["files"]}
+        self.assertEqual(counts["artifacts/Mix 0.mp3"], 1)
+        self.assertEqual(counts["artifacts/Mix 1.mp3"], 0)
 
-        self.assertEqual(self.read_json()["files"][1]["completions"], 2)
-
-    def test_missing_log_is_harmless(self):
+    def test_missing_log_dir_is_harmless(self):
+        shutil.rmtree(self.log_dir)
         self.run_script()
         doc = self.read_json()
-        self.assertEqual(doc["totals"]["completions"], 0)
+        self.assertEqual(sum(entry["completions"] for entry in doc["files"]), 0)
         self.assertEqual(len(doc["files"]), 2)
 
 

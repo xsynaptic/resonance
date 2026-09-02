@@ -44,3 +44,7 @@ backups/
 
 # WP extract scripts: one-off, iterated locally, not checked in yet
 packages/scripts/src/wp-extract/
+
+# temp
+deploy/nginx/sites-enabled/
+packages/scripts/src/stats/

@@ -1,12 +1,25 @@
 import { getCollection } from 'astro:content';
 
-// Cache so the collection is scanned once per build, not once per mix page
+// Scan the collection once per build, not once per mix page
 let countsPromise: Promise<Map<string, number>> | undefined;
 
-// Filename -> completions, for lookup against mix frontmatter `files[]` entries
+// Keyed on filename, matching mix frontmatter `files[]`
 export function getDownloadCounts(): Promise<Map<string, number>> {
 	if (!countsPromise) countsPromise = buildCounts();
 	return countsPromise;
+}
+
+// Counts every format, as the per-file figures on each page already do
+export async function getDownloadTotal(): Promise<number> {
+	const counts = await getDownloadCounts();
+
+	let total = 0;
+
+	for (const count of counts.values()) {
+		total += count;
+	}
+
+	return total;
 }
 
 async function buildCounts(): Promise<Map<string, number>> {

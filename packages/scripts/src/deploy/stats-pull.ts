@@ -6,7 +6,7 @@ import { loadDeployConfig } from './deploy-config.js';
 import { rsyncFrom } from './rsync-exec.js';
 
 // Matches STATE_DIR in deploy/stats/download-stats.py
-const remoteStatsDir = '<stats-state-path>';
+const remoteStatsDir = '/srv/resonance/stats';
 const localJsonDir = 'packages/content';
 const localBackupDir = 'packages/content/downloads-backup';
 
@@ -15,10 +15,8 @@ interface StatsPullOptions {
 	rootPath: string;
 }
 
-// Pull downloads.json for the build, plus the SQLite rollup as an offsite backup
-// The JSON is derived; the database is the only irreplaceable artifact on the box
-// Backups are dated so a corrupted remote DB can never clobber the last good copy
-// Never fatal: an unreachable box means building with the last-pulled copy
+// The JSON is derived; the SQLite rollup is the only irreplaceable copy, so it is backed up dated
+// Never fatal: an unreachable host means building with the last-pulled copy
 export async function pullStats(options: StatsPullOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 

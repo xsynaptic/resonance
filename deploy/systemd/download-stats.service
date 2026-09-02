@@ -1,0 +1,21 @@
+[Unit]
+Description=Roll up closed daily nginx download logs into downloads.json
+Documentation=https://github.com/xsynaptic/resonance
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/bin/download-stats.py \
+  --log-dir /srv/resonance/logs \
+  --log-pattern "downloads-*.log" \
+  --media-root /srv/resonance \
+  --state-dir /srv/resonance/stats
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX
+ReadOnlyPaths=/srv/resonance
+ReadWritePaths=/srv/resonance/stats

@@ -1,8 +1,8 @@
 import {
-	ASTRO_CACHE_DIR,
-	OPEN_GRAPH_BASE_PATH,
-	OPEN_GRAPH_IMAGE_FORMAT,
-	OPEN_GRAPH_OUTPUT_PATH,
+	astroCacheDir,
+	openGraphBasePath,
+	openGraphImageFormat,
+	openGraphOutputPath,
 } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
 import { promises as fs, rmSync } from 'node:fs';
@@ -20,7 +20,7 @@ import { createRenderer, processCover } from './generate.js';
 import { createOutputCache, getCacheKey } from './output-cache.js';
 
 // Matches the Astro font config; the site pulls the same faces through fontProviders.fontsource()
-const FONT_CONFIGS: Array<FontsourceConfig> = [
+const fontConfigs: Array<FontsourceConfig> = [
 	{
 		name: 'Fira Sans',
 		package: 'fira-sans',
@@ -34,10 +34,10 @@ const FONT_CONFIGS: Array<FontsourceConfig> = [
 ];
 
 // Rendering is CPU-bound and each entry decodes its own cover, so one bound covers both
-const CONCURRENCY = 12;
+const concurrency = 12;
 
 // Frontmatter cover paths are relative to this, matching `src/lib/utils/media.ts`
-const MEDIA_PATH = 'packages/content/_media';
+const mediaRoot = 'packages/content/_media';
 
 interface OpenGraphOptions {
 	clearCache?: boolean;
@@ -48,8 +48,8 @@ interface OpenGraphOptions {
 export async function generateOpenGraphImages(options: OpenGraphOptions): Promise<void> {
 	const { clearCache = false, distPath = './dist', rootPath } = options;
 
-	const outputPath = path.resolve(rootPath, OPEN_GRAPH_OUTPUT_PATH);
-	const mediaPath = path.resolve(rootPath, MEDIA_PATH);
+	const outputPath = path.resolve(rootPath, openGraphOutputPath);
+	const mediaPath = path.resolve(rootPath, mediaRoot);
 
 	console.log(chalk.blue('Generating Open Graph images...'));
 
@@ -59,16 +59,16 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 		return;
 	}
 
-	const fonts = await fontsourceFonts(FONT_CONFIGS);
+	const fonts = await fontsourceFonts(fontConfigs);
 	const entries = getOpenGraphEntries(
-		loadDataStore(path.resolve(rootPath, ASTRO_CACHE_DIR, 'data-store.json')),
+		loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json')),
 	);
 
 	await fs.mkdir(outputPath, { recursive: true });
 
 	const cache = await createOutputCache(outputPath);
 	const renderCard = createRenderer(fonts);
-	const limit = pLimit(CONCURRENCY);
+	const limit = pLimit(concurrency);
 
 	let generatedCount = 0;
 	let missingCoverCount = 0;
@@ -162,18 +162,18 @@ async function publish({
 	outputIds: Array<string>;
 }): Promise<void> {
 	if (!(await isPathPresent(distPath))) {
-		console.log(chalk.yellow(`  No dist/ to publish into; cards are in ${OPEN_GRAPH_OUTPUT_PATH}`));
+		console.log(chalk.yellow(`  No dist/ to publish into; cards are in ${openGraphOutputPath}`));
 		return;
 	}
 
-	const publishPath = path.join(distPath, OPEN_GRAPH_BASE_PATH);
+	const publishPath = path.join(distPath, openGraphBasePath);
 
 	await fs.mkdir(publishPath, { recursive: true });
 
 	for (const outputId of outputIds) {
 		await fs.copyFile(
 			cache.filePath(outputId),
-			path.join(publishPath, `${outputId}.${OPEN_GRAPH_IMAGE_FORMAT}`),
+			path.join(publishPath, `${outputId}.${openGraphImageFormat}`),
 		);
 	}
 

@@ -1,7 +1,7 @@
 // The eyebrow on each card, and the set of collections that get one at all
 // `downloads` is absent by design: it is a stats loader with no titles and no pages
 // Pages get no eyebrow; "Page" tells a reader nothing the title does not
-const COLLECTION_LABELS = {
+const collectionLabels = {
 	artists: 'Artist',
 	eras: 'Era',
 	formats: 'Format',
@@ -16,8 +16,8 @@ const COLLECTION_LABELS = {
 	themes: 'Theme',
 } satisfies Record<string, string | undefined>;
 
-export const OPEN_GRAPH_COLLECTIONS = Object.keys(COLLECTION_LABELS);
+export const openGraphCollections = Object.keys(collectionLabels);
 
 export function getCollectionLabel(collection: string): string | undefined {
-	return COLLECTION_LABELS[collection as keyof typeof COLLECTION_LABELS];
+	return collectionLabels[collection as keyof typeof collectionLabels];
 }

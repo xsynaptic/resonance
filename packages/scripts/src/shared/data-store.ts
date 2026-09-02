@@ -20,7 +20,7 @@ export interface DataStoreEntry {
 }
 
 // Astro >= 7.1 writes a `data-store/` directory instead when experimental `collectionStorage` is on
-const DATA_STORE_CHUNKED_DIR = 'data-store';
+const dataStoreChunkedDir = 'data-store';
 
 export function getDataStoreCollection(
 	collections: DataStoreCollections,
@@ -41,7 +41,7 @@ export function getDataStoreCollection(
 
 export function loadDataStore(dataStorePath: string): DataStoreCollections {
 	if (!existsSync(dataStorePath)) {
-		const chunkedPath = path.join(path.dirname(dataStorePath), DATA_STORE_CHUNKED_DIR);
+		const chunkedPath = path.join(path.dirname(dataStorePath), dataStoreChunkedDir);
 
 		if (existsSync(chunkedPath)) {
 			throw new Error(

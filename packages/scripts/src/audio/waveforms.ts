@@ -4,22 +4,22 @@ import path from 'node:path';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
-import { AUDIO_SOURCE_DIR, WAVEFORMS_CACHE_DIR } from './audio-paths.js';
+import { audioSourceDir, waveformsCacheDir } from './audio-paths.js';
 import { collectAudioSources } from './audio-sources.js';
 
-const CONCURRENCY = 6;
-const ARCHIVE_EXTENSION = '.dat';
-const PREVIEW_EXTENSION = '.json';
-const TMP_EXTENSION = '.tmp';
+const concurrency = 6;
+const archiveExtension = '.dat';
+const previewExtension = '.json';
+const tmpExtension = '.tmp';
 
-const HEADER_BYTES = 20;
-const ARCHIVE_VERSION = 1;
-const EIGHT_BIT_FLAG = 1;
-const SAMPLES_PER_PIXEL = 256;
+const headerBytes = 20;
+const archiveVersion = 1;
+const eightBitFlag = 1;
+const expectedSamplesPerPixel = 256;
 
-const PREVIEW_VERSION = 1;
-const PREVIEW_BUCKETS = 2000;
-const PREVIEW_SCALE = 255;
+const previewVersion = 1;
+const previewBuckets = 2000;
+const previewScale = 255;
 
 export interface WaveformHeader {
 	pairs: number;
@@ -50,9 +50,9 @@ interface WaveformsOptions {
 // Values are normalized here rather than in a renderer, so consumers never need the source units
 export function distillWaveform(buffer: Buffer): WaveformPreview {
 	const { pairs, sampleRate, samplesPerPixel } = parseWaveformHeader(buffer);
-	if (buffer.length < HEADER_BYTES + pairs * 2) throw new Error('Waveform data is truncated');
+	if (buffer.length < headerBytes + pairs * 2) throw new Error('Waveform data is truncated');
 
-	const bucketCount = Math.min(PREVIEW_BUCKETS, pairs);
+	const bucketCount = Math.min(previewBuckets, pairs);
 	const buckets: Array<number> = [];
 	let peak = 0;
 
@@ -62,7 +62,7 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 		let sumOfSquares = 0;
 
 		for (let pair = start; pair < end; pair += 1) {
-			const offset = HEADER_BYTES + pair * 2;
+			const offset = headerBytes + pair * 2;
 			const amplitude = Math.max(
 				Math.abs(buffer.readInt8(offset)),
 				Math.abs(buffer.readInt8(offset + 1)),
@@ -75,12 +75,12 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 		buckets.push(rms);
 	}
 
-	const values = buckets.map((rms) => (peak > 0 ? Math.round((rms / peak) * PREVIEW_SCALE) : 0));
+	const values = buckets.map((rms) => (peak > 0 ? Math.round((rms / peak) * previewScale) : 0));
 
 	return {
 		seconds: Math.round(((pairs * samplesPerPixel) / sampleRate) * 10) / 10,
 		values,
-		version: PREVIEW_VERSION,
+		version: previewVersion,
 	};
 }
 
@@ -95,12 +95,12 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 		throw new Error('audiowaveform not found on PATH. Install it with: brew install audiowaveform');
 	}
 
-	const cacheDir = path.join(rootPath, WAVEFORMS_CACHE_DIR);
-	const sources = await collectAudioSources(path.join(rootPath, AUDIO_SOURCE_DIR));
+	const cacheDir = path.join(rootPath, waveformsCacheDir);
+	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 
 	const jobs = sources.map((source): WaveformJob => ({
-		archive: path.join(cacheDir, `${source.base}${ARCHIVE_EXTENSION}`),
-		preview: path.join(cacheDir, `${source.base}${PREVIEW_EXTENSION}`),
+		archive: path.join(cacheDir, `${source.base}${archiveExtension}`),
+		preview: path.join(cacheDir, `${source.base}${previewExtension}`),
 		source: source.path,
 	}));
 
@@ -126,7 +126,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 		return;
 	}
 
-	const limit = pLimit(CONCURRENCY);
+	const limit = pLimit(concurrency);
 	let done = 0;
 
 	const results = await Promise.allSettled(
@@ -164,24 +164,24 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 // Header layout, little-endian: version, flags, sample_rate, samples_per_pixel, length in min/max PAIRS
 // Self-describing, so freshness needs no external version constant; anything unexpected regenerates
 export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
-	if (buffer.length < HEADER_BYTES) throw new Error('Waveform data is shorter than its header');
+	if (buffer.length < headerBytes) throw new Error('Waveform data is shorter than its header');
 
 	const version = buffer.readInt32LE(0);
-	if (version !== ARCHIVE_VERSION) {
+	if (version !== archiveVersion) {
 		throw new Error(
-			`Waveform data is version ${String(version)}, expected ${String(ARCHIVE_VERSION)}`,
+			`Waveform data is version ${String(version)}, expected ${String(archiveVersion)}`,
 		);
 	}
 
 	const flags = buffer.readUInt32LE(4);
-	if (flags !== EIGHT_BIT_FLAG) {
+	if (flags !== eightBitFlag) {
 		throw new Error(`Waveform data is not 8-bit (flags ${String(flags)})`);
 	}
 
 	const samplesPerPixel = buffer.readInt32LE(12);
-	if (samplesPerPixel !== SAMPLES_PER_PIXEL) {
+	if (samplesPerPixel !== expectedSamplesPerPixel) {
 		throw new Error(
-			`Waveform data is ${String(samplesPerPixel)} samples per pixel, expected ${String(SAMPLES_PER_PIXEL)}`,
+			`Waveform data is ${String(samplesPerPixel)} samples per pixel, expected ${String(expectedSamplesPerPixel)}`,
 		);
 	}
 
@@ -189,11 +189,11 @@ export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
 }
 
 async function analyze(job: WaveformJob): Promise<void> {
-	const tmp = `${job.archive}${TMP_EXTENSION}`;
+	const tmp = `${job.archive}${tmpExtension}`;
 
 	// --output-format is explicit because the .tmp suffix hides the format
 	// No --amplitude-scale: the archive keeps true peaks and normalization happens at distillation
-	await $`audiowaveform -q -i ${job.source} -o ${tmp} --output-format dat -z ${String(SAMPLES_PER_PIXEL)} -b 8`;
+	await $`audiowaveform -q -i ${job.source} -o ${tmp} --output-format dat -z ${String(expectedSamplesPerPixel)} -b 8`;
 
 	await fs.rename(tmp, job.archive);
 }
@@ -210,14 +210,14 @@ async function cleanStaleTmp(dir: string): Promise<void> {
 
 	await Promise.all(
 		existing
-			.filter((name) => name.endsWith(TMP_EXTENSION))
+			.filter((name) => name.endsWith(tmpExtension))
 			.map((name) => fs.rm(path.join(dir, name), { force: true })),
 	);
 }
 
 async function distill(job: WaveformJob): Promise<void> {
 	const preview = distillWaveform(await fs.readFile(job.archive));
-	const tmp = `${job.preview}${TMP_EXTENSION}`;
+	const tmp = `${job.preview}${tmpExtension}`;
 
 	await fs.writeFile(tmp, `${JSON.stringify(preview)}\n`, 'utf8');
 	await fs.rename(tmp, job.preview);
@@ -232,9 +232,9 @@ async function isArchiveCurrent(source: string, archive: string): Promise<boolea
 		const handle = await fs.open(archive, 'r');
 
 		try {
-			const header = Buffer.alloc(HEADER_BYTES);
-			const { bytesRead } = await handle.read(header, 0, HEADER_BYTES, 0);
-			if (bytesRead < HEADER_BYTES) return false;
+			const header = Buffer.alloc(headerBytes);
+			const { bytesRead } = await handle.read(header, 0, headerBytes, 0);
+			if (bytesRead < headerBytes) return false;
 
 			parseWaveformHeader(header);
 			return true;

@@ -6,9 +6,9 @@ import { loadDeployConfig } from './deploy-config.js';
 import { rsyncFrom } from './rsync-exec.js';
 
 // Matches STATE_DIR in deploy/stats/download-stats.py
-const REMOTE_STATS_DIR = '<stats-state-path>';
-const LOCAL_JSON_DIR = 'packages/content';
-const LOCAL_BACKUP_DIR = 'packages/content/downloads-backup';
+const remoteStatsDir = '<stats-state-path>';
+const localJsonDir = 'packages/content';
+const localBackupDir = 'packages/content/downloads-backup';
 
 interface StatsPullOptions {
 	dryRun?: boolean;
@@ -24,25 +24,23 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 
 	const config = loadDeployConfig();
 
-	const jsonDir = path.join(rootPath, LOCAL_JSON_DIR);
-	const backupDir = path.join(rootPath, LOCAL_BACKUP_DIR);
+	const jsonDir = path.join(rootPath, localJsonDir);
+	const backupDir = path.join(rootPath, localBackupDir);
 	const backupDate = new Date().toISOString().slice(0, 10);
 
 	console.log(chalk.blue('Pulling download stats...'));
-	console.log(
-		chalk.gray(`  ${config.remoteHost}:${REMOTE_STATS_DIR}/downloads.json -> ${jsonDir}/`),
-	);
+	console.log(chalk.gray(`  ${config.remoteHost}:${remoteStatsDir}/downloads.json -> ${jsonDir}/`));
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
 	try {
 		await mkdir(backupDir, { recursive: true });
-		await rsyncFrom(`${config.remoteHost}:${REMOTE_STATS_DIR}/downloads.json`, `${jsonDir}/`, {
+		await rsyncFrom(`${config.remoteHost}:${remoteStatsDir}/downloads.json`, `${jsonDir}/`, {
 			archive: 'av',
 			config,
 			dryRun,
 		});
 		await rsyncFrom(
-			`${config.remoteHost}:${REMOTE_STATS_DIR}/stats.sqlite`,
+			`${config.remoteHost}:${remoteStatsDir}/stats.sqlite`,
 			`${backupDir}/stats-${backupDate}.sqlite`,
 			{
 				archive: 'av',

@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ASTRO_CACHE_DIR } from '@xsynaptic/shared/constants';
+import { astroCacheDir } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
 import path from 'node:path';
 
@@ -16,7 +16,7 @@ import { validateTrackTimestamps } from './track-timestamps.js';
 import { reportValidationResult } from './validation-result.js';
 
 // `downloads` is excluded; it is generated from JSON and carries none of the fields these read
-const CONTENT_COLLECTIONS = [
+const contentCollections = [
 	'artists',
 	'eras',
 	'formats',
@@ -32,7 +32,7 @@ const CONTENT_COLLECTIONS = [
 ];
 
 // Mirrors `linkableCollections` in references-data.ts; the two have to stay in step
-const LINKABLE_COLLECTIONS = [
+const linkableCollections = [
 	'artists',
 	'labels',
 	'styles',
@@ -43,32 +43,32 @@ const LINKABLE_COLLECTIONS = [
 	'themes',
 ];
 
-// Mirrors SERIES_MEMBER_COLLECTIONS in term-index.ts
-const SERIES_MEMBER_COLLECTIONS = ['mixes', 'reviews', 'posts'];
+// Mirrors seriesMemberCollections in term-index.ts
+const seriesMemberCollections = ['mixes', 'reviews', 'posts'];
 
 // The only collections `audioFields` is spread into, so the only ones that can carry `tracks`
-const AUDIO_COLLECTIONS = ['mixes', 'reviews'];
+const audioCollections = ['mixes', 'reviews'];
 
 const rootPath = findWorkspaceRoot();
 
-const collections = loadDataStore(path.resolve(rootPath, ASTRO_CACHE_DIR, 'data-store.json'));
+const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
 
-const allEntries = getDataStoreCollection(collections, CONTENT_COLLECTIONS);
+const allEntries = getDataStoreCollection(collections, contentCollections);
 
 // Keys double as the CLI subcommand names
 const validations = {
 	'entry-ids': () => validateEntryIds(allEntries),
 	'link-ids': () =>
-		validateLinkIds(allEntries, getDataStoreCollection(collections, LINKABLE_COLLECTIONS)),
-	references: () => validateReferences(collections, CONTENT_COLLECTIONS),
+		validateLinkIds(allEntries, getDataStoreCollection(collections, linkableCollections)),
+	references: () => validateReferences(collections, contentCollections),
 	refs: () => validateRefs(allEntries, collections),
 	'series-items': () =>
 		validateSeriesItems(
 			getDataStoreCollection(collections, ['series']),
-			getDataStoreCollection(collections, SERIES_MEMBER_COLLECTIONS),
+			getDataStoreCollection(collections, seriesMemberCollections),
 		),
 	'track-timestamps': () =>
-		validateTrackTimestamps(getDataStoreCollection(collections, AUDIO_COLLECTIONS)),
+		validateTrackTimestamps(getDataStoreCollection(collections, audioCollections)),
 } satisfies Record<string, () => ValidationResult>;
 
 const command = process.argv[2];

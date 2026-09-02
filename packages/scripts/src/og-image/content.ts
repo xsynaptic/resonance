@@ -1,14 +1,14 @@
-import { OPEN_GRAPH_DEFAULT_ID, SITE_TITLE } from '@xsynaptic/shared/constants';
+import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
 
 import type { DataStoreCollections, DataStoreEntry } from '../shared/data-store.js';
 import type { OpenGraphEntry } from './types.js';
 
-import { getCollectionLabel, OPEN_GRAPH_COLLECTIONS } from './labels.js';
+import { getCollectionLabel, openGraphCollections } from './labels.js';
 
 export function getOpenGraphEntries(collections: DataStoreCollections): Array<OpenGraphEntry> {
 	const entries: Array<OpenGraphEntry> = [getDefaultEntry()];
 
-	for (const collection of OPEN_GRAPH_COLLECTIONS) {
+	for (const collection of openGraphCollections) {
 		const collectionEntries = collections.get(collection);
 
 		if (!collectionEntries) {
@@ -29,11 +29,11 @@ export function getOpenGraphEntries(collections: DataStoreCollections): Array<Op
  */
 function getDefaultEntry(): OpenGraphEntry {
 	return {
-		digest: OPEN_GRAPH_DEFAULT_ID,
+		digest: openGraphDefaultId,
 		imageFeatured: undefined,
 		label: undefined,
-		outputId: OPEN_GRAPH_DEFAULT_ID,
-		title: SITE_TITLE,
+		outputId: openGraphDefaultId,
+		title: siteTitle,
 	};
 }
 

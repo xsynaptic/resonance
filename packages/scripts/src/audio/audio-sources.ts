@@ -7,7 +7,7 @@ export interface AudioSource {
 }
 
 // Ordered by preference; the earliest match claims the base name
-const SOURCE_EXTENSIONS = ['.flac', '.mp3'];
+const sourceExtensions = ['.flac', '.mp3'];
 
 // One entry per mix, keyed by filename minus extension
 // Shared by every derivation that reads the source directory rather than frontmatter
@@ -32,7 +32,7 @@ export async function collectAudioSources(sourceDir: string): Promise<Array<Audi
 }
 
 function preferenceRank(file: string): number {
-	return SOURCE_EXTENSIONS.indexOf(path.extname(file).toLowerCase());
+	return sourceExtensions.indexOf(path.extname(file).toLowerCase());
 }
 
 async function readSourceDir(sourceDir: string): Promise<Array<string>> {

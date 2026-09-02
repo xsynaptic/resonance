@@ -1,12 +1,12 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
-import { AUDIO_SOURCE_DIR, STREAMS_DIR } from '../audio/audio-paths.js';
+import { audioSourceDir, streamsDir } from '../audio/audio-paths.js';
 import { isPathPresent } from '../shared/utils.js';
 import { loadDeployConfig } from './deploy-config.js';
 import { rsyncTo } from './rsync-exec.js';
 
-const EXCLUDES = ['.DS_Store', '*.tmp', '.gitkeep'];
+const rsyncExcludes = ['.DS_Store', '*.tmp', '.gitkeep'];
 
 interface DeployAudioOptions {
 	dryRun?: boolean;
@@ -21,13 +21,13 @@ export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 
 	const config = loadDeployConfig();
 
-	const sourceDir = path.join(rootPath, AUDIO_SOURCE_DIR);
+	const sourceDir = path.join(rootPath, audioSourceDir);
 
 	if (!(await isPathPresent(sourceDir))) {
 		throw new Error(`Audio source directory not found: ${sourceDir}`);
 	}
 
-	const streamsDir = path.join(rootPath, STREAMS_DIR);
+	const streamsPath = path.join(rootPath, streamsDir);
 
 	console.log(chalk.blue('Deploying audio...'));
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
@@ -43,21 +43,21 @@ export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 		archive: 'av',
 		config,
 		dryRun,
-		excludes: EXCLUDES,
+		excludes: rsyncExcludes,
 		extraFlags: ['--partial'],
 	});
 
-	if (await isPathPresent(streamsDir)) {
+	if (await isPathPresent(streamsPath)) {
 		console.log(
 			chalk.gray(
-				`  Renditions: ${streamsDir}/ -> ${config.remoteHost}:${config.remoteAudioPath}/stream/`,
+				`  Renditions: ${streamsPath}/ -> ${config.remoteHost}:${config.remoteAudioPath}/stream/`,
 			),
 		);
-		await rsyncTo(`${streamsDir}/`, `${config.remoteHost}:${config.remoteAudioPath}/stream/`, {
+		await rsyncTo(`${streamsPath}/`, `${config.remoteHost}:${config.remoteAudioPath}/stream/`, {
 			archive: 'av',
 			config,
 			dryRun,
-			excludes: EXCLUDES,
+			excludes: rsyncExcludes,
 			extraFlags: ['--partial'],
 		});
 	} else {

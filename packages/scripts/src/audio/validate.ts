@@ -3,9 +3,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parse } from 'yaml';
 
-import { AUDIO_SOURCE_DIR, MIXES_CONTENT_DIR } from './audio-paths.js';
+import { audioSourceDir, mixesContentDir } from './audio-paths.js';
 
-const AUDIO_EXTENSIONS = new Set(['.flac', '.mp3']);
+const audioExtensions = new Set(['.flac', '.mp3']);
 
 interface ValidateAudioOptions {
 	rootPath: string;
@@ -17,8 +17,8 @@ interface ValidateAudioOptions {
 export async function validateAudio(options: ValidateAudioOptions): Promise<Array<string>> {
 	const { rootPath } = options;
 
-	const referenced = await collectReferenced(path.join(rootPath, MIXES_CONTENT_DIR));
-	const onDisk = await collectOnDisk(path.join(rootPath, AUDIO_SOURCE_DIR));
+	const referenced = await collectReferenced(path.join(rootPath, mixesContentDir));
+	const onDisk = await collectOnDisk(path.join(rootPath, audioSourceDir));
 
 	const missing = sortFiles([...referenced].filter((file) => !onDisk.has(file)));
 	const orphaned = sortFiles([...onDisk].filter((file) => !referenced.has(file)));
@@ -37,7 +37,7 @@ export async function validateAudio(options: ValidateAudioOptions): Promise<Arra
 
 	if (missing.length > 0) {
 		throw new Error(
-			`Audio validation failed: ${String(missing.length)} referenced file(s) missing from ${AUDIO_SOURCE_DIR}`,
+			`Audio validation failed: ${String(missing.length)} referenced file(s) missing from ${audioSourceDir}`,
 		);
 	}
 
@@ -58,9 +58,7 @@ async function collectOnDisk(audioDir: string): Promise<Set<string>> {
 		return new Set();
 	}
 
-	return new Set(
-		entries.filter((entry) => AUDIO_EXTENSIONS.has(path.extname(entry).toLowerCase())),
-	);
+	return new Set(entries.filter((entry) => audioExtensions.has(path.extname(entry).toLowerCase())));
 }
 
 async function collectReferenced(mixesDir: string): Promise<Set<string>> {

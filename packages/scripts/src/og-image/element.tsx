@@ -1,40 +1,36 @@
-import {
-	OPEN_GRAPH_IMAGE_HEIGHT,
-	OPEN_GRAPH_IMAGE_WIDTH,
-	SITE_TITLE,
-} from '@xsynaptic/shared/constants';
+import { openGraphImageHeight, openGraphImageWidth, siteTitle } from '@xsynaptic/shared/constants';
 import { Bitmap } from 'takumi-js/helpers/jsx';
 
 import type { ProcessedImage } from './generate.js';
 import type { OpenGraphCard } from './types.js';
 
 // Palette tokens from src/styles/main/parts/theme.css, resolved to hex
-const COLOR_BACKGROUND = '#1c1f21'; // surface-900
-const COLOR_COVER_FRAME = '#2b3136'; // surface-700
-const COLOR_TITLE = '#e9f2f2'; // ink-50
-const COLOR_BRAND = '#819798'; // ink-600
-const COLOR_LABEL = '#cde651'; // accent-400
+const colorBackground = '#1c1f21'; // surface-900
+const colorCoverFrame = '#2b3136'; // surface-700
+const colorTitle = '#e9f2f2'; // ink-50
+const colorBrand = '#819798'; // ink-600
+const colorLabel = '#cde651'; // accent-400
 
-const PADDING = 64;
-const COLUMN_GAP = 48;
+const cardPadding = 64;
+const columnGap = 48;
 
-export const COVER_SIZE = 470;
+export const coverSize = 470;
 
 // A cover takes most of the width, so the title has to give some back
-const TITLE_SIZE_WITH_COVER = 56;
-const TITLE_SIZE_WITHOUT_COVER = 76;
+const titleSizeWithCover = 56;
+const titleSizeWithoutCover = 76;
 
 export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage) {
 	return (
 		<div
 			style={{
 				alignItems: 'stretch',
-				backgroundColor: COLOR_BACKGROUND,
+				backgroundColor: colorBackground,
 				display: 'flex',
-				gap: `${String(COLUMN_GAP)}px`,
-				height: `${String(OPEN_GRAPH_IMAGE_HEIGHT)}px`,
-				padding: `${String(PADDING)}px`,
-				width: `${String(OPEN_GRAPH_IMAGE_WIDTH)}px`,
+				gap: `${String(columnGap)}px`,
+				height: `${String(openGraphImageHeight)}px`,
+				padding: `${String(cardPadding)}px`,
+				width: `${String(openGraphImageWidth)}px`,
 			}}
 		>
 			<div
@@ -49,7 +45,7 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 					{card.label ? (
 						<div
 							style={{
-								color: COLOR_LABEL,
+								color: colorLabel,
 								fontFamily: 'Fira Sans',
 								fontSize: '26px',
 								fontWeight: 700,
@@ -63,9 +59,9 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 					) : undefined}
 					<div
 						style={{
-							color: COLOR_TITLE,
+							color: colorTitle,
 							fontFamily: 'Fira Sans',
-							fontSize: `${String(cover ? TITLE_SIZE_WITH_COVER : TITLE_SIZE_WITHOUT_COVER)}px`,
+							fontSize: `${String(cover ? titleSizeWithCover : titleSizeWithoutCover)}px`,
 							fontWeight: 700,
 							lineClamp: 3,
 							lineHeight: 1.15,
@@ -77,7 +73,7 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 				</div>
 				<div
 					style={{
-						color: COLOR_BRAND,
+						color: colorBrand,
 						fontFamily: 'Manrope',
 						fontSize: '22px',
 						fontWeight: 600,
@@ -85,7 +81,7 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 						lineHeight: 1.2,
 					}}
 				>
-					{SITE_TITLE.toUpperCase()}
+					{siteTitle.toUpperCase()}
 				</div>
 			</div>
 			{cover ? (
@@ -93,7 +89,7 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 					{/* A hairline frame, as box model rather than a border: dark art on a dark card vanishes without one */}
 					<div
 						style={{
-							backgroundColor: COLOR_COVER_FRAME,
+							backgroundColor: colorCoverFrame,
 							borderRadius: '5px',
 							display: 'flex',
 							padding: '1px',

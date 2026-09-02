@@ -1,10 +1,10 @@
-import { OPEN_GRAPH_IMAGE_FORMAT, OPEN_GRAPH_MANIFEST_FILE } from '@xsynaptic/shared/constants';
+import { openGraphImageFormat, openGraphManifestFile } from '@xsynaptic/shared/constants';
 import { existsSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 // Bump when element.tsx changes, to regenerate every card
-const TEMPLATE_VERSION = '1';
+const templateVersion = '1';
 
 /**
  * A stable `{id}.jpg` filename keeps the public URL fixed, so freshness lives in a manifest beside
@@ -12,7 +12,7 @@ const TEMPLATE_VERSION = '1';
  * not justify a key-value store, which is what spectralcodex reaches for at its scale.
  */
 export async function createOutputCache(directory: string) {
-	const manifestPath = path.join(directory, OPEN_GRAPH_MANIFEST_FILE);
+	const manifestPath = path.join(directory, openGraphManifestFile);
 
 	const keys = new Map<string, string>(
 		existsSync(manifestPath)
@@ -23,7 +23,7 @@ export async function createOutputCache(directory: string) {
 	);
 
 	function filePath(id: string): string {
-		return path.join(directory, `${id}.${OPEN_GRAPH_IMAGE_FORMAT}`);
+		return path.join(directory, `${id}.${openGraphImageFormat}`);
 	}
 
 	return {
@@ -60,5 +60,5 @@ export function getCacheKey({
 	digest: string;
 	imageFeatured: string | undefined;
 }): string {
-	return [TEMPLATE_VERSION, digest, imageFeatured ?? '', coverModifiedTime ?? ''].join(':');
+	return [templateVersion, digest, imageFeatured ?? '', coverModifiedTime ?? ''].join(':');
 }

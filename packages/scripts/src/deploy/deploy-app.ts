@@ -6,9 +6,9 @@ import { $ } from 'zx';
 import { isPathPresent } from '../shared/utils.js';
 
 // Cloudflare Workers free tier allows 20,000 assets per version and 25 MiB per asset
-const FILE_COUNT_ERROR = 19_500;
-const FILE_COUNT_WARN = 15_000;
-const ASSET_SIZE_WARN = 25 * 1024 * 1024;
+const fileCountError = 19_500;
+const fileCountWarn = 15_000;
+const assetSizeWarn = 25 * 1024 * 1024;
 
 interface DeployAppOptions {
 	dryRun?: boolean;
@@ -35,18 +35,18 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 
 	const files = stats.filter((entry) => entry.isFile);
 	const fileCount = files.length;
-	const largeFiles = files.filter((entry) => entry.size >= ASSET_SIZE_WARN);
+	const largeFiles = files.filter((entry) => entry.size >= assetSizeWarn);
 
 	console.log(chalk.blue('Deploying site to Cloudflare Workers...'));
 	console.log(chalk.gray(`  Assets: ${String(fileCount)}`));
 
-	if (fileCount >= FILE_COUNT_ERROR) {
+	if (fileCount >= fileCountError) {
 		throw new Error(
-			`dist/ has ${String(fileCount)} files, over the ${String(FILE_COUNT_ERROR)} safety threshold (Workers cap is 20,000/version).`,
+			`dist/ has ${String(fileCount)} files, over the ${String(fileCountError)} safety threshold (Workers cap is 20,000/version).`,
 		);
 	}
 
-	if (fileCount >= FILE_COUNT_WARN) {
+	if (fileCount >= fileCountWarn) {
 		console.log(
 			chalk.yellow(`  Warning: ${String(fileCount)} files approaches the 20,000 Workers cap`),
 		);

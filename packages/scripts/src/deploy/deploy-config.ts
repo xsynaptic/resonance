@@ -9,7 +9,7 @@ export interface DeployConfig {
 	sshKeyPath?: string;
 }
 
-const REQUIRED_ENV = {
+const requiredEnv = {
 	filesUrl: 'FILES_URL',
 	remoteAudioPath: 'DEPLOY_AUDIO_PATH',
 	remoteHost: 'DEPLOY_REMOTE_HOST',
@@ -17,7 +17,7 @@ const REQUIRED_ENV = {
 	siteUrl: 'DEPLOY_SITE_URL',
 } as const;
 
-const EXAMPLE_ENV = [
+const exampleEnv = [
 	'  deploy/.env:',
 	'    DEPLOY_REMOTE_HOST=deploy@files.djbasilisk.com',
 	'    DEPLOY_SSH_KEY_PATH=/path/to/ssh/key (optional)',
@@ -28,7 +28,7 @@ const EXAMPLE_ENV = [
 	'    FILES_URL=https://files.djbasilisk.com/',
 ];
 
-type RequiredConfig = Record<keyof typeof REQUIRED_ENV, string>;
+type RequiredConfig = Record<keyof typeof requiredEnv, string>;
 
 export function loadDeployConfig(): DeployConfig {
 	const sshKeyPath = process.env.DEPLOY_SSH_KEY_PATH;
@@ -49,7 +49,7 @@ export function printDeployConfig(config: DeployConfig): void {
 
 // Reports every absent variable at once rather than failing on the first
 function readRequiredEnv(): RequiredConfig {
-	const entries = Object.entries(REQUIRED_ENV) as Array<[keyof typeof REQUIRED_ENV, string]>;
+	const entries = Object.entries(requiredEnv) as Array<[keyof typeof requiredEnv, string]>;
 	const values: Partial<RequiredConfig> = {};
 	const missing: Array<string> = [];
 
@@ -65,7 +65,7 @@ function readRequiredEnv(): RequiredConfig {
 
 		console.error(chalk.red(message));
 		console.error(chalk.gray('\nExample configuration:'));
-		for (const line of EXAMPLE_ENV) console.error(chalk.gray(line));
+		for (const line of exampleEnv) console.error(chalk.gray(line));
 
 		throw new Error(message);
 	}

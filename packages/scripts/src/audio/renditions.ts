@@ -5,14 +5,14 @@ import path from 'node:path';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
-import { AUDIO_SOURCE_DIR, STREAMS_DIR } from './audio-paths.js';
+import { audioSourceDir, streamsDir } from './audio-paths.js';
 import { collectAudioSources } from './audio-sources.js';
 
-const CONCURRENCY = 3;
-const RENDITION_EXTENSION = '.webm';
-const TMP_EXTENSION = '.webm.tmp';
+const concurrency = 3;
+const renditionExtension = '.webm';
+const tmpExtension = '.webm.tmp';
 
-const ENCODER_ARGS = [
+const encoderArgs = [
 	'-vn', // Drops cover art; webm would otherwise re-encode the 6MB embedded image as a VP9 video track
 	'-map_metadata', // Keeps tags, minus WAVEFORM, reducing time to first byte
 	'0',
@@ -27,10 +27,10 @@ const ENCODER_ARGS = [
 ];
 
 // Stamped into every rendition and checked on the next run
-// mtime can't see a settings change; without this an ENCODER_ARGS edit leaves old encodes in place
-const RENDITION_PROFILE = crypto
+// mtime can't see a settings change; without this an encoderArgs edit leaves old encodes in place
+const renditionProfile = crypto
 	.createHash('sha256')
-	.update(ENCODER_ARGS.join(' '))
+	.update(encoderArgs.join(' '))
 	.digest('hex')
 	.slice(0, 12);
 
@@ -56,16 +56,16 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 		throw new Error('ffmpeg not found on PATH. Install it with: brew install ffmpeg');
 	}
 
-	const streamsDir = path.join(rootPath, STREAMS_DIR);
-	const sources = await collectAudioSources(path.join(rootPath, AUDIO_SOURCE_DIR));
+	const streamsPath = path.join(rootPath, streamsDir);
+	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 
 	const jobs = sources.map((source): RenditionJob => ({
-		output: path.join(streamsDir, `${source.base}${RENDITION_EXTENSION}`),
+		output: path.join(streamsPath, `${source.base}${renditionExtension}`),
 		source: source.path,
 	}));
 
-	await fs.mkdir(streamsDir, { recursive: true });
-	await cleanStaleTmp(streamsDir);
+	await fs.mkdir(streamsPath, { recursive: true });
+	await cleanStaleTmp(streamsPath);
 
 	const upToDate = await Promise.all(jobs.map((job) => isUpToDate(job.source, job.output)));
 	const pending = jobs.filter((_, index) => upToDate[index] !== true);
@@ -88,7 +88,7 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 		return;
 	}
 
-	const limit = pLimit(CONCURRENCY);
+	const limit = pLimit(concurrency);
 	let done = 0;
 
 	const results = await Promise.allSettled(
@@ -132,7 +132,7 @@ async function cleanStaleTmp(dir: string): Promise<void> {
 
 	await Promise.all(
 		existing
-			.filter((name) => name.endsWith(TMP_EXTENSION))
+			.filter((name) => name.endsWith(tmpExtension))
 			.map((name) => fs.rm(path.join(dir, name), { force: true })),
 	);
 }
@@ -141,7 +141,7 @@ async function encode(job: RenditionJob): Promise<void> {
 	const tmp = `${job.output}.tmp`;
 
 	// -f webm is explicit because the .tmp suffix hides the container format
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${ENCODER_ARGS} -metadata ${`RENDITION_PROFILE=${RENDITION_PROFILE}`} -f webm ${tmp}`;
+	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`RENDITION_PROFILE=${renditionProfile}`} -f webm ${tmp}`;
 
 	await fs.rename(tmp, job.output);
 }
@@ -154,7 +154,7 @@ async function isUpToDate(source: string, output: string): Promise<boolean> {
 		return false;
 	}
 
-	return (await readProfile(output)) === RENDITION_PROFILE;
+	return (await readProfile(output)) === renditionProfile;
 }
 
 // Reads only the header, which -cues_to_front keeps at the front of the file

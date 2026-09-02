@@ -5,14 +5,14 @@ import { toValidationResult } from './validation-result.js';
 
 // Every schema carrying these is `.strict()`, so a field name here cannot mean anything else
 // The extractor emits bare strings only, so every `{ id }` in the tree is hand-written
-const TOP_LEVEL_REF_FIELDS = {
+const topLevelRefFields = {
 	artists: 'artists',
 	labels: 'labels',
 	members: 'artists',
 	projects: 'artists',
 } as const;
 
-const NESTED_REF_FIELDS = {
+const nestedRefFields = {
 	selections: { artist: 'artists', labels: 'labels' },
 	tracks: { artists: 'artists', labels: 'labels', mixArtists: 'artists' },
 } as const;
@@ -87,9 +87,9 @@ function collectEntryRefIssues(entry: DataStoreEntry, collections: DataStoreColl
 }
 
 function collectEntryRefs(entry: DataStoreEntry) {
-	const refs = collectFieldRefs(entry.data, TOP_LEVEL_REF_FIELDS, '');
+	const refs = collectFieldRefs(entry.data, topLevelRefFields, '');
 
-	for (const [container, fields] of Object.entries(NESTED_REF_FIELDS)) {
+	for (const [container, fields] of Object.entries(nestedRefFields)) {
 		refs.push(...collectContainerRefs(entry.data[container], container, fields));
 	}
 

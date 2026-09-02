@@ -1,9 +1,18 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "djbasilisk",
+	"name": "resonance",
+	"main": "worker/index.ts",
 	"compatibility_date": "2026-08-04",
 	"assets": {
+		"binding": "ASSETS",
 		"directory": "./dist",
 		"not_found_handling": "404-page",
 	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "resonance-comments",
+			"database_id": "fe64fcc6-cdb6-492d-a897-84f5ab6e9af4",
+		},
+	],
 }

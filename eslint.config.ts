@@ -11,6 +11,7 @@ export default getConfig(
 				'**/dist/**/*',
 				'packages/content/{_archive,collections}/**/*',
 				'packages/scripts/src/wp-extract/**/*',
+				'**/worker-configuration.d.ts',
 			],
 		},
 		{

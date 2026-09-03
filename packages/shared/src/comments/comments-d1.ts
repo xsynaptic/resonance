@@ -8,8 +8,6 @@ const databaseName = 'resonance-comments';
 // wrangler's `--command` takes raw SQL, so ids are validated rather than escaped
 const idPattern = /^[a-z0-9-]{1,64}$/i;
 
-export const commentStatuses = ['approved', 'pending', 'rejected', 'spam'] as const;
-
 // Every column of `migrations/0001-comments.sql`; consumers `Pick` the ones they select
 export interface CommentRow {
 	author: string;
@@ -28,16 +26,16 @@ export interface CommentRow {
 	wp_post_id: null | number;
 }
 
-export interface CommentsD1Options {
-	cwd?: string | undefined;
-	isLocal?: boolean | undefined;
-}
-
-export type CommentStatus = (typeof commentStatuses)[number];
+export type CommentStatus = 'approved' | 'pending' | 'rejected' | 'spam';
 
 interface CommandResult<Row> {
 	meta: { changes: number };
 	results: Array<Row>;
+}
+
+interface CommentsD1Options {
+	cwd?: string | undefined;
+	isLocal?: boolean | undefined;
 }
 
 export async function executeComments(

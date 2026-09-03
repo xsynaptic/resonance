@@ -149,6 +149,41 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 	printTally(tally);
 }
 
+// Called from `deploy-site`, the only thing that ever volunteers that the queue is not empty
+export async function printPendingCount(rootPath: string): Promise<void> {
+	const pending = await countPending(rootPath);
+
+	if (pending === undefined) {
+		console.log(chalk.yellow('  Could not reach D1 for the pending comment count'));
+		return;
+	}
+
+	if (pending === 0) {
+		console.log(chalk.gray('  No comments pending'));
+		return;
+	}
+
+	console.log(
+		chalk.yellow(
+			`  ${String(pending)} comment${pending === 1 ? '' : 's'} pending; run \`pnpm comments\``,
+		),
+	);
+}
+
+// Soft-fail: a deploy must not die on a count
+async function countPending(rootPath: string): Promise<number | undefined> {
+	try {
+		const [row] = await queryComments<{ pending: number }>(
+			`SELECT COUNT(*) AS pending FROM comments WHERE status = 'pending'`,
+			{ cwd: rootPath },
+		);
+
+		return row?.pending ?? 0;
+	} catch {
+		return undefined;
+	}
+}
+
 function formatDate(createdAt: number): string {
 	return `${new Date(createdAt * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 }

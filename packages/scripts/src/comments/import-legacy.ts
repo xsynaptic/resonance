@@ -188,7 +188,7 @@ function formatReport(reports: Array<EntryReport>): string {
 	return `${lines.join('\n')}\n`;
 }
 
-// Kept out of the seed: raw addresses live in D1 alone, and the projection publishes only the hash
+// Raw addresses live in D1 alone; the build reads gravatar_hash, never author_email
 function gravatarHash(email: string): string {
 	return createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
 }

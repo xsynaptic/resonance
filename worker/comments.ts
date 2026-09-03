@@ -5,6 +5,10 @@ const siteverifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify
 // The form is rendered into a static page, so the client sets this on load; a build-time value would always pass
 const minimumFormAgeMs = 3000;
 
+// Ids are read back as the `#comment-<id>` permalink, so they stay short; 32 chars masks to 5 bits with no bias
+const commentIdAlphabet = 'abcdefghijklmnopqrstuvwxyz234567';
+const commentIdLength = 10;
+
 const submissionSchema = z.object({
 	author: z.string().min(1).max(80),
 	authorEmail: z.email().max(200).optional(),
@@ -66,6 +70,12 @@ export async function handleCommentSubmission(request: Request, env: Env): Promi
 	);
 }
 
+function createCommentId(): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(commentIdLength));
+
+	return [...bytes].map((byte) => commentIdAlphabet.charAt(byte & 31)).join('');
+}
+
 function fail(status: number, message: string): Response {
 	return new Response(`${message}\n`, {
 		headers: { 'content-type': 'text/plain; charset=utf-8' },
@@ -88,7 +98,7 @@ async function insertComment(
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'web', ?, ?)`,
 	)
 		.bind(
-			crypto.randomUUID(),
+			createCommentId(),
 			submission.collection,
 			submission.entryId,
 			toNullable(submission.parentId),

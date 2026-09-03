@@ -18,5 +18,8 @@ export const openGraphDefaultId = 'index-default';
 // Astro's cache directory, set explicitly so build scripts read the data store where Astro writes it
 export const astroCacheDir = './node_modules/.astro';
 
+// Written by the sitemap-lastmod deploy step, read back when the Astro config loads
+export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';
+
 // The brand line on every OG card, and the site title; read by the app through `#lib/site.ts`
 export const siteTitle = 'DJ Basilisk';

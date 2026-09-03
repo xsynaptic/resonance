@@ -34,6 +34,7 @@
 		"content-schemas": "astro sync && pnpm -F @xsynaptic/scripts content-schemas",
 		"generate-redirects": "astro sync && pnpm -F @xsynaptic/scripts generate-redirects",
 		"og-image": "pnpm -F @xsynaptic/scripts og-image",
+		"sitemap-lastmod": "astro sync && pnpm -F @xsynaptic/scripts sitemap-lastmod",
 		"mixcloud-stats": "pnpm -F @xsynaptic/scripts mixcloud-stats",
 		"validate-content": "astro sync && pnpm -F @xsynaptic/scripts validate-content"
 	},
@@ -51,7 +52,7 @@
 		"@pagefind/component-ui": "^1.5.2",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/sanitize-html": "^2.16.1",
-		"@xsynaptic/astro-build-logger": "^1.0.0",
+		"@xsynaptic/astro-build-logger": "^1.1.0",
 		"@xsynaptic/astro-font-devtools": "^1.0.2",
 		"@xsynaptic/eslint-config": "^6.3.0",
 		"@xsynaptic/mdxlint-config": "^2.0.0",

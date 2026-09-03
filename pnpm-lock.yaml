@@ -34,8 +34,8 @@ importers:
         specifier: ^2.16.1
         version: 2.16.1
       '@xsynaptic/astro-build-logger':
-        specifier: ^1.0.0
-        version: 1.0.0(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+        specifier: ^1.1.0
+        version: 1.1.0(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
       '@xsynaptic/astro-font-devtools':
         specifier: ^1.0.2
         version: 1.0.2(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
@@ -2100,8 +2100,8 @@ packages:
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
 
-  '@xsynaptic/astro-build-logger@1.0.0':
-    resolution: {integrity: sha512-4nawH/Pos9+CJeV+Fxj+mCeF7NUh8lAOmX96OVRSNeXC4JARUTeersiFFvmgIWRBeB52fe8erl/KGg5QXviHEw==}
+  '@xsynaptic/astro-build-logger@1.1.0':
+    resolution: {integrity: sha512-KvnNy/U7uT+wJkVSKMr0KC6m7uKIbiEmnznboqFjt8H3J9YF9vAV+v9BBSCP8I9jXF9ACf4BWSqzuZrT/Ow/Kw==}
     peerDependencies:
       astro: ^6.0.0 || ^7.0.0
 
@@ -7013,7 +7013,7 @@ snapshots:
 
   '@vscode/l10n@0.0.18': {}
 
-  '@xsynaptic/astro-build-logger@1.0.0(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))':
+  '@xsynaptic/astro-build-logger@1.1.0(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))':
     dependencies:
       astro: 7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
       zod: 4.5.4

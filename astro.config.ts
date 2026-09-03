@@ -6,11 +6,18 @@ import buildLogger from '@xsynaptic/astro-build-logger';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
+import { isIndexableUrlPath, readSitemapLastmod } from '@xsynaptic/shared/sitemap';
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 
 import inventory from './src/inventory/inventory-integration.ts';
 import { shikiTheme } from './src/lib/utils/shiki-theme.ts';
+
+// One origin for the app and the deploy scripts; a mismatch misses every lastmod lookup silently
+// `astro:env` is unavailable while the config evaluates, hence `process.env`
+const siteUrl = process.env.DEPLOY_SITE_URL ?? 'https://djbasilisk.com/';
+
+const sitemapLastmod = readSitemapLastmod();
 
 export default defineConfig({
 	env: {
@@ -52,7 +59,13 @@ export default defineConfig({
 	},
 	integrations: [
 		mdx(),
-		sitemap(),
+		sitemap({
+			filter: (page) => isIndexableUrlPath(new URL(page).pathname),
+			serialize: (item) => ({
+				...item,
+				lastmod: sitemapLastmod.urls[item.url] ?? sitemapLastmod.generatedAt,
+			}),
+		}),
 		fontDevtools({ providers: ['fontsource'] }),
 		pagefind(),
 		buildLogger(),
@@ -85,7 +98,7 @@ export default defineConfig({
 		}),
 		shikiConfig: { theme: shikiTheme },
 	},
-	site: import.meta.env.PROD ? 'https://djbasilisk.com/' : 'http://localhost:4321/',
+	site: import.meta.env.PROD ? siteUrl : 'http://localhost:4321/',
 	vite: {
 		plugins: [tailwindcss()],
 	},

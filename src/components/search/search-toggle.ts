@@ -13,9 +13,14 @@ class SearchToggle extends HTMLElement {
 		return this.querySelector<HTMLButtonElement>('button');
 	}
 
+	#abortController: AbortController | undefined;
 	#cssReady?: Promise<void>;
 
 	connectedCallback() {
+		this.#abortController = new AbortController();
+
+		const { signal } = this.#abortController;
+
 		// Static props in markup; only the OS-dependent keyboard hint has to be set client-side
 		this.buttonEl?.setAttribute('aria-keyshortcuts', isMac ? 'Meta+K' : 'Control+K');
 
@@ -31,19 +36,17 @@ class SearchToggle extends HTMLElement {
 		);
 
 		// Hover or focus the toggle and the stylesheet loads, so it's ready before the modal opens
-		this.addEventListener('pointerenter', this.#preloadPagefindCss, { once: true });
-		this.addEventListener('focusin', this.#preloadPagefindCss, { once: true });
+		this.addEventListener('pointerenter', this.#preloadPagefindCss, { once: true, signal });
+		this.addEventListener('focusin', this.#preloadPagefindCss, { once: true, signal });
 
-		this.addEventListener('click', this.#handleClickEvent);
-		document.addEventListener('keydown', this.#handleKeydown);
+		this.addEventListener('click', this.#handleClickEvent, { signal });
+		document.addEventListener('keydown', this.#handleKeydown, { signal });
 	}
 
 	disconnectedCallback() {
 		this.instance?.deregisterAllShortcuts(this);
-		this.removeEventListener('pointerenter', this.#preloadPagefindCss);
-		this.removeEventListener('focusin', this.#preloadPagefindCss);
-		this.removeEventListener('click', this.#handleClickEvent);
-		document.removeEventListener('keydown', this.#handleKeydown);
+		this.#abortController?.abort();
+		this.#abortController = undefined;
 	}
 
 	// Called by <pagefind-modal> when it closes; matches the built-in trigger's contract

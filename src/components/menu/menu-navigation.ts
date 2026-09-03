@@ -5,14 +5,15 @@
  *   <nav>
  *     <ul>                  <-- becomes role="menubar"
  *       <li>                <-- a menu item
- *         <a|button|span>   <-- first element in the <li> that is NOT inside the submenu
+ *         <a|button>        <-- first element in the <li> that is NOT inside the submenu
  *         <ul>...</ul>      <-- optional submenu; must be a direct child of the <li>
  *       </li>
  *     </ul>
  *   </nav>
  * </menu-navigation>
  *
- * Use <a> for navigable triggers, <button> for text-only labels with children, <span> for text-only
+ * Use <a> for navigable triggers and <button> for text-only labels with children; a <span> is inert
+ * markup and never becomes a menuitem
  *
  * State exposed for CSS:
  *   data-has-submenu  on every <li> that has a submenu
@@ -20,8 +21,8 @@
  */
 let instanceCount = 0;
 
-class NavMenu extends HTMLElement {
-	#controller: AbortController | undefined;
+class MenuNavigation extends HTMLElement {
+	#abortController: AbortController | undefined;
 	#initialized = false;
 	#instanceId = `nav-${String(instanceCount++)}`;
 	#lastPointerType = '';
@@ -33,9 +34,9 @@ class NavMenu extends HTMLElement {
 			this.#initialized = true;
 		}
 
-		this.#controller = new AbortController();
+		this.#abortController = new AbortController();
 
-		const { signal } = this.#controller;
+		const { signal } = this.#abortController;
 
 		this.addEventListener('pointerdown', this.#handlePointerDown, { signal });
 		this.addEventListener('click', this.#handleClick, { signal });
@@ -44,8 +45,8 @@ class NavMenu extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-		this.#controller?.abort();
-		this.#controller = undefined;
+		this.#abortController?.abort();
+		this.#abortController = undefined;
 	}
 
 	#close(li: HTMLElement) {
@@ -371,7 +372,11 @@ class NavMenu extends HTMLElement {
 
 			const trigger = this.#getTrigger(li);
 
-			if (trigger) trigger.setAttribute('role', 'menuitem');
+			if (trigger) {
+				trigger.setAttribute('role', 'menuitem');
+				// A menu is a single tab stop; arrow keys move within it and the roving tabindex follows
+				trigger.setAttribute('tabindex', '-1');
+			}
 
 			const submenu = this.#getSubmenu(li);
 
@@ -410,6 +415,15 @@ class NavMenu extends HTMLElement {
 		const trigger = this.#getTrigger(li);
 
 		if (trigger) trigger.setAttribute('aria-expanded', 'false');
+
+		// A pointer-opened submenu never took focus, so clear whatever tabindex was left behind
+		const submenu = this.#getSubmenu(li);
+
+		if (!submenu) return;
+
+		for (const item of this.#getMenuitems(submenu)) {
+			item.setAttribute('tabindex', '-1');
+		}
 	}
 
 	#setRovingTabindex(activeTrigger: HTMLElement) {
@@ -447,13 +461,13 @@ class NavMenu extends HTMLElement {
 }
 
 if (!customElements.get('menu-navigation')) {
-	customElements.define('menu-navigation', NavMenu);
+	customElements.define('menu-navigation', MenuNavigation);
 }
 
 export {};
 
 declare global {
 	interface HTMLElementTagNameMap {
-		'menu-navigation': NavMenu;
+		'menu-navigation': MenuNavigation;
 	}
 }

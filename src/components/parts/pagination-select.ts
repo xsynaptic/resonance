@@ -25,6 +25,7 @@ class PaginationSelect extends HTMLElement {
 
 	disconnectedCallback() {
 		this.#abortController?.abort();
+		this.#abortController = undefined;
 	}
 
 	#buildOptions(lastPage: number): Array<HTMLOptionElement> {

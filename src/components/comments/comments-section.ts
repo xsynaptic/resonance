@@ -15,7 +15,7 @@ const turnstileScriptUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.j
 let turnstileReady: Promise<TurnstileApi | undefined> | undefined;
 
 class CommentsSection extends HTMLElement {
-	#controller: AbortController | undefined;
+	#abortController: AbortController | undefined;
 	#replyOrigin: HTMLElement | undefined;
 	#widgetId: string | undefined;
 
@@ -29,9 +29,9 @@ class CommentsSection extends HTMLElement {
 	}
 
 	connectedCallback() {
-		this.#controller = new AbortController();
+		this.#abortController = new AbortController();
 
-		const { signal } = this.#controller;
+		const { signal } = this.#abortController;
 
 		// The page is prerendered, so a build-time value would make the endpoint's time trap useless
 		this.#field('renderedAt').value = String(Date.now());
@@ -51,8 +51,9 @@ class CommentsSection extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-		this.#controller?.abort();
-		this.#controller = undefined;
+		this.#abortController?.abort();
+		this.#abortController = undefined;
+		void this.#removeTurnstile();
 	}
 
 	#cancelReply() {
@@ -175,14 +176,30 @@ class CommentsSection extends HTMLElement {
 		return this.#errorMessage;
 	}
 
+	async #removeTurnstile() {
+		const widgetId = this.#widgetId;
+
+		if (widgetId === undefined) return;
+
+		this.#widgetId = undefined;
+
+		const api = await this.#loadTurnstile();
+
+		api?.remove(widgetId);
+	}
+
 	// Moving the form re-parents the widget's iframe, which reloads it, so it is rebuilt from scratch
 	async #renderTurnstile() {
 		const container = this.querySelector<HTMLElement>('[data-turnstile]');
 		const api = await this.#loadTurnstile();
 
-		if (!container || !api) return;
+		// A disconnect while the script loads, or a submit settling after one, would strand the widget
+		if (!container || !api || !this.isConnected) return;
 
-		if (this.#widgetId !== undefined) api.remove(this.#widgetId);
+		if (this.#widgetId !== undefined) {
+			api.remove(this.#widgetId);
+			this.#widgetId = undefined;
+		}
 
 		container.replaceChildren();
 
@@ -253,6 +270,12 @@ class CommentsSection extends HTMLElement {
 		document.querySelector<HTMLElement>(`#comment-wp-${legacyId}`)?.scrollIntoView();
 	}
 
+	#setSubmitDisabled(form: HTMLFormElement, isDisabled: boolean) {
+		const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+		if (submitButton) submitButton.disabled = isDisabled;
+	}
+
 	#showError(message: string) {
 		const error = this.querySelector<HTMLElement>('[data-comment-error]');
 
@@ -320,25 +343,26 @@ class CommentsSection extends HTMLElement {
 	}
 
 	async #submit(form: HTMLFormElement) {
-		const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+		const signal = this.#abortController?.signal;
 
 		this.#toggle('[data-comment-error]', false);
-
-		if (submitButton) submitButton.disabled = true;
+		this.#setSubmitDisabled(form, true);
 
 		try {
 			const response = await fetch(form.action, {
 				body: new FormData(form),
 				headers: { accept: 'application/json' },
 				method: 'POST',
+				...(signal ? { signal } : undefined),
 			});
 
 			if (response.ok) this.#handleAccepted(form);
 			else this.#showError(await this.#readMessage(response));
 		} catch {
-			this.#showError(this.#errorMessage);
+			// An aborted request means the section is gone; nothing is left to show the error on
+			if (!signal?.aborted) this.#showError(this.#errorMessage);
 		} finally {
-			if (submitButton) submitButton.disabled = false;
+			this.#setSubmitDisabled(form, false);
 
 			// The Turnstile token is single-use, so either outcome needs a fresh widget
 			void this.#renderTurnstile();

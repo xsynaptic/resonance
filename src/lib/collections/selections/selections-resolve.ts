@@ -5,6 +5,7 @@ import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { LinkableEntry } from '#lib/utils/entries.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
+import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryBySlug, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
@@ -54,7 +55,7 @@ export async function resolveSelections(
 
 async function deriveFromEntry(entry: LinkableEntry): Promise<DerivedSelection> {
 	const href = getContentUrl(entry.collection, entry.id);
-	const imageFeatured = entry.data.imageFeatured;
+	const imageFeatured = getImageFeaturedId(entry.data.imageFeatured);
 
 	if (entry.collection !== 'reviews') {
 		return { href, imageFeatured, title: entry.data.title };

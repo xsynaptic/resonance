@@ -3,6 +3,7 @@ import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
 import type { DataStoreCollections, DataStoreEntry } from '../shared/data-store.js';
 import type { OpenGraphEntry } from './types.js';
 
+import { extractImageFeaturedIds } from '../shared/images.js';
 import { getCollectionLabel, openGraphCollections } from './labels.js';
 
 export function getOpenGraphEntries(collections: DataStoreCollections): Array<OpenGraphEntry> {
@@ -30,7 +31,7 @@ export function getOpenGraphEntries(collections: DataStoreCollections): Array<Op
 function getDefaultEntry(): OpenGraphEntry {
 	return {
 		digest: openGraphDefaultId,
-		imageFeatured: undefined,
+		imageFeaturedId: undefined,
 		label: undefined,
 		outputId: openGraphDefaultId,
 		title: siteTitle,
@@ -56,7 +57,7 @@ function toOpenGraphEntries(
 
 		entries.push({
 			digest: entry.digest,
-			imageFeatured: readString(entry.data.imageFeatured),
+			imageFeaturedId: extractImageFeaturedIds(entry.data)[0],
 			label,
 			outputId: `${collection}-${entry.id}`,
 			title,

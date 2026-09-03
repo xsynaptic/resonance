@@ -14,6 +14,7 @@ import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -36,6 +37,7 @@ const downloadCounts = await getDownloadCounts();
 const relatedItems = await getRelatedItems(entry);
 
 const [alias] = aliasTerms;
+const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 ---
 
 <ReleaseDetail
@@ -47,7 +49,7 @@ const [alias] = aliasTerms;
 	styles={styleTerms}
 	title={entry.data.title}
 	{...alias ? { artist: alias } : {}}
-	{...entry.data.imageFeatured ? { image: entry.data.imageFeatured } : {}}
+	{...imageFeaturedId ? { image: imageFeaturedId } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />
@@ -71,7 +73,12 @@ const [alias] = aliasTerms;
 	<SectionRelated items={relatedItems} slot="related" />
 	{
 		entry.data.commentsEnabled === false ? undefined : (
-			<CommentsSection collection="mixes" entryId={entry.id} slot="comments" />
+			<CommentsSection
+				collection="mixes"
+				entryId={entry.id}
+				formerIds={entry.data.formerIds}
+				slot="comments"
+			/>
 		)
 	}
 </ReleaseDetail>

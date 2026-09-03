@@ -8,6 +8,7 @@ import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { getImageHeroId } from '#lib/image/image-featured.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -26,6 +27,8 @@ const formatTerms = await resolveTermLinks(
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
+
+const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 ---
 
 <ContentDetail
@@ -34,7 +37,7 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	styles={styleTerms}
 	title={entry.data.title}
-	{...entry.data.imageHero ? { imageHero: entry.data.imageHero } : {}}
+	{...imageHeroId ? { imageHero: imageHeroId } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />
@@ -47,7 +50,12 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 	</Fragment>
 	{
 		entry.data.commentsEnabled === false ? undefined : (
-			<CommentsSection collection="posts" entryId={entry.id} slot="comments" />
+			<CommentsSection
+				collection="posts"
+				entryId={entry.id}
+				formerIds={entry.data.formerIds}
+				slot="comments"
+			/>
 		)
 	}
 </ContentDetail>

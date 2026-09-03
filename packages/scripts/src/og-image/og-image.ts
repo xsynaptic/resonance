@@ -76,9 +76,9 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	const errors: Array<string> = [];
 	const rendered: Array<string> = [];
 
-	async function getCoverModifiedTime(imageFeatured: string): Promise<number | undefined> {
+	async function getCoverModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
 		try {
-			const stats = await fs.stat(path.join(mediaPath, imageFeatured));
+			const stats = await fs.stat(path.join(mediaPath, imageFeaturedId));
 
 			return stats.mtimeMs;
 		} catch {
@@ -87,11 +87,13 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	}
 
 	async function renderEntry(entry: OpenGraphEntry): Promise<void> {
-		const { imageFeatured } = entry;
+		const { imageFeaturedId } = entry;
 
-		const coverModifiedTime = imageFeatured ? await getCoverModifiedTime(imageFeatured) : undefined;
+		const coverModifiedTime = imageFeaturedId
+			? await getCoverModifiedTime(imageFeaturedId)
+			: undefined;
 
-		const key = getCacheKey({ coverModifiedTime, digest: entry.digest, imageFeatured });
+		const key = getCacheKey({ coverModifiedTime, digest: entry.digest, imageFeaturedId });
 
 		if (cache.isFresh(entry.outputId, key)) {
 			skippedCount++;
@@ -99,14 +101,14 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 		}
 
 		// Originals are gitignored and may be absent; a card without its art still beats no card
-		if (imageFeatured && coverModifiedTime === undefined) {
-			console.log(chalk.yellow(`  Cover missing: ${imageFeatured} (${entry.outputId})`));
+		if (imageFeaturedId && coverModifiedTime === undefined) {
+			console.log(chalk.yellow(`  Cover missing: ${imageFeaturedId} (${entry.outputId})`));
 			missingCoverCount++;
 		}
 
 		const cover =
-			imageFeatured && coverModifiedTime !== undefined
-				? await processCover(path.join(mediaPath, imageFeatured))
+			imageFeaturedId && coverModifiedTime !== undefined
+				? await processCover(path.join(mediaPath, imageFeaturedId))
 				: undefined;
 
 		await cache.write(entry.outputId, key, await renderCard(entry, cover));

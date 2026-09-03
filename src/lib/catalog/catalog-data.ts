@@ -1,9 +1,11 @@
+import type { ImageFeatured } from '@xsynaptic/shared/schemas';
 import type { CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
 import type { LabelRefValue } from '#lib/schemas/refs.ts';
 
+import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
@@ -11,7 +13,7 @@ import { resolveRefs } from '#lib/utils/terms.ts';
 export interface ContentDoc {
 	data: {
 		dateCreated: Date;
-		imageFeatured?: string | undefined;
+		imageFeatured?: ImageFeatured | undefined;
 		labels?: Array<LabelRefValue> | undefined;
 		releaseYear?: string | undefined;
 		title: string;
@@ -45,7 +47,7 @@ export async function toContentItem(
 		collection,
 		date: entry.data.dateCreated,
 		id: entry.id,
-		image: entry.data.imageFeatured,
+		image: getImageFeaturedId(entry.data.imageFeatured),
 		subtitle: await metaLine(collection, entry),
 		title: entry.data.title,
 		url: getContentUrl(collection, entry.id),

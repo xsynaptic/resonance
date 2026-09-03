@@ -4,13 +4,13 @@ import path from 'node:path';
 import type { DataStoreEntry } from '../shared/data-store.js';
 import type { ValidationResult } from './validation-result.js';
 
+import { extractImageFeaturedIds } from '../shared/images.js';
 import { toValidationResult } from './validation-result.js';
 
 // Media paths are relative to packages/content/_media and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image
 const imageExtensions = /\.(avif|gif|jpe?g|png|webp)$/i;
 const imgTagRegex = /<Img\s+[^>]*id=["']([^"']+)["']/g;
-const imagePathFields = ['imageFeatured', 'imageHero'];
 
 interface MissingImageIssue {
 	imagePath: string;
@@ -59,12 +59,14 @@ function collectEntryImagePaths(entry: DataStoreEntry): Set<string> {
 	const bodyMatches = [...(entry.body ?? '').matchAll(imgTagRegex)];
 
 	const values = [
-		...imagePathFields.map((field) => entry.data[field]),
 		...selections.map((selection) => selection.imageFeatured),
 		...bodyMatches.map((match) => match[1]),
 	];
 
-	return new Set(values.filter((value): value is string => typeof value === 'string'));
+	return new Set([
+		...extractImageFeaturedIds(entry.data),
+		...values.filter((value): value is string => typeof value === 'string'),
+	]);
 }
 
 function collectMediaFiles(mediaPath: string): Set<string> {

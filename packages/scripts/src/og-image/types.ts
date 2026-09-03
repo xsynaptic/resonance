@@ -9,7 +9,7 @@ export interface OpenGraphCard {
 export interface OpenGraphEntry extends OpenGraphCard {
 	// Content hash from the data store; changes when the entry's frontmatter or body changes
 	digest: string;
-	imageFeatured: string | undefined;
+	imageFeaturedId: string | undefined;
 	// Filename stem, `{collection}-{id}`
 	outputId: string;
 }

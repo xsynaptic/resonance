@@ -1,3 +1,4 @@
+import { ImageFeaturedSchema } from '@xsynaptic/shared/schemas';
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
@@ -19,9 +20,6 @@ const DateSchema = z.date().refine(isNotFutureDate, {
 	message: 'Dates must not be in the future.',
 });
 
-// Cover image as a normalized path string, until originals are hosted
-const ImageFeaturedSchema = z.string();
-
 export const contentBaseSchema = {
 	dateCreated: DateSchema,
 	dateUpdated: DateSchema.optional(),
@@ -29,7 +27,6 @@ export const contentBaseSchema = {
 	// Permalinks this entry used to answer to; generate-redirects is the only consumer
 	formerIds: z.string().array().optional(),
 	imageFeatured: ImageFeaturedSchema.optional(),
-	imageHero: ImageFeaturedSchema.optional(),
 	title: TitleSchema,
 };
 

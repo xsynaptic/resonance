@@ -25,7 +25,7 @@ describe('collectMissingImageIssues', () => {
 		const entries = [
 			makeEntry({
 				body: '<Img id="2011/01/gone.jpg" />',
-				data: { imageHero: '2010/04/typo.jpg' },
+				data: { imageFeatured: [{ hero: true, id: '2010/04/typo.jpg' }] },
 				filePath: 'collections/posts/2011/a-post.mdx',
 				id: 'a-post',
 			}),

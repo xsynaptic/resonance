@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 
 import ContentDetail from '#layouts/content-detail.astro';
+import { getImageHeroId } from '#lib/image/image-featured.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 
 interface Props {
@@ -13,12 +14,14 @@ interface Props {
 const { entry } = Astro.props;
 
 const { Content } = await render(entry);
+
+const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 ---
 
 <ContentDetail
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	title={entry.data.title}
-	{...entry.data.imageHero ? { imageHero: entry.data.imageHero } : {}}
+	{...imageHeroId ? { imageHero: imageHeroId } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
 	<Content />

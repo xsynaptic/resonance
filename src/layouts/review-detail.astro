@@ -11,6 +11,7 @@ import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
@@ -32,7 +33,8 @@ const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const relatedItems = await getRelatedItems(entry);
 
-const { discogsUrl, imageFeatured, rating, releaseYear } = entry.data;
+const { discogsUrl, rating, releaseYear } = entry.data;
+const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 
 // Contributors beyond the matched artist stay in the term links below, not in the heading
 const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.releaseTitle, artistTerms);
@@ -47,7 +49,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 	styles={styleTerms}
 	title={entry.data.title}
 	{...artist ? { artist } : {}}
-	{...imageFeatured ? { image: imageFeatured } : {}}
+	{...imageFeaturedId ? { image: imageFeaturedId } : {}}
 	{...releaseYear ? { releaseYear } : {}}
 	{...entry.data.description ? { description: entry.data.description } : {}}
 >
@@ -83,7 +85,12 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 	<SectionRelated items={relatedItems} slot="related" />
 	{
 		entry.data.commentsEnabled === false ? undefined : (
-			<CommentsSection collection="reviews" entryId={entry.id} slot="comments" />
+			<CommentsSection
+				collection="reviews"
+				entryId={entry.id}
+				formerIds={entry.data.formerIds}
+				slot="comments"
+			/>
 		)
 	}
 </ReleaseDetail>

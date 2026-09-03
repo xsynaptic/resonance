@@ -54,11 +54,11 @@ export async function createOutputCache(directory: string) {
 export function getCacheKey({
 	coverModifiedTime,
 	digest,
-	imageFeatured,
+	imageFeaturedId,
 }: {
 	coverModifiedTime: number | undefined;
 	digest: string;
-	imageFeatured: string | undefined;
+	imageFeaturedId: string | undefined;
 }): string {
-	return [templateVersion, digest, imageFeatured ?? '', coverModifiedTime ?? ''].join(':');
+	return [templateVersion, digest, imageFeaturedId ?? '', coverModifiedTime ?? ''].join(':');
 }

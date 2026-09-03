@@ -10,6 +10,7 @@ import { getContentItems } from '#lib/catalog/catalog-data.ts';
 import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
+import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
@@ -121,7 +122,7 @@ async function sampleHeroPath(): Promise<string | undefined> {
 		const entries = await getCollection(collection);
 
 		for (const entry of entries) {
-			const path = entry.data.imageHero;
+			const path = getImageHeroId(entry.data.imageFeatured);
 			if (path !== undefined && getMediaImage(path)) return path;
 		}
 	}
@@ -135,7 +136,8 @@ async function sampleImagePaths(limit: number): Promise<Array<string>> {
 	const paths: Array<string> = [];
 
 	for (const entry of mixes) {
-		const path = entry.data.imageHero ?? entry.data.imageFeatured;
+		const path =
+			getImageHeroId(entry.data.imageFeatured) ?? getImageFeaturedId(entry.data.imageFeatured);
 		if (path !== undefined && !paths.includes(path) && getMediaImage(path)) paths.push(path);
 		if (paths.length === limit) break;
 	}
@@ -172,13 +174,16 @@ async function sampleMixField(
 async function sampleRelease(): Promise<ReleaseSample | undefined> {
 	const reviews = await getCollection('reviews');
 	const entry =
-		reviews.find(
-			(review) =>
+		reviews.find((review) => {
+			const path = getImageFeaturedId(review.data.imageFeatured);
+
+			return (
 				review.data.releaseTitle !== undefined &&
 				(review.data.labels?.length ?? 0) > 0 &&
-				review.data.imageFeatured !== undefined &&
-				getMediaImage(review.data.imageFeatured) !== undefined,
-		) ?? reviews.at(0);
+				path !== undefined &&
+				getMediaImage(path) !== undefined
+			);
+		}) ?? reviews.at(0);
 	if (!entry) return undefined;
 
 	const artists = await resolveRefs('artists', entry.data.artists);
@@ -187,7 +192,7 @@ async function sampleRelease(): Promise<ReleaseSample | undefined> {
 	return {
 		artist,
 		date: entry.data.dateCreated,
-		image: entry.data.imageFeatured,
+		image: getImageFeaturedId(entry.data.imageFeatured),
 		labels: await resolveRefs('labels', entry.data.labels),
 		releaseTitle: title,
 		releaseYear: entry.data.releaseYear,

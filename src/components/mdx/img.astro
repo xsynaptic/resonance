@@ -14,7 +14,7 @@ const { isFeed } = Astro.locals;
 // A caption is the slot content; WP recorded one on 23 attachments and nothing else
 const caption = await renderSlot(Astro.slots);
 
-// A feed reader lays out one intrinsic width, so `none` emits a plain img with width and height
+// `none` emits a plain img with width and height, which is all a reader can lay out
 const imageProps = isFeed
 	? ({ layout: 'none', width: 900 } as const)
 	: ({ layout: 'constrained', sizes: '(min-width: 48rem) 48rem, 100vw', width: 1200 } as const);

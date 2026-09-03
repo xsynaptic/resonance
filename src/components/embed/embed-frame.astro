@@ -4,7 +4,7 @@ import type { HTMLAttributes } from 'astro/types';
 interface Props extends Omit<HTMLAttributes<'iframe'>, 'height' | 'src' | 'title'> {
 	/** CSS aspect-ratio (e.g. '16 / 9') for video; takes precedence over height */
 	aspectRatio?: string;
-	/** Where a feed sends the reader, since feed readers strip iframes */
+	/** Feed readers strip iframes, so a feed gets this link instead */
 	feedHref: string;
 	feedLabel: string;
 	/** Fixed pixel height for audio players */

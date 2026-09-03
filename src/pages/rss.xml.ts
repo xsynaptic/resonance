@@ -14,7 +14,7 @@ export const GET = (async (context) => {
 
 	const items = await getFeedItems(siteUrl);
 
-	// Freshness tracks the newest item rather than the build, so an unchanged feed keeps its ETag
+	// The newest item, not the build time, so an unchanged feed keeps its ETag
 	const lastBuildDate = items[0]?.pubDate;
 	const copyright = formatStringTemplate(t('footer.copyright'), {
 		year: new Date().getFullYear(),

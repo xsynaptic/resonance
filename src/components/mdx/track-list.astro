@@ -52,7 +52,7 @@ function padOrdinal(position: string): string {
 	return /^\d$/.test(position) ? `0${position}` : position;
 }
 
-// Every separator on the styled markup comes from CSS, so a feed gets one text line per track
+// Every separator in the styled markup comes from CSS, so a feed gets one text line per track
 function toFeedLine(row: TrackRow): string {
 	const artists = row.artists.map((ref) => ref.label).join(' / ');
 	const remix =

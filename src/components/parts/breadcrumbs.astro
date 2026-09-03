@@ -11,7 +11,7 @@ interface Props {
 const { trail } = Astro.props;
 ---
 
-<nav aria-label={t('nav.breadcrumb.label')}>
+<nav aria-label={t('nav.breadcrumb.label')} data-nosnippet data-pagefind-ignore>
 	<ol class="title-above title-above-chevron">
 		{
 			trail.map((breadcrumb) => (

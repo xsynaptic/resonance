@@ -8,7 +8,8 @@ import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { getImageHeroId } from '#lib/image/image-featured.ts';
+import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
+import { getEntryDescription } from '#lib/utils/description.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -27,7 +28,9 @@ const formatTerms = await resolveTermLinks(
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
+const description = await getEntryDescription(entry);
 
+const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 ---
 
@@ -37,8 +40,9 @@ const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	styles={styleTerms}
 	title={entry.data.title}
+	{...imageFeaturedId ? { imageFeatured: imageFeaturedId } : {}}
 	{...imageHeroId ? { imageHero: imageHeroId } : {}}
-	{...entry.data.description ? { description: entry.data.description } : {}}
+	{...description ? { description } : {}}
 >
 	<Content />
 	<Fragment slot="sections">

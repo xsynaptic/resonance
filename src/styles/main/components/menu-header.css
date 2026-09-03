@@ -76,10 +76,11 @@ menu-navigation {
 	pointer-events: none;
 	background-color: var(--color-surface-600);
 	opacity: 0;
+
+	/* Hiding waits for the fade; the open states zero the delay so focus can land on the first item */
 	transition:
 		opacity 150ms var(--default-transition-timing-function),
-		visibility 150ms var(--default-transition-timing-function);
-	transition-behavior: allow-discrete;
+		visibility 0s linear 150ms;
 }
 
 .nav-sub-d1 {
@@ -177,6 +178,7 @@ menu-navigation {
 	visibility: visible;
 	pointer-events: auto;
 	opacity: 1;
+	transition-delay: 0s;
 }
 
 .nav-item[data-open] > .nav-trigger,
@@ -197,6 +199,7 @@ menu-navigation {
 		visibility: visible;
 		pointer-events: auto;
 		opacity: 1;
+		transition-delay: 0s;
 	}
 
 	.nav-item[data-has-submenu]:hover > .nav-trigger {

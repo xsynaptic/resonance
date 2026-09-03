@@ -17,6 +17,7 @@ import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMixcloudPlayCount } from '#lib/mixcloud/mixcloud-stats.ts';
+import { getEntryDescription } from '#lib/utils/description.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -38,6 +39,7 @@ const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloads = await getDownloadCount(entry.data.files);
 const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudEmbed);
 const relatedItems = await getRelatedItems(entry);
+const description = await getEntryDescription(entry);
 
 const [alias] = aliasTerms;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
@@ -53,7 +55,7 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 	title={entry.data.title}
 	{...alias ? { artist: alias } : {}}
 	{...imageFeaturedId ? { image: imageFeaturedId } : {}}
-	{...entry.data.description ? { description: entry.data.description } : {}}
+	{...description ? { description } : {}}
 >
 	<Content />
 	<EmbedAudio

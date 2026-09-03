@@ -17,6 +17,8 @@ const content = await renderSlot(Astro.slots);
 				'space-y-2 rounded-lg border border-surface-700 bg-surface-600 px-5 py-4 text-sm',
 				className,
 			]}
+			data-nosnippet
+			data-pagefind-ignore
 		>
 			<Fragment set:html={content} />
 		</div>

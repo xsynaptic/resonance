@@ -3,6 +3,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import { renderSlot } from '#lib/utils/astro.ts';
 
@@ -44,10 +45,12 @@ const sections = await renderSlot(Astro.slots, 'sections');
 <MainSite
 	openGraphId={openGraphId}
 	openGraphType="article"
+	publishedTime={date}
 	title={title}
 	{...description ? { description } : {}}
 >
-	<article>
+	<article data-pagefind-body>
+		{image ? <SearchThumbnail path={image} /> : undefined}
 		<SectionDetailHeader
 			date={date}
 			kind={kind}

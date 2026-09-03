@@ -17,15 +17,19 @@ import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	description?: string;
+	noIndex?: boolean;
 	openGraphId?: string;
 	openGraphType?: 'article' | 'website';
+	publishedTime?: Date | undefined;
 	title?: string;
 }
 
 const {
 	description = site.description,
+	noIndex = false,
 	openGraphId,
 	openGraphType = 'website',
+	publishedTime,
 	title,
 } = Astro.props;
 const pageTitle = title
@@ -34,6 +38,11 @@ const pageTitle = title
 
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
 const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
+
+// Without max-image-preview:large Google caps image previews at thumbnail size
+const robots = noIndex
+	? 'noindex, nofollow'
+	: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
 
 const heroSlot = await renderSlot(Astro.slots, 'hero');
 ---
@@ -46,18 +55,29 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<link href="/favicon.ico" rel="icon" sizes="32x32" />
 		<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
 		<link href="/apple-touch-icon.png" rel="apple-touch-icon" />
+		<link href={new URL('sitemap-index.xml', Astro.site).href} rel="sitemap" />
 		<Font cssVariable="--font-archivo" preload />
 		<Font cssVariable="--font-fira-sans" preload />
+		<link href={pageUrl} rel="canonical" />
 		<title>{pageTitle}</title>
 		<meta content={description} name="description" />
+		<meta content={robots} name="robots" />
+		<meta content={Astro.generator} name="generator" />
 		<meta content={openGraphType} property="og:type" />
 		<meta content={pageTitle} property="og:title" />
 		<meta content={description} property="og:description" />
 		<meta content={pageUrl} property="og:url" />
 		<meta content={site.title} property="og:site_name" />
+		<meta content="en_US" property="og:locale" />
 		<meta content={openGraphImageUrl} property="og:image" />
 		<meta content={String(openGraphImageWidth)} property="og:image:width" />
 		<meta content={String(openGraphImageHeight)} property="og:image:height" />
+		<meta content={pageTitle} property="og:image:alt" />
+		{
+			publishedTime ? (
+				<meta content={publishedTime.toISOString()} property="article:published_time" />
+			) : undefined
+		}
 		<meta content="summary_large_image" name="twitter:card" />
 		{
 			UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (

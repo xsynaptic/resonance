@@ -17,9 +17,9 @@ import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageHeroId } from '#lib/image/image-featured.ts';
+import { getEntryDescription } from '#lib/utils/description.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
-import { toExcerpt } from '#lib/utils/text.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
@@ -42,9 +42,9 @@ const memberLinks =
 const projectLinks =
 	term.collection === 'artists' ? await resolveRefs('artists', term.data.projects) : [];
 
-// Description now lives in the body; derive a plain-text meta description from it for the page head
+// A term's description is its body, so the page head derives from it too
 const body = term.body?.trim() ?? '';
-const description = body === '' ? undefined : await toExcerpt(body);
+const description = await getEntryDescription(term);
 
 const collectionLabels: Partial<Record<CollectionKey, string>> = {
 	mixes: t('collection.mixes.label'),
@@ -66,6 +66,7 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 ---
 
 <MainSite
+	noIndex={page.currentPage > 1}
 	openGraphId={getOpenGraphId(term.collection, term.id)}
 	title={term.data.title}
 	{...description ? { description } : {}}
@@ -80,7 +81,7 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 			/>
 		) : undefined
 	}
-	<div class="mb-6">
+	<div class="mb-6" {...page.currentPage === 1 ? { 'data-pagefind-body': '' } : {}}>
 		{
 			imageHeroId ? undefined : (
 				<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />

@@ -29,7 +29,12 @@ const counts = [
 
 {
 	counts.length > 0 ? (
-		<ul aria-label={t('audio.countsLabel')} class="audio-counts mt-2">
+		<ul
+			aria-label={t('audio.countsLabel')}
+			class="audio-counts mt-2"
+			data-nosnippet
+			data-pagefind-ignore
+		>
 			{counts.map((count) => (
 				<li>{count}</li>
 			))}

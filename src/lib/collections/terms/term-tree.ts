@@ -1,9 +1,9 @@
+import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
 
 import type { TitledCollectionKey } from '#lib/utils/terms.ts';
 
 import { getTermHierarchy, isHierarchical } from '#lib/collections/terms/hierarchy.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
 
 // `sortKey` is set only where alphabetical order is wrong for the vocabulary; see `getEraSortKey`
 export interface DirectoryTerm {

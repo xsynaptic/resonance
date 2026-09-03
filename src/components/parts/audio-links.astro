@@ -40,7 +40,7 @@ const hasFiles = files && files.length > 0;
 
 {
 	hasLinks || hasFiles ? (
-		<ul class="flex flex-wrap gap-2">
+		<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
 			{links?.map((link) => {
 				const { icon, label } = getLinkMeta(link);
 

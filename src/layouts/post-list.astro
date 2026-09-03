@@ -2,12 +2,12 @@
 import type { Page } from 'astro';
 import type { CollectionEntry } from 'astro:content';
 
+import { getContentUrl } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
 import MainSite from '#components/main/main-site.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
-import { getContentUrl } from '#lib/utils/routing.ts';
 import { resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -29,7 +29,7 @@ const posts = await Promise.all(
 );
 ---
 
-<MainSite title={title}>
+<MainSite noIndex={page.currentPage > 1} title={title}>
 	<h1 class="title-main mb-10">{title}</h1>
 	{
 		posts.map(({ Content, entry, format }) => (

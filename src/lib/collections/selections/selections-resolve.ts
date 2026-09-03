@@ -1,3 +1,4 @@
+import { getContentUrl } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
 import type { LabelRefValue } from '#lib/schemas/refs.ts';
@@ -8,7 +9,6 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryBySlug, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
 import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 import { toSlug } from '#lib/utils/text.ts';
 

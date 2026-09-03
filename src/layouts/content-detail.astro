@@ -2,12 +2,14 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 
 interface Props {
 	date?: Date | undefined;
 	description?: string | undefined;
+	imageFeatured?: string | undefined;
 	imageHero?: string | undefined;
 	kind?: ResolvedRef | undefined;
 	openGraphId: string;
@@ -15,12 +17,14 @@ interface Props {
 	title: string;
 }
 
-const { date, description, imageHero, kind, openGraphId, styles, title } = Astro.props;
+const { date, description, imageFeatured, imageHero, kind, openGraphId, styles, title } =
+	Astro.props;
 ---
 
 <MainSite
 	openGraphId={openGraphId}
 	openGraphType="article"
+	publishedTime={date}
 	title={title}
 	{...description ? { description } : {}}
 >
@@ -36,7 +40,8 @@ const { date, description, imageHero, kind, openGraphId, styles, title } = Astro
 			/>
 		) : undefined
 	}
-	<article>
+	<article data-pagefind-body>
+		{imageFeatured ? <SearchThumbnail path={imageFeatured} /> : undefined}
 		{
 			imageHero ? undefined : (
 				<div class="mb-10 content-measure">

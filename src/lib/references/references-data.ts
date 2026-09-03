@@ -1,8 +1,7 @@
 import type { CollectionKey } from 'astro:content';
 
+import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
-
-import { getContentUrl } from '#lib/utils/routing.ts';
 
 export interface Reference {
 	collection: CollectionKey;

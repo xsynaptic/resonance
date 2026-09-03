@@ -14,7 +14,7 @@ const { items } = Astro.props;
 
 {
 	items.length > 0 ? (
-		<section class="mt-16">
+		<section class="mt-16" data-nosnippet data-pagefind-ignore>
 			<h2 class="heading-section mb-4">{t('section.related.heading')}</h2>
 			<Carousel label={t('section.related.carouselLabel')}>
 				{items.map((item) => (

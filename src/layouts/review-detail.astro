@@ -12,6 +12,7 @@ import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
+import { getEntryDescription } from '#lib/utils/description.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
@@ -32,6 +33,7 @@ const eraTerms = await resolveTermLinks('eras', entry.data.eras);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const relatedItems = await getRelatedItems(entry);
+const description = await getEntryDescription(entry);
 
 const { discogsUrl, rating, releaseYear } = entry.data;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
@@ -51,7 +53,7 @@ const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.release
 	{...artist ? { artist } : {}}
 	{...imageFeaturedId ? { image: imageFeaturedId } : {}}
 	{...releaseYear ? { releaseYear } : {}}
-	{...entry.data.description ? { description: entry.data.description } : {}}
+	{...description ? { description } : {}}
 >
 	<Content />
 	<Fragment slot="links">

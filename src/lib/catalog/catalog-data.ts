@@ -1,12 +1,12 @@
 import type { ImageFeatured } from '@xsynaptic/shared/schemas';
 import type { CollectionKey } from 'astro:content';
 
+import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
 
 import type { LabelRefValue } from '#lib/schemas/refs.ts';
 
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
 // Entry fields the catalog projects; optional members are absent on collections that lack them

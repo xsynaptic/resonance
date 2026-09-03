@@ -16,6 +16,7 @@ import Anchor from '#components/parts/anchor.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import ButtonLink from '#components/parts/button-link.astro';
+import Button from '#components/parts/button.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
@@ -266,12 +267,24 @@ const paginationPage: Page<ContentItem> = {
 				<Anchor anchorColor="muted" href="/mixes/">anchorColor=&quot;muted&quot;</Anchor>
 			</div>
 		</Specimen>
-		<Specimen name="ButtonLink" source="src/components/parts/button-link.astro">
+		<Specimen
+			name="ButtonLink"
+			note="Both button components render the same .button-x classes; the tag is the only difference."
+			source="src/components/parts/button-link.astro"
+		>
 			<div class="flex flex-wrap items-center gap-4">
 				<ButtonLink href="/mixes/">standard</ButtonLink>
 				<ButtonLink href="/mixes/" icon="download">standard, icon</ButtonLink>
 				<ButtonLink href="/mixes/" variant="small">small</ButtonLink>
 				<ButtonLink href="/mixes/" icon="youtube" variant="small">small, icon</ButtonLink>
+			</div>
+		</Specimen>
+		<Specimen name="Button" source="src/components/parts/button.astro">
+			<div class="flex flex-wrap items-center gap-4">
+				<Button>standard</Button>
+				<Button icon="download">standard, icon</Button>
+				<Button variant="small">small</Button>
+				<Button disabled>disabled</Button>
 			</div>
 		</Specimen>
 		<Specimen

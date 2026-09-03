@@ -5,15 +5,15 @@ import type { IconId } from '#lib/utils/icon-types.ts';
 
 type ButtonVariant = 'small' | 'standard';
 
-interface Props extends HTMLAttributes<'a'> {
+interface Props extends HTMLAttributes<'button'> {
 	icon?: IconId | undefined;
 	variant?: ButtonVariant | undefined;
 }
 
-const { class: className, icon, variant = 'standard', ...props } = Astro.props;
+const { class: className, icon, type = 'button', variant = 'standard', ...props } = Astro.props;
 ---
 
-<a class:list={['button-x', `button-${variant}`, className]} {...props}>
+<button class:list={['button-x', `button-${variant}`, className]} type={type} {...props}>
 	{
 		icon ? (
 			<svg aria-hidden="true" class="button-icon">
@@ -22,4 +22,4 @@ const { class: className, icon, variant = 'standard', ...props } = Astro.props;
 		) : undefined
 	}
 	<slot />
-</a>
+</button>

@@ -20,6 +20,7 @@ const { items } = Astro.props;
 				{items.map((item) => (
 					<li class="carousel-slide">
 						<EntryCard
+							date={item.date}
 							href={item.url}
 							image={item.image}
 							subtitle={item.subtitle}

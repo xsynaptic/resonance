@@ -12,6 +12,8 @@ const collectionPrefixes = Object.entries({
 });
 
 export interface RedirectBuild {
+	// A former id matching a live path; fatal, because a rule takes that page off the site
+	collisions: Array<string>;
 	pairs: Array<RedirectPair>;
 	skipped: Array<string>;
 }
@@ -25,15 +27,17 @@ interface RedirectPair {
 export function buildRedirectPairs(collections: DataStoreCollections): RedirectBuild {
 	const livePaths = collectLivePaths(collections);
 	const claimed = new Set<string>();
+	const collisions: Array<string> = [];
 	const pairs: Array<RedirectPair> = [];
 	const skipped: Array<string> = [];
 
 	for (const { from, to } of collectCandidates(collections)) {
-		// A rule fires ahead of the asset it shadows, so a live page always keeps its own path
+		// Cloudflare follows a redirect whether or not an asset sits at the path, so this is a bug
 		if (livePaths.has(from)) {
-			skipped.push(`${from} is a live page`);
+			collisions.push(`${from} is a live page`);
 			continue;
 		}
+		// First claim wins, which is a real answer rather than a defect
 		if (claimed.has(from)) {
 			skipped.push(`${from} is claimed by an earlier rule`);
 			continue;
@@ -43,7 +47,7 @@ export function buildRedirectPairs(collections: DataStoreCollections): RedirectB
 		pairs.push({ from, to });
 	}
 
-	return { pairs, skipped };
+	return { collisions, pairs, skipped };
 }
 
 function collectCandidates(collections: DataStoreCollections): Array<RedirectPair> {

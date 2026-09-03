@@ -45,7 +45,7 @@ describe('buildRedirectPairs', () => {
 		]);
 	});
 
-	test('skips a former id that would shadow a live page, and a repeated one', () => {
+	test('reports a former id shadowing a live page as a collision, and a repeated one as a skip', () => {
 		const collections = makeCollections({
 			pages: [makeEntry({ data: {}, id: 'about' })],
 			posts: [
@@ -55,9 +55,10 @@ describe('buildRedirectPairs', () => {
 			],
 		});
 
-		const { pairs, skipped } = buildRedirectPairs(collections);
+		const { collisions, pairs, skipped } = buildRedirectPairs(collections);
 
 		expect(pairs).toEqual([{ from: '/shared/', to: '/first/' }]);
-		expect(skipped).toEqual(['/about/ is a live page', '/shared/ is claimed by an earlier rule']);
+		expect(collisions).toEqual(['/about/ is a live page']);
+		expect(skipped).toEqual(['/shared/ is claimed by an earlier rule']);
 	});
 });

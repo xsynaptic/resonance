@@ -8,7 +8,6 @@ export const pageSchema = z
 	.object({
 		...contentBaseSchema,
 		...selectionFields,
-		parent: reference('pages').optional(),
 	})
 	.strict();
 

@@ -8,17 +8,33 @@ import { loadDataStore } from '../shared/data-store.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
 import { buildRedirectPairs } from './build-redirect-pairs.js';
 
-// Cloudflare serves `_redirects` from the assets directory, which is where `public/` lands
-const outputFile = 'public/_redirects';
-
 // WordPress permalinks the site no longer answers to, written by hand because no field records them
 // Lists and designs became plain Posts; three taxonomies were renamed
-// `/keywords/best-mixes/` and `/keywords/branding/` are deliberately absent: neither term survived
+// `/keywords/branding/` is deliberately absent: the term carried no posts, so its archive was empty
 const structuralRedirects: Array<[string, string]> = [
 	['/lists/*', '/:splat'],
 	['/designs/*', '/:splat'],
 	['/projects/*', '/artists/:splat'],
 	['/time-periods/*', '/eras/:splat'],
+	// Archive indexes, both linked from the WordPress main nav; exact rules beat the wildcards above
+	['/lists/', '/formats/selections/'],
+	['/designs/', '/formats/album-artwork/'],
+	// WordPress served Pages under their parent; resonance serves every Page at the site root
+	['/about/frequently-asked-questions/', '/frequently-asked-questions/'],
+	['/about/privacy-policy/', '/privacy-policy/'],
+	['/profile/booking/', '/booking/'],
+	['/resources/command-line-tools/', '/command-line-tools/'],
+	['/resources/jriver-media-center-user-guide/', '/jriver-media-center-user-guide/'],
+	[
+		'/resources/verifying-lossless-audio-quality-with-spectral-analysis/',
+		'/verifying-lossless-audio-quality-with-spectral-analysis/',
+	],
+	// `page_on_front`, which WordPress answered at the site root and redirected the slug to
+	['/sounds-from-the-great-beyond/', '/'],
+	// The `best-mixes` term was dropped on purpose; its 19 mixes are still the nearest surface
+	['/keywords/best-mixes/', '/mixes/'],
+	// The SEO Framework served the sitemap here
+	['/sitemap.xml', '/sitemap-index.xml'],
 	['/sections/articles/', '/formats/articles/'],
 	['/sections/notes/', '/formats/notes/'],
 	['/sections/quotations/', '/formats/quotations/'],
@@ -36,7 +52,16 @@ const rootPath = findWorkspaceRoot();
 
 const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
 
-const { pairs, skipped } = buildRedirectPairs(collections);
+const { collisions, pairs, skipped } = buildRedirectPairs(collections);
+
+// Writing the file anyway would ship a rule that takes a live page off the site
+if (collisions.length > 0) {
+	for (const collision of collisions) {
+		console.error(chalk.red(`✗ former id collision: ${collision}`));
+	}
+
+	process.exit(1);
+}
 
 const structuralExact = structuralRedirects.filter(([from]) => !from.includes('*'));
 const structuralWildcard = structuralRedirects.filter(([from]) => from.includes('*'));
@@ -54,6 +79,9 @@ const lines = [
 	...structuralWildcard.map(([from, to]) => `${from} ${to} 301`),
 	'',
 ];
+
+// Cloudflare serves `_redirects` from the assets directory, which is where `public/` lands
+const outputFile = 'public/_redirects';
 
 writeFileSync(path.resolve(rootPath, outputFile), lines.join('\n'));
 

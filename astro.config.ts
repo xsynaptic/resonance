@@ -2,6 +2,7 @@ import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import buildLogger from '@xsynaptic/astro-build-logger';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
@@ -54,6 +55,7 @@ export default defineConfig({
 		sitemap(),
 		fontDevtools({ providers: ['fontsource'] }),
 		pagefind(),
+		buildLogger(),
 		inventory(),
 	],
 	markdown: {

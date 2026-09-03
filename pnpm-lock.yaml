@@ -33,6 +33,9 @@ importers:
       '@types/sanitize-html':
         specifier: ^2.16.1
         version: 2.16.1
+      '@xsynaptic/astro-build-logger':
+        specifier: ^1.0.0
+        version: 1.0.0(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
       '@xsynaptic/astro-font-devtools':
         specifier: ^1.0.2
         version: 1.0.2(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
@@ -2096,6 +2099,11 @@ packages:
 
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
+
+  '@xsynaptic/astro-build-logger@1.0.0':
+    resolution: {integrity: sha512-4nawH/Pos9+CJeV+Fxj+mCeF7NUh8lAOmX96OVRSNeXC4JARUTeersiFFvmgIWRBeB52fe8erl/KGg5QXviHEw==}
+    peerDependencies:
+      astro: ^6.0.0 || ^7.0.0
 
   '@xsynaptic/astro-font-devtools@1.0.2':
     resolution: {integrity: sha512-Mbiks1QS/JwN5DctT+80XVNgSdgPEKtf3beUadPCn9yW/oTjywWUO1VVWgrdQ3Lz7b6qd3XRKHtk4KMSCt2RqQ==}
@@ -7004,6 +7012,11 @@ snapshots:
       vscode-uri: 3.1.0
 
   '@vscode/l10n@0.0.18': {}
+
+  '@xsynaptic/astro-build-logger@1.0.0(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))':
+    dependencies:
+      astro: 7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      zod: 4.5.4
 
   '@xsynaptic/astro-font-devtools@1.0.2(astro@7.2.10(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.3)(@types/node@24.13.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))':
     dependencies:

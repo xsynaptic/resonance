@@ -13,6 +13,7 @@ node_modules/
 
 # logs
 *-debug.log*
+astro-build.jsonl
 
 # environment variables
 .env
@@ -42,6 +43,3 @@ packages/content/
 # database backups (large, not for VCS)
 backups/
 
-
-# temp
-packages/scripts/src/stats/

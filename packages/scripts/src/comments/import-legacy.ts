@@ -6,6 +6,12 @@ import path from 'node:path';
 import { isPathPresent } from '../shared/utils.js';
 import { convertCommentBody, findResidualMarkup } from './comment-body.js';
 
+const taipeiOffsetSeconds = 8 * 60 * 60;
+
+// Basilisk's comments are the persona's; WordPress had switched to the account address by 2019
+const basiliskAccountEmail = 'alexander@synapticism.com';
+const basiliskPersonaEmail = 'basilisk@ektoplazm.com';
+
 interface EntryMapping {
 	collection: string;
 	commentStatus: string;
@@ -36,6 +42,7 @@ interface LegacyComment {
 	comment_author_email: string;
 	comment_author_url: string;
 	comment_content: string;
+	comment_date: string;
 	comment_date_gmt: string;
 	comment_ID: number;
 	comment_parent: number;
@@ -80,7 +87,7 @@ export async function importLegacyComments(options: ImportLegacyOptions): Promis
 }
 
 function buildInsert(comment: LegacyComment, mapping: EntryMapping): string {
-	const email = comment.comment_author_email.trim();
+	const email = toAuthorEmail(comment.comment_author_email);
 	const url = comment.comment_author_url.trim();
 	const parent = comment.comment_parent;
 
@@ -96,7 +103,7 @@ function buildInsert(comment: LegacyComment, mapping: EntryMapping): string {
 		sqlString(convertCommentBody(comment.comment_content)),
 		sqlString('approved'),
 		sqlString('wordpress'),
-		String(toEpochSeconds(comment.comment_date_gmt)),
+		String(toCreatedAt(comment)),
 		'NULL',
 		String(comment.comment_post_ID),
 	];
@@ -253,6 +260,23 @@ function sqlString(value: null | string): string {
 	if (value === null) return 'NULL';
 
 	return `'${value.replaceAll("'", "''")}'`;
+}
+
+// Only Basilisk's own rows carry the account address, and they are his under either one
+function toAuthorEmail(value: string): string {
+	const email = value.trim();
+
+	return email === basiliskAccountEmail ? basiliskPersonaEmail : email;
+}
+
+// WordPress wrote site-local time into the GMT column after the move to Taipei, `gmt_offset`
+// having been left empty; local == GMT identifies those rows exactly, and a date window does not
+function toCreatedAt(comment: LegacyComment): number {
+	const seconds = toEpochSeconds(comment.comment_date_gmt);
+
+	if (comment.comment_date !== comment.comment_date_gmt) return seconds;
+
+	return seconds - taipeiOffsetSeconds;
 }
 
 function toEpochSeconds(value: string): number {

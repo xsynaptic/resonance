@@ -12,6 +12,7 @@ export default {
 			entry: [
 				// MDX auto-import components; referenced via satteri-auto-import, not static imports
 				'src/components/mdx/**/*.astro',
+				'src/components/embed/embed-youtube.astro',
 				// The inventory; injected by entrypoint string in the integration, not imported
 				'src/inventory/inventory.astro',
 			],

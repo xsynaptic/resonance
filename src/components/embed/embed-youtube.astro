@@ -1,0 +1,31 @@
+---
+import EmbedFrame from '#components/embed/embed-frame.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	url: string;
+}
+
+const { url } = Astro.props;
+
+// Fail soft on a malformed URL so one bad value can't abort the build, matching other resolvers
+function getVideoId(input: string) {
+	try {
+		const { hostname, pathname, searchParams } = new URL(input);
+
+		if (hostname.endsWith('youtu.be')) return pathname.slice(1);
+
+		return searchParams.get('v') ?? undefined;
+	} catch {
+		return;
+	}
+}
+
+const videoId = getVideoId(url);
+
+if (!videoId && import.meta.env.DEV) console.warn(`[youtube] invalid url: ${url}`);
+
+const src = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : undefined;
+---
+
+{src ? <EmbedFrame aspectRatio="16 / 9" src={src} title={t('embed.youtube.title')} /> : undefined}

@@ -12,7 +12,7 @@ const backupDir = 'backups';
 const filePattern = /^resonance-comments-(\d{4}-\d{2}-\d{2})\.sql\.gz$/;
 
 // `backups/` is gitignored, so this lives on the operator's machine alone
-const reminderAfterDays = 30;
+const backupAfterDays = 30;
 
 interface BackupOptions {
 	isLocal?: boolean;
@@ -40,26 +40,25 @@ export async function backupComments(options: BackupOptions): Promise<void> {
 	console.log(chalk.green(`Backup written (${String(Math.round(size / 1024))} KB)`));
 }
 
-export async function printBackupReminder(rootPath: string): Promise<void> {
+// Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
+export async function backupIfStale(rootPath: string): Promise<void> {
 	const latest = await findLatestBackup(path.join(rootPath, backupDir));
 
-	if (!latest) {
-		console.log(chalk.yellow('No comment backup yet; run `pnpm comments-backup`'));
-		return;
+	if (latest) {
+		const ageDays = Math.floor((Date.now() - Date.parse(latest)) / 86_400_000);
+
+		if (ageDays < backupAfterDays) {
+			console.log(chalk.gray(`  Last comment backup: ${latest}`));
+			return;
+		}
 	}
 
-	const ageDays = Math.floor((Date.now() - Date.parse(latest)) / 86_400_000);
-
-	if (ageDays < reminderAfterDays) {
-		console.log(chalk.gray(`  Last comment backup: ${latest}`));
-		return;
+	// Soft-fail: a deploy must not die on a backup
+	try {
+		await backupComments({ rootPath });
+	} catch (error) {
+		console.warn(chalk.yellow(`Comment backup skipped: ${String(error)}`));
 	}
-
-	console.log(
-		chalk.yellow(
-			`Last comment backup was ${String(ageDays)} days ago (${latest}); run \`pnpm comments-backup\``,
-		),
-	);
 }
 
 async function findLatestBackup(directory: string): Promise<string | undefined> {

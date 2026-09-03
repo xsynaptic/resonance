@@ -5,6 +5,8 @@ const siteverifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify
 // The form is rendered into a static page, so the client sets this on load; a build-time value would always pass
 const minimumFormAgeMs = 3000;
 
+const entryIdPattern = /^[a-z0-9-]+$/;
+
 // Ids are read back as the `#comment-<id>` permalink, so they stay short; 32 chars masks to 5 bits with no bias
 const commentIdAlphabet = 'abcdefghijklmnopqrstuvwxyz234567';
 const commentIdLength = 10;
@@ -15,7 +17,7 @@ const submissionSchema = z.object({
 	authorUrl: z.httpUrl().max(200).optional(),
 	body: z.string().min(2).max(8000),
 	collection: z.enum(['mixes', 'posts', 'reviews']),
-	entryId: z.string().min(1).max(200),
+	entryId: z.string().max(200).regex(entryIdPattern),
 	parentId: z.string().min(1).max(200).optional(),
 	renderedAt: z.coerce.number().int().positive(),
 	turnstileToken: z.string().min(1).max(2048),
@@ -23,12 +25,23 @@ const submissionSchema = z.object({
 
 type Submission = z.infer<typeof submissionSchema>;
 
+// The client asks for JSON so it can render the message inline; the native form post still gets the text page
+export function fail(request: Request, status: number, message: string): Response {
+	if (isJsonWanted(request)) return Response.json({ message }, { status });
+
+	return new Response(`${message}\n`, {
+		headers: { 'content-type': 'text/plain; charset=utf-8' },
+		status,
+	});
+}
+
 export async function handleCommentSubmission(request: Request, env: Env): Promise<Response> {
 	const form = await readFormData(request);
 
-	if (!form) return fail(400, 'Expected form-encoded data.');
+	if (!form) return fail(request, 400, 'That submission could not be read.');
 
-	if (readField(form, 'website') !== undefined) return fail(400, 'Rejected.');
+	if (readField(form, 'website') !== undefined)
+		return fail(request, 400, 'That submission was not accepted.');
 
 	const parsed = submissionSchema.safeParse({
 		author: readField(form, 'author'),
@@ -42,45 +55,37 @@ export async function handleCommentSubmission(request: Request, env: Env): Promi
 		turnstileToken: readField(form, 'cf-turnstile-response'),
 	});
 
-	if (!parsed.success) return fail(400, 'That submission was not valid.');
+	if (!parsed.success) return fail(request, 400, 'That submission was not valid.');
 
 	const submission = parsed.data;
 
-	if (Date.now() - submission.renderedAt < minimumFormAgeMs) return fail(400, 'That was too fast.');
-
-	const remoteIp = request.headers.get('CF-Connecting-IP');
-
-	if (!(await isTurnstileValid(submission.turnstileToken, env.TURNSTILE_SECRET_KEY, remoteIp))) {
-		return fail(403, 'The challenge did not pass. Please reload the page and try again.');
-	}
+	if (Date.now() - submission.renderedAt < minimumFormAgeMs)
+		return fail(request, 400, 'That was too fast. Please try again.');
 
 	const entryPath = toEntryPath(submission.collection, submission.entryId);
 	const entry = await env.ASSETS.fetch(new URL(entryPath, request.url));
 
-	if (!entry.ok) return fail(400, 'That entry does not exist.');
+	if (!entry.ok) return fail(request, 400, 'That entry does not exist.');
 
 	if (!(await isValidParent(env, submission)))
-		return fail(400, 'That reply target does not exist.');
+		return fail(request, 400, 'That reply target does not exist.');
+
+	const remoteIp = request.headers.get('CF-Connecting-IP');
+
+	// Last, after the local checks: siteverify is a network round trip, and a rejected request burns a single-use token
+	if (!(await isTurnstileValid(submission.turnstileToken, env.TURNSTILE_SECRET_KEY, remoteIp))) {
+		return fail(request, 403, 'The challenge did not pass. Please reload the page and try again.');
+	}
 
 	await insertComment(env, submission, remoteIp);
 
-	return Response.redirect(
-		new URL(`${entryPath}?comment=received#comments`, request.url).href,
-		303,
-	);
+	return succeed(request, entryPath);
 }
 
 function createCommentId(): string {
 	const bytes = crypto.getRandomValues(new Uint8Array(commentIdLength));
 
 	return [...bytes].map((byte) => commentIdAlphabet.charAt(byte & 31)).join('');
-}
-
-function fail(status: number, message: string): Response {
-	return new Response(`${message}\n`, {
-		headers: { 'content-type': 'text/plain; charset=utf-8' },
-		status,
-	});
 }
 
 async function insertComment(
@@ -111,6 +116,10 @@ async function insertComment(
 			toNullable(ipHash),
 		)
 		.run();
+}
+
+function isJsonWanted(request: Request): boolean {
+	return request.headers.get('accept')?.includes('application/json') === true;
 }
 
 async function isTurnstileValid(
@@ -170,6 +179,21 @@ async function sha256(value: string): Promise<string> {
 	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
 
 	return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// The native form post reads the redirect; the client asks for JSON so it can stay on the page
+function succeed(request: Request, entryPath: string): Response {
+	if (isJsonWanted(request)) {
+		return Response.json(
+			{ message: 'Your comment is in the moderation queue and will appear once it is approved.' },
+			{ status: 201 },
+		);
+	}
+
+	return Response.redirect(
+		new URL(`${entryPath}?comment=received#comments`, request.url).href,
+		303,
+	);
 }
 
 // Posts render at the site root, matching `getContentUrl`; the worker cannot import from the Astro project

@@ -1,3 +1,5 @@
+import { t } from '#lib/i18n/i18n-strings.ts';
+
 interface TurnstileApi {
 	remove: (widgetId: string) => void;
 	render: (
@@ -32,7 +34,8 @@ class CommentsSection extends HTMLElement {
 		this.#field('renderedAt').value = String(Date.now());
 
 		this.#restoreDetails();
-		this.#showReceivedNotice();
+		this.#showNoticeFromQuery();
+		this.#scrollToLegacyPermalink();
 
 		for (const button of this.querySelectorAll<HTMLElement>('[data-reply]')) {
 			button.hidden = false;
@@ -50,14 +53,7 @@ class CommentsSection extends HTMLElement {
 	}
 
 	#cancelReply() {
-		const form = this.#form;
-		const home = this.querySelector('[data-comment-form-home]');
-
-		if (!form || !home) return;
-
-		home.append(form);
-		this.#field('parentId').value = '';
-		this.#toggle('[data-cancel-reply]', false);
+		this.#returnFormHome();
 		void this.#renderTurnstile();
 
 		this.#replyOrigin?.focus();
@@ -86,6 +82,16 @@ class CommentsSection extends HTMLElement {
 		return input;
 	}
 
+	#handleAccepted(form: HTMLFormElement) {
+		const body = form.querySelector<HTMLTextAreaElement>('textarea[name="body"]');
+
+		if (body) body.value = '';
+
+		this.#replyOrigin = undefined;
+		this.#returnFormHome();
+		this.#showReceivedNotice();
+	}
+
 	#handleClick = (event: MouseEvent) => {
 		if (!(event.target instanceof HTMLElement)) return;
 
@@ -104,26 +110,17 @@ class CommentsSection extends HTMLElement {
 		if (event.target.closest('[data-clear-stored]')) this.#clearDetails();
 	};
 
-	// Runs before the native POST navigates away
-	#handleSubmit = () => {
-		const remember = this.querySelector<HTMLInputElement>('[data-remember]');
+	// The native POST stays the fallback, so nothing is prevented until the fetch path is taken
+	#handleSubmit = (event: SubmitEvent) => {
+		this.#saveDetails();
 
-		if (!remember?.checked) {
-			this.#clearDetails();
-			return;
-		}
+		const form = this.#form;
 
-		const details: Record<string, string> = {};
+		if (!form) return;
 
-		for (const name of storedFields) {
-			details[name] = this.#field(name).value;
-		}
+		event.preventDefault();
 
-		try {
-			localStorage.setItem(storageKey, JSON.stringify(details));
-		} catch {
-			// Storage full or disabled; the comment still submits
-		}
+		void this.#submit(form);
 	};
 
 	// Loaded here rather than from a script tag so the widget can be re-rendered after the form moves
@@ -154,6 +151,25 @@ class CommentsSection extends HTMLElement {
 		}
 
 		return turnstileReady;
+	}
+
+	async #readMessage(response: Response) {
+		try {
+			const payload: unknown = await response.json();
+
+			if (
+				typeof payload === 'object' &&
+				payload !== null &&
+				'message' in payload &&
+				typeof payload.message === 'string'
+			) {
+				return payload.message;
+			}
+		} catch {
+			// An error page that is not JSON falls through to the generic message
+		}
+
+		return t('comments.notice.error');
 	}
 
 	// Moving the form re-parents the widget's iframe, which reloads it, so it is rebuilt from scratch
@@ -191,10 +207,68 @@ class CommentsSection extends HTMLElement {
 		this.#toggle('[data-clear-stored]', true);
 	}
 
-	// The redirect carries `?comment=received`; a prerendered page cannot read it at build time
-	#showReceivedNotice() {
+	#returnFormHome() {
+		const form = this.#form;
+		const home = this.querySelector('[data-comment-form-home]');
+
+		if (!form || !home) return;
+
+		home.append(form);
+		this.#field('parentId').value = '';
+		this.#toggle('[data-cancel-reply]', false);
+	}
+
+	#saveDetails() {
+		const remember = this.querySelector<HTMLInputElement>('[data-remember]');
+
+		if (!remember?.checked) {
+			this.#clearDetails();
+			return;
+		}
+
+		const details: Record<string, string> = {};
+
+		for (const name of storedFields) {
+			details[name] = this.#field(name).value;
+		}
+
+		try {
+			localStorage.setItem(storageKey, JSON.stringify(details));
+		} catch {
+			// Storage full or disabled; the comment still submits
+		}
+	}
+
+	// WordPress permalinks point at `#comment-<n>`, while the imported rows carry a `wp-` prefix
+	#scrollToLegacyPermalink() {
+		const legacyId = /^#comment-(\d+)$/.exec(location.hash)?.[1];
+
+		if (legacyId === undefined) return;
+		if (document.querySelector(location.hash)) return;
+
+		document.querySelector<HTMLElement>(`#comment-wp-${legacyId}`)?.scrollIntoView();
+	}
+
+	#showError(message: string) {
+		const error = this.querySelector<HTMLElement>('[data-comment-error]');
+
+		if (!error) return;
+
+		error.textContent = message;
+		error.hidden = false;
+	}
+
+	// The native fallback redirects with `?comment=received`; a prerendered page cannot read it at build time
+	#showNoticeFromQuery() {
 		if (new URLSearchParams(location.search).get('comment') !== 'received') return;
 
+		this.#showReceivedNotice();
+
+		// Drop the query so a reload does not repeat the notice
+		history.replaceState(undefined, '', `${location.pathname}${location.hash}`);
+	}
+
+	#showReceivedNotice() {
 		const notice = this.querySelector<HTMLElement>('[data-comment-notice]');
 
 		if (!notice) return;
@@ -202,8 +276,8 @@ class CommentsSection extends HTMLElement {
 		// `role="status"` announces it without stealing focus from the `#comments` fragment target
 		notice.hidden = false;
 
-		// Drop the query so a reload does not repeat the notice
-		history.replaceState(undefined, '', `${location.pathname}${location.hash}`);
+		// The notice sits above the comment list, which puts it off-screen for anyone who just used the form
+		notice.scrollIntoView({ block: 'nearest' });
 	}
 
 	#startReply(button: HTMLElement) {
@@ -241,6 +315,32 @@ class CommentsSection extends HTMLElement {
 		}
 	}
 
+	async #submit(form: HTMLFormElement) {
+		const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+		this.#toggle('[data-comment-error]', false);
+
+		if (submitButton) submitButton.disabled = true;
+
+		try {
+			const response = await fetch(form.action, {
+				body: new FormData(form),
+				headers: { accept: 'application/json' },
+				method: 'POST',
+			});
+
+			if (response.ok) this.#handleAccepted(form);
+			else this.#showError(await this.#readMessage(response));
+		} catch {
+			this.#showError(t('comments.notice.error'));
+		} finally {
+			if (submitButton) submitButton.disabled = false;
+
+			// The Turnstile token is single-use, so either outcome needs a fresh widget
+			void this.#renderTurnstile();
+		}
+	}
+
 	#toggle(selector: string, isVisible: boolean) {
 		const element = this.querySelector<HTMLElement>(selector);
 
@@ -251,8 +351,6 @@ class CommentsSection extends HTMLElement {
 if (!customElements.get('comments-section')) {
 	customElements.define('comments-section', CommentsSection);
 }
-
-export {};
 
 declare global {
 	interface HTMLElementTagNameMap {

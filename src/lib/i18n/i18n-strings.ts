@@ -46,6 +46,7 @@ const strings = {
 	'comments.form.submit': 'Post Comment',
 	'comments.heading.one': '1 Comment',
 	'comments.heading.other': '{count} Comments',
+	'comments.notice.error': 'Your comment could not be sent. Please try again in a moment.',
 	'comments.notice.received':
 		'Thanks. Your comment is in the moderation queue and will appear once it is approved.',
 	'comments.regionLabel': 'Comments',

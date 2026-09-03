@@ -110,6 +110,13 @@ const { collection, entryId } = Astro.props;
 			>
 		</div>
 		<div data-turnstile data-turnstile-sitekey={TURNSTILE_SITE_KEY}></div>
+		<p
+			class="rounded-sm border border-crimson-800 bg-crimson-950 p-3 text-sm text-ink-200"
+			data-comment-error
+			hidden
+			role="status"
+		>
+		</p>
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
 			<button
 				class="cursor-pointer rounded-sm border border-surface-700 bg-surface-600 px-4 py-2 font-medium text-ink-100 transition-colors hover:border-surface-400 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"

@@ -34,6 +34,9 @@ const renditionProfile = crypto
 	.digest('hex')
 	.slice(0, 12);
 
+// Every stale rendition probes, so only the first failure is worth a line
+let hasReportedProbeFailure = false;
+
 interface RenditionJob {
 	output: string;
 	source: string;
@@ -50,10 +53,13 @@ interface RenditionsOptions {
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	try {
-		await $`which ffmpeg`.quiet();
-	} catch {
-		throw new Error('ffmpeg not found on PATH. Install it with: brew install ffmpeg');
+	// ffprobe as well as ffmpeg: without it every rendition reads as stale and re-encodes
+	for (const binary of ['ffmpeg', 'ffprobe']) {
+		try {
+			await $`which ${binary}`.quiet();
+		} catch {
+			throw new Error(`${binary} not found on PATH. Install it with: brew install ffmpeg`);
+		}
 	}
 
 	const streamsPath = path.join(rootPath, streamsDir);
@@ -158,12 +164,21 @@ async function isUpToDate(source: string, output: string): Promise<boolean> {
 }
 
 // Reads only the header, which -cues_to_front keeps at the front of the file
+// An empty result marks the rendition stale, so the first failure is reported rather than swallowed
 async function readProfile(output: string): Promise<string> {
 	try {
 		const result =
 			await $`ffprobe -v error -show_entries format_tags=RENDITION_PROFILE -of default=nw=1:nk=1 ${output}`.quiet();
 		return result.stdout.trim();
-	} catch {
+	} catch (error) {
+		if (!hasReportedProbeFailure) {
+			hasReportedProbeFailure = true;
+			console.warn(
+				chalk.yellow(
+					`  ffprobe failed on ${path.basename(output)}; treating as stale: ${String(error)}`,
+				),
+			);
+		}
 		return '';
 	}
 }

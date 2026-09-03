@@ -66,7 +66,7 @@ async function collectReferenced(mixesDir: string): Promise<Set<string>> {
 	const entries = await fs.readdir(mixesDir, { recursive: true });
 	const sources = await Promise.all(
 		entries
-			.filter((name) => name.endsWith('.mdx'))
+			.filter((name) => name.endsWith('.mdx') && !path.basename(name).startsWith('_'))
 			.map((name) => fs.readFile(path.join(mixesDir, name), 'utf8')),
 	);
 

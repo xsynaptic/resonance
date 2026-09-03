@@ -3,27 +3,36 @@ import { getCollection } from 'astro:content';
 // Scan the collection once per build, not once per mix page
 let countsPromise: Promise<Map<string, number>> | undefined;
 
-export async function getDownloadCount(files: Array<string> | undefined): Promise<number> {
-	if (!files || files.length === 0) return 0;
+interface MixDownloads {
+	downloadsLegacy?: Record<string, number> | undefined;
+	files?: Array<string> | undefined;
+}
 
-	const counts = await getDownloadCounts();
+export async function getDownloadCount({ downloadsLegacy, files }: MixDownloads): Promise<number> {
+	const liveCounts = await getDownloadCounts();
+	const fileNames = files ?? [];
 
-	let total = 0;
+	let total = sumLegacyCounts(downloadsLegacy);
 
-	for (const file of files) {
-		total += counts.get(file) ?? 0;
+	for (const file of fileNames) {
+		total += liveCounts.get(file) ?? 0;
 	}
 
 	return total;
 }
 
 export async function getDownloadTotal(): Promise<number> {
-	const counts = await getDownloadCounts();
+	const liveCounts = await getDownloadCounts();
+	const mixes = await getCollection('mixes');
 
 	let total = 0;
 
-	for (const count of counts.values()) {
+	for (const count of liveCounts.values()) {
 		total += count;
+	}
+
+	for (const mix of mixes) {
+		total += sumLegacyCounts(mix.data.downloadsLegacy);
 	}
 
 	return total;
@@ -39,4 +48,16 @@ async function buildCounts(): Promise<Map<string, number>> {
 function getDownloadCounts(): Promise<Map<string, number>> {
 	if (!countsPromise) countsPromise = buildCounts();
 	return countsPromise;
+}
+
+function sumLegacyCounts(downloadsLegacy: Record<string, number> | undefined): number {
+	const counts = Object.values(downloadsLegacy ?? {});
+
+	let total = 0;
+
+	for (const count of counts) {
+		total += count;
+	}
+
+	return total;
 }

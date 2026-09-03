@@ -8,6 +8,7 @@ import type { ValidationResult } from './validation-result.js';
 import { getDataStoreCollection, loadDataStore } from '../shared/data-store.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
 import { validateBodyMarkers } from './body-markers.js';
+import { validateDownloadsLegacy } from './downloads-legacy.js';
 import { validateEntryIds } from './entry-ids.js';
 import { validateImages } from './images.js';
 import { validateLinkIds } from './link-ids.js';
@@ -67,6 +68,7 @@ const allEntries = getDataStoreCollection(collections, contentCollections);
 // Keys double as the CLI subcommand names
 const validations = {
 	'body-markers': () => validateBodyMarkers(getDataStoreCollection(collections, markerCollections)),
+	'downloads-legacy': () => validateDownloadsLegacy(getDataStoreCollection(collections, ['mixes'])),
 	'entry-ids': () => validateEntryIds(allEntries),
 	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
 	'link-ids': () =>

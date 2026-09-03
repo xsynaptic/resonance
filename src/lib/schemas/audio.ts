@@ -50,6 +50,8 @@ export const mixSchema = z
 		// Which persona the mix was published as, not who it is about, so it replaces `artists` here
 		alias: reference('artists').optional(),
 		commentsEnabled: z.boolean().optional(),
+		// Keyed on format, not filename: a filename is a delivery path and a rename must not orphan a count
+		downloadsLegacy: z.record(z.string(), z.number().int().nonnegative()).optional(),
 		files: z.string().array().optional(),
 		mixcloudEmbed: z.string().optional(),
 		soundcloudEmbed: z.string().optional(),

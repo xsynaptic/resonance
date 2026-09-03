@@ -7,7 +7,6 @@ import path from 'node:path';
 import { z } from 'zod';
 
 import { downloadsStatsPath } from '#constants.ts';
-import { readLegacyDownloadCounts } from '#lib/collections/downloads/downloads-legacy.ts';
 
 const downloadsDocumentSchema = z.object({
 	files: z.record(z.string(), z.unknown()).array(),
@@ -24,19 +23,10 @@ export function downloadsLoader(): Loader {
 
 			store.clear();
 
-			const legacy = await readLegacyDownloadCounts();
 			const live = await readLiveStats(logger);
 
-			if (legacy.size === 0 && live.size === 0) {
-				logger.warn('No download counts found; building without them');
-				return;
-			}
-
-			const ids = new Set([...legacy.keys(), ...live.keys()]);
-
-			for (const id of ids) {
-				const stats = live.get(id);
-				const completions = Number(stats?.completions ?? 0) + (legacy.get(id) ?? 0);
+			for (const [id, stats] of live) {
+				const completions = Number(stats.completions ?? 0);
 				const data = await context.parseData({ data: { ...stats, completions, key: id }, id });
 
 				store.set({ data, digest: context.generateDigest(data), id });
@@ -46,7 +36,7 @@ export function downloadsLoader(): Loader {
 	};
 }
 
-// Never fatal: live counts are decoration over the legacy record, which is the real one
+// Never fatal, and an absent file is the normal local state; the frozen counts live in mix frontmatter
 async function readLiveStats(logger: AstroIntegrationLogger): Promise<LiveStats> {
 	const filePath = path.resolve(downloadsStatsPath);
 	const stats: LiveStats = new Map();
@@ -60,7 +50,7 @@ async function readLiveStats(logger: AstroIntegrationLogger): Promise<LiveStats>
 			stats.set(String(file.key).replace(/^artifacts\//, ''), file);
 		}
 	} catch (error) {
-		logger.warn(`Ignoring downloads.json; building on legacy counts alone (${String(error)})`);
+		logger.warn(`Ignoring downloads.json; building without live counts (${String(error)})`);
 		stats.clear();
 	}
 

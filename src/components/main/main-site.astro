@@ -7,6 +7,7 @@ import '#styles/main.css';
 import MainAnalytics from '#components/main/main-analytics.astro';
 import MainFooter from '#components/main/main-footer.astro';
 import MainHeader from '#components/main/main-header.astro';
+import MainSkipLink from '#components/main/main-skip-link.astro';
 import MainSprites from '#components/main/main-sprites.astro';
 import MainTopButton from '#components/main/main-top-button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -52,6 +53,8 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 	<head>
 		<meta charset="utf-8" />
 		<meta content="width=device-width, initial-scale=1" name="viewport" />
+		<meta content="dark" name="color-scheme" />
+		<meta content="#2b3136" name="theme-color" />
 		<link href="/favicon.ico" rel="icon" sizes="32x32" />
 		<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
 		<link href="/apple-touch-icon.png" rel="apple-touch-icon" />
@@ -86,6 +89,7 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		}
 	</head>
 	<body class="relative flex min-h-screen flex-col">
+		<MainSkipLink />
 		<MainSprites />
 		<MainHeader hero={Boolean(heroSlot)} />
 		<main class="w-full flex-1 bg-surface-500" id="main-content">

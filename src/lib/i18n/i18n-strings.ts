@@ -119,6 +119,7 @@ const strings = {
 	'section.selection.links': 'Links:',
 	'section.tracklist.heading': 'Tracklist',
 	'site.pageTitle': '{title} · {siteTitle}',
+	'site.skipLink': 'Skip to content',
 	'topButton.label': 'Back to top',
 } as const satisfies Record<string, string>;
 

@@ -19,6 +19,7 @@
 		"content-schemas": "tsx ./src/content-schemas/index.ts",
 		"generate-redirects": "tsx ./src/generate-redirects/index.ts",
 		"og-image": "tsx ./src/og-image/og-image.cli.ts",
+		"mixcloud-stats": "tsx ./src/mixcloud/mixcloud-stats.cli.ts",
 		"validate-content": "tsx ./src/validate-content/index.ts"
 	},
 	"devDependencies": {

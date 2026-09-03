@@ -34,6 +34,7 @@
 		"content-schemas": "astro sync && pnpm -F @xsynaptic/scripts content-schemas",
 		"generate-redirects": "astro sync && pnpm -F @xsynaptic/scripts generate-redirects",
 		"og-image": "pnpm -F @xsynaptic/scripts og-image",
+		"mixcloud-stats": "pnpm -F @xsynaptic/scripts mixcloud-stats",
 		"validate-content": "astro sync && pnpm -F @xsynaptic/scripts validate-content"
 	},
 	"imports": {

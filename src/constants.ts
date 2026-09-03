@@ -12,3 +12,6 @@ export const downloadsStatsPath = './packages/content/downloads.json';
 export const legacyDownloadsPath = './packages/content/data/legacy-downloads.yaml';
 
 export const listPageSize = 24;
+
+// Pulled via `pnpm mixcloud-stats` and committed, so a build never reaches Mixcloud
+export const mixcloudStatsPath = './packages/content/mixcloud-stats.json';

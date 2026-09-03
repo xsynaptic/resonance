@@ -6,11 +6,11 @@ import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	downloads?: number | undefined;
-	plays?: number | undefined;
+	mixcloudPlays?: number | undefined;
 	streams?: number | undefined;
 }
 
-const { downloads, plays, streams } = Astro.props;
+const { downloads, mixcloudPlays, streams } = Astro.props;
 
 function toCount(keys: { one: StringKey; other: StringKey }, value: number | undefined) {
 	if (!value) return;
@@ -23,7 +23,7 @@ function toCount(keys: { one: StringKey; other: StringKey }, value: number | und
 const counts = [
 	toCount({ one: 'audio.downloads.one', other: 'audio.downloads.other' }, downloads),
 	toCount({ one: 'audio.streams.one', other: 'audio.streams.other' }, streams),
-	toCount({ one: 'audio.plays.one', other: 'audio.plays.other' }, plays),
+	toCount({ one: 'audio.mixcloudPlays.one', other: 'audio.mixcloudPlays.other' }, mixcloudPlays),
 ].filter((count) => count !== undefined);
 ---
 

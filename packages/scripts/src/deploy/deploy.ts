@@ -11,6 +11,7 @@ import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
 import { backupIfStale } from '../comments/backup.js';
 import { printPendingCount } from '../comments/moderate.js';
+import { pullMixcloudStats } from '../mixcloud/mixcloud-stats.js';
 import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
@@ -138,6 +139,7 @@ try {
 
 	// Soft-fail by design: fresh counts are nice, a deploy blocked on them is not
 	await pullStats({ config, dryRun: isDryRun, rootPath });
+	await pullMixcloudStats({ dryRun: isDryRun, rootPath });
 
 	await backupIfStale(rootPath);
 	await printPendingCount(rootPath);

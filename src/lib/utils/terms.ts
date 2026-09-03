@@ -15,7 +15,7 @@ export interface ResolvedRef {
 	url?: string;
 }
 
-// Every collection with a `title` field; `comments` and `downloads` are data-only (no title, no routes)
+// Every collection with a `title` field. excluding those that are data-only
 export type TitledCollectionKey = Exclude<CollectionKey, 'comments' | 'downloads'>;
 
 // Cache id->title per collection so ref resolution is one build-time scan per collection

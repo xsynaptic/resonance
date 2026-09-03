@@ -41,7 +41,7 @@ const { date, description, imageFeatured, imageHero, kind, openGraphId, styles, 
 		) : undefined
 	}
 	<article data-pagefind-body>
-		{imageFeatured ? <SearchThumbnail path={imageFeatured} /> : undefined}
+		<SearchThumbnail path={imageFeatured} />
 		{
 			imageHero ? undefined : (
 				<div class="mb-10 content-measure">

@@ -15,7 +15,6 @@ const { class: className, date, href, image, subtitle, title } = Astro.props;
 ---
 
 <div class:list={['h-full rounded-lg border border-surface-700 bg-surface-600 p-2', className]}>
-	{/* The frame holds the card's shape when an original is missing, which is routine in dev */}
 	{
 		image ? (
 			<a

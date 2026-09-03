@@ -50,7 +50,7 @@ const sections = await renderSlot(Astro.slots, 'sections');
 	{...description ? { description } : {}}
 >
 	<article data-pagefind-body>
-		{image ? <SearchThumbnail path={image} /> : undefined}
+		<SearchThumbnail path={image} />
 		<SectionDetailHeader
 			date={date}
 			kind={kind}

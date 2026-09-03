@@ -1,0 +1,42 @@
+---
+import { getImage } from 'astro:assets';
+
+import { getMediaImage } from '#lib/utils/media.ts';
+
+interface Props {
+	path?: string | undefined;
+}
+
+const { path } = Astro.props;
+
+// Pagefind renders result thumbnails at 64×48 (4:3) via `--pf-image-width` / `--pf-image-height`
+const thumbnailWidth = 64;
+const thumbnailAspectRatio = 4 / 3;
+
+const image = path ? getMediaImage(path) : undefined;
+
+// An absent `image` lets Pagefind scrape the body's first one, reaching past `data-pagefind-ignore` for a commenter's avatar; the empty branch below forecloses that
+const thumbnails = image
+	? await Promise.all(
+			[thumbnailWidth, thumbnailWidth * 2].map((width) =>
+				getImage({
+					fit: 'cover',
+					height: Math.round(width / thumbnailAspectRatio),
+					src: image,
+					width,
+				}),
+			),
+		)
+	: undefined;
+---
+
+{
+	thumbnails ? (
+		<Fragment>
+			<meta content={thumbnails[0]?.src} data-pagefind-meta="image[content]" />
+			<meta content={thumbnails[1]?.src} data-pagefind-meta="image_2x[content]" />
+		</Fragment>
+	) : (
+		<meta content="" data-pagefind-meta="image[content]" />
+	)
+}

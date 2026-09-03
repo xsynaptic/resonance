@@ -68,6 +68,9 @@ const year = new Date().getFullYear();
 		{formatStringTemplate(t('footer.copyright'), { year })} · {t('footer.poweredBy')}{' '}<a
 			class="text-ink-600 hover:text-highlight-400 focus-visible:text-highlight-400"
 			href="https://astro.build">{t('footer.astro')}</a
+		> · <a
+			class="text-ink-600 hover:text-highlight-400 focus-visible:text-highlight-400"
+			href="/rss.xml">{t('footer.feed')}</a
 		>
 	</div>
 </footer>

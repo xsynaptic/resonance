@@ -4,22 +4,45 @@ import type { HTMLAttributes } from 'astro/types';
 interface Props extends Omit<HTMLAttributes<'iframe'>, 'height' | 'src' | 'title'> {
 	/** CSS aspect-ratio (e.g. '16 / 9') for video; takes precedence over height */
 	aspectRatio?: string;
+	/** Where a feed sends the reader, since feed readers strip iframes */
+	feedHref: string;
+	feedLabel: string;
 	/** Fixed pixel height for audio players */
 	height?: number;
 	src: string;
 	title: string;
 }
 
-const { aspectRatio, class: className, height = 120, src, title, ...props } = Astro.props;
+const {
+	aspectRatio,
+	class: className,
+	feedHref,
+	feedLabel,
+	height = 120,
+	src,
+	title,
+	...props
+} = Astro.props;
+
+const { isFeed } = Astro.locals;
 
 const style = aspectRatio ? `aspect-ratio: ${aspectRatio};` : `height: ${String(height)}px;`;
 ---
 
-<div class:list={['embed-frame', className]} style={style}>
-	<iframe
-		allow="autoplay; encrypted-media; fullscreen"
-		loading="lazy"
-		src={src}
-		title={title}
-		{...props}></iframe>
-</div>
+{
+	isFeed ? (
+		<p>
+			<a href={feedHref}>{feedLabel}</a>
+		</p>
+	) : (
+		<div class:list={['embed-frame', className]} style={style}>
+			<iframe
+				allow="autoplay; encrypted-media; fullscreen"
+				loading="lazy"
+				src={src}
+				title={title}
+				{...props}
+			/>
+		</div>
+	)
+}

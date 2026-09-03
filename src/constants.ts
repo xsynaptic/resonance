@@ -8,6 +8,9 @@ export const contentExcerptMarker = '<!--more-->';
 // Pulled via `pnpm stats-pull`; may not exist locally
 export const downloadsStatsPath = './packages/content/downloads.json';
 
+// Every feed item is a full off-page MDX render, so the count is the build cost
+export const feedItemCount = 20;
+
 // Frozen pre-launch counts; hand-edited from here on
 export const legacyDownloadsPath = './packages/content/data/legacy-downloads.yaml';
 

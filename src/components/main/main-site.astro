@@ -59,6 +59,12 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
 		<link href="/apple-touch-icon.png" rel="apple-touch-icon" />
 		<link href={new URL('sitemap-index.xml', Astro.site).href} rel="sitemap" />
+		<link
+			href={new URL('rss.xml', Astro.site).href}
+			rel="alternate"
+			title={site.title}
+			type="application/rss+xml"
+		/>
 		<Font cssVariable="--font-archivo" preload />
 		<Font cssVariable="--font-fira-sans" preload />
 		<link href={pageUrl} rel="canonical" />

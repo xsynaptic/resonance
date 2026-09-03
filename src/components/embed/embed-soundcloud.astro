@@ -21,4 +21,10 @@ const src = `https://w.soundcloud.com/player/?${params.toString()}`;
 const height = isSet ? 300 : 166;
 ---
 
-<EmbedFrame height={height} src={src} title={t('embed.soundcloud.title')} />
+<EmbedFrame
+	feedHref={url}
+	feedLabel={t('embed.soundcloud.feedLink')}
+	height={height}
+	src={src}
+	title={t('embed.soundcloud.title')}
+/>

@@ -28,4 +28,14 @@ if (!videoId && import.meta.env.DEV) console.warn(`[youtube] invalid url: ${url}
 const src = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : undefined;
 ---
 
-{src ? <EmbedFrame aspectRatio="16 / 9" src={src} title={t('embed.youtube.title')} /> : undefined}
+{
+	src ? (
+		<EmbedFrame
+			aspectRatio="16 / 9"
+			feedHref={url}
+			feedLabel={t('embed.youtube.feedLink')}
+			src={src}
+			title={t('embed.youtube.title')}
+		/>
+	) : undefined
+}

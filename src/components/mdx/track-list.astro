@@ -24,6 +24,8 @@ interface TrackRow {
 
 const { tracks } = Astro.props;
 
+const { isFeed } = Astro.locals;
+
 async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
 	const [artists, labels, mixArtists] = await Promise.all([
 		resolveRefs('artists', toRefArray(track.artists)),
@@ -50,6 +52,22 @@ function padOrdinal(position: string): string {
 	return /^\d$/.test(position) ? `0${position}` : position;
 }
 
+// Every separator on the styled markup comes from CSS, so a feed gets one text line per track
+function toFeedLine(row: TrackRow): string {
+	const artists = row.artists.map((ref) => ref.label).join(' / ');
+	const remix =
+		row.remixCredit.length > 0
+			? ` (${row.remixCredit.map((ref) => ref.label).join(' / ')} remix)`
+			: '';
+	const labels = row.labels.map((ref) => ref.label).join(' / ');
+	const meta = row.hasMeta ? ` (${labels}${row.metaSeparator}${row.year ?? ''})` : '';
+	const time = row.time ? ` [${row.time}]` : '';
+	// The list numbers itself, so only a vinyl side ("A1") is worth spelling out
+	const position = /^\d+$/.test(row.position) ? '' : `${row.position}. `;
+
+	return `${position}${artists === '' ? '' : `${artists} - `}${row.title}${remix}${meta}${time}`;
+}
+
 // Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
 // Suppress the credit only when every named artist appears, so a partial group still renders
 function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array<ResolvedRef> {
@@ -65,7 +83,19 @@ const rows = await Promise.all((tracks ?? []).map(buildRow));
 ---
 
 {
-	rows.length > 0 ? (
+	isFeed && rows.length > 0 ? (
+		<section>
+			<h2>{t('section.tracklist.heading')}</h2>
+			<ol>
+				{rows.map((row) => (
+					<li>{toFeedLine(row)}</li>
+				))}
+			</ol>
+		</section>
+	) : undefined
+}
+{
+	!isFeed && rows.length > 0 ? (
 		<section class="my-8">
 			<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 			<ol class="track-list">

@@ -9,19 +9,24 @@ interface Props {
 
 const { alt = '', src } = Astro.props;
 
-const sizes = '(min-width: 48rem) 48rem, 100vw';
+const { isFeed } = Astro.locals;
 
 // A caption is the slot content; WP recorded one on 23 attachments and nothing else
 const caption = await renderSlot(Astro.slots);
+
+// A feed reader lays out one intrinsic width, so `none` emits a plain img with width and height
+const imageProps = isFeed
+	? ({ layout: 'none', width: 900 } as const)
+	: ({ layout: 'constrained', sizes: '(min-width: 48rem) 48rem, 100vw', width: 1200 } as const);
 ---
 
 {
 	caption ? (
 		<figure class="img-figure">
-			<MediaImage alt={alt} class="block rounded" path={src} sizes={sizes} width={1200} />
+			<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
 			<figcaption class="img-caption" set:html={caption} />
 		</figure>
 	) : (
-		<MediaImage alt={alt} class="block rounded" path={src} sizes={sizes} width={1200} />
+		<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
 	)
 }

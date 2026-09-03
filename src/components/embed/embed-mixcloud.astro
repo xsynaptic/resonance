@@ -28,4 +28,14 @@ const src = params ? `https://www.mixcloud.com/widget/iframe/?${params.toString(
 const height = mini ? 60 : 120;
 ---
 
-{src ? <EmbedFrame height={height} src={src} title={t('embed.mixcloud.title')} /> : undefined}
+{
+	src ? (
+		<EmbedFrame
+			feedHref={url}
+			feedLabel={t('embed.mixcloud.feedLink')}
+			height={height}
+			src={src}
+			title={t('embed.mixcloud.title')}
+		/>
+	) : undefined
+}

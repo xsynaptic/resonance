@@ -1,10 +1,11 @@
 {
 	"name": "@xsynaptic/shared",
 	"version": "1.0.0",
-	"description": "Constants shared between the Resonance app and its build scripts",
+	"description": "Code shared between the Resonance app and its build scripts",
 	"type": "module",
 	"private": true,
 	"exports": {
+		"./comments": "./src/comments/index.ts",
 		"./constants": "./src/constants.ts",
 		"./schemas": "./src/schemas/index.ts"
 	},

@@ -20,6 +20,7 @@
 		"audio-renditions": "pnpm -F @xsynaptic/scripts audio-renditions",
 		"audio-waveforms": "pnpm -F @xsynaptic/scripts audio-waveforms",
 		"backfill-downloads": "astro sync && pnpm -F @xsynaptic/scripts backfill-downloads",
+		"comments": "pnpm -F @xsynaptic/scripts comments",
 		"comments-backup": "pnpm -F @xsynaptic/scripts comments-backup",
 		"comments-import": "pnpm -F @xsynaptic/scripts comments-import",
 		"deploy-app": "pnpm -F @xsynaptic/scripts deploy-app",

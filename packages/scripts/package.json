@@ -5,6 +5,7 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
+		"comments": "tsx ./src/comments/moderate.cli.ts",
 		"comments-backup": "tsx ./src/comments/backup.cli.ts",
 		"comments-import": "tsx ./src/comments/import-legacy.cli.ts",
 		"audio-validate": "tsx ./src/audio/validate.cli.ts",

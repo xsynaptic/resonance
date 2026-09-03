@@ -6,6 +6,7 @@ import { $ } from 'zx';
 import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
+import { printBackupReminder } from '../comments/backup.js';
 import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
@@ -65,9 +66,10 @@ async function healthCheck(validatedFiles: Array<string>): Promise<void> {
 		throw new Error(`Audio Range probe expected 206, got ${String(filesResponse.status)}`);
 	}
 
-	const acceptRanges = filesResponse.headers.get('accept-ranges');
-	if (acceptRanges !== 'bytes') {
-		throw new Error(`Audio probe missing 'Accept-Ranges: bytes' (got '${String(acceptRanges)}')`);
+	// nginx omits Accept-Ranges from a 206, so Content-Range is the proof
+	const contentRange = filesResponse.headers.get('content-range');
+	if (contentRange === null) {
+		throw new Error(`Audio probe returned 206 without a 'Content-Range' header`);
 	}
 
 	const contentType = filesResponse.headers.get('content-type') ?? '';
@@ -75,7 +77,7 @@ async function healthCheck(validatedFiles: Array<string>): Promise<void> {
 		throw new Error(`Audio probe Content-Type is not audio/* (got '${contentType}')`);
 	}
 
-	console.log(chalk.green('  Files OK (206, Accept-Ranges: bytes, audio/*)'));
+	console.log(chalk.green(`  Files OK (206, ${contentRange}, ${contentType})`));
 }
 
 try {
@@ -95,6 +97,8 @@ try {
 
 	// Soft-fail by design: fresh counts are nice, a deploy blocked on them is not
 	await pullStats({ dryRun: isDryRun, rootPath });
+
+	await printBackupReminder(rootPath);
 
 	await build();
 

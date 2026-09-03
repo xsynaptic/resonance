@@ -8,12 +8,15 @@ import { rsyncTo } from './rsync-exec.js';
 
 const rsyncExcludes = ['.DS_Store', '*.tmp', '.gitkeep'];
 
+// The remote host serves other traffic; nice this side so rsync never wins the CPU
+// ionice is inert under mq-deadline but stays correct if the scheduler ever changes
+const rsyncRemotePath = ['--rsync-path=ionice -c3 nice -n19 rsync'];
+
 interface DeployAudioOptions {
 	dryRun?: boolean;
 	rootPath: string;
 }
 
-// Upload originals to /artifacts/ and streaming renditions to /stream/
 // mtime+size, not checksum: audio is append-only and multi-gigabyte, so a no-op run is near-instant
 // Never --delete, so a local mistake can't wipe the remote archive
 export async function deployAudio(options: DeployAudioOptions): Promise<void> {
@@ -44,7 +47,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 		config,
 		dryRun,
 		excludes: rsyncExcludes,
-		extraFlags: ['--partial'],
+		extraFlags: ['--partial', ...rsyncRemotePath],
 	});
 
 	if (await isPathPresent(streamsPath)) {
@@ -58,7 +61,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<void> {
 			config,
 			dryRun,
 			excludes: rsyncExcludes,
-			extraFlags: ['--partial'],
+			extraFlags: ['--partial', ...rsyncRemotePath],
 		});
 	} else {
 		console.log(

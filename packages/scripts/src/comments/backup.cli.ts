@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 import { findWorkspaceRoot } from '../shared/utils.js';
-import { rebuildProjection } from './projection.js';
+import { backupComments } from './backup.js';
 
-await rebuildProjection({
+await backupComments({
 	isLocal: process.argv.includes('--local'),
 	rootPath: findWorkspaceRoot(),
 });

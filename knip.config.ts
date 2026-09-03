@@ -3,6 +3,10 @@
 import type { KnipConfig } from 'knip';
 
 export default {
+	ignoreIssues: {
+		// `getDownloadTotal` has no consumer until the site-wide total is given a home on a page
+		'src/lib/collections/downloads/downloads-data.ts': ['exports'],
+	},
 	workspaces: {
 		'.': {
 			entry: [
@@ -14,8 +18,6 @@ export default {
 			ignoreDependencies: [
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })
 				'eslint-plugin-jsx-a11y',
-				// Used via wrangler.jsonc and the deploy script, neither traceable
-				'wrangler',
 			],
 		},
 		'packages/content': {
@@ -28,7 +30,7 @@ export default {
 		},
 		'packages/scripts': {
 			ignoreBinaries: ['audiowaveform', 'ffmpeg', 'ffprobe', 'ssh-add'],
-			ignoreDependencies: ['mysql2', '@fontsource/.+', '@types/react', 'react'],
+			ignoreDependencies: ['@fontsource/.+', '@types/react', 'react'],
 		},
 	},
 } satisfies KnipConfig;

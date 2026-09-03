@@ -2,7 +2,5 @@
 pnpm-lock.yaml
 dist
 .astro
-packages/content/_archive
-packages/scripts/src/wp-extract
 worker-configuration.d.ts
 *.sql

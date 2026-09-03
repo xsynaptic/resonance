@@ -44,5 +44,4 @@ backups/
 
 
 # temp
-deploy/nginx/sites-enabled/
 packages/scripts/src/stats/

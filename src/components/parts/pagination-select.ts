@@ -29,13 +29,15 @@ class PaginationSelect extends HTMLElement {
 
 	#buildOptions(lastPage: number): Array<HTMLOptionElement> {
 		const currentPage = Number(this.dataset.currentPage);
+		// Handed over as an attribute so the string dictionary stays out of the client bundle
+		const pageLabel = this.dataset.pageLabel ?? 'Page {page}';
 		const options: Array<HTMLOptionElement> = [];
 
 		for (let pageNumber = 1; pageNumber <= lastPage; pageNumber++) {
 			const option = document.createElement('option');
 
 			option.value = String(pageNumber);
-			option.textContent = `Page ${String(pageNumber)}`;
+			option.textContent = pageLabel.replace('{page}', () => String(pageNumber));
 			option.selected = pageNumber === currentPage;
 			if (pageNumber === currentPage) option.dataset.currentPage = '';
 

@@ -19,6 +19,7 @@ export const postSchema = z
 		...contentBaseSchema,
 		...termFields,
 		...selectionFields,
+		commentsEnabled: z.boolean().optional(),
 		format: reference('formats').optional(),
 	})
 	.strict();

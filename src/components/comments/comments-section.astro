@@ -1,0 +1,33 @@
+---
+import type { CommentsCollection } from '#lib/collections/comments/comments-data.ts';
+
+import CommentList from '#components/comments/comment-list.astro';
+import { getEntryComments } from '#lib/collections/comments/comments-data.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
+
+interface Props {
+	collection: CommentsCollection;
+	entryId: string;
+}
+
+const { collection, entryId } = Astro.props;
+
+const { count, thread } = await getEntryComments(collection, entryId);
+
+const heading =
+	count === 1
+		? t('comments.heading.one')
+		: formatStringTemplate(t('comments.heading.other'), { count });
+---
+
+{
+	count > 0 ? (
+		<section aria-labelledby="comments-heading" class="mt-16 content-measure" id="comments">
+			<h2 class="heading-section mb-6" id="comments-heading">
+				{heading}
+			</h2>
+			<CommentList comments={thread} />
+		</section>
+	) : undefined
+}

@@ -2,8 +2,10 @@ import { glob } from 'astro/loaders';
 import { defineCollection } from 'astro:content';
 
 import { contentCollectionsPath } from '#constants.ts';
+import { commentsLoader } from '#lib/collections/comments/comments-loader.ts';
 import { downloadsLoader } from '#lib/collections/downloads/downloads-loader.ts';
 import { mixSchema, reviewSchema } from '#lib/schemas/audio.ts';
+import { commentsSchema } from '#lib/schemas/comments.ts';
 import { pageSchema, postSchema } from '#lib/schemas/documents.ts';
 import { downloadStatsSchema } from '#lib/schemas/downloads.ts';
 import {
@@ -27,6 +29,7 @@ function collectionLoader(name: string) {
 
 export const collections = {
 	artists: defineCollection({ loader: collectionLoader('artists'), schema: artistSchema }),
+	comments: defineCollection({ loader: commentsLoader(), schema: commentsSchema }),
 	downloads: defineCollection({ loader: downloadsLoader(), schema: downloadStatsSchema }),
 	eras: defineCollection({ loader: collectionLoader('eras'), schema: eraSchema }),
 	formats: defineCollection({ loader: collectionLoader('formats'), schema: formatSchema }),

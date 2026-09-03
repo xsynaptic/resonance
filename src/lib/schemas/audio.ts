@@ -49,6 +49,7 @@ export const mixSchema = z
 		...audioFields,
 		// Which persona the mix was published as, not who it is about, so it replaces `artists` here
 		alias: reference('artists').optional(),
+		commentsEnabled: z.boolean().optional(),
 		files: z.string().array().optional(),
 		mixcloudEmbed: z.string().optional(),
 		soundcloudEmbed: z.string().optional(),
@@ -60,6 +61,7 @@ export const reviewSchema = z
 		...contentBaseSchema,
 		...termFields,
 		...audioFields,
+		commentsEnabled: z.boolean().optional(),
 		discogsUrl: z.string().optional(),
 		rating: z.number().min(1).max(100).optional(),
 		// Reviews only: on a mix releaseTitle duplicates title and releaseYear duplicates its date

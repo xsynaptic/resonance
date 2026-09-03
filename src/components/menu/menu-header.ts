@@ -18,6 +18,7 @@ export const menuHeaderItems = [
 	{
 		children: [
 			{ rel: 'me', title: 'Facebook', url: 'https://www.facebook.com/dj.basilisk' },
+			{ rel: 'me', title: 'Instagram', url: 'https://www.instagram.com/djbasilisk' },
 			{ rel: 'me', title: 'Mixcloud', url: 'https://www.mixcloud.com/basilisk/' },
 			{ rel: 'me', title: 'SoundCloud', url: 'https://soundcloud.com/djbasilisk' },
 		],

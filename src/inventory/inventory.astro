@@ -473,7 +473,7 @@ const paginationPage: Page<ContentItem> = {
 			note="Auto-imported into MDX bodies, and the only image tag content authors write."
 			source="src/components/mdx/img.astro"
 		>
-			<div class="prose-x">{heroPath ? <Img id={heroPath} /> : undefined}</div>
+			<div class="prose-x">{heroPath ? <Img src={heroPath} /> : undefined}</div>
 		</Specimen>
 		<Specimen
 			name="ImgGroup"
@@ -482,7 +482,7 @@ const paginationPage: Page<ContentItem> = {
 		>
 			<div class="prose-x">
 				<ImgGroup imageCount={imagePaths.length}>
-					{imagePaths.map((path) => <Img id={path} />)}
+					{imagePaths.map((path) => <Img src={path} />)}
 				</ImgGroup>
 			</div>
 		</Specimen>

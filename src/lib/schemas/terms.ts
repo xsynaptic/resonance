@@ -8,8 +8,8 @@ import { RefSchema } from '#lib/schemas/refs.ts';
 const termBaseSchema = {
 	imageFeatured: z.string().optional(),
 	imageHero: z.string().optional(),
+	links: z.string().array().optional(),
 	nameVariant: z.string().optional(),
-	termLinks: z.string().array().optional(),
 	title: TitleSchema,
 };
 

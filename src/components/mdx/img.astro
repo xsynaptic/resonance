@@ -4,10 +4,10 @@ import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
 	alt?: string | undefined;
-	id: string;
+	src: string;
 }
 
-const { alt = '', id } = Astro.props;
+const { alt = '', src } = Astro.props;
 
 const sizes = '(min-width: 48rem) 48rem, 100vw';
 
@@ -18,10 +18,10 @@ const caption = await renderSlot(Astro.slots);
 {
 	caption ? (
 		<figure class="img-figure">
-			<MediaImage alt={alt} class="block rounded" path={id} sizes={sizes} width={1200} />
+			<MediaImage alt={alt} class="block rounded" path={src} sizes={sizes} width={1200} />
 			<figcaption class="img-caption" set:html={caption} />
 		</figure>
 	) : (
-		<MediaImage alt={alt} class="block rounded" path={id} sizes={sizes} width={1200} />
+		<MediaImage alt={alt} class="block rounded" path={src} sizes={sizes} width={1200} />
 	)
 }

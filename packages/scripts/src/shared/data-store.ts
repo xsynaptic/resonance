@@ -55,6 +55,16 @@ export function loadDataStore(dataStorePath: string): DataStoreCollections {
 	return devalue.parse(readFileSync(dataStorePath, 'utf8')) as DataStoreCollections;
 }
 
+export function toFormerIds(entry: DataStoreEntry): Array<string> {
+	const formerIds: unknown = entry.data.formerIds;
+
+	if (!Array.isArray(formerIds)) return [];
+
+	return (formerIds as Array<unknown>).filter(
+		(value): value is string => typeof value === 'string',
+	);
+}
+
 // Free text in the polymorphic artist and label refs is a bare string, carrying no id to collect
 // A scalar is accepted alongside an array because a track's `artists` is written either way
 export function toReferenceIds(value: unknown): Array<string> {

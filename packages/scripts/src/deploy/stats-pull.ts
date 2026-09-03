@@ -1,7 +1,8 @@
 import chalk from 'chalk';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { isPathPresent } from '../shared/utils.js';
 import { loadDeployConfig } from './deploy-config.js';
 import { rsyncFrom } from './rsync-exec.js';
 
@@ -46,12 +47,41 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 				dryRun,
 			},
 		);
+		await rsyncFrom(`${config.remoteHost}:${remoteStatsDir}/run.log`, `${backupDir}/run.log`, {
+			archive: 'av',
+			config,
+			dryRun,
+		});
 		console.log(chalk.green(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`));
+
+		if (!dryRun) await reportFreshness(jsonDir, backupDir);
 	} catch (error) {
 		console.log(
 			chalk.yellow(
 				`Stats pull failed; continuing with the last local downloads.json (if any): ${String(error)}`,
 			),
 		);
+	}
+}
+
+async function reportFreshness(jsonDir: string, backupDir: string): Promise<void> {
+	const jsonPath = path.join(jsonDir, 'downloads.json');
+	const runLogPath = path.join(backupDir, 'run.log');
+
+	if (await isPathPresent(jsonPath)) {
+		const document = JSON.parse(await readFile(jsonPath, 'utf8')) as { generated_at?: string };
+
+		console.log(chalk.gray(`  Generated ${document.generated_at ?? 'unknown'}`));
+	}
+
+	if (!(await isPathPresent(runLogPath))) return;
+
+	const runLog = await readFile(runLogPath, 'utf8');
+	const lines = runLog.trimEnd().split('\n');
+	const lastRun = lines.at(-1)?.slice(0, 20) ?? '';
+	const latest = lines.filter((line) => line.startsWith(lastRun));
+
+	for (const line of latest) {
+		console.log(line.includes('WARNING') ? chalk.yellow(`  ${line}`) : chalk.gray(`  ${line}`));
 	}
 }

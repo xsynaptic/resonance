@@ -9,7 +9,7 @@ describe('collectMissingImageIssues', () => {
 	test('accepts frontmatter, nested selection and body references that exist', () => {
 		const entries = [
 			makeEntry({
-				body: '<Img id="2015/11/original.jpg">Original scale</Img>',
+				body: '<Img src="2015/11/original.jpg">Original scale</Img>',
 				data: {
 					imageFeatured: '2010/04/cover.jpg',
 					selections: [{ imageFeatured: '2015/11/original.jpg' }],
@@ -24,7 +24,7 @@ describe('collectMissingImageIssues', () => {
 	test('reports each reference with no file behind it', () => {
 		const entries = [
 			makeEntry({
-				body: '<Img id="2011/01/gone.jpg" />',
+				body: '<Img src="2011/01/gone.jpg" />',
 				data: { imageFeatured: [{ hero: true, id: '2010/04/typo.jpg' }] },
 				filePath: 'collections/posts/2011/a-post.mdx',
 				id: 'a-post',

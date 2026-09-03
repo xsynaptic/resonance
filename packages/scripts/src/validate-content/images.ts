@@ -10,7 +10,7 @@ import { toValidationResult } from './validation-result.js';
 // Media paths are relative to packages/content/_media and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image
 const imageExtensions = /\.(avif|gif|jpe?g|png|webp)$/i;
-const imgTagRegex = /<Img\s+[^>]*id=["']([^"']+)["']/g;
+const imgTagRegex = /<Img\s+[^>]*src=["']([^"']+)["']/g;
 
 interface MissingImageIssue {
 	imagePath: string;

@@ -1,6 +1,6 @@
-import type { DataStoreCollections, DataStoreEntry } from '../shared/data-store.js';
+import type { DataStoreCollections } from '../shared/data-store.js';
 
-import { getDataStoreCollection } from '../shared/data-store.js';
+import { getDataStoreCollection, toFormerIds } from '../shared/data-store.js';
 
 // Where each collection's detail pages live; mirrors `getContentUrl` in lib/utils/routing.ts
 // Terms carry no formerIds: their slugs never changed, only the base path they sit under
@@ -61,15 +61,5 @@ function collectLivePaths(collections: DataStoreCollections): Set<string> {
 		collectionPrefixes.flatMap(([collection, prefix]) =>
 			getDataStoreCollection(collections, [collection]).map((entry) => `${prefix}${entry.id}/`),
 		),
-	);
-}
-
-function toFormerIds(entry: DataStoreEntry): Array<string> {
-	const formerIds: unknown = entry.data.formerIds;
-
-	if (!Array.isArray(formerIds)) return [];
-
-	return (formerIds as Array<unknown>).filter(
-		(value): value is string => typeof value === 'string',
 	);
 }

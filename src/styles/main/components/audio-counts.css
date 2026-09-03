@@ -1,0 +1,13 @@
+.audio-counts {
+	display: flex;
+	flex-wrap: wrap;
+	column-gap: calc(var(--spacing) * 2);
+	font-size: var(--text-sm);
+	color: var(--color-ink-600);
+}
+
+.audio-counts > * + *::before {
+	margin-inline-end: calc(var(--spacing) * 2);
+	color: var(--color-ink-700);
+	content: var(--content-dot);
+}

@@ -1,0 +1,38 @@
+---
+import type { StringKey } from '#lib/i18n/i18n-strings.ts';
+
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
+
+interface Props {
+	downloads?: number | undefined;
+	plays?: number | undefined;
+	streams?: number | undefined;
+}
+
+const { downloads, plays, streams } = Astro.props;
+
+function toCount(keys: { one: StringKey; other: StringKey }, value: number | undefined) {
+	if (!value) return;
+
+	return formatStringTemplate(t(value === 1 ? keys.one : keys.other), {
+		count: formatNumber({ number: value }),
+	});
+}
+
+const counts = [
+	toCount({ one: 'audio.downloads.one', other: 'audio.downloads.other' }, downloads),
+	toCount({ one: 'audio.streams.one', other: 'audio.streams.other' }, streams),
+	toCount({ one: 'audio.plays.one', other: 'audio.plays.other' }, plays),
+].filter((count) => count !== undefined);
+---
+
+{
+	counts.length > 0 ? (
+		<ul aria-label={t('audio.countsLabel')} class="audio-counts mt-2">
+			{counts.map((count) => (
+				<li>{count}</li>
+			))}
+		</ul>
+	) : undefined
+}

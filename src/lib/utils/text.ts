@@ -8,6 +8,18 @@ const entities: Record<string, string> = {
 	'&quot;': '"',
 };
 
+export function formatNumber({
+	locales,
+	number,
+	options,
+}: {
+	locales?: Intl.LocalesArgument | undefined;
+	number: number | string;
+	options?: Intl.NumberFormatOptions | undefined;
+}) {
+	return new Intl.NumberFormat(locales ?? 'en', options).format(Number(number));
+}
+
 export function formatStringTemplate(
 	template: string,
 	values: Record<string, number | string> = {},

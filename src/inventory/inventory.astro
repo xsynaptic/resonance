@@ -13,6 +13,7 @@ import Img from '#components/mdx/img.astro';
 import Selections from '#components/mdx/selections.astro';
 import TrackList from '#components/mdx/track-list.astro';
 import Anchor from '#components/parts/anchor.astro';
+import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import ButtonLink from '#components/parts/button-link.astro';
@@ -43,7 +44,6 @@ import './inventory.css';
 const {
 	artists,
 	card,
-	downloadCounts,
 	excerpt,
 	formats,
 	heroPath,
@@ -503,19 +503,20 @@ const paginationPage: Page<ContentItem> = {
 	<Section title="Audio">
 		<Specimen
 			name="AudioLinks"
-			note="External links first, then a row per downloadable file. A file gets a paired CUE button only when the mix carries timestamps, and a download count only once the stats job is running."
+			note="External links first, then a row per downloadable file. A file gets a paired CUE button only when the mix carries timestamps."
 			source="src/components/parts/audio-links.astro"
 		>
-			{
-				mix ? (
-					<AudioLinks
-						cueSlug={mix.cueSlug}
-						downloadCounts={downloadCounts}
-						files={mix.files}
-						links={mix.links}
-					/>
-				) : undefined
-			}
+			{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="AudioCounts"
+			note="One figure per mix, never a sum: a download, a stream and a play are three different acts. Only downloads carries data today, so the real value is first and the other two are fixtures."
+			source="src/components/parts/audio-counts.astro"
+		>
+			{mix ? <AudioCounts downloads={mix.downloads} plays={38_216} streams={1204} /> : undefined}
+		</Specimen>
+		<Specimen name="AudioCounts" note="A single of each, to check the pluralisation.">
+			<AudioCounts downloads={1} plays={1} streams={1} />
 		</Specimen>
 		<Specimen name="EmbedMixcloud" source="src/components/embed/embed-mixcloud.astro">
 			{mixcloudUrl ? <EmbedMixcloud url={mixcloudUrl} /> : undefined}

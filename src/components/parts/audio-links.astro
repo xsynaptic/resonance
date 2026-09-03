@@ -9,12 +9,11 @@ import { formatStringTemplate } from '#lib/utils/text.ts';
 interface Props {
 	// Set only when the mix has timestamps; each file then gets a paired cue sheet link
 	cueSlug?: string | undefined;
-	downloadCounts?: Map<string, number> | undefined;
 	files?: Array<string> | undefined;
 	links?: Array<string> | undefined;
 }
 
-const { cueSlug, downloadCounts, files, links } = Astro.props;
+const { cueSlug, files, links } = Astro.props;
 
 interface LinkMeta {
 	icon?: IconId | undefined;
@@ -53,33 +52,22 @@ const hasFiles = files && files.length > 0;
 					</li>
 				);
 			})}
-			{files?.map((file) => {
-				const count = downloadCounts?.get(file);
-
-				return (
-					<li class="flex items-center gap-1.5">
-						<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
-							{getFileLabel(file)}
+			{files?.map((file) => (
+				<li class="flex items-center gap-1.5">
+					<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
+						{getFileLabel(file)}
+					</ButtonLink>
+					{cueSlug ? (
+						<ButtonLink
+							href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
+							title={formatStringTemplate(t('audio.cueTitle'), { file })}
+							variant="small"
+						>
+							{t('audio.cue')}
 						</ButtonLink>
-						{count ? (
-							<span class="text-xs text-ink-500">
-								{formatStringTemplate(t('audio.downloads'), {
-									count: count.toLocaleString('en-US'),
-								})}
-							</span>
-						) : undefined}
-						{cueSlug ? (
-							<ButtonLink
-								href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
-								title={formatStringTemplate(t('audio.cueTitle'), { file })}
-								variant="small"
-							>
-								{t('audio.cue')}
-							</ButtonLink>
-						) : undefined}
-					</li>
-				);
-			})}
+					) : undefined}
+				</li>
+			))}
 		</ul>
 	) : undefined
 }

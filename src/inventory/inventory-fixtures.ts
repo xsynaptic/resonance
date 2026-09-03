@@ -7,7 +7,7 @@ import type { IconId } from '#lib/utils/icon-types.ts';
 import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
 
 import { getContentItems } from '#lib/catalog/catalog-data.ts';
-import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
+import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
@@ -29,6 +29,7 @@ interface ExcerptSample {
 
 interface MixSample {
 	cueSlug?: string | undefined;
+	downloads: number;
 	files: Array<string>;
 	links: Array<string>;
 	title: string;
@@ -75,7 +76,6 @@ export async function getInventoryFixtures() {
 	return {
 		artists: vocabulary.slice(0, 8),
 		card: cardItem([...mixItems, ...reviewItems]),
-		downloadCounts: await getDownloadCounts(),
 		excerpt: await sampleExcerpt(),
 		formats,
 		heroPath: await sampleHeroPath(),
@@ -155,6 +155,7 @@ async function sampleMix(): Promise<MixSample | undefined> {
 
 	return {
 		cueSlug: hasMixTimestamps(entry) ? entry.id : undefined,
+		downloads: await getDownloadCount(entry.data.files),
 		files: entry.data.files ?? [],
 		links: entry.data.links ?? [],
 		title: entry.data.title,

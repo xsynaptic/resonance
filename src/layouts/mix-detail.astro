@@ -5,13 +5,14 @@ import { render } from 'astro:content';
 
 import CommentsSection from '#components/comments/comments-section.astro';
 import EmbedAudio from '#components/embed/embed-audio.astro';
+import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
-import { getDownloadCounts } from '#lib/collections/downloads/downloads-data.ts';
+import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
@@ -33,7 +34,7 @@ const aliasTerms = await resolveTermLinks(
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
-const downloadCounts = await getDownloadCounts();
+const downloads = await getDownloadCount(entry.data.files);
 const relatedItems = await getRelatedItems(entry);
 
 const [alias] = aliasTerms;
@@ -58,13 +59,14 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 		slot="media"
 		soundcloudEmbed={entry.data.soundcloudEmbed}
 	/>
-	<AudioLinks
-		downloadCounts={downloadCounts}
-		files={entry.data.files}
-		links={entry.data.links}
-		slot="links"
-		{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
-	/>
+	<Fragment slot="links">
+		<AudioLinks
+			files={entry.data.files}
+			links={entry.data.links}
+			{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
+		/>
+		<AudioCounts downloads={downloads} />
+	</Fragment>
 	<Fragment slot="sections">
 		<SectionCoda>
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />

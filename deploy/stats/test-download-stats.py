@@ -164,6 +164,22 @@ class DownloadStatsTest(unittest.TestCase):
         self.assertEqual(counts["artifacts/Mix 0.mp3"], 1)
         self.assertEqual(counts["artifacts/Mix 1.mp3"], 0)
 
+    def test_unparsed_and_ignored_are_counted_apart(self):
+        # A scanner 404 is routine; a line that fails to parse means the log format drifted
+        scanner = "2026-01-10T10:00:00+00:00\t/wp-config.php\t404\t0\tOK\t-\t0.001\t198.51.100.9\tcurl/8.4.0\t-\n"
+        self.write_log(
+            "downloads-2026-01-10.log",
+            scanner
+            + "garbage line that does not parse\n"
+            + LINE.format(ts="2026-01-10T10:01:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.90"),
+        )
+        summary = self.run_script()
+
+        self.assertIn("unparsed=1", summary)
+        self.assertIn("ignored=1", summary)
+        self.assertIn("WARNING unparsed log lines: 1", summary)
+        self.assertEqual(self.read_json()["files"][1]["completions"], 1)
+
     def test_missing_log_dir_is_harmless(self):
         shutil.rmtree(self.log_dir)
         self.run_script()

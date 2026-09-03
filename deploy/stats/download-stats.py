@@ -73,12 +73,10 @@ def parse_line(line):
         bytes_sent = int(bytes_raw)
     except ValueError:
         return None
-    file_key = normalise_uri(uri)
-    if file_key is None:
-        return None
     return {
         "timestamp": timestamp,
-        "file_key": file_key,
+        # `None` for anything that is not a media request; the caller counts those separately
+        "file_key": normalise_uri(uri),
         "status": status,
         "bytes_sent": bytes_sent,
         "completed": completion == "OK",
@@ -139,12 +137,16 @@ def read_log(path):
 # One file holds one day, so a batch boundary can never split a day across two runs
 def collect_days(lines, sizes):
     days = {}
-    skipped = 0
+    unparsed = 0
+    ignored = 0
 
     for line in lines:
         entry = parse_line(line)
         if entry is None:
-            skipped += 1
+            unparsed += 1
+            continue
+        if entry["file_key"] is None:
+            ignored += 1
             continue
         if entry["status"] not in (200, 206):
             continue
@@ -163,7 +165,7 @@ def collect_days(lines, sizes):
         if size and entry["completed"] and entry["bytes_sent"] >= COMPLETION_THRESHOLD * size:
             day["credited"].add((entry["ip"], entry["file_key"]))
 
-    return days, skipped
+    return days, unparsed, ignored
 
 
 def credit_day(credited):
@@ -175,8 +177,16 @@ def credit_day(credited):
 
 
 def process_lines(db, lines, sizes):
-    days, skipped = collect_days(lines, sizes)
-    stats = {"days": len(days), "completions": 0, "partials": 0, "bytes": 0, "scrapers": 0, "skipped": skipped}
+    days, unparsed, ignored = collect_days(lines, sizes)
+    stats = {
+        "days": len(days),
+        "completions": 0,
+        "partials": 0,
+        "bytes": 0,
+        "scrapers": 0,
+        "unparsed": unparsed,
+        "ignored": ignored,
+    }
 
     for day, buckets in sorted(days.items()):
         completions, scraper_count = credit_day(buckets["credited"])
@@ -284,11 +294,22 @@ def run(log_dir, log_pattern, media_root, state_dir, now=None):
     summary = (
         f"{now.strftime('%Y-%m-%dT%H:%M:%SZ')} logs={len(logs)} lines={len(lines)} days={stats['days']} "
         f"completions={stats['completions']} partials={stats['partials']} bytes={stats['bytes']} "
-        f"scrapers={stats['scrapers']} skipped={stats['skipped']} duration_ms={duration_ms}\n"
+        f"scrapers={stats['scrapers']} unparsed={stats['unparsed']} ignored={stats['ignored']} "
+        f"duration_ms={duration_ms}\n"
     )
-    warning = stale_warning(log_dir, log_pattern, today)
-    if warning:
+
+    warnings = []
+    stale = stale_warning(log_dir, log_pattern, today)
+    if stale:
+        warnings.append(stale)
+    if stats["unparsed"]:
+        warnings.append(
+            f"unparsed log lines: {stats['unparsed']}; check that log_format djb_dl still matches parse_line"
+        )
+    for warning in warnings:
         summary += f"{now.strftime('%Y-%m-%dT%H:%M:%SZ')} WARNING {warning}\n"
+
+    # Never truncated: one line per daily run is ~46 KB a year, and the box has no logrotate
     with open(state / "run.log", "a", encoding="utf-8") as handle:
         handle.write(summary)
     return summary

@@ -7,6 +7,7 @@ import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
 import { printBackupReminder } from '../comments/backup.js';
+import { printPendingCount } from '../comments/moderate.js';
 import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
@@ -38,6 +39,12 @@ async function build(): Promise<void> {
 	}
 	console.log(chalk.blue('Building...'));
 	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm build`;
+}
+
+// Exits non-zero on a former id colliding with a live path, which would take that page off the site
+async function generateRedirects(): Promise<void> {
+	console.log(chalk.blue('Generating redirects...'));
+	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm generate-redirects`;
 }
 
 async function healthCheck(validatedFiles: Array<string>): Promise<void> {
@@ -99,6 +106,10 @@ try {
 	await pullStats({ dryRun: isDryRun, rootPath });
 
 	await printBackupReminder(rootPath);
+	await printPendingCount(rootPath);
+
+	// Before the build, which copies public/ into the dist/ that deploy-app ships
+	await generateRedirects();
 
 	await build();
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
+import { findWorkspaceRoot } from '../shared/utils.js';
 import { deployApp } from './deploy-app.js';
 
 const { values } = parseArgs({
@@ -10,8 +10,6 @@ const { values } = parseArgs({
 		'dry-run': { default: false, type: 'boolean' },
 	},
 });
-
-await ensureSshKeychain();
 
 await deployApp({
 	dryRun: values['dry-run'],

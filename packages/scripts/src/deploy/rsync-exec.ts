@@ -1,36 +1,39 @@
 import chalk from 'chalk';
 import { $ } from 'zx';
 
-import type { DeployConfig } from './deploy-config.js';
-
 interface RsyncOptions {
-	archive?: 'av' | 'avz';
-	config: DeployConfig;
 	dryRun?: boolean;
 	excludes?: Array<string>;
 	extraFlags?: Array<string>;
 }
 
-// Remote-to-local pull; same command shape, named for call-site readability
-export async function rsyncFrom(
-	source: string,
-	destination: string,
-	options: RsyncOptions,
-): Promise<void> {
-	await $({ stdio: 'inherit' })`rsync ${buildRsyncArgs(source, destination, options)}`;
-}
-
-export async function rsyncTo(
+export async function rsync(
 	source: Array<string> | string,
 	destination: string,
-	options: RsyncOptions,
-): Promise<void> {
-	await $({ stdio: 'inherit' })`rsync ${buildRsyncArgs(source, destination, options)}`;
+	{ dryRun = false, excludes = [], extraFlags = [] }: RsyncOptions = {},
+): Promise<string> {
+	const args = [
+		'-av',
+		'--progress',
+		...excludes.map((pattern) => `--exclude=${pattern}`),
+		...extraFlags,
+		...(dryRun ? ['--dry-run'] : []),
+		...(Array.isArray(source) ? source : [source]),
+		destination,
+	];
+
+	const command = $({ stdio: ['inherit', 'pipe', 'inherit'] })`rsync ${args}`;
+
+	command.pipe(process.stdout);
+
+	const result = await command;
+
+	return result.stdout;
 }
 
 // Under dry-run, print the command instead of running it so a deploy preview shows remote actions
 export async function sshExec(
-	config: DeployConfig,
+	remoteHost: string,
 	command: string,
 	{ dryRun = false }: { dryRun?: boolean } = {},
 ): Promise<void> {
@@ -39,24 +42,5 @@ export async function sshExec(
 		return;
 	}
 
-	const sshArgs = [...(config.sshKeyPath ? ['-i', config.sshKeyPath] : []), config.remoteHost];
-
-	await $({ stdio: 'inherit' })`ssh ${sshArgs} ${command}`;
-}
-
-function buildRsyncArgs(
-	source: Array<string> | string,
-	destination: string,
-	{ archive = 'avz', config, dryRun = false, excludes = [], extraFlags = [] }: RsyncOptions,
-): Array<string> {
-	return [
-		`-${archive}`,
-		'--progress',
-		...(config.sshKeyPath ? ['-e', `ssh -i ${config.sshKeyPath}`] : []),
-		...excludes.map((pattern) => `--exclude=${pattern}`),
-		...extraFlags,
-		...(dryRun ? ['--dry-run'] : []),
-		...(Array.isArray(source) ? source : [source]),
-		destination,
-	];
+	await $({ stdio: 'inherit' })`ssh ${remoteHost} ${command}`;
 }

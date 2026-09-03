@@ -1,7 +1,8 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
+import { findWorkspaceRoot } from '../shared/utils.js';
+import { loadDeployConfig } from './deploy-config.js';
 import { pullStats } from './stats-pull.js';
 
 const { values } = parseArgs({
@@ -11,9 +12,8 @@ const { values } = parseArgs({
 	},
 });
 
-await ensureSshKeychain();
-
 await pullStats({
+	config: loadDeployConfig(),
 	dryRun: values['dry-run'],
 	rootPath: findWorkspaceRoot(),
 });

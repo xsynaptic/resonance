@@ -1,17 +1,22 @@
 import chalk from 'chalk';
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
-import { isPathPresent } from '../shared/utils.js';
-import { loadDeployConfig } from './deploy-config.js';
-import { rsyncFrom } from './rsync-exec.js';
+import type { DeployConfig } from './deploy-config.js';
+
+import { ensureSshKeychain, isPathPresent } from '../shared/utils.js';
+import { remoteRoot } from './deploy-audio.js';
+import { rsync } from './rsync-exec.js';
 
 // Matches STATE_DIR in deploy/stats/download-stats.py
-const remoteStatsDir = '/srv/resonance/stats';
+const remoteStatsDir = `${remoteRoot}/stats`;
 const localJsonDir = 'packages/content';
 const localBackupDir = 'packages/content/downloads-backup';
 
+const backupsKept = 14;
+
 interface StatsPullOptions {
+	config: DeployConfig;
 	dryRun?: boolean;
 	rootPath: string;
 }
@@ -19,9 +24,7 @@ interface StatsPullOptions {
 // The JSON is derived; the SQLite rollup is the only irreplaceable copy, so it is backed up dated
 // Never fatal: an unreachable host means building with the last-pulled copy
 export async function pullStats(options: StatsPullOptions): Promise<void> {
-	const { dryRun = false, rootPath } = options;
-
-	const config = loadDeployConfig();
+	const { config, dryRun = false, rootPath } = options;
 
 	const jsonDir = path.join(rootPath, localJsonDir);
 	const backupDir = path.join(rootPath, localBackupDir);
@@ -32,29 +35,23 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
 	try {
+		await ensureSshKeychain();
 		await mkdir(backupDir, { recursive: true });
-		await rsyncFrom(`${config.remoteHost}:${remoteStatsDir}/downloads.json`, `${jsonDir}/`, {
-			archive: 'av',
-			config,
-			dryRun,
-		});
-		await rsyncFrom(
+		await rsync(`${config.remoteHost}:${remoteStatsDir}/downloads.json`, `${jsonDir}/`, { dryRun });
+		await rsync(
 			`${config.remoteHost}:${remoteStatsDir}/stats.sqlite`,
 			`${backupDir}/stats-${backupDate}.sqlite`,
-			{
-				archive: 'av',
-				config,
-				dryRun,
-			},
+			{ dryRun },
 		);
-		await rsyncFrom(`${config.remoteHost}:${remoteStatsDir}/run.log`, `${backupDir}/run.log`, {
-			archive: 'av',
-			config,
+		await rsync(`${config.remoteHost}:${remoteStatsDir}/run.log`, `${backupDir}/run.log`, {
 			dryRun,
 		});
 		console.log(chalk.green(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`));
 
-		if (!dryRun) await reportFreshness(jsonDir, backupDir);
+		if (dryRun) return;
+
+		await pruneBackups(backupDir);
+		await reportFreshness(jsonDir, backupDir);
 	} catch (error) {
 		console.log(
 			chalk.yellow(
@@ -62,6 +59,26 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 			),
 		);
 	}
+}
+
+// Names are `stats-YYYY-MM-DD.sqlite`, so a lexical sort is a date sort
+async function pruneBackups(backupDir: string): Promise<void> {
+	const entries = await readdir(backupDir);
+	const snapshots = entries
+		.filter((entry) => /^stats-\d{4}-\d{2}-\d{2}\.sqlite$/.test(entry))
+		.sort((first, second) => first.localeCompare(second));
+	const stale = snapshots.slice(0, Math.max(0, snapshots.length - backupsKept));
+
+	if (stale.length === 0) return;
+
+	for (const snapshot of stale) {
+		await rm(path.join(backupDir, snapshot));
+	}
+	console.log(
+		chalk.gray(
+			`  Pruned ${String(stale.length)} snapshots, keeping the newest ${String(backupsKept)}`,
+		),
+	);
 }
 
 async function reportFreshness(jsonDir: string, backupDir: string): Promise<void> {

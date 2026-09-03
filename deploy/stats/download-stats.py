@@ -27,7 +27,17 @@ SCRAPE_FILE_CAP = 10
 # A quiet week and a stopped nginx look identical without this
 STALE_LOG_DAYS = 2
 # curl/wget deliberately absent: command-line downloads are legitimate here
-UA_BLOCKLIST = ("bot", "crawl", "spider", "python-requests", "go-http-client", "monitor", "uptime", "headless")
+UA_BLOCKLIST = (
+    "bot",
+    "crawl",
+    "spider",
+    "python-requests",
+    "go-http-client",
+    "monitor",
+    "uptime",
+    "headless",
+    "resonance-deploy-probe",
+)
 
 MEDIA_SUFFIXES = {"artifacts": (".mp3", ".flac"), "stream": (".webm",)}
 LOG_DATE_RE = re.compile(r"-(\d{4}-\d{2}-\d{2})\.log$")
@@ -66,7 +76,18 @@ def parse_line(line):
     fields = line.rstrip("\n").split("\t")
     if len(fields) != 10:
         return None
-    ts_raw, uri, status_raw, bytes_raw, completion, _http_range, _req_time, ip, user_agent, _referer = fields
+    (
+        ts_raw,
+        uri,
+        status_raw,
+        bytes_raw,
+        completion,
+        _http_range,
+        _req_time,
+        ip,
+        user_agent,
+        _referer,
+    ) = fields
     try:
         timestamp = datetime.fromisoformat(ts_raw).astimezone(timezone.utc)
         status = int(status_raw)
@@ -125,7 +146,11 @@ def dated_logs(log_dir, log_pattern):
 def pending_logs(db, log_dir, log_pattern, today):
     # Today's file is the one nginx still holds open, so it is never read
     done = {name for (name,) in db.execute("SELECT name FROM processed_logs")}
-    return [path for day, path in dated_logs(log_dir, log_pattern) if day < today and path.name not in done]
+    return [
+        path
+        for day, path in dated_logs(log_dir, log_pattern)
+        if day < today and path.name not in done
+    ]
 
 
 def read_log(path):
@@ -153,8 +178,12 @@ def collect_days(lines, sizes):
         if is_blocked_agent(entry["user_agent"]):
             continue
 
-        day = days.setdefault(entry["timestamp"].strftime("%Y-%m-%d"), {"credited": set(), "traffic": {}})
-        traffic = day["traffic"].setdefault(entry["file_key"], {"bytes_sent": 0, "partial_requests": 0})
+        day = days.setdefault(
+            entry["timestamp"].strftime("%Y-%m-%d"), {"credited": set(), "traffic": {}}
+        )
+        traffic = day["traffic"].setdefault(
+            entry["file_key"], {"bytes_sent": 0, "partial_requests": 0}
+        )
         traffic["bytes_sent"] += entry["bytes_sent"]
 
         if entry["status"] == 206:
@@ -162,7 +191,11 @@ def collect_days(lines, sizes):
             continue
 
         size = sizes.get(entry["file_key"])
-        if size and entry["completed"] and entry["bytes_sent"] >= COMPLETION_THRESHOLD * size:
+        if (
+            size
+            and entry["completed"]
+            and entry["bytes_sent"] >= COMPLETION_THRESHOLD * size
+        ):
             day["credited"].add((entry["ip"], entry["file_key"]))
 
     return days, unparsed, ignored
@@ -172,7 +205,9 @@ def credit_day(credited):
     # The raw address is read here and never stored; only the per-file tally leaves this function
     files_per_ip = collections.Counter(ip for ip, _file_key in credited)
     scrapers = {ip for ip, count in files_per_ip.items() if count >= SCRAPE_FILE_CAP}
-    completions = collections.Counter(file_key for ip, file_key in credited if ip not in scrapers)
+    completions = collections.Counter(
+        file_key for ip, file_key in credited if ip not in scrapers
+    )
     return completions, len(scrapers)
 
 
@@ -203,10 +238,19 @@ def process_lines(db, lines, sizes):
                   bytes_sent = bytes_sent + excluded.bytes_sent,
                   partial_requests = partial_requests + excluded.partial_requests
                 """,
-                (file_key, day, counted, traffic["bytes_sent"], traffic["partial_requests"]),
+                (
+                    file_key,
+                    day,
+                    counted,
+                    traffic["bytes_sent"],
+                    traffic["partial_requests"],
+                ),
             )
             # A backlog processed after the file landed would otherwise date it to the first run
-            db.execute("UPDATE files SET first_seen = ? WHERE file_key = ? AND first_seen > ?", (day, file_key, day))
+            db.execute(
+                "UPDATE files SET first_seen = ? WHERE file_key = ? AND first_seen > ?",
+                (day, file_key, day),
+            )
             stats["completions"] += counted
             stats["partials"] += traffic["partial_requests"]
             stats["bytes"] += traffic["bytes_sent"]
@@ -238,13 +282,19 @@ def emit_json(db, output_path, now):
                 "key": file_key,
                 "size_bytes": size_bytes,
                 "completions": completions,
-                "byte_equivalents": round(bytes_sent / size_bytes, 2) if size_bytes else 0,
+                "byte_equivalents": round(bytes_sent / size_bytes, 2)
+                if size_bytes
+                else 0,
                 "first_seen": first_seen,
                 "daily": dict(daily_rows),
             }
         )
 
-    document = {"version": 1, "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "files": files}
+    document = {
+        "version": 1,
+        "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "files": files,
+    }
 
     # Atomic replace so a concurrent rsync pull never sees a partial document
     tmp_path = output_path.with_suffix(".json.tmp")
@@ -283,7 +333,10 @@ def run(log_dir, log_pattern, media_root, state_dir, now=None):
 
         stats = process_lines(db, lines, sizes)
         for path in logs:
-            db.execute("INSERT INTO processed_logs (name, processed_at) VALUES (?, ?)", (path.name, now.isoformat()))
+            db.execute(
+                "INSERT INTO processed_logs (name, processed_at) VALUES (?, ?)",
+                (path.name, now.isoformat()),
+            )
         db.commit()
 
         emit_json(db, state / "downloads.json", now)
@@ -316,7 +369,9 @@ def run(log_dir, log_pattern, media_root, state_dir, now=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Aggregate closed daily nginx download logs into SQLite and downloads.json")
+    parser = argparse.ArgumentParser(
+        description="Aggregate closed daily nginx download logs into SQLite and downloads.json"
+    )
     parser.add_argument("--log-dir", default=LOG_DIR)
     parser.add_argument("--log-pattern", default=LOG_PATTERN)
     parser.add_argument("--media-root", default=MEDIA_ROOT)

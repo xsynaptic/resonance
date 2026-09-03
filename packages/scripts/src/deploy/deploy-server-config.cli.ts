@@ -1,7 +1,8 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { ensureSshKeychain, findWorkspaceRoot } from '../shared/utils.js';
+import { findWorkspaceRoot } from '../shared/utils.js';
+import { loadDeployConfig } from './deploy-config.js';
 import { deployServerConfig } from './deploy-server-config.js';
 
 const { values } = parseArgs({
@@ -11,9 +12,8 @@ const { values } = parseArgs({
 	},
 });
 
-await ensureSshKeychain();
-
 await deployServerConfig({
+	config: loadDeployConfig(),
 	dryRun: values['dry-run'],
 	rootPath: findWorkspaceRoot(),
 });

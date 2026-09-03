@@ -12,7 +12,7 @@ Avoid adding anything to this file unless it is important and relevant.
 
 - Imports use Node `#*` subpaths mapped to `./src/*`, and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config.
 - `src/components/menu/menu-navigation.ts` is a later, better-organized refactor of its spectralcodex original and is **ahead of it**. Do not re-copy that file from there.
-- Comments are rare and explain why. Abide by global rules.
+- Comments are rare and explain why. Abide by global rules. **Never inside an Astro component's template body**, the `{/* … */}` form included; a note that earns its place goes in the frontmatter fence, attached to whatever drives the markup it explains.
 
 ## Styling
 

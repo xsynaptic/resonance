@@ -23,8 +23,11 @@ const heading =
 		: formatStringTemplate(t('comments.heading.other'), { count });
 ---
 
-<comments-section class="mt-16 block content-measure">
-	<section aria-label={t('comments.regionLabel')} id="comments">
+<comments-section
+	class="mt-16 block content-measure"
+	data-error-message={t('comments.notice.error')}
+>
+	<section aria-label={t('comments.regionLabel')} data-nosnippet data-pagefind-ignore id="comments">
 		<p
 			class="mb-6 rounded-sm border border-surface-700 bg-surface-600 p-3 text-sm text-ink-200"
 			data-comment-notice

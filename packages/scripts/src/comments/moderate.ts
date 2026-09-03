@@ -10,6 +10,8 @@ export interface ModerateOptions {
 	rootPath: string;
 }
 
+type Choice = (typeof choices)[number];
+
 interface D1Target {
 	cwd: string;
 	isLocal: boolean;
@@ -109,11 +111,15 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 	const tally: Tally = { approved: 0, rejected: 0, skipped: 0, spam: 0 };
 
 	for (const [index, comment] of pending.entries()) {
-		printComment(comment, chalk.dim(`${String(index + 1)}/${String(pending.length)}`));
-		printLegend();
+		// `A` decides the same row as `a` once this is the last one left
+		const available =
+			index < pending.length - 1 ? choices : choices.filter((choice) => choice.key !== 'A');
 
-		const key = await readKey(choices.map((choice) => choice.key));
-		const choice = choices.find((candidate) => candidate.key === key);
+		printComment(comment, chalk.dim(`${String(index + 1)}/${String(pending.length)}`));
+		printLegend(available);
+
+		const key = await readKey(available.map((choice) => choice.key));
+		const choice = available.find((candidate) => candidate.key === key);
 
 		if (!choice || choice.key === 'q') {
 			console.log(chalk.dim('\n  Stopped.'));
@@ -222,8 +228,8 @@ function printHeader(count: number, isLocal: boolean): void {
 	);
 }
 
-function printLegend(): void {
-	const legend = choices
+function printLegend(available: ReadonlyArray<Choice>): void {
+	const legend = available
 		.map((choice) => `${chalk.bold.white(choice.key)} ${chalk.dim(choice.label)}`)
 		.join(' '.repeat(3));
 

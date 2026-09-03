@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { t } from '#lib/i18n/i18n-strings.ts';
+
 const siteverifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 // The form is rendered into a static page, so the client sets this on load; a build-time value would always pass
@@ -38,10 +40,10 @@ export function fail(request: Request, status: number, message: string): Respons
 export async function handleCommentSubmission(request: Request, env: Env): Promise<Response> {
 	const form = await readFormData(request);
 
-	if (!form) return fail(request, 400, 'That submission could not be read.');
+	if (!form) return fail(request, 400, t('comments.error.unreadable'));
 
 	if (readField(form, 'website') !== undefined)
-		return fail(request, 400, 'That submission was not accepted.');
+		return fail(request, 400, t('comments.error.rejected'));
 
 	const parsed = submissionSchema.safeParse({
 		author: readField(form, 'author'),
@@ -55,26 +57,26 @@ export async function handleCommentSubmission(request: Request, env: Env): Promi
 		turnstileToken: readField(form, 'cf-turnstile-response'),
 	});
 
-	if (!parsed.success) return fail(request, 400, 'That submission was not valid.');
+	if (!parsed.success) return fail(request, 400, t('comments.error.invalid'));
 
 	const submission = parsed.data;
 
 	if (Date.now() - submission.renderedAt < minimumFormAgeMs)
-		return fail(request, 400, 'That was too fast. Please try again.');
+		return fail(request, 400, t('comments.error.tooFast'));
 
 	const entryPath = toEntryPath(submission.collection, submission.entryId);
 	const entry = await env.ASSETS.fetch(new URL(entryPath, request.url));
 
-	if (!entry.ok) return fail(request, 400, 'That entry does not exist.');
+	if (!entry.ok) return fail(request, 400, t('comments.error.entryMissing'));
 
 	if (!(await isValidParent(env, submission)))
-		return fail(request, 400, 'That reply target does not exist.');
+		return fail(request, 400, t('comments.error.parentMissing'));
 
 	const remoteIp = request.headers.get('CF-Connecting-IP');
 
 	// Last, after the local checks: siteverify is a network round trip, and a rejected request burns a single-use token
 	if (!(await isTurnstileValid(submission.turnstileToken, env.TURNSTILE_SECRET_KEY, remoteIp))) {
-		return fail(request, 403, 'The challenge did not pass. Please reload the page and try again.');
+		return fail(request, 403, t('comments.error.challenge'));
 	}
 
 	await insertComment(env, submission, remoteIp);
@@ -184,10 +186,7 @@ async function sha256(value: string): Promise<string> {
 // The native form post reads the redirect; the client asks for JSON so it can stay on the page
 function succeed(request: Request, entryPath: string): Response {
 	if (isJsonWanted(request)) {
-		return Response.json(
-			{ message: 'Your comment is in the moderation queue and will appear once it is approved.' },
-			{ status: 201 },
-		);
+		return Response.json({ message: t('comments.notice.received') }, { status: 201 });
 	}
 
 	return Response.redirect(
@@ -196,7 +195,7 @@ function succeed(request: Request, entryPath: string): Response {
 	);
 }
 
-// Posts render at the site root, matching `getContentUrl`; the worker cannot import from the Astro project
+// Posts render at the site root, matching `getContentUrl`, which pulls in Astro and cannot be imported here
 function toEntryPath(collection: Submission['collection'], entryId: string): string {
 	return collection === 'posts' ? `/${entryId}/` : `/${collection}/${entryId}/`;
 }

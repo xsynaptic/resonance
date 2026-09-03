@@ -12,7 +12,7 @@ export interface CommentNode {
 	replies: Array<CommentNode>;
 }
 
-// 2x the 48px the avatar renders at; `mp` is Gravatar's mystery-person silhouette
+// 2x the 48px the avatar renders at; `blank` lets the site's own fallback tile show through
 const gravatarUrl = 'https://www.gravatar.com/avatar';
 const gravatarSize = 96;
 
@@ -69,7 +69,7 @@ function toNode(comment: CommentValue): CommentNode {
 		avatarUrl:
 			comment.gravatarHash === null
 				? undefined
-				: `${gravatarUrl}/${comment.gravatarHash}?d=mp&s=${String(gravatarSize)}`,
+				: `${gravatarUrl}/${comment.gravatarHash}?d=blank&s=${String(gravatarSize)}`,
 		bodyHtml: renderCommentBody(comment.body),
 		date: comment.date,
 		id: comment.id,

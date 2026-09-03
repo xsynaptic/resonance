@@ -1,10 +1,8 @@
-import { t } from '#lib/i18n/i18n-strings.ts';
-
 interface TurnstileApi {
 	remove: (widgetId: string) => void;
 	render: (
 		container: HTMLElement,
-		options: { sitekey: string; theme: string },
+		options: { sitekey: string; size: string; theme: string },
 	) => string | undefined;
 }
 
@@ -20,6 +18,11 @@ class CommentsSection extends HTMLElement {
 	#controller: AbortController | undefined;
 	#replyOrigin: HTMLElement | undefined;
 	#widgetId: string | undefined;
+
+	// Handed over as an attribute so the string dictionary stays out of the client bundle
+	get #errorMessage() {
+		return this.dataset.errorMessage ?? '';
+	}
 
 	get #form() {
 		return this.querySelector<HTMLFormElement>('[data-comment-form]');
@@ -169,7 +172,7 @@ class CommentsSection extends HTMLElement {
 			// An error page that is not JSON falls through to the generic message
 		}
 
-		return t('comments.notice.error');
+		return this.#errorMessage;
 	}
 
 	// Moving the form re-parents the widget's iframe, which reloads it, so it is rebuilt from scratch
@@ -185,6 +188,7 @@ class CommentsSection extends HTMLElement {
 
 		this.#widgetId = api.render(container, {
 			sitekey: container.dataset.turnstileSitekey ?? '',
+			size: 'compact',
 			theme: 'dark',
 		});
 	}
@@ -332,7 +336,7 @@ class CommentsSection extends HTMLElement {
 			if (response.ok) this.#handleAccepted(form);
 			else this.#showError(await this.#readMessage(response));
 		} catch {
-			this.#showError(t('comments.notice.error'));
+			this.#showError(this.#errorMessage);
 		} finally {
 			if (submitButton) submitButton.disabled = false;
 
@@ -351,6 +355,8 @@ class CommentsSection extends HTMLElement {
 if (!customElements.get('comments-section')) {
 	customElements.define('comments-section', CommentsSection);
 }
+
+export {};
 
 declare global {
 	interface HTMLElementTagNameMap {

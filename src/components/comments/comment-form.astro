@@ -4,6 +4,7 @@ import { TURNSTILE_SITE_KEY } from 'astro:env/server';
 import type { CommentsCollection } from '#lib/collections/comments/comments-data.ts';
 
 import Anchor from '#components/parts/anchor.astro';
+import Button from '#components/parts/button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
@@ -15,7 +16,7 @@ const { collection, entryId } = Astro.props;
 ---
 
 <div class="mt-12" data-comment-form-home>
-	<form action="/api/comments" class="space-y-5" data-comment-form method="post">
+	<form action="/api/comments" class="space-y-4" data-comment-form method="post">
 		<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
 			<h2 class="heading-section">{t('comments.form.heading')}</h2>
 			<button class="comment-action" data-cancel-reply hidden type="button"
@@ -35,10 +36,11 @@ const { collection, entryId } = Astro.props;
 		<div aria-hidden="true" class="comment-trap">
 			<input autocomplete="off" name="website" tabindex="-1" type="text" />
 		</div>
-		<div class="grid gap-5 sm:grid-cols-2">
+		<div class="grid gap-4 sm:grid-cols-2">
 			<div>
 				<label class="comment-label" for="comment-author">{t('comments.form.author')}</label>
 				<input
+					aria-describedby="comment-author-hint"
 					autocomplete="name"
 					class="comment-field"
 					id="comment-author"
@@ -47,6 +49,10 @@ const { collection, entryId } = Astro.props;
 					required
 					type="text"
 				/>
+				<p class="comment-hint" id="comment-author-hint">
+					{t('comments.form.privacyLead')}{' '}
+					<Anchor href="/privacy-policy/">{t('comments.form.privacyLink')}</Anchor>.
+				</p>
 			</div>
 			<div>
 				<label class="comment-label" for="comment-email">
@@ -91,7 +97,7 @@ const { collection, entryId } = Astro.props;
 				minlength="2"
 				name="body"
 				required
-				rows="6"></textarea>
+				rows="5"></textarea>
 		</div>
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
 			<div class="flex items-center gap-2">
@@ -101,9 +107,7 @@ const { collection, entryId } = Astro.props;
 					id="comment-remember"
 					type="checkbox"
 				/>
-				<label class="text-sm text-ink-300" for="comment-remember"
-					>{t('comments.form.remember')}</label
-				>
+				<label class="comment-note" for="comment-remember">{t('comments.form.remember')}</label>
 			</div>
 			<button class="comment-action" data-clear-stored hidden type="button"
 				>{t('comments.form.clearStored')}</button
@@ -117,15 +121,6 @@ const { collection, entryId } = Astro.props;
 			role="status"
 		>
 		</p>
-		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-			<button
-				class="cursor-pointer rounded-sm border border-surface-700 bg-surface-600 px-4 py-2 font-medium text-ink-100 transition-colors hover:border-surface-400 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
-				type="submit">{t('comments.form.submit')}</button
-			>
-		</div>
-		<p class="comment-hint">
-			{t('comments.form.privacyLead')}{' '}
-			<Anchor href="/privacy-policy/">{t('comments.form.privacyLink')}</Anchor>.
-		</p>
+		<Button type="submit">{t('comments.form.submit')}</Button>
 	</form>
 </div>

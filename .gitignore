@@ -42,8 +42,6 @@ packages/content/
 # database backups (large, not for VCS)
 backups/
 
-# WP extract scripts: one-off, iterated locally, not checked in yet
-packages/scripts/src/wp-extract/
 
 # temp
 deploy/nginx/sites-enabled/

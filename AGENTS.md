@@ -28,7 +28,7 @@ Avoid adding anything to this file unless it is important and relevant.
 
 ## Content
 
-`packages/content/collections/` was **generated** by the WordPress extractor until handover on 2026-09-03; the tracked content repository is the record now. A re-extraction still wipes the collection directories and re-emits, so it destroys real work rather than merely inconveniencing: if the dump is ever run again it goes onto a branch and is merged by hand. See `.claude/reference/wordpress-origins.md`.
+`packages/content/collections/` was **generated** by the WordPress extractor until handover on 2026-09-03; the tracked content repository is the record now. The extractor has since been deleted, archived to `backups/wp-extract-2026-09-03.zip`. Restoring and re-running it wipes the collection directories and re-emits, destroying real work rather than merely inconveniencing, so if the dump is ever run again it goes onto a branch and is merged by hand. See `.claude/reference/wordpress-origins.md`.
 
 `packages/content` is a **separate private repository**, nested here and gitignored whole. Read `packages/content/AGENTS.md` before writing or editing anything under that directory, and open `packages/content` as its own project for sustained content work, so those rules load automatically. Because the directory is ignored here, `git clean -xdf` in this repo deletes it outright, its own `.git` included, so be careful.
 

@@ -13,8 +13,10 @@ import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { getImageHeroId } from '#lib/image/image-featured.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
@@ -31,6 +33,8 @@ interface Props {
 const { groupByYear = false, page, term } = Astro.props;
 
 const { Content } = await render(term);
+
+const imageHeroId = getImageHeroId(term.data.imageFeatured);
 
 // Artists carry relationships (a group's members, a person's projects); other terms do not
 const memberLinks =
@@ -66,8 +70,22 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 	title={term.data.title}
 	{...description ? { description } : {}}
 >
+	{
+		imageHeroId ? (
+			<SectionDetailHero
+				breadcrumbTrail={breadcrumbTrail}
+				path={imageHeroId}
+				slot="hero"
+				title={term.data.title}
+			/>
+		) : undefined
+	}
 	<div class="mb-6">
-		<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />
+		{
+			imageHeroId ? undefined : (
+				<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />
+			)
+		}
 		{
 			body === '' ? undefined : (
 				<div class="prose-x mt-2">

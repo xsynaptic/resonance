@@ -3,7 +3,9 @@ import type { CommentNode } from '#lib/collections/comments/comments-data.ts';
 
 import CommentReplies from '#components/comments/comment-list.astro';
 import Anchor from '#components/parts/anchor.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatDate } from '#lib/utils/date.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	comments: Array<CommentNode>;
@@ -52,6 +54,15 @@ const { comments, nested = false } = Astro.props;
 						<div class="prose-x mt-2 text-sm">
 							<Fragment set:html={comment.bodyHtml} />
 						</div>
+						<button
+							aria-label={formatStringTemplate(t('comments.replyTo'), { author: comment.author })}
+							class="mt-2 cursor-pointer rounded px-1 text-sm font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+							data-reply={comment.id}
+							hidden
+							type="button"
+						>
+							{t('comments.reply')}
+						</button>
 					</div>
 				</article>
 				{comment.replies.length > 0 ? (

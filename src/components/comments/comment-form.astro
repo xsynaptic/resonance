@@ -1,0 +1,124 @@
+---
+import { TURNSTILE_SITE_KEY } from 'astro:env/server';
+
+import type { CommentsCollection } from '#lib/collections/comments/comments-data.ts';
+
+import Anchor from '#components/parts/anchor.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	collection: CommentsCollection;
+	entryId: string;
+}
+
+const { collection, entryId } = Astro.props;
+---
+
+<div class="mt-12" data-comment-form-home>
+	<form action="/api/comments" class="space-y-5" data-comment-form method="post">
+		<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+			<h2 class="heading-section">{t('comments.form.heading')}</h2>
+			<button class="comment-action" data-cancel-reply hidden type="button"
+				>{t('comments.form.cancelReply')}</button
+			>
+		</div>
+		<p class="text-sm text-ink-500">{t('comments.form.moderationNote')}</p>
+		<noscript>
+			<p class="rounded-sm border border-surface-700 bg-surface-600 p-3 text-sm text-ink-200">
+				{t('comments.form.noscript')}
+			</p>
+		</noscript>
+		<input name="collection" type="hidden" value={collection} />
+		<input name="entryId" type="hidden" value={entryId} />
+		<input data-parent-id name="parentId" type="hidden" value="" />
+		<input data-rendered-at name="renderedAt" type="hidden" value="" />
+		<div aria-hidden="true" class="comment-trap">
+			<input autocomplete="off" name="website" tabindex="-1" type="text" />
+		</div>
+		<div class="grid gap-5 sm:grid-cols-2">
+			<div>
+				<label class="comment-label" for="comment-author">{t('comments.form.author')}</label>
+				<input
+					autocomplete="name"
+					class="comment-field"
+					id="comment-author"
+					maxlength="80"
+					name="author"
+					required
+					type="text"
+				/>
+			</div>
+			<div>
+				<label class="comment-label" for="comment-email">
+					{t('comments.form.authorEmail')}
+					<span class="font-normal text-ink-500">({t('comments.form.optional')})</span>
+				</label>
+				<input
+					aria-describedby="comment-email-hint"
+					autocomplete="email"
+					class="comment-field"
+					id="comment-email"
+					maxlength="200"
+					name="authorEmail"
+					type="email"
+				/>
+				<p class="comment-hint" id="comment-email-hint">{t('comments.form.authorEmailHint')}</p>
+			</div>
+		</div>
+		<div>
+			<label class="comment-label" for="comment-url">
+				{t('comments.form.authorUrl')}
+				<span class="font-normal text-ink-500">({t('comments.form.optional')})</span>
+			</label>
+			<input
+				aria-describedby="comment-url-hint"
+				autocomplete="url"
+				class="comment-field"
+				id="comment-url"
+				maxlength="200"
+				name="authorUrl"
+				placeholder="https://"
+				type="url"
+			/>
+			<p class="comment-hint" id="comment-url-hint">{t('comments.form.authorUrlHint')}</p>
+		</div>
+		<div>
+			<label class="comment-label" for="comment-body">{t('comments.form.body')}</label>
+			<textarea
+				class="comment-field"
+				id="comment-body"
+				maxlength="8000"
+				minlength="2"
+				name="body"
+				required
+				rows="6"></textarea>
+		</div>
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+			<div class="flex items-center gap-2">
+				<input
+					class="size-4 accent-highlight-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+					data-remember
+					id="comment-remember"
+					type="checkbox"
+				/>
+				<label class="text-sm text-ink-300" for="comment-remember"
+					>{t('comments.form.remember')}</label
+				>
+			</div>
+			<button class="comment-action" data-clear-stored hidden type="button"
+				>{t('comments.form.clearStored')}</button
+			>
+		</div>
+		<div data-turnstile data-turnstile-sitekey={TURNSTILE_SITE_KEY}></div>
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+			<button
+				class="cursor-pointer rounded-sm border border-surface-700 bg-surface-600 px-4 py-2 font-medium text-ink-100 transition-colors hover:border-surface-400 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+				type="submit">{t('comments.form.submit')}</button
+			>
+		</div>
+		<p class="comment-hint">
+			{t('comments.form.privacyLead')}{' '}
+			<Anchor href="/privacy-policy/">{t('comments.form.privacyLink')}</Anchor>.
+		</p>
+	</form>
+</div>

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Projected from D1 by `pnpm comments-rebuild`; nulls stay explicit so a file shows what the row holds
+// One store entry per `collection/entry_id`, built from D1 rows; nulls stay explicit, as the row has them
 const commentSchema = z
 	.object({
 		author: z.string().min(1),

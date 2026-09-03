@@ -1,0 +1,67 @@
+/* Honeypot: positioned off-screen rather than `sr-only`, whose well-known name a bot can detect */
+.comment-trap {
+	position: absolute;
+	left: -9999px;
+}
+
+.comment-label {
+	display: flex;
+	gap: calc(var(--spacing) * 1);
+	align-items: baseline;
+	margin-bottom: calc(var(--spacing) * 1);
+	font-size: var(--text-sm);
+	font-weight: 500;
+	line-height: var(--text-sm--line-height);
+	color: var(--color-ink-200);
+}
+
+.comment-field {
+	width: 100%;
+	padding-block: calc(var(--spacing) * 2);
+	padding-inline: calc(var(--spacing) * 3);
+	color: var(--color-ink-100);
+	background-color: var(--color-surface-600);
+	border: 1px solid var(--color-surface-700);
+	border-radius: var(--radius-sm);
+	transition: border-color 150ms var(--default-transition-timing-function);
+}
+
+.comment-field:focus-visible {
+	outline: 2px solid var(--color-highlight-500);
+	outline-offset: 1px;
+}
+
+@media (hover: hover) {
+	.comment-field:hover {
+		border-color: var(--color-surface-400);
+	}
+}
+
+.comment-hint {
+	margin-top: calc(var(--spacing) * 1);
+	font-size: var(--text-xs);
+	line-height: var(--text-xs--line-height);
+	color: var(--color-ink-500);
+}
+
+.comment-action {
+	padding-inline: calc(var(--spacing) * 1);
+	font-size: var(--text-sm);
+	font-weight: 500;
+	line-height: var(--text-sm--line-height);
+	color: var(--color-highlight-500);
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+}
+
+.comment-action:focus-visible {
+	color: var(--color-highlight-400);
+	outline: 2px solid var(--color-highlight-500);
+	outline-offset: 1px;
+}
+
+@media (hover: hover) {
+	.comment-action:hover {
+		color: var(--color-highlight-400);
+	}
+}

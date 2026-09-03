@@ -25,15 +25,21 @@ export interface EntryComments {
 const gravatarUrl = 'https://www.gravatar.com/avatar';
 const gravatarSize = 96;
 
+// D1 keeps the slug a comment was written against, so a renamed entry answers for its former ids too
 export async function getEntryComments(
 	collection: CommentsCollection,
 	entryId: string,
+	formerIds?: Array<string>,
 ): Promise<EntryComments> {
-	const entry = await getEntry('comments', `${collection}/${entryId}`);
+	const comments: Array<CommentValue> = [];
 
-	if (!entry) return { count: 0, thread: [] };
+	for (const id of [entryId, ...(formerIds ?? [])]) {
+		const entry = await getEntry('comments', `${collection}/${id}`);
 
-	const { comments } = entry.data;
+		if (entry) comments.push(...entry.data.comments);
+	}
+
+	comments.sort((left, right) => left.date.getTime() - right.date.getTime());
 
 	return { count: comments.length, thread: buildThread(comments) };
 }

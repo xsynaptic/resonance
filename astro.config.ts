@@ -14,7 +14,6 @@ import { shikiTheme } from './src/lib/utils/shiki-theme.ts';
 export default defineConfig({
 	env: {
 		schema: {
-			// Root of the audio file server; the default keeps a fresh clone building without a .env
 			FILES_URL: envField.string({
 				access: 'public',
 				context: 'server',
@@ -22,6 +21,7 @@ export default defineConfig({
 			}),
 			// Domain the Open Graph cards are served from; unset means the site's own origin
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
+			TURNSTILE_SITE_KEY: envField.string({ access: 'public', context: 'server', default: '' }),
 			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
 			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),
 		},
@@ -64,6 +64,7 @@ export default defineConfig({
 						{
 							'./src/components/embed/embed-mixcloud.astro': [['default', 'Mixcloud']],
 							'./src/components/embed/embed-soundcloud.astro': [['default', 'Soundcloud']],
+							'./src/components/embed/embed-youtube.astro': [['default', 'YouTube']],
 							'./src/components/mdx/img-group.astro': [['default', 'ImgGroup']],
 							'./src/components/mdx/img.astro': [['default', 'Img']],
 							'./src/components/mdx/link.astro': [['default', 'Link']],

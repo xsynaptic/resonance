@@ -1,6 +1,7 @@
 ---
 import type { CommentsCollection } from '#lib/collections/comments/comments-data.ts';
 
+import CommentForm from '#components/comments/comment-form.astro';
 import CommentList from '#components/comments/comment-list.astro';
 import { getEntryComments } from '#lib/collections/comments/comments-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -9,11 +10,12 @@ import { formatStringTemplate } from '#lib/utils/text.ts';
 interface Props {
 	collection: CommentsCollection;
 	entryId: string;
+	formerIds?: Array<string> | undefined;
 }
 
-const { collection, entryId } = Astro.props;
+const { collection, entryId, formerIds } = Astro.props;
 
-const { count, thread } = await getEntryComments(collection, entryId);
+const { count, thread } = await getEntryComments(collection, entryId, formerIds);
 
 const heading =
 	count === 1
@@ -21,13 +23,30 @@ const heading =
 		: formatStringTemplate(t('comments.heading.other'), { count });
 ---
 
-{
-	count > 0 ? (
-		<section aria-labelledby="comments-heading" class="mt-16 content-measure" id="comments">
-			<h2 class="heading-section mb-6" id="comments-heading">
-				{heading}
-			</h2>
-			<CommentList comments={thread} />
-		</section>
-	) : undefined
-}
+<comments-section class="mt-16 block content-measure">
+	<section aria-label={t('comments.regionLabel')} id="comments">
+		<p
+			class="mb-6 rounded-sm border border-surface-700 bg-surface-600 p-3 text-sm text-ink-200"
+			data-comment-notice
+			hidden
+			role="status"
+		>
+			{t('comments.notice.received')}
+		</p>
+		{
+			count > 0 ? (
+				<Fragment>
+					<h2 class="heading-section mb-6" id="comments-heading">
+						{heading}
+					</h2>
+					<CommentList comments={thread} />
+				</Fragment>
+			) : undefined
+		}
+		<CommentForm collection={collection} entryId={entryId} />
+	</section>
+</comments-section>
+
+<script>
+	import '#components/comments/comments-section.ts';
+</script>

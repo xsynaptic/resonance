@@ -19,6 +19,7 @@
 @import './main/parts/base.css' layer(base);
 @import './main/components/anchor.css' layer(components);
 @import './main/components/carousel.css' layer(components);
+@import './main/components/comments.css' layer(components);
 @import './main/components/detail-header.css' layer(components);
 @import './main/components/detail-hero.css' layer(components);
 @import './main/components/embed-frame.css' layer(components);

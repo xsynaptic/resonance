@@ -81,7 +81,7 @@ def parse_line(line):
         uri,
         status_raw,
         bytes_raw,
-        completion,
+        _completion,
         _http_range,
         _req_time,
         ip,
@@ -100,7 +100,6 @@ def parse_line(line):
         "file_key": normalise_uri(uri),
         "status": status,
         "bytes_sent": bytes_sent,
-        "completed": completion == "OK",
         "ip": ip,
         "user_agent": user_agent,
     }
@@ -179,24 +178,25 @@ def collect_days(lines, sizes):
             continue
 
         day = days.setdefault(
-            entry["timestamp"].strftime("%Y-%m-%d"), {"credited": set(), "traffic": {}}
+            entry["timestamp"].strftime("%Y-%m-%d"),
+            {"traffic": {}, "visitor_bytes": collections.Counter()},
         )
         traffic = day["traffic"].setdefault(
             entry["file_key"], {"bytes_sent": 0, "partial_requests": 0}
         )
         traffic["bytes_sent"] += entry["bytes_sent"]
-
         if entry["status"] == 206:
             traffic["partial_requests"] += 1
-            continue
 
-        size = sizes.get(entry["file_key"])
-        if (
-            size
-            and entry["completed"]
-            and entry["bytes_sent"] >= COMPLETION_THRESHOLD * size
-        ):
-            day["credited"].add((entry["ip"], entry["file_key"]))
+        day["visitor_bytes"][(entry["ip"], entry["file_key"])] += entry["bytes_sent"]
+
+    # A resume is an aborted 200 plus a 206, a download manager only 206s; neither shows in one request
+    for buckets in days.values():
+        buckets["credited"] = {
+            (ip, file_key)
+            for (ip, file_key), bytes_sent in buckets["visitor_bytes"].items()
+            if file_key in sizes and bytes_sent >= COMPLETION_THRESHOLD * sizes[file_key]
+        }
 
     return days, unparsed, ignored
 

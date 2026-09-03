@@ -1,11 +1,9 @@
 #!/usr/bin/env tsx
 import chalk from 'chalk';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import tls from 'node:tls';
 import { parseArgs } from 'node:util';
 import { $ } from 'zx';
 
-import { audioSourceDir } from '../audio/audio-paths.js';
 import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
@@ -14,6 +12,7 @@ import { printPendingCount } from '../comments/moderate.js';
 import { pullMixcloudStats } from '../mixcloud/mixcloud-stats.js';
 import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
+import { generateSitemapLastmod } from '../sitemap-lastmod/index.js';
 import { deployApp } from './deploy-app.js';
 import { deployAudio } from './deploy-audio.js';
 import { loadDeployConfig, printDeployConfig } from './deploy-config.js';
@@ -23,6 +22,9 @@ const rootPath = findWorkspaceRoot();
 
 // Matches an entry in UA_BLOCKLIST in deploy/stats/download-stats.py
 const probeUserAgent = 'resonance-deploy-probe';
+
+// certbot renews at 30 days, so fewer than this means the renewal timer has been failing for a week
+const certificateWarningDays = 21;
 
 const { values } = parseArgs({
 	args: process.argv.slice(2),
@@ -48,6 +50,35 @@ async function build(): Promise<void> {
 	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm build`;
 }
 
+// Let's Encrypt no longer sends expiry mail, so this is the only signal a stalled renewal leaves
+async function checkCertificate(): Promise<void> {
+	const host = new URL(config.filesUrl).hostname;
+
+	console.log(chalk.blue(`Health check: ${host} certificate`));
+
+	try {
+		const validTo = await peerCertificateValidTo(host);
+		const daysRemaining = Math.floor((Date.parse(validTo) - Date.now()) / 86_400_000);
+
+		if (Number.isNaN(daysRemaining)) {
+			throw new TypeError(`Unreadable 'valid_to' on the peer certificate: '${validTo}'`);
+		}
+		if (daysRemaining < certificateWarningDays) {
+			console.warn(
+				chalk.yellow(
+					`  Certificate expires in ${String(daysRemaining)} days; check certbot.timer on the box`,
+				),
+			);
+			return;
+		}
+
+		console.log(chalk.green(`  Certificate OK (${String(daysRemaining)} days remaining)`));
+	} catch (error) {
+		// Warn-only: an expired certificate already fails the stats pull and the audio probe
+		console.warn(chalk.yellow(`  Certificate check skipped: ${String(error)}`));
+	}
+}
+
 // Exits non-zero on a former id colliding with a live path, which would take that page off the site
 async function generateRedirects(): Promise<void> {
 	console.log(chalk.blue('Generating redirects...'));
@@ -65,14 +96,32 @@ async function healthCheck(probeFiles: Array<string>): Promise<void> {
 	}
 	console.log(chalk.green(`  Site OK (${String(siteResponse.status)})`));
 
-	const probeFile = await smallestFile(probeFiles);
+	await checkCertificate();
 
-	if (probeFile === undefined) {
+	if (probeFiles.length === 0) {
 		console.log(chalk.yellow('  No audio files to probe; skipping files health check'));
 		return;
 	}
 
-	await probeAudio(probeFile);
+	for (const probeFile of probeFiles) {
+		await probeAudio(probeFile);
+	}
+}
+
+function peerCertificateValidTo(host: string): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const socket = tls.connect({ host, port: 443, servername: host }, () => {
+			const validTo = socket.getPeerCertificate().valid_to;
+
+			socket.end();
+			resolve(validTo);
+		});
+
+		socket.setTimeout(15_000, () => {
+			socket.destroy(new Error(`TLS connection to ${host} timed out`));
+		});
+		socket.on('error', reject);
+	});
 }
 
 async function probeAudio(probeFile: string): Promise<void> {
@@ -80,8 +129,7 @@ async function probeAudio(probeFile: string): Promise<void> {
 
 	console.log(chalk.blue(`Health check: ${probeUrl}`));
 
-	// Named so the aggregator's UA blocklist can drop it, along with Cloudflare's full-object
-	// fetch of the same file, which forwards this header
+	// Stays a GET; nginx logs `$body_bytes_sent` as 0 for a HEAD, and credits come from bytes
 	const filesResponse = await fetch(probeUrl, {
 		headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
 		signal: AbortSignal.timeout(15_000),
@@ -105,19 +153,6 @@ async function probeAudio(probeFile: string): Promise<void> {
 	}
 
 	console.log(chalk.green(`  ${probeFile} OK (206, ${contentRange}, ${contentType})`));
-}
-
-// Cloudflare answers a range request by pulling the whole object from the origin
-// A 2-byte probe costs a full transfer; probe once, against the cheapest file
-async function smallestFile(files: Array<string>): Promise<string | undefined> {
-	const sized = await Promise.all(
-		files.map(async (file) => {
-			const stat = await fs.stat(path.join(rootPath, audioSourceDir, file));
-			return { file, size: stat.size };
-		}),
-	);
-
-	return sized.sort((left, right) => left.size - right.size)[0]?.file;
 }
 
 try {
@@ -147,6 +182,9 @@ try {
 	// Before the build, which copies public/ into the dist/ that deploy-app ships
 	await generateRedirects();
 
+	// After generateRedirects, which runs `astro sync`, so the data store is warm
+	await generateSitemapLastmod({ rootPath, siteUrl: config.siteUrl });
+
 	await build();
 
 	// After the build, because the cards are published into the dist/ that deploy-app ships
@@ -159,8 +197,8 @@ try {
 	if (isDryRun) {
 		console.log(chalk.yellow('Skipping health checks (dry run)'));
 	} else {
-		// Probe what this run put on the box; a no-op run falls back to any one referenced file
-		await healthCheck(uploaded.length > 0 ? uploaded : validatedFiles);
+		// Probe everything this run put on the box; a no-op run falls back to any one referenced file
+		await healthCheck(uploaded.length > 0 ? uploaded : validatedFiles.slice(0, 1));
 	}
 
 	console.log(chalk.green('Deploy complete'));

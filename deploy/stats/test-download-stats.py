@@ -61,12 +61,13 @@ class DownloadStatsTest(unittest.TestCase):
         self.assertEqual(keys, ["artifacts/Quiet Mix.flac", "artifacts/Test Mix.mp3"])
 
         test_mix = doc["files"][1]
-        # Clean 200 + curl 200 count; truncated fails threshold, bot UA dropped
+        # Clean 200, curl 200, a resumed 200 plus 206, and three segmented 206s all count
+        # Truncated 400 and the two 206s summing to 600 fall short, bot UA dropped
         # Same-day repeat from one address deduped, 404 and malformed skipped
-        self.assertEqual(test_mix["completions"], 2)
-        # 1000 + 400 + 300 + 300 + 1000 (curl) + 1000 (deduped repeat still ships bytes)
-        self.assertEqual(test_mix["byte_equivalents"], 4.0)
-        self.assertEqual(test_mix["daily"], {"2026-01-10": 2})
+        self.assertEqual(test_mix["completions"], 4)
+        # 4000 from the clean, truncated, segmented and curl requests, plus 1000 resumed and 1000 segmented
+        self.assertEqual(test_mix["byte_equivalents"], 6.0)
+        self.assertEqual(test_mix["daily"], {"2026-01-10": 4})
 
         quiet_mix = doc["files"][0]
         self.assertEqual(quiet_mix["completions"], 0)
@@ -120,7 +121,7 @@ class DownloadStatsTest(unittest.TestCase):
         self.run_script(state_dir=reference_state)
 
         self.assertEqual(incremental, self.read_json(state_dir=reference_state))
-        self.assertEqual(incremental["files"][1]["daily"], {"2026-01-09": 3, "2026-01-10": 2})
+        self.assertEqual(incremental["files"][1]["daily"], {"2026-01-09": 3, "2026-01-10": 4})
 
     def test_todays_log_is_not_read(self):
         # nginx still holds today's file open; reading it would count a partial day and never revisit it

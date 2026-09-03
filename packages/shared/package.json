@@ -7,7 +7,9 @@
 	"exports": {
 		"./comments": "./src/comments/index.ts",
 		"./constants": "./src/constants.ts",
-		"./schemas": "./src/schemas/index.ts"
+		"./routing": "./src/routing.ts",
+		"./schemas": "./src/schemas/index.ts",
+		"./sitemap": "./src/sitemap.ts"
 	},
 	"dependencies": {
 		"zod": "^4.5.4"

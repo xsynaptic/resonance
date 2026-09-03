@@ -1,15 +1,11 @@
+import { getContentUrl } from '@xsynaptic/shared/routing';
+
 import type { DataStoreCollections } from '../shared/data-store.js';
 
 import { getDataStoreCollection, toFormerIds } from '../shared/data-store.js';
 
-// Where each collection's detail pages live; mirrors `getContentUrl` in lib/utils/routing.ts
 // Terms carry no formerIds: their slugs never changed, only the base path they sit under
-const collectionPrefixes = Object.entries({
-	mixes: '/mixes/',
-	pages: '/',
-	posts: '/',
-	reviews: '/reviews/',
-});
+const redirectCollections = ['mixes', 'pages', 'posts', 'reviews'];
 
 export interface RedirectBuild {
 	// A former id matching a live path; fatal, because a rule takes that page off the site
@@ -51,10 +47,13 @@ export function buildRedirectPairs(collections: DataStoreCollections): RedirectB
 }
 
 function collectCandidates(collections: DataStoreCollections): Array<RedirectPair> {
-	return collectionPrefixes.flatMap(([collection, prefix]) =>
+	return redirectCollections.flatMap((collection) =>
 		getDataStoreCollection(collections, [collection]).flatMap((entry) =>
 			toFormerIds(entry)
-				.map((formerId) => ({ from: `${prefix}${formerId}/`, to: `${prefix}${entry.id}/` }))
+				.map((formerId) => ({
+					from: getContentUrl(collection, formerId),
+					to: getContentUrl(collection, entry.id),
+				}))
 				.filter(({ from, to }) => from !== to),
 		),
 	);
@@ -62,8 +61,10 @@ function collectCandidates(collections: DataStoreCollections): Array<RedirectPai
 
 function collectLivePaths(collections: DataStoreCollections): Set<string> {
 	return new Set(
-		collectionPrefixes.flatMap(([collection, prefix]) =>
-			getDataStoreCollection(collections, [collection]).map((entry) => `${prefix}${entry.id}/`),
+		redirectCollections.flatMap((collection) =>
+			getDataStoreCollection(collections, [collection]).map((entry) =>
+				getContentUrl(collection, entry.id),
+			),
 		),
 	);
 }

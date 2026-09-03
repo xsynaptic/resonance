@@ -187,3 +187,4 @@
 /time-periods/* /eras/:splat 301
 /:slug/feed/ /rss.xml 301
 /:section/:slug/feed/ /rss.xml 301
+/wp-content/uploads/* https://files.djbasilisk.com/uploads/:splat 301

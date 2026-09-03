@@ -1,0 +1,14 @@
+# Applies to static asset responses only, so the Worker answers /api/comments with its own headers
+
+# includeSubDomains covers files.djbasilisk.com, which is https only and redirects port 80
+# A year of cached policy means any future subdomain has to be https from its first request
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Content-Security-Policy: frame-ancestors 'none'; upgrade-insecure-requests
+
+# Everything Astro fingerprints, fonts included; the platform default is max-age=0, must-revalidate
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

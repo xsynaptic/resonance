@@ -51,6 +51,9 @@ const structuralRedirects: Array<[string, string]> = [
 	['/feed/', '/rss.xml'],
 	['/:slug/feed/', '/rss.xml'],
 	['/:section/:slug/feed/', '/rss.xml'],
+	// The upload tree is served off the file server rather than the Worker: 5,229 of the 5,876
+	// referenced paths are `-WxH` srcset derivatives, and 1.3 GB has no place in every version
+	['/wp-content/uploads/*', 'https://files.djbasilisk.com/uploads/:splat'],
 ];
 
 const rootPath = findWorkspaceRoot();

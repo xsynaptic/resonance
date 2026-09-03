@@ -132,8 +132,8 @@ class DownloadStatsTest(unittest.TestCase):
         self.run_script()
         self.assertEqual(self.read_json()["files"][1]["completions"], 0)
 
-    def test_dedupe_is_per_day(self):
-        # One address either side of midnight is two downloads; twice in a day is one
+    def test_an_address_counts_once_per_file_ever(self):
+        # Coming back for the same file on another day is the same address taking the same file
         self.write_log(
             "downloads-2026-01-09.log",
             LINE.format(ts="2026-01-09T23:59:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.50"),
@@ -144,26 +144,33 @@ class DownloadStatsTest(unittest.TestCase):
             + LINE.format(ts="2026-01-10T18:00:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="203.0.113.50"),
         )
         self.run_script()
-        self.assertEqual(self.read_json()["files"][1]["completions"], 2)
+        self.assertEqual(self.read_json()["files"][1]["completions"], 1)
 
-
-    def test_corpus_scraper_is_dropped(self):
-        # One address taking the whole corpus in a day counts for none of it; a listener beside it still counts
-        for index in range(download_stats.SCRAPE_FILE_CAP):
+    def test_a_listener_taking_the_whole_catalog_keeps_every_download(self):
+        # The reader who finds the site and takes everything is the audience, not a scraper
+        catalog = 25
+        for index in range(catalog):
             (self.media_root / "artifacts" / f"Mix {index}.mp3").write_bytes(b"x" * 1000)
-        scrape = "".join(
+        sweep = "".join(
             LINE.format(ts="2026-01-10T10:00:00+00:00", name=f"Mix%20{index}.mp3", sent=1000, ip="198.51.100.7")
-            for index in range(download_stats.SCRAPE_FILE_CAP)
+            for index in range(catalog)
         )
-        self.write_log(
-            "downloads-2026-01-10.log",
-            scrape + LINE.format(ts="2026-01-10T11:00:00+00:00", name="Mix%200.mp3", sent=1000, ip="203.0.113.80"),
-        )
+        self.write_log("downloads-2026-01-10.log", sweep)
         self.run_script()
 
         counts = {entry["key"]: entry["completions"] for entry in self.read_json()["files"]}
-        self.assertEqual(counts["artifacts/Mix 0.mp3"], 1)
-        self.assertEqual(counts["artifacts/Mix 1.mp3"], 0)
+        for index in range(catalog):
+            self.assertEqual(counts[f"artifacts/Mix {index}.mp3"], 1)
+
+    def test_a_crawler_refetching_daily_counts_once(self):
+        # No user agent is trusted here; the dedupe holds whatever the crawler calls itself
+        for day in ("09", "10"):
+            self.write_log(
+                f"downloads-2026-01-{day}.log",
+                LINE.format(ts=f"2026-01-{day}T10:00:00+00:00", name="Test%20Mix.mp3", sent=1000, ip="198.51.100.9"),
+            )
+        self.run_script()
+        self.assertEqual(self.read_json()["files"][1]["completions"], 1)
 
     def test_unparsed_and_ignored_are_counted_apart(self):
         # A scanner 404 is routine; a line that fails to parse means the log format drifted

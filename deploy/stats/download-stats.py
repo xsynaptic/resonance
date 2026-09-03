@@ -5,9 +5,11 @@
 
 import argparse
 import collections
+import hashlib
 import json
 import os
 import re
+import secrets
 import sqlite3
 import sys
 import time
@@ -22,8 +24,6 @@ STATE_DIR = "/srv/resonance/stats"
 
 COMPLETION_THRESHOLD = 0.95
 WINDOW_DAYS = 90
-# Measured on the rescued logs: 97% of (IP, day) pairs took one file and none took 4 to 7
-SCRAPE_FILE_CAP = 10
 # A quiet week and a stopped nginx look identical without this
 STALE_LOG_DAYS = 2
 # curl/wget deliberately absent: command-line downloads are legitimate here
@@ -61,6 +61,15 @@ CREATE TABLE IF NOT EXISTS daily_rollup (
 CREATE TABLE IF NOT EXISTS processed_logs (
   name         TEXT PRIMARY KEY,
   processed_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS credited_pairs (
+  visitor  TEXT NOT NULL,
+  file_key TEXT NOT NULL,
+  PRIMARY KEY (visitor, file_key)
 );
 """
 
@@ -201,31 +210,48 @@ def collect_days(lines, sizes):
     return days, unparsed, ignored
 
 
-def credit_day(credited):
-    # The raw address is read here and never stored; only the per-file tally leaves this function
-    files_per_ip = collections.Counter(ip for ip, _file_key in credited)
-    scrapers = {ip for ip, count in files_per_ip.items() if count >= SCRAPE_FILE_CAP}
-    completions = collections.Counter(
-        file_key for ip, file_key in credited if ip not in scrapers
-    )
-    return completions, len(scrapers)
+def visitor_salt(db):
+    row = db.execute("SELECT value FROM meta WHERE key = 'visitor_salt'").fetchone()
+    if row is not None:
+        return row[0]
+    salt = secrets.token_hex(16)
+    db.execute("INSERT INTO meta (key, value) VALUES ('visitor_salt', ?)", (salt,))
+    return salt
+
+
+# An address that has taken a file has taken it, however often it comes back: a crawler refetching
+# daily counts once, and a listener taking the whole catalog keeps every one of them
+# There is no volume cap; taking a lot of music is what the audience does
+# The raw address is salted and hashed here and never stored; only the digest reaches the table
+def credit_day(db, credited, salt):
+    completions = collections.Counter()
+
+    for ip, file_key in credited:
+        visitor = hashlib.sha256(f"{salt}{ip}".encode()).hexdigest()
+        inserted = db.execute(
+            "INSERT OR IGNORE INTO credited_pairs (visitor, file_key) VALUES (?, ?)",
+            (visitor, file_key),
+        )
+        if inserted.rowcount:
+            completions[file_key] += 1
+
+    return completions
 
 
 def process_lines(db, lines, sizes):
     days, unparsed, ignored = collect_days(lines, sizes)
+    salt = visitor_salt(db)
     stats = {
         "days": len(days),
         "completions": 0,
         "partials": 0,
         "bytes": 0,
-        "scrapers": 0,
         "unparsed": unparsed,
         "ignored": ignored,
     }
 
     for day, buckets in sorted(days.items()):
-        completions, scraper_count = credit_day(buckets["credited"])
-        stats["scrapers"] += scraper_count
+        completions = credit_day(db, buckets["credited"], salt)
 
         for file_key, traffic in buckets["traffic"].items():
             counted = completions.get(file_key, 0)
@@ -347,7 +373,7 @@ def run(log_dir, log_pattern, media_root, state_dir, now=None):
     summary = (
         f"{now.strftime('%Y-%m-%dT%H:%M:%SZ')} logs={len(logs)} lines={len(lines)} days={stats['days']} "
         f"completions={stats['completions']} partials={stats['partials']} bytes={stats['bytes']} "
-        f"scrapers={stats['scrapers']} unparsed={stats['unparsed']} ignored={stats['ignored']} "
+        f"unparsed={stats['unparsed']} ignored={stats['ignored']} "
         f"duration_ms={duration_ms}\n"
     )
 

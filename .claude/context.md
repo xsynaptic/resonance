@@ -1,6 +1,6 @@
 # Resonance vocabulary
 
-The glossary of terms this project uses. Names here are binding: use the term, and steer clear of the words listed under _Avoid_.
+The glossary of terms this project uses. Names here are binding: use the term, and avoid the words listed under _Avoid_.
 
 ## Language
 
@@ -8,7 +8,7 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Entry**: A single piece of authored content in a collection, sourced from one MDX file. _Avoid_: document, record, node, item (reserve "item" for catalog rows).
 
-**Collection**: A named set of Entries sharing one schema. A Collection earns its existence by carrying fields that change behaviour; a difference of length, tone, or subject is a Format, not a Collection. _Avoid_: content type, post type, model.
+**Collection**: A named set of Entries sharing one schema. A difference of length, tone, or subject is a Format, not a Collection. _Avoid_: content type, post type, model.
 
 **Draft**: An Entry withheld from the site. Drafts here are complete pieces awaiting review, not stubs. _Avoid_: unpublished, hidden, private.
 
@@ -32,11 +32,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Theme**: What an Entry is about, as opposed to what shape it takes. Any Entry in the editorial stream may carry Themes; a Post also carries one Format, and the two vocabularies never overlap. _Avoid_: tag, category, subject, topic.
 
-**Album Artwork**: The Format for cover art made for a Release, presented with commentary. It held its own collection until it was found to carry no fields of its own. _Avoid_: design, artwork, cover, sleeve.
+**Album Artwork**: The Format for cover art made for a Release, presented with commentary. It was a Collection until it turned out to carry no fields of its own. _Avoid_: design, artwork, cover, sleeve.
 
-**Selections**: The Format for a curated, ranked roundup of Releases or Tracks, whether a monthly chart or an annual best-of. It held its own collection until it was found to carry one optional field that most of its entries never used; a Selections Post may hold its roundup as prose. _Avoid_: list, roundup.
+**Selections**: The Format for a curated, ranked roundup of Releases or Tracks, whether a monthly chart or an annual best-of. It was a Collection until it turned out to carry one optional field that most entries never used. A Selections Post may hold its roundup as prose. _Avoid_: list, roundup.
 
-**Ephemera**: Printed material documented rather than authored (a scanned flyer, a postcard, a ticket). A Format today. What separates it from Album Artwork is provenance, not medium: someone else made it, and where the copy came from is part of the record. Provenance fields are what would graduate it to a Collection. _Avoid_: scans, memorabilia, artifacts.
+**Ephemera**: Printed material documented rather than authored (a scanned flyer, a postcard, a ticket). A Format today. What separates it from Album Artwork is provenance, not medium: someone else made it, and where the copy came from is part of the record. Provenance fields would graduate it to a Collection. _Avoid_: scans, memorabilia, artifacts.
 
 **Featured Image**: The single image representing an Entry in listings, page headers, and social previews. _Avoid_: hero, cover, thumbnail.
 
@@ -46,11 +46,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Format, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
 
-Terms come in two idioms, and the difference is real rather than accidental. Each is written the way it is used most of the time, which is why the two read as opposites.
+Terms come in two idioms whose reference syntax is inverted, each written for its common case: a Controlled Vocabulary reference is a slug, because the list is short and known; an Open Vocabulary reference is a name, because most names will never be cataloged.
 
 **Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Formats, Themes. _Avoid_: taxonomy, enum, closed list.
 
-**Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A reference is written as the name itself, and links when that name matches a cataloged Term; naming the Term outright is what you do when the name alone would miss it, or find the wrong one. _Avoid_: taxonomy, freeform, loose reference.
+**Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A reference is written as the name itself, and links when that name matches a cataloged Term. Name the Term outright when the bare name would miss it, or find the wrong one. _Avoid_: taxonomy, freeform, loose reference.
 
 **Artist**: A person or act that made music, a Mix, or a visual work. An Open Vocabulary Term. _Avoid_: act, performer, musician, project.
 
@@ -58,7 +58,7 @@ Terms come in two idioms, and the difference is real rather than accidental. Eac
 
 **Label**: A record label that put out a Release or a Mix. An Open Vocabulary Term, hierarchical, so a sub-label nests under its parent. _Avoid_: imprint, publisher.
 
-**Style**: A genre of electronic music. Rhizomatic but modelled here for simplicity as hierarchical. _Avoid_: genre, sound, tag.
+**Style**: A genre of electronic music. Genres relate as a network, but the model simplifies them to a hierarchy. _Avoid_: genre, sound, tag.
 
 **Region**: Where the music comes from, not where the writing was done. Hierarchical. _Avoid_: country, place, location, origin.
 
@@ -72,7 +72,7 @@ Terms come in two idioms, and the difference is real rather than accidental. Eac
 
 **Catalog Item**: One Entry projected into the flat shape a card renders. _Avoid_: card, row, record, entry.
 
-Every page on the site is one of two shapes, and its layout is named for which one. Between them they cover everything, so a third name is a sign the shape was misread rather than a new kind of page.
+Every page is one of two shapes, and its layout is named for the shape. The two cover the whole site, so reaching for a third name means the shape was misread.
 
 **Detail Page**: The page for a single subject. A Term's Detail Page is still a Detail Page even though most of it is a paginated listing: the Term is the subject and the listing is what the Term has to say. _Avoid_: single, permalink, archive.
 
@@ -80,6 +80,6 @@ Every page on the site is one of two shapes, and its layout is named for which o
 
 ### Provenance
 
-**Extraction**: The generation of the content tree from the WordPress dump. It was the writer of record for frontmatter shape until handover on 2026-09-03; the tracked tree is now, and a re-Extraction would overwrite it. _Avoid_: import, migration, sync.
+**Extraction**: The generation of the content tree from the WordPress dump. It set frontmatter shape until handover on 2026-09-03, after which the tracked tree became the record; a re-Extraction would overwrite it. _Avoid_: import, migration, sync.
 
 **Triage**: The manual pass over Drafts in the tracked content repository, un-prefixing what should publish, with git behind it. _Avoid_: cleanup, review, curation.

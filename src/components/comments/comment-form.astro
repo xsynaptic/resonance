@@ -16,7 +16,13 @@ const { collection, entryId } = Astro.props;
 ---
 
 <div class="mt-12" data-comment-form-home>
-	<form action="/api/comments" class="space-y-4" data-comment-form method="post">
+	<noscript>
+		<p class="rounded-sm border border-surface-700 bg-surface-600 p-3 text-sm text-ink-200">
+			{t('comments.form.noscript')}
+		</p>
+	</noscript>
+	<Button data-open-form hidden>{t('comments.form.heading')}</Button>
+	<form action="/api/comments" class="space-y-4" data-comment-form hidden method="post">
 		<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
 			<h2 class="heading-section">{t('comments.form.heading')}</h2>
 			<button class="comment-action" data-cancel-reply hidden type="button"
@@ -24,11 +30,6 @@ const { collection, entryId } = Astro.props;
 			>
 		</div>
 		<p class="text-sm text-ink-500">{t('comments.form.moderationNote')}</p>
-		<noscript>
-			<p class="rounded-sm border border-surface-700 bg-surface-600 p-3 text-sm text-ink-200">
-				{t('comments.form.noscript')}
-			</p>
-		</noscript>
 		<input name="collection" type="hidden" value={collection} />
 		<input name="entryId" type="hidden" value={entryId} />
 		<input data-parent-id name="parentId" type="hidden" value="" />

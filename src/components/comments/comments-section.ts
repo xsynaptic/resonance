@@ -44,10 +44,10 @@ class CommentsSection extends HTMLElement {
 			button.hidden = false;
 		}
 
+		this.#toggle('[data-open-form]', true);
+
 		this.addEventListener('click', this.#handleClick, { signal });
 		this.#form?.addEventListener('submit', this.#handleSubmit, { signal });
-
-		void this.#renderTurnstile();
 	}
 
 	disconnectedCallback() {
@@ -106,6 +106,11 @@ class CommentsSection extends HTMLElement {
 			return;
 		}
 
+		if (event.target.closest('[data-open-form]')) {
+			this.#openForm();
+			return;
+		}
+
 		if (event.target.closest('[data-cancel-reply]')) {
 			this.#cancelReply();
 			return;
@@ -157,6 +162,19 @@ class CommentsSection extends HTMLElement {
 		return turnstileReady;
 	}
 
+	#openForm() {
+		const form = this.#form;
+
+		if (!form) return;
+
+		form.hidden = false;
+		this.#toggle('[data-open-form]', false);
+
+		void this.#renderTurnstile();
+
+		this.#field('author').focus();
+	}
+
 	async #readMessage(response: Response) {
 		try {
 			const payload: unknown = await response.json();
@@ -190,11 +208,16 @@ class CommentsSection extends HTMLElement {
 
 	// Moving the form re-parents the widget's iframe, which reloads it, so it is rebuilt from scratch
 	async #renderTurnstile() {
+		const form = this.#form;
 		const container = this.querySelector<HTMLElement>('[data-turnstile]');
+
+		// The widget animates, so it stays unloaded until someone opens the form
+		if (!form || !container || form.hidden) return;
+
 		const api = await this.#loadTurnstile();
 
 		// A disconnect while the script loads, or a submit settling after one, would strand the widget
-		if (!container || !api || !this.isConnected) return;
+		if (!api || !this.isConnected) return;
 
 		if (this.#widgetId !== undefined) {
 			api.remove(this.#widgetId);
@@ -318,6 +341,8 @@ class CommentsSection extends HTMLElement {
 		if (!comment) return;
 
 		comment.after(form);
+		form.hidden = false;
+		this.#toggle('[data-open-form]', false);
 		this.#field('parentId').value = commentId;
 		this.#toggle('[data-cancel-reply]', true);
 		void this.#renderTurnstile();

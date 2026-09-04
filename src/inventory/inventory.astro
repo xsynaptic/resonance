@@ -1,7 +1,7 @@
 ---
 import type { Page } from 'astro';
 
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 
 import EmbedFrame from '#components/embed/embed-frame.astro';
@@ -118,7 +118,7 @@ const inlineSelection: SelectionValue = {
 };
 
 // Astro's own Page interface type-checks this, so a new required field surfaces here as a tsc error
-const paginationPage: Page<ContentItem> = {
+const paginationPage: Page<ContentCatalogItem> = {
 	currentPage: 3,
 	data: [],
 	end: 29,

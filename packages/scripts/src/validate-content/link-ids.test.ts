@@ -28,6 +28,20 @@ describe('collectLinkIdIssues', () => {
 		]);
 	});
 
+	test('reads a self-closing link', () => {
+		const entries = [
+			makeEntry({
+				body: '<Link id="twisted" />\n<Link id="nobody" />',
+				filePath: 'collections/posts/2011/a-post.mdx',
+				id: 'a-post',
+			}),
+		];
+
+		expect(collectLinkIdIssues(entries, targets)).toEqual([
+			{ id: 'nobody', lineNumber: 2, location: 'collections/posts/2011/a-post.mdx' },
+		]);
+	});
+
 	test('skips an entry with no body and one with no Link at all', () => {
 		const entries = [
 			makeEntry({ id: 'an-artist' }),

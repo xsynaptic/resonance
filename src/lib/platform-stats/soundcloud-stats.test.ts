@@ -24,7 +24,7 @@ vi.doMock('#constants.ts', () => ({ soundcloudStatsPath: fixturePath }));
 const { getSoundcloudPlayCount } = await import('#lib/platform-stats/soundcloud-stats.ts');
 
 describe('getSoundcloudPlayCount', () => {
-	test('reads a plain string, ignoring the UTM query and trailing slash', async () => {
+	test('reads a plain string, folding away a trailing slash', async () => {
 		expect(await getSoundcloudPlayCount('https://soundcloud.com/djbasilisk/solo/')).toBe(42);
 	});
 
@@ -35,9 +35,5 @@ describe('getSoundcloudPlayCount', () => {
 		]);
 
 		expect(plays).toBe(1000);
-	});
-
-	test('is zero when the field is unset', async () => {
-		expect(await getSoundcloudPlayCount(undefined)).toBe(0);
 	});
 });

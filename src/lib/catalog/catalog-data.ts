@@ -1,16 +1,45 @@
 import type { ImageFeatured } from '@xsynaptic/shared/schemas';
-import type { CollectionKey } from 'astro:content';
 
 import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
 
+import type { Catalog } from '#lib/catalog/catalog-factory.ts';
+import type {
+	CatalogCollectionKey,
+	CatalogItem,
+	ContentCatalogItem,
+	ContentCollectionKey,
+	TermCatalogItem,
+	TermCollectionKey,
+} from '#lib/catalog/catalog-types.ts';
 import type { LabelRefValue } from '#lib/schemas/refs.ts';
 
+import { createCatalog } from '#lib/catalog/catalog-factory.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
-// Entry fields the catalog projects; optional members are absent on collections that lack them
-export interface ContentDoc {
+const contentCollections = [
+	'mixes',
+	'pages',
+	'posts',
+	'reviews',
+] as const satisfies ReadonlyArray<ContentCollectionKey>;
+
+const termCollections = [
+	'artists',
+	'eras',
+	'formats',
+	'labels',
+	'regions',
+	'series',
+	'styles',
+	'themes',
+] as const satisfies ReadonlyArray<TermCollectionKey>;
+
+// Only releases show a year subtitle; other collections already sit under a year heading when listed
+const releaseCollections = new Set<ContentCollectionKey>(['mixes', 'reviews']);
+
+interface ContentEntry {
 	data: {
 		dateCreated: Date;
 		imageFeatured?: ImageFeatured | undefined;
@@ -21,28 +50,97 @@ export interface ContentDoc {
 	id: string;
 }
 
-// Extras stay optional so each card reads only what it shows
-export interface ContentItem {
-	collection: CollectionKey;
-	date: Date;
+interface TermEntry {
+	data: {
+		imageFeatured?: ImageFeatured | undefined;
+		title: string;
+	};
 	id: string;
-	image?: string | undefined;
-	subtitle?: string | undefined;
-	title: string;
-	url: string;
 }
 
-// Content collections that surface as cards; term collections are excluded
-type ContentCollectionKey = 'mixes' | 'posts' | 'reviews';
+let catalogPromise: Promise<Catalog> | undefined;
 
-// Only releases show a year subtitle; other collections already sit under a year heading when listed
-const releaseCollections = new Set<CollectionKey>(['mixes', 'reviews']);
+export function getCatalog(): Promise<Catalog> {
+	if (!catalogPromise) catalogPromise = buildCatalog();
 
-// Projects a path string for the image; the card does the lazy astro:assets lookup
-export async function toContentItem(
-	collection: CollectionKey,
-	entry: ContentDoc,
-): Promise<ContentItem> {
+	return catalogPromise;
+}
+
+// Ids are flat across the catalog: `<Link id>` and the site root both resolve without a collection
+function assertUniqueIds(items: ReadonlyArray<CatalogItem>): void {
+	const collectionsById = new Map<string, CatalogCollectionKey>();
+
+	for (const item of items) {
+		const claimed = collectionsById.get(item.id);
+
+		if (claimed) {
+			throw new Error(
+				`[catalog] id "${item.id}" exists in both "${claimed}" and "${item.collection}"`,
+			);
+		}
+
+		collectionsById.set(item.id, item.collection);
+	}
+}
+
+async function buildCatalog(): Promise<Catalog> {
+	return createCatalog(await buildCatalogItems());
+}
+
+async function buildCatalogItems(): Promise<Array<CatalogItem>> {
+	const [contentItems, termItems] = await Promise.all([
+		Promise.all(contentCollections.map((collection) => buildContentItems(collection))),
+		Promise.all(termCollections.map((collection) => buildTermItems(collection))),
+	]);
+
+	const items = [
+		...contentItems.flat().sort((first, second) => second.date.getTime() - first.date.getTime()),
+		...termItems.flat(),
+	];
+
+	assertUniqueIds(items);
+
+	return items;
+}
+
+async function buildContentItems(
+	collection: ContentCollectionKey,
+): Promise<Array<ContentCatalogItem>> {
+	const entries = await getCollection(collection);
+
+	return Promise.all(entries.map((entry) => toContentItem(collection, entry)));
+}
+
+async function buildTermItems(collection: TermCollectionKey): Promise<Array<TermCatalogItem>> {
+	const entries = await getCollection(collection);
+
+	return entries.map((entry) => toTermItem(collection, entry));
+}
+
+async function metaLine(
+	collection: ContentCollectionKey,
+	entry: ContentEntry,
+): Promise<string | undefined> {
+	const refs = await resolveRefs('labels', entry.data.labels);
+	const labels = refs.map((ref) => ref.label).join(' / ');
+	const year = releaseYear(collection, entry);
+
+	if (labels === '') return year;
+
+	return year === undefined ? labels : `${labels}, ${year}`;
+}
+
+// Only reviews carry releaseYear, since a release can predate its review by years
+function releaseYear(collection: ContentCollectionKey, entry: ContentEntry): string | undefined {
+	if (!releaseCollections.has(collection)) return undefined;
+
+	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
+}
+
+async function toContentItem(
+	collection: ContentCollectionKey,
+	entry: ContentEntry,
+): Promise<ContentCatalogItem> {
 	return {
 		collection,
 		date: entry.data.dateCreated,
@@ -54,38 +152,12 @@ export async function toContentItem(
 	};
 }
 
-async function metaLine(collection: CollectionKey, entry: ContentDoc): Promise<string | undefined> {
-	const refs = await resolveRefs('labels', entry.data.labels);
-	const labels = refs.map((ref) => ref.label).join(' / ');
-	const year = releaseYear(collection, entry);
-
-	if (labels === '') return year;
-
-	return year === undefined ? labels : `${labels}, ${year}`;
-}
-
-// Mixes no longer carry releaseYear; it always matched dateCreated's year
-// Reviews keep theirs, since a release can predate its review by years
-function releaseYear(collection: CollectionKey, entry: ContentDoc): string | undefined {
-	if (!releaseCollections.has(collection)) return undefined;
-	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
-}
-
-const itemsByCollection = new Map<ContentCollectionKey, Promise<Array<ContentItem>>>();
-
-// Memoized so the projection runs once per collection per build, not per consuming page
-export function getContentItems(collection: ContentCollectionKey): Promise<Array<ContentItem>> {
-	let cached = itemsByCollection.get(collection);
-	if (!cached) {
-		cached = buildContentItems(collection);
-		itemsByCollection.set(collection, cached);
-	}
-	return cached;
-}
-
-async function buildContentItems(collection: ContentCollectionKey): Promise<Array<ContentItem>> {
-	const entries = await getCollection(collection);
-	const items = await Promise.all(entries.map((entry) => toContentItem(collection, entry)));
-
-	return items.sort((first, second) => second.date.getTime() - first.date.getTime());
+function toTermItem(collection: TermCollectionKey, entry: TermEntry): TermCatalogItem {
+	return {
+		collection,
+		id: entry.id,
+		image: getImageFeaturedId(entry.data.imageFeatured),
+		title: entry.data.title,
+		url: getContentUrl(collection, entry.id),
+	};
 }

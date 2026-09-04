@@ -14,6 +14,7 @@ import { validateDownloadsLegacy } from './downloads-legacy.js';
 import { validateEntryIds } from './entry-ids.js';
 import { validateImages } from './images.js';
 import { validateLinkIds } from './link-ids.js';
+import { validateMdxComponents } from './mdx.js';
 import { validatePlatformEmbeds } from './platform-embeds.js';
 import { validateReferences } from './references.js';
 import { validateRefs } from './refs.js';
@@ -37,18 +38,6 @@ const contentCollections = [
 	'styles',
 	'themes',
 ] as const;
-
-// Mirrors `linkableCollections` in references-data.ts; the two have to stay in step
-const linkableCollections = [
-	'artists',
-	'labels',
-	'styles',
-	'regions',
-	'eras',
-	'series',
-	'formats',
-	'themes',
-];
 
 // Mirrors seriesMemberCollections in term-index.ts
 const seriesMemberCollections = ['mixes', 'reviews', 'posts'];
@@ -84,7 +73,8 @@ const validations = {
 	'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
 	'entry-ids': () => validateEntryIds(allEntries),
 	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
-	'link-ids': () => validateLinkIds(allEntries, entriesFrom(...linkableCollections)),
+	'link-ids': () => validateLinkIds(allEntries, allEntries),
+	mdx: () => validateMdxComponents(allEntries),
 	'platform-embeds': () => validatePlatformEmbeds(entriesFrom('mixes'), platformKeys),
 	references: () => validateReferences(allEntries),
 	refs: () => validateRefs(allEntries, entriesFrom('artists', 'labels')),

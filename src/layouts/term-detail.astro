@@ -4,7 +4,7 @@ import type { CollectionEntry, CollectionKey } from 'astro:content';
 
 import { render } from 'astro:content';
 
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
@@ -25,7 +25,7 @@ import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
 	groupByYear?: boolean | undefined;
-	page: Page<ContentItem>;
+	page: Page<ContentCatalogItem>;
 	term: CollectionEntry<
 		'artists' | 'eras' | 'formats' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'
 	>;
@@ -56,7 +56,7 @@ const collectionLabels: Partial<Record<CollectionKey, string>> = {
 	reviews: t('collection.reviews.label'),
 };
 
-const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
+const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = groupByYear
 	? getYearGroups(page.data)
 	: [{ items: page.data }];
 

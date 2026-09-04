@@ -1,65 +1,123 @@
-import type { CollectionKey } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-import type { ContentDoc, ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { RefValue } from '#lib/schemas/refs.ts';
 
-import { toContentItem } from '#lib/catalog/catalog-data.ts';
+import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { descendantsOf } from '#lib/collections/terms/hierarchy.ts';
 import { labelIds } from '#lib/utils/terms.ts';
 
-export type TermIndex = Map<string, Array<ContentItem>>;
+export type TermIndex = Map<string, Array<ContentCatalogItem>>;
 
-async function collectByTerm<Entry extends ContentDoc>(
-	collection: CollectionKey,
-	entries: Array<Entry>,
-	getRefs: (entry: Entry) => Array<{ id: string }> | undefined,
-	index: TermIndex,
-): Promise<void> {
-	for (const entry of entries) {
-		const refs = getRefs(entry);
+const memberCollections = ['mixes', 'reviews', 'posts'] as const;
 
-		if (!refs || refs.length === 0) continue;
+interface Member {
+	entry: MemberEntry;
+	item: ContentCatalogItem;
+}
 
-		const item = await toContentItem(collection, entry);
+type MemberEntry = CollectionEntry<(typeof memberCollections)[number]>;
+
+type TermRefs = (entry: MemberEntry) => Array<{ id: string }> | undefined;
+
+let membersPromise: Promise<Array<Member>> | undefined;
+
+// A mix reaches its artist's page through the alias it was published as, not through `artists`
+function artistRefs(entry: MemberEntry): Array<{ id: string }> {
+	if (entry.collection === 'mixes') return entry.data.alias ? [entry.data.alias] : [];
+
+	return toIdRefs(entry.data.artists);
+}
+
+async function buildMembers(): Promise<Array<Member>> {
+	const [catalog, collections] = await Promise.all([
+		getCatalog(),
+		Promise.all(memberCollections.map((collection) => getCollection(collection))),
+	]);
+
+	const itemsById = new Map(
+		catalog.byCollection('mixes', 'reviews', 'posts').map((item) => [item.id, item] as const),
+	);
+
+	const members: Array<Member> = [];
+
+	for (const entry of collections.flat()) {
+		const item = itemsById.get(entry.id);
+
+		if (item) members.push({ entry, item });
+	}
+
+	return members;
+}
+
+async function buildTermIndex(
+	getRefs: TermRefs,
+	finalize: (index: TermIndex) => Promise<TermIndex> | TermIndex,
+): Promise<TermIndex> {
+	const members = await getMembers();
+	const index: TermIndex = new Map();
+
+	for (const { entry, item } of members) {
+		const refs = getRefs(entry) ?? [];
 
 		for (const ref of refs) {
 			const list = index.get(ref.id) ?? [];
+
 			list.push(item);
 			index.set(ref.id, list);
 		}
 	}
+
+	return finalize(index);
 }
 
-function dedupeById(items: Array<ContentItem>): Array<ContentItem> {
+function dedupeById(items: Array<ContentCatalogItem>): Array<ContentCatalogItem> {
 	const seen = new Set<string>();
-	const out: Array<ContentItem> = [];
+	const deduped: Array<ContentCatalogItem> = [];
+
 	for (const item of items) {
 		if (seen.has(item.id)) continue;
+
 		seen.add(item.id);
-		out.push(item);
+		deduped.push(item);
 	}
-	return out;
+
+	return deduped;
 }
 
-// Flat term collections date-sort (the default); hierarchical ones pass `rollUpHierarchy`
+// Formats are a post-only vocabulary; a post carries at most one format
+function formatRefs(entry: MemberEntry): Array<{ id: string }> {
+	if (entry.collection !== 'posts' || !entry.data.format) return [];
+
+	return [entry.data.format];
+}
+
+// One pass shared by every index, so an entry is paired with its catalog item once per build
+function getMembers(): Promise<Array<Member>> {
+	if (!membersPromise) membersPromise = buildMembers();
+
+	return membersPromise;
+}
+
+// Flat term collections date-sort (the default); hierarchical ones pass `rollUp`
 function makeTermIndex(
-	collect: (index: TermIndex) => Promise<void>,
+	getRefs: TermRefs,
 	finalize: (index: TermIndex) => Promise<TermIndex> | TermIndex = sortIndex,
 ): () => Promise<TermIndex> {
 	let cached: Promise<TermIndex> | undefined;
+
 	return () => {
-		if (!cached) {
-			cached = (async () => {
-				const index: TermIndex = new Map();
-				await collect(index);
-				return finalize(index);
-			})();
-		}
+		if (!cached) cached = buildTermIndex(getRefs, finalize);
+
 		return cached;
 	};
+}
+
+function rollUp(collection: HierarchicalCollection) {
+	return (index: TermIndex) => rollUpHierarchy(index, collection);
 }
 
 // A parent's page (e.g. /regions/africa/) then shows everything below it, not just direct tags
@@ -69,11 +127,14 @@ async function rollUpHierarchy(
 ): Promise<TermIndex> {
 	const entries = await getCollection(collection);
 	const rolled: TermIndex = new Map();
+
 	for (const entry of entries) {
 		const termIds = [entry.id, ...(await descendantsOf(collection, entry.id))];
 		const items = dedupeById(termIds.flatMap((termId) => base.get(termId) ?? []));
+
 		if (items.length > 0) rolled.set(entry.id, items);
 	}
+
 	return sortIndex(rolled);
 }
 
@@ -81,158 +142,70 @@ function sortIndex(index: TermIndex): TermIndex {
 	for (const list of index.values()) {
 		list.sort((first, second) => second.date.getTime() - first.date.getTime());
 	}
+
 	return index;
 }
 
-export const getLabelsIndex = makeTermIndex(
-	async (index) => {
-		const [mixes, reviews, posts] = await Promise.all([
-			getCollection('mixes'),
-			getCollection('reviews'),
-			getCollection('posts'),
-		]);
-		await collectByTerm('mixes', mixes, (entry) => labelIdRefs(entry.data.labels), index);
-		await collectByTerm('reviews', reviews, (entry) => labelIdRefs(entry.data.labels), index);
-		await collectByTerm('posts', posts, (entry) => labelIdRefs(entry.data.labels), index);
-	},
-	(index) => rollUpHierarchy(index, 'labels'),
-);
+// Keeps only the linked (object) refs; free text carries no id to index by
+function toIdRefs(refs: Array<RefValue> | undefined): Array<{ id: string }> {
+	if (!refs) return [];
 
-// Adapt the polymorphic artist refs to {id} shape, keeping only linked (object) refs, not free text
-function artistIdRefs(artists: Array<RefValue> | undefined): Array<{ id: string }> {
-	if (!artists) return [];
-	const refs: Array<{ id: string }> = [];
-	for (const artist of artists) {
-		if (typeof artist !== 'string') refs.push({ id: artist.id });
+	const idRefs: Array<{ id: string }> = [];
+
+	for (const ref of refs) {
+		if (typeof ref !== 'string') idRefs.push({ id: ref.id });
 	}
-	return refs;
+
+	return idRefs;
 }
 
-function labelIdRefs(labels: Parameters<typeof labelIds>[0]): Array<{ id: string }> {
-	return labelIds(labels).map((id) => ({ id }));
-}
+export const getArtistsIndex = makeTermIndex(artistRefs);
 
-// A mix reaches its artist's page through the alias it was published as, not through `artists`
-export const getArtistsIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews, posts] = await Promise.all([
-		getCollection('mixes'),
-		getCollection('reviews'),
-		getCollection('posts'),
-	]);
-	await collectByTerm(
-		'mixes',
-		mixes,
-		(entry) => (entry.data.alias ? [entry.data.alias] : []),
-		index,
-	);
-	await collectByTerm('reviews', reviews, (entry) => artistIdRefs(entry.data.artists), index);
-	await collectByTerm('posts', posts, (entry) => artistIdRefs(entry.data.artists), index);
-});
+export const getErasIndex = makeTermIndex((entry) => entry.data.eras, rollUp('eras'));
 
-export const getRegionsIndex = makeTermIndex(
-	async (index) => {
-		const [mixes, reviews, posts] = await Promise.all([
-			getCollection('mixes'),
-			getCollection('reviews'),
-			getCollection('posts'),
-		]);
-		await collectByTerm('mixes', mixes, (entry) => entry.data.regions, index);
-		await collectByTerm('reviews', reviews, (entry) => entry.data.regions, index);
-		await collectByTerm('posts', posts, (entry) => entry.data.regions, index);
-	},
-	(index) => rollUpHierarchy(index, 'regions'),
+export const getFormatsIndex = makeTermIndex(formatRefs);
+
+export const getLabelsIndex = makeTermIndex(
+	(entry) => labelIds(entry.data.labels).map((id) => ({ id })),
+	rollUp('labels'),
 );
 
-// A series entry owns its members via `seriesItems` (ordered ids), resolved in place, no back-ref scan
-// Array order is display order, so no date sort
-const seriesMemberCollections = ['mixes', 'reviews', 'posts'] as const;
+export const getRegionsIndex = makeTermIndex((entry) => entry.data.regions, rollUp('regions'));
+
+export const getStylesIndex = makeTermIndex((entry) => entry.data.styles, rollUp('styles'));
+
+export const getThemesIndex = makeTermIndex((entry) => entry.data.themes);
 
 let seriesIndexPromise: Promise<TermIndex> | undefined;
 
-export async function getSeriesIndex(): Promise<TermIndex> {
+export function getSeriesIndex(): Promise<TermIndex> {
 	if (!seriesIndexPromise) seriesIndexPromise = buildSeriesIndex();
+
 	return seriesIndexPromise;
 }
 
+// A series owns its membership through `seriesItems`, an ordered id list, so no date sort
 async function buildSeriesIndex(): Promise<TermIndex> {
-	const series = await getCollection('series');
-	const membersById = await buildSeriesMemberCatalog();
+	const [series, members] = await Promise.all([getCollection('series'), getMembers()]);
 
+	const itemsById = new Map(members.map(({ item }) => [item.id, item] as const));
 	const index: TermIndex = new Map();
+
 	for (const entry of series) {
 		const items = (entry.data.seriesItems ?? [])
 			.map((id) => {
-				const item = membersById.get(id);
+				const item = itemsById.get(id);
+
 				if (item === undefined && import.meta.env.DEV) {
 					console.warn(`[series] "${entry.id}" references unresolved seriesItems id "${id}"`);
 				}
+
 				return item;
 			})
-			.filter((item): item is ContentItem => item !== undefined);
+			.filter((item) => item !== undefined);
+
 		index.set(entry.id, items);
 	}
+
 	return index;
 }
-
-async function buildSeriesMemberCatalog(): Promise<Map<string, ContentItem>> {
-	const membersById = new Map<string, ContentItem>();
-	for (const collection of seriesMemberCollections) {
-		const entries = await getCollection(collection);
-		for (const entry of entries) {
-			if (!membersById.has(entry.id)) {
-				membersById.set(entry.id, await toContentItem(collection, entry));
-			}
-		}
-	}
-	return membersById;
-}
-
-export const getStylesIndex = makeTermIndex(
-	async (index) => {
-		const [mixes, reviews, posts] = await Promise.all([
-			getCollection('mixes'),
-			getCollection('reviews'),
-			getCollection('posts'),
-		]);
-		await collectByTerm('mixes', mixes, (entry) => entry.data.styles, index);
-		await collectByTerm('reviews', reviews, (entry) => entry.data.styles, index);
-		await collectByTerm('posts', posts, (entry) => entry.data.styles, index);
-	},
-	(index) => rollUpHierarchy(index, 'styles'),
-);
-
-// Formats are a post-only vocabulary; a post carries at most one format
-export const getFormatsIndex = makeTermIndex(async (index) => {
-	const posts = await getCollection('posts');
-	await collectByTerm(
-		'posts',
-		posts,
-		(entry) => (entry.data.format ? [entry.data.format] : []),
-		index,
-	);
-});
-
-export const getThemesIndex = makeTermIndex(async (index) => {
-	const [mixes, reviews, posts] = await Promise.all([
-		getCollection('mixes'),
-		getCollection('reviews'),
-		getCollection('posts'),
-	]);
-	await collectByTerm('mixes', mixes, (entry) => entry.data.themes, index);
-	await collectByTerm('reviews', reviews, (entry) => entry.data.themes, index);
-	await collectByTerm('posts', posts, (entry) => entry.data.themes, index);
-});
-
-export const getErasIndex = makeTermIndex(
-	async (index) => {
-		const [mixes, reviews, posts] = await Promise.all([
-			getCollection('mixes'),
-			getCollection('reviews'),
-			getCollection('posts'),
-		]);
-		await collectByTerm('mixes', mixes, (entry) => entry.data.eras, index);
-		await collectByTerm('reviews', reviews, (entry) => entry.data.eras, index);
-		await collectByTerm('posts', posts, (entry) => entry.data.eras, index);
-	},
-	(index) => rollUpHierarchy(index, 'eras'),
-);

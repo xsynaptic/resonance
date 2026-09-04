@@ -2,9 +2,9 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
-import { toContentItem } from '#lib/catalog/catalog-data.ts';
+import { getCatalog } from '#lib/catalog/catalog-data.ts';
 
 // Three screens of a 4-up carousel; enough to scroll before the scoring is worth refining
 const relatedLimit = 12;
@@ -12,15 +12,18 @@ const relatedLimit = 12;
 type ReleaseEntry = CollectionEntry<'mixes' | 'reviews'>;
 
 // Entries with no overlap are dropped rather than padded with recency, so "Related" stays honest
-// Returns Catalog Items so the scoring can be replaced without touching the carousel
-export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<ContentItem>> {
+export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<ContentCatalogItem>> {
 	const styleIds = new Set((entry.data.styles ?? []).map((style) => style.id));
 
 	if (styleIds.size === 0) return [];
 
-	const entries = await getCollection(entry.collection);
+	const [catalog, entries] = await Promise.all([getCatalog(), getCollection(entry.collection)]);
 
-	const related = entries
+	const itemsById = new Map(
+		catalog.byCollection(entry.collection).map((item) => [item.id, item] as const),
+	);
+
+	return entries
 		.filter((candidate) => candidate.id !== entry.id)
 		.map((candidate) => ({
 			candidate,
@@ -32,7 +35,7 @@ export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<Conten
 				second.score - first.score ||
 				second.candidate.data.dateCreated.getTime() - first.candidate.data.dateCreated.getTime(),
 		)
-		.slice(0, relatedLimit);
-
-	return Promise.all(related.map((scored) => toContentItem(entry.collection, scored.candidate)));
+		.slice(0, relatedLimit)
+		.map((scored) => itemsById.get(scored.candidate.id))
+		.filter((item) => item !== undefined);
 }

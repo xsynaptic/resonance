@@ -1,12 +1,12 @@
 ---
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import Anchor from '#components/parts/anchor.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 
 interface Props {
 	heading: string;
-	items: Array<ContentItem>;
+	items: Array<ContentCatalogItem>;
 	listHref: string;
 	listLabel: string;
 	priority?: boolean | undefined;

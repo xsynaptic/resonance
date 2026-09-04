@@ -9,13 +9,13 @@ import { getCollection, render } from 'astro:content';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
 import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
 
-import { getContentItems } from '#lib/catalog/catalog-data.ts';
+import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
@@ -75,10 +75,10 @@ const iconIds: Array<IconId> = [
 ];
 
 export async function getInventoryFixtures() {
-	const [mixItems, reviewItems] = await Promise.all([
-		getContentItems('mixes'),
-		getContentItems('reviews'),
-	]);
+	const catalog = await getCatalog();
+
+	const mixItems = catalog.byCollection('mixes');
+	const reviewItems = catalog.byCollection('reviews');
 
 	const [vocabulary, formats, labels, styles, themes] = await Promise.all([
 		sampleTerms('artists'),
@@ -113,7 +113,7 @@ export async function getInventoryFixtures() {
 }
 
 // The card specimens are about the card, so pick one whose artwork is actually on disk
-function cardItem(items: Array<ContentItem>): ContentItem | undefined {
+function cardItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefined {
 	return items.find((item) => item.image !== undefined && getMediaImage(item.image) !== undefined);
 }
 

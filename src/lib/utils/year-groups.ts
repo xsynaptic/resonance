@@ -1,12 +1,12 @@
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 export interface YearGroup {
-	items: Array<ContentItem>;
+	items: Array<ContentCatalogItem>;
 	year: number;
 }
 
 // Collapse date-descending items into consecutive year runs; monotonic input means one run per year
-export function getYearGroups(items: Array<ContentItem>): Array<YearGroup> {
+export function getYearGroups(items: Array<ContentCatalogItem>): Array<YearGroup> {
 	const groups: Array<YearGroup> = [];
 	for (const item of items) {
 		const year = item.date.getFullYear();

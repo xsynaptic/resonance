@@ -1,19 +1,15 @@
 ---
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
-import { getContentItems } from '#lib/catalog/catalog-data.ts';
+import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
 
-const [mixes, reviews, posts] = await Promise.all([
-	getContentItems('mixes'),
-	getContentItems('reviews'),
-	getContentItems('posts'),
-]);
+const catalog = await getCatalog();
 
-const mixItems = mixes.slice(0, 4);
-const reviewItems = reviews.slice(0, 4);
-const postItems = posts.slice(0, 4);
+const mixItems = catalog.byCollection('mixes').slice(0, 4);
+const reviewItems = catalog.byCollection('reviews').slice(0, 4);
+const postItems = catalog.byCollection('posts').slice(0, 4);
 ---
 
 <MainSite>

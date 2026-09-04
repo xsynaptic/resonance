@@ -1,7 +1,7 @@
 ---
 import type { Page } from 'astro';
 
-import type { ContentItem } from '#lib/catalog/catalog-data.ts';
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
@@ -13,7 +13,7 @@ import { getYearGroups } from '#lib/utils/year-groups.ts';
 interface Props {
 	description?: string | undefined;
 	groupByYear?: boolean | undefined;
-	page: Page<ContentItem>;
+	page: Page<ContentCatalogItem>;
 	title: string;
 }
 
@@ -21,7 +21,7 @@ const { description, groupByYear = false, page, title } = Astro.props;
 
 const metaDescription = description ? await toExcerpt(description) : undefined;
 
-const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
+const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = groupByYear
 	? getYearGroups(page.data)
 	: [{ items: page.data }];
 ---

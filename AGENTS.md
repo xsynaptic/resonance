@@ -56,6 +56,10 @@ The extractor that generated the collections is archived in `backups/wp-extract-
 
 **Artists and labels use a polymorphic ref** (`src/lib/schemas/refs.ts`), inverting the usual convention: `{ id, name? }` links and the id must resolve, while a bare `string` is free text that `resolveRefs()` links opportunistically when its slugified name matches a cataloged term. Styles, regions, eras, formats and themes stay strict Astro `reference()`. Unresolved ids only `console.warn`, so they fail quietly.
 
+## Build
+
+`pnpm build` is a pipeline, not a synonym for `astro build`: it generates LQIP placeholders (incrementally cached in `.cache/media-lqip.json`) before `astro check` and the build. Calling `astro build` directly skips that step, and every media image renders without its placeholder.
+
 ## Quality gate
 
 `pnpm check` and `pnpm fix` are the gate; `package.json` lists what each one runs. `check` is green end to end; anything it reports is yours. `pnpm install` syncs the lefthook `pre-push` hook, which runs `pnpm check` before every push.

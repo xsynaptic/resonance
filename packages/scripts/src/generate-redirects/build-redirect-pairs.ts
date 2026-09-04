@@ -25,7 +25,6 @@ interface RedirectPair {
 	to: string;
 }
 
-// Drafts never reach the content store, so an old slug starts redirecting when its draft is triaged
 export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild {
 	const livePaths = collectLivePaths(entries);
 	const claimed = new Set<string>();
@@ -41,7 +40,7 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 			collisions.push(`${from} is a live page`);
 			continue;
 		}
-		// First claim wins, which is a real answer rather than a defect
+		// First claim wins, which is an answer rather than a defect
 		if (claimed.has(from)) {
 			skipped.push(`${from} is claimed by an earlier rule`);
 			continue;
@@ -50,7 +49,6 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 		claimed.add(from);
 
 		// A platform re-fetching only the cached card URL never sees the page redirect
-		// Pushed with the page so the guards above cover both
 		pairs.push(
 			{ from, to: getContentUrl(collection, id) },
 			{ from: getOpenGraphPath(collection, formerId), to: getOpenGraphPath(collection, id) },

@@ -8,17 +8,13 @@ import { findWorkspaceRoot } from '../shared/utils.js';
 import { buildRedirectPairs, redirectCollections } from './build-redirect-pairs.js';
 
 // WordPress permalinks the site no longer answers to, written by hand because no field records them
-// Lists and designs became plain Posts; three taxonomies were renamed
-// `/keywords/branding/` is deliberately absent: the term carried no posts, so its archive was empty
 const structuralRedirects: Array<[string, string]> = [
 	['/lists/*', '/:splat'],
 	['/designs/*', '/:splat'],
 	['/projects/*', '/artists/:splat'],
 	['/time-periods/*', '/eras/:splat'],
-	// Archive indexes, both linked from the WordPress main nav; exact rules beat the wildcards above
 	['/lists/', '/formats/selections/'],
 	['/designs/', '/formats/album-artwork/'],
-	// WordPress served Pages under their parent; resonance serves every Page at the site root
 	['/about/frequently-asked-questions/', '/frequently-asked-questions/'],
 	['/about/privacy-policy/', '/privacy-policy/'],
 	['/profile/booking/', '/booking/'],
@@ -28,11 +24,9 @@ const structuralRedirects: Array<[string, string]> = [
 		'/resources/verifying-lossless-audio-quality-with-spectral-analysis/',
 		'/verifying-lossless-audio-quality-with-spectral-analysis/',
 	],
-	// `page_on_front`, which WordPress answered at the site root and redirected the slug to
+	// `page_on_front`, which WordPress answered at the site root
 	['/sounds-from-the-great-beyond/', '/'],
-	// The `best-mixes` term was dropped on purpose; its 19 mixes are still the nearest surface
 	['/keywords/best-mixes/', '/mixes/'],
-	// The SEO Framework served the sitemap here
 	['/sitemap.xml', '/sitemap-index.xml'],
 	['/sections/articles/', '/formats/articles/'],
 	['/sections/notes/', '/formats/notes/'],
@@ -45,13 +39,13 @@ const structuralRedirects: Array<[string, string]> = [
 	['/keywords/musicology/', '/themes/musicology/'],
 	['/keywords/physical-media/', '/themes/physical-media/'],
 	['/keywords/toolkit/', '/themes/toolkit/'],
-	// WordPress served a feed at every permalink
-	// A Cloudflare splat only sits at the end of a rule, so the per-entry ones are placeholders
+	// A Cloudflare splat only sits at the end of a rule, so the per-entry feeds use placeholders
+	// The exact `/feed/` stays so it never depends on a splat matching the empty string
 	['/feed/', '/rss.xml'],
+	['/feed/*', '/rss.xml'],
 	['/:slug/feed/', '/rss.xml'],
 	['/:section/:slug/feed/', '/rss.xml'],
-	// The upload tree is served off the file server rather than the Worker: 5,229 of the 5,876
-	// referenced paths are `-WxH` srcset derivatives, and 1.3 GB has no place in every version
+	// 1.3 GB of mostly `-WxH` srcset derivatives has no place in every Worker version
 	['/wp-content/uploads/*', 'https://files.djbasilisk.com/uploads/:splat'],
 ];
 

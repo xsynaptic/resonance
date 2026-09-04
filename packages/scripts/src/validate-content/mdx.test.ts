@@ -3,6 +3,8 @@ import { describe, expect, test } from 'vitest';
 import { collectComponentIssues, validateMdxComponents } from './mdx.js';
 import { makeEntry } from './validate-test-utils.js';
 
+const rootPath = import.meta.dirname;
+
 describe('collectComponentIssues', () => {
 	test('accepts components carrying their required prop', () => {
 		const body = [
@@ -66,7 +68,7 @@ describe('validateMdxComponents', () => {
 	test('passes when every component is well formed', () => {
 		const entries = [makeEntry({ body: '<Link id="a-mix">text</Link>', id: 'a-post' })];
 
-		expect(validateMdxComponents(entries).status).toBe('pass');
+		expect(validateMdxComponents(entries, rootPath).status).toBe('pass');
 	});
 
 	test('reports the file and skips an entry with no body', () => {
@@ -79,10 +81,24 @@ describe('validateMdxComponents', () => {
 			}),
 		];
 
-		const result = validateMdxComponents(entries);
+		const result = validateMdxComponents(entries, rootPath);
 
 		expect(result.status).toBe('fail');
 		expect(result.issues).toHaveLength(1);
 		expect(result.issues[0]?.message).toBe('collections/posts/2015/a-post.mdx');
+	});
+
+	test('reports a line number that points at the file, not the body', () => {
+		const entries = [
+			makeEntry({
+				body: 'Prose above the component.\n\n<Link>no id here</Link>\n',
+				filePath: 'fixtures/offset-sample.mdx',
+				id: 'a-post',
+			}),
+		];
+
+		const result = validateMdxComponents(entries, rootPath);
+
+		expect(result.issues[0]?.details?.[0]).toBe('Line 9: Link component missing id prop');
 	});
 });

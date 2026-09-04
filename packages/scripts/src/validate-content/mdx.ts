@@ -1,13 +1,13 @@
 import type { ContentEntry } from '../shared/astro-content.js';
 import type { ValidationIssue } from './validation-result.js';
 
+import { findComponentTags, getBodyLineOffset, getTagProp } from './component-tags.js';
 import { toValidationResult } from './validation-result.js';
 
 // A required prop missing here throws while the component renders, naming only the page path
-const requiredProps = [
-	{ prop: 'id', tag: 'Link' },
-	{ prop: 'src', tag: 'Img' },
-] as const;
+const requiredProps: Record<string, string> = { Img: 'src', Link: 'id' };
+
+const componentNames = Object.keys(requiredProps);
 
 interface ComponentIssue {
 	context: string;
@@ -17,13 +17,24 @@ interface ComponentIssue {
 
 export function collectComponentIssues(body: string): Array<ComponentIssue> {
 	const lines = body.split('\n');
+	const issues: Array<ComponentIssue> = [];
 
-	return requiredProps
-		.flatMap(({ prop, tag }) => collectTagIssues(body, lines, tag, prop))
-		.sort((first, second) => first.lineNumber - second.lineNumber);
+	for (const tag of findComponentTags(body, componentNames)) {
+		const prop = requiredProps[tag.name];
+
+		if (!prop || getTagProp(tag, prop)) continue;
+
+		issues.push({
+			context: lines[tag.lineNumber - 1]?.trim() ?? '',
+			lineNumber: tag.lineNumber,
+			message: `${tag.name} component missing ${prop} prop`,
+		});
+	}
+
+	return issues;
 }
 
-export function validateMdxComponents(entries: Array<ContentEntry>) {
+export function validateMdxComponents(entries: Array<ContentEntry>, rootPath: string) {
 	const issues: Array<ValidationIssue> = [];
 
 	let issueCount = 0;
@@ -35,9 +46,11 @@ export function validateMdxComponents(entries: Array<ContentEntry>) {
 
 		if (componentIssues.length === 0) continue;
 
+		const lineOffset = getBodyLineOffset(entry, rootPath);
+
 		issues.push({
 			details: componentIssues.flatMap((issue) => [
-				`Line ${issue.lineNumber.toString()}: ${issue.message}`,
+				`Line ${(issue.lineNumber + lineOffset).toString()}: ${issue.message}`,
 				issue.context,
 			]),
 			message: entry.filePath ?? entry.id,
@@ -50,31 +63,4 @@ export function validateMdxComponents(entries: Array<ContentEntry>) {
 		fail: `Found ${issueCount.toString()} invalid component(s)`,
 		pass: 'MDX components valid',
 	});
-}
-
-function collectTagIssues(
-	body: string,
-	lines: Array<string>,
-	tag: string,
-	prop: string,
-): Array<ComponentIssue> {
-	const tagRegex = new RegExp(String.raw`<${tag}(\s[^>]*?)?/?>`, 'g');
-	// Anchored on a boundary so `data-id="x"` is not read as the `id` prop
-	const propRegex = new RegExp(String.raw`(^|\s)${prop}=["'][^"']+["']`);
-
-	const issues: Array<ComponentIssue> = [];
-
-	for (const match of body.matchAll(tagRegex)) {
-		if (propRegex.test(match[1] ?? '')) continue;
-
-		const lineNumber = body.slice(0, match.index).split('\n').length;
-
-		issues.push({
-			context: lines[lineNumber - 1]?.trim() ?? '',
-			lineNumber,
-			message: `${tag} component missing ${prop} prop`,
-		});
-	}
-
-	return issues;
 }

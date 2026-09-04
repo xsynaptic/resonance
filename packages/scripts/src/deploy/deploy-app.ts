@@ -65,7 +65,25 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 
 	const wranglerArgs = dryRun ? ['deploy', '--dry-run'] : ['deploy'];
 
-	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm exec wrangler ${wranglerArgs}`;
+	await runWrangler(rootPath, wranglerArgs);
 
 	console.log(chalk.green(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`));
+}
+
+// wrangler has no flag for its per-asset `+ path` lines; `--log-level warn` would take the deploy summary with them
+// Piping stdout to filter them costs color unless it is forced
+async function runWrangler(rootPath: string, args: Array<string>): Promise<void> {
+	const wrangler = $({
+		cwd: rootPath,
+		env: process.stdout.isTTY ? { ...process.env, FORCE_COLOR: '1' } : process.env,
+		stdio: ['inherit', 'pipe', 'inherit'],
+	})`pnpm exec wrangler ${args}`;
+
+	for await (const line of wrangler) {
+		if (line.startsWith('+ /') || line.includes('truncating changed assets log')) continue;
+
+		console.log(line);
+	}
+
+	await wrangler;
 }

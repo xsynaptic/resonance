@@ -1,0 +1,13 @@
+---
+interface Props {
+	description?: string | undefined;
+	title: string;
+}
+
+const { description, title } = Astro.props;
+---
+
+<header class="mb-10">
+	<h1 class="title-main">{title}</h1>
+	{description ? <p class="mt-2 content-measure text-ink-300">{description}</p> : undefined}
+</header>

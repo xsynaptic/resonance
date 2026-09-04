@@ -16,7 +16,7 @@ export interface ResolvedRef {
 }
 
 // Every collection with a `title` field. excluding those that are data-only
-export type TitledCollectionKey = Exclude<CollectionKey, 'comments' | 'downloads'>;
+export type TitledCollectionKey = Exclude<CollectionKey, 'downloads'>;
 
 // Cache id->title per collection so ref resolution is one build-time scan per collection
 const titleMaps = new Map<TitledCollectionKey, Promise<Map<string, string>>>();

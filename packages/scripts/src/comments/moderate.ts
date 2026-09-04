@@ -5,6 +5,8 @@ import { executeComments, queryComments, toIdLiteral } from '@xsynaptic/shared/c
 import chalk from 'chalk';
 import { once } from 'node:events';
 
+import { pullComments } from './pull.js';
+
 export interface ModerateOptions {
 	isLocal: boolean;
 	rootPath: string;
@@ -95,6 +97,8 @@ export async function deleteComment(id: string, options: ModerateOptions): Promi
 	console.log(chalk.red(`\n  ✗ deleted ${id}`));
 	warnOnLegacyRows([comment.id]);
 	console.log('');
+
+	if (comment.status === 'approved') await pullComments(options);
 }
 
 export async function moderateComments(options: ModerateOptions): Promise<void> {
@@ -153,41 +157,7 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 	}
 
 	printTally(tally);
-}
-
-// Called from `deploy-site`, the only thing that ever volunteers that the queue is not empty
-export async function printPendingCount(rootPath: string): Promise<void> {
-	const pending = await countPending(rootPath);
-
-	if (pending === undefined) {
-		console.log(chalk.yellow('  Could not reach D1 for the pending comment count'));
-		return;
-	}
-
-	if (pending === 0) {
-		console.log(chalk.gray('  No comments pending'));
-		return;
-	}
-
-	console.log(
-		chalk.yellow(
-			`  ${String(pending)} comment${pending === 1 ? '' : 's'} pending; run \`pnpm comments\``,
-		),
-	);
-}
-
-// Soft-fail: a deploy must not die on a count
-async function countPending(rootPath: string): Promise<number | undefined> {
-	try {
-		const [row] = await queryComments<{ pending: number }>(
-			`SELECT COUNT(*) AS pending FROM comments WHERE status = 'pending'`,
-			{ cwd: rootPath },
-		);
-
-		return row?.pending ?? 0;
-	} catch {
-		return undefined;
-	}
+	await pullOnApproval(tally, options);
 }
 
 function formatDate(createdAt: number): string {
@@ -251,6 +221,13 @@ function printTally(tally: Tally): void {
 	];
 
 	console.log(`\n  ${chalk.bold('Done')} ${chalk.dim('·')} ${parts.join(chalk.dim(' · '))}\n`);
+}
+
+// The site reads a snapshot, so an approval only reaches it after a pull
+async function pullOnApproval(tally: Tally, options: ModerateOptions): Promise<void> {
+	if (tally.approved === 0) return;
+
+	await pullComments(options);
 }
 
 // Resolves undefined on ctrl-c, which every caller reads as quit

@@ -8,7 +8,7 @@ import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
 import { backupIfStale } from '../comments/backup.js';
-import { printPendingCount } from '../comments/moderate.js';
+import { pullComments } from '../comments/pull.js';
 import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { pullMixcloudStats } from '../platform-stats/mixcloud-stats.js';
 import { pullSoundcloudStats } from '../platform-stats/soundcloud-stats.js';
@@ -179,7 +179,7 @@ try {
 	await pullSoundcloudStats({ dryRun: isDryRun, rootPath });
 
 	await backupIfStale(rootPath);
-	await printPendingCount(rootPath);
+	await pullComments({ allowStale: true, rootPath });
 
 	// Before the build, which copies public/ into the dist/ that deploy-app ships
 	await generateRedirects();

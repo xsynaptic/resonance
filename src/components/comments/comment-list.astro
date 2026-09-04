@@ -1,5 +1,5 @@
 ---
-import type { CommentNode } from '#lib/collections/comments/comments-thread.ts';
+import type { CommentNode } from '#lib/comments/comments-thread.ts';
 
 import CommentReplies from '#components/comments/comment-list.astro';
 import Anchor from '#components/parts/anchor.astro';
@@ -24,8 +24,15 @@ const { comments, nested = false } = Astro.props;
 			<li>
 				<article class="flex gap-x-4" id={`comment-${comment.id}`}>
 					<div class="comment-avatar maze">
-						{comment.avatarUrl ? (
-							<img alt="" height="96" loading="lazy" src={comment.avatarUrl} width="96" />
+						{comment.avatar ? (
+							<img
+								alt=""
+								height="48"
+								loading="lazy"
+								src={comment.avatar.url}
+								srcset={comment.avatar.srcSet}
+								width="48"
+							/>
 						) : undefined}
 					</div>
 					<div class="min-w-0 flex-1">

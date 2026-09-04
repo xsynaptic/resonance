@@ -1,25 +1,28 @@
 /* eslint-disable unicorn/no-null -- a D1 row leaves these columns `null`, so the fixtures must too */
+import type { ApprovedComment } from '@xsynaptic/shared/comments';
+
 import { describe, expect, test } from 'vitest';
 
-import type { CommentNode } from '#lib/collections/comments/comments-thread.ts';
-import type { CommentValue } from '#lib/schemas/comments.ts';
+import type { CommentNode } from '#lib/comments/comments-thread.ts';
 
-import { buildThread } from '#lib/collections/comments/comments-thread.ts';
+import { buildThread } from '#lib/comments/comments-thread.ts';
 
 interface CommentFixture {
 	id: string;
 	parentId?: string;
 }
 
-function toComments(fixtures: Array<CommentFixture>): Array<CommentValue> {
+function toComments(fixtures: Array<CommentFixture>): Array<ApprovedComment> {
 	return fixtures.map(({ id, parentId }, index) => ({
 		author: id,
-		authorUrl: null,
+		author_url: null,
 		body: id,
-		date: new Date(2020, 0, 1, 0, index),
-		gravatarHash: null,
+		collection: 'posts',
+		created_at: 1_577_836_800 + index * 60,
+		entry_id: 'entry',
+		gravatar_hash: null,
 		id,
-		parentId: parentId ?? null,
+		parent_id: parentId ?? null,
 	}));
 }
 

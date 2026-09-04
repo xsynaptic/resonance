@@ -1,23 +1,15 @@
-interface TurnstileApi {
-	remove: (widgetId: string) => void;
-	render: (
-		container: HTMLElement,
-		options: { sitekey: string; size: string; theme: string },
-	) => string | undefined;
-}
-
-const storageKey = 'comment-form-details';
-
-const storedFields = ['author', 'authorEmail', 'authorUrl'] as const;
-
-const turnstileScriptUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-
-let turnstileReady: Promise<TurnstileApi | undefined> | undefined;
+import {
+	clearStoredDetails,
+	readStoredDetails,
+	saveStoredDetails,
+	storedFields,
+} from '#components/comments/comment-form-memory.ts';
+import { TurnstileWidget } from '#components/comments/comment-turnstile.ts';
 
 class CommentsSection extends HTMLElement {
 	#abortController: AbortController | undefined;
 	#replyOrigin: HTMLElement | undefined;
-	#widgetId: string | undefined;
+	#widget = new TurnstileWidget();
 
 	// Handed over as an attribute so the string dictionary stays out of the client bundle
 	get #errorMessage() {
@@ -53,23 +45,19 @@ class CommentsSection extends HTMLElement {
 	disconnectedCallback() {
 		this.#abortController?.abort();
 		this.#abortController = undefined;
-		void this.#removeTurnstile();
+		void this.#widget.remove();
 	}
 
 	#cancelReply() {
 		this.#returnFormHome();
-		void this.#renderTurnstile();
+		this.#renderTurnstile();
 
 		this.#replyOrigin?.focus();
 		this.#replyOrigin = undefined;
 	}
 
 	#clearDetails() {
-		try {
-			localStorage.removeItem(storageKey);
-		} catch {
-			// A browser with storage disabled has nothing to clear
-		}
+		clearStoredDetails();
 
 		const remember = this.querySelector<HTMLInputElement>('[data-remember]');
 
@@ -132,36 +120,6 @@ class CommentsSection extends HTMLElement {
 		void this.#submit(form);
 	};
 
-	// Loaded here rather than from a script tag so the widget can be re-rendered after the form moves
-	async #loadTurnstile() {
-		if (!turnstileReady) {
-			turnstileReady = new Promise<TurnstileApi | undefined>((resolve) => {
-				const script = document.createElement('script');
-
-				script.async = true;
-				script.src = turnstileScriptUrl;
-				script.addEventListener(
-					'load',
-					() => {
-						resolve(window.turnstile);
-					},
-					{ once: true },
-				);
-				script.addEventListener(
-					'error',
-					() => {
-						resolve(undefined);
-					},
-					{ once: true },
-				);
-
-				document.head.append(script);
-			});
-		}
-
-		return turnstileReady;
-	}
-
 	#openForm() {
 		const form = this.#form;
 
@@ -170,7 +128,7 @@ class CommentsSection extends HTMLElement {
 		form.hidden = false;
 		this.#toggle('[data-open-form]', false);
 
-		void this.#renderTurnstile();
+		this.#renderTurnstile();
 
 		this.#field('author').focus();
 	}
@@ -194,47 +152,18 @@ class CommentsSection extends HTMLElement {
 		return this.#errorMessage;
 	}
 
-	async #removeTurnstile() {
-		const widgetId = this.#widgetId;
-
-		if (widgetId === undefined) return;
-
-		this.#widgetId = undefined;
-
-		const api = await this.#loadTurnstile();
-
-		api?.remove(widgetId);
-	}
-
-	// Moving the form re-parents the widget's iframe, which reloads it, so it is rebuilt from scratch
-	async #renderTurnstile() {
+	#renderTurnstile() {
 		const form = this.#form;
 		const container = this.querySelector<HTMLElement>('[data-turnstile]');
 
 		// The widget animates, so it stays unloaded until someone opens the form
 		if (!form || !container || form.hidden) return;
 
-		const api = await this.#loadTurnstile();
-
-		// A disconnect while the script loads, or a submit settling after one, would strand the widget
-		if (!api || !this.isConnected) return;
-
-		if (this.#widgetId !== undefined) {
-			api.remove(this.#widgetId);
-			this.#widgetId = undefined;
-		}
-
-		container.replaceChildren();
-
-		this.#widgetId = api.render(container, {
-			sitekey: container.dataset.turnstileSitekey ?? '',
-			size: 'compact',
-			theme: 'dark',
-		});
+		void this.#widget.render(container, container.dataset.turnstileSitekey ?? '');
 	}
 
 	#restoreDetails() {
-		const stored = this.#storedDetails();
+		const stored = readStoredDetails();
 
 		if (!stored) return;
 
@@ -276,11 +205,7 @@ class CommentsSection extends HTMLElement {
 			details[name] = this.#field(name).value;
 		}
 
-		try {
-			localStorage.setItem(storageKey, JSON.stringify(details));
-		} catch {
-			// Storage full or disabled; the comment still submits
-		}
+		saveStoredDetails(details);
 	}
 
 	// WordPress permalinks point at `#comment-<n>`, while the imported rows carry a `wp-` prefix
@@ -345,26 +270,10 @@ class CommentsSection extends HTMLElement {
 		this.#toggle('[data-open-form]', false);
 		this.#field('parentId').value = commentId;
 		this.#toggle('[data-cancel-reply]', true);
-		void this.#renderTurnstile();
+		this.#renderTurnstile();
 
 		this.#replyOrigin = button;
 		this.#field('author').focus();
-	}
-
-	#storedDetails(): Record<string, unknown> | undefined {
-		try {
-			const raw = localStorage.getItem(storageKey);
-
-			if (!raw) return undefined;
-
-			const parsed: unknown = JSON.parse(raw);
-
-			return typeof parsed === 'object' && parsed !== null
-				? (parsed as Record<string, unknown>)
-				: undefined;
-		} catch {
-			return undefined;
-		}
 	}
 
 	async #submit(form: HTMLFormElement) {
@@ -390,7 +299,7 @@ class CommentsSection extends HTMLElement {
 			this.#setSubmitDisabled(form, false);
 
 			// The Turnstile token is single-use, so either outcome needs a fresh widget
-			void this.#renderTurnstile();
+			this.#renderTurnstile();
 		}
 	}
 
@@ -405,14 +314,8 @@ if (!customElements.get('comments-section')) {
 	customElements.define('comments-section', CommentsSection);
 }
 
-export {};
-
 declare global {
 	interface HTMLElementTagNameMap {
 		'comments-section': CommentsSection;
-	}
-
-	interface Window {
-		turnstile?: TurnstileApi;
 	}
 }

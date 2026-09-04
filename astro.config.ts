@@ -39,7 +39,7 @@ export default defineConfig({
 			}),
 			// Domain the Open Graph cards are served from; unset means the site's own origin
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
-			TURNSTILE_SITE_KEY: envField.string({ access: 'public', context: 'server', default: '' }),
+			TURNSTILE_SITE_KEY: envField.string({ access: 'public', context: 'server' }),
 			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
 			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),
 		},

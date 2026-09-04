@@ -13,16 +13,14 @@ const { id, ...props } = Astro.props;
 
 const content = await renderSlot(Astro.slots, 'default');
 
+const pathname = Astro.url.pathname;
+
 if (!id) {
-	throw new Error(`Link component requires an id; rendering path: ${Astro.url.pathname}`);
+	throw new Error(`Link component requires an id; rendering path: ${pathname}`);
 }
 
 const catalog = await getCatalog();
 const item = catalog.getById(id);
-
-if (!item) {
-	console.warn(`[link] no catalog match for id "${id}" (path: ${Astro.url.pathname})`);
-}
 ---
 
 {item ? <a href={item.url} {...props} set:html={content} /> : <Fragment set:html={content} />}

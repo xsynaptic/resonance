@@ -10,7 +10,7 @@ interface LinkIdIssue {
 	location: string;
 }
 
-// An unresolved id warns during any build but never fails it, and renders as plain text
+// An unresolved id renders as plain text with no diagnostic, so this check is the only report
 export function collectLinkIdIssues(
 	entries: Array<ContentEntry>,
 	validTargets: Array<ContentEntry>,

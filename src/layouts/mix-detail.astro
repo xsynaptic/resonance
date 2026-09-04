@@ -38,8 +38,8 @@ const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloads = await getDownloadCount(entry.data);
-const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudEmbed);
-const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudEmbed);
+const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudLink);
+const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudLink);
 const relatedItems = await getRelatedItems(entry);
 const description = await getEntryDescription(entry);
 
@@ -61,9 +61,9 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 >
 	<Content />
 	<EmbedAudio
-		mixcloudEmbed={entry.data.mixcloudEmbed}
+		mixcloudLink={entry.data.mixcloudLink}
 		slot="media"
-		soundcloudEmbed={entry.data.soundcloudEmbed}
+		soundcloudLink={entry.data.soundcloudLink}
 	/>
 	<Fragment slot="links">
 		<AudioLinks

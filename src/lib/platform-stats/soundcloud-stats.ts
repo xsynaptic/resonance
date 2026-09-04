@@ -3,12 +3,12 @@ import { getPlayCounts, toStatsKey } from '#lib/platform-stats/platform-stats-do
 
 // A mix published as two tracks sums its parts, so the figure appears on neither SoundCloud page
 export async function getSoundcloudPlayCount(
-	soundcloudEmbed: Array<string> | string | undefined,
+	soundcloudLink: Array<string> | string | undefined,
 ): Promise<number> {
-	if (!soundcloudEmbed) return 0;
+	if (!soundcloudLink) return 0;
 
 	const counts = await getPlayCounts(soundcloudStatsPath);
-	const urls = Array.isArray(soundcloudEmbed) ? soundcloudEmbed : [soundcloudEmbed];
+	const urls = Array.isArray(soundcloudLink) ? soundcloudLink : [soundcloudLink];
 
 	let plays = 0;
 

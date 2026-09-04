@@ -15,7 +15,7 @@ export interface PlatformKeys {
 
 // The count renders unconditionally, and `links` is where the backlink SoundCloud's terms require lives
 // An unresolved key is a rename: the count survives it, tied to the track id, but the join does not
-export function validatePlatformEmbeds(
+export function validatePlatformLinks(
 	entries: Array<ContentEntry>,
 	keys: PlatformKeys,
 ): ValidationResult {
@@ -23,34 +23,34 @@ export function validatePlatformEmbeds(
 
 	for (const entry of entries) {
 		const location = entry.filePath ?? entry.id;
-		const embeds = toUrls(entry.data.soundcloudEmbed);
-		const embedKeys = new Set(embeds.map((url) => toStatsKey(url)));
-		const linkedKeys = new Set(
+		const soundcloudUrls = toUrls(entry.data.soundcloudLink);
+		const soundcloudKeys = new Set(soundcloudUrls.map((url) => toStatsKey(url)));
+		const backlinkKeys = new Set(
 			toUrls(entry.data.links)
 				.filter((link) => link.startsWith(soundcloudAccountPrefix))
 				.map((link) => toStatsKey(link)),
 		);
 
 		issues.push(
-			...[...linkedKeys.difference(embedKeys)].map((key) => ({
-				message: `${location}: \`links\` has ${key}, missing from \`soundcloudEmbed\``,
+			...[...backlinkKeys.difference(soundcloudKeys)].map((key) => ({
+				message: `${location}: \`links\` has ${key}, missing from \`soundcloudLink\``,
 			})),
-			...[...embedKeys.difference(linkedKeys)].map((key) => ({
-				message: `${location}: \`soundcloudEmbed\` has ${key}, missing from \`links\``,
+			...[...soundcloudKeys.difference(backlinkKeys)].map((key) => ({
+				message: `${location}: \`soundcloudLink\` has ${key}, missing from \`links\``,
 			})),
 			...collectUnresolved(
 				location,
-				'mixcloudEmbed',
-				toUrls(entry.data.mixcloudEmbed),
+				'mixcloudLink',
+				toUrls(entry.data.mixcloudLink),
 				keys.mixcloud,
 			),
-			...collectUnresolved(location, 'soundcloudEmbed', embeds, keys.soundcloud),
+			...collectUnresolved(location, 'soundcloudLink', soundcloudUrls, keys.soundcloud),
 		);
 	}
 
 	const result = toValidationResult(issues, {
-		fail: `Found ${issues.length.toString()} platform embed issue(s)`,
-		pass: 'Platform embeds resolve',
+		fail: `Found ${issues.length.toString()} platform link issue(s)`,
+		pass: 'Platform links resolve',
 	});
 	const notes = toSkippedNotes(keys);
 

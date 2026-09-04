@@ -98,14 +98,14 @@ export async function getInventoryFixtures() {
 		imagePaths: await sampleImagePaths(4),
 		labels,
 		mix: await sampleMix(),
-		mixcloudUrl: await sampleMixField('mixcloudEmbed'),
+		mixcloudUrl: await sampleMixField('mixcloudLink'),
 		mixItems,
 		openGraphCards: await sampleOpenGraphCards(),
 		regionTree: await getDirectoryTerms('regions'),
 		release: await sampleRelease(),
 		reviewItems,
 		selections: await sampleSelections(9),
-		soundcloudUrl: await sampleMixField('soundcloudEmbed'),
+		soundcloudUrl: await sampleMixField('soundcloudLink'),
 		styles,
 		themes,
 		vocabulary,
@@ -193,9 +193,9 @@ async function sampleMix(): Promise<MixSample | undefined> {
 	};
 }
 
-// `soundcloudEmbed` can be an array; the specimens want one URL, so a split mix is passed over
+// `soundcloudLink` can be an array; the specimens want one URL, so a split mix is passed over
 async function sampleMixField(
-	field: 'mixcloudEmbed' | 'soundcloudEmbed',
+	field: 'mixcloudLink' | 'soundcloudLink',
 ): Promise<string | undefined> {
 	const mixes = await getCollection('mixes');
 

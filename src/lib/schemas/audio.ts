@@ -53,8 +53,8 @@ export const mixSchema = z
 		// Keyed on format, not filename: a filename is a delivery path and a rename must not orphan a count
 		downloadsLegacy: z.record(z.string(), z.number().int().nonnegative()).optional(),
 		files: z.string().array().optional(),
-		mixcloudEmbed: z.string().optional(),
-		soundcloudEmbed: z.union([z.string(), z.string().array()]).optional(),
+		mixcloudLink: z.string().optional(),
+		soundcloudLink: z.union([z.string(), z.string().array()]).optional(),
 	})
 	.strict();
 

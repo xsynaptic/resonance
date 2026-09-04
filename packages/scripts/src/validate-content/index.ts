@@ -15,7 +15,7 @@ import { validateEntryIds } from './entry-ids.js';
 import { validateImages } from './images.js';
 import { validateLinkIds } from './link-ids.js';
 import { validateMdxComponents } from './mdx.js';
-import { validatePlatformEmbeds } from './platform-embeds.js';
+import { validatePlatformLinks } from './platform-links.js';
 import { validateReferences } from './references.js';
 import { validateRefs } from './refs.js';
 import { validateReviewFolders } from './review-folders.js';
@@ -75,7 +75,7 @@ const validations = {
 	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
 	'link-ids': () => validateLinkIds(allEntries, allEntries),
 	mdx: () => validateMdxComponents(allEntries),
-	'platform-embeds': () => validatePlatformEmbeds(entriesFrom('mixes'), platformKeys),
+	'platform-links': () => validatePlatformLinks(entriesFrom('mixes'), platformKeys),
 	references: () => validateReferences(allEntries),
 	refs: () => validateRefs(allEntries, entriesFrom('artists', 'labels')),
 	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),

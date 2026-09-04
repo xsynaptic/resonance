@@ -56,7 +56,7 @@ const audioCollections = ['mixes', 'reviews'];
 const markerCollections = ['mixes', 'pages', 'posts', 'reviews'];
 
 // Frontmatter media paths are relative to this directory; mirrors `mediaRoot` in lib/utils/media.ts
-const mediaPath = 'packages/content/_media';
+const mediaPath = 'packages/content/media';
 
 const rootPath = findWorkspaceRoot();
 

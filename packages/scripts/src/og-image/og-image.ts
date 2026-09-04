@@ -34,7 +34,7 @@ const fontConfigs: Array<FontsourceConfig> = [
 const concurrency = 12;
 
 // Frontmatter cover paths are relative to this, matching `src/lib/utils/media.ts`
-const mediaRoot = 'packages/content/_media';
+const mediaRoot = 'packages/content/media';
 
 interface OpenGraphOptions {
 	clearCache?: boolean;

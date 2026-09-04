@@ -1,11 +1,15 @@
 import type { ImageMetadata } from 'astro';
 
-// Frontmatter media paths are relative to packages/content/_media (e.g. 2017/01/x.jpg)
-const mediaRoot = '/packages/content/_media';
+// Frontmatter media paths are relative to packages/content/media (e.g. 2017/01/x.jpg)
+const mediaRoot = '/packages/content/media';
 
-// Glob must be a string literal; astro:assets only optimizes statically-analyzable image paths
+// Patterns must be literals; astro:assets only optimizes statically-analyzable image paths
+// Re-pulling the WordPress uploads brings back the `-WxH` derivatives; excluding them keeps 1.2 GB of unused assets out of the build
 const mediaImages = import.meta.glob<{ default: ImageMetadata }>(
-	'/packages/content/_media/**/*.{avif,jpeg,jpg,png,webp}',
+	[
+		'/packages/content/media/**/*.{avif,jpeg,jpg,png,webp}',
+		'!/packages/content/media/**/*-[0-9][0-9]*x[0-9][0-9]*.{avif,jpeg,jpg,png,webp}',
+	],
 	{ eager: true },
 );
 

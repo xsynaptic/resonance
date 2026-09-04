@@ -1,6 +1,4 @@
-/* Hooks are title-* */
-
-/* The three sit on their own line boxes with no margins, which is what keeps the block tight */
+/* No margins: the rows sit on their own line boxes, and that is what keeps the block tight */
 .title-eyebrow,
 .title-meta {
 	--divider-space: calc(var(--spacing) * 2);
@@ -22,11 +20,6 @@
 
 .title-eyebrow {
 	color: var(--color-highlight-500);
-}
-
-.title-divider {
-	font-weight: var(--font-weight-normal);
-	color: var(--color-ink-600);
 }
 
 .title-meta {

@@ -9,7 +9,6 @@
 	text-wrap: balance;
 }
 
-/* Detail titles and every List Page h1 */
 .title-main {
 	font-size: var(--text-4xl);
 	line-height: var(--text-4xl--line-height);
@@ -20,6 +19,12 @@
 h2.title-main {
 	font-size: var(--text-3xl);
 	line-height: var(--text-3xl--line-height);
+}
+
+/* Only ever inside the title, separating a linked artist from the work half */
+.title-divider {
+	font-weight: var(--font-weight-normal);
+	color: var(--color-ink-600);
 }
 
 .title-main a {

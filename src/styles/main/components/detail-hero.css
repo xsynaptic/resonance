@@ -71,15 +71,15 @@
 	);
 }
 
-.hero-overlay .title-above,
-.hero-overlay .title-below {
+.hero-overlay .title-eyebrow,
+.hero-overlay .title-meta {
 	display: inline-flex;
 	padding-inline: 15px;
 	margin-inline: -15px;
 }
 
 /* Picks up where the title's gradient ends, so the plate fades out of the image in one ramp */
-.hero-overlay .title-above {
+.hero-overlay .title-eyebrow {
 	background: linear-gradient(
 		0deg,
 		color-mix(in oklab, var(--color-surface-600) 70%, transparent),
@@ -87,7 +87,7 @@
 	);
 }
 
-.hero-overlay .title-below {
+.hero-overlay .title-meta {
 	background-color: var(--color-surface-600);
 }
 

@@ -1,6 +1,7 @@
 ---
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
+import DividedItem from '#components/parts/divided-item.astro';
 import RefText from '#components/parts/ref-text.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
@@ -12,12 +13,12 @@ const { trail } = Astro.props;
 ---
 
 <nav aria-label={t('nav.breadcrumb.label')} data-nosnippet data-pagefind-ignore>
-	<ol class="title-above title-above-chevron">
+	<ol class="title-eyebrow">
 		{
 			trail.map((breadcrumb) => (
-				<li>
+				<DividedItem as="li" dividerContent="chevron">
 					<RefText anchorColor="highlight" label={breadcrumb.label} url={breadcrumb.url} />
-				</li>
+				</DividedItem>
 			))
 		}
 	</ol>

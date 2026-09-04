@@ -84,7 +84,7 @@
 	--color-highlight-900: hsl(26deg 73% 20%);
 	--color-highlight-950: hsl(26deg 70% 13%);
 
-	/* Crimson: unused in production, kept complete */
+	/* Crimson: an optional fourth hue to play with */
 	--color-crimson-50: hsl(349deg 72% 94%);
 	--color-crimson-100: hsl(349deg 70% 88%);
 	--color-crimson-200: hsl(349deg 68% 79%);

@@ -2,12 +2,12 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
+import DividedItem from '#components/parts/divided-item.astro';
 import RefList from '#components/parts/ref-list.astro';
 import RefText from '#components/parts/ref-text.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatDate } from '#lib/utils/date.ts';
 
-// `releaseTitle` marks the title as a work, which splits the artist off and italicises the rest
 interface Props {
 	artist?: ResolvedRef | undefined;
 	breadcrumbTrail?: Array<ResolvedRef> | undefined;
@@ -39,9 +39,11 @@ const releaseYearText =
 	}
 	{
 		styleTerms.length > 0 ? (
-			<div class="title-above">
+			<div class="title-eyebrow">
 				{styleTerms.map((term) => (
-					<RefText anchorColor="highlight" label={term.label} url={term.url} />
+					<DividedItem as="span">
+						<RefText anchorColor="highlight" label={term.label} url={term.url} />
+					</DividedItem>
 				))}
 			</div>
 		) : undefined
@@ -65,24 +67,26 @@ const releaseYearText =
 	</h1>
 	{
 		kind || hasRelease || date ? (
-			<div class="title-below">
+			<div class="title-meta">
 				{kind ? (
-					<span class="title-kind">
-						<RefText anchorColor="highlight" label={kind.label} url={kind.url} />
-					</span>
+					<DividedItem as="span" dividerContent="slash">
+						<span class="title-kind">
+							<RefText anchorColor="highlight" label={kind.label} url={kind.url} />
+						</span>
+					</DividedItem>
 				) : undefined}
 				{hasRelease ? (
-					<span>
+					<DividedItem as="span" dividerContent="slash">
 						{releaseLead}
 						<RefList refs={releaseLabels} />
 						{releaseYearText}
-					</span>
+					</DividedItem>
 				) : undefined}
 				{date ? (
-					<span>
+					<DividedItem as="span" dividerContent="slash">
 						{t('detail.posted')}
 						<time datetime={date.toISOString()}>{formatDate(date)}</time>
-					</span>
+					</DividedItem>
 				) : undefined}
 			</div>
 		) : undefined

@@ -4,7 +4,7 @@
 
 	@media (width >= 40rem) {
 		display: inline-flex;
-		gap: calc(var(--spacing) * 1);
+		gap: var(--divider-space, calc(var(--spacing) * 1));
 	}
 }
 
@@ -16,7 +16,7 @@
 /* Astro strips the whitespace between items; below sm the item is inline so its own gap is inert too */
 @media (width < 40rem) {
 	.divided-item::after {
-		margin-inline: calc(var(--spacing) * 1);
+		margin-inline: var(--divider-space, calc(var(--spacing) * 1));
 	}
 }
 

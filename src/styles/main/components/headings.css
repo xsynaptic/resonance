@@ -22,6 +22,20 @@ h2.title-main {
 	line-height: var(--text-3xl--line-height);
 }
 
+.title-main a {
+	color: var(--color-ink-200);
+}
+
+.title-main a:focus-visible {
+	color: var(--color-ink-50);
+}
+
+@media (hover: hover) {
+	.title-main a:hover {
+		color: var(--color-ink-50);
+	}
+}
+
 /* Home bands and Related */
 .heading-section {
 	font-size: var(--text-2xl);

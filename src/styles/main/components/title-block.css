@@ -1,16 +1,26 @@
 /* Hooks are title-* */
 
 /* The three sit on their own line boxes with no margins, which is what keeps the block tight */
-.title-above,
-.title-below {
+.title-eyebrow,
+.title-meta {
+	--divider-space: calc(var(--spacing) * 2);
+
 	display: flex;
 	flex-wrap: wrap;
-	column-gap: calc(var(--spacing) * 2);
+	column-gap: var(--divider-space);
 	font-size: var(--text-sm);
 	line-height: var(--leading-loose);
 }
 
-.title-above {
+/* Below sm the glyph carries its own margin on both sides; a container gap would double the trailing one */
+@media (width < 40rem) {
+	.title-eyebrow,
+	.title-meta {
+		column-gap: 0;
+	}
+}
+
+.title-eyebrow {
 	color: var(--color-highlight-500);
 }
 
@@ -19,7 +29,7 @@
 	color: var(--color-ink-600);
 }
 
-.title-below {
+.title-meta {
 	color: var(--color-ink-600);
 }
 
@@ -29,41 +39,17 @@
 	color: var(--color-highlight-500);
 }
 
-.title-above > * + *::before,
-.title-below > * + *::before {
-	margin-inline-end: calc(var(--spacing) * 2);
-	color: var(--color-ink-700);
-}
-
-.title-above > * + *::before {
-	content: var(--content-dot);
-}
-
-.title-above-chevron > * + *::before {
-	content: var(--content-chevron);
-}
-
-.title-below > * + *::before {
-	content: var(--content-slash);
-}
-
-.title-main a {
-	color: var(--color-ink-200);
-}
-
 /* Without the exclusion this lands after anchor.css at equal specificity, overriding the role colour */
-.title-below :where(a:not(.anchor)) {
+.title-meta :where(a:not(.anchor)) {
 	color: var(--color-ink-300);
 }
 
-.title-main a:focus-visible,
-.title-below :where(a:not(.anchor)):focus-visible {
+.title-meta :where(a:not(.anchor)):focus-visible {
 	color: var(--color-ink-50);
 }
 
 @media (hover: hover) {
-	.title-main a:hover,
-	.title-below :where(a:not(.anchor)):hover {
+	.title-meta :where(a:not(.anchor)):hover {
 		color: var(--color-ink-50);
 	}
 }

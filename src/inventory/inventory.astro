@@ -243,7 +243,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 				<p>
 					<Anchor href="/mixes/">Anchor</Anchor> carries taxonomy, meta and navigation in highlight.
 				</p>
-				<p class="title-below">
+				<p class="title-meta">
 					<span><a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.</span
 					>
 				</p>
@@ -252,7 +252,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="DividedItem"
-			note="A glyph after every item, dropped on the last. The parent supplies the wrap and the gap; each item supplies its own separator, so one row can mix them. The as prop sets the tag, and the colophon renders these as list items."
+			note="A glyph after every item, dropped on the last. The parent supplies the wrap and sets --divider-space for the room around the glyph; each item supplies its own separator, so one row can mix them. The as prop sets the tag. Used by the colophon, the audio counts, breadcrumbs, and both title meta rows."
 			source="src/components/parts/divided-item.astro"
 		>
 			<div class="flex flex-col gap-2">

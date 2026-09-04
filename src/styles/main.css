@@ -23,7 +23,6 @@
 @import './main/components/carousel.css' layer(components);
 @import './main/components/colophon.css' layer(components);
 @import './main/components/comments.css' layer(components);
-@import './main/components/detail-header.css' layer(components);
 @import './main/components/detail-hero.css' layer(components);
 @import './main/components/divided-item.css' layer(components);
 @import './main/components/embed-frame.css' layer(components);
@@ -36,6 +35,7 @@
 @import './main/components/release-detail.css' layer(components);
 @import './main/components/search.css' layer(components);
 @import './main/components/skip-link.css' layer(components);
+@import './main/components/title-block.css' layer(components);
 @import './main/components/top-button.css' layer(components);
 @import './main/components/selections.css' layer(components);
 @import './main/components/track-list.css' layer(components);

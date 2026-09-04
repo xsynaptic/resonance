@@ -2,6 +2,7 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import Anchor from '#components/parts/anchor.astro';
+import DividedItem from '#components/parts/divided-item.astro';
 import RefText from '#components/parts/ref-text.astro';
 import { contentExcerptMarker } from '#constants.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -26,17 +27,19 @@ const isTruncated = remainder.length > 0;
 <article class="mb-16">
 	<header class="mb-6">
 		<h2 class="title-main"><a href={href}>{title}</a></h2>
-		<div class="title-below">
+		<div class="title-meta">
 			{
 				format ? (
-					<span class="title-kind">
-						<RefText anchorColor="highlight" label={format.label} url={format.url} />
-					</span>
+					<DividedItem as="span" dividerContent="slash">
+						<span class="title-kind">
+							<RefText anchorColor="highlight" label={format.label} url={format.url} />
+						</span>
+					</DividedItem>
 				) : undefined
 			}
-			<span>
+			<DividedItem as="span" dividerContent="slash">
 				{t('detail.posted')}<time datetime={date.toISOString()}>{formatDate(date)}</time>
-			</span>
+			</DividedItem>
 		</div>
 	</header>
 	<div class="prose-x">

@@ -10,6 +10,7 @@ export type CatalogItemOf<Collection extends CatalogCollectionKey> =
 export interface ContentCatalogItem extends CatalogItemShared {
 	collection: ContentCollectionKey;
 	date: Date;
+	releaseTitle?: string | undefined;
 	subtitle?: string | undefined;
 }
 

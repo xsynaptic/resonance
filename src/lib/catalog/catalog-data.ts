@@ -44,6 +44,7 @@ interface ContentEntry {
 		dateCreated: Date;
 		imageFeatured?: ImageFeatured | undefined;
 		labels?: Array<LabelRefValue> | undefined;
+		releaseTitle?: string | undefined;
 		releaseYear?: string | undefined;
 		title: string;
 	};
@@ -146,6 +147,7 @@ async function toContentItem(
 		date: entry.data.dateCreated,
 		id: entry.id,
 		image: getImageFeaturedId(entry.data.imageFeatured),
+		releaseTitle: entry.data.releaseTitle,
 		subtitle: await metaLine(collection, entry),
 		title: entry.data.title,
 		url: getContentUrl(collection, entry.id),

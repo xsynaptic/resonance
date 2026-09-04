@@ -10,10 +10,10 @@
 
 .divided-item::after {
 	color: var(--divider-color, var(--color-ink-700));
-	content: var(--divider-glyph, var(--content-slash));
+	content: var(--divider-glyph, var(--content-dot));
 }
 
-/* Below sm the item is not inline-flex, so the glyph carries its own spacing */
+/* Astro strips the whitespace between items; below sm the item is inline so its own gap is inert too */
 @media (width < 40rem) {
 	.divided-item::after {
 		margin-inline: calc(var(--spacing) * 1);
@@ -32,14 +32,14 @@
 	translate: 0 -1px;
 }
 
-.divided-dot {
-	--divider-glyph: var(--content-dot);
+.divided-slash {
+	--divider-glyph: var(--content-slash);
 }
 
 .divided-thin::after {
 	font-weight: var(--font-weight-light);
 }
 
-.divided-lighter {
+.divided-muted {
 	--divider-color: var(--color-ink-800);
 }

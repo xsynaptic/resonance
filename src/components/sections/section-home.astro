@@ -29,6 +29,7 @@ const { heading, items, listHref, listLabel, priority = false } = Astro.props;
 						href={item.url}
 						image={item.image}
 						priority={priority && index === 0}
+						releaseTitle={item.releaseTitle}
 						subtitle={item.subtitle}
 						title={item.title}
 					/>

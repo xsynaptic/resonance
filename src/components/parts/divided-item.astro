@@ -14,7 +14,7 @@ const {
 	as: Tag = 'div',
 	class: className,
 	dividerColor = 'default',
-	dividerContent = 'slash',
+	dividerContent = 'dot',
 	dividerWeight,
 	...props
 } = Astro.props;
@@ -23,7 +23,7 @@ const {
 <Tag
 	class:list={[
 		'divided-item',
-		dividerContent === 'slash' ? undefined : `divided-${dividerContent}`,
+		dividerContent === 'dot' ? undefined : `divided-${dividerContent}`,
 		dividerColor === 'default' ? undefined : `divided-${dividerColor}`,
 		dividerWeight ? `divided-${dividerWeight}` : undefined,
 		className,

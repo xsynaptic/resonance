@@ -4,30 +4,30 @@
 }
 
 /* Zero out the global list margins so the striped rows read as one contiguous container */
-.track {
+.track-item {
 	display: block;
 	padding: 0 5px;
 	margin: 0;
 }
 
-.track:nth-child(odd) {
+.track-item:nth-child(odd) {
 	background-color: var(--color-surface-600);
 }
 
-.track:nth-child(even) {
+.track-item:nth-child(even) {
 	background-color: var(--color-surface-700);
 }
 
-.track:first-child {
+.track-item:first-child {
 	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
-.track:last-child {
+.track-item:last-child {
 	border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 /* The section renders inside .prose-x, whose underline and halo are too heavy for rows this dense */
-.track a {
+.track-item a {
 	text-decoration: none;
 	text-shadow: none;
 }
@@ -90,7 +90,7 @@
 }
 
 @media (width >= 40rem) {
-	.track {
+	.track-item {
 		display: grid;
 		grid-template-areas:
 			'index title title'

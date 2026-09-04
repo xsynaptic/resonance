@@ -8,11 +8,24 @@ interface Props {
 	href: string;
 	image?: string | undefined;
 	priority?: boolean | undefined;
+	releaseTitle?: string | undefined;
 	subtitle?: string | undefined;
 	title: string;
 }
 
-const { class: className, date, href, image, priority, subtitle, title } = Astro.props;
+const {
+	class: className,
+	date,
+	href,
+	image,
+	priority,
+	releaseTitle,
+	subtitle,
+	title,
+} = Astro.props;
+
+const work =
+	releaseTitle !== undefined && title.endsWith(` - ${releaseTitle}`) ? releaseTitle : undefined;
 ---
 
 <div class:list={['h-full rounded-lg border border-surface-700 bg-surface-600 p-2', className]}>
@@ -37,8 +50,19 @@ const { class: className, date, href, image, priority, subtitle, title } = Astro
 	}
 	<a
 		class="block font-display text-xl font-bold text-ink-100 transition hover:text-ink-50 focus-visible:text-ink-50"
-		href={href}>{title}</a
+		href={href}
 	>
+		{
+			work ? (
+				<Fragment>
+					{title.slice(0, -work.length)}
+					<span class="font-semibold italic">{work}</span>
+				</Fragment>
+			) : (
+				title
+			)
+		}
+	</a>
 	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}
 	{
 		date ? (

@@ -100,7 +100,7 @@ const rows = await Promise.all((tracks ?? []).map(buildRow));
 			<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 			<ol class="track-list">
 				{rows.map((row) => (
-					<li class="track">
+					<li class="track-item">
 						<span aria-hidden="true" class="track-index">
 							{row.position}.
 						</span>

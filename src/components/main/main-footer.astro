@@ -57,12 +57,12 @@ const year = new Date().getFullYear();
 		aria-label={t('footer.colophonLabel')}
 		class="colophon content-wide border-t border-surface-700 py-6"
 	>
-		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
+		<DividedItem as="li" dividerColor="muted">
 			{formatStringTemplate(t('footer.copyright'), { year })}
 		</DividedItem>
 		{
 			downloadTotal > 0 ? (
-				<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
+				<DividedItem as="li" dividerColor="muted">
 					{formatStringTemplate(
 						t(downloadTotal === 1 ? 'audio.downloads.one' : 'audio.downloads.other'),
 						{ count: formatNumber({ number: downloadTotal }) },
@@ -70,14 +70,14 @@ const year = new Date().getFullYear();
 				</DividedItem>
 			) : undefined
 		}
-		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
+		<DividedItem as="li" dividerColor="muted">
 			<span
 				>{t('footer.poweredBy')}{' '}<Anchor anchorColor="muted" href="https://astro.build"
 					>{t('footer.astro')}</Anchor
 				></span
 			>
 		</DividedItem>
-		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
+		<DividedItem as="li" dividerColor="muted">
 			<Anchor anchorColor="muted" data-astro-prefetch="false" href="/rss.xml" rel="feed"
 				>{t('footer.feed')}</Anchor
 			>

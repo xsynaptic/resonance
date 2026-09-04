@@ -1,13 +1,13 @@
 /* The px rhythm below is production's, read off the live theme rather than derived from the grid */
 
 /* Renders inside .prose-x, whose list rules would otherwise indent and bullet the rows */
-.selections {
+.selection-list {
 	padding: 0;
 	margin: 0 0 calc(var(--spacing) * 5);
 	list-style: none;
 }
 
-.selection {
+.selection-item {
 	margin: 0 0 10px;
 }
 
@@ -15,7 +15,7 @@
 	margin-bottom: 60px;
 }
 
-.selection::after {
+.selection-item::after {
 	clear: both;
 	display: block;
 	content: '';

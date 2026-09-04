@@ -34,7 +34,7 @@ const rows = ordered.map((selection, index) => ({
 
 {
 	rows.length > 0 ? (
-		<Tag class="selections" {...(order === 'countdown' ? { reversed: true } : {})}>
+		<Tag class="selection-list" {...(order === 'countdown' ? { reversed: true } : {})}>
 			{rows.map(({ Body, rank, selection }) => (
 				<Selection rank={rank} selection={selection}>
 					{selection.descriptionHtml ? (

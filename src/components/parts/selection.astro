@@ -50,7 +50,7 @@ const hasMeta = labels.length > 0 || Boolean(year);
 const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
 ---
 
-<li class:list={['selection', hasProse && 'selection-prose']} id={anchor}>
+<li class:list={['selection-item', hasProse && 'selection-prose']} id={anchor}>
 	{
 		imagePath ? (
 			<figure class="selection-thumb">

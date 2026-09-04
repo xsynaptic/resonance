@@ -28,13 +28,14 @@
 		"@fontsource/manrope": "^5.3.0",
 		"@types/react": "^19.2.18",
 		"@xsynaptic/shared": "workspace:*",
+		"astro": "^7.3.1",
 		"chalk": "^6.0.0",
-		"devalue": "^5.9.2",
 		"p-limit": "^7.3.2",
 		"react": "^19.2.8",
 		"sharp": "^0.35.4",
-		"takumi-js": "^2.13.4",
+		"takumi-js": "^2.13.5",
 		"tsx": "^4.23.13",
+		"vite": "^8.2.2",
 		"yaml": "^2.8.1",
 		"zx": "^8.8.5"
 	}

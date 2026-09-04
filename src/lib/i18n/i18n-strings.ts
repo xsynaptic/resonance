@@ -84,6 +84,7 @@ const strings = {
 	'footer.about.lead': 'An electronic music resource operated by',
 	'footer.about.profileLink': 'Basilisk',
 	'footer.astro': 'Astro',
+	'footer.colophonLabel': 'Colophon',
 	'footer.copyright': '© 2001–{year} Basilisk',
 	'footer.feed': 'RSS',
 	'footer.poweredBy': 'Powered by',

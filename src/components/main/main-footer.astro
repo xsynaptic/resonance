@@ -52,25 +52,28 @@ const year = new Date().getFullYear();
 			</ul>
 		</section>
 	</div>
-	{
-		downloadTotal > 0 ? (
-			<ul class="audio-counts content-wide pb-8">
+	<ul
+		aria-label={t('footer.colophonLabel')}
+		class="colophon content-wide border-t border-surface-700 py-6"
+	>
+		<li>{formatStringTemplate(t('footer.copyright'), { year })}</li>
+		{
+			downloadTotal > 0 ? (
 				<li>
 					{formatStringTemplate(
 						t(downloadTotal === 1 ? 'audio.downloads.one' : 'audio.downloads.other'),
 						{ count: formatNumber({ number: downloadTotal }) },
 					)}
 				</li>
-			</ul>
-		) : undefined
-	}
-	<div class="content-wide border-t border-surface-700 py-6 text-xs text-ink-700">
-		{formatStringTemplate(t('footer.copyright'), { year })} · {t('footer.poweredBy')}{' '}<a
-			class="text-ink-600 hover:text-highlight-400 focus-visible:text-highlight-400"
-			href="https://astro.build">{t('footer.astro')}</a
-		> · <a
-			class="text-ink-600 hover:text-highlight-400 focus-visible:text-highlight-400"
-			href="/rss.xml">{t('footer.feed')}</a
-		>
-	</div>
+			) : undefined
+		}
+		<li>
+			{t('footer.poweredBy')}{' '}<Anchor anchorColor="muted" href="https://astro.build"
+				>{t('footer.astro')}</Anchor
+			>
+		</li>
+		<li>
+			<Anchor anchorColor="muted" href="/rss.xml" rel="feed">{t('footer.feed')}</Anchor>
+		</li>
+	</ul>
 </footer>

@@ -21,6 +21,7 @@
 @import './main/components/audio-counts.css' layer(components);
 @import './main/components/button.css' layer(components);
 @import './main/components/carousel.css' layer(components);
+@import './main/components/colophon.css' layer(components);
 @import './main/components/comments.css' layer(components);
 @import './main/components/detail-header.css' layer(components);
 @import './main/components/detail-hero.css' layer(components);

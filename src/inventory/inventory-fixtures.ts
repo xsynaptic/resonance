@@ -26,7 +26,7 @@ import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
 // The inventory's one seam onto real content, so the page itself is only imports and prop-passing
-// Everything is found by predicate rather than named by slug: re-running the extractor cannot break it
+// Everything is found by predicate rather than named by slug, so editing content cannot break a specimen
 // A specimen whose content has vanished renders empty, which is the honest signal
 
 interface ExcerptSample {
@@ -91,6 +91,7 @@ export async function getInventoryFixtures() {
 	return {
 		artists: vocabulary.slice(0, 8),
 		card: cardItem([...mixItems, ...reviewItems]),
+		cardWork: cardWorkItem(reviewItems),
 		excerpt: await sampleExcerpt(),
 		formats,
 		heroPath: await sampleHeroPath(),
@@ -115,6 +116,12 @@ export async function getInventoryFixtures() {
 // The card specimens are about the card, so pick one whose artwork is actually on disk
 function cardItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefined {
 	return items.find((item) => item.image !== undefined && getMediaImage(item.image) !== undefined);
+}
+
+function cardWorkItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefined {
+	return items.find(
+		(item) => item.releaseTitle !== undefined && item.title.endsWith(` - ${item.releaseTitle}`),
+	);
 }
 
 function hasCoverOnDisk(entry: {

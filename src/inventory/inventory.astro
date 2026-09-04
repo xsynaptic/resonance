@@ -46,6 +46,7 @@ import './inventory.css';
 const {
 	artists,
 	card,
+	cardWork,
 	excerpt,
 	formats,
 	heroPath,
@@ -152,8 +153,8 @@ const paginationPage: Page<ContentCatalogItem> = {
 	}
 	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
 		Every component here is the real one, rendered with real props. Content-heavy props are found by
-		predicate rather than by name, so re-running the extractor never stales this page. The route is
-		injected under <code>astro dev</code> only; a build emits nothing for it. The header above is in its
+		predicate rather than by name, so editing content never stales this page. The route is injected
+		under <code>astro dev</code> only; a build emits nothing for it. The header above is in its
 		{hasHero ? 'overlay' : 'normal'} variant:{' '}
 		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
 			{hasHero ? 'drop the hero band' : 'restore the hero band'}
@@ -256,13 +257,15 @@ const paginationPage: Page<ContentCatalogItem> = {
 		>
 			<div class="flex flex-col gap-2">
 				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span">dividerContent=&quot;slash&quot; (default)</DividedItem>
+					<DividedItem as="span">dividerContent=&quot;dot&quot; (default)</DividedItem>
 					<DividedItem as="span">three items</DividedItem>
 					<DividedItem as="span">two glyphs</DividedItem>
 				</div>
 				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerContent="dot">dividerContent=&quot;dot&quot;</DividedItem>
-					<DividedItem as="span" dividerContent="dot">what the colophon uses</DividedItem>
+					<DividedItem as="span" dividerContent="slash"
+						>dividerContent=&quot;slash&quot;</DividedItem
+					>
+					<DividedItem as="span" dividerContent="slash">available, unused today</DividedItem>
 				</div>
 				<div class="flex flex-wrap gap-x-1">
 					<DividedItem as="span" dividerContent="chevron">
@@ -271,9 +274,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 					<DividedItem as="span" dividerContent="chevron">for a trail</DividedItem>
 				</div>
 				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerColor="lighter"
-						>dividerColor=&quot;lighter&quot;</DividedItem
-					>
+					<DividedItem as="span" dividerColor="muted">dividerColor=&quot;muted&quot;</DividedItem>
 					<DividedItem as="span" dividerWeight="thin">dividerWeight=&quot;thin&quot;</DividedItem>
 					<DividedItem as="span">and the default, for comparison</DividedItem>
 					<DividedItem as="span">last, no glyph</DividedItem>
@@ -419,7 +420,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 	<Section title="Cards and listings">
 		<Specimen
 			name="EntryCard"
-			note="Always square: the Blog stream is mostly Album Artwork, and a mixed-Format grid has to line up. The frame keeps its shape when the original is missing, which is routine in dev."
+			note="Always square: the Blog stream is mostly Album Artwork, and a mixed-Format grid has to line up. The frame keeps its shape when the original is missing, which is routine in dev. A Review italicises the work half of its title, matching <code>SectionDetailHeader</code>."
 			source="src/components/parts/entry-card.astro"
 		>
 			{
@@ -440,6 +441,18 @@ const paginationPage: Page<ContentCatalogItem> = {
 						<li>
 							<EntryCard date={card.date} href={card.url} subtitle="No image" title="Title only" />
 						</li>
+						{cardWork ? (
+							<li>
+								<EntryCard
+									date={cardWork.date}
+									href={cardWork.url}
+									image={cardWork.image}
+									releaseTitle={cardWork.releaseTitle}
+									subtitle={cardWork.subtitle}
+									title={cardWork.title}
+								/>
+							</li>
+						) : undefined}
 					</ul>
 				) : undefined
 			}
@@ -519,7 +532,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 	<Section title="Media">
 		<Specimen
 			name="MediaImage"
-			note="Resolves a frontmatter path against packages/content/media and renders nothing if the original is absent."
+			note="Resolves a frontmatter media path, and renders nothing when the original is missing rather than failing the build."
 			source="src/components/parts/media-image.astro"
 		>
 			{heroPath ? <MediaImage alt="" path={heroPath} width={400} /> : undefined}

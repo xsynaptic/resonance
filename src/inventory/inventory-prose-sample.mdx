@@ -8,8 +8,8 @@ An inline `<Link>` resolves a bare term id against the catalog rather than again
 <Link id="1990s">the nineties</Link> reaches the era's page without anyone writing the path. When the
 id matches nothing the component renders its text and no anchor at all, which is a failure with
 nothing to see: <Link id="deliberately-unresolvable">this phrase</Link> is a link in the source and
-plain prose on the page. The component warns on the dev server when this happens and nothing at all
-surfaces in the browser, which is what makes the case easy to miss.
+plain prose on the page. Nothing warns, on the dev server or in the browser, which is what makes the
+case easy to miss.
 
 ## A second-level heading
 
@@ -45,17 +45,17 @@ An ordered list numbers in the same dim marker colour:
 2. Then timestamps are added, which is what generates the cue sheet
 3. Finally the artists and labels are matched against the catalog
 
-Fenced blocks are highlighted by shiki, which sets the background and every token colour inline. All
-24 fences in the corpus are untagged, so this is what a shipping block actually looks like: one
-foreground colour on shiki's plate, and a long line scrolling inside the block rather than widening
-the column.
+Fenced blocks are highlighted by shiki, which sets the background and every token colour inline. An
+untagged fence gets one foreground colour on the plate and nothing else, which is what four of the
+twelve blocks in the corpus still look like, being expression syntax no grammar covers. A long line
+scrolls inside the block rather than widening the column.
 
 ```
 rsync -avh --progress --exclude={"._","._/"} /Volumes/SourceDrive/Music/ /Volumes/DestinationDrive/Music --dry-run
 ```
 
-Tagging the same fence `sh` is what turns the theme on, and it is the only way token colour ever
-reaches the page:
+Tagging the fence is what turns the theme on, and it is the only way token colour reaches the page.
+The other eight blocks in the corpus are tagged, so this is what most of them render as:
 
 ```sh
 rsync -avh --progress --exclude={"._","._/"} /Volumes/SourceDrive/Music/ /Volumes/DestinationDrive/Music --dry-run

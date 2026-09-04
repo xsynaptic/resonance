@@ -8,6 +8,23 @@ Project vocabulary is binding and defined in `.claude/context.md`. Read it befor
 
 A line earns its place in this file by changing what an agent does.
 
+## Documents under `.claude/`
+
+Every document under `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` carries a `status` in frontmatter. Read it before treating anything in the body as work:
+
+| `status`    | Means                                                              |
+| ----------- | ------------------------------------------------------------------ |
+| `ready`     | Open work, actionable now                                          |
+| `deferred`  | Real, and decided against doing now; the reason is in the document |
+| `wontfix`   | Decided against outright                                           |
+| `draft`     | A brief or spec, not yet decided                                   |
+| `done`      | A record of finished work, kept for its measurements and reasoning |
+| `reference` | A map of how something is, not work                                |
+
+**Only `ready` is live work.** An item under any other status has already been through Xander, so reporting it back as a finding costs a review cycle and returns nothing. If evidence contradicts a decision, say which measurement changed rather than re-raising the item.
+
+A `ready` document can still hold settled items. Those carry their disposition inline, as **Deferred**, **Wontfix** or **Decided, do not re-raise**, and the same rule applies to them.
+
 ## Conventions
 
 - Imports use Node `#*` subpaths mapped to `./src/*`, and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config.

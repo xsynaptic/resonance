@@ -1,3 +1,7 @@
+---
+status: reference
+---
+
 # Resonance vocabulary
 
 The glossary of terms this project uses. Names here are binding: use the term, and avoid the words listed under _Avoid_.

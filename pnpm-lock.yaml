@@ -48,6 +48,9 @@ importers:
       '@xsynaptic/mdxlint-config':
         specifier: ^2.0.0
         version: 2.0.0(supports-color@10.2.2)
+      '@xsynaptic/path-suggestions':
+        specifier: ^0.2.0
+        version: 0.2.0
       '@xsynaptic/satteri-auto-import':
         specifier: ^0.2.1
         version: 0.2.1(satteri@0.10.5)
@@ -2131,6 +2134,9 @@ packages:
     resolution: {integrity: sha512-PQOslLtF39pdr2FVeWFMlOxZrDgFi2JJ8tTwxTgU/Ls5a3JZQ+zRunPcgLWDM/zGlImAErKdJBAhET92IqRAmw==}
     engines: {node: '>=24'}
     hasBin: true
+
+  '@xsynaptic/path-suggestions@0.2.0':
+    resolution: {integrity: sha512-4vlqUz2lTREvFpgwxlbwOqMZH3Uty41sipcqIFcKG635xL2kEMYghw5zzgZ3epJVL+PDQIAfwbUzWaHkfrpS/w==}
 
   '@xsynaptic/satteri-auto-import@0.2.1':
     resolution: {integrity: sha512-JERerzTQvOdU2tn0R/OfoEIoZhFpEojMKiGQb3r3vImyaW6R7Ndh0xrbpzxtnKWPzwyDNGmNX08OKrrQFz0UXQ==}
@@ -7097,6 +7103,10 @@ snapshots:
     transitivePeerDependencies:
       - bluebird
       - supports-color
+
+  '@xsynaptic/path-suggestions@0.2.0':
+    dependencies:
+      fastest-levenshtein: 1.0.16
 
   '@xsynaptic/satteri-auto-import@0.2.1(satteri@0.10.5)':
     dependencies:

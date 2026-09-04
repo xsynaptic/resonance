@@ -59,6 +59,7 @@
 		"@xsynaptic/astro-font-devtools": "^1.0.2",
 		"@xsynaptic/eslint-config": "^6.3.0",
 		"@xsynaptic/mdxlint-config": "^2.0.0",
+		"@xsynaptic/path-suggestions": "^0.2.0",
 		"@xsynaptic/satteri-auto-import": "^0.2.1",
 		"@xsynaptic/satteri-img-group": "^2.0.1",
 		"@xsynaptic/shared": "workspace:*",

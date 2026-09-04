@@ -5,6 +5,7 @@ import type {
 } from '#lib/catalog/catalog-types.ts';
 
 export interface Catalog {
+	all: () => ReadonlyArray<CatalogItem>;
 	byCollection: <Collection extends CatalogCollectionKey>(
 		...collections: Array<Collection>
 	) => Array<CatalogItemOf<Collection>>;
@@ -27,5 +28,5 @@ export function createCatalog(items: ReadonlyArray<CatalogItem>): Catalog {
 		return itemsById.get(id);
 	}
 
-	return { byCollection, getById };
+	return { all: () => items, byCollection, getById };
 }

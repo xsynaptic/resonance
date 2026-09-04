@@ -1,0 +1,23 @@
+---
+import { t } from '#lib/i18n/i18n-strings.ts';
+---
+
+<path-suggestions
+	class="mt-6 block content-measure"
+	link-class="anchor anchor-highlight"
+	link-data-astro-history="replace"
+	src="/content-manifest.json"
+>
+	<p class="suggestions-heading text-ink-300">{t('notFound.suggestions')}</p>
+	<p class="suggestions-loading text-ink-500">{t('notFound.suggestionsLoading')}</p>
+</path-suggestions>
+
+<script>
+	import { navigate } from 'astro:transitions/client';
+	import '@xsynaptic/path-suggestions/element';
+
+	document.addEventListener('path-suggestions:redirect', (event) => {
+		event.preventDefault();
+		void navigate(event.detail.url, { history: 'replace' });
+	});
+</script>

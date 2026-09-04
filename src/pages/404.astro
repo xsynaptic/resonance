@@ -1,13 +1,45 @@
 ---
 import MainSite from '#components/main/main-site.astro';
+import NotFoundSuggestions from '#components/not-found/not-found-suggestions.astro';
 import Anchor from '#components/parts/anchor.astro';
+import Button from '#components/parts/button.astro';
+import HomeSection from '#components/sections/section-home.astro';
+import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
+
+const catalog = await getCatalog();
+
+const mixItems = catalog.byCollection('mixes').slice(0, 4);
+const postItems = catalog.byCollection('posts').slice(0, 4);
 ---
 
-<MainSite title={t('notFound.title')}>
+<MainSite noIndex={true} title={t('notFound.title')}>
 	<section class="mb-12">
 		<h1 class="title-main">{t('notFound.title')}</h1>
 		<p class="mt-2 content-measure text-ink-300">{t('notFound.body')}</p>
-		<Anchor class="mt-6 inline-block font-bold" href="/">{t('notFound.link')}</Anchor>
+		<NotFoundSuggestions />
+		<div class="mt-6 flex flex-wrap items-center gap-6">
+			<Button icon="magnifying-glass" id="not-found-search">{t('notFound.search')}</Button>
+			<Anchor class="font-bold" href="/">{t('notFound.link')}</Anchor>
+		</div>
 	</section>
+	<HomeSection
+		heading={t('home.mixes.heading')}
+		items={mixItems}
+		listHref="/mixes"
+		listLabel={t('home.mixes.link')}
+	/>
+	<HomeSection
+		heading={t('home.posts.heading')}
+		items={postItems}
+		listHref="/blog"
+		listLabel={t('home.posts.link')}
+	/>
 </MainSite>
+
+<script>
+	// The header toggle is what preloads the modal's stylesheet, so opening the modal directly flashes it unstyled
+	document.querySelector('#not-found-search')?.addEventListener('click', () => {
+		document.querySelector<HTMLButtonElement>('search-toggle button')?.click();
+	});
+</script>

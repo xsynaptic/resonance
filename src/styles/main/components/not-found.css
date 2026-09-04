@@ -1,0 +1,16 @@
+path-suggestions:not([data-state='list']) .suggestions-heading {
+	display: none;
+}
+
+/* `data-state` only exists once <path-suggestions> runs, so a JS-less page shows neither line */
+path-suggestions:not([data-state='loading']) .suggestions-loading {
+	display: none;
+}
+
+/* The element appends this list itself, so no class of ours can reach it */
+path-suggestions ul {
+	display: grid;
+	gap: calc(var(--spacing) * 1);
+	margin-block-start: calc(var(--spacing) * 2);
+	font-weight: 700;
+}

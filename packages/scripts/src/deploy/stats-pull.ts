@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
+import type { StepStatus } from '../shared/step-status.js';
 import type { DeployConfig } from './deploy-config.js';
 
 import { ensureSshKeychain, isPathPresent } from '../shared/utils.js';
@@ -26,7 +27,7 @@ interface StatsPullOptions {
 
 // The JSON is derived; the SQLite rollup is the only irreplaceable copy, so it is backed up dated
 // Never fatal: an unreachable host means building with the last-pulled copy
-export async function pullStats(options: StatsPullOptions): Promise<void> {
+export async function pullStats(options: StatsPullOptions): Promise<StepStatus> {
 	const { config, dryRun = false, rootPath } = options;
 
 	const jsonDir = path.join(rootPath, localJsonDir);
@@ -49,7 +50,7 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 			{ dryRun, quiet: true },
 		);
 
-		if (dryRun) return;
+		if (dryRun) return 'skipped';
 
 		await copyFile(path.join(backupDir, 'downloads.json'), path.join(jsonDir, 'downloads.json'));
 		await copyFile(
@@ -60,12 +61,16 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 
 		await pruneBackups(backupDir);
 		await reportFreshness(jsonDir, backupDir);
+
+		return 'ok';
 	} catch (error) {
 		console.log(
 			chalk.yellow(
 				`Stats pull failed; continuing with the last local downloads.json (if any): ${String(error)}`,
 			),
 		);
+
+		return 'warned';
 	}
 }
 

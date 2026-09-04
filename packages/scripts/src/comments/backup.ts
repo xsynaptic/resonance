@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
 
+import type { StepStatus } from '../shared/step-status.js';
+
 import { isPathPresent } from '../shared/utils.js';
 
 const databaseName = 'resonance-comments';
@@ -41,7 +43,7 @@ export async function backupComments(options: BackupOptions): Promise<void> {
 }
 
 // Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
-export async function backupIfStale(rootPath: string): Promise<void> {
+export async function backupIfStale(rootPath: string): Promise<StepStatus> {
 	const latest = await findLatestBackup(path.join(rootPath, backupDir));
 
 	if (latest) {
@@ -49,15 +51,19 @@ export async function backupIfStale(rootPath: string): Promise<void> {
 
 		if (ageDays < backupAfterDays) {
 			console.log(chalk.gray(`  Last comment backup: ${latest}`));
-			return;
+			return 'skipped';
 		}
 	}
 
 	// Soft-fail: a deploy must not die on a backup
 	try {
 		await backupComments({ rootPath });
+
+		return 'ok';
 	} catch (error) {
 		console.warn(chalk.yellow(`Comment backup skipped: ${String(error)}`));
+
+		return 'warned';
 	}
 }
 

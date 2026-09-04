@@ -17,7 +17,8 @@ interface DeployServerConfigOptions {
 	rootPath: string;
 }
 
-// Apply never --delete, so files the host owns stay untouched
+// Staging prunes, or a vhost renamed here is pushed live again from the copy left behind
+// The apply never --delete, since the-other-vhost.conf shares the live directory with us
 export async function deployServerConfig(options: DeployServerConfigOptions): Promise<void> {
 	const { config, dryRun = false, rootPath } = options;
 
@@ -37,7 +38,10 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 
 	const start = Date.now();
 
-	await rsync(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, { dryRun });
+	await rsync(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
+		dryRun,
+		extraFlags: ['--delete'],
+	});
 	await rsync(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
 		dryRun,
 		excludes: ['fixtures', 'test-*.py', '__pycache__'],

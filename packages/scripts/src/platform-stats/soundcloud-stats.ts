@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
+import type { StepStatus } from '../shared/step-status.js';
 import type { StatsGeneration, StatsItem } from './platform-stats-file.js';
 import type { SoundcloudTrack } from './soundcloud-api.js';
 
@@ -30,26 +31,28 @@ interface SoundcloudStatsOptions {
 }
 
 // Soft-fail by design, as the Mixcloud pull is: a deploy is never blocked on fresh counts
-export async function pullSoundcloudStats(options: SoundcloudStatsOptions): Promise<void> {
+export async function pullSoundcloudStats(options: SoundcloudStatsOptions): Promise<StepStatus> {
 	console.log(chalk.blue('Pulling SoundCloud stats...'));
 
 	const credentials = toCredentials();
 
 	if (!credentials) {
 		console.log(chalk.yellow('  No SOUNDCLOUD_CLIENT_ID/SECRET; skipping'));
-		return;
+		return 'skipped';
 	}
 
 	const filePath = path.join(options.rootPath, soundcloudStatsPath);
 
 	try {
-		await sweep(filePath, credentials, options);
+		return await sweep(filePath, credentials, options);
 	} catch (error) {
 		console.log(
 			chalk.yellow(
 				`SoundCloud pull failed; appending nothing to ${soundcloudStatsPath}: ${String(error)}`,
 			),
 		);
+
+		return 'warned';
 	}
 }
 
@@ -81,13 +84,13 @@ async function sweep(
 	filePath: string,
 	credentials: Credentials,
 	{ dryRun = false, force = false }: SoundcloudStatsOptions,
-): Promise<void> {
+): Promise<StepStatus> {
 	const lastGeneration = await readLastGeneration(filePath);
 	const skipReason = toSkipReason(lastGeneration, force);
 
 	if (skipReason) {
 		console.log(chalk.gray(skipReason));
-		return;
+		return 'skipped';
 	}
 
 	const tracks = await fetchAccounts(credentials);
@@ -99,11 +102,13 @@ async function sweep(
 
 	if (dryRun) {
 		console.log(chalk.yellow(`  DRY RUN: ${String(tracks.length)} tracks not written`));
-		return;
+		return 'skipped';
 	}
 
 	await appendGeneration(filePath, toItems(tracks));
 	console.log(chalk.green(`Appended ${String(tracks.length)} tracks to ${soundcloudStatsPath}`));
+
+	return 'ok';
 }
 
 function toCredentials(): Credentials | undefined {

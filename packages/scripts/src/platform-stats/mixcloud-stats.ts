@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
+import type { StepStatus } from '../shared/step-status.js';
 import type { StatsItem } from './platform-stats-file.js';
 
 import {
@@ -36,7 +37,7 @@ interface MixcloudStatsOptions {
 }
 
 // Soft-fail by design, as the download stats pull is: a deploy is never blocked on fresh counts
-export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<void> {
+export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<StepStatus> {
 	const { dryRun = false, force = false, rootPath } = options;
 
 	console.log(chalk.blue('Pulling Mixcloud stats...'));
@@ -52,26 +53,30 @@ export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<
 					`  Last generation ${String(lastGeneration?.generated_at)} is under 24h; skipping`,
 				),
 			);
-			return;
+			return 'skipped';
 		}
 
 		const cloudcasts = await fetchAccounts();
 
 		if (dryRun) {
 			console.log(chalk.yellow(`  DRY RUN: ${String(cloudcasts.length)} cloudcasts not written`));
-			return;
+			return 'skipped';
 		}
 
 		await appendGeneration(filePath, toItems(cloudcasts));
 		console.log(
 			chalk.green(`Appended ${String(cloudcasts.length)} cloudcasts to ${mixcloudStatsPath}`),
 		);
+
+		return 'ok';
 	} catch (error) {
 		console.log(
 			chalk.yellow(
 				`Mixcloud pull failed; appending nothing to ${mixcloudStatsPath}: ${String(error)}`,
 			),
 		);
+
+		return 'warned';
 	}
 }
 

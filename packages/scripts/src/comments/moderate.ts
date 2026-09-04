@@ -95,7 +95,6 @@ export async function deleteComment(id: string, options: ModerateOptions): Promi
 	await executeComments(`DELETE FROM comments WHERE id = ${toIdLiteral(id)}`, target);
 
 	console.log(chalk.red(`\n  ✗ deleted ${id}`));
-	warnOnLegacyRows([comment.id]);
 	console.log('');
 
 	if (comment.status === 'approved') await pullComments(options);
@@ -153,7 +152,7 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 		await setStatus([comment.id], choice.status, target);
 
 		tally[choice.status] += 1;
-		printResult(choice.status, [comment.id]);
+		printResult(choice.status);
 	}
 
 	printTally(tally);
@@ -206,10 +205,8 @@ function printLegend(available: ReadonlyArray<Choice>): void {
 	console.log(`  ${legend}`);
 }
 
-function printResult(status: ModeratedStatus, ids: Array<string>): void {
+function printResult(status: ModeratedStatus): void {
 	console.log(statusColors[status](`\n  ✓ ${status}`));
-
-	if (status !== 'approved') warnOnLegacyRows(ids);
 }
 
 function printTally(tally: Tally): void {
@@ -268,23 +265,6 @@ async function setStatus(
 
 function toTarget(options: ModerateOptions): D1Target {
 	return { cwd: options.rootPath, isLocal: options.isLocal };
-}
-
-// `comments-seed.sql` writes every wp-* row back to approved, undoing anything else set here
-function warnOnLegacyRows(ids: Array<string>): void {
-	const legacy = ids.filter((id) => id.startsWith('wp-'));
-
-	if (legacy.length === 0) return;
-
-	console.log(
-		chalk.yellow(
-			[
-				`\n  ⚠ ${legacy.join(', ')} legacy. \`pnpm comments-import\` re-seeds every wp-* row as`,
-				`    approved, so record this under "The legacy timestamp defect" in`,
-				`    .claude/tasks/comments-implementation-plan.md or a re-import will revert it.`,
-			].join('\n'),
-		),
-	);
 }
 
 function wrapBody(body: string): Array<string> {

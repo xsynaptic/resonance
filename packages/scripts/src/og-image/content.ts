@@ -1,34 +1,16 @@
 import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
 
-import type { DataStoreCollections, DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 import type { OpenGraphEntry } from './types.js';
 
 import { extractImageFeaturedIds } from '../shared/images.js';
-import { getCollectionLabel, openGraphCollections } from './labels.js';
-
-export function getOpenGraphEntries(collections: DataStoreCollections): Array<OpenGraphEntry> {
-	const entries: Array<OpenGraphEntry> = [getDefaultEntry()];
-
-	for (const collection of openGraphCollections) {
-		const collectionEntries = collections.get(collection);
-
-		if (!collectionEntries) {
-			throw new Error(
-				`Collection "${collection}" is missing from the data store. Re-run \`astro sync\`, or drop it from labels.ts if it no longer exists.`,
-			);
-		}
-
-		entries.push(...toOpenGraphEntries(collection, collectionEntries));
-	}
-
-	return entries;
-}
+import { getCollectionLabel } from './labels.js';
 
 /**
  * The card list pages, term indexes and 404 all fall back to. Its digest is fixed, so it renders
  * once and then stays cached until the template version changes.
  */
-function getDefaultEntry(): OpenGraphEntry {
+export function getDefaultEntry(): OpenGraphEntry {
 	return {
 		digest: openGraphDefaultId,
 		imageFeaturedId: undefined,
@@ -38,31 +20,20 @@ function getDefaultEntry(): OpenGraphEntry {
 	};
 }
 
-function readString(value: unknown): string | undefined {
-	return typeof value === 'string' && value !== '' ? value : undefined;
-}
+// The one place an entry becomes a card
+export function toOpenGraphEntry(entry: ContentEntry): OpenGraphEntry | undefined {
+	const title = typeof entry.data.title === 'string' ? entry.data.title : undefined;
 
-function toOpenGraphEntries(
-	collection: string,
-	collectionEntries: Map<string, DataStoreEntry>,
-): Array<OpenGraphEntry> {
-	const entries: Array<OpenGraphEntry> = [];
-	const label = getCollectionLabel(collection);
+	// A title is what makes a card worth drawing, and a digest is what makes it cacheable
+	if (!title || entry.digest === undefined) return undefined;
 
-	for (const entry of collectionEntries.values()) {
-		const title = readString(entry.data.title);
-
-		// A title is what makes a card worth drawing, and a digest is what makes it cacheable
-		if (!title || !entry.digest) continue;
-
-		entries.push({
-			digest: entry.digest,
-			imageFeaturedId: extractImageFeaturedIds(entry.data)[0],
-			label,
-			outputId: `${collection}-${entry.id}`,
-			title,
-		});
-	}
-
-	return entries;
+	return {
+		// Astro widens `digest` to `string | number`; the cache key is a string either way
+		digest: String(entry.digest),
+		imageFeaturedId: extractImageFeaturedIds(entry.data)[0],
+		label: getCollectionLabel(entry.collection),
+		// The stem `getOpenGraphId` builds in `src/lib/utils/seo.ts`; a divergence reads as an unresolved card
+		outputId: `${entry.collection}-${entry.id}`,
+		title,
+	};
 }

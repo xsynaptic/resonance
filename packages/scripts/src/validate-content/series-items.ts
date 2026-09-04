@@ -1,12 +1,12 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
 // Plain strings rather than references, because a series spans collections
 // An unresolved item is dropped from the index behind a DEV-only warning, so it is silent in CI
 export function validateSeriesItems(
-	entries: Array<DataStoreEntry>,
-	validTargets: Array<DataStoreEntry>,
+	entries: Array<ContentEntry>,
+	validTargets: Array<ContentEntry>,
 ) {
 	const validIds = new Set(validTargets.map((entry) => entry.id));
 

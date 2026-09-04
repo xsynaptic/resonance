@@ -1,11 +1,11 @@
 import { getContentUrl } from '@xsynaptic/shared/routing';
 
-import type { DataStoreCollections } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
-import { getDataStoreCollection, toFormerIds } from '../shared/data-store.js';
+import { toFormerIds } from '../shared/entries.js';
 
 // Terms carry no formerIds: their slugs never changed, only the base path they sit under
-const redirectCollections = ['mixes', 'pages', 'posts', 'reviews'];
+export const redirectCollections = ['mixes', 'pages', 'posts', 'reviews'] as const;
 
 export interface RedirectBuild {
 	// A former id matching a live path; fatal, because a rule takes that page off the site
@@ -19,15 +19,15 @@ interface RedirectPair {
 	to: string;
 }
 
-// Drafts never reach the data store, so an old slug starts redirecting when its draft is triaged
-export function buildRedirectPairs(collections: DataStoreCollections): RedirectBuild {
-	const livePaths = collectLivePaths(collections);
+// Drafts never reach the content store, so an old slug starts redirecting when its draft is triaged
+export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild {
+	const livePaths = collectLivePaths(entries);
 	const claimed = new Set<string>();
 	const collisions: Array<string> = [];
 	const pairs: Array<RedirectPair> = [];
 	const skipped: Array<string> = [];
 
-	for (const { from, to } of collectCandidates(collections)) {
+	for (const { from, to } of collectCandidates(entries)) {
 		// Cloudflare follows a redirect whether or not an asset sits at the path, so this is a bug
 		if (livePaths.has(from)) {
 			collisions.push(`${from} is a live page`);
@@ -46,9 +46,10 @@ export function buildRedirectPairs(collections: DataStoreCollections): RedirectB
 	return { collisions, pairs, skipped };
 }
 
-function collectCandidates(collections: DataStoreCollections): Array<RedirectPair> {
+// Collection order decides which rule claims a path first, so entries are walked in that order
+function collectCandidates(entries: Array<ContentEntry>): Array<RedirectPair> {
 	return redirectCollections.flatMap((collection) =>
-		getDataStoreCollection(collections, [collection]).flatMap((entry) =>
+		entriesFrom(entries, collection).flatMap((entry) =>
 			toFormerIds(entry)
 				.map((formerId) => ({
 					from: getContentUrl(collection, formerId),
@@ -59,12 +60,14 @@ function collectCandidates(collections: DataStoreCollections): Array<RedirectPai
 	);
 }
 
-function collectLivePaths(collections: DataStoreCollections): Set<string> {
+function collectLivePaths(entries: Array<ContentEntry>): Set<string> {
 	return new Set(
 		redirectCollections.flatMap((collection) =>
-			getDataStoreCollection(collections, [collection]).map((entry) =>
-				getContentUrl(collection, entry.id),
-			),
+			entriesFrom(entries, collection).map((entry) => getContentUrl(collection, entry.id)),
 		),
 	);
+}
+
+function entriesFrom(entries: Array<ContentEntry>, collection: string): Array<ContentEntry> {
+	return entries.filter((entry) => entry.collection === collection);
 }

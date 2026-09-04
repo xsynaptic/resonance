@@ -187,7 +187,7 @@ try {
 
 	await build();
 
-	// After the build, because the cards are published into the dist/ that deploy-app ships
+	// After the build: dist decides which cards exist, and receives them for deploy-app to ship
 	await generateOpenGraphImages({ rootPath });
 
 	// Audio before site: new pages must never go live while their files are still uploading

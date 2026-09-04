@@ -1,12 +1,11 @@
 #!/usr/bin/env tsx
-import { astroCacheDir } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { loadDataStore } from '../shared/data-store.js';
+import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
-import { buildRedirectPairs } from './build-redirect-pairs.js';
+import { buildRedirectPairs, redirectCollections } from './build-redirect-pairs.js';
 
 // WordPress permalinks the site no longer answers to, written by hand because no field records them
 // Lists and designs became plain Posts; three taxonomies were renamed
@@ -58,9 +57,11 @@ const structuralRedirects: Array<[string, string]> = [
 
 const rootPath = findWorkspaceRoot();
 
-const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
+const entries = await withAstroContent((content) =>
+	getCollectionEntries(content, [...redirectCollections]),
+);
 
-const { collisions, pairs, skipped } = buildRedirectPairs(collections);
+const { collisions, pairs, skipped } = buildRedirectPairs(entries);
 
 // Writing the file anyway would ship a rule that takes a live page off the site
 if (collisions.length > 0) {

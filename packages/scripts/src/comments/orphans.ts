@@ -1,12 +1,11 @@
 import { queryComments } from '@xsynaptic/shared/comments';
-import { astroCacheDir } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
-import path from 'node:path';
 import { $ } from 'zx';
 
-import type { DataStoreCollections } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
-import { getDataStoreCollection, loadDataStore, toFormerIds } from '../shared/data-store.js';
+import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
+import { toFormerIds } from '../shared/entries.js';
 
 export interface OrphansOptions {
 	isLocal: boolean;
@@ -38,7 +37,7 @@ const groupQuery = `
 	ORDER BY collection, entry_id
 `;
 
-const commentedCollections = ['mixes', 'posts', 'reviews'];
+const commentedCollections = ['mixes', 'posts', 'reviews'] as const;
 
 export async function reportOrphans(options: OrphansOptions): Promise<void> {
 	const { isLocal, rootPath } = options;
@@ -48,8 +47,10 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 	// Which entries exist is the whole question, so the store is resynced rather than trusted
 	await $({ cwd: rootPath, quiet: true })`pnpm exec astro sync`;
 
-	const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
-	const resolvable = collectResolvableIds(collections);
+	const entries = await withAstroContent((content) =>
+		getCollectionEntries(content, [...commentedCollections]),
+	);
+	const resolvable = collectResolvableIds(entries);
 
 	const orphans: Array<EntryGroup> = rows
 		.filter((row) => !resolvable.has(`${row.collection}/${row.entry_id}`))
@@ -99,14 +100,12 @@ function byCountDescending(left: EntryGroup, right: EntryGroup): number {
 	return `${left.collection}/${left.entryId}`.localeCompare(`${right.collection}/${right.entryId}`);
 }
 
-// Drafts never reach the data store, so their comments read as orphaned until the draft is published
-function collectResolvableIds(collections: DataStoreCollections): Set<string> {
+// Drafts never reach the content store, so their comments read as orphaned until the draft is published
+function collectResolvableIds(entries: Array<ContentEntry>): Set<string> {
 	return new Set(
-		commentedCollections.flatMap((collection) =>
-			getDataStoreCollection(collections, [collection]).flatMap((entry) => [
-				`${collection}/${entry.id}`,
-				...toFormerIds(entry).map((formerId) => `${collection}/${formerId}`),
-			]),
-		),
+		entries.flatMap((entry) => [
+			`${entry.collection}/${entry.id}`,
+			...toFormerIds(entry).map((formerId) => `${entry.collection}/${formerId}`),
+		]),
 	);
 }

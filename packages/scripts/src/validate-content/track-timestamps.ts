@@ -1,4 +1,4 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
@@ -18,11 +18,11 @@ interface TimestampIssue {
 
 // Timestamps become cue sheet `INDEX` values; the schema enforces their shape, not their order
 // The extractor merges a multi-tracklist mix lossily, so part two can restart at `00:00:00`
-export function collectTimestampIssues(entries: Array<DataStoreEntry>) {
+export function collectTimestampIssues(entries: Array<ContentEntry>) {
 	return entries.flatMap((entry) => collectEntryTimestampIssues(entry));
 }
 
-export function validateTrackTimestamps(entries: Array<DataStoreEntry>) {
+export function validateTrackTimestamps(entries: Array<ContentEntry>) {
 	const issues = collectTimestampIssues(entries);
 	const detailsByLocation = new Map<string, Array<string>>();
 
@@ -42,7 +42,7 @@ export function validateTrackTimestamps(entries: Array<DataStoreEntry>) {
 	);
 }
 
-function collectEntryTimestampIssues(entry: DataStoreEntry) {
+function collectEntryTimestampIssues(entry: ContentEntry) {
 	const timed = collectTimedTracks(entry);
 
 	const issues: Array<TimestampIssue> = [];
@@ -61,7 +61,7 @@ function collectEntryTimestampIssues(entry: DataStoreEntry) {
 	return issues;
 }
 
-function collectTimedTracks(entry: DataStoreEntry): Array<TimedTrack> {
+function collectTimedTracks(entry: ContentEntry): Array<TimedTrack> {
 	const tracks = entry.data.tracks;
 
 	if (!Array.isArray(tracks)) return [];

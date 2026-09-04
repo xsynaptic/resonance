@@ -1,4 +1,4 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
@@ -12,18 +12,15 @@ interface LinkIdIssue {
 
 // An unresolved id renders as plain text with a DEV-only warning, so it ships silently
 export function collectLinkIdIssues(
-	entries: Array<DataStoreEntry>,
-	validTargets: Array<DataStoreEntry>,
+	entries: Array<ContentEntry>,
+	validTargets: Array<ContentEntry>,
 ) {
 	const validIds = new Set(validTargets.map((entry) => entry.id));
 
 	return entries.flatMap((entry) => collectEntryLinkIdIssues(entry, validIds));
 }
 
-export function validateLinkIds(
-	entries: Array<DataStoreEntry>,
-	validTargets: Array<DataStoreEntry>,
-) {
+export function validateLinkIds(entries: Array<ContentEntry>, validTargets: Array<ContentEntry>) {
 	const issues = collectLinkIdIssues(entries, validTargets);
 	const detailsByLocation = new Map<string, Array<string>>();
 
@@ -45,7 +42,7 @@ export function validateLinkIds(
 	);
 }
 
-function collectEntryLinkIdIssues(entry: DataStoreEntry, validIds: ReadonlySet<string>) {
+function collectEntryLinkIdIssues(entry: ContentEntry, validIds: ReadonlySet<string>) {
 	const body = entry.body;
 
 	if (!body?.includes('<Link ')) return [];

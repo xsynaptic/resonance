@@ -1,5 +1,4 @@
 import {
-	astroCacheDir,
 	openGraphBasePath,
 	openGraphImageFormat,
 	openGraphOutputPath,
@@ -12,9 +11,7 @@ import pLimit from 'p-limit';
 import type { FontsourceConfig } from './fonts.js';
 import type { OpenGraphEntry } from './types.js';
 
-import { loadDataStore } from '../shared/data-store.js';
-import { isPathPresent } from '../shared/utils.js';
-import { getOpenGraphEntries } from './content.js';
+import { getBuiltEntries } from './built-entries.js';
 import { fontsourceFonts } from './fonts.js';
 import { createRenderer, processCover } from './generate.js';
 import { createOutputCache, getCacheKey } from './output-cache.js';
@@ -59,10 +56,13 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 		return;
 	}
 
+	const { entries, unresolved } = await getBuiltEntries({
+		distPath: path.resolve(rootPath, distPath),
+	});
+
+	reportUnresolved(unresolved);
+
 	const fonts = await fontsourceFonts(fontConfigs);
-	const entries = getOpenGraphEntries(
-		loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json')),
-	);
 
 	await fs.mkdir(outputPath, { recursive: true });
 
@@ -74,7 +74,6 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	let missingCoverCount = 0;
 	let skippedCount = 0;
 	const errors: Array<string> = [];
-	const rendered: Array<string> = [];
 
 	async function getCoverModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
 		try {
@@ -121,7 +120,6 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 			limit(async () => {
 				try {
 					await renderEntry(entry);
-					rendered.push(entry.outputId);
 				} catch (error) {
 					errors.push(
 						`${entry.outputId}: ${error instanceof Error ? error.message : String(error)}`,
@@ -146,7 +144,11 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 		throw new Error(`${String(errors.length)} Open Graph image(s) failed to render`);
 	}
 
-	await publish({ cache, distPath: path.resolve(rootPath, distPath), outputIds: rendered });
+	await publish({
+		cache,
+		distPath: path.resolve(rootPath, distPath),
+		outputIds: entries.map((entry) => entry.outputId),
+	});
 }
 
 /**
@@ -163,11 +165,6 @@ async function publish({
 	distPath: string;
 	outputIds: Array<string>;
 }): Promise<void> {
-	if (!(await isPathPresent(distPath))) {
-		console.log(chalk.yellow(`  No dist/ to publish into; cards are in ${openGraphOutputPath}`));
-		return;
-	}
-
 	const publishPath = path.join(distPath, openGraphBasePath);
 
 	await fs.mkdir(publishPath, { recursive: true });
@@ -180,4 +177,17 @@ async function publish({
 	}
 
 	console.log(chalk.gray(`  Published ${String(outputIds.length)} cards to ${publishPath}`));
+}
+
+// A page asking for a card nothing can draw would ship with a broken og:image
+function reportUnresolved(unresolved: Array<string>): void {
+	if (unresolved.length === 0) return;
+
+	for (const outputId of unresolved) {
+		console.log(chalk.red(`  ✗ Unresolved: ${outputId}`));
+	}
+
+	throw new Error(
+		`${String(unresolved.length)} card(s) referenced by the build resolve to no entry`,
+	);
 }

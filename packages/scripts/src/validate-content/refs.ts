@@ -1,6 +1,6 @@
-import type { DataStoreCollections, DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
-import { toReferenceIds } from '../shared/data-store.js';
+import { getIdsByCollection, toReferenceIds } from '../shared/entries.js';
 import { toValidationResult } from './validation-result.js';
 
 // Every schema carrying these is `.strict()`, so a field name here cannot mean anything else
@@ -28,15 +28,14 @@ interface RefIssue extends EntryRef {
 }
 
 // A ref that carries an id but resolves to nothing only `console.warn`s at build, so it ships
-export function collectRefIssues(
-	entries: Array<DataStoreEntry>,
-	collections: DataStoreCollections,
-) {
-	return entries.flatMap((entry) => collectEntryRefIssues(entry, collections));
+export function collectRefIssues(entries: Array<ContentEntry>, catalog: Array<ContentEntry>) {
+	const idsByCollection = getIdsByCollection(catalog);
+
+	return entries.flatMap((entry) => collectEntryRefIssues(entry, idsByCollection));
 }
 
-export function validateRefs(entries: Array<DataStoreEntry>, collections: DataStoreCollections) {
-	const issues = collectRefIssues(entries, collections);
+export function validateRefs(entries: Array<ContentEntry>, catalog: Array<ContentEntry>) {
+	const issues = collectRefIssues(entries, catalog);
 
 	return toValidationResult(
 		issues.map(({ collection, field, id, location }) => ({
@@ -71,14 +70,11 @@ function collectContainerRefs(items: unknown, container: string, fields: Record<
 	return refs;
 }
 
-function collectEntryRefIssues(entry: DataStoreEntry, collections: DataStoreCollections) {
+function collectEntryRefIssues(entry: ContentEntry, idsByCollection: Map<string, Set<string>>) {
 	const issues: Array<RefIssue> = [];
 
 	for (const ref of collectEntryRefs(entry)) {
-		const target = collections.get(ref.collection);
-
-		if (!target) throw new Error(`Unknown collection: "${ref.collection}"`);
-		if (target.has(ref.id)) continue;
+		if (idsByCollection.get(ref.collection)?.has(ref.id)) continue;
 
 		issues.push({ ...ref, location: entry.filePath ?? entry.id });
 	}
@@ -86,7 +82,7 @@ function collectEntryRefIssues(entry: DataStoreEntry, collections: DataStoreColl
 	return issues;
 }
 
-function collectEntryRefs(entry: DataStoreEntry) {
+function collectEntryRefs(entry: ContentEntry) {
 	const refs = collectFieldRefs(entry.data, topLevelRefFields, '');
 
 	for (const [container, fields] of Object.entries(nestedRefFields)) {

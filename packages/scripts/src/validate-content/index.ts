@@ -1,11 +1,10 @@
 #!/usr/bin/env tsx
-import { astroCacheDir } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
 import path from 'node:path';
 
 import type { ValidationResult } from './validation-result.js';
 
-import { getDataStoreCollection, loadDataStore } from '../shared/data-store.js';
+import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
 import { validateBodyMarkers } from './body-markers.js';
 import { validateDownloadsLegacy } from './downloads-legacy.js';
@@ -33,7 +32,7 @@ const contentCollections = [
 	'series',
 	'styles',
 	'themes',
-];
+] as const;
 
 // Mirrors `linkableCollections` in references-data.ts; the two have to stay in step
 const linkableCollections = [
@@ -61,28 +60,27 @@ const mediaPath = 'packages/content/_media';
 
 const rootPath = findWorkspaceRoot();
 
-const collections = loadDataStore(path.resolve(rootPath, astroCacheDir, 'data-store.json'));
+const allEntries = await withAstroContent((content) =>
+	getCollectionEntries(content, [...contentCollections]),
+);
 
-const allEntries = getDataStoreCollection(collections, contentCollections);
+function entriesFrom(...collections: Array<string>) {
+	return allEntries.filter((entry) => collections.includes(entry.collection));
+}
 
 // Keys double as the CLI subcommand names
 const validations = {
-	'body-markers': () => validateBodyMarkers(getDataStoreCollection(collections, markerCollections)),
-	'downloads-legacy': () => validateDownloadsLegacy(getDataStoreCollection(collections, ['mixes'])),
+	'body-markers': () => validateBodyMarkers(entriesFrom(...markerCollections)),
+	'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
 	'entry-ids': () => validateEntryIds(allEntries),
 	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
-	'link-ids': () =>
-		validateLinkIds(allEntries, getDataStoreCollection(collections, linkableCollections)),
-	references: () => validateReferences(collections, contentCollections),
-	refs: () => validateRefs(allEntries, collections),
-	'review-folders': () => validateReviewFolders(getDataStoreCollection(collections, ['reviews'])),
+	'link-ids': () => validateLinkIds(allEntries, entriesFrom(...linkableCollections)),
+	references: () => validateReferences(allEntries),
+	refs: () => validateRefs(allEntries, entriesFrom('artists', 'labels')),
+	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
 	'series-items': () =>
-		validateSeriesItems(
-			getDataStoreCollection(collections, ['series']),
-			getDataStoreCollection(collections, seriesMemberCollections),
-		),
-	'track-timestamps': () =>
-		validateTrackTimestamps(getDataStoreCollection(collections, audioCollections)),
+		validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
+	'track-timestamps': () => validateTrackTimestamps(entriesFrom(...audioCollections)),
 } satisfies Record<string, () => ValidationResult>;
 
 const command = process.argv[2];

@@ -1,12 +1,13 @@
 import { describe, expect, test } from 'vitest';
 
 import { collectRefIssues } from './refs.js';
-import { makeCollections, makeEntry } from './validate-test-utils.js';
+import { makeEntry } from './validate-test-utils.js';
 
-const catalog = makeCollections({
-	artists: [makeEntry({ id: 'shpongle' }), makeEntry({ id: 'simon-posford' })],
-	labels: [makeEntry({ id: 'twisted' })],
-});
+const catalog = [
+	makeEntry({ collection: 'artists', id: 'shpongle' }),
+	makeEntry({ collection: 'artists', id: 'simon-posford' }),
+	makeEntry({ collection: 'labels', id: 'twisted' }),
+];
 
 describe('collectRefIssues', () => {
 	test('ignores free text, which is the whole point of the polymorphic ref', () => {

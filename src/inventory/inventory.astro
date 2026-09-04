@@ -53,6 +53,7 @@ const {
 	mix,
 	mixcloudUrl,
 	mixItems,
+	openGraphCards,
 	regionTree,
 	release,
 	reviewItems,
@@ -81,6 +82,7 @@ const sectionTitles = [
 	'Cards and listings',
 	'Detail headers',
 	'Media',
+	'Open Graph',
 	'Audio',
 	'Content blocks',
 	'Empty states',
@@ -500,6 +502,41 @@ const paginationPage: Page<ContentItem> = {
 			</div>
 		</Specimen>
 	</Section>
+	<Section
+		note="The 1200×630 cards behind every page's <code>og:image</code>, rendered by <code>pnpm og-image</code> into <code>.cache/og-image</code>. A build only copies them into <code>dist/og</code> during <code>deploy-site</code>, so under <code>astro dev</code> the inventory integration serves that cache at the same path, and any page's card can be opened from its head. Shown at half size; a card missing from this set has not been generated since its entry appeared."
+		title="Open Graph"
+	>
+		<Specimen
+			name="Cards"
+			note="One per layout the template has to handle: no cover, cover on the right, and the longest title in each of those, where the type drops from 76px to 56px and the three-line clamp bites."
+			source="packages/scripts/src/og-image/element.tsx"
+		>
+			{
+				openGraphCards.length > 0 ? (
+					<ul class="grid gap-6 sm:grid-cols-2">
+						{openGraphCards.map((card) => (
+							<li>
+								<img
+									alt={card.label}
+									class="w-full rounded-sm border border-surface-700"
+									height={315}
+									loading="lazy"
+									src={card.path}
+									width={600}
+								/>
+								<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
+								<div class="font-mono text-[0.6875rem] text-ink-700">{card.path}</div>
+							</li>
+						))}
+					</ul>
+				) : (
+					<p class="text-sm text-ink-600">
+						No cards in <code>.cache/og-image</code>; run <code>pnpm og-image</code>.
+					</p>
+				)
+			}
+		</Specimen>
+	</Section>
 	<Section title="Audio">
 		<Specimen
 			name="AudioLinks"
@@ -538,6 +575,8 @@ const paginationPage: Page<ContentItem> = {
 		>
 			<EmbedFrame
 				aspectRatio="16 / 9"
+				feedHref="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+				feedLabel="Watch on YouTube"
 				src="https://www.youtube.com/embed/dQw4w9WgXcQ"
 				title="Embed frame sample"
 			/>

@@ -1,4 +1,4 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
@@ -10,7 +10,7 @@ interface FolderIssue {
 	location: string;
 }
 
-export function validateReviewFolders(entries: Array<DataStoreEntry>) {
+export function validateReviewFolders(entries: Array<ContentEntry>) {
 	const issues = collectReviewFolderIssues(entries);
 
 	return toValidationResult(
@@ -24,7 +24,7 @@ export function validateReviewFolders(entries: Array<DataStoreEntry>) {
 	);
 }
 
-function collectReviewFolderIssues(entries: Array<DataStoreEntry>) {
+function collectReviewFolderIssues(entries: Array<ContentEntry>) {
 	const issues: Array<FolderIssue> = [];
 
 	for (const entry of entries) {

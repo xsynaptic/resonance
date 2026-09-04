@@ -1,4 +1,13 @@
+import {
+	openGraphBasePath,
+	openGraphDefaultId,
+	openGraphImageFormat,
+	openGraphOutputPath,
+} from '@xsynaptic/shared/constants';
+import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection, render } from 'astro:content';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
 import type { ContentItem } from '#lib/catalog/catalog-data.ts';
 import type { TrackValue } from '#lib/schemas/audio.ts';
@@ -13,7 +22,7 @@ import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
 // The inventory's one seam onto real content, so the page itself is only imports and prop-passing
@@ -34,6 +43,12 @@ interface MixSample {
 	links: Array<string>;
 	title: string;
 	tracks: Array<TrackValue>;
+}
+
+interface OpenGraphSample {
+	label: string;
+	// Root-relative, so it resolves against whichever dev server is showing the page
+	path: string;
 }
 
 interface ReleaseSample {
@@ -85,6 +100,7 @@ export async function getInventoryFixtures() {
 		mix: await sampleMix(),
 		mixcloudUrl: await sampleMixField('mixcloudEmbed'),
 		mixItems,
+		openGraphCards: await sampleOpenGraphCards(),
 		regionTree: await getDirectoryTerms('regions'),
 		release: await sampleRelease(),
 		reviewItems,
@@ -99,6 +115,20 @@ export async function getInventoryFixtures() {
 // The card specimens are about the card, so pick one whose artwork is actually on disk
 function cardItem(items: Array<ContentItem>): ContentItem | undefined {
 	return items.find((item) => item.image !== undefined && getMediaImage(item.image) !== undefined);
+}
+
+function hasCoverOnDisk(entry: {
+	data: { imageFeatured?: Parameters<typeof getImageFeaturedId>[0] };
+}): boolean {
+	const imagePath = getImageFeaturedId(entry.data.imageFeatured);
+
+	return imagePath !== undefined && getMediaImage(imagePath) !== undefined;
+}
+
+function longestTitle<T extends { data: { title: string } }>(entries: Array<T>): T | undefined {
+	return [...entries].sort(
+		(first, second) => second.data.title.length - first.data.title.length,
+	)[0];
 }
 
 async function sampleExcerpt(): Promise<ExcerptSample | undefined> {
@@ -155,7 +185,7 @@ async function sampleMix(): Promise<MixSample | undefined> {
 
 	return {
 		cueSlug: hasMixTimestamps(entry) ? entry.id : undefined,
-		downloads: await getDownloadCount(entry.data.files),
+		downloads: await getDownloadCount(entry.data),
 		files: entry.data.files ?? [],
 		links: entry.data.links ?? [],
 		title: entry.data.title,
@@ -169,6 +199,51 @@ async function sampleMixField(
 	const mixes = await getCollection('mixes');
 
 	return mixes.find((mix) => mix.data[field] !== undefined)?.data[field];
+}
+
+// Cards exist only after `pnpm og-image`, so any not yet rendered are left out rather than broken
+async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
+	const [mixes, reviews, posts, artists] = await Promise.all([
+		getCollection('mixes'),
+		getCollection('reviews'),
+		getCollection('posts'),
+		getCollection('artists'),
+	]);
+
+	const contentEntries = [...mixes, ...reviews, ...posts];
+	const withCover = contentEntries.filter(hasCoverOnDisk);
+	const withoutCover = contentEntries.filter((entry) => !hasCoverOnDisk(entry));
+
+	const candidates = [
+		{ id: openGraphDefaultId, label: 'Default, behind every List Page and the 404' },
+		{ entry: mixes.find(hasCoverOnDisk), label: 'Mix with cover' },
+		{ entry: reviews.find(hasCoverOnDisk), label: 'Review with cover' },
+		{ entry: longestTitle(withoutCover), label: 'Longest title with no cover, set full width' },
+		{
+			entry: longestTitle(withCover),
+			label: 'Longest title beside a cover, where the clamp bites first',
+		},
+		{ entry: artists.at(0), label: 'Term, never with a cover' },
+	];
+
+	const samples: Array<OpenGraphSample> = [];
+	const seen = new Set<string>();
+
+	for (const candidate of candidates) {
+		const id =
+			'id' in candidate
+				? candidate.id
+				: candidate.entry && getOpenGraphId(candidate.entry.collection, candidate.entry.id);
+		if (id === undefined || seen.has(id)) continue;
+
+		const file = `${id}.${openGraphImageFormat}`;
+		if (!existsSync(path.resolve(openGraphOutputPath, file))) continue;
+
+		seen.add(id);
+		samples.push({ label: candidate.label, path: `/${openGraphBasePath}/${file}` });
+	}
+
+	return samples;
 }
 
 // A review carries the fullest detail header there is: split title, artist, labels, year and rating

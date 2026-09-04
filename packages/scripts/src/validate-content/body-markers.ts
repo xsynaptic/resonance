@@ -1,4 +1,4 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
@@ -15,7 +15,7 @@ interface MarkerIssue {
 	location: string;
 }
 
-export function validateBodyMarkers(entries: Array<DataStoreEntry>) {
+export function validateBodyMarkers(entries: Array<ContentEntry>) {
 	const issues = entries.flatMap((entry) => collectEntryMarkerIssues(entry));
 
 	return toValidationResult(
@@ -27,7 +27,7 @@ export function validateBodyMarkers(entries: Array<DataStoreEntry>) {
 	);
 }
 
-function collectEntryMarkerIssues(entry: DataStoreEntry): Array<MarkerIssue> {
+function collectEntryMarkerIssues(entry: ContentEntry): Array<MarkerIssue> {
 	const body = entry.body ?? '';
 	const issues: Array<MarkerIssue> = [];
 

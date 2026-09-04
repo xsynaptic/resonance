@@ -1,9 +1,9 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
 // The frozen counts are keyed on format, so a mix that drops a format keeps a count nothing renders
-export function validateDownloadsLegacy(entries: Array<DataStoreEntry>) {
+export function validateDownloadsLegacy(entries: Array<ContentEntry>) {
 	const issues: Array<{ format: string; location: string }> = [];
 
 	for (const entry of entries) {

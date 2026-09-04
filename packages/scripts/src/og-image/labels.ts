@@ -16,7 +16,10 @@ const collectionLabels = {
 	themes: 'Theme',
 } satisfies Record<string, string | undefined>;
 
-export const openGraphCollections = Object.keys(collectionLabels);
+// `Object.keys` widens to `string`, and the keys have to stay collection names for the content read
+export const openGraphCollections = Object.keys(collectionLabels) as Array<
+	keyof typeof collectionLabels
+>;
 
 export function getCollectionLabel(collection: string): string | undefined {
 	return collectionLabels[collection as keyof typeof collectionLabels];

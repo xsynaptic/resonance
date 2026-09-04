@@ -1,21 +1,20 @@
 import { describe, expect, test } from 'vitest';
 
 import { collectReferenceIssues } from './references.js';
-import { makeCollections, makeEntry, makeRefs } from './validate-test-utils.js';
+import { makeEntry, makeRefs } from './validate-test-utils.js';
 
-const collectionNames = ['mixes', 'eras', 'styles'];
-
-function makeStore(mixes: Array<ReturnType<typeof makeEntry>>) {
-	return makeCollections({
-		eras: [makeEntry({ id: 'early-2000s' })],
-		mixes,
-		styles: [makeEntry({ id: 'goa-trance' })],
-	});
+// The checked set is whichever collections the passed entries belong to
+function makeEntries(mixes: Array<ReturnType<typeof makeEntry>>) {
+	return [
+		makeEntry({ collection: 'eras', id: 'early-2000s' }),
+		makeEntry({ collection: 'styles', id: 'goa-trance' }),
+		...mixes,
+	];
 }
 
 describe('collectReferenceIssues', () => {
 	test('accepts references that resolve', () => {
-		const collections = makeStore([
+		const entries = makeEntries([
 			makeEntry({
 				data: {
 					eras: makeRefs('eras', ['early-2000s']),
@@ -25,11 +24,11 @@ describe('collectReferenceIssues', () => {
 			}),
 		]);
 
-		expect(collectReferenceIssues(collections, collectionNames)).toEqual([]);
+		expect(collectReferenceIssues(entries)).toEqual([]);
 	});
 
 	test('flags a reference to a missing entry and reports its field path', () => {
-		const collections = makeStore([
+		const entries = makeEntries([
 			makeEntry({
 				data: { styles: makeRefs('styles', ['goa-trance', 'vaporwave']) },
 				filePath: 'collections/mixes/2011/a-mix.mdx',
@@ -37,7 +36,7 @@ describe('collectReferenceIssues', () => {
 			}),
 		]);
 
-		expect(collectReferenceIssues(collections, collectionNames)).toEqual([
+		expect(collectReferenceIssues(entries)).toEqual([
 			{
 				collection: 'styles',
 				field: 'styles[1]',
@@ -48,28 +47,28 @@ describe('collectReferenceIssues', () => {
 	});
 
 	test('flags a reference whose target exists in a different collection', () => {
-		const collections = makeStore([
+		const entries = makeEntries([
 			makeEntry({ data: { styles: makeRefs('styles', ['early-2000s']) }, id: 'a-mix' }),
 		]);
 
-		expect(collectReferenceIssues(collections, collectionNames)).toEqual([
+		expect(collectReferenceIssues(entries)).toEqual([
 			{ collection: 'styles', field: 'styles[0]', id: 'early-2000s', location: 'a-mix' },
 		]);
 	});
 
 	test('ignores references into collections outside the checked set', () => {
-		const collections = makeStore([
+		const entries = makeEntries([
 			makeEntry({ data: { downloads: makeRefs('downloads', ['missing']) }, id: 'a-mix' }),
 		]);
 
-		expect(collectReferenceIssues(collections, collectionNames)).toEqual([]);
+		expect(collectReferenceIssues(entries)).toEqual([]);
 	});
 
 	test('ignores a polymorphic ref, which carries an id but no collection', () => {
-		const collections = makeStore([
+		const entries = makeEntries([
 			makeEntry({ data: { labels: [{ code: 'EKTMX3003', id: 'not-a-collection' }] }, id: 'a-mix' }),
 		]);
 
-		expect(collectReferenceIssues(collections, collectionNames)).toEqual([]);
+		expect(collectReferenceIssues(entries)).toEqual([]);
 	});
 });

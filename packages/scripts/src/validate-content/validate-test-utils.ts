@@ -1,19 +1,9 @@
-import type { DataStoreCollections, DataStoreEntry } from '../shared/data-store.js';
-
-export function makeCollections(entriesByCollection: Record<string, Array<DataStoreEntry>>) {
-	const collections: DataStoreCollections = new Map();
-
-	for (const [name, entries] of Object.entries(entriesByCollection)) {
-		collections.set(name, new Map(entries.map((entry) => [entry.id, entry])));
-	}
-
-	return collections;
-}
+import type { ContentEntry } from '../shared/astro-content.js';
 
 export function makeEntry(
-	overrides: Partial<DataStoreEntry> & Pick<DataStoreEntry, 'id'>,
-): DataStoreEntry {
-	return { data: {}, ...overrides };
+	overrides: Partial<ContentEntry> & Pick<ContentEntry, 'id'>,
+): ContentEntry {
+	return { collection: 'mixes', data: {}, ...overrides };
 }
 
 // Astro `reference()` fields serialize as `{ id, collection }`

@@ -17,7 +17,14 @@ import { shikiTheme } from './src/lib/utils/shiki-theme.ts';
 // `astro:env` is unavailable while the config evaluates, hence `process.env`
 const siteUrl = process.env.DEPLOY_SITE_URL ?? 'https://djbasilisk.com/';
 
-const sitemapLastmod = readSitemapLastmod();
+// Read on first use, so loading this config never depends on a file a content script writes
+let sitemapLastmodCache: ReturnType<typeof readSitemapLastmod> | undefined;
+
+function getSitemapLastmod() {
+	if (!sitemapLastmodCache) sitemapLastmodCache = readSitemapLastmod();
+
+	return sitemapLastmodCache;
+}
 
 export default defineConfig({
 	env: {
@@ -61,10 +68,14 @@ export default defineConfig({
 		mdx(),
 		sitemap({
 			filter: (page) => isIndexableUrlPath(new URL(page).pathname),
-			serialize: (item) => ({
-				...item,
-				lastmod: sitemapLastmod.urls[item.url] ?? sitemapLastmod.generatedAt,
-			}),
+			serialize: (item) => {
+				const sitemapLastmod = getSitemapLastmod();
+
+				return {
+					...item,
+					lastmod: sitemapLastmod.urls[item.url] ?? sitemapLastmod.generatedAt,
+				};
+			},
 		}),
 		fontDevtools({ providers: ['fontsource'] }),
 		pagefind(),

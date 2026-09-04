@@ -15,9 +15,6 @@ export const openGraphManifestFile = 'manifest.json';
 // The card every page without one of its own falls back to
 export const openGraphDefaultId = 'index-default';
 
-// Astro's cache directory, set explicitly so build scripts read the data store where Astro writes it
-export const astroCacheDir = './node_modules/.astro';
-
 // Written by the sitemap-lastmod deploy step, read back when the Astro config loads
 export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';
 

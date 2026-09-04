@@ -1,7 +1,7 @@
 import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 import type { ValidationResult } from './validation-result.js';
 
 import { extractImageFeaturedIds } from '../shared/images.js';
@@ -18,7 +18,7 @@ interface MissingImageIssue {
 }
 
 export function collectMissingImageIssues(
-	entries: Array<DataStoreEntry>,
+	entries: Array<ContentEntry>,
 	mediaFiles: ReadonlySet<string>,
 ): Array<MissingImageIssue> {
 	return entries.flatMap((entry) =>
@@ -28,10 +28,7 @@ export function collectMissingImageIssues(
 	);
 }
 
-export function validateImages(
-	entries: Array<DataStoreEntry>,
-	mediaPath: string,
-): ValidationResult {
+export function validateImages(entries: Array<ContentEntry>, mediaPath: string): ValidationResult {
 	const mediaFiles = collectMediaFiles(mediaPath);
 
 	// Originals are gitignored, so an empty tree is a missing checkout rather than a content fault
@@ -52,7 +49,7 @@ export function validateImages(
 	);
 }
 
-function collectEntryImagePaths(entry: DataStoreEntry): Set<string> {
+function collectEntryImagePaths(entry: ContentEntry): Set<string> {
 	const selections = Array.isArray(entry.data.selections)
 		? (entry.data.selections as Array<Record<string, unknown>>)
 		: [];

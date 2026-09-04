@@ -1,4 +1,4 @@
-import type { DataStoreEntry } from '../shared/data-store.js';
+import type { ContentEntry } from '../shared/astro-content.js';
 
 import { toValidationResult } from './validation-result.js';
 
@@ -8,7 +8,7 @@ interface DuplicateIdIssue {
 }
 
 // Ids are flat across `<Link id>` and the site root, so a duplicate silently wins by load order
-export function collectDuplicateIdIssues(entries: Array<DataStoreEntry>) {
+export function collectDuplicateIdIssues(entries: Array<ContentEntry>) {
 	const locationsById = new Map<string, Array<string>>();
 
 	for (const entry of entries) {
@@ -32,7 +32,7 @@ export function collectDuplicateIdIssues(entries: Array<DataStoreEntry>) {
 	return issues;
 }
 
-export function validateEntryIds(entries: Array<DataStoreEntry>) {
+export function validateEntryIds(entries: Array<ContentEntry>) {
 	const issues = collectDuplicateIdIssues(entries);
 
 	return toValidationResult(

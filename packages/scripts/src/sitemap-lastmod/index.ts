@@ -1,19 +1,27 @@
-import { astroCacheDir, sitemapLastmodPath } from '@xsynaptic/shared/constants';
+import { sitemapLastmodPath } from '@xsynaptic/shared/constants';
 import { getContentUrl } from '@xsynaptic/shared/routing';
 import chalk from 'chalk';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import type { DataStoreCollections } from '../shared/data-store.js';
-
-import { loadDataStore } from '../shared/data-store.js';
+import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
 import { getGitFileDates } from './git-file-dates.js';
 
-interface ContentEntry {
-	collection: string;
-	filePath: string;
-	id: string;
-}
+// Collections such as `comments` and `downloads` are generated, carrying no file to date
+const datedCollections = [
+	'artists',
+	'eras',
+	'formats',
+	'labels',
+	'mixes',
+	'pages',
+	'posts',
+	'regions',
+	'reviews',
+	'series',
+	'styles',
+	'themes',
+] as const;
 
 interface SitemapLastmodOptions {
 	contentPath?: string;
@@ -25,7 +33,7 @@ interface SitemapLastmodOptions {
 export async function generateSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
 	console.log(chalk.magenta('=== Sitemap lastmod ==='));
 
-	const { contentPathAbs, contentPathRelative, dataStorePath, outputPath } = resolvePaths(options);
+	const { contentPathAbs, contentPathRelative, outputPath } = resolvePaths(options);
 
 	console.log(chalk.blue('Reading git log...'));
 
@@ -35,29 +43,31 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 		pathspec: 'collections/',
 	});
 
-	console.log(chalk.blue('Loading data store...'));
+	console.log(chalk.blue('Loading content...'));
 
-	const collections = loadDataStore(dataStorePath);
+	const entries = await withAstroContent((content) =>
+		getCollectionEntries(content, [...datedCollections]),
+	);
 
+	const contentPathPrefix = `${contentPathRelative}/collections/`;
 	const urls: Record<string, string> = {};
 
 	let resolvedCount = 0;
 	let missingDateCount = 0;
 
-	for (const { collection, filePath, id } of collectContentEntries(
-		collections,
-		`${contentPathRelative}/collections/`,
-	)) {
-		const gitDate = gitDates.get(filePath);
+	for (const entry of entries) {
+		if (!entry.filePath?.startsWith(contentPathPrefix)) continue;
+
+		const gitDate = gitDates.get(entry.filePath);
 
 		// Normally a file added but never committed, which is exactly what a deploy should surface
 		if (!gitDate) {
 			missingDateCount++;
-			console.log(chalk.yellow(`  No git history: ${filePath}`));
+			console.log(chalk.yellow(`  No git history: ${entry.filePath}`));
 			continue;
 		}
 
-		urls[new URL(getContentUrl(collection, id), options.siteUrl).href] = gitDate;
+		urls[new URL(getContentUrl(entry.collection, entry.id), options.siteUrl).href] = gitDate;
 		resolvedCount++;
 	}
 
@@ -77,31 +87,12 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 	console.log(chalk.gray(`Output: ${outputPath}`));
 }
 
-// Collections such as `comments` and `downloads` are generated, carrying no file to date
-function collectContentEntries(
-	collections: DataStoreCollections,
-	contentPathPrefix: string,
-): Array<ContentEntry> {
-	const entries: Array<ContentEntry> = [];
-
-	for (const [collection, collectionEntries] of collections) {
-		for (const entry of collectionEntries.values()) {
-			if (entry.filePath?.startsWith(contentPathPrefix)) {
-				entries.push({ collection, filePath: entry.filePath, id: entry.id });
-			}
-		}
-	}
-
-	return entries;
-}
-
 function resolvePaths(options: SitemapLastmodOptions) {
 	const contentPathRelative = options.contentPath ?? 'packages/content';
 
 	return {
 		contentPathAbs: path.resolve(options.rootPath, contentPathRelative),
 		contentPathRelative,
-		dataStorePath: path.resolve(options.rootPath, astroCacheDir, 'data-store.json'),
 		outputPath: path.resolve(options.rootPath, options.outputPath ?? sitemapLastmodPath),
 	};
 }

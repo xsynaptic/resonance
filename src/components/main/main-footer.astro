@@ -78,7 +78,7 @@ const year = new Date().getFullYear();
 			>
 		</DividedItem>
 		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
-			<Anchor anchorColor="muted" href="/rss.xml" rel="feed" reload={true}
+			<Anchor anchorColor="muted" data-astro-prefetch="false" href="/rss.xml" rel="feed"
 				>{t('footer.feed')}</Anchor
 			>
 		</DividedItem>

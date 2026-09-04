@@ -7,13 +7,19 @@ type AnchorColor = 'highlight' | 'muted';
 
 interface Props extends HTMLAttributes<'a'> {
 	anchorColor?: AnchorColor | undefined;
+	reload?: boolean | undefined;
 }
 
-const { anchorColor = 'highlight', class: className, href, ...props } = Astro.props;
+// Prefetch ignores `data-astro-reload`, so a reload link opts out of prefetching separately
+const { anchorColor = 'highlight', class: className, href, reload, ...props } = Astro.props;
 
 const children = await renderSlot(Astro.slots, 'default');
 ---
 
-<a class:list={['anchor', `anchor-${anchorColor}`, className]} href={href} {...props}
-	><Fragment set:html={children} /></a
+<a
+	class:list={['anchor', `anchor-${anchorColor}`, className]}
+	data-astro-prefetch={reload ? 'false' : undefined}
+	data-astro-reload={reload ? true : undefined}
+	href={href}
+	{...props}><Fragment set:html={children} /></a
 >

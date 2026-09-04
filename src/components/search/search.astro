@@ -14,6 +14,24 @@ const bundlePath = `${import.meta.env.BASE_URL}pagefind/`;
 
 <script>
 	import '#components/search/search-toggle.ts';
+
+	// Pagefind cannot deregister, so search-toggle would keep opening the first page's detached modal
+	document.addEventListener('astro:before-swap', () => {
+		const modal = document.querySelector('pagefind-modal') as
+			| (Element & {
+					instance?: {
+						components: Array<unknown>;
+						componentsByType: Record<string, Array<unknown>>;
+					};
+			  })
+			| null;
+		const instance = modal?.instance;
+
+		if (instance) {
+			instance.components = [];
+			instance.componentsByType = {};
+		}
+	});
 </script>
 
 <pagefind-config bundle-path={bundlePath} preload={false}></pagefind-config>

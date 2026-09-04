@@ -10,6 +10,7 @@
 	--z-index-header: 40;
 	--z-index-top-button: 45;
 	--z-index-submenu: 50;
+	--z-index-progress-loading: 55;
 	--z-index-skip-link: 60;
 }
 

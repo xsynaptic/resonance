@@ -1,3 +1,5 @@
+import { navigate } from 'astro:transitions/client';
+
 // No JS: prev/next links and the "Page X of Y" counter work, the empty form stays hidden
 // With JS: the <select> is filled from data attributes, the form revealed, the counter hidden
 // Navigation commits on change only for a pointer-driven pick on a fine pointer, otherwise via Go or Enter
@@ -144,7 +146,7 @@ class PaginationSelect extends HTMLElement {
 
 		if (pageNumber === currentPage || !Number.isSafeInteger(pageNumber)) return;
 
-		location.assign(this.#getPageUrl(pageNumber));
+		void navigate(this.#getPageUrl(pageNumber));
 	}
 
 	#syncSubmit() {
@@ -159,8 +161,6 @@ class PaginationSelect extends HTMLElement {
 if (!customElements.get('pagination-select')) {
 	customElements.define('pagination-select', PaginationSelect);
 }
-
-export {};
 
 declare global {
 	interface HTMLElementTagNameMap {

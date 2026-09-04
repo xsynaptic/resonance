@@ -3,6 +3,7 @@ import path from 'node:path';
 
 export interface AudioSource {
 	base: string;
+	files: Array<string>;
 	path: string;
 }
 
@@ -23,9 +24,18 @@ export async function collectAudioSources(sourceDir: string): Promise<Array<Audi
 		const base = entry.slice(0, -path.extname(entry).length);
 		const existing = sources.get(base);
 
-		if (existing && preferenceRank(existing.path) <= rank) continue;
+		if (!existing) {
+			sources.set(base, { base, files: [entry], path: path.join(sourceDir, entry) });
+			continue;
+		}
 
-		sources.set(base, { base, path: path.join(sourceDir, entry) });
+		existing.files.push(entry);
+
+		if (preferenceRank(existing.path) > rank) existing.path = path.join(sourceDir, entry);
+	}
+
+	for (const source of sources.values()) {
+		source.files.sort((left, right) => left.localeCompare(right));
 	}
 
 	return [...sources.values()].sort((left, right) => left.base.localeCompare(right.base));

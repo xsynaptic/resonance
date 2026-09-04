@@ -7,3 +7,5 @@ export const site = {
 } as const;
 
 export const downloadBaseUrl = new URL('artifacts/', FILES_URL).href;
+
+export const streamBaseUrl = new URL('stream/', FILES_URL).href;

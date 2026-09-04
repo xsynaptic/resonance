@@ -34,7 +34,7 @@ class DownloadStatsTest(unittest.TestCase):
         (self.media_root / "stream").mkdir(parents=True)
         (self.media_root / "artifacts" / "Test Mix.mp3").write_bytes(b"x" * 1000)
         (self.media_root / "artifacts" / "Quiet Mix.flac").write_bytes(b"x" * 2000)
-        (self.media_root / "stream" / "Test Mix.webm").write_bytes(b"x" * 800)
+        (self.media_root / "stream" / "Test Mix.a1b2c3d4e5f6.webm").write_bytes(b"x" * 800)
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
@@ -57,8 +57,11 @@ class DownloadStatsTest(unittest.TestCase):
 
         self.assertEqual(doc["version"], 1)
         keys = [entry["key"] for entry in doc["files"]]
-        # Artifacts only (no stream key), zero-download files included
-        self.assertEqual(keys, ["artifacts/Quiet Mix.flac", "artifacts/Test Mix.mp3"])
+        # Both prefixes, zero-download files included, and the rendition's hash stripped off its key
+        self.assertEqual(
+            keys,
+            ["artifacts/Quiet Mix.flac", "artifacts/Test Mix.mp3", "stream/Test Mix.webm"],
+        )
 
         test_mix = doc["files"][1]
         # Clean 200, curl 200, a resumed 200 plus 206, and three segmented 206s all count
@@ -73,7 +76,11 @@ class DownloadStatsTest(unittest.TestCase):
         self.assertEqual(quiet_mix["completions"], 0)
         self.assertEqual(quiet_mix["size_bytes"], 2000)
 
-        # Stream traffic is rolled up in SQLite for the future player, just not emitted
+        # 500 of 800 bytes is 0.625, past STREAM_THRESHOLD though nowhere near a completion
+        stream_mix = doc["files"][2]
+        self.assertEqual(stream_mix["completions"], 1)
+        self.assertEqual(stream_mix["size_bytes"], 800)
+
         db = sqlite3.connect(self.state_dir / "stats.sqlite")
         stream_bytes = db.execute(
             "SELECT bytes_sent FROM daily_rollup WHERE file_key = 'stream/Test Mix.webm'"
@@ -188,12 +195,48 @@ class DownloadStatsTest(unittest.TestCase):
         self.assertIn("WARNING unparsed log lines: 1", summary)
         self.assertEqual(self.read_json()["files"][1]["completions"], 1)
 
+    def test_a_partial_listen_counts_as_a_stream_but_not_as_a_download(self):
+        # The same fraction of a file, judged by the two thresholds: 0.375 is a listen, not a download
+        listen = "2026-01-10T10:00:00+00:00\t/stream/Test%20Mix.a1b2c3d4e5f6.webm\t206\t300\tOK\tbytes=0-299\t1.000\t203.0.113.81\tMozilla/5.0 (Macintosh)\t-\n"
+        self.write_log(
+            "downloads-2026-01-10.log",
+            listen
+            + LINE.format(ts="2026-01-10T10:00:00+00:00", name="Test%20Mix.mp3", sent=375, ip="203.0.113.82"),
+        )
+        self.run_script()
+
+        counts = {entry["key"]: entry["completions"] for entry in self.read_json()["files"]}
+        self.assertEqual(counts["stream/Test Mix.webm"], 1)
+        self.assertEqual(counts["artifacts/Test Mix.mp3"], 0)
+
+    def test_a_re_encode_does_not_reset_a_listener(self):
+        # A rendition is named for a hash of its bytes, so a re-encode renames it on disk and in the
+        # log; both generations have to land on the one key or every listener is credited afresh
+        stream_line = "{ts}\t/stream/{name}\t206\t500\tOK\tbytes=0-499\t1.000\t203.0.113.80\tMozilla/5.0 (Macintosh)\t-\n"
+        self.write_log(
+            "downloads-2026-01-09.log",
+            stream_line.format(ts="2026-01-09T10:00:00+00:00", name="Test%20Mix.a1b2c3d4e5f6.webm"),
+        )
+        self.run_script()
+
+        (self.media_root / "stream" / "Test Mix.a1b2c3d4e5f6.webm").unlink()
+        (self.media_root / "stream" / "Test Mix.9f8e7d6c5b4a.webm").write_bytes(b"x" * 800)
+        self.write_log(
+            "downloads-2026-01-10.log",
+            stream_line.format(ts="2026-01-10T10:00:00+00:00", name="Test%20Mix.9f8e7d6c5b4a.webm"),
+        )
+        self.run_script()
+
+        streams = [entry for entry in self.read_json()["files"] if entry["key"].startswith("stream/")]
+        self.assertEqual([entry["key"] for entry in streams], ["stream/Test Mix.webm"])
+        self.assertEqual(streams[0]["completions"], 1)
+
     def test_missing_log_dir_is_harmless(self):
         shutil.rmtree(self.log_dir)
         self.run_script()
         doc = self.read_json()
         self.assertEqual(sum(entry["completions"] for entry in doc["files"]), 0)
-        self.assertEqual(len(doc["files"]), 2)
+        self.assertEqual(len(doc["files"]), 3)
 
 
 if __name__ == "__main__":

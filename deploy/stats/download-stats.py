@@ -23,6 +23,9 @@ MEDIA_ROOT = "/srv/resonance"
 STATE_DIR = "/srv/resonance/stats"
 
 COMPLETION_THRESHOLD = 0.95
+# Four minutes of a 70 minute mix is 5.7% of the file and still a listen, not a download
+# Credited per visitor-day like a completion, so scrubbing cannot count twice
+STREAM_THRESHOLD = 0.25
 WINDOW_DAYS = 90
 # A quiet week and a stopped nginx look identical without this
 STALE_LOG_DAYS = 2
@@ -42,6 +45,8 @@ UA_BLOCKLIST = (
 MEDIA_SUFFIXES = {"artifacts": (".mp3", ".flac"), "stream": (".webm",)}
 LOG_DATE_RE = re.compile(r"-(\d{4}-\d{2}-\d{2})\.log$")
 FILE_KEY_RE = re.compile(r"^/artifacts/[^/]+\.(mp3|flac)$|^/stream/[^/]+\.webm$")
+# Stripped to one stable key per mix, or a re-encode would reset every listener's credit
+STREAM_HASH_RE = re.compile(r"\.[0-9a-f]{12}(\.webm)$")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS files (
@@ -74,11 +79,15 @@ CREATE TABLE IF NOT EXISTS credited_pairs (
 """
 
 
+def stream_key(name):
+    return STREAM_HASH_RE.sub(r"\1", name)
+
+
 def normalise_uri(raw_uri):
     path = unquote(raw_uri.split("?", 1)[0])
     if not FILE_KEY_RE.match(path):
         return None
-    return path.lstrip("/")
+    return stream_key(path.lstrip("/"))
 
 
 def parse_line(line):
@@ -128,7 +137,7 @@ def scan_media_sizes(media_root):
             continue
         for file_path in base.iterdir():
             if file_path.is_file() and file_path.suffix in suffixes:
-                sizes[f"{subdir}/{file_path.name}"] = file_path.stat().st_size
+                sizes[f"{subdir}/{stream_key(file_path.name)}"] = file_path.stat().st_size
     return sizes
 
 
@@ -204,10 +213,14 @@ def collect_days(lines, sizes):
         buckets["credited"] = {
             (ip, file_key)
             for (ip, file_key), bytes_sent in buckets["visitor_bytes"].items()
-            if file_key in sizes and bytes_sent >= COMPLETION_THRESHOLD * sizes[file_key]
+            if file_key in sizes and bytes_sent >= threshold_for(file_key) * sizes[file_key]
         }
 
     return days, unparsed, ignored
+
+
+def threshold_for(file_key):
+    return STREAM_THRESHOLD if file_key.startswith("stream/") else COMPLETION_THRESHOLD
 
 
 def visitor_salt(db):
@@ -290,9 +303,9 @@ def emit_json(db, output_path, now):
     window_start = (now - timedelta(days=WINDOW_DAYS)).strftime("%Y-%m-%d")
     files = []
 
-    # Artifacts only; stream/ rollups keep accruing in SQLite for whenever a player lands
+    # Both prefixes; the key prefix is the only thing telling a listen from a download downstream
     rows = db.execute(
-        "SELECT file_key, size_bytes, first_seen FROM files WHERE file_key LIKE 'artifacts/%' ORDER BY file_key"
+        "SELECT file_key, size_bytes, first_seen FROM files ORDER BY file_key"
     ).fetchall()
     for file_key, size_bytes, first_seen in rows:
         completions, bytes_sent = db.execute(

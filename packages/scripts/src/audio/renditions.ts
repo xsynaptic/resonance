@@ -1,16 +1,22 @@
 import chalk from 'chalk';
 import crypto from 'node:crypto';
+import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
+import { cleanStaleTmp } from '../shared/utils.js';
 import { audioSourceDir, streamsDir } from './audio-paths.js';
 import { collectAudioSources } from './audio-sources.js';
 
 const concurrency = 3;
 const renditionExtension = '.webm';
 const tmpExtension = '.webm.tmp';
+
+// 12 hex of a sha256 over the rendition's own bytes, so /stream/ can be served immutable
+const renditionPattern = /^(?<base>.+)\.[0-9a-f]{12}\.webm$/;
 
 const encoderArgs = [
 	'-vn', // Drops cover art; webm would otherwise re-encode the 6MB embedded image as a VP9 video track
@@ -38,7 +44,8 @@ const renditionProfile = crypto
 let hasReportedProbeFailure = false;
 
 interface RenditionJob {
-	output: string;
+	base: string;
+	existing: string | undefined;
 	source: string;
 }
 
@@ -47,13 +54,34 @@ interface RenditionsOptions {
 	rootPath: string;
 }
 
+// Exported for the manifest step, which has to name the file the player will request
+export async function collectRenditions(streamsPath: string): Promise<Map<string, string>> {
+	let entries: Array<string>;
+
+	try {
+		entries = await fs.readdir(streamsPath);
+	} catch {
+		return new Map();
+	}
+
+	const renditions = new Map<string, string>();
+
+	for (const entry of entries) {
+		const base = renditionPattern.exec(entry)?.groups?.base;
+
+		if (base !== undefined) renditions.set(base, entry);
+	}
+
+	return renditions;
+}
+
 // 160kbps Opus .webm streaming renditions per source (FLAC preferred, MP3 fallback)
 // Incremental: skips outputs newer than their source and stamped with the current encoder profile
-// Atomic: encodes to a tmp file then renames
+// Atomic: encodes to a tmp file then renames onto the hashed name
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	// ffprobe as well as ffmpeg: without it every rendition reads as stale and re-encodes
+	// ffprobe too: it reads the profile deciding what is pending, so without it every file re-encodes
 	for (const binary of ['ffmpeg', 'ffprobe']) {
 		try {
 			await $`which ${binary}`.quiet();
@@ -65,15 +93,18 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	const streamsPath = path.join(rootPath, streamsDir);
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 
+	await fs.mkdir(streamsPath, { recursive: true });
+	await cleanStaleTmp(streamsPath, tmpExtension);
+
+	const renditions = await collectRenditions(streamsPath);
+
 	const jobs = sources.map((source): RenditionJob => ({
-		output: path.join(streamsPath, `${source.base}${renditionExtension}`),
+		base: source.base,
+		existing: renditions.get(source.base),
 		source: source.path,
 	}));
 
-	await fs.mkdir(streamsPath, { recursive: true });
-	await cleanStaleTmp(streamsPath);
-
-	const upToDate = await Promise.all(jobs.map((job) => isUpToDate(job.source, job.output)));
+	const upToDate = await Promise.all(jobs.map((job) => isUpToDate(job, streamsPath)));
 	const pending = jobs.filter((_, index) => upToDate[index] !== true);
 	const skipped = jobs.length - pending.length;
 
@@ -85,11 +116,7 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 
 	if (dryRun) {
 		for (const job of pending) {
-			console.log(
-				chalk.yellow(
-					`  DRY RUN encode: ${path.basename(job.source)} -> ${path.basename(job.output)}`,
-				),
-			);
+			console.log(chalk.yellow(`  DRY RUN encode: ${path.basename(job.source)} -> ${job.base}`));
 		}
 		return;
 	}
@@ -100,11 +127,9 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	const results = await Promise.allSettled(
 		pending.map((job) =>
 			limit(async () => {
-				await encode(job);
+				const output = await encode(job, streamsPath);
 				done += 1;
-				console.log(
-					chalk.green(`  [${String(done)}/${String(pending.length)}] ${path.basename(job.output)}`),
-				);
+				console.log(chalk.green(`  [${String(done)}/${String(pending.length)}] ${output}`));
 			}),
 		),
 	);
@@ -126,46 +151,9 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	);
 }
 
-// Interrupted encodes leave `.webm.tmp` files behind; clear them so none masquerade as complete
-async function cleanStaleTmp(dir: string): Promise<void> {
-	let existing: Array<string>;
-
-	try {
-		existing = await fs.readdir(dir);
-	} catch {
-		return;
-	}
-
-	await Promise.all(
-		existing
-			.filter((name) => name.endsWith(tmpExtension))
-			.map((name) => fs.rm(path.join(dir, name), { force: true })),
-	);
-}
-
-async function encode(job: RenditionJob): Promise<void> {
-	const tmp = `${job.output}.tmp`;
-
-	// -f webm is explicit because the .tmp suffix hides the container format
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`RENDITION_PROFILE=${renditionProfile}`} -f webm ${tmp}`;
-
-	await fs.rename(tmp, job.output);
-}
-
-async function isUpToDate(source: string, output: string): Promise<boolean> {
-	try {
-		const [sourceStat, outputStat] = await Promise.all([fs.stat(source), fs.stat(output)]);
-		if (outputStat.mtimeMs < sourceStat.mtimeMs) return false;
-	} catch {
-		return false;
-	}
-
-	return (await readProfile(output)) === renditionProfile;
-}
-
 // Reads only the header, which -cues_to_front keeps at the front of the file
 // An empty result marks the rendition stale, so the first failure is reported rather than swallowed
-async function readProfile(output: string): Promise<string> {
+export async function readRenditionProfile(output: string): Promise<string> {
 	try {
 		const result =
 			await $`ffprobe -v error -show_entries format_tags=RENDITION_PROFILE -of default=nw=1:nk=1 ${output}`.quiet();
@@ -181,4 +169,46 @@ async function readProfile(output: string): Promise<string> {
 		}
 		return '';
 	}
+}
+
+// Returns the rendition's filename, which the caller cannot predict: it names the encoded bytes
+async function encode(job: RenditionJob, streamsPath: string): Promise<string> {
+	const tmp = path.join(streamsPath, `${job.base}${tmpExtension}`);
+
+	// -f webm is explicit because the .tmp suffix hides the container format
+	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`RENDITION_PROFILE=${renditionProfile}`} -f webm ${tmp}`;
+
+	const name = `${job.base}.${await hashFile(tmp)}${renditionExtension}`;
+
+	await fs.rename(tmp, path.join(streamsPath, name));
+
+	// The previous hash is unreachable the moment this one lands, and the stream leg deploys --delete
+	if (job.existing !== undefined && job.existing !== name) {
+		await fs.rm(path.join(streamsPath, job.existing), { force: true });
+	}
+
+	return name;
+}
+
+async function hashFile(file: string): Promise<string> {
+	const hash = crypto.createHash('sha256');
+
+	await pipeline(createReadStream(file), hash);
+
+	return hash.digest('hex').slice(0, 12);
+}
+
+async function isUpToDate(job: RenditionJob, streamsPath: string): Promise<boolean> {
+	if (job.existing === undefined) return false;
+
+	const output = path.join(streamsPath, job.existing);
+
+	try {
+		const [sourceStat, outputStat] = await Promise.all([fs.stat(job.source), fs.stat(output)]);
+		if (outputStat.mtimeMs < sourceStat.mtimeMs) return false;
+	} catch {
+		return false;
+	}
+
+	return (await readRenditionProfile(output)) === renditionProfile;
 }

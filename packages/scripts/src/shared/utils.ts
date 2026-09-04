@@ -6,6 +6,23 @@ import { $ } from 'zx';
 // Cached for the process: scripts only ever run from one place per invocation
 let cachedWorkspaceRoot: string | undefined;
 
+// Interrupted work leaves tmp files behind; clear them so none masquerade as a complete output
+export async function cleanStaleTmp(dir: string, extension: string): Promise<void> {
+	let existing: Array<string>;
+
+	try {
+		existing = await fs.readdir(dir);
+	} catch {
+		return;
+	}
+
+	await Promise.all(
+		existing
+			.filter((name) => name.endsWith(extension))
+			.map((name) => fs.rm(path.join(dir, name), { force: true })),
+	);
+}
+
 export async function ensureSshKeychain(): Promise<void> {
 	try {
 		await $`ssh-add --apple-load-keychain 2>/dev/null`;

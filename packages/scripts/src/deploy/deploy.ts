@@ -1,11 +1,16 @@
 #!/usr/bin/env tsx
+import type { IncomingHttpHeaders } from 'node:http';
+
 import chalk from 'chalk';
+import https from 'node:https';
+import net from 'node:net';
 import tls from 'node:tls';
 import { parseArgs } from 'node:util';
 import { $ } from 'zx';
 
 import type { StepStatus } from '../shared/step-status.js';
 
+import { generateAudioManifest, readManifestStreams } from '../audio/manifest.js';
 import { generateRenditions } from '../audio/renditions.js';
 import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
@@ -18,6 +23,23 @@ import { deployApp } from './deploy-app.js';
 import { deployAudio } from './deploy-audio.js';
 import { loadDeployConfig, printDeployConfig } from './deploy-config.js';
 import { pullStats } from './stats-pull.js';
+
+interface MediaProbe {
+	contentTypePrefix: string;
+	name: string;
+	url: string;
+}
+
+interface MediaProbeBatch {
+	contentTypePrefix: string;
+	names: Array<string>;
+	pathPrefix: string;
+}
+
+interface ProbeResponse {
+	headers: IncomingHttpHeaders;
+	statusCode: number;
+}
 
 interface WarnOnlyStep {
 	label: string;
@@ -109,7 +131,7 @@ function formatStep({ label, status }: WarnOnlyStep): string {
 	return chalk.yellow(`  ⚠ ${label}`);
 }
 
-async function healthCheck(probeFiles: Array<string>): Promise<void> {
+async function healthCheck(probeFiles: Array<string>, streamFiles: Array<string>): Promise<void> {
 	console.log(chalk.blue(`Health check: ${config.siteUrl}`));
 
 	const siteResponse = await fetch(config.siteUrl, { signal: AbortSignal.timeout(15_000) });
@@ -122,19 +144,31 @@ async function healthCheck(probeFiles: Array<string>): Promise<void> {
 
 	recordStep('Certificate', await checkCertificate());
 
-	if (probeFiles.length === 0) {
+	if (probeFiles.length === 0 && streamFiles.length === 0) {
 		console.log(chalk.yellow('  No audio files to probe; skipping files health check'));
 		return;
 	}
 
-	for (const probeFile of probeFiles) {
-		await probeAudio(probeFile);
-	}
+	await probeAll({
+		contentTypePrefix: 'audio/',
+		names: probeFiles,
+		pathPrefix: 'artifacts/',
+	});
+
+	// A rendition is served from its own location block, so probing an original proves nothing here
+	await probeAll({
+		contentTypePrefix: 'audio/webm',
+		names: streamFiles,
+		pathPrefix: 'stream/',
+	});
 }
 
+// Family pinned so the check cannot silently move to v6 the day an AAAA is published
+// `tls.ConnectionOptions` models no `family`, so the v4 socket is opened first and wrapped
 function peerCertificateValidTo(host: string): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const socket = tls.connect({ host, port: 443, servername: host }, () => {
+		const connection = net.connect({ family: 4, host, port: 443 });
+		const socket = tls.connect({ servername: host, socket: connection }, () => {
 			const validTo = socket.getPeerCertificate().valid_to;
 
 			socket.end();
@@ -164,65 +198,89 @@ function printWarnOnlySummary(): void {
 	);
 }
 
-async function probeAudio(probeFile: string): Promise<void> {
-	const probeUrl = `${config.filesUrl}artifacts/${encodeURIComponent(probeFile)}`;
+async function probeAll({ contentTypePrefix, names, pathPrefix }: MediaProbeBatch): Promise<void> {
+	for (const name of names) {
+		await probeMedia({
+			contentTypePrefix,
+			name,
+			url: `${config.filesUrl}${pathPrefix}${encodeURIComponent(name)}`,
+		});
+	}
+}
 
-	console.log(chalk.blue(`Health check: ${probeUrl}`));
+async function probeMedia({ contentTypePrefix, name, url }: MediaProbe): Promise<void> {
+	console.log(chalk.blue(`Health check: ${url}`));
 
-	// Stays a GET; nginx logs `$body_bytes_sent` as 0 for a HEAD, and credits come from bytes
-	const filesResponse = await fetch(probeUrl, {
-		headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
-		signal: AbortSignal.timeout(15_000),
-	});
+	const filesResponse = await probeRange(url);
 
-	if (filesResponse.status !== 206) {
+	if (filesResponse.statusCode !== 206) {
 		throw new Error(
-			`Audio Range probe expected 206, got ${String(filesResponse.status)}: ${probeUrl}`,
+			`Audio Range probe expected 206, got ${String(filesResponse.statusCode)}: ${url}`,
 		);
 	}
 
 	// nginx omits Accept-Ranges from a 206, so Content-Range is the proof
-	const contentRange = filesResponse.headers.get('content-range');
-	if (contentRange === null) {
-		throw new Error(`Audio probe returned 206 without a 'Content-Range' header: ${probeUrl}`);
+	const contentRange = filesResponse.headers['content-range'];
+	if (typeof contentRange !== 'string') {
+		throw new TypeError(`Audio probe returned 206 without a 'Content-Range' header: ${url}`);
 	}
 
-	const contentType = filesResponse.headers.get('content-type') ?? '';
-	if (!contentType.startsWith('audio/')) {
-		throw new Error(`Audio probe Content-Type is not audio/* (got '${contentType}'): ${probeUrl}`);
+	const contentType = filesResponse.headers['content-type'];
+	if (typeof contentType !== 'string' || !contentType.startsWith(contentTypePrefix)) {
+		throw new Error(
+			`Audio probe Content-Type is not ${contentTypePrefix}* (got '${String(contentType)}'): ${url}`,
+		);
 	}
 
-	console.log(chalk.green(`  ${probeFile} OK (206, ${contentRange}, ${contentType})`));
+	console.log(chalk.green(`  ${name} OK (206, ${contentRange}, ${contentType})`));
+}
+
+// Stays a GET; nginx logs `$body_bytes_sent` as 0 for a HEAD, and credits come from bytes
+// v4 pinned against Node 24's `autoSelectFamily`, which would otherwise pick either family
+function probeRange(probeUrl: string): Promise<ProbeResponse> {
+	return new Promise((resolve, reject) => {
+		const request = https.request(
+			probeUrl,
+			{
+				family: 4,
+				headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
+				method: 'GET',
+				timeout: 15_000,
+			},
+			(response) => {
+				response.resume();
+				resolve({ headers: response.headers, statusCode: response.statusCode ?? 0 });
+			},
+		);
+
+		request.on('timeout', () => {
+			request.destroy(new Error(`Audio probe to ${probeUrl} timed out`));
+		});
+		request.on('error', reject);
+		request.end();
+	});
 }
 
 function recordStep(label: string, status: StepStatus): void {
 	warnOnlySteps.push({ label, status });
 }
 
-async function runWarnOnly(label: string, step: () => Promise<void>): Promise<void> {
-	try {
-		await step();
-		recordStep(label, 'ok');
-	} catch (error) {
-		console.warn(chalk.yellow(`${label} skipped: ${String(error)}`));
-		recordStep(label, 'warned');
-	}
-}
-
 try {
 	// Fail fast: a deploy must never publish a page whose download links are dead
 	const validatedFiles = await validateAudio({ rootPath });
 
-	// Warn-only alongside waveforms: neither has a consumer yet, and neither may block a text deploy
-	await runWarnOnly('Renditions', () => generateRenditions({ dryRun: isDryRun, rootPath }));
-	await runWarnOnly('Waveforms', () => generateWaveforms({ dryRun: isDryRun, rootPath }));
+	// Fatal, since a warned rendition publishes a page with nothing to play
+	// The manifest runs last because it records what the two steps above produced
+	await generateRenditions({ dryRun: isDryRun, rootPath });
+	await generateWaveforms({ dryRun: isDryRun, rootPath });
+	await generateAudioManifest({ dryRun: isDryRun, rootPath });
 
 	// Soft-fail by design: fresh counts are nice, a deploy blocked on them is not
 	recordStep('Download stats', await pullStats({ config, dryRun: isDryRun, rootPath }));
 	recordStep('Mixcloud stats', await pullMixcloudStats({ dryRun: isDryRun, rootPath }));
 	recordStep('SoundCloud stats', await pullSoundcloudStats({ dryRun: isDryRun, rootPath }));
 
-	recordStep('Comment backup', await backupIfStale(rootPath));
+	recordStep('Comment backup', await backupIfStale({ dryRun: isDryRun, rootPath }));
 	await pullComments({ allowStale: true, rootPath });
 
 	await check();
@@ -232,12 +290,17 @@ try {
 	const uploaded = await deployAudio({ config, dryRun: isDryRun, rootPath });
 	await deployApp({ dryRun: isDryRun, rootPath });
 
+	const manifestStreams = await readManifestStreams(rootPath);
+
 	if (isDryRun) {
 		console.log(chalk.yellow('Skipping health checks (dry run)'));
 		recordStep('Certificate', 'skipped');
 	} else {
-		// Probe everything this run put on the box; a no-op run falls back to any one referenced file
-		await healthCheck(uploaded.length > 0 ? uploaded : validatedFiles.slice(0, 1));
+		// Probe everything this run put on the box; a no-op run falls back to any one of each kind
+		await healthCheck(
+			uploaded.originals.length > 0 ? uploaded.originals : validatedFiles.slice(0, 1),
+			uploaded.renditions.length > 0 ? uploaded.renditions : manifestStreams.slice(0, 1),
+		);
 	}
 
 	printWarnOnlySummary();

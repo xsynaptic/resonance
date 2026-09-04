@@ -27,6 +27,12 @@ const rsyncFlags = [
 ];
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
+const transferredRendition = /\.webm$/i;
+
+export interface DeployedAudio {
+	originals: Array<string>;
+	renditions: Array<string>;
+}
 
 interface DeployAudioOptions {
 	config: DeployConfig;
@@ -35,9 +41,9 @@ interface DeployAudioOptions {
 }
 
 // mtime+size, not checksum: audio is append-only and multi-gigabyte, so a no-op run is near-instant
-// Never --delete, so a local mistake can't wipe the remote archive
-// Returns the filenames this run put under /artifacts/
-export async function deployAudio(options: DeployAudioOptions): Promise<Array<string>> {
+// The originals leg never deletes, so a local mistake can't wipe the archive
+// The stream leg does, because a re-encode would otherwise strand 12 GB under the old hashed name
+export async function deployAudio(options: DeployAudioOptions): Promise<DeployedAudio> {
 	const { config, dryRun = false, rootPath } = options;
 
 	const sourceDir = path.join(rootPath, audioSourceDir);
@@ -64,14 +70,16 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Array<st
 		{ dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
 	);
 
+	let streamOutput = '';
+
 	if (await isPathPresent(streamsPath)) {
 		console.log(
 			chalk.gray(`  Renditions: ${streamsPath}/ -> ${config.remoteHost}:${remoteRoot}/stream/`),
 		);
-		await rsync(`${streamsPath}/`, `${config.remoteHost}:${remoteRoot}/stream/`, {
+		streamOutput = await rsync(`${streamsPath}/`, `${config.remoteHost}:${remoteRoot}/stream/`, {
 			dryRun,
 			excludes: rsyncExcludes,
-			extraFlags: rsyncFlags,
+			extraFlags: [...rsyncFlags, '--delete'],
 		});
 	} else {
 		console.log(
@@ -79,21 +87,23 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Array<st
 		);
 	}
 
-	const uploaded = parseTransferred(artifactsOutput);
+	const originals = parseTransferred(artifactsOutput, transferredOriginal);
+	const renditions = parseTransferred(streamOutput, transferredRendition);
 
 	console.log(
 		chalk.green(
-			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(uploaded.length)} original(s) transferred)`,
+			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(originals.length)} original(s), ${String(renditions.length)} rendition(s) transferred)`,
 		),
 	);
 
-	return uploaded;
+	return { originals, renditions };
 }
 
 // --progress writes its own lines into the same stream, so match on the extension rather than shape
-function parseTransferred(output: string): Array<string> {
+// `--delete` writes `deleting <name>`, which also ends in the extension and is not a transfer
+function parseTransferred(output: string, pattern: RegExp): Array<string> {
 	return output
 		.split('\n')
 		.map((line) => line.trim())
-		.filter((line) => transferredOriginal.test(line));
+		.filter((line) => !line.startsWith('deleting ') && pattern.test(line));
 }

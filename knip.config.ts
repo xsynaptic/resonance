@@ -11,6 +11,8 @@ export default {
 				'src/components/embed/embed-youtube.astro',
 				// The inventory; injected by entrypoint string in the integration, not imported
 				'src/inventory/inventory.astro',
+				// Staged ahead of the player port; drop this line, not the file, once something imports it
+				'src/lib/collections/mixes/mixes-audio.ts',
 			],
 			ignoreDependencies: [
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })

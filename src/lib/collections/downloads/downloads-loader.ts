@@ -47,7 +47,12 @@ async function readLiveStats(logger: AstroIntegrationLogger): Promise<LiveStats>
 		const raw: unknown = JSON.parse(await readFile(filePath, 'utf8'));
 
 		for (const file of downloadsDocumentSchema.parse(raw).files) {
-			stats.set(String(file.key).replace(/^artifacts\//, ''), file);
+			const key = String(file.key);
+
+			// A download total that summed the `stream/` rows would count a listen as a download
+			if (!key.startsWith('artifacts/')) continue;
+
+			stats.set(key.replace(/^artifacts\//, ''), file);
 		}
 	} catch (error) {
 		logger.warn(`Ignoring downloads.json; building without live counts (${String(error)})`);

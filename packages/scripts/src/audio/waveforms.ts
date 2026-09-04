@@ -4,6 +4,7 @@ import path from 'node:path';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
+import { cleanStaleTmp } from '../shared/utils.js';
 import { audioSourceDir, waveformsCacheDir } from './audio-paths.js';
 import { collectAudioSources } from './audio-sources.js';
 
@@ -17,9 +18,10 @@ const archiveVersion = 1;
 const eightBitFlag = 1;
 const expectedSamplesPerPixel = 256;
 
-const previewVersion = 1;
-const previewBuckets = 2000;
-const previewScale = 255;
+// Bumped whenever the bucket count or the output range changes; neither is visible in an mtime
+export const previewVersion = 2;
+const previewBuckets = 400;
+const previewPrecision = 1000;
 
 export interface WaveformHeader {
 	pairs: number;
@@ -44,7 +46,7 @@ interface WaveformsOptions {
 	rootPath: string;
 }
 
-// Reduces the archive to at most 2000 buckets of 0..255, ready to inline
+// Reduces the archive to at most 400 buckets of 0..1, ready to inline
 // Per pair take the envelope amplitude, per bucket the RMS of those amplitudes
 // Peak-per-bucket would render a featureless rectangle: a mastered mix peaks in every bucket
 // Values are normalized here rather than in a renderer, so consumers never need the source units
@@ -75,7 +77,9 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 		buckets.push(rms);
 	}
 
-	const values = buckets.map((rms) => (peak > 0 ? Math.round((rms / peak) * previewScale) : 0));
+	const values = buckets.map((rms) =>
+		peak > 0 ? Math.round((rms / peak) * previewPrecision) / previewPrecision : 0,
+	);
 
 	return {
 		seconds: Math.round(((pairs * samplesPerPixel) / sampleRate) * 10) / 10,
@@ -89,12 +93,6 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 export async function generateWaveforms(options: WaveformsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	try {
-		await $`which audiowaveform`.quiet();
-	} catch {
-		throw new Error('audiowaveform not found on PATH. Install it with: brew install audiowaveform');
-	}
-
 	const cacheDir = path.join(rootPath, waveformsCacheDir);
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 
@@ -105,7 +103,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 	}));
 
 	await fs.mkdir(cacheDir, { recursive: true });
-	await cleanStaleTmp(cacheDir);
+	await cleanStaleTmp(cacheDir, tmpExtension);
 
 	const plans = await Promise.all(jobs.map(planJob));
 	const pending = jobs
@@ -124,6 +122,17 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 			console.log(chalk.yellow(`  DRY RUN ${plan}: ${path.basename(job.archive)}`));
 		}
 		return;
+	}
+
+	// Below the plan, so a machine with nothing to analyze never fails a deploy over a missing binary
+	if (pending.some(({ plan }) => plan === 'analyze')) {
+		try {
+			await $`which audiowaveform`.quiet();
+		} catch {
+			throw new Error(
+				'audiowaveform not found on PATH. Install it with: brew install audiowaveform',
+			);
+		}
 	}
 
 	const limit = pLimit(concurrency);
@@ -198,23 +207,6 @@ async function analyze(job: WaveformJob): Promise<void> {
 	await fs.rename(tmp, job.archive);
 }
 
-// Interrupted runs leave `.tmp` files behind; clear them so none masquerade as complete
-async function cleanStaleTmp(dir: string): Promise<void> {
-	let existing: Array<string>;
-
-	try {
-		existing = await fs.readdir(dir);
-	} catch {
-		return;
-	}
-
-	await Promise.all(
-		existing
-			.filter((name) => name.endsWith(tmpExtension))
-			.map((name) => fs.rm(path.join(dir, name), { force: true })),
-	);
-}
-
 async function distill(job: WaveformJob): Promise<void> {
 	const preview = distillWaveform(await fs.readFile(job.archive));
 	const tmp = `${job.preview}${tmpExtension}`;
@@ -258,8 +250,26 @@ async function isNewerThan(candidate: string, reference: string): Promise<boolea
 	}
 }
 
+async function isPreviewCurrent(preview: string, archive: string): Promise<boolean> {
+	if (!(await isNewerThan(preview, archive))) return false;
+
+	// A bucket count or range change leaves the mtimes untouched, so the stored version is the check
+	try {
+		const parsed: unknown = JSON.parse(await fs.readFile(preview, 'utf8'));
+
+		return (
+			typeof parsed === 'object' &&
+			parsed !== null &&
+			'version' in parsed &&
+			parsed.version === previewVersion
+		);
+	} catch {
+		return false;
+	}
+}
+
 async function planJob(job: WaveformJob): Promise<'analyze' | 'distill' | 'skip'> {
 	if (!(await isArchiveCurrent(job.source, job.archive))) return 'analyze';
-	if (!(await isNewerThan(job.preview, job.archive))) return 'distill';
+	if (!(await isPreviewCurrent(job.preview, job.archive))) return 'distill';
 	return 'skip';
 }

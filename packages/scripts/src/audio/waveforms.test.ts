@@ -31,9 +31,9 @@ function buildDat(pairs: Array<[number, number]>, overrides: DatOverrides = {}):
 		: buffer.subarray(0, buffer.length - overrides.truncateBy);
 }
 
-// Bucket b of a 4000-pair file covers exactly pairs [2b, 2b + 2)
+// Bucket b of an 800-pair file covers exactly pairs [2b, 2b + 2)
 function buildTwoPairBuckets(filled: Record<number, [number, number]>): Buffer {
-	const pairs: Array<[number, number]> = Array.from({ length: 4000 }, () => [0, 0]);
+	const pairs: Array<[number, number]> = Array.from({ length: 800 }, () => [0, 0]);
 
 	for (const [bucket, [first, second]] of Object.entries(filled)) {
 		pairs[Number(bucket) * 2] = [-first, first];
@@ -65,8 +65,8 @@ describe('distillWaveform', () => {
 		// RMS of (30, 50) is 41.23, which is 0.825 of the loudest bucket; the mean would be 0.8
 		const preview = distillWaveform(buildTwoPairBuckets({ 0: [30, 50], 1: [50, 50] }));
 
-		expect(preview.values[0]).toBe(210);
-		expect(preview.values[1]).toBe(255);
+		expect(preview.values[0]).toBe(0.825);
+		expect(preview.values[1]).toBe(1);
 		expect(preview.values[2]).toBe(0);
 	});
 
@@ -78,7 +78,7 @@ describe('distillWaveform', () => {
 			]),
 		);
 
-		expect(preview.values).toEqual([255, 128]);
+		expect(preview.values).toEqual([1, 0.5]);
 	});
 
 	test('normalizes per file so the loudest bucket always tops out', () => {
@@ -105,18 +105,18 @@ describe('distillWaveform', () => {
 	});
 
 	test('caps a long file at the preview budget with no empty buckets', () => {
-		// 3000 pairs across 2000 buckets: uneven boundaries, so every bucket must still cover at least one pair
-		const preview = distillWaveform(buildDat(Array.from({ length: 3000 }, () => [-10, 10])));
+		// 600 pairs across 400 buckets: uneven boundaries, so every bucket must still cover at least one pair
+		const preview = distillWaveform(buildDat(Array.from({ length: 600 }, () => [-10, 10])));
 
-		expect(preview.values).toHaveLength(2000);
-		expect(preview.values.every((value) => value === 255)).toBe(true);
+		expect(preview.values).toHaveLength(400);
+		expect(preview.values.every((value) => value === 1)).toBe(true);
 	});
 
 	test('derives duration from the header', () => {
 		const preview = distillWaveform(buildDat(Array.from({ length: 4000 }, () => [-10, 10])));
 
 		expect(preview.seconds).toBe(23.2);
-		expect(preview.version).toBe(1);
+		expect(preview.version).toBe(2);
 	});
 
 	test('survives digital silence without dividing by zero', () => {

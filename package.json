@@ -18,6 +18,7 @@
 		"test": "vitest",
 		"audio-validate": "pnpm -F @xsynaptic/scripts audio-validate",
 		"audio-renditions": "pnpm -F @xsynaptic/scripts audio-renditions",
+		"audio-manifest": "pnpm -F @xsynaptic/scripts audio-manifest",
 		"audio-waveforms": "pnpm -F @xsynaptic/scripts audio-waveforms",
 		"comments": "pnpm -F @xsynaptic/scripts comments",
 		"comments-backup": "pnpm -F @xsynaptic/scripts comments-backup",

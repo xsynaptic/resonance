@@ -151,11 +151,7 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	});
 }
 
-/**
- * Copy the current set into the build output. Cards for entries that no longer exist stay behind in
- * the cache and are not published: giving them a durable home is backlogged, see
- * `.claude/tasks-backlog/00-backlog.md` under "Durable home for OG images".
- */
+// Orphans stay in the cache unpublished; a renamed entry's old URL is carried by a redirect rule
 async function publish({
 	cache,
 	distPath,

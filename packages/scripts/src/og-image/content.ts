@@ -1,4 +1,5 @@
 import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
+import { getOpenGraphId } from '@xsynaptic/shared/routing';
 
 import type { ContentEntry } from '../shared/astro-content.js';
 import type { OpenGraphEntry } from './types.js';
@@ -32,8 +33,7 @@ export function toOpenGraphEntry(entry: ContentEntry): OpenGraphEntry | undefine
 		digest: String(entry.digest),
 		imageFeaturedId: extractImageFeaturedIds(entry.data)[0],
 		label: getCollectionLabel(entry.collection),
-		// The stem `getOpenGraphId` builds in `src/lib/utils/seo.ts`; a divergence reads as an unresolved card
-		outputId: `${entry.collection}-${entry.id}`,
+		outputId: getOpenGraphId(entry.collection, entry.id),
 		title,
 	};
 }

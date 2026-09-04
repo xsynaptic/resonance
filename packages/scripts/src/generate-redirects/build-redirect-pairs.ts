@@ -1,4 +1,4 @@
-import { getContentUrl } from '@xsynaptic/shared/routing';
+import { getContentUrl, getOpenGraphPath } from '@xsynaptic/shared/routing';
 
 import type { ContentEntry } from '../shared/astro-content.js';
 
@@ -14,6 +14,12 @@ export interface RedirectBuild {
 	skipped: Array<string>;
 }
 
+interface RedirectCandidate {
+	collection: string;
+	formerId: string;
+	id: string;
+}
+
 interface RedirectPair {
 	from: string;
 	to: string;
@@ -27,7 +33,9 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 	const pairs: Array<RedirectPair> = [];
 	const skipped: Array<string> = [];
 
-	for (const { from, to } of collectCandidates(entries)) {
+	for (const { collection, formerId, id } of collectCandidates(entries)) {
+		const from = getContentUrl(collection, formerId);
+
 		// Cloudflare follows a redirect whether or not an asset sits at the path, so this is a bug
 		if (livePaths.has(from)) {
 			collisions.push(`${from} is a live page`);
@@ -40,22 +48,25 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 		}
 
 		claimed.add(from);
-		pairs.push({ from, to });
+
+		// A platform re-fetching only the cached card URL never sees the page redirect
+		// Pushed with the page so the guards above cover both
+		pairs.push(
+			{ from, to: getContentUrl(collection, id) },
+			{ from: getOpenGraphPath(collection, formerId), to: getOpenGraphPath(collection, id) },
+		);
 	}
 
 	return { collisions, pairs, skipped };
 }
 
 // Collection order decides which rule claims a path first, so entries are walked in that order
-function collectCandidates(entries: Array<ContentEntry>): Array<RedirectPair> {
+function collectCandidates(entries: Array<ContentEntry>): Array<RedirectCandidate> {
 	return redirectCollections.flatMap((collection) =>
 		entriesFrom(entries, collection).flatMap((entry) =>
 			toFormerIds(entry)
-				.map((formerId) => ({
-					from: getContentUrl(collection, formerId),
-					to: getContentUrl(collection, entry.id),
-				}))
-				.filter(({ from, to }) => from !== to),
+				.filter((formerId) => formerId !== entry.id)
+				.map((formerId) => ({ collection, formerId, id: entry.id })),
 		),
 	);
 }

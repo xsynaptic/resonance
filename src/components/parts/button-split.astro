@@ -1,11 +1,3 @@
----
-interface Props {
-	class?: string | undefined;
-}
-
-const { class: className } = Astro.props;
----
-
-<div class:list={['button-split', className]}>
+<div class="button-split">
 	<slot />
 </div>

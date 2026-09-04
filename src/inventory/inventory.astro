@@ -17,6 +17,7 @@ import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import ButtonLink from '#components/parts/button-link.astro';
+import ButtonSplit from '#components/parts/button-split.astro';
 import Button from '#components/parts/button.astro';
 import DividedItem from '#components/parts/divided-item.astro';
 import EntryCard from '#components/parts/entry-card.astro';
@@ -322,6 +323,21 @@ const paginationPage: Page<ContentCatalogItem> = {
 			</div>
 		</Specimen>
 		<Specimen
+			name="ButtonSplit"
+			note="A primary action with secondary ones attached. The first child keeps full prominence; a later one dims to <code>ink-500</code> and takes a divider, sharing its neighbour's height and type size. A lone child is left rounded at both ends, so a wrapper costs nothing when the secondary is absent."
+			source="src/components/parts/button-split.astro"
+		>
+			<div class="flex flex-wrap items-center gap-4">
+				<ButtonSplit>
+					<ButtonLink href="/mixes/" icon="download">FLAC</ButtonLink>
+					<ButtonLink href="/mixes/">CUE</ButtonLink>
+				</ButtonSplit>
+				<ButtonSplit>
+					<ButtonLink href="/mixes/" icon="download">FLAC</ButtonLink>
+				</ButtonSplit>
+			</div>
+		</Specimen>
+		<Specimen
 			name="Icon sprite"
 			note="A symbol added to the sheet shows up here once its id is in the fixtures, and in IconId, which types every icon prop."
 			source="src/components/main/main-sprites.astro"
@@ -572,10 +588,17 @@ const paginationPage: Page<ContentCatalogItem> = {
 	<Section title="Audio">
 		<Specimen
 			name="AudioLinks"
-			note="External links first, then a row per downloadable file. A file gets a paired CUE button only when the mix carries timestamps."
+			note="External links first, then one control per downloadable file. A mix carrying timestamps gets a CUE half attached to each download, dimmer than the file it belongs to and sharing its height."
 			source="src/components/parts/audio-links.astro"
 		>
 			{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="AudioLinks"
+			note="The same files without <code>cueSlug</code>, which is how a mix with no timestamps renders. Each download stands alone, rounded at both ends, and no cue sheet is offered."
+			source="src/components/parts/audio-links.astro"
+		>
+			{mix ? <AudioLinks files={mix.files} /> : undefined}
 		</Specimen>
 		<Specimen
 			name="AudioCounts"
@@ -698,7 +721,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="AudioLinks"
-			note="Links but no files: the download rows and their CUE buttons drop out, leaving the external links. Handed neither, it renders nothing."
+			note="Links but no files: the download controls and their attached CUE halves drop out, leaving the external links. Handed neither, it renders nothing."
 			source="src/components/parts/audio-links.astro"
 		>
 			<div class="rounded-sm border border-dashed border-ink-700 p-4">

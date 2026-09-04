@@ -22,6 +22,7 @@ const { pathname } = Astro.url;
 					<Anchor
 						anchorColor="muted"
 						aria-current={isActiveMenuPath(item.url, pathname) ? 'page' : undefined}
+						class="inline-block py-1"
 						href={item.url}
 					>
 						{item.title}

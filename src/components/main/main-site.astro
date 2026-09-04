@@ -65,8 +65,8 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 			title={site.title}
 			type="application/rss+xml"
 		/>
-		<Font cssVariable="--font-archivo" preload />
-		<Font cssVariable="--font-fira-sans" preload />
+		<Font cssVariable="--font-archivo" preload={[{ style: 'normal' }]} />
+		<Font cssVariable="--font-fira-sans" preload={[{ style: 'normal' }]} />
 		<link href={pageUrl} rel="canonical" />
 		<title>{pageTitle}</title>
 		<meta content={description} name="description" />

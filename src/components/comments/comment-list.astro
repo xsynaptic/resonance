@@ -43,7 +43,7 @@ const { comments, nested = false } = Astro.props;
 								{formatDate(comment.date)}
 							</Anchor>
 						</time>
-						<div class="prose-x mt-2 text-sm">
+						<div class="prose-x mt-2 text-sm wrap-anywhere">
 							<Fragment set:html={comment.bodyHtml} />
 						</div>
 						<Button

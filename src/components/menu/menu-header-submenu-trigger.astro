@@ -1,7 +1,11 @@
 ---
 import type { MenuItem } from '#components/menu/menu-types.ts';
 
-import { getMenuItemTriggerType, isActiveMenuPath } from '#components/menu/menu-utils.ts';
+import {
+	getMenuItemAriaLabel,
+	getMenuItemTriggerType,
+	isActiveMenuPath,
+} from '#components/menu/menu-utils.ts';
 
 interface Props {
 	hasChildren: boolean;
@@ -38,9 +42,17 @@ const triggerType = getMenuItemTriggerType(item);
 	{triggerType === 'span' ? <span class="nav-sub-link">{item.title}</span> : undefined}
 	{
 		hasChildren ? (
-			<svg aria-hidden="true" class="nav-sub-icon">
-				<use href="#icon:chevron-right" />
-			</svg>
+			<button
+				aria-expanded="false"
+				aria-label={getMenuItemAriaLabel(item)}
+				class="nav-sub-toggle"
+				data-nav-toggle
+				type="button"
+			>
+				<svg aria-hidden="true" class="nav-sub-icon">
+					<use href="#icon:chevron-right" />
+				</svg>
+			</button>
 		) : undefined
 	}
 </div>

@@ -1,6 +1,6 @@
-/* Hooks are nav-*; menu-navigation.ts selects by structure, so they are styling-only */
+/* Hooks are nav-*; menu-navigation.ts selects by structure and data-nav-toggle, so they are styling-only */
 
-/* Interactive state (data-has-submenu, data-open, ARIA roles) is injected by menu-navigation.ts */
+/* Interactive state (data-has-submenu, data-open) is injected by menu-navigation.ts */
 
 /* The custom element is a JS host only; the nav itself has to be the flex item in the header row */
 menu-navigation {
@@ -24,9 +24,9 @@ menu-navigation {
 	}
 }
 
+/* No column-gap: the toggle centres its own icon in a 24px box, which is the spacing */
 .nav-trigger {
 	display: flex;
-	column-gap: calc(var(--spacing) * 2);
 	align-items: center;
 	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
 	border-radius: var(--radius-sm);
@@ -59,10 +59,32 @@ menu-navigation {
 	color: var(--color-accent-300);
 }
 
+/* 24px square is the WCAG target minimum; the icon inside stays 12px */
+.nav-toggle {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	color: var(--color-highlight-500);
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+}
+
+.nav-toggle:focus-visible {
+	color: var(--color-highlight-400);
+}
+
+@media (hover: hover) {
+	.nav-toggle:hover {
+		color: var(--color-highlight-400);
+	}
+}
+
 .nav-icon {
 	width: 12px;
 	height: 12px;
-	color: var(--color-highlight-500);
 	transition: transform 100ms var(--default-transition-timing-function);
 	transition-behavior: allow-discrete;
 }
@@ -164,16 +186,34 @@ menu-navigation {
 	}
 }
 
+.nav-sub-toggle {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	color: var(--color-highlight-500);
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+}
+
+.nav-sub-toggle:focus-visible {
+	color: var(--color-highlight-400);
+}
+
+@media (hover: hover) {
+	.nav-sub-toggle:hover {
+		color: var(--color-highlight-400);
+	}
+}
+
 .nav-sub-icon {
 	width: 10px;
 	height: 10px;
-	margin-left: calc(var(--spacing) * 2);
-	color: var(--color-highlight-500);
 }
 
-.nav-item:focus-within > .nav-sub-d1,
 .nav-item[data-open] > .nav-sub-d1,
-.nav-sub-item:focus-within > .nav-sub-d2,
 .nav-sub-item[data-open] > .nav-sub-d2 {
 	visibility: visible;
 	pointer-events: auto;
@@ -181,15 +221,13 @@ menu-navigation {
 	transition-delay: 0s;
 }
 
-.nav-item[data-open] > .nav-trigger,
-.nav-item[data-has-submenu]:focus-within > .nav-trigger {
+.nav-item[data-open] > .nav-trigger {
 	background-color: var(--color-surface-600);
 	border-bottom-right-radius: 0;
 	border-bottom-left-radius: 0;
 }
 
-.nav-item:focus-within > .nav-trigger > .nav-icon,
-.nav-item[data-open] > .nav-trigger > .nav-icon {
+.nav-item[data-open] > .nav-trigger > .nav-toggle > .nav-icon {
 	transform: scaleY(-1);
 }
 

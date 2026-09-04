@@ -44,7 +44,7 @@ const year = new Date().getFullYear();
 				{
 					recentMixes.map((mix) => (
 						<li>
-							<Anchor anchorColor="muted" href={`/mixes/${mix.id}`}>
+							<Anchor anchorColor="muted" class="inline-block py-1" href={`/mixes/${mix.id}`}>
 								{mix.data.title}
 							</Anchor>
 						</li>

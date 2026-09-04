@@ -36,16 +36,17 @@ const groups: Array<{ items: Array<ContentItem>; year?: number }> = groupByYear
 		{description ? <p class="mt-2 content-measure text-ink-300">{description}</p> : undefined}
 	</div>
 	{
-		groups.map((group) => (
+		groups.map((group, groupIndex) => (
 			<section class="mb-8">
 				{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
 				<ul class="entry-grid">
-					{group.items.map((item) => (
+					{group.items.map((item, itemIndex) => (
 						<li>
 							<EntryCard
 								date={item.date}
 								href={item.url}
 								image={item.image}
+								priority={groupIndex === 0 && itemIndex === 0}
 								subtitle={item.subtitle}
 								title={item.title}
 							/>

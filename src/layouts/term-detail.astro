@@ -114,16 +114,17 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 	}
 	{
 		page.data.length > 0 ? (
-			groups.map((group) => (
+			groups.map((group, groupIndex) => (
 				<section class="mb-8">
 					{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
 					<ul class="entry-grid">
-						{group.items.map((entry) => (
+						{group.items.map((entry, entryIndex) => (
 							<li>
 								<EntryCard
 									date={entry.date}
 									href={entry.url}
 									image={entry.image}
+									priority={groupIndex === 0 && entryIndex === 0}
 									subtitle={collectionLabels[entry.collection]}
 									title={entry.title}
 								/>

@@ -9,9 +9,10 @@ interface Props {
 	items: Array<ContentItem>;
 	listHref: string;
 	listLabel: string;
+	priority?: boolean | undefined;
 }
 
-const { heading, items, listHref, listLabel } = Astro.props;
+const { heading, items, listHref, listLabel, priority = false } = Astro.props;
 ---
 
 <section class="mb-12">
@@ -21,12 +22,13 @@ const { heading, items, listHref, listLabel } = Astro.props;
 	</div>
 	<ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 		{
-			items.map((item) => (
+			items.map((item, index) => (
 				<li>
 					<EntryCard
 						date={item.date}
 						href={item.url}
 						image={item.image}
+						priority={priority && index === 0}
 						subtitle={item.subtitle}
 						title={item.title}
 					/>

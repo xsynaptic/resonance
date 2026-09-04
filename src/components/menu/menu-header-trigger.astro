@@ -2,6 +2,7 @@
 import type { MenuItem } from '#components/menu/menu-types.ts';
 
 import {
+	getMenuItemAriaLabel,
 	getMenuItemTriggerType,
 	isActiveMenuItem,
 	isActiveMenuPath,
@@ -42,9 +43,17 @@ const triggerType = getMenuItemTriggerType(item);
 	{triggerType === 'span' ? <span class="nav-link">{item.title}</span> : undefined}
 	{
 		hasChildren ? (
-			<svg aria-hidden="true" class="nav-icon">
-				<use href="#icon:chevron-down" />
-			</svg>
+			<button
+				aria-expanded="false"
+				aria-label={getMenuItemAriaLabel(item)}
+				class="nav-toggle"
+				data-nav-toggle
+				type="button"
+			>
+				<svg aria-hidden="true" class="nav-icon">
+					<use href="#icon:chevron-down" />
+				</svg>
+			</button>
 		) : undefined
 	}
 </div>

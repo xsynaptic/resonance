@@ -26,7 +26,7 @@ const fontConfigs: Array<FontsourceConfig> = [
 	{
 		name: 'Manrope',
 		package: 'manrope',
-		variants: [{ style: 'normal', subset: 'latin', weight: 600 }],
+		variants: [{ style: 'normal', subset: 'latin', weight: 800 }],
 	},
 ];
 

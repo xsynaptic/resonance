@@ -4,7 +4,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 // Bump when element.tsx changes, to regenerate every card
-const templateVersion = '1';
+const templateVersion = '4';
 
 /**
  * A stable `{id}.jpg` filename keeps the public URL fixed, so freshness lives in a manifest beside

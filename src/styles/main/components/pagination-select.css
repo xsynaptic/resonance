@@ -8,14 +8,10 @@
 	right: calc(var(--spacing) * 1);
 }
 
+/* In flow so its box stays reserved; revealing it shifts nothing */
 .pg-button {
-	position: absolute;
-	top: 50%;
-	left: 100%;
 	visibility: hidden;
-	pointer-events: none;
 	opacity: 0;
-	transform: translateY(-50%);
 	transition:
 		opacity 120ms cubic-bezier(0.22, 1, 0.36, 1),
 		visibility 120ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -23,7 +19,6 @@
 
 	&[data-visible] {
 		visibility: visible;
-		pointer-events: auto;
 		opacity: 1;
 	}
 }
@@ -68,6 +63,7 @@
 		max-height: 240px;
 		overflow-y: auto;
 		overscroll-behavior: none;
+		scrollbar-color: color-mix(in srgb, var(--color-surface-300) 45%, transparent) transparent;
 		scrollbar-width: thin;
 		background-color: var(--color-surface-600);
 		border: 1px solid var(--color-surface-700);

@@ -14,11 +14,9 @@ const { class: className, page, ...props } = Astro.props;
 
 const { currentPage, lastPage, url } = page;
 
-// Root-relative base for client-built URLs: strip the trailing slash and page number, re-add slash
-const trimmed = url.current.replace(/\/$/, '');
-const pageBasePath = `${
-	currentPage === 1 ? trimmed : trimmed.replace(new RegExp(`/${String(currentPage)}$`), '')
-}/`;
+// Root-relative base for client-built URLs; `url.first` is unset on the first page
+// The site does not force trailing slashes, and the base needs one
+const pageBasePath = `${(url.first ?? url.current).replace(/\/$/, '')}/`;
 ---
 
 {
@@ -35,7 +33,7 @@ const pageBasePath = `${
 			<nav
 				aria-label={t('pagination.label')}
 				class:list={[
-					'flex items-center justify-between gap-4 text-sm font-medium tabular-nums select-none',
+					'flex flex-wrap items-center justify-between gap-4 text-sm font-medium tabular-nums select-none',
 					className,
 				]}
 				{...props}
@@ -47,11 +45,11 @@ const pageBasePath = `${
 							total: lastPage,
 						})}
 					</span>
-					<form class="relative flex items-center" data-pagination-form hidden>
+					<form class="flex items-center gap-2" data-pagination-form hidden>
 						<span class="relative inline-flex items-center">
 							<select
 								aria-label={t('pagination.selectLabel')}
-								class="pg-control rounded-sm border border-surface-700 bg-surface-600 py-1 pr-7 pl-2 text-ink-100 transition-colors hover:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+								class="pg-control overflow-hidden rounded-sm border border-surface-700 bg-surface-600 py-1 pr-7 pl-2 text-ellipsis whitespace-nowrap text-ink-100 tabular-nums transition-colors hover:border-surface-400 focus-visible:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 								data-pagination-control
 								name="page"
 							/>
@@ -59,20 +57,16 @@ const pageBasePath = `${
 								aria-hidden="true"
 								class="pg-arrow pointer-events-none absolute flex items-center text-highlight-500"
 							>
-								<svg
-									fill="none"
-									height="16"
-									stroke="currentColor"
-									stroke-width="2"
-									viewBox="0 0 24 24"
-									width="16"
-								>
-									<path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+								<svg height="16" width="16">
+									<use href="#icon:chevron-down" />
 								</svg>
 							</span>
 						</span>
+						<span class="text-ink-500">
+							{formatStringTemplate(t('pagination.selectTotal'), { total: lastPage })}
+						</span>
 						<button
-							class="pg-button ml-2 cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+							class="pg-button cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 							data-pagination-submit
 							type="submit"
 						>

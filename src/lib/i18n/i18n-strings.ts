@@ -114,6 +114,7 @@ const strings = {
 	'pagination.previous': 'Previous',
 	'pagination.previousPage': 'Previous page',
 	'pagination.selectLabel': 'Go to page',
+	'pagination.selectTotal': 'of {total}',
 	'pagination.submit': 'Go',
 	'search.input.placeholder': 'Search the site…',
 	'search.shortcut.description': 'open search',

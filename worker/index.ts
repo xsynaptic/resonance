@@ -6,10 +6,16 @@ export default {
 	async fetch(request, env) {
 		const url = new URL(request.url);
 
-		if (request.method === 'POST' && url.pathname === '/api/comments') {
+		if (url.pathname === '/api/comments') {
+			// `run_worker_first` routes every method here, so anything but POST would answer with the 404 page
+			if (request.method !== 'POST')
+				return new Response(undefined, { headers: { allow: 'POST' }, status: 405 });
+
 			try {
 				return await handleCommentSubmission(request, env);
-			} catch {
+			} catch (error) {
+				console.error(error);
+
 				// Without this a D1 or siteverify failure answers with Cloudflare's generic error page
 				return fail(request, 500, t('comments.error.unexpected'));
 			}

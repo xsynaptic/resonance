@@ -8,6 +8,7 @@
 		{ "pattern": "www.djbasilisk.com", "custom_domain": true },
 	],
 	"workers_dev": false,
+	"observability": { "enabled": true },
 	"assets": {
 		"binding": "ASSETS",
 		"directory": "./dist",

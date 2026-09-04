@@ -9,6 +9,9 @@ const minimumFormAgeMs = 3000;
 
 const entryIdPattern = /^[a-z0-9-]+$/;
 
+// `request.formData()` parses the whole body before the schema's 8000-character cap can apply
+const maximumBodyBytes = 32_768;
+
 // Ids are read back as the `#comment-<id>` permalink, so they stay short; 32 chars masks to 5 bits with no bias
 const commentIdAlphabet = 'abcdefghijklmnopqrstuvwxyz234567';
 const commentIdLength = 10;
@@ -38,31 +41,12 @@ export function fail(request: Request, status: number, message: string): Respons
 }
 
 export async function handleCommentSubmission(request: Request, env: Env): Promise<Response> {
-	const form = await readFormData(request);
+	// A falsy salt hashes every IP against the literal string `undefined`, which is brute-forceable
+	if (!env.IP_SALT) throw new Error('IP_SALT is not set');
 
-	if (!form) return fail(request, 400, t('comments.error.unreadable'));
+	const submission = await readSubmission(request);
 
-	if (readField(form, 'website') !== undefined)
-		return fail(request, 400, t('comments.error.rejected'));
-
-	const parsed = submissionSchema.safeParse({
-		author: readField(form, 'author'),
-		authorEmail: readField(form, 'authorEmail'),
-		authorUrl: readField(form, 'authorUrl'),
-		body: readField(form, 'body'),
-		collection: readField(form, 'collection'),
-		entryId: readField(form, 'entryId'),
-		parentId: readField(form, 'parentId'),
-		renderedAt: readField(form, 'renderedAt'),
-		turnstileToken: readField(form, 'cf-turnstile-response'),
-	});
-
-	if (!parsed.success) return fail(request, 400, t('comments.error.invalid'));
-
-	const submission = parsed.data;
-
-	if (Date.now() - submission.renderedAt < minimumFormAgeMs)
-		return fail(request, 400, t('comments.error.tooFast'));
+	if (submission instanceof Response) return submission;
 
 	const entryPath = toEntryPath(submission.collection, submission.entryId);
 	const entry = await env.ASSETS.fetch(new URL(entryPath, request.url));
@@ -120,6 +104,15 @@ async function insertComment(
 		.run();
 }
 
+// A missing header rejects too: a body of unknown size cannot be capped before it is parsed
+function isBodySizeAcceptable(request: Request): boolean {
+	const contentLength = Number(request.headers.get('content-length'));
+
+	return (
+		Number.isSafeInteger(contentLength) && contentLength > 0 && contentLength <= maximumBodyBytes
+	);
+}
+
 function isJsonWanted(request: Request): boolean {
 	return request.headers.get('accept')?.includes('application/json') === true;
 }
@@ -175,6 +168,37 @@ async function readFormData(request: Request): Promise<FormData | undefined> {
 	} catch {
 		return undefined;
 	}
+}
+
+// The local rejections, in their deliberate order: size, honeypot, zod, then form age, all before any network call
+async function readSubmission(request: Request): Promise<Response | Submission> {
+	if (!isBodySizeAcceptable(request)) return fail(request, 413, t('comments.error.tooLarge'));
+
+	const form = await readFormData(request);
+
+	if (!form) return fail(request, 400, t('comments.error.unreadable'));
+
+	if (readField(form, 'website') !== undefined)
+		return fail(request, 400, t('comments.error.rejected'));
+
+	const parsed = submissionSchema.safeParse({
+		author: readField(form, 'author'),
+		authorEmail: readField(form, 'authorEmail'),
+		authorUrl: readField(form, 'authorUrl'),
+		body: readField(form, 'body'),
+		collection: readField(form, 'collection'),
+		entryId: readField(form, 'entryId'),
+		parentId: readField(form, 'parentId'),
+		renderedAt: readField(form, 'renderedAt'),
+		turnstileToken: readField(form, 'cf-turnstile-response'),
+	});
+
+	if (!parsed.success) return fail(request, 400, t('comments.error.invalid'));
+
+	if (Date.now() - parsed.data.renderedAt < minimumFormAgeMs)
+		return fail(request, 400, t('comments.error.tooFast'));
+
+	return parsed.data;
 }
 
 async function sha256(value: string): Promise<string> {

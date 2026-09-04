@@ -16,6 +16,11 @@ const filePattern = /^resonance-comments-(\d{4}-\d{2}-\d{2})\.sql\.gz$/;
 // `backups/` is gitignored, so this lives on the operator's machine alone
 const backupAfterDays = 30;
 
+interface BackupIfStaleOptions {
+	dryRun?: boolean;
+	rootPath: string;
+}
+
 interface BackupOptions {
 	isLocal?: boolean;
 	rootPath: string;
@@ -43,7 +48,9 @@ export async function backupComments(options: BackupOptions): Promise<void> {
 }
 
 // Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
-export async function backupIfStale(rootPath: string): Promise<StepStatus> {
+export async function backupIfStale(options: BackupIfStaleOptions): Promise<StepStatus> {
+	const { dryRun = false, rootPath } = options;
+
 	const latest = await findLatestBackup(path.join(rootPath, backupDir));
 
 	if (latest) {
@@ -53,6 +60,11 @@ export async function backupIfStale(rootPath: string): Promise<StepStatus> {
 			console.log(chalk.gray(`  Last comment backup: ${latest}`));
 			return 'skipped';
 		}
+	}
+
+	if (dryRun) {
+		console.log(chalk.yellow('  DRY RUN: comment backup is stale but not taken'));
+		return 'skipped';
 	}
 
 	// Soft-fail: a deploy must not die on a backup

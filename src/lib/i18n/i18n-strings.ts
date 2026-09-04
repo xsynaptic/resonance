@@ -10,6 +10,8 @@ const strings = {
 	'audio.mixcloudPlays.one': '1 play on Mixcloud',
 	'audio.mixcloudPlays.other': '{count} plays on Mixcloud',
 	'audio.soundcloud': 'SoundCloud',
+	'audio.soundcloudPlays.one': '1 play on SoundCloud',
+	'audio.soundcloudPlays.other': '{count} plays on SoundCloud',
 	'audio.streams.one': '1 stream',
 	'audio.streams.other': '{count} streams',
 	'carousel.next': 'Next {label}',

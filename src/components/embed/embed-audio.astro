@@ -4,11 +4,14 @@ import EmbedSoundcloud from '#components/embed/embed-soundcloud.astro';
 
 interface Props {
 	mixcloudEmbed?: string | undefined;
-	soundcloudEmbed?: string | undefined;
+	soundcloudEmbed?: Array<string> | string | undefined;
 }
 
 const { mixcloudEmbed, soundcloudEmbed } = Astro.props;
+
+// A mix split across two SoundCloud tracks has one player, so the first part is the one embedded
+const soundcloudUrl = Array.isArray(soundcloudEmbed) ? soundcloudEmbed[0] : soundcloudEmbed;
 ---
 
 {mixcloudEmbed ? <EmbedMixcloud url={mixcloudEmbed} /> : undefined}
-{!mixcloudEmbed && soundcloudEmbed ? <EmbedSoundcloud url={soundcloudEmbed} /> : undefined}
+{!mixcloudEmbed && soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}

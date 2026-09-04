@@ -16,7 +16,8 @@ import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { getMixcloudPlayCount } from '#lib/mixcloud/mixcloud-stats.ts';
+import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
+import { getSoundcloudPlayCount } from '#lib/platform-stats/soundcloud-stats.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
@@ -38,6 +39,7 @@ const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloads = await getDownloadCount(entry.data);
 const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudEmbed);
+const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudEmbed);
 const relatedItems = await getRelatedItems(entry);
 const description = await getEntryDescription(entry);
 
@@ -69,7 +71,11 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 			links={entry.data.links}
 			{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
 		/>
-		<AudioCounts downloads={downloads} mixcloudPlays={mixcloudPlays} />
+		<AudioCounts
+			downloads={downloads}
+			mixcloudPlays={mixcloudPlays}
+			soundcloudPlays={soundcloudPlays}
+		/>
 	</Fragment>
 	<Fragment slot="sections">
 		<SectionCoda>

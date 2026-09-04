@@ -14,4 +14,7 @@ export const feedItemCount = 20;
 export const listPageSize = 24;
 
 // Pulled via `pnpm mixcloud-stats` and committed, so a build never reaches Mixcloud
-export const mixcloudStatsPath = './packages/content/mixcloud-stats.json';
+export const mixcloudStatsPath = './packages/content/mixcloud-stats.jsonl';
+
+// Pulled via `pnpm soundcloud-stats` and committed, so a build never reaches SoundCloud
+export const soundcloudStatsPath = './packages/content/soundcloud-stats.jsonl';

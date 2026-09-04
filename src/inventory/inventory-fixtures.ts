@@ -193,21 +193,27 @@ async function sampleMix(): Promise<MixSample | undefined> {
 	};
 }
 
+// `soundcloudEmbed` can be an array; the specimens want one URL, so a split mix is passed over
 async function sampleMixField(
 	field: 'mixcloudEmbed' | 'soundcloudEmbed',
 ): Promise<string | undefined> {
 	const mixes = await getCollection('mixes');
 
-	return mixes.find((mix) => mix.data[field] !== undefined)?.data[field];
+	for (const mix of mixes) {
+		const value = mix.data[field];
+
+		if (typeof value === 'string') return value;
+	}
+
+	return undefined;
 }
 
 // Cards exist only after `pnpm og-image`, so any not yet rendered are left out rather than broken
 async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
-	const [mixes, reviews, posts, artists] = await Promise.all([
+	const [mixes, reviews, posts] = await Promise.all([
 		getCollection('mixes'),
 		getCollection('reviews'),
 		getCollection('posts'),
-		getCollection('artists'),
 	]);
 
 	const contentEntries = [...mixes, ...reviews, ...posts];
@@ -223,7 +229,10 @@ async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 			entry: longestTitle(withCover),
 			label: 'Longest title beside a cover, where the clamp bites first',
 		},
-		{ entry: artists.at(0), label: 'Term, never with a cover' },
+		{
+			entry: longestTitle(mixes.filter(hasCoverOnDisk)),
+			label: 'Longest mix title beside a cover',
+		},
 	];
 
 	const samples: Array<OpenGraphSample> = [];

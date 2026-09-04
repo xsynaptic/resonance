@@ -54,7 +54,7 @@ export const mixSchema = z
 		downloadsLegacy: z.record(z.string(), z.number().int().nonnegative()).optional(),
 		files: z.string().array().optional(),
 		mixcloudEmbed: z.string().optional(),
-		soundcloudEmbed: z.string().optional(),
+		soundcloudEmbed: z.union([z.string(), z.string().array()]).optional(),
 	})
 	.strict();
 

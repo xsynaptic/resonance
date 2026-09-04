@@ -579,17 +579,22 @@ const paginationPage: Page<ContentItem> = {
 		</Specimen>
 		<Specimen
 			name="AudioCounts"
-			note="One figure per mix, never a sum: a download, a stream and a play are three different acts. Only downloads carries data today, so the real value is first and the other two are fixtures."
+			note="One figure per mix, never a sum: a download, a stream and a play are three different acts. Only downloads carries data here, so the real value is first and the others are fixtures."
 			source="src/components/parts/audio-counts.astro"
 		>
 			{
 				mix ? (
-					<AudioCounts downloads={mix.downloads} mixcloudPlays={38_216} streams={1204} />
+					<AudioCounts
+						downloads={mix.downloads}
+						mixcloudPlays={38_216}
+						soundcloudPlays={9412}
+						streams={1204}
+					/>
 				) : undefined
 			}
 		</Specimen>
 		<Specimen name="AudioCounts" note="A single of each, to check the pluralisation.">
-			<AudioCounts downloads={1} mixcloudPlays={1} streams={1} />
+			<AudioCounts downloads={1} mixcloudPlays={1} soundcloudPlays={1} streams={1} />
 		</Specimen>
 		<Specimen name="EmbedMixcloud" source="src/components/embed/embed-mixcloud.astro">
 			{mixcloudUrl ? <EmbedMixcloud url={mixcloudUrl} /> : undefined}

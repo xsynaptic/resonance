@@ -13,6 +13,9 @@ interface Props {
 }
 
 const { collection, entryId } = Astro.props;
+
+// Turnstile answers 110200 for any hostname a real site key does not list, localhost included
+const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURNSTILE_SITE_KEY;
 ---
 
 <div class="mt-12" data-comment-form-home>
@@ -114,7 +117,7 @@ const { collection, entryId } = Astro.props;
 				>{t('comments.form.clearStored')}</button
 			>
 		</div>
-		<div data-turnstile data-turnstile-sitekey={TURNSTILE_SITE_KEY}></div>
+		<div data-turnstile data-turnstile-sitekey={turnstileSiteKey}></div>
 		<p
 			class="rounded-sm border border-crimson-800 bg-crimson-950 p-3 text-sm text-ink-200"
 			data-comment-error

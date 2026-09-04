@@ -53,19 +53,21 @@ export async function importLegacyComments(options: ImportLegacyOptions): Promis
 	const { rootPath } = options;
 
 	const contentPath = path.join(rootPath, 'packages', 'content');
-	const archivePath = path.join(contentPath, 'archive');
+
+	// WordPress artifacts carry commenter emails and IPs, so they stay out of the content repository
+	const backupsPath = path.join(rootPath, 'backups');
 
 	const archive = JSON.parse(
-		await fs.readFile(path.join(archivePath, 'comments.json'), 'utf8'),
+		await fs.readFile(path.join(backupsPath, 'comments.json'), 'utf8'),
 	) as {
 		comments: Array<LegacyComment>;
 	};
 
-	const mapPath = path.join(archivePath, 'comment-entry-map.json');
+	const mapPath = path.join(backupsPath, 'comment-entry-map.json');
 
 	if (!(await isPathPresent(mapPath))) {
 		throw new Error(
-			`${mapPath} not found. Run \`pnpm -F @xsynaptic/scripts comments-map\` first; it needs the WordPress dump.`,
+			`${mapPath} not found. The extractor that wrote it is retired; restore it from backups/wp-extract-2026-09-03.zip and re-run it against the WordPress dump.`,
 		);
 	}
 
@@ -77,8 +79,8 @@ export async function importLegacyComments(options: ImportLegacyOptions): Promis
 	const fileIndex = await indexCollectionFiles(path.join(contentPath, 'collections'));
 	const result = collectImport(approved, entryMap.entries, fileIndex);
 
-	const seedPath = path.join(archivePath, 'comments-seed.sql');
-	const reportPath = path.join(archivePath, 'comments-entries.md');
+	const seedPath = path.join(backupsPath, 'comments-seed.sql');
+	const reportPath = path.join(backupsPath, 'comments-entries.md');
 
 	await fs.writeFile(seedPath, `${result.statements.join('\n')}\n`);
 	await fs.writeFile(reportPath, formatReport([...result.reports.values()]));

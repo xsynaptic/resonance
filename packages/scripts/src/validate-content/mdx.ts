@@ -59,6 +59,7 @@ function collectTagIssues(
 	prop: string,
 ): Array<ComponentIssue> {
 	const tagRegex = new RegExp(String.raw`<${tag}(\s[^>]*?)?/?>`, 'g');
+	// Anchored on a boundary so `data-id="x"` is not read as the `id` prop
 	const propRegex = new RegExp(String.raw`(^|\s)${prop}=["'][^"']+["']`);
 
 	const issues: Array<ComponentIssue> = [];

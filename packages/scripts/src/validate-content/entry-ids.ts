@@ -7,7 +7,7 @@ interface DuplicateIdIssue {
 	locations: Array<string>;
 }
 
-// Ids are flat across `<Link id>` and the site root, so a duplicate silently wins by load order
+// Ids are flat across `<Link id>` and the site root; the catalog throws on a duplicate mid-build
 export function collectDuplicateIdIssues(entries: Array<ContentEntry>) {
 	const locationsById = new Map<string, Array<string>>();
 

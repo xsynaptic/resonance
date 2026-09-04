@@ -31,6 +31,13 @@ describe('collectComponentIssues', () => {
 		expect(issues[0]?.message).toBe('Link component missing id prop');
 	});
 
+	test('does not read a `data-id` prop as the `id` prop', () => {
+		const issues = collectComponentIssues('<Link data-id="a-mix">text</Link>');
+
+		expect(issues).toHaveLength(1);
+		expect(issues[0]?.message).toBe('Link component missing id prop');
+	});
+
 	test('flags an Img with alt but no src', () => {
 		const issues = collectComponentIssues('<Img alt="A cover">caption</Img>');
 

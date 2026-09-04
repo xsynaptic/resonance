@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import type { StubEntry } from '#lib/test/astro-content.ts';
+import type { StubEntry } from '#lib/collections/astro-content-stub.ts';
 
 type Fixtures = Record<string, Array<Pick<StubEntry, 'data' | 'id'>>>;
 
@@ -87,7 +87,7 @@ async function idsByTerm(name: IndexName): Promise<Record<string, Array<string>>
 async function importIndexes() {
 	vi.resetModules();
 
-	const { setCollections } = await import('#lib/test/astro-content.ts');
+	const { setCollections } = await import('#lib/collections/astro-content-stub.ts');
 
 	setCollections(fixtures);
 

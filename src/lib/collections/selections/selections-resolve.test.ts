@@ -2,8 +2,8 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 
+import { setCollections } from '#lib/collections/astro-content-stub.ts';
 import { resolveSelections } from '#lib/collections/selections/selections-resolve.ts';
-import { setCollections } from '#lib/test/astro-content.ts';
 
 vi.mock('#lib/utils/markdown.ts', () => ({
 	renderMarkdown: (text: string) => Promise.resolve(`<p>${text}</p>`),

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { setCollections } from '#lib/test/astro-content.ts';
+import { setCollections } from '#lib/collections/astro-content-stub.ts';
 import { labelIds, resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 
 setCollections({

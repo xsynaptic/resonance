@@ -5,7 +5,9 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			// `astro:content` resolves only inside an Astro build; tests seed the stub through `setCollections`
-			'astro:content': fileURLToPath(new URL('src/lib/test/astro-content.ts', import.meta.url)),
+			'astro:content': fileURLToPath(
+				new URL('src/lib/collections/astro-content-stub.ts', import.meta.url),
+			),
 		},
 	},
 	test: {

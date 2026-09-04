@@ -58,7 +58,7 @@ The extractor that generated the collections is archived in `backups/wp-extract-
 
 ## Build
 
-`pnpm build` is a pipeline, not a synonym for `astro build`: it generates LQIP placeholders (incrementally cached in `.cache/media-lqip.json`) before `astro check` and the build. Calling `astro build` directly skips that step, and every media image renders without its placeholder.
+`pnpm build` is a pipeline, not a synonym for `astro build`: LQIP placeholders (incrementally cached in `.cache/media-lqip.json`), `astro check`, redirects, sitemap lastmod, the build, then OG images. Calling `astro build` directly skips all of it, and every media image renders without its placeholder.
 
 ## Quality gate
 

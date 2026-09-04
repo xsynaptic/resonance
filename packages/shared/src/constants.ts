@@ -20,3 +20,6 @@ export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';
 
 // The brand line on every OG card, and the site title; read by the app through `#lib/site.ts`
 export const siteTitle = 'DJ Basilisk';
+
+// Incremental LQIP cache, written before the build and read back when a media image renders
+export const mediaLqipPath = './.cache/media-lqip.json';

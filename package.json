@@ -5,7 +5,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro check && pnpm generate-redirects && pnpm sitemap-lastmod && astro build && pnpm og-image",
+		"build": "pnpm lqip && astro check && pnpm generate-redirects && pnpm sitemap-lastmod && astro build && pnpm og-image",
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "eslint",
@@ -21,7 +21,6 @@
 		"audio-waveforms": "pnpm -F @xsynaptic/scripts audio-waveforms",
 		"comments": "pnpm -F @xsynaptic/scripts comments",
 		"comments-backup": "pnpm -F @xsynaptic/scripts comments-backup",
-		"comments-import": "pnpm -F @xsynaptic/scripts comments-import",
 		"comments-pull": "pnpm -F @xsynaptic/scripts comments-pull",
 		"deploy-app": "pnpm -F @xsynaptic/scripts deploy-app",
 		"deploy-audio": "pnpm -F @xsynaptic/scripts deploy-audio",
@@ -29,6 +28,7 @@
 		"deploy-site": "pnpm -F @xsynaptic/scripts deploy-site",
 		"stats-pull": "pnpm -F @xsynaptic/scripts stats-pull",
 		"stats-test": "python3 deploy/stats/test-download-stats.py",
+		"lqip": "pnpm -F @xsynaptic/scripts lqip",
 		"check": "stylelint \"src/**/*.{css,astro}\" --cache --cache-location node_modules/.cache/stylelint/ && prettier --check . --cache && eslint --cache --cache-location node_modules/.cache/eslint/ && astro check && tsc --noEmit --extendedDiagnostics && wrangler types worker/worker-configuration.d.ts && tsc --noEmit -p worker && vitest run && knip",
 		"fix": "stylelint \"src/**/*.{css,astro}\" --fix --cache --cache-location node_modules/.cache/stylelint/ && prettier --write . --cache && eslint --fix --cache --cache-location node_modules/.cache/eslint/ && astro check && tsc --noEmit --extendedDiagnostics && wrangler types worker/worker-configuration.d.ts && tsc --noEmit -p worker && knip",
 		"check-types": "tsc --noEmit --extendedDiagnostics && tsc --noEmit -p worker",
@@ -84,5 +84,8 @@
 		"wrangler": "^4.128.0",
 		"zod": "^4.5.4"
 	},
-	"packageManager": "pnpm@11.21.0"
+	"packageManager": "pnpm@11.21.0",
+	"engines": {
+		"node": "^24.19.0"
+	}
 }

@@ -7,8 +7,8 @@
 	"scripts": {
 		"comments": "tsx ./src/comments/moderate.cli.ts",
 		"comments-backup": "tsx ./src/comments/backup.cli.ts",
-		"comments-import": "tsx ./src/comments/import-legacy.cli.ts",
 		"comments-pull": "tsx ./src/comments/pull.cli.ts",
+		"lqip": "tsx ./src/lqip/lqip.cli.ts",
 		"audio-validate": "tsx ./src/audio/validate.cli.ts",
 		"audio-renditions": "tsx ./src/audio/renditions.cli.ts",
 		"audio-waveforms": "tsx ./src/audio/waveforms.cli.ts",

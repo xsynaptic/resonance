@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 
-import { getMediaImage } from '#lib/utils/media.ts';
+import { getMediaImage, getMediaLqip } from '#lib/utils/media.ts';
 
 interface Props {
 	alt: string;
@@ -19,17 +19,20 @@ const image = getMediaImage(path);
 
 // astro:assets upscales whatever width it is handed; most source artwork is only ~600px wide
 const intrinsicWidth = image ? Math.min(width, image.width) : width;
+
+const lqip = getMediaLqip(path);
 ---
 
 {
 	image ? (
 		<Image
 			alt={alt}
+			class:list={[className, lqip ? 'bg-cover bg-center' : undefined]}
 			layout={layout}
 			priority={priority ?? false}
 			src={image}
 			width={intrinsicWidth}
-			{...(className ? { class: className } : {})}
+			{...(lqip ? { style: `background-image:url(${lqip})` } : {})}
 			{...(sizes ? { sizes } : {})}
 		/>
 	) : undefined

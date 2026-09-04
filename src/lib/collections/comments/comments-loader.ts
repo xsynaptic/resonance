@@ -1,6 +1,6 @@
 import type { CommentRow } from '@xsynaptic/shared/comments';
 import type { AstroIntegrationLogger } from 'astro';
-import type { Loader } from 'astro/loaders';
+import type { Loader, LoaderContext } from 'astro/loaders';
 
 import { queryComments } from '@xsynaptic/shared/comments';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -18,6 +18,8 @@ type ApprovedRow = Pick<
 	| 'id'
 	| 'parent_id'
 >;
+
+type StoreEntry = Parameters<LoaderContext['store']['set']>[0];
 
 const approvedQuery = `
 	SELECT id, collection, entry_id, parent_id, author, author_url, gravatar_hash, body, created_at
@@ -38,9 +40,9 @@ export function commentsLoader(): Loader {
 		load: async (context) => {
 			const { logger, store } = context;
 
-			store.clear();
-
 			const rows = await readApprovedRows(logger);
+
+			const entries: Array<StoreEntry> = [];
 
 			for (const group of groupRows(rows).values()) {
 				const [first] = group;
@@ -58,7 +60,14 @@ export function commentsLoader(): Loader {
 					id,
 				});
 
-				store.set({ data, digest: context.generateDigest(data), id });
+				entries.push({ data, digest: context.generateDigest(data), id });
+			}
+
+			// `store.clear()` drops the collection outright, so nothing is awaited before the first `set()`
+			store.clear();
+
+			for (const entry of entries) {
+				store.set(entry);
 			}
 		},
 		name: 'comments-loader',

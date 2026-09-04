@@ -1,0 +1,34 @@
+---
+import type { HTMLTag, Polymorphic } from 'astro/types';
+
+import type { DividerColor, DividerContent, DividerWeight } from '#components/types.ts';
+
+type Props<Tag extends HTMLTag = HTMLTag> = Polymorphic<{
+	as: Tag;
+	dividerColor?: DividerColor | undefined;
+	dividerContent?: DividerContent | undefined;
+	dividerWeight?: DividerWeight | undefined;
+}>;
+
+const {
+	as: Tag = 'div',
+	class: className,
+	dividerColor = 'default',
+	dividerContent = 'slash',
+	dividerWeight,
+	...props
+} = Astro.props;
+---
+
+<Tag
+	class:list={[
+		'divided-item',
+		dividerContent === 'slash' ? undefined : `divided-${dividerContent}`,
+		dividerColor === 'default' ? undefined : `divided-${dividerColor}`,
+		dividerWeight ? `divided-${dividerWeight}` : undefined,
+		className,
+	]}
+	{...props}
+>
+	<slot />
+</Tag>

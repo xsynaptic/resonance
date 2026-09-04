@@ -25,6 +25,7 @@
 @import './main/components/comments.css' layer(components);
 @import './main/components/detail-header.css' layer(components);
 @import './main/components/detail-hero.css' layer(components);
+@import './main/components/divided-item.css' layer(components);
 @import './main/components/embed-frame.css' layer(components);
 @import './main/components/headings.css' layer(components);
 @import './main/components/img-figure.css' layer(components);

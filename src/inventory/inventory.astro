@@ -18,6 +18,7 @@ import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import ButtonLink from '#components/parts/button-link.astro';
 import Button from '#components/parts/button.astro';
+import DividedItem from '#components/parts/divided-item.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
@@ -245,6 +246,37 @@ const paginationPage: Page<ContentItem> = {
 					>
 				</p>
 				<p>And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.</p>
+			</div>
+		</Specimen>
+		<Specimen
+			name="DividedItem"
+			note="A glyph after every item, dropped on the last. The parent supplies the wrap and the gap; each item supplies its own separator, so one row can mix them. The as prop sets the tag, and the colophon renders these as list items."
+			source="src/components/parts/divided-item.astro"
+		>
+			<div class="flex flex-col gap-2">
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span">dividerContent=&quot;slash&quot; (default)</DividedItem>
+					<DividedItem as="span">three items</DividedItem>
+					<DividedItem as="span">two glyphs</DividedItem>
+				</div>
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span" dividerContent="dot">dividerContent=&quot;dot&quot;</DividedItem>
+					<DividedItem as="span" dividerContent="dot">what the colophon uses</DividedItem>
+				</div>
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span" dividerContent="chevron">
+						dividerContent=&quot;chevron&quot;
+					</DividedItem>
+					<DividedItem as="span" dividerContent="chevron">for a trail</DividedItem>
+				</div>
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span" dividerColor="lighter"
+						>dividerColor=&quot;lighter&quot;</DividedItem
+					>
+					<DividedItem as="span" dividerWeight="thin">dividerWeight=&quot;thin&quot;</DividedItem>
+					<DividedItem as="span">and the default, for comparison</DividedItem>
+					<DividedItem as="span">last, no glyph</DividedItem>
+				</div>
 			</div>
 		</Specimen>
 	</Section>

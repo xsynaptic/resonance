@@ -1,6 +1,7 @@
 ---
 import MenuFooter from '#components/menu/menu-footer.astro';
 import Anchor from '#components/parts/anchor.astro';
+import DividedItem from '#components/parts/divided-item.astro';
 import { getDownloadTotal } from '#lib/collections/downloads/downloads-data.ts';
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -56,24 +57,28 @@ const year = new Date().getFullYear();
 		aria-label={t('footer.colophonLabel')}
 		class="colophon content-wide border-t border-surface-700 py-6"
 	>
-		<li>{formatStringTemplate(t('footer.copyright'), { year })}</li>
+		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
+			{formatStringTemplate(t('footer.copyright'), { year })}
+		</DividedItem>
 		{
 			downloadTotal > 0 ? (
-				<li>
+				<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
 					{formatStringTemplate(
 						t(downloadTotal === 1 ? 'audio.downloads.one' : 'audio.downloads.other'),
 						{ count: formatNumber({ number: downloadTotal }) },
 					)}
-				</li>
+				</DividedItem>
 			) : undefined
 		}
-		<li>
-			{t('footer.poweredBy')}{' '}<Anchor anchorColor="muted" href="https://astro.build"
-				>{t('footer.astro')}</Anchor
+		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
+			<span
+				>{t('footer.poweredBy')}{' '}<Anchor anchorColor="muted" href="https://astro.build"
+					>{t('footer.astro')}</Anchor
+				></span
 			>
-		</li>
-		<li>
+		</DividedItem>
+		<DividedItem as="li" dividerColor="lighter" dividerContent="dot">
 			<Anchor anchorColor="muted" href="/rss.xml" rel="feed">{t('footer.feed')}</Anchor>
-		</li>
+		</DividedItem>
 	</ul>
 </footer>

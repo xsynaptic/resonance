@@ -1,0 +1,45 @@
+/* Glyph separator between inline items; avoids repetition in the divided-item component */
+.divided-item {
+	display: inline;
+
+	@media (width >= 40rem) {
+		display: inline-flex;
+		gap: calc(var(--spacing) * 1);
+	}
+}
+
+.divided-item::after {
+	color: var(--divider-color, var(--color-ink-700));
+	content: var(--divider-glyph, var(--content-slash));
+}
+
+/* Below sm the item is not inline-flex, so the glyph carries its own spacing */
+@media (width < 40rem) {
+	.divided-item::after {
+		margin-inline: calc(var(--spacing) * 1);
+	}
+}
+
+.divided-item:last-child::after {
+	content: none;
+}
+
+.divided-chevron {
+	--divider-glyph: var(--content-chevron);
+}
+
+.divided-chevron::after {
+	translate: 0 -1px;
+}
+
+.divided-dot {
+	--divider-glyph: var(--content-dot);
+}
+
+.divided-thin::after {
+	font-weight: var(--font-weight-light);
+}
+
+.divided-lighter {
+	--divider-color: var(--color-ink-800);
+}

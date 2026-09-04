@@ -1,19 +1,13 @@
 .colophon {
 	display: flex;
 	flex-wrap: wrap;
-	gap: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+	gap: calc(var(--spacing) * 2) calc(var(--spacing) * 1);
 	font-size: var(--text-xs);
 	line-height: var(--text-xs--line-height);
 	color: var(--color-ink-700);
 }
 
-.colophon > * + *::before {
-	margin-inline-end: calc(var(--spacing) * 2);
-	color: var(--color-ink-800);
-	content: var(--content-dot);
-}
-
-/* A step dimmer than the footer links above; retunes the role rather than restating it per link */
+/* Small print sits a step below the muted role the markup asks for */
 .colophon .anchor {
 	--anchor-color: var(--color-ink-600);
 	--anchor-hover: var(--color-highlight-400);

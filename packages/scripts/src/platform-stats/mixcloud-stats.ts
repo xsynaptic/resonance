@@ -17,7 +17,7 @@ const apiBaseUrl = 'https://api.mixcloud.com';
 const pageLimit = 100;
 
 const freshnessHours = 24;
-export const mixcloudStatsPath = 'packages/content/mixcloud-stats.jsonl';
+export const mixcloudStatsPath = 'packages/content/data/mixcloud-stats.jsonl';
 
 interface Cloudcast {
 	item: StatsItem;

@@ -16,7 +16,7 @@ import { fetchAccessToken, fetchAccountTracks, resolveAccountUrn } from './sound
 const accounts = ['djbasilisk'];
 
 const freshnessHours = 24;
-export const soundcloudStatsPath = 'packages/content/soundcloud-stats.jsonl';
+export const soundcloudStatsPath = 'packages/content/data/soundcloud-stats.jsonl';
 
 interface Credentials {
 	clientId: string;

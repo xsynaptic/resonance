@@ -1,6 +1,7 @@
 // A per-pull line rather than a per-track one; the current value is the last line, a delta the last two
 
-import { appendFile, readFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import { isPathPresent } from '../shared/utils.js';
 
@@ -36,6 +37,8 @@ export async function appendGeneration(
 		version: generationVersion,
 	} satisfies StatsGeneration;
 
+	// `appendFile` will not create `data/`, and the soft-fail above would swallow the ENOENT
+	await mkdir(path.dirname(filePath), { recursive: true });
 	await appendFile(filePath, `${JSON.stringify(generation)}\n`, 'utf8');
 }
 

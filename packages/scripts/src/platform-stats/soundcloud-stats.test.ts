@@ -59,7 +59,7 @@ function stubFetch(handler: (url: string) => Response) {
 
 beforeEach(async () => {
 	rootPath = await mkdtemp(path.join(os.tmpdir(), 'soundcloud-stats-'));
-	await mkdir(path.join(rootPath, 'packages/content'), { recursive: true });
+	await mkdir(path.dirname(path.join(rootPath, soundcloudStatsPath)), { recursive: true });
 	vi.stubEnv('SOUNDCLOUD_CLIENT_ID', 'test-id');
 	vi.stubEnv('SOUNDCLOUD_CLIENT_SECRET', 'test-secret');
 });

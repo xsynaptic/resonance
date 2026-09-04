@@ -10,7 +10,7 @@ import { rsync } from './rsync-exec.js';
 
 // Matches STATE_DIR in deploy/stats/download-stats.py
 const remoteStatsDir = `${remoteRoot}/stats`;
-const localJsonDir = 'packages/content';
+const localJsonDir = 'packages/content/data';
 const localBackupDir = 'packages/content/downloads-backup';
 
 const backupsKept = 14;
@@ -40,6 +40,7 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 	try {
 		await ensureSshKeychain();
 		await mkdir(backupDir, { recursive: true });
+		await mkdir(jsonDir, { recursive: true });
 
 		// Landing on stable names gives the next pull a basis file to delta against
 		await rsync(

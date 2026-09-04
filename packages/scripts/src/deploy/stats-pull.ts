@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { mkdir, readdir, readFile, rm } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { DeployConfig } from './deploy-config.js';
@@ -14,6 +14,9 @@ const localJsonDir = 'packages/content';
 const localBackupDir = 'packages/content/downloads-backup';
 
 const backupsKept = 14;
+
+// Pulled together in one transfer; `downloads.json` is then copied on to where the build reads it
+const statsFiles = ['downloads.json', 'run.log', 'stats.sqlite'];
 
 interface StatsPullOptions {
 	config: DeployConfig;
@@ -31,24 +34,28 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 	const backupDate = new Date().toISOString().slice(0, 10);
 
 	console.log(chalk.blue('Pulling download stats...'));
-	console.log(chalk.gray(`  ${config.remoteHost}:${remoteStatsDir}/downloads.json -> ${jsonDir}/`));
+	console.log(chalk.gray(`  ${config.remoteHost}:${remoteStatsDir}/ -> ${backupDir}/`));
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
 	try {
 		await ensureSshKeychain();
 		await mkdir(backupDir, { recursive: true });
-		await rsync(`${config.remoteHost}:${remoteStatsDir}/downloads.json`, `${jsonDir}/`, { dryRun });
+
+		// Landing on stable names gives the next pull a basis file to delta against
 		await rsync(
-			`${config.remoteHost}:${remoteStatsDir}/stats.sqlite`,
-			`${backupDir}/stats-${backupDate}.sqlite`,
-			{ dryRun },
+			statsFiles.map((file) => `${config.remoteHost}:${remoteStatsDir}/${file}`),
+			`${backupDir}/`,
+			{ dryRun, quiet: true },
 		);
-		await rsync(`${config.remoteHost}:${remoteStatsDir}/run.log`, `${backupDir}/run.log`, {
-			dryRun,
-		});
-		console.log(chalk.green(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`));
 
 		if (dryRun) return;
+
+		await copyFile(path.join(backupDir, 'downloads.json'), path.join(jsonDir, 'downloads.json'));
+		await copyFile(
+			path.join(backupDir, 'stats.sqlite'),
+			path.join(backupDir, `stats-${backupDate}.sqlite`),
+		);
+		console.log(chalk.green(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`));
 
 		await pruneBackups(backupDir);
 		await reportFreshness(jsonDir, backupDir);

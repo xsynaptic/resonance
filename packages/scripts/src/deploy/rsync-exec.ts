@@ -5,19 +5,16 @@ interface RsyncOptions {
 	dryRun?: boolean;
 	excludes?: Array<string>;
 	extraFlags?: Array<string>;
+	quiet?: boolean;
 }
 
 export async function rsync(
 	source: Array<string> | string,
 	destination: string,
-	{ dryRun = false, excludes = [], extraFlags = [] }: RsyncOptions = {},
+	options: RsyncOptions = {},
 ): Promise<string> {
 	const args = [
-		'-av',
-		'--progress',
-		...excludes.map((pattern) => `--exclude=${pattern}`),
-		...extraFlags,
-		...(dryRun ? ['--dry-run'] : []),
+		...buildFlags(options),
 		...(Array.isArray(source) ? source : [source]),
 		destination,
 	];
@@ -43,4 +40,19 @@ export async function sshExec(
 	}
 
 	await $({ stdio: 'inherit' })`ssh ${remoteHost} ${command}`;
+}
+
+// Callers that parse the returned file list need `-v`; a quiet pull prints nothing on success
+function buildFlags({
+	dryRun = false,
+	excludes = [],
+	extraFlags = [],
+	quiet = false,
+}: RsyncOptions): Array<string> {
+	return [
+		...(quiet ? ['-a'] : ['-av', '--progress']),
+		...excludes.map((pattern) => `--exclude=${pattern}`),
+		...extraFlags,
+		...(dryRun ? ['--dry-run'] : []),
+	];
 }

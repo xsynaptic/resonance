@@ -5,7 +5,7 @@ import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
 
 // Cue files land beside the mix page: build.format is 'directory', so /mixes/<slug>/ already exists
 // Static builds discard response headers, so the host decides the content type for .cue
-// Either way it downloads rather than renders
+// Workers Assets sends none at all, which renders inline; the `download` attribute on the link decides it instead
 export const getStaticPaths = (async () => {
 	const mixes = await getPublishedMixes();
 

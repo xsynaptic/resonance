@@ -18,7 +18,7 @@ const year = new Date().getFullYear();
 	class="maze bg-surface-900 bg-linear-to-b from-surface-800 to-transparent [--pattern-color:var(--color-surface-700)]"
 	data-nosnippet
 >
-	<div class="content-wide grid gap-8 py-12 text-sm text-ink-600 sm:grid-cols-3">
+	<div class="content-wide grid gap-8 py-12 text-sm leading-7 text-ink-600 sm:grid-cols-3">
 		<section>
 			<h2 class="heading-label">
 				{site.title}
@@ -30,7 +30,7 @@ const year = new Date().getFullYear();
 					>{t('footer.about.aboutLink')}</Anchor
 				>.
 			</p>
-			<p class="mt-3">
+			<p class="mt-7">
 				{t('footer.support.lead')}{' '}<Anchor
 					anchorColor="muted"
 					href="https://www.patreon.com/ektoplazm">{t('footer.support.link')}</Anchor
@@ -44,7 +44,7 @@ const year = new Date().getFullYear();
 				{
 					recentMixes.map((mix) => (
 						<li>
-							<Anchor anchorColor="muted" class="inline-block py-1" href={`/mixes/${mix.id}`}>
+							<Anchor anchorColor="muted" class="inline-block" href={`/mixes/${mix.id}`}>
 								{mix.data.title}
 							</Anchor>
 						</li>

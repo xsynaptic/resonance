@@ -12,7 +12,7 @@ interface Props {
 const { nested = false, terms } = Astro.props;
 ---
 
-<ul class:list={['space-y-1', nested ? 'mt-1 border-l border-surface-400 pl-3' : undefined]}>
+<ul class:list={[nested ? 'border-l border-surface-400 pl-3' : undefined]}>
 	{
 		terms.map((term) => (
 			<li class:list={[!nested && term.children ? 'break-inside-avoid' : undefined]}>

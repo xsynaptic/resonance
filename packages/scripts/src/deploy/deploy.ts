@@ -9,11 +9,9 @@ import { validateAudio } from '../audio/validate.js';
 import { generateWaveforms } from '../audio/waveforms.js';
 import { backupIfStale } from '../comments/backup.js';
 import { pullComments } from '../comments/pull.js';
-import { generateOpenGraphImages } from '../og-image/og-image.js';
 import { pullMixcloudStats } from '../platform-stats/mixcloud-stats.js';
 import { pullSoundcloudStats } from '../platform-stats/soundcloud-stats.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
-import { generateSitemapLastmod } from '../sitemap-lastmod/index.js';
 import { deployApp } from './deploy-app.js';
 import { deployAudio } from './deploy-audio.js';
 import { loadDeployConfig, printDeployConfig } from './deploy-config.js';
@@ -78,12 +76,6 @@ async function checkCertificate(): Promise<void> {
 		// Warn-only: an expired certificate already fails the stats pull and the audio probe
 		console.warn(chalk.yellow(`  Certificate check skipped: ${String(error)}`));
 	}
-}
-
-// Exits non-zero on a former id colliding with a live path, which would take that page off the site
-async function generateRedirects(): Promise<void> {
-	console.log(chalk.blue('Generating redirects...'));
-	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm generate-redirects`;
 }
 
 async function healthCheck(probeFiles: Array<string>): Promise<void> {
@@ -181,16 +173,7 @@ try {
 	await backupIfStale(rootPath);
 	await pullComments({ allowStale: true, rootPath });
 
-	// Before the build, which copies public/ into the dist/ that deploy-app ships
-	await generateRedirects();
-
-	// After generateRedirects, which runs `astro sync`, so the data store is warm
-	await generateSitemapLastmod({ rootPath, siteUrl: config.siteUrl });
-
 	await build();
-
-	// After the build: dist decides which cards exist, and receives them for deploy-app to ship
-	await generateOpenGraphImages({ rootPath });
 
 	// Audio before site: new pages must never go live while their files are still uploading
 	const uploaded = await deployAudio({ config, dryRun: isDryRun, rootPath });

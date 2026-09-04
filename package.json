@@ -5,7 +5,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro check && astro build",
+		"build": "astro check && pnpm generate-redirects && pnpm sitemap-lastmod && astro build && pnpm og-image",
 		"preview": "astro preview",
 		"astro": "astro",
 		"lint": "eslint",

@@ -36,6 +36,7 @@
 		"og-image": "pnpm -F @xsynaptic/scripts og-image",
 		"sitemap-lastmod": "astro sync && pnpm -F @xsynaptic/scripts sitemap-lastmod",
 		"mixcloud-stats": "pnpm -F @xsynaptic/scripts mixcloud-stats",
+		"soundcloud-stats": "pnpm -F @xsynaptic/scripts soundcloud-stats",
 		"validate-content": "astro sync && pnpm -F @xsynaptic/scripts validate-content"
 	},
 	"imports": {

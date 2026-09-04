@@ -20,7 +20,8 @@
 		"generate-redirects": "tsx ./src/generate-redirects/index.ts",
 		"og-image": "tsx ./src/og-image/og-image.cli.ts",
 		"sitemap-lastmod": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/sitemap-lastmod/index.cli.ts",
-		"mixcloud-stats": "tsx ./src/mixcloud/mixcloud-stats.cli.ts",
+		"mixcloud-stats": "tsx ./src/platform-stats/mixcloud-stats.cli.ts",
+		"soundcloud-stats": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/platform-stats/soundcloud-stats.cli.ts",
 		"validate-content": "tsx ./src/validate-content/index.ts"
 	},
 	"devDependencies": {
@@ -37,6 +38,7 @@
 		"tsx": "^4.23.13",
 		"vite": "^8.2.2",
 		"yaml": "^2.8.1",
+		"zod": "^4.5.4",
 		"zx": "^8.8.5"
 	}
 }

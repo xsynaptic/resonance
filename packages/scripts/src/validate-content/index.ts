@@ -4,6 +4,9 @@ import path from 'node:path';
 
 import type { ValidationResult } from './validation-result.js';
 
+import { mixcloudStatsPath } from '../platform-stats/mixcloud-stats.js';
+import { readGenerationKeys } from '../platform-stats/platform-stats-file.js';
+import { soundcloudStatsPath } from '../platform-stats/soundcloud-stats.js';
 import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
 import { findWorkspaceRoot } from '../shared/utils.js';
 import { validateBodyMarkers } from './body-markers.js';
@@ -11,6 +14,7 @@ import { validateDownloadsLegacy } from './downloads-legacy.js';
 import { validateEntryIds } from './entry-ids.js';
 import { validateImages } from './images.js';
 import { validateLinkIds } from './link-ids.js';
+import { validatePlatformEmbeds } from './platform-embeds.js';
 import { validateReferences } from './references.js';
 import { validateRefs } from './refs.js';
 import { validateReviewFolders } from './review-folders.js';
@@ -68,6 +72,12 @@ function entriesFrom(...collections: Array<string>) {
 	return allEntries.filter((entry) => collections.includes(entry.collection));
 }
 
+// Read once here rather than per check; an absent file leaves its keys `undefined` and is skipped
+const platformKeys = {
+	mixcloud: await readGenerationKeys(path.resolve(rootPath, mixcloudStatsPath)),
+	soundcloud: await readGenerationKeys(path.resolve(rootPath, soundcloudStatsPath)),
+};
+
 // Keys double as the CLI subcommand names
 const validations = {
 	'body-markers': () => validateBodyMarkers(entriesFrom(...markerCollections)),
@@ -75,6 +85,7 @@ const validations = {
 	'entry-ids': () => validateEntryIds(allEntries),
 	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
 	'link-ids': () => validateLinkIds(allEntries, entriesFrom(...linkableCollections)),
+	'platform-embeds': () => validatePlatformEmbeds(entriesFrom('mixes'), platformKeys),
 	references: () => validateReferences(allEntries),
 	refs: () => validateRefs(allEntries, entriesFrom('artists', 'labels')),
 	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),

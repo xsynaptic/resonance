@@ -1,6 +1,14 @@
 import chalk from 'chalk';
-import { rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+
+import type { StatsItem } from './platform-stats-file.js';
+
+import {
+	appendGeneration,
+	isFresh,
+	readLastGeneration,
+	toStatsKey,
+} from './platform-stats-file.js';
 
 // Mixcloud's public REST API: no key, no auth, no registration
 // An account sweep returns the whole catalog, so never fetch per mix
@@ -8,14 +16,12 @@ const accounts = ['Basilisk', 'SynapticFX'];
 const apiBaseUrl = 'https://api.mixcloud.com';
 const pageLimit = 100;
 
-const documentVersion = 1;
-const statsPath = 'packages/content/mixcloud-stats.json';
-const tmpExtension = '.tmp';
+const freshnessHours = 24;
+export const mixcloudStatsPath = 'packages/content/mixcloud-stats.jsonl';
 
 interface Cloudcast {
+	item: StatsItem;
 	key: string;
-	listener_count: number;
-	play_count: number;
 }
 
 interface CloudcastPage {
@@ -25,16 +31,30 @@ interface CloudcastPage {
 
 interface MixcloudStatsOptions {
 	dryRun?: boolean;
+	force?: boolean;
 	rootPath: string;
 }
 
 // Soft-fail by design, as the download stats pull is: a deploy is never blocked on fresh counts
 export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<void> {
-	const { dryRun = false, rootPath } = options;
+	const { dryRun = false, force = false, rootPath } = options;
 
 	console.log(chalk.blue('Pulling Mixcloud stats...'));
 
+	const filePath = path.join(rootPath, mixcloudStatsPath);
+
 	try {
+		const lastGeneration = await readLastGeneration(filePath);
+
+		if (!force && isFresh(lastGeneration, freshnessHours)) {
+			console.log(
+				chalk.gray(
+					`  Last generation ${String(lastGeneration?.generated_at)} is under 24h; skipping`,
+				),
+			);
+			return;
+		}
+
 		const cloudcasts = await fetchAccounts();
 
 		if (dryRun) {
@@ -42,12 +62,14 @@ export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<
 			return;
 		}
 
-		await writeStats(path.join(rootPath, statsPath), cloudcasts);
-		console.log(chalk.green(`Wrote ${String(cloudcasts.length)} cloudcasts to ${statsPath}`));
+		await appendGeneration(filePath, toItems(cloudcasts));
+		console.log(
+			chalk.green(`Appended ${String(cloudcasts.length)} cloudcasts to ${mixcloudStatsPath}`),
+		);
 	} catch (error) {
 		console.log(
 			chalk.yellow(
-				`Mixcloud pull failed; keeping the last ${statsPath} (if any): ${String(error)}`,
+				`Mixcloud pull failed; appending nothing to ${mixcloudStatsPath}: ${String(error)}`,
 			),
 		);
 	}
@@ -78,13 +100,13 @@ async function fetchAccount(account: string): Promise<Array<Cloudcast>> {
 	return cloudcasts;
 }
 
-// One failed account aborts the sweep, so a half-swept file never replaces a whole one
+// One failed account aborts the sweep, so a half-swept file never appends beside a whole one
 async function fetchAccounts(): Promise<Array<Cloudcast>> {
 	const cloudcasts: Array<Cloudcast> = [];
 
 	for (const account of accounts) {
 		const fetched = await fetchAccount(account);
-		const plays = fetched.reduce((total, cloudcast) => total + cloudcast.play_count, 0);
+		const plays = fetched.reduce((total, cloudcast) => total + cloudcast.item.plays, 0);
 
 		console.log(
 			chalk.gray(
@@ -99,28 +121,38 @@ async function fetchAccounts(): Promise<Array<Cloudcast>> {
 
 // The counts are the whole point of the pull, so a row missing one is worth stopping for
 function toCloudcast(value: unknown): Cloudcast {
-	const { key, listener_count, play_count } = value as Partial<Cloudcast>;
+	const { comment_count, favorite_count, key, listener_count, play_count, repost_count } =
+		value as Record<string, unknown>;
 
 	if (
 		typeof key !== 'string' ||
+		typeof comment_count !== 'number' ||
+		typeof favorite_count !== 'number' ||
 		typeof listener_count !== 'number' ||
-		typeof play_count !== 'number'
+		typeof play_count !== 'number' ||
+		typeof repost_count !== 'number'
 	) {
 		throw new TypeError(`Unexpected cloudcast: ${JSON.stringify(value).slice(0, 200)}`);
 	}
 
-	return { key, listener_count, play_count };
+	return {
+		item: {
+			comments: comment_count,
+			likes: favorite_count,
+			listeners: listener_count,
+			plays: play_count,
+			reposts: repost_count,
+		},
+		key: toStatsKey(key),
+	};
 }
 
-// Written aside and renamed, so a crash mid-write leaves the previous file intact
-async function writeStats(filePath: string, cloudcasts: Array<Cloudcast>): Promise<void> {
-	const document = {
-		cloudcasts,
-		generated_at: `${new Date().toISOString().slice(0, 19)}Z`,
-		version: documentVersion,
-	};
-	const tmp = `${filePath}${tmpExtension}`;
+function toItems(cloudcasts: Array<Cloudcast>): Record<string, StatsItem> {
+	const items: Record<string, StatsItem> = {};
 
-	await writeFile(tmp, `${JSON.stringify(document, undefined, '\t')}\n`, 'utf8');
-	await rename(tmp, filePath);
+	for (const cloudcast of cloudcasts) {
+		items[cloudcast.key] = cloudcast.item;
+	}
+
+	return items;
 }

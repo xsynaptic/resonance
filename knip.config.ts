@@ -3,6 +3,8 @@
 import type { KnipConfig } from 'knip';
 
 export default {
+	// knip reads `compilerOptions.types` entries as package names, not relative paths
+	ignoreUnresolved: ['../worker-configuration.d.ts'],
 	workspaces: {
 		'.': {
 			entry: [

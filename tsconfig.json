@@ -1,7 +1,7 @@
 {
 	"extends": "astro/tsconfigs/strictest",
 	"include": [".astro/types.d.ts", "**/*"],
-	"exclude": ["dist", "packages/content", "worker"],
+	"exclude": ["dist", "packages/content", "worker", "worker-configuration.d.ts"],
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": ".",

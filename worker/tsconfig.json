@@ -4,6 +4,6 @@
 	"compilerOptions": {
 		"erasableSyntaxOnly": true,
 		"lib": ["ESNext"],
-		"types": []
+		"types": ["../worker-configuration.d.ts"]
 	}
 }

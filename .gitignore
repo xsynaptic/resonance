@@ -6,7 +6,7 @@ dist/
 .cache/
 .wrangler/
 __pycache__/
-worker-configuration.d.ts
+/worker-configuration.d.ts
 
 # dependencies
 node_modules/

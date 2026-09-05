@@ -46,6 +46,8 @@ const labels = {
 	removeFromQueue: 'Remove',
 	seek: 'Seek',
 	shuffle: 'Shuffle',
+	skipBack: 'Back 30 seconds',
+	skipForward: 'Forward 30 seconds',
 	toggleTimeMode: 'Toggle elapsed and remaining',
 	unmute: 'Unmute',
 	volume: 'Volume',
@@ -67,7 +69,7 @@ function makeItem(id: string, extra: Partial<QueueItem> = {}): QueueItem {
 const releaseHref = '/releases/cosmic-drift';
 const release = [makeItem('a', { releaseHref }), makeItem('b', { releaseHref })];
 
-function renderPlayer(variant: 'full' | 'mini' = 'full') {
+function renderPlayer(variant?: 'compact' | 'expanded') {
 	const store = createPlayerStore();
 
 	render(<AudioPlayer labels={labels} store={store} urls={testUrls} variant={variant} />);
@@ -81,6 +83,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	cleanup();
+	localStorage.clear();
 });
 
 describe('AudioPlayer', () => {
@@ -182,11 +185,53 @@ describe('AudioPlayer', () => {
 		expect(screen.getByText('Track a')).toBeVisible();
 	});
 
-	test('drops the tray in the mini variant, keeping the seek surface', () => {
-		renderPlayer('mini');
+	test('leaves the layout to the container query until a variant forces one', () => {
+		const { container } = render(
+			<AudioPlayer labels={labels} store={createPlayerStore()} urls={testUrls} />,
+		);
 
-		expect(screen.queryByRole('button', { name: labels.queue })).not.toBeInTheDocument();
-		expect(screen.getByRole('slider', { name: labels.seek })).toBeVisible();
+		expect(container.querySelector('.player-bar')).not.toHaveAttribute('data-layout');
+	});
+
+	test('writes the forced layout onto the bar', () => {
+		renderPlayer('expanded');
+
+		expect(screen.getByRole('region', { name: labels.nowPlaying })).toHaveAttribute(
+			'data-layout',
+			'expanded',
+		);
+
+		cleanup();
+		renderPlayer('compact');
+
+		expect(screen.getByRole('region', { name: labels.nowPlaying })).toHaveAttribute(
+			'data-layout',
+			'compact',
+		);
+	});
+
+	test('renders the skip buttons only when the host names a skip', () => {
+		renderPlayer();
+
+		expect(screen.queryByRole('button', { name: labels.skipBack })).not.toBeInTheDocument();
+
+		cleanup();
+
+		const store = createPlayerStore();
+
+		render(<AudioPlayer labels={labels} skipSeconds={30} store={store} urls={testUrls} />);
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+			store.setState({ currentTimeS: 100 });
+		});
+		fireEvent.click(screen.getByRole('button', { name: labels.skipForward }));
+
+		expect(engineMock.seek).toHaveBeenCalledWith(130);
+
+		fireEvent.click(screen.getByRole('button', { name: labels.skipBack }));
+
+		expect(engineMock.seek).toHaveBeenCalledWith(100);
 	});
 
 	test('seeks in seconds off the range input', () => {
@@ -250,8 +295,6 @@ describe('AudioPlayer', () => {
 
 		expect(clock).toHaveTextContent('-1:56');
 		expect(clock).toHaveAttribute('data-mode', 'remaining');
-
-		localStorage.removeItem('player:time-mode');
 	});
 
 	test('renders what the host composed into the track info beside the artist', () => {

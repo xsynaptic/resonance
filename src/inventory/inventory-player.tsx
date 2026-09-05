@@ -5,54 +5,39 @@ import { useEffect, useState } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
+export const skipSeconds = 30;
+
 interface PlayerSpecimenProps {
 	items: Array<PlayerPayloadItem>;
 	labels: PlayerLabels;
-	specimen: 'empty' | 'error' | 'full' | 'marquee' | 'mini' | 'remaining' | 'toggle' | 'tray';
+	specimen: 'default' | 'empty' | 'error' | 'marquee' | 'remaining' | 'tray';
+	variant?: 'compact' | 'expanded';
 }
 
 type SpecimenStore = ReturnType<typeof createPlayerStore>;
 
 // Each specimen holds its own store, so the live bar keeps the singleton and playing here never hijacks it
-export function PlayerSpecimen({ items, labels, specimen }: PlayerSpecimenProps) {
+export function PlayerSpecimen({ items, labels, specimen, variant }: PlayerSpecimenProps) {
 	const [store] = useState(createPlayerStore);
 	const [urls] = useState(() => (specimen === 'error' ? failingUrls : queuedUrls(items)));
-	const [isMini, setIsMini] = useState(false);
 
 	useEffect(() => {
 		seed(store, specimen, items);
 	}, [items, specimen, store]);
 
-	if (specimen === 'mini') {
-		return <AudioPlayer labels={labels} store={store} urls={urls} variant="mini" />;
-	}
-
-	if (specimen === 'toggle') {
-		return (
-			<div>
-				<button
-					className="mb-3 rounded-xs border border-surface-400 px-3 py-1 font-mono text-xs text-ink-500"
-					onClick={() => {
-						setIsMini((mini) => !mini);
-					}}
-					type="button"
-				>
-					{isMini ? 'Switch to the full layout' : 'Switch to the mini layout'}
-				</button>
-				{isMini ? (
-					<AudioPlayer labels={labels} store={store} urls={urls} variant="mini" />
-				) : (
-					<AudioPlayer labels={labels} store={store} urls={urls} variant="full" />
-				)}
-			</div>
-		);
-	}
-
-	return <AudioPlayer labels={labels} store={store} urls={urls} variant="full" />;
+	return (
+		<AudioPlayer
+			labels={labels}
+			skipSeconds={skipSeconds}
+			store={store}
+			urls={urls}
+			variant={variant}
+		/>
+	);
 }
 
 // Each variation is nothing but tokens on the wrapper, which the renderer reads when it paints
-const WAVEFORM_VARIATIONS = [
+const waveformVariations = [
 	{ className: undefined, label: '2px bar, 1px gap, 1px radius (the default)' },
 	{ className: 'inventory-waveform-square', label: '2px bar, 1px gap, no radius' },
 	{ className: 'inventory-waveform-chunky', label: '3px bar, 1px gap, 1px radius' },
@@ -93,7 +78,7 @@ export function WaveformComparison({
 
 	return (
 		<div className="flex flex-col gap-6">
-			{WAVEFORM_VARIATIONS.map((variation) => (
+			{waveformVariations.map((variation) => (
 				<Player.Root
 					className={variation.className}
 					key={variation.label}
@@ -131,15 +116,15 @@ function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
 	};
 }
 
-// Long enough to overflow the 18rem info window at every viewport, so both lines are always marching
-const MARQUEE_ARTIST = 'Basilisk, with Nebula Drift, Forest Signal and the Ektoplazm Sound System';
-const MARQUEE_TITLE = 'Deep Forest Transmissions From The Edge Of A Very Long Winter Night';
+// Long enough to overflow the info window in either layout, so both lines are always marching
+const marqueeArtist = 'Basilisk, with Nebula Drift, Forest Signal and the Ektoplazm Sound System';
+const marqueeTitle = 'Deep Forest Transmissions From The Edge Of A Very Long Winter Night';
 
 function marqueed(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
 	const [first, ...rest] = items;
 	if (!first) return [...items];
 
-	return [{ ...first, artistLine: MARQUEE_ARTIST, title: MARQUEE_TITLE }, ...rest];
+	return [{ ...first, artistLine: marqueeArtist, title: marqueeTitle }, ...rest];
 }
 
 function queueFor(

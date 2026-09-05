@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerStore } from '#store/player-store.ts';
-import type { MiniPlayerLabels, PlayerLabels, PlayerUrls } from '#types.ts';
+import type { PlayerLabels, PlayerUrls } from '#types.ts';
 
 import { PlayerRoot } from '#components/player-root.tsx';
 import { QueueControl } from '#components/queue-control.tsx';
@@ -14,49 +14,46 @@ import { TrackInfo } from '#components/track-info.tsx';
 import { TransportControls } from '#components/transport-controls.tsx';
 import { VolumeControl } from '#components/volume-control.tsx';
 
-export type AudioPlayerProps = AudioPlayerChrome & {
+export interface AudioPlayerProps {
+	labels: PlayerLabels;
+	// Host controls rendered into the tray's header
+	queueActions?: ReactNode;
+	// Unset renders no skip buttons
+	skipSeconds?: number | undefined;
 	// Tests and secondary mounts pass a fresh store for isolation
 	store?: StoreApi<PlayerStore> | undefined;
 	// `undefined` renders the player inert
 	urls: PlayerUrls | undefined;
-};
+	variant?: 'compact' | 'expanded' | undefined;
+}
 
-// Mini is the full bar minus the signal display and the queue tray
-type AudioPlayerChrome =
-	| { labels: MiniPlayerLabels; variant: 'mini' }
-	| {
-			labels: PlayerLabels;
-			// Host controls rendered into the tray's header
-			queueActions?: ReactNode;
-			variant?: 'full';
-	  };
-
-export function AudioPlayer(props: AudioPlayerProps) {
-	const { labels, store, urls } = props;
-	const isFull = props.variant !== 'mini';
-
+export function AudioPlayer({
+	labels,
+	queueActions,
+	skipSeconds,
+	store,
+	urls,
+	variant,
+}: AudioPlayerProps) {
 	return (
 		<PlayerRoot
 			aria-label={labels.nowPlaying}
 			as="section"
 			className="player-bar"
+			data-layout={variant}
 			store={store}
 			urls={urls}
 		>
-			<div className="player-bar-lead">
-				<TransportControls labels={labels} />
+			<div className="player-bar-grid">
+				<TransportControls labels={labels} skipSeconds={skipSeconds} />
 				<TrackInfo emptyLabel={labels.nowPlaying}>
 					<TimeDisplay label={labels.toggleTimeMode} />
 				</TrackInfo>
-			</div>
-			<div className="player-bar-scrub">
-				<SeekBar label={labels.seek} />
-			</div>
-			<div className="player-bar-tail">
+				<SeekBar className="player-bar-seek" label={labels.seek} />
 				<StatusRegion labels={labels} />
-				{isFull ? <SignalDisplay /> : undefined}
+				<SignalDisplay />
 				<VolumeControl labels={labels} />
-				{isFull ? <QueueControl actions={props.queueActions} labels={props.labels} /> : undefined}
+				<QueueControl actions={queueActions} labels={labels} />
 			</div>
 		</PlayerRoot>
 	);

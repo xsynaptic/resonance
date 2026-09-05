@@ -27,6 +27,7 @@
 	--player-padding-block: 0.625rem;
 	--player-info-width: 18rem;
 	--player-waveform-height: 3rem;
+	--player-waveform-height-expanded: 3.5rem;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
 	--player-font-family: inherit;
@@ -292,8 +293,7 @@
 	translate: -50%;
 }
 
-/* Both mechanisms sit here rather than one outside: where the pointer cannot hover, `data-open` is the
-   whole story, and a `:focus-within` that opened the panel there would fight the trigger's own toggle */
+/* Inside the query, because a `:focus-within` outside it would open the panel on a tap and then fight the toggle */
 @media (hover: hover) {
 	.player-volume:hover .player-volume-panel,
 	.player-volume:focus-within .player-volume-panel {
@@ -326,8 +326,7 @@
 	opacity: 0.5;
 }
 
-/* The `width` attribute the renderer sets is the canvas's intrinsic size, so `min-width: auto` would floor
-   this flex item at the buffer's width and push it out over whatever sits beside it */
+/* The renderer's `width` attribute is the canvas's intrinsic size, which `min-width: auto` would floor this box at */
 .player-waveform {
 	display: block;
 	width: 100%;
@@ -488,64 +487,83 @@
 	color: var(--player-text-dim);
 }
 
-/* The prebuilt `full` and `mini` bars; the parts above stand on their own */
+/* The one prebuilt bar, and the container the layout below answers to; an element cannot query itself */
 .player-bar {
 	position: relative;
-	display: flex;
-	gap: var(--player-gap);
-	align-items: center;
 	padding: var(--player-padding-block) var(--player-padding-inline);
+	container-type: inline-size;
 	background-color: color-mix(in oklab, var(--player-surface) 95%, transparent);
 	border-top: 1px solid var(--player-border);
 	backdrop-filter: blur(8px);
 }
 
-/* A grow factor here left the title 0px at 641 and 27px at 768 */
-.player-bar-lead {
-	display: flex;
-	flex: 0 1 auto;
-	gap: var(--player-gap);
-	align-items: center;
-	min-width: 0;
-}
+/* The layout is these four properties, so the container query and `data-layout` write the same declarations */
 
-/* A marquee needs a box to overflow, so the info window is sized rather than fitted to its content.
-   The width rather than a flex basis: a shrinkable basis contributes only the content size to the lead
-   group's own intrinsic width, which collapsed the box back onto the title */
-.player-bar .player-track {
-	flex: 0 1 auto;
-	width: var(--player-info-width);
-}
+/* The info window is sized by its track: a grid item with a definite width overflows the track it sits in */
+.player-bar-grid {
+	--player-layout-areas: 'transport info seek scope volume queue';
+	--player-layout-columns: auto minmax(0, var(--player-info-width)) minmax(0, 1fr) auto auto auto;
+	--player-layout-scope: block;
+	--player-layout-skip: none;
 
-.player-bar-scrub {
-	display: flex;
-	flex: 2;
+	display: grid;
+	grid-template-areas: var(--player-layout-areas);
+	grid-template-columns: var(--player-layout-columns);
 	gap: var(--player-gap);
 	align-items: center;
 }
 
-.player-bar-tail {
-	display: flex;
-	gap: var(--player-gap);
-	align-items: center;
-}
-
-/* `48rem` and `40rem` are Tailwind's `md` and `sm`; a custom property cannot be read inside a media query */
-@media (width < 48rem) {
-	/* The scope costs 108px the row does not have, and reads as decoration beside the waveform */
-	.player-bar .player-scope {
-		display: none;
+/* Compact's fixed parts measure 628, so 200px of waveform wants 828px; a container query reads the content box */
+@container (width < 52rem) {
+	.player-bar:not([data-layout]) .player-bar-grid {
+		--player-layout-areas: 'info info volume queue' 'transport seek seek seek';
+		--player-layout-columns: auto minmax(0, 1fr) auto auto;
+		--player-layout-scope: none;
+		--player-layout-skip: inline-flex;
+		--player-waveform-height: var(--player-waveform-height-expanded);
 	}
 }
 
-@media (width < 40rem) {
-	/* The clock is the widest thing left after the transport; the waveform's progress still reads position */
+.player-bar[data-layout='expanded'] .player-bar-grid {
+	--player-layout-areas: 'info info volume queue' 'transport seek seek seek';
+	--player-layout-columns: auto minmax(0, 1fr) auto auto;
+	--player-layout-scope: none;
+	--player-layout-skip: inline-flex;
+	--player-waveform-height: var(--player-waveform-height-expanded);
+}
+
+.player-bar-grid .player-transport {
+	grid-area: transport;
+}
+
+.player-bar-grid .player-track {
+	grid-area: info;
+}
+
+.player-bar-grid .player-bar-seek {
+	grid-area: seek;
+}
+
+.player-bar-grid .player-scope {
+	display: var(--player-layout-scope);
+	grid-area: scope;
+}
+
+.player-bar-grid .player-volume {
+	grid-area: volume;
+}
+
+.player-bar-grid .player-queue {
+	grid-area: queue;
+}
+
+.player-bar-grid .player-skip {
+	display: var(--player-layout-skip);
+}
+
+/* `40rem` is Tailwind's `sm`; below it the waveform's progress is what reads position */
+@container (width < 40rem) {
 	.player-bar .player-time {
 		display: none;
-	}
-
-	/* Wide enough to grab; the title truncates once the bar reaches it */
-	.player-bar-scrub {
-		min-width: 4rem;
 	}
 }

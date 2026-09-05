@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import type { StoreApi } from 'zustand/vanilla';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { useStore } from 'zustand';
 
 import type { PlayerStore } from '#store/player-store.ts';
+import type { SubscribeTime } from '#types.ts';
 
 import { playerStore } from '#store/player-store.ts';
 
@@ -23,4 +24,23 @@ export function PlayerStoreProvider({
 
 export function usePlayer<Selected>(selector: (state: PlayerStore) => Selected): Selected {
 	return useStore(useContext(PlayerStoreContext), selector);
+}
+
+export function usePlayerStoreApi(): StoreApi<PlayerStore> {
+	return useContext(PlayerStoreContext);
+}
+
+export function useSubscribeTime(): SubscribeTime {
+	const store = usePlayerStoreApi();
+
+	return useMemo<SubscribeTime>(
+		() => (onTime) => {
+			onTime(store.getState().currentTimeS);
+
+			return store.subscribe((state) => {
+				onTime(state.currentTimeS);
+			});
+		},
+		[store],
+	);
 }

@@ -16,7 +16,16 @@ const urls: PlayerUrls = {
 	waveform: () => Promise.resolve(undefined),
 };
 
-export function PlayerIsland({ labels }: { labels: PlayerLabels }) {
+let parsedSource: string | undefined;
+let parsedItems: Array<PlayerPayloadItem> | undefined;
+
+export function PlayerIsland({
+	labels,
+	skipSeconds,
+}: {
+	labels: PlayerLabels;
+	skipSeconds: number;
+}) {
 	// One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
 	useEffect(() => {
 		const onClick = (event: MouseEvent): void => {
@@ -55,7 +64,7 @@ export function PlayerIsland({ labels }: { labels: PlayerLabels }) {
 		};
 	}, []);
 
-	return <AudioPlayer labels={labels} urls={urls} variant="full" />;
+	return <AudioPlayer labels={labels} skipSeconds={skipSeconds} urls={urls} />;
 }
 
 function currentTrackId(): string | undefined {
@@ -98,14 +107,20 @@ function queuedItem(trackId: string): PlayerPayloadItem | undefined {
 	return found as PlayerPayloadItem | undefined;
 }
 
+// Parsed once per payload rather than once per click; the string changes with each soft navigation
 function readPayload(): Array<PlayerPayloadItem> | undefined {
 	const payload =
 		document.querySelector<HTMLElement>('[data-player-payload]')?.dataset.playerPayload;
 	if (!payload) return undefined;
+	if (payload === parsedSource) return parsedItems;
+
+	parsedSource = payload;
 
 	try {
-		return JSON.parse(payload) as Array<PlayerPayloadItem>;
+		parsedItems = JSON.parse(payload) as Array<PlayerPayloadItem>;
 	} catch {
-		return undefined;
+		parsedItems = undefined;
 	}
+
+	return parsedItems;
 }

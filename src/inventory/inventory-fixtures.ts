@@ -18,6 +18,7 @@ import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
 import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
 
+import { skipSeconds } from '#inventory/inventory-player.tsx';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
@@ -31,6 +32,7 @@ import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
 
 // The inventory's one seam onto real content, so the page itself is only imports and prop-passing
 // Everything is found by predicate rather than named by slug, so editing content cannot break a specimen
@@ -111,6 +113,8 @@ const playerLabels: PlayerLabels = {
 	removeFromQueue: t('player.removeFromQueue'),
 	seek: t('player.seek'),
 	shuffle: t('player.shuffle'),
+	skipBack: formatStringTemplate(t('player.skipBack'), { seconds: skipSeconds }),
+	skipForward: formatStringTemplate(t('player.skipForward'), { seconds: skipSeconds }),
 	toggleTimeMode: t('player.toggleTimeMode'),
 	unmute: t('player.unmute'),
 	volume: t('player.volume'),

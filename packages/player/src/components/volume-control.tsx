@@ -1,11 +1,11 @@
-import { useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-import type { MiniPlayerLabels } from '#types.ts';
+import type { PlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
 import { VolumeIcon, VolumeLowIcon, VolumeMutedIcon } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
-import { usePlayer } from '#store/context.tsx';
+import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 const hoverQuery = '(hover: hover)';
 const lowVolume = 0.5;
@@ -16,14 +16,32 @@ export function VolumeControl({
 	labels,
 }: {
 	className?: string | undefined;
-	labels: Pick<MiniPlayerLabels, 'mute' | 'unmute' | 'volume'>;
+	labels: Pick<PlayerLabels, 'mute' | 'unmute' | 'volume'>;
 }) {
 	const volume = usePlayer((state) => state.volume);
-	const setVolume = usePlayer((state) => state.setVolume);
-	const toggleMute = usePlayer((state) => state.toggleMute);
+	const store = usePlayerStoreApi();
 	const isHoverCapable = useIsHoverCapable();
 	const [isOpen, setIsOpen] = useState(false);
+	const controlRef = useRef<HTMLDivElement>(null);
 	const triggerRef = useRef<HTMLButtonElement>(null);
+
+	// Only the touch branch opens the panel, so this listener is mounted only where a tap can leave it open
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const onPointerDown = (event: PointerEvent): void => {
+			if (event.target instanceof Node && controlRef.current?.contains(event.target)) return;
+
+			setIsOpen(false);
+		};
+
+		// Nothing here calls `preventDefault`, so the browser need not wait on it to start a scroll
+		document.addEventListener('pointerdown', onPointerDown, { passive: true });
+
+		return () => {
+			document.removeEventListener('pointerdown', onPointerDown);
+		};
+	}, [isOpen]);
 
 	const isMuted = volume === 0;
 	const muteLabel = isMuted ? labels.unmute : labels.mute;
@@ -38,6 +56,7 @@ export function VolumeControl({
 				setIsOpen(false);
 				triggerRef.current?.focus();
 			}}
+			ref={controlRef}
 		>
 			<Button
 				aria-expanded={isHoverCapable ? undefined : isOpen}
@@ -46,7 +65,7 @@ export function VolumeControl({
 				className="player-button-icon"
 				onClick={() => {
 					if (isHoverCapable) {
-						toggleMute();
+						store.getState().toggleMute();
 						return;
 					}
 
@@ -63,7 +82,7 @@ export function VolumeControl({
 					max={1}
 					min={0}
 					onChange={(event) => {
-						setVolume(Number(event.target.value));
+						store.getState().setVolume(Number(event.target.value));
 					}}
 					step={0.01}
 					type="range"
@@ -74,7 +93,9 @@ export function VolumeControl({
 						aria-label={muteLabel}
 						aria-pressed={isMuted}
 						className="player-button-icon"
-						onClick={toggleMute}
+						onClick={() => {
+							store.getState().toggleMute();
+						}}
 					>
 						{isMuted ? <VolumeMutedIcon /> : <VolumeIcon />}
 					</Button>

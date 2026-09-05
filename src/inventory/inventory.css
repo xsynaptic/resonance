@@ -4,7 +4,7 @@
 
 /* Unlayered, so it beats the site's rule hiding an empty bar; this specimen exists to show that state */
 .inventory-player-empty .player-bar[data-empty] {
-	display: flex;
+	display: block;
 }
 
 /* The panel opens on hover or focus on this machine, so the specimen pins it open to be looked at */

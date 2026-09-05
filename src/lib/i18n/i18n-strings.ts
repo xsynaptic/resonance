@@ -138,6 +138,8 @@ const strings = {
 	'player.removeFromQueue': 'Remove from the queue',
 	'player.seek': 'Seek',
 	'player.shuffle': 'Shuffle',
+	'player.skipBack': 'Back {seconds} seconds',
+	'player.skipForward': 'Forward {seconds} seconds',
 	'player.toggleTimeMode': 'Toggle elapsed and remaining',
 	'player.unmute': 'Unmute',
 	'player.volume': 'Volume',
@@ -151,6 +153,12 @@ const strings = {
 	'section.tracklist.heading': 'Tracklist',
 	'site.pageTitle': '{title} · {siteTitle}',
 	'site.skipLink': 'Skip to content',
+	'terms.otherRegions': 'Other regions',
+	'terms.otherStyles': 'Other styles',
+	'terms.subEras': 'Sub-eras',
+	'terms.subLabels': 'Sublabels',
+	'terms.subRegions': 'Subregions',
+	'terms.subStyles': 'Substyles',
 	'topButton.label': 'Back to top',
 } as const satisfies Record<string, string>;
 

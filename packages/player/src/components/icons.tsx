@@ -56,6 +56,24 @@ export function ShuffleIcon() {
 	);
 }
 
+export function SkipBackIcon({ seconds }: { seconds: number }) {
+	return (
+		<Icon>
+			<path d="M12 6a7 7 0 1 0 7 7M15 3l-3 3 3 3" />
+			<SkipCount seconds={seconds} />
+		</Icon>
+	);
+}
+
+export function SkipForwardIcon({ seconds }: { seconds: number }) {
+	return (
+		<Icon>
+			<path d="M12 6a7 7 0 1 1-7 7M9 3l3 3-3 3" />
+			<SkipCount seconds={seconds} />
+		</Icon>
+	);
+}
+
 export function VolumeIcon() {
 	return (
 		<Icon>
@@ -96,5 +114,21 @@ function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
 		>
 			{children}
 		</svg>
+	);
+}
+
+function SkipCount({ seconds }: { seconds: number }) {
+	return (
+		<text
+			dominantBaseline="central"
+			fill="currentColor"
+			fontSize="9"
+			stroke="none"
+			textAnchor="middle"
+			x="12"
+			y="14"
+		>
+			{seconds}
+		</text>
 	);
 }

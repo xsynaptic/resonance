@@ -1,6 +1,14 @@
-// Split by variant so a mini host does not owe copy for a tray it never mounts
-export interface MiniPlayerLabels {
+export interface PlaybackError {
+	stage: PlaybackErrorStage;
+	trackId: string;
+}
+
+export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported';
+
+export interface PlayerLabels {
 	capped: string;
+	clearQueue: string;
+	empty: string;
 	error: string;
 	loading: string;
 	mute: string;
@@ -9,25 +17,15 @@ export interface MiniPlayerLabels {
 	pause: string;
 	play: string;
 	previous: string;
+	queue: string;
+	removeFromQueue: string;
 	seek: string;
+	shuffle: string;
+	skipBack: string;
+	skipForward: string;
 	toggleTimeMode: string;
 	unmute: string;
 	volume: string;
-}
-
-export interface PlaybackError {
-	stage: PlaybackErrorStage;
-	trackId: string;
-}
-
-export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported';
-
-export interface PlayerLabels extends MiniPlayerLabels {
-	clearQueue: string;
-	empty: string;
-	queue: string;
-	removeFromQueue: string;
-	shuffle: string;
 }
 
 // `capped` is terminal like `error`, but nothing failed: the host's resolver declined to serve the track
@@ -66,3 +64,5 @@ export interface QueueLoudness {
 }
 
 export type StreamResolution = { status: 'capped' } | { status: 'ok'; url: string };
+
+export type SubscribeTime = (onTime: (currentTimeS: number) => void) => () => void;

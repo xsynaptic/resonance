@@ -1,10 +1,14 @@
 import type { QueueItem } from '#types.ts';
 
+const defaultSeekOffsetSeconds = 10;
+
 export interface MediaSessionHandlers {
 	next: () => void;
 	pause: () => void;
 	play: () => void;
 	previous: () => void;
+	seekBy: (deltaSeconds: number) => void;
+	seekTo: (seconds: number) => void;
 }
 
 export function bindMediaSession(handlers: MediaSessionHandlers): void {
@@ -15,6 +19,26 @@ export function bindMediaSession(handlers: MediaSessionHandlers): void {
 		['pause', handlers.pause],
 		['previoustrack', handlers.previous],
 		['nexttrack', handlers.next],
+		[
+			'seekbackward',
+			(details) => {
+				handlers.seekBy(-(details.seekOffset ?? defaultSeekOffsetSeconds));
+			},
+		],
+		[
+			'seekforward',
+			(details) => {
+				handlers.seekBy(details.seekOffset ?? defaultSeekOffsetSeconds);
+			},
+		],
+		[
+			'seekto',
+			(details) => {
+				if (details.seekTime === undefined) return;
+
+				handlers.seekTo(details.seekTime);
+			},
+		],
 	];
 
 	for (const [action, handler] of bindings) {

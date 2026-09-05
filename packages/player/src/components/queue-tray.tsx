@@ -7,25 +7,27 @@ import type { PlayerLabels } from '#types.ts';
 import { Button } from '#components/button.tsx';
 import { CloseIcon, ShuffleIcon } from '#components/icons.tsx';
 import { isSectioned } from '#queue/queue.ts';
-import { usePlayer } from '#store/context.tsx';
+import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 interface QueueTrayProps {
 	actions?: ReactNode;
 	labels: Pick<PlayerLabels, 'clearQueue' | 'empty' | 'removeFromQueue' | 'shuffle'>;
 }
 
-// Renders nothing when closed, so it costs no layout while the bar is idle
+// Closed renders nothing, so an idle tray costs no layout and its subscriptions no renders
 export function QueueTray({ actions, labels }: QueueTrayProps) {
 	const isOpen = usePlayer((state) => state.isTrayOpen);
+
+	if (!isOpen) return;
+
+	return <QueueTrayPanel actions={actions} labels={labels} />;
+}
+
+function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 	const queue = usePlayer((state) => state.queue);
 	const currentIndex = usePlayer((state) => state.currentIndex);
 	const isShuffling = usePlayer((state) => state.isShuffling);
-	const playAt = usePlayer((state) => state.playAt);
-	const removeAt = usePlayer((state) => state.removeAt);
-	const clearQueue = usePlayer((state) => state.clearQueue);
-	const toggleShuffle = usePlayer((state) => state.toggleShuffle);
-
-	if (!isOpen) return;
+	const store = usePlayerStoreApi();
 
 	return (
 		<div className="player-tray">
@@ -35,14 +37,22 @@ export function QueueTray({ actions, labels }: QueueTrayProps) {
 						aria-label={labels.shuffle}
 						aria-pressed={isShuffling}
 						className="player-tray-action"
-						onClick={toggleShuffle}
+						onClick={() => {
+							store.getState().toggleShuffle();
+						}}
 						type="button"
 					>
 						<ShuffleIcon />
 						{labels.shuffle}
 					</button>
 				)}
-				<button className="player-tray-action" onClick={clearQueue} type="button">
+				<button
+					className="player-tray-action"
+					onClick={() => {
+						store.getState().clearQueue();
+					}}
+					type="button"
+				>
 					{labels.clearQueue}
 				</button>
 				{actions}
@@ -63,7 +73,7 @@ export function QueueTray({ actions, labels }: QueueTrayProps) {
 								<button
 									className="player-tray-pick"
 									onClick={() => {
-										playAt(index);
+										store.getState().playAt(index);
 									}}
 									type="button"
 								>
@@ -74,7 +84,7 @@ export function QueueTray({ actions, labels }: QueueTrayProps) {
 									aria-label={labels.removeFromQueue}
 									className="player-button-small"
 									onClick={() => {
-										removeAt(index);
+										store.getState().removeAt(index);
 									}}
 								>
 									<CloseIcon />

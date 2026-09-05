@@ -1,7 +1,6 @@
 import type { PlaybackErrorStage } from '#types.ts';
 
-// One media element inside a Web Audio graph: source, normalization gain, analyser, delay, volume gain
-// The element keeps progressive streaming and native seeking; the graph adds gain stages and the analysis tap
+// An element inside the graph: the element keeps progressive streaming and native seeking, the graph adds gain and the tap
 export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
 	currentTime(): number;
@@ -143,8 +142,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	};
 }
 
-// The analyser's Blackman window weights a transient fully only at the buffer's midpoint, so the bands run half a window late
-// The output latency is a credit against that: the sound is still that far from the speaker when its analysis is in hand
+// The analyser's window weights a transient fully only at its midpoint, and output latency is a credit against that lag
 // Floored at zero because a long output latency (Bluetooth) already puts the display ahead
 function analysisDelaySeconds(analyser: AnalyserNode): number {
 	const windowCentreS = analyser.fftSize / 2 / analyser.context.sampleRate;

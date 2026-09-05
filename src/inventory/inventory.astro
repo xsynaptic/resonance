@@ -672,10 +672,10 @@ const paginationPage: Page<ContentCatalogItem> = {
 	>
 		<Specimen
 			name="AudioPlayer"
-			note="The full layout: transport, the info window, seek surface, status region, signal display, volume and the queue. The info window is a fixed 18rem box holding the title, the artist and the clock, so the seek surface takes whatever is left. The seek surface is the waveform canvas, painted from the mix's measured peaks."
+			note="One composition of parts, laid out by CSS grid areas: transport, the info window, seek surface, status region, signal display, volume and the queue. Unforced, as here, the bar reads its own width through a container query and picks a layout, so it answers to the box it is given rather than to the viewport. The info window's track is capped at 18rem and the seek surface takes whatever is left, painted from the mix's measured peaks."
 			source="packages/player/src/components/audio-player.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="full" />
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
 		</Specimen>
 		<Specimen
 			name="MarqueeText"
@@ -686,24 +686,45 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="Player.Time"
-			note="The clock in remaining mode, seeded a third of the way in. It is a toggle button: clicking it flips between elapsed (<code>32:04</code>) and remaining (<code>-85:32</code>), one number either way, and the choice persists under <code>player:time-mode</code>. <code>data-mode</code> is the styling hook and <code>aria-pressed</code> carries the state."
+			note="The clock in remaining mode, seeded a third of the way in. It is a toggle button: clicking it flips between elapsed (<code>32:04</code>) and remaining (<code>-85:32</code>), one number either way, and the choice persists under <code>player:v1:time-mode</code>. <code>data-mode</code> is the styling hook and <code>aria-pressed</code> carries the state."
 			source="packages/player/src/components/time-display.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="remaining" />
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="The mini layout: the same bar without the signal display and the queue. Its labels are <code>MiniPlayerLabels</code>, so a mini host owes no copy for a tray it never mounts."
+			note="The compact layout, forced through <code>variant</code>, which writes <code>data-layout</code> on the bar and takes the choice away from the container query. One row: the scope is placed and the skip buttons are hidden."
 			source="packages/player/src/components/audio-player.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="mini" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				specimen="default"
+				variant="compact"
+			/>
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="Switching layouts is host state, not player state: both layouts drive one store, so a swap leaves the queue and anything playing untouched. A third layout would be a host composition of the parts rather than a third variant."
-			source="src/inventory/inventory-player.tsx"
+			note="The expanded layout, forced the same way. Two rows: the info window takes the first with volume and the queue, the waveform takes the second beside five transport buttons, and the skips seek 30 seconds through <code>seekBy</code>. The scope is not placed here. Both layouts are one DOM, so the switch remounts nothing and loses no state."
+			source="packages/player/src/components/audio-player.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="toggle" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				specimen="default"
+				variant="expanded"
+			/>
+		</Specimen>
+		<Specimen
+			name="AudioPlayer"
+			note="The same bar unforced in a 32rem column, below the container query's threshold, so it picks the expanded layout on its own. Nothing here tells it the viewport width: it answers to the box."
+			source="packages/player/src/player.css"
+		>
+			<div class="max-w-[32rem]">
+				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
+			</div>
 		</Specimen>
 		<Specimen
 			name="Player.Seek"

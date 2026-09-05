@@ -20,6 +20,10 @@ export type PlayerRootProps = ComponentPropsWithoutRef<'div'> & {
 
 export function PlayerRoot({ store = playerStore, urls, ...rest }: PlayerRootProps) {
 	useEffect(() => {
+		store.getState().hydratePreferences();
+	}, [store]);
+
+	useEffect(() => {
 		store.getState().configure({ urls });
 	}, [store, urls]);
 

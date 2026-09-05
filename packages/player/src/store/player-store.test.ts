@@ -411,6 +411,34 @@ describe('transport', () => {
 		expect(store.getState().currentTimeS).toBe(42);
 	});
 
+	test('seeks by a delta, clamped into the loaded track', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		store.setState({ currentTimeS: 100 });
+		store.getState().seekBy(30);
+
+		expect(store.getState().currentTimeS).toBe(130);
+
+		store.getState().seekBy(120);
+
+		expect(store.getState().currentTimeS).toBe(180);
+
+		store.getState().seekBy(-500);
+
+		expect(store.getState().currentTimeS).toBe(0);
+	});
+
+	test('ignores a delta while no duration is known', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		store.setState({ currentTimeS: 10, durationS: undefined });
+		store.getState().seekBy(30);
+
+		expect(store.getState().currentTimeS).toBe(10);
+	});
+
 	test('stops playback and resets the engine', () => {
 		const store = configured();
 
@@ -523,12 +551,15 @@ describe('volume', () => {
 		expect(store.getState().volume).toBe(0);
 	});
 
-	test('restores a stored volume on configure', () => {
-		localStorage.setItem('player:volume', '0.4');
+	test('restores a stored volume on hydrate', () => {
+		localStorage.setItem('player:v1:volume', '0.4');
 
-		expect(configured().getState().volume).toBe(0.4);
+		const store = configured();
 
-		localStorage.removeItem('player:volume');
+		store.getState().hydratePreferences();
+		expect(store.getState().volume).toBe(0.4);
+
+		localStorage.removeItem('player:v1:volume');
 	});
 
 	test('mutes to zero and unmutes to the level held when muting', () => {
@@ -579,23 +610,100 @@ describe('time mode', () => {
 		store.getState().toggleTimeMode();
 		expect(store.getState().timeMode).toBe('elapsed');
 
-		localStorage.removeItem('player:time-mode');
+		localStorage.removeItem('player:v1:time-mode');
 	});
 
-	test('persists the choice and restores it on configure', () => {
+	test('persists the choice and restores it on hydrate', () => {
 		configured().getState().toggleTimeMode();
 
-		expect(localStorage.getItem('player:time-mode')).toBe('remaining');
-		expect(configured().getState().timeMode).toBe('remaining');
+		expect(localStorage.getItem('player:v1:time-mode')).toBe('remaining');
 
-		localStorage.removeItem('player:time-mode');
+		const restored = configured();
+
+		restored.getState().hydratePreferences();
+		expect(restored.getState().timeMode).toBe('remaining');
+
+		localStorage.removeItem('player:v1:time-mode');
 	});
 
 	test('ignores a stored value that is not a mode', () => {
-		localStorage.setItem('player:time-mode', 'sideways');
+		localStorage.setItem('player:v1:time-mode', 'sideways');
 
-		expect(configured().getState().timeMode).toBe('elapsed');
+		const store = configured();
 
-		localStorage.removeItem('player:time-mode');
+		store.getState().hydratePreferences();
+		expect(store.getState().timeMode).toBe('elapsed');
+
+		localStorage.removeItem('player:v1:time-mode');
+	});
+});
+
+describe('storage', () => {
+	test('survives a browser where reaching for localStorage throws', () => {
+		const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+
+		Object.defineProperty(globalThis, 'localStorage', {
+			configurable: true,
+			get() {
+				throw new Error('SecurityError');
+			},
+		});
+
+		try {
+			const store = configured();
+
+			expect(() => {
+				store.getState().hydratePreferences();
+			}).not.toThrow();
+			expect(() => {
+				store.getState().setVolume(0.3);
+			}).not.toThrow();
+			expect(() => {
+				store.getState().toggleTimeMode();
+			}).not.toThrow();
+			expect(store.getState().volume).toBe(0.3);
+		} finally {
+			if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor);
+		}
+	});
+
+	test('writes the volume once for a run of changes', () => {
+		vi.useFakeTimers();
+		localStorage.removeItem('player:v1:volume');
+
+		try {
+			const store = configured();
+			const setItem = vi.spyOn(localStorage, 'setItem');
+
+			for (const volume of [0.1, 0.2, 0.3, 0.4]) store.getState().setVolume(volume);
+
+			expect(setItem).not.toHaveBeenCalled();
+
+			vi.runAllTimers();
+			expect(setItem).toHaveBeenCalledTimes(1);
+			expect(localStorage.getItem('player:v1:volume')).toBe('0.4');
+
+			setItem.mockRestore();
+		} finally {
+			vi.useRealTimers();
+			localStorage.removeItem('player:v1:volume');
+		}
+	});
+});
+
+describe('configure', () => {
+	test('ignores a repeat of the resolvers it already holds', () => {
+		const store = createPlayerStore();
+		const urls: PlayerUrls = {
+			stream: () => Promise.resolve<StreamResolution>({ status: 'ok', url: 'https://api.test/a' }),
+			waveform: () => Promise.resolve(undefined),
+		};
+
+		store.getState().configure({ urls });
+
+		const first = store.getState();
+
+		store.getState().configure({ urls });
+		expect(store.getState()).toBe(first);
 	});
 });

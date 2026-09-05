@@ -1,18 +1,18 @@
 import { useEffect, useRef } from 'react';
 
 import { joinClassNames } from '#lib/class-names.ts';
-import { usePlayer } from '#store/context.tsx';
+import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 // An oscilloscope trace of the analyser's time-domain data; the loop runs only while playing and visible
 export function SignalDisplay({ className }: { className?: string | undefined }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const isPlaying = usePlayer((state) => state.status === 'playing');
-	const getAnalyser = usePlayer((state) => state.getAnalyser);
+	const store = usePlayerStoreApi();
 
 	useEffect(() => {
 		if (!isPlaying) return;
 
-		const analyser = getAnalyser();
+		const analyser = store.getState().getAnalyser();
 		const canvas = canvasRef.current;
 		const context = canvas?.getContext('2d');
 		if (!analyser || !canvas || !context) return;
@@ -22,12 +22,20 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 		// Read once: getPropertyValue forces a style recalc, and this loop runs at the display's refresh rate
 		const accent = getComputedStyle(canvas).getPropertyValue('--player-accent');
 
+		// Measured on resize rather than per frame, where reading either would force a layout 60 times a second
+		let ratio = 1;
+		let width = 0;
+		let height = 0;
+		let columns = 0;
+
 		// Reassigning width resets the transform, so size first and then set it
 		const sizeCanvas = (): void => {
-			const ratio = window.devicePixelRatio || 1;
-
-			canvas.width = Math.max(1, Math.floor(canvas.clientWidth * ratio));
-			canvas.height = Math.max(1, Math.floor(canvas.clientHeight * ratio));
+			ratio = window.devicePixelRatio || 1;
+			width = canvas.clientWidth;
+			height = canvas.clientHeight;
+			columns = Math.floor(width * ratio);
+			canvas.width = Math.max(1, columns);
+			canvas.height = Math.max(1, Math.floor(height * ratio));
 			context.setTransform(ratio, 0, 0, ratio, 0, 0);
 		};
 
@@ -43,25 +51,41 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 			frame = requestAnimationFrame(render);
 			if (document.hidden) return;
 
-			// Don't draw the scope without enough room to do so
-			const width = canvas.clientWidth;
-			if (width === 0) return;
+			if (columns === 0) return;
 
 			analyser.getByteTimeDomainData(samples);
 
-			const height = canvas.clientHeight;
+			const thickness = 1 / ratio;
 
 			context.clearRect(0, 0, width, height);
-			context.lineWidth = 1.5;
+			context.lineWidth = thickness;
 			context.strokeStyle = accent;
 			context.beginPath();
 
-			for (const [index, sample] of samples.entries()) {
-				const x = (index / samples.length) * width;
-				const y = (sample / 128) * (height / 2);
+			for (let column = 0; column < columns; column += 1) {
+				const start = Math.floor((column * samples.length) / columns);
+				const end = Math.max(start + 1, Math.floor(((column + 1) * samples.length) / columns));
 
-				if (index === 0) context.moveTo(x, y);
-				else context.lineTo(x, y);
+				let lowest = 255;
+				let highest = 0;
+
+				for (let index = start; index < end; index += 1) {
+					const sample = samples[index] ?? 128;
+
+					if (sample < lowest) lowest = sample;
+					if (sample > highest) highest = sample;
+				}
+
+				// Half a device pixel over, so a one-pixel stroke lands on the column rather than straddling two
+				const x = (column + 0.5) * thickness;
+				const top = (lowest / 128) * (height / 2);
+				const bottom = (highest / 128) * (height / 2);
+
+				// Silence has no span of its own, and the centre line still has to be drawn
+				const span = Math.max(bottom - top, thickness);
+
+				context.moveTo(x, top);
+				context.lineTo(x, top + span);
 			}
 
 			context.stroke();
@@ -73,7 +97,7 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 			cancelAnimationFrame(frame);
 			observer.disconnect();
 		};
-	}, [getAnalyser, isPlaying]);
+	}, [isPlaying, store]);
 
 	return (
 		<canvas

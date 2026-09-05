@@ -27,9 +27,10 @@ function painted(theme: keyof typeof themes) {
 }
 
 function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: Array<number> }) {
+	const listeners = new Set<(currentTimeS: number) => void>();
+
 	render(
 		<WaveformCanvas
-			currentTimeS={props.currentTimeS}
 			durationS={props.durationS}
 			label="Seek"
 			onSeek={(seconds) => {
@@ -37,9 +38,21 @@ function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: 
 			}}
 			overview={[0.4, 0.8, 0.6, 0.2]}
 			resolveWaveform={resolveNothing}
+			subscribeTime={(onTime) => {
+				onTime(props.currentTimeS);
+				listeners.add(onTime);
+
+				return () => {
+					listeners.delete(onTime);
+				};
+			}}
 			trackId="fixture"
 		/>,
 	);
+
+	return (currentTimeS: number): void => {
+		for (const listener of listeners) listener(currentTimeS);
+	};
 }
 
 // happy-dom has no 2d context and resolves no custom property; the fills record the colours in the order painted
@@ -80,7 +93,7 @@ function stubPainting() {
 		},
 	} as unknown as CSSStyleDeclaration);
 
-	return fills;
+	return { context, fills };
 }
 
 afterEach(() => {
@@ -92,7 +105,7 @@ afterEach(() => {
 
 describe('WaveformCanvas', () => {
 	test('repaints in the new colours when the theme flips', async () => {
-		const fills = stubPainting();
+		const { fills } = stubPainting();
 
 		renderCanvas({ currentTimeS: 50, durationS: 200 });
 		expect(fills).toStrictEqual(painted('lit'));
@@ -136,5 +149,39 @@ describe('WaveformCanvas', () => {
 		fireEvent.keyDown(slider, { key: 'PageUp' });
 
 		expect(seeks).toStrictEqual([0, 30]);
+	});
+
+	// The box is 300 device pixels over a 3000s mix, so the played edge is worth ten seconds a pixel
+	test('repaints only once the played edge reaches the next device pixel', () => {
+		const { context } = stubPainting();
+		const emit = renderCanvas({ currentTimeS: 0, durationS: 3000 });
+
+		const paints = () => context.clearRect.mock.calls.length;
+		const settled = paints();
+
+		emit(1);
+		emit(2);
+		emit(3);
+		expect(paints()).toBe(settled);
+
+		emit(10);
+		expect(paints()).toBe(settled + 1);
+	});
+
+	test('announces the position once a second rather than on every tick', () => {
+		stubPainting();
+
+		const emit = renderCanvas({ currentTimeS: 0, durationS: 3000 });
+		const slider = screen.getByRole('slider');
+
+		emit(65.2);
+		expect(slider.getAttribute('aria-valuetext')).toBe('1:05');
+		expect(slider.getAttribute('aria-valuenow')).toBe('65');
+
+		emit(65.7);
+		expect(slider.getAttribute('aria-valuenow')).toBe('65');
+
+		emit(66);
+		expect(slider.getAttribute('aria-valuenow')).toBe('66');
 	});
 });

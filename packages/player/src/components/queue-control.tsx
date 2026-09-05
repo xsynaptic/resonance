@@ -6,7 +6,7 @@ import { Button } from '#components/button.tsx';
 import { QueueIcon } from '#components/icons.tsx';
 import { QueueTray } from '#components/queue-tray.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
-import { usePlayer } from '#store/context.tsx';
+import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 export function QueueControl({
 	actions,
@@ -18,9 +18,9 @@ export function QueueControl({
 	className?: string | undefined;
 	labels: PlayerLabels;
 }) {
-	const toggleTray = usePlayer((state) => state.toggleTray);
 	const isTrayOpen = usePlayer((state) => state.isTrayOpen);
 	const count = usePlayer((state) => state.queue.length);
+	const store = usePlayerStoreApi();
 
 	return (
 		<div
@@ -32,7 +32,9 @@ export function QueueControl({
 				aria-expanded={isTrayOpen}
 				aria-label={labels.queue}
 				className="player-button-icon"
-				onClick={toggleTray}
+				onClick={() => {
+					store.getState().toggleTray();
+				}}
 			>
 				<QueueIcon />
 			</Button>

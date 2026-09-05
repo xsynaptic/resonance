@@ -1,27 +1,28 @@
 import type { KeyboardEvent, PointerEvent } from 'react';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-import type { PlayerUrls } from '#types.ts';
+import type { PlayerUrls, SubscribeTime } from '#types.ts';
 
 import { joinClassNames } from '#lib/class-names.ts';
 import { formatClock } from '#lib/format.ts';
 import { resamplePeaks } from '#waveform/resample.ts';
+import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
 import { loadWaveform } from '#waveform/waveform-cache.ts';
 
-const TARGET_BUCKETS = 400;
+const targetBuckets = 400;
 
 // Coarse for a mix that runs hours, but the steps a slider is expected to answer to
-const ARROW_STEP_S = 5;
-const PAGE_STEP_S = 60;
+const arrowStepSeconds = 5;
+const pageStepSeconds = 60;
 
-const KEY_STEPS_S = new Map<string, number>([
-	['ArrowDown', -ARROW_STEP_S],
-	['ArrowLeft', -ARROW_STEP_S],
-	['ArrowRight', ARROW_STEP_S],
-	['ArrowUp', ARROW_STEP_S],
-	['PageDown', -PAGE_STEP_S],
-	['PageUp', PAGE_STEP_S],
+const keyStepsSeconds = new Map<string, number>([
+	['ArrowDown', -arrowStepSeconds],
+	['ArrowLeft', -arrowStepSeconds],
+	['ArrowRight', arrowStepSeconds],
+	['ArrowUp', arrowStepSeconds],
+	['PageDown', -pageStepSeconds],
+	['PageUp', pageStepSeconds],
 ]);
 
 interface BarLayout {
@@ -38,88 +39,112 @@ interface HiResPeaks {
 
 interface WaveformCanvasProps {
 	className?: string | undefined;
-	currentTimeS: number;
 	durationS: number | undefined;
 	label: string;
 	onSeek: (seconds: number) => void;
 	overview: ReadonlyArray<number>;
 	resolveWaveform: PlayerUrls['waveform'];
+	subscribeTime: SubscribeTime;
 	trackId: string;
+}
+
+interface WaveformRendering {
+	height: number;
+	path: Path2D;
+	playedStyle: string;
+	trackStyle: string;
+	width: number;
 }
 
 // Draws the inline overview until the full-resolution waveform lands
 export function WaveformCanvas({
 	className,
-	currentTimeS,
 	durationS,
 	label,
 	onSeek,
 	overview,
 	resolveWaveform,
+	subscribeTime,
 	trackId,
 }: WaveformCanvasProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
+	// The handlers seek from the position the last paint saw, which is fresher than any render
+	const currentTimeRef = useRef(0);
+
 	// Tagged with its track so a stale fetch never paints over the current one
 	const [hiRes, setHiRes] = useState<HiResPeaks | undefined>(undefined);
 
-	// A canvas resolves custom properties only when something draws, so a host retint has to arrive as a redraw
-	const [themeVersion, setThemeVersion] = useState(0);
+	const themeVersion = useSyncExternalStore(subscribeTheme, getThemeVersion, zeroVersion);
 
 	useEffect(() => {
-		const controller = new AbortController();
+		let isCancelled = false;
 
-		void loadWaveform(resolveWaveform, trackId, TARGET_BUCKETS, controller.signal).then(
-			(loaded) => {
-				if (loaded) setHiRes({ peaks: loaded, trackId });
-			},
-		);
+		// The fetch is shared and finishes either way; a late answer for another track is dropped here
+		void loadWaveform(resolveWaveform, trackId, targetBuckets).then((loaded) => {
+			if (!isCancelled && loaded) setHiRes({ peaks: loaded, trackId });
+		});
 
 		return () => {
-			controller.abort();
+			isCancelled = true;
 		};
 	}, [resolveWaveform, trackId]);
 
-	useEffect(() => {
-		const observer = new MutationObserver(() => {
-			setThemeVersion((version) => version + 1);
-		});
-
-		observer.observe(document.documentElement, { attributeFilter: ['data-theme'] });
-
-		return () => {
-			observer.disconnect();
-		};
-	}, []);
-
 	const peaks = hiRes?.trackId === trackId ? hiRes.peaks : overview;
-	const progress = durationS && durationS > 0 ? Math.min(1, currentTimeS / durationS) : 0;
-
-	// Held in a ref so the observer below can stay mounted across every clock tick
-	const drawRef = useRef<() => void>(noDraw);
-
-	useEffect(() => {
-		drawRef.current = () => {
-			const canvas = canvasRef.current;
-			if (canvas) draw(canvas, peaks, progress);
-		};
-		drawRef.current();
-	}, [peaks, progress, themeVersion]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		if (!canvas) return;
+		const context = canvas?.getContext('2d');
+		if (!canvas || !context) return;
+
+		let rendering: undefined | WaveformRendering;
+		let paintedPx = -1;
+		let announced = '';
+
+		const paint = (currentTimeS: number): void => {
+			currentTimeRef.current = currentTimeS;
+
+			if (rendering === undefined) {
+				rendering = prepareRendering(canvas, peaks);
+				if (rendering === undefined) return;
+
+				// Assigning either resets the backing store, so it happens with the rebuild rather than per tick
+				canvas.width = rendering.width;
+				canvas.height = rendering.height;
+				paintedPx = -1;
+			}
+
+			const progress = durationS && durationS > 0 ? Math.min(1, currentTimeS / durationS) : 0;
+			const playedPx = Math.round(progress * rendering.width);
+
+			// On an hour-long mix a tick moves the edge a fraction of a device pixel, and repainting draws the same image
+			if (playedPx !== paintedPx) {
+				paintedPx = playedPx;
+				paintWaveform(context, rendering, playedPx);
+			}
+
+			const clock = formatClock(currentTimeS);
+			if (clock === announced) return;
+
+			announced = clock;
+			canvas.setAttribute('aria-valuenow', String(Math.floor(currentTimeS)));
+			canvas.setAttribute('aria-valuetext', clock);
+		};
 
 		const observer = new ResizeObserver(() => {
-			drawRef.current();
+			rendering = undefined;
+			paint(currentTimeRef.current);
 		});
 
 		observer.observe(canvas);
 
+		const unsubscribe = subscribeTime(paint);
+
 		return () => {
 			observer.disconnect();
+			unsubscribe();
 		};
-	}, []);
+	}, [durationS, peaks, subscribeTime, themeVersion]);
 
 	function seekToPointer(event: PointerEvent<HTMLCanvasElement>): void {
 		if (durationS === undefined) return;
@@ -133,7 +158,7 @@ export function WaveformCanvas({
 	function seekToKey(event: KeyboardEvent<HTMLCanvasElement>): void {
 		if (durationS === undefined) return;
 
-		const target = keyTarget(event.key, currentTimeS, durationS);
+		const target = keyTarget(event.key, currentTimeRef.current, durationS);
 		if (target === undefined) return;
 
 		event.preventDefault();
@@ -145,8 +170,6 @@ export function WaveformCanvas({
 			aria-label={label}
 			aria-valuemax={durationS ?? 0}
 			aria-valuemin={0}
-			aria-valuenow={currentTimeS}
-			aria-valuetext={formatClock(currentTimeS)}
 			className={joinClassNames('player-waveform', className)}
 			onKeyDown={seekToKey}
 			onPointerDown={(event) => {
@@ -178,36 +201,47 @@ function barsPath(bars: ReadonlyArray<number>, { bar, height, pitch, radius }: B
 	return path;
 }
 
-function clipToProgress(
-	context: CanvasRenderingContext2D,
-	width: number,
-	height: number,
-	progress: number,
-	paint: () => void,
-): void {
-	const played = progress * width;
-	if (played <= 0) return;
+// The keys `role="slider"` contracts for; anything else falls through to the page
+function keyTarget(key: string, currentTimeS: number, durationS: number): number | undefined {
+	if (key === 'Home') return 0;
+	if (key === 'End') return durationS;
 
+	const step = keyStepsSeconds.get(key);
+
+	return step === undefined ? undefined : currentTimeS + step;
+}
+
+function paintWaveform(
+	context: CanvasRenderingContext2D,
+	{ height, path, playedStyle, trackStyle, width }: WaveformRendering,
+	playedPx: number,
+): void {
+	context.clearRect(0, 0, width, height);
+	context.fillStyle = trackStyle;
+	context.fill(path);
+
+	if (playedPx <= 0) return;
+
+	// A clip rather than a colour per bar, so the played edge lands mid-bar instead of jumping a whole one
 	context.save();
 	context.beginPath();
-	context.rect(0, 0, played, height);
+	context.rect(0, 0, playedPx, height);
 	context.clip();
-	paint();
+	context.fillStyle = playedStyle;
+	context.fill(path);
 	context.restore();
 }
 
 // Every length is in device pixels: a bar pitch that is not a whole number of them aliases each bar differently
-function draw(canvas: HTMLCanvasElement, peaks: ReadonlyArray<number>, progress: number): void {
-	const context = canvas.getContext('2d');
-	if (!context || peaks.length === 0) return;
+function prepareRendering(
+	canvas: HTMLCanvasElement,
+	peaks: ReadonlyArray<number>,
+): undefined | WaveformRendering {
+	if (peaks.length === 0) return undefined;
 
 	const ratio = window.devicePixelRatio || 1;
 	const width = Math.max(1, Math.round(canvas.clientWidth * ratio));
 	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
-
-	canvas.width = width;
-	canvas.height = height;
-	context.clearRect(0, 0, width, height);
 
 	const styles = getComputedStyle(canvas);
 	const bar = Math.max(1, readDevicePixels(styles, '--player-waveform-bar', ratio, 2));
@@ -223,30 +257,13 @@ function draw(canvas: HTMLCanvasElement, peaks: ReadonlyArray<number>, progress:
 	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
 	const bars = resamplePeaks(peaks, Math.max(1, Math.floor((width + gap) / pitch)));
 
-	const path = barsPath(bars, layout);
-
-	context.fillStyle = styles.getPropertyValue('--player-waveform-track');
-	context.fill(path);
-
-	// A clip rather than a colour per bar, so the played edge lands mid-bar instead of jumping a whole one
-	clipToProgress(context, width, height, progress, () => {
-		context.fillStyle = styles.getPropertyValue('--player-accent');
-		context.fill(path);
-	});
-}
-
-// The keys `role="slider"` contracts for; anything else falls through to the page
-function keyTarget(key: string, currentTimeS: number, durationS: number): number | undefined {
-	if (key === 'Home') return 0;
-	if (key === 'End') return durationS;
-
-	const step = KEY_STEPS_S.get(key);
-
-	return step === undefined ? undefined : currentTimeS + step;
-}
-
-function noDraw(): void {
-	return;
+	return {
+		height,
+		path: barsPath(bars, layout),
+		playedStyle: styles.getPropertyValue('--player-accent'),
+		trackStyle: styles.getPropertyValue('--player-waveform-track'),
+		width,
+	};
 }
 
 // The token has to resolve to a px length: a custom property cannot be converted from any other unit without a probe element
@@ -260,4 +277,8 @@ function readDevicePixels(
 	const parsed = Number.parseFloat(styles.getPropertyValue(property));
 
 	return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : fallback) * ratio));
+}
+
+function zeroVersion(): number {
+	return 0;
 }

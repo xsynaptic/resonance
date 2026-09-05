@@ -29,9 +29,11 @@ import {
 } from '#queue/queue.ts';
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
-const RESTART_THRESHOLD_S = 3;
-const TIME_MODE_STORAGE_KEY = 'player:time-mode';
-const VOLUME_STORAGE_KEY = 'player:volume';
+const restartThresholdSeconds = 3;
+const timeModeStorageKey = 'player:v1:time-mode';
+const volumeStorageKey = 'player:v1:volume';
+
+const volumeWriteDelayMs = 250;
 
 export type PlayerStore = PlayerActions & PlayerState;
 
@@ -45,9 +47,12 @@ interface LoadAttempt {
 // Property syntax so a component can select one action without tripping `unbound-method`
 interface PlayerActions {
 	clearQueue: () => void;
+	// Accepts the host's resolvers and nothing else; a host passing an inline object re-runs it on every render
 	configure: (config: { urls: PlayerUrls | undefined }) => void;
 	// Read inside a rAF loop, never as a render input
 	getAnalyser: () => AnalyserNode | undefined;
+	// Reads the listener's persisted preferences; separate from `configure` so a re-render cannot re-run it
+	hydratePreferences: () => void;
 	// Replaces the queue without touching the engine; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
 	next: () => void;
@@ -61,6 +66,8 @@ interface PlayerActions {
 	// Swaps out everything after `index`, leaving the loaded track and what came before it alone
 	replaceAfter: (index: number, items: ReadonlyArray<QueueItem>) => void;
 	seek: (seconds: number) => void;
+	// Clamped into the loaded track, so the skip buttons and the lock screen cannot run past either end
+	seekBy: (deltaSeconds: number) => void;
 	setVolume: (volume: number) => void;
 	stop: () => void;
 	// Drops to silence and back to the level held when muting; a manual drag to zero unmutes to full
@@ -113,6 +120,36 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 		let loading: LoadAttempt | undefined;
 		let volumeBeforeMute: number | undefined;
 
+		// Per store rather than per module, so a second store never inherits a pending write
+		let isFlushBound = false;
+		let volumeWriteTimer: ReturnType<typeof setTimeout> | undefined;
+		let volumeToWrite: number | undefined;
+
+		function flushVolume(): void {
+			if (volumeWriteTimer !== undefined) clearTimeout(volumeWriteTimer);
+
+			volumeWriteTimer = undefined;
+
+			if (volumeToWrite === undefined) return;
+
+			writeStored(volumeStorageKey, String(volumeToWrite));
+			volumeToWrite = undefined;
+		}
+
+		function persistVolume(volume: number): void {
+			volumeToWrite = volume;
+
+			if (!isFlushBound) {
+				isFlushBound = true;
+				// The tab can close inside the delay, so a pending write goes out on the way
+				window.addEventListener('pagehide', flushVolume);
+			}
+
+			if (volumeWriteTimer !== undefined) return;
+
+			volumeWriteTimer = setTimeout(flushVolume, volumeWriteDelayMs);
+		}
+
 		function ensureEngine(): AudioEngine {
 			if (engine) return engine;
 
@@ -151,6 +188,12 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				},
 				previous: () => {
 					get().previous();
+				},
+				seekBy: (deltaSeconds) => {
+					get().seekBy(deltaSeconds);
+				},
+				seekTo: (seconds) => {
+					get().seek(seconds);
 				},
 			});
 
@@ -264,8 +307,14 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			},
 
 			configure: ({ urls }) => {
-				set({ urls });
+				if (get().urls === urls) return;
 
+				set({ urls });
+			},
+
+			getAnalyser: () => engine?.analyser(),
+
+			hydratePreferences: () => {
 				const storedTimeMode = readStoredTimeMode();
 				if (storedTimeMode !== undefined) set({ timeMode: storedTimeMode });
 
@@ -275,8 +324,6 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				set({ volume: storedVolume });
 				engine?.setVolume(storedVolume);
 			},
-
-			getAnalyser: () => engine?.analyser(),
 
 			loadQueue: (items) => {
 				if (items.length === 0) return;
@@ -373,7 +420,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				const activeEngine = ensureEngine();
 				const back = previousInOrder(playOrder, currentIndex);
 
-				if (back === undefined || activeEngine.currentTime() > RESTART_THRESHOLD_S) {
+				if (back === undefined || activeEngine.currentTime() > restartThresholdSeconds) {
 					activeEngine.seek(0);
 					return;
 				}
@@ -433,6 +480,13 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				set({ currentTimeS: seconds });
 			},
 
+			seekBy: (deltaSeconds) => {
+				const { currentTimeS, durationS } = get();
+				if (durationS === undefined) return;
+
+				get().seek(Math.min(durationS, Math.max(0, currentTimeS + deltaSeconds)));
+			},
+
 			setVolume: (volume) => {
 				applyVolume(volume);
 			},
@@ -488,7 +542,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				const timeMode = get().timeMode === 'elapsed' ? 'remaining' : 'elapsed';
 
 				set({ timeMode });
-				persistTimeMode(timeMode);
+				writeStored(timeModeStorageKey, timeMode);
 			},
 
 			toggleTray: () => {
@@ -506,35 +560,36 @@ function orderFor(length: number, currentIndex: number | undefined, isShuffling:
 	return isShuffling ? shuffledOrder(length, currentIndex) : identityOrder(length);
 }
 
-function persistTimeMode(timeMode: PlayerTimeMode): void {
-	if (typeof localStorage === 'undefined') return;
-
-	localStorage.setItem(TIME_MODE_STORAGE_KEY, timeMode);
-}
-
-function persistVolume(volume: number): void {
-	if (typeof localStorage === 'undefined') return;
-
-	localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
+// Reaching for `localStorage` throws where the getter does: Safari with cookies blocked, a sandboxed iframe
+function readStored(key: string): string | undefined {
+	try {
+		return localStorage.getItem(key) ?? undefined;
+	} catch {
+		return undefined;
+	}
 }
 
 function readStoredTimeMode(): PlayerTimeMode | undefined {
-	if (typeof localStorage === 'undefined') return undefined;
-
-	const stored = localStorage.getItem(TIME_MODE_STORAGE_KEY);
+	const stored = readStored(timeModeStorageKey);
 
 	return stored === 'elapsed' || stored === 'remaining' ? stored : undefined;
 }
 
 function readStoredVolume(): number | undefined {
-	if (typeof localStorage === 'undefined') return undefined;
-
-	const stored = localStorage.getItem(VOLUME_STORAGE_KEY);
-	if (stored === null) return undefined;
+	const stored = readStored(volumeStorageKey);
+	if (stored === undefined) return undefined;
 
 	const value = Number(stored);
 
 	return Number.isFinite(value) ? clampVolume(value) : undefined;
+}
+
+function writeStored(key: string, value: string): void {
+	try {
+		localStorage.setItem(key, value);
+	} catch {
+		return;
+	}
 }
 
 export const playerStore = createPlayerStore();

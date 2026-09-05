@@ -2,6 +2,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import type { Thing } from '#lib/utils/seo-structured-data.ts';
 
+import { identityLinks } from '#lib/site.ts';
 import {
 	buildAuthorSchema,
 	buildWebPageSchema,
@@ -12,7 +13,6 @@ export function getPageSchemas(
 	entry: CollectionEntry<'pages'>,
 	props: {
 		description: string | undefined;
-		sameAs: ReadonlyArray<string>;
 		url: string;
 	},
 ): Array<Thing> {
@@ -25,6 +25,6 @@ export function getPageSchemas(
 			title: entry.data.title,
 			url: props.url,
 		}),
-		...(isPersonProfile ? [buildAuthorSchema({ sameAs: props.sameAs })] : []),
+		...(isPersonProfile ? [buildAuthorSchema({ sameAs: identityLinks })] : []),
 	];
 }

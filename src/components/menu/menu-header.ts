@@ -21,6 +21,8 @@ export const menuHeaderItems = [
 			{ rel: 'me', title: 'Instagram', url: 'https://www.instagram.com/djbasilisk' },
 			{ rel: 'me', title: 'Mixcloud', url: 'https://www.mixcloud.com/basilisk/' },
 			{ rel: 'me', title: 'SoundCloud', url: 'https://soundcloud.com/djbasilisk' },
+			{ rel: 'me', title: 'Threads', url: 'https://www.threads.com/@djbasilisk' },
+			{ rel: 'me', title: 'X', url: 'https://x.com/djbasilisk' },
 		],
 		title: 'Profile',
 		url: '/profile',

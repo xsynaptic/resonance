@@ -6,6 +6,16 @@ export const site = {
 	title: siteTitle,
 } as const;
 
+// Curated for the Person node's `sameAs`, kept separate from the menu's `rel="me"` navigation links
+export const identityLinks = [
+	'https://www.facebook.com/dj.basilisk',
+	'https://www.instagram.com/djbasilisk',
+	'https://www.mixcloud.com/basilisk/',
+	'https://soundcloud.com/djbasilisk',
+	'https://www.threads.com/@djbasilisk',
+	'https://x.com/djbasilisk',
+] as const;
+
 export function getSiteUrl(...routeParts: Array<string>): string {
 	return [import.meta.env.SITE, ...routeParts, '/'].join('/').replaceAll(/(?<!:)\/\/+/g, '/');
 }

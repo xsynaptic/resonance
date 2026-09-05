@@ -3,17 +3,6 @@ import type { MenuItem } from '#components/menu/menu-types.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
-export function getMenuIdentityLinks(items: ReadonlyArray<MenuItem>): Array<string> {
-	const links: Array<string> = [];
-
-	for (const item of items) {
-		if (item.rel === 'me' && item.url) links.push(item.url);
-		if (item.children) links.push(...getMenuIdentityLinks(item.children));
-	}
-
-	return links;
-}
-
 export function getMenuItemAriaLabel(item: MenuItem) {
 	return formatStringTemplate(t('nav.submenu.label'), { title: item.title });
 }

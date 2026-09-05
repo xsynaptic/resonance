@@ -3,27 +3,11 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 import { site } from '#lib/site.ts';
 import { getContentUrl, getSiteUrl } from '#lib/utils/routing.ts';
 
-const SchemaTypeEnum = {
-	Article: 'Article',
-	BreadcrumbList: 'BreadcrumbList',
-	CollectionPage: 'CollectionPage',
-	ListItem: 'ListItem',
-	MusicAlbum: 'MusicAlbum',
-	MusicGroup: 'MusicGroup',
-	MusicPlaylist: 'MusicPlaylist',
-	Organization: 'Organization',
-	Person: 'Person',
-	Rating: 'Rating',
-	Review: 'Review',
-	WebPage: 'WebPage',
-	WebSite: 'WebSite',
-} as const;
-
 export type Thing =
 	Article | BreadcrumbList | CollectionPage | MusicPlaylist | Person | Review | WebPage | WebSite;
 
 interface Article extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['Article'];
+	'@type': 'Article';
 	author: IdReference;
 	dateModified?: string;
 	datePublished: string;
@@ -34,9 +18,9 @@ interface Article extends IdReference {
 }
 
 interface BreadcrumbList extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['BreadcrumbList'];
+	'@type': 'BreadcrumbList';
 	itemListElement: Array<{
-		'@type': (typeof SchemaTypeEnum)['ListItem'];
+		'@type': 'ListItem';
 		item?: string;
 		name: string;
 		position: number;
@@ -44,7 +28,7 @@ interface BreadcrumbList extends IdReference {
 }
 
 interface CollectionPage extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['CollectionPage'];
+	'@type': 'CollectionPage';
 	description?: string;
 	name: string;
 	url: string;
@@ -61,28 +45,28 @@ interface IdReference {
 
 // Inline on a Review, so it never stands alone in the graph
 interface MusicAlbum extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['MusicAlbum'];
+	'@type': 'MusicAlbum';
 	byArtist?: {
-		'@type': (typeof SchemaTypeEnum)['MusicGroup'];
+		'@type': 'MusicGroup';
 		name: string;
 	};
 	datePublished?: string;
 	name: string;
 	recordLabel?: {
-		'@type': (typeof SchemaTypeEnum)['Organization'];
+		'@type': 'Organization';
 		name: string;
 	};
 	sameAs?: string;
 }
 
 interface MusicPlaylist extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['MusicPlaylist'];
+	'@type': 'MusicPlaylist';
 	name: string;
 	numTracks?: number;
 }
 
 interface Person extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['Person'];
+	'@type': 'Person';
 	alternateName: string;
 	name: string;
 	sameAs?: ReadonlyArray<string>;
@@ -90,13 +74,13 @@ interface Person extends IdReference {
 }
 
 interface Review extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['Review'];
+	'@type': 'Review';
 	author: IdReference;
 	datePublished: string;
 	itemReviewed: MusicAlbum;
 	name: string;
 	reviewRating?: {
-		'@type': (typeof SchemaTypeEnum)['Rating'];
+		'@type': 'Rating';
 		bestRating: number;
 		ratingValue: number;
 		worstRating: number;
@@ -104,7 +88,7 @@ interface Review extends IdReference {
 }
 
 interface WebPage extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['WebPage'];
+	'@type': 'WebPage';
 	description?: string;
 	mainEntity?: IdReference;
 	name: string;
@@ -112,7 +96,7 @@ interface WebPage extends IdReference {
 }
 
 interface WebSite extends IdReference {
-	'@type': (typeof SchemaTypeEnum)['WebSite'];
+	'@type': 'WebSite';
 	description: string;
 	name: string;
 	publisher: IdReference;
@@ -129,11 +113,11 @@ const ids = {
 	article: (pageUrl: string) => `${pageUrl}#article`,
 	breadcrumb: (pageUrl: string) => `${pageUrl}#breadcrumb`,
 	collectionPage: (pageUrl: string) => `${pageUrl}#collection`,
-	person: `${profileUrl}#/schema.org/${SchemaTypeEnum.Person}`,
+	person: `${profileUrl}#person`,
 	playlist: (pageUrl: string) => `${pageUrl}#playlist`,
 	review: (pageUrl: string) => `${pageUrl}#review`,
 	webPage: (pageUrl: string) => `${pageUrl}#webpage`,
-	website: `${siteUrl}#/schema.org/${SchemaTypeEnum.WebSite}`,
+	website: `${siteUrl}#website`,
 };
 
 export function buildArticleSchema(props: {
@@ -147,7 +131,7 @@ export function buildArticleSchema(props: {
 }): Article {
 	return {
 		'@id': ids.article(props.url),
-		'@type': SchemaTypeEnum.Article,
+		'@type': 'Article',
 		headline: props.title,
 		...(props.description ? { description: props.description } : {}),
 		...(props.imageUrl ? { image: props.imageUrl } : {}),
@@ -161,7 +145,7 @@ export function buildArticleSchema(props: {
 export function buildAuthorSchema(options?: { sameAs?: ReadonlyArray<string> }): Person {
 	return {
 		'@id': ids.person,
-		'@type': SchemaTypeEnum.Person,
+		'@type': 'Person',
 		// The site title names the persona; the Person node names the human behind it
 		alternateName: 'DJ Basilisk',
 		name: 'Basilisk',
@@ -219,7 +203,7 @@ export function buildPlaylistSchema(props: {
 }): MusicPlaylist {
 	return {
 		'@id': ids.playlist(props.url),
-		'@type': SchemaTypeEnum.MusicPlaylist,
+		'@type': 'MusicPlaylist',
 		name: props.title,
 		...(props.trackCount > 0 ? { numTracks: props.trackCount } : {}),
 	};
@@ -238,7 +222,7 @@ export function buildReviewSchema(props: {
 }): Review {
 	return {
 		'@id': ids.review(props.url),
-		'@type': SchemaTypeEnum.Review,
+		'@type': 'Review',
 		author: { '@id': ids.person },
 		datePublished: props.dateCreated.toISOString(),
 		itemReviewed: buildAlbumSchema(props),
@@ -246,7 +230,7 @@ export function buildReviewSchema(props: {
 		...(props.rating
 			? {
 					reviewRating: {
-						'@type': SchemaTypeEnum.Rating,
+						'@type': 'Rating',
 						bestRating: 100,
 						ratingValue: props.rating,
 						worstRating: 1,
@@ -264,7 +248,7 @@ export function buildWebPageSchema(props: {
 }): WebPage {
 	return {
 		'@id': ids.webPage(props.url),
-		'@type': SchemaTypeEnum.WebPage,
+		'@type': 'WebPage',
 		name: props.title,
 		...(props.description ? { description: props.description } : {}),
 		url: props.url,
@@ -275,7 +259,7 @@ export function buildWebPageSchema(props: {
 export function buildWebSiteSchema(): WebSite {
 	return {
 		'@id': ids.website,
-		'@type': SchemaTypeEnum.WebSite,
+		'@type': 'WebSite',
 		description: site.description,
 		name: site.title,
 		publisher: { '@id': ids.person },
@@ -306,14 +290,10 @@ function buildAlbumSchema(props: {
 }): MusicAlbum {
 	return {
 		'@id': ids.album(props.url),
-		'@type': SchemaTypeEnum.MusicAlbum,
+		'@type': 'MusicAlbum',
 		name: props.releaseTitle,
-		...(props.artist
-			? { byArtist: { '@type': SchemaTypeEnum.MusicGroup, name: props.artist } }
-			: {}),
-		...(props.label
-			? { recordLabel: { '@type': SchemaTypeEnum.Organization, name: props.label } }
-			: {}),
+		...(props.artist ? { byArtist: { '@type': 'MusicGroup', name: props.artist } } : {}),
+		...(props.label ? { recordLabel: { '@type': 'Organization', name: props.label } } : {}),
 		...(props.releaseYear ? { datePublished: props.releaseYear } : {}),
 		...(props.discogsUrl ? { sameAs: props.discogsUrl } : {}),
 	};
@@ -325,9 +305,9 @@ function buildBreadcrumbSchema(
 ): BreadcrumbList {
 	return {
 		'@id': ids.breadcrumb(pageUrl),
-		'@type': SchemaTypeEnum.BreadcrumbList,
+		'@type': 'BreadcrumbList',
 		itemListElement: items.map((item, index) => ({
-			'@type': SchemaTypeEnum.ListItem,
+			'@type': 'ListItem',
 			name: item.name,
 			position: index + 1,
 			...(item.url ? { item: item.url } : {}),
@@ -342,7 +322,7 @@ function buildCollectionPageSchema(props: {
 }): CollectionPage {
 	return {
 		'@id': ids.collectionPage(props.url),
-		'@type': SchemaTypeEnum.CollectionPage,
+		'@type': 'CollectionPage',
 		name: props.title,
 		...(props.description ? { description: props.description } : {}),
 		url: props.url,

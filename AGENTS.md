@@ -27,7 +27,7 @@ A `ready` document can still hold settled items. Those carry their disposition i
 
 ## Conventions
 
-- Imports use Node `#*` subpaths and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config. The `#*` imports map is per package and does not cascade; every package defines its own. A relative import inside a package is a mistake, including for a sibling file.
+- Imports use Node `#*` subpaths and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config. The `#*` imports map is per package and does not cascade; every package defines its own. A relative import inside a package is a mistake, including for a sibling file. The root package adds a second pattern, `#worker/*`, because `worker/` sits outside `src/`.
 
 ## Styling
 

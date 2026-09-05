@@ -36,6 +36,7 @@
 		"validate-content": "astro sync && pnpm -F @xsynaptic/scripts validate-content"
 	},
 	"imports": {
+		"#worker/*": "./worker/*",
 		"#*": "./src/*"
 	},
 	"dependencies": {

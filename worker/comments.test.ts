@@ -2,8 +2,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
-
-import { handleCommentSubmission } from './comments.ts';
+import { handleCommentSubmission } from '#worker/comments.ts';
 
 const ipSalt = 'test-salt';
 

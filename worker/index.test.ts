@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
-
-import worker from './index.ts';
+import worker from '#worker/index.ts';
 
 function createEnv(): Env {
 	// No route exercised here reaches D1, so the binding is left off the stub

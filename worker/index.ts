@@ -1,6 +1,5 @@
 import { t } from '#lib/i18n/i18n-strings.ts';
-
-import { fail, handleCommentSubmission } from './comments.ts';
+import { fail, handleCommentSubmission } from '#worker/comments.ts';
 
 export default {
 	async fetch(request, env) {

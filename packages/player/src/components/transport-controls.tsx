@@ -2,11 +2,14 @@ import type { MiniPlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
 import { NextIcon, PauseIcon, PlayIcon, PreviousIcon } from '#components/icons.tsx';
+import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer } from '#store/context.tsx';
 
 export function TransportControls({
+	className,
 	labels,
 }: {
+	className?: string | undefined;
 	labels: Pick<MiniPlayerLabels, 'next' | 'pause' | 'play' | 'previous'>;
 }) {
 	const isPlaying = usePlayer((state) => state.status === 'playing');
@@ -16,7 +19,7 @@ export function TransportControls({
 	const previous = usePlayer((state) => state.previous);
 
 	return (
-		<div className="player-transport">
+		<div className={joinClassNames('player-transport', className)}>
 			<Button
 				aria-label={labels.previous}
 				className="player-button-icon"

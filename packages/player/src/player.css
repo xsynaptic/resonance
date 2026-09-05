@@ -1,5 +1,4 @@
-/* Structure only; decoration is the custom properties, which a host redeclares on `.player-bar` */
-:where(.player-bar) {
+:root {
 	--player-text-bright: #fafafa;
 	--player-text-strong: #f5f5f5;
 	--player-text-mid: #e5e5e5;
@@ -11,51 +10,27 @@
 	--player-surface-hover: #262626;
 	--player-border: #262626;
 	--player-border-strong: #404040;
-	--player-accent: #10b981;
-	--player-accent-bright: #34d399;
 
-	/* Read from JS by the waveform canvas, so it must resolve to a colour */
+	/* Read from JS when a canvas paints, so an override must resolve to a colour, never to a `var()` chain */
+	--player-accent: #10b981;
 	--player-waveform-track: #525252;
+	--player-accent-bright: #34d399;
+	--player-focus-ring: var(--player-accent);
 	--player-gap: 0.75rem;
 	--player-gap-tight: 0.5rem;
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.5rem;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
+	--player-font-family: inherit;
 	--player-font-mono: ui-monospace, menlo, consolas, monospace;
 	--player-radius: 0.25rem;
 	--player-radius-large: 0.5rem;
 }
 
-.player-bar {
-	display: flex;
-	gap: var(--player-gap);
-	align-items: center;
-	padding: var(--player-padding-block) var(--player-padding-inline);
-	background-color: color-mix(in oklab, var(--player-surface) 95%, transparent);
-	border-top: 1px solid var(--player-border);
-	backdrop-filter: blur(8px);
-}
-
-.player-bar-lead {
-	display: flex;
-	flex: 1 1 0%;
-	gap: var(--player-gap);
-	align-items: center;
-	min-width: 0;
-}
-
-.player-bar-scrub {
-	display: flex;
-	flex: 2;
-	gap: var(--player-gap);
-	align-items: center;
-}
-
-.player-bar-tail {
-	display: flex;
-	gap: var(--player-gap);
-	align-items: center;
+/* Structure only; decoration is the custom properties above, which a host redeclares on `:root` */
+.player {
+	font-family: var(--player-font-family);
 }
 
 .player-status {
@@ -85,7 +60,7 @@
 /* An outline follows the border radius and stays visible under a host that restyles the rest */
 .player-button:focus-visible {
 	color: var(--player-text-bright);
-	outline: 2px solid var(--player-accent);
+	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 0;
 }
 
@@ -221,7 +196,7 @@
 }
 
 .player-waveform:focus-visible {
-	outline: 2px solid var(--player-accent);
+	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 2px;
 }
 
@@ -293,7 +268,7 @@
 
 .player-tray-action:focus-visible {
 	color: var(--player-text-mid);
-	outline: 2px solid var(--player-accent);
+	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 0;
 }
 
@@ -351,7 +326,7 @@
 
 .player-tray-pick:focus-visible {
 	color: var(--player-accent-bright);
-	outline: 2px solid var(--player-accent);
+	outline: 2px solid var(--player-focus-ring);
 	outline-offset: -2px;
 }
 
@@ -367,4 +342,36 @@
 
 .player-tray-artist {
 	color: var(--player-text-dim);
+}
+
+/* The prebuilt `full` and `mini` bars; the parts above stand on their own */
+.player-bar {
+	display: flex;
+	gap: var(--player-gap);
+	align-items: center;
+	padding: var(--player-padding-block) var(--player-padding-inline);
+	background-color: color-mix(in oklab, var(--player-surface) 95%, transparent);
+	border-top: 1px solid var(--player-border);
+	backdrop-filter: blur(8px);
+}
+
+.player-bar-lead {
+	display: flex;
+	flex: 1 1 0%;
+	gap: var(--player-gap);
+	align-items: center;
+	min-width: 0;
+}
+
+.player-bar-scrub {
+	display: flex;
+	flex: 2;
+	gap: var(--player-gap);
+	align-items: center;
+}
+
+.player-bar-tail {
+	display: flex;
+	gap: var(--player-gap);
+	align-items: center;
 }

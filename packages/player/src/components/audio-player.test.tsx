@@ -20,7 +20,8 @@ vi.mock('#engine/audio-engine.ts', () => ({
 	createAudioEngine: () => engineMock,
 }));
 
-import { MusicPlayer } from '#components/music-player.tsx';
+import { AudioPlayer } from '#components/audio-player.tsx';
+import * as Player from '#components/parts.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 const testUrls: PlayerUrls = {
@@ -66,15 +67,7 @@ const release = [makeItem('a', { releaseHref }), makeItem('b', { releaseHref })]
 function renderPlayer(variant: 'full' | 'mini' = 'full') {
 	const store = createPlayerStore();
 
-	render(
-		<MusicPlayer
-			labels={labels}
-			showSignalDisplay={false}
-			store={store}
-			urls={testUrls}
-			variant={variant}
-		/>,
-	);
+	render(<AudioPlayer labels={labels} store={store} urls={testUrls} variant={variant} />);
 
 	return store;
 }
@@ -87,7 +80,7 @@ afterEach(() => {
 	cleanup();
 });
 
-describe('MusicPlayer', () => {
+describe('AudioPlayer', () => {
 	test('disables transport and shows the placeholder with an empty queue', () => {
 		renderPlayer();
 
@@ -236,5 +229,23 @@ describe('MusicPlayer', () => {
 		});
 
 		expect(screen.getByRole('status')).toHaveTextContent(labels.error);
+	});
+
+	test('renders a host composition of the parts through Player.Root', () => {
+		const store = createPlayerStore();
+
+		render(
+			<Player.Root className="host-bar" store={store} urls={testUrls}>
+				<Player.Transport labels={labels} />
+				<Player.Time />
+			</Player.Root>,
+		);
+
+		const root = screen.getByRole('button', { name: labels.play }).closest('.player');
+
+		expect(root).toHaveClass('host-bar');
+		expect(root).toHaveAttribute('data-status', 'idle');
+		expect(store.getState().urls).toBe(testUrls);
+		expect(screen.queryByRole('button', { name: labels.queue })).not.toBeInTheDocument();
 	});
 });

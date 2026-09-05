@@ -36,6 +36,7 @@ import SectionHome from '#components/sections/section-home.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import { getInventoryFixtures } from '#inventory/inventory-fixtures.ts';
+import { PlayerSpecimen } from '#inventory/inventory-player.tsx';
 import ProseSample from '#inventory/inventory-prose-sample.mdx';
 import Section from '#inventory/inventory-section.astro';
 import Specimen from '#inventory/inventory-specimen.astro';
@@ -57,6 +58,8 @@ const {
 	mixcloudUrl,
 	mixItems,
 	openGraphCards,
+	playerItems,
+	playerLabels,
 	regionTree,
 	release,
 	reviewItems,
@@ -87,6 +90,7 @@ const sectionTitles = [
 	'Media',
 	'Open Graph',
 	'Audio',
+	'Player',
 	'Content blocks',
 	'Empty states',
 	'Utilities',
@@ -656,6 +660,55 @@ const paginationPage: Page<ContentCatalogItem> = {
 				src="https://www.youtube.com/embed/dQw4w9WgXcQ"
 				title="Embed frame sample"
 			/>
+		</Specimen>
+	</Section>
+	<Section
+		note="The player package, rendered from its own parts. Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton and nothing here hijacks it. No specimen reaches the network: the stream resolver answers from the payload it was handed, and each loaded state is set on the store directly, because building the audio graph needs a gesture."
+		title="Player"
+	>
+		<Specimen
+			name="AudioPlayer"
+			note="The full layout: transport, track info, clock, seek surface, status region, signal display, volume and the queue. The seek surface is the waveform canvas, painted from the mix's measured peaks."
+			source="packages/player/src/components/audio-player.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="full" />
+		</Specimen>
+		<Specimen
+			name="AudioPlayer"
+			note="The mini layout: the same bar without the signal display and the queue. Its labels are <code>MiniPlayerLabels</code>, so a mini host owes no copy for a tray it never mounts."
+			source="packages/player/src/components/audio-player.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="mini" />
+		</Specimen>
+		<Specimen
+			name="AudioPlayer"
+			note="Switching layouts is host state, not player state: both layouts drive one store, so a swap leaves the queue and anything playing untouched. A third layout would be a host composition of the parts rather than a third variant."
+			source="src/inventory/inventory-player.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="toggle" />
+		</Specimen>
+		<Specimen
+			name="Player.Queue"
+			note="The tray open over a sectioned queue. A heading is drawn above the first item of each section, and a queue carrying any heading loses shuffle, so only Clear is offered. The loaded row is marked with <code>data-current</code>."
+			source="packages/player/src/components/queue-control.tsx"
+		>
+			<div class="pt-44">
+				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="tray" />
+			</div>
+		</Specimen>
+		<Specimen
+			name="AudioPlayer"
+			note="Nothing queued: the transport is disabled, the clock reads its placeholder, the seek surface falls back to a disabled range input and the track line carries the <code>nowPlaying</code> label."
+			source="packages/player/src/components/audio-player.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="empty" />
+		</Specimen>
+		<Specimen
+			name="Player.Status"
+			note="A stream that will not resolve. The status region is a live region and stays empty outside the transient states, so it announces nothing until one arrives. Pressing play here runs the real rejection path."
+			source="packages/player/src/components/status-region.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="error" />
 		</Specimen>
 	</Section>
 	<Section

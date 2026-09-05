@@ -1,15 +1,18 @@
+import type { PlayerLabels } from '@xsynaptic/player';
+import type { CollectionEntry } from 'astro:content';
+
 import {
 	openGraphBasePath,
 	openGraphDefaultId,
 	openGraphImageFormat,
 	openGraphOutputPath,
 } from '@xsynaptic/shared/constants';
-import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection, render } from 'astro:content';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
@@ -18,12 +21,16 @@ import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
+import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
+import { site } from '#lib/site.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
-import { resolveRefs } from '#lib/utils/terms.ts';
+import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 // The inventory's one seam onto real content, so the page itself is only imports and prop-passing
 // Everything is found by predicate rather than named by slug, so editing content cannot break a specimen
@@ -41,6 +48,8 @@ interface MixSample {
 	downloads: number;
 	files: Array<string>;
 	links: Array<string>;
+	// Absent when the mix has no rendition in the audio manifest
+	queueItem?: PlayerPayloadItem | undefined;
 	title: string;
 	tracks: Array<TrackValue>;
 }
@@ -74,11 +83,43 @@ const iconIds: Array<IconId> = [
 	'youtube',
 ];
 
+// No `waveformOverview`, so the seek bar falls back to its range input; the stream URL points back at this page
+const itemWithoutPeaks: PlayerPayloadItem = {
+	albumLoudness: {},
+	artistLine: 'A Hand-Built Fixture',
+	durationMs: 2_400_000,
+	loudness: {},
+	releaseTitle: 'Inventory Sample',
+	streamUrl: '/inventory/#player',
+	title: 'A Mix With No Measured Peaks',
+	trackId: 'inventory-no-peaks',
+};
+
+const playerLabels: PlayerLabels = {
+	capped: t('player.capped'),
+	clearQueue: t('player.clearQueue'),
+	empty: t('player.empty'),
+	error: t('player.error'),
+	loading: t('player.loading'),
+	next: t('player.next'),
+	nowPlaying: t('player.nowPlaying'),
+	pause: t('player.pause'),
+	play: t('player.play'),
+	previous: t('player.previous'),
+	queue: t('player.queue'),
+	removeFromQueue: t('player.removeFromQueue'),
+	seek: t('player.seek'),
+	shuffle: t('player.shuffle'),
+	volume: t('player.volume'),
+};
+
 export async function getInventoryFixtures() {
 	const catalog = await getCatalog();
 
 	const mixItems = catalog.byCollection('mixes');
 	const reviewItems = catalog.byCollection('reviews');
+
+	const mix = await sampleMix();
 
 	const [vocabulary, formats, labels, styles, themes] = await Promise.all([
 		sampleTerms('artists'),
@@ -98,10 +139,12 @@ export async function getInventoryFixtures() {
 		iconIds,
 		imagePaths: await sampleImagePaths(4),
 		labels,
-		mix: await sampleMix(),
+		mix,
 		mixcloudUrl: await sampleMixField('mixcloudLink'),
 		mixItems,
 		openGraphCards: await sampleOpenGraphCards(),
+		playerItems: [...(mix?.queueItem ? [mix.queueItem] : []), itemWithoutPeaks],
+		playerLabels,
 		regionTree: await getDirectoryTerms('regions'),
 		release: await sampleRelease(),
 		reviewItems,
@@ -195,6 +238,7 @@ async function sampleMix(): Promise<MixSample | undefined> {
 		downloads: await getDownloadCount(entry.data),
 		files: entry.data.files ?? [],
 		links: entry.data.links ?? [],
+		queueItem: await sampleQueueItem(entry),
 		title: entry.data.title,
 		tracks: entry.data.tracks ?? [],
 	};
@@ -260,6 +304,18 @@ async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 	}
 
 	return samples;
+}
+
+// The alias fallback matches the Mix Detail Page, so the bar shows the artist line production would
+async function sampleQueueItem(
+	entry: CollectionEntry<'mixes'>,
+): Promise<PlayerPayloadItem | undefined> {
+	const [alias] = await resolveTermLinks(
+		'artists',
+		entry.data.alias ? [entry.data.alias] : undefined,
+	);
+
+	return getMixQueueItem(entry, alias?.label ?? site.title);
 }
 
 // A review carries the fullest detail header there is: split title, artist, labels, year and rating

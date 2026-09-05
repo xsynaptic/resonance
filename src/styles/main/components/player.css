@@ -1,5 +1,8 @@
+/* The package sheet declares no layer; main.css imports this file into layer(components) for both */
+@import '@xsynaptic/player/player.css';
+
 /* The package's tokens default to its own palette; this maps them onto the theme */
-.player-bar {
+:root {
 	--player-text-bright: var(--color-ink-100);
 	--player-text-strong: var(--color-ink-200);
 	--player-text-mid: var(--color-ink-300);

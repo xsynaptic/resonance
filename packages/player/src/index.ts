@@ -1,5 +1,7 @@
-export { MusicPlayer } from '#components/music-player.tsx';
-export { playerStore } from '#store/player-store.ts';
+export { AudioPlayer } from '#components/audio-player.tsx';
+export * as Player from '#components/parts.ts';
+export { usePlayer } from '#store/context.tsx';
+export { createPlayerStore, playerStore } from '#store/player-store.ts';
 export type {
 	MiniPlayerLabels,
 	PlaybackError,

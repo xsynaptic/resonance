@@ -1,14 +1,22 @@
+import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer } from '#store/context.tsx';
 
-export function TrackInfo({ emptyLabel }: { emptyLabel: string }) {
+export function TrackInfo({
+	className,
+	emptyLabel,
+}: {
+	className?: string | undefined;
+	emptyLabel: string;
+}) {
 	const item = usePlayer((state) =>
 		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex],
 	);
 
-	if (!item) return <div className="player-track-empty">{emptyLabel}</div>;
+	if (!item)
+		return <div className={joinClassNames('player-track-empty', className)}>{emptyLabel}</div>;
 
 	return (
-		<div className="player-track">
+		<div className={joinClassNames('player-track', className)}>
 			{item.releaseHref === undefined ? (
 				<span className="player-track-title">{item.title}</span>
 			) : (

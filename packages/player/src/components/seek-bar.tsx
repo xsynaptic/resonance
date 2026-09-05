@@ -1,7 +1,8 @@
+import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer } from '#store/context.tsx';
 import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
 
-export function SeekBar({ label }: { label: string }) {
+export function SeekBar({ className, label }: { className?: string | undefined; label: string }) {
 	const currentTimeS = usePlayer((state) => state.currentTimeS);
 	const durationS = usePlayer((state) => state.durationS);
 	const seek = usePlayer((state) => state.seek);
@@ -13,6 +14,7 @@ export function SeekBar({ label }: { label: string }) {
 	if (urls && current?.waveformOverview) {
 		return (
 			<WaveformCanvas
+				className={className}
 				currentTimeS={currentTimeS}
 				durationS={durationS}
 				label={label}
@@ -27,7 +29,7 @@ export function SeekBar({ label }: { label: string }) {
 	return (
 		<input
 			aria-label={label}
-			className="player-seek"
+			className={joinClassNames('player-seek', className)}
 			disabled={durationS === undefined}
 			max={durationS ?? 0}
 			min={0}

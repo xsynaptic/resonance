@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { PlayerUrls } from '#types.ts';
 
+import { joinClassNames } from '#lib/class-names.ts';
 import { formatClock } from '#lib/format.ts';
 import { loadWaveform } from '#waveform/waveform-cache.ts';
 
@@ -28,6 +29,7 @@ interface HiResPeaks {
 }
 
 interface WaveformCanvasProps {
+	className?: string | undefined;
 	currentTimeS: number;
 	durationS: number | undefined;
 	label: string;
@@ -39,6 +41,7 @@ interface WaveformCanvasProps {
 
 // Draws the inline overview until the full-resolution waveform lands
 export function WaveformCanvas({
+	className,
 	currentTimeS,
 	durationS,
 	label,
@@ -115,7 +118,7 @@ export function WaveformCanvas({
 			aria-valuemin={0}
 			aria-valuenow={currentTimeS}
 			aria-valuetext={formatClock(currentTimeS)}
-			className="player-waveform"
+			className={joinClassNames('player-waveform', className)}
 			onKeyDown={seekToKey}
 			onPointerDown={(event) => {
 				event.currentTarget.setPointerCapture(event.pointerId);

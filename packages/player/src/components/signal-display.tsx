@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
 
+import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer } from '#store/context.tsx';
 
 // An oscilloscope trace of the analyser's time-domain data; the loop runs only while playing and visible
-export function SignalDisplay() {
+export function SignalDisplay({ className }: { className?: string | undefined }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const isPlaying = usePlayer((state) => state.status === 'playing');
 	const getAnalyser = usePlayer((state) => state.getAnalyser);
@@ -71,5 +72,11 @@ export function SignalDisplay() {
 		};
 	}, [getAnalyser, isPlaying]);
 
-	return <canvas aria-hidden="true" className="player-scope" ref={canvasRef} />;
+	return (
+		<canvas
+			aria-hidden="true"
+			className={joinClassNames('player-scope', className)}
+			ref={canvasRef}
+		/>
+	);
 }

@@ -1,6 +1,6 @@
 import type { PlayerLabels, PlayerUrls } from '@xsynaptic/player';
 
-import { MusicPlayer, playerStore } from '@xsynaptic/player';
+import { AudioPlayer, playerStore } from '@xsynaptic/player';
 import { useEffect } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
@@ -55,7 +55,7 @@ export function PlayerIsland({ labels }: { labels: PlayerLabels }) {
 		};
 	}, []);
 
-	return <MusicPlayer labels={labels} urls={urls} variant="full" />;
+	return <AudioPlayer labels={labels} urls={urls} variant="full" />;
 }
 
 function currentTrackId(): string | undefined {

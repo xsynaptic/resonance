@@ -46,16 +46,13 @@ interface IdReference {
 // Inline on a Review, so it never stands alone in the graph
 interface MusicAlbum extends IdReference {
 	'@type': 'MusicAlbum';
+	albumRelease?: MusicRelease;
 	byArtist?: {
 		'@type': 'MusicGroup';
 		name: string;
 	};
 	datePublished?: string;
 	name: string;
-	recordLabel?: {
-		'@type': 'Organization';
-		name: string;
-	};
 	sameAs?: string;
 }
 
@@ -63,6 +60,16 @@ interface MusicPlaylist extends IdReference {
 	'@type': 'MusicPlaylist';
 	name: string;
 	numTracks?: number;
+}
+
+// `recordLabel` is only valid on a MusicRelease; MusicAlbum reaches one through `albumRelease`
+interface MusicRelease {
+	'@type': 'MusicRelease';
+	name: string;
+	recordLabel: {
+		'@type': 'Organization';
+		name: string;
+	};
 }
 
 interface Person extends IdReference {
@@ -293,7 +300,15 @@ function buildAlbumSchema(props: {
 		'@type': 'MusicAlbum',
 		name: props.releaseTitle,
 		...(props.artist ? { byArtist: { '@type': 'MusicGroup', name: props.artist } } : {}),
-		...(props.label ? { recordLabel: { '@type': 'Organization', name: props.label } } : {}),
+		...(props.label
+			? {
+					albumRelease: {
+						'@type': 'MusicRelease',
+						name: props.releaseTitle,
+						recordLabel: { '@type': 'Organization', name: props.label },
+					},
+				}
+			: {}),
 		...(props.releaseYear ? { datePublished: props.releaseYear } : {}),
 		...(props.discogsUrl ? { sameAs: props.discogsUrl } : {}),
 	};

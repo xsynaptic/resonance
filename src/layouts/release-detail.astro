@@ -40,7 +40,7 @@ const {
 } = Astro.props;
 
 const media = await renderSlot(Astro.slots, 'media');
-const links = await renderSlot(Astro.slots, 'links');
+const actions = await renderSlot(Astro.slots, 'actions');
 const body = await renderSlot(Astro.slots, 'default');
 const sections = await renderSlot(Astro.slots, 'sections');
 ---
@@ -82,16 +82,16 @@ const sections = await renderSlot(Astro.slots, 'sections');
 					) : undefined
 				}
 				{
-					links ? (
-						<div class="mb-8">
-							<Fragment set:html={links} />
+					body ? (
+						<div class="prose-x">
+							<Fragment set:html={body} />
 						</div>
 					) : undefined
 				}
 				{
-					body ? (
-						<div class="prose-x">
-							<Fragment set:html={body} />
+					actions ? (
+						<div class="mt-8">
+							<Fragment set:html={actions} />
 						</div>
 					) : undefined
 				}

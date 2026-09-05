@@ -72,6 +72,44 @@
 	}
 }
 
+/* Held open, so the button carries the same lit state hovering it would */
+.comment-reply[aria-expanded='true'] {
+	color: var(--color-ink-100);
+	background-color: var(--color-surface-300);
+}
+
+/* A reply moves the form under the comment it answers, away from the margin its home carries */
+li > [data-comment-form] {
+	margin-top: calc(var(--spacing) * 6);
+}
+
+.comment-close {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: calc(var(--spacing) * 7);
+	height: calc(var(--spacing) * 7);
+	font-size: var(--text-xl);
+	line-height: 1;
+	color: var(--color-ink-500);
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+	transition: color 150ms var(--default-transition-timing-function);
+}
+
+.comment-close:focus-visible {
+	color: var(--color-ink-100);
+	outline: 2px solid var(--color-highlight-500);
+	outline-offset: 1px;
+}
+
+@media (hover: hover) {
+	.comment-close:hover {
+		color: var(--color-ink-100);
+	}
+}
+
 /* Gravatar is asked for `d=blank`, so the maze tile behind shows through when there is none */
 .comment-avatar {
 	--pattern-maze-size: 24px 24px;
@@ -83,8 +121,8 @@
 	background-color: var(--color-surface-700);
 	border-radius: calc(infinity * 1px);
 
-	/* Rim light on the inside edge, so an avatar-less circle reads as an empty socket */
-	box-shadow: inset 0 0 5px 0 color-mix(in oklab, var(--color-ink-200) 60%, transparent);
+	/* A glow rather than a border; ink well above the page ground, or it reads as a shadow */
+	box-shadow: 0 0 6px 1px color-mix(in oklab, var(--color-ink-700) 40%, transparent);
 }
 
 .comment-avatar img {

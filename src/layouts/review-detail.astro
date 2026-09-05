@@ -3,6 +3,8 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
+import type { IconId } from '#lib/utils/icon-types.ts';
+
 import CommentsSection from '#components/comments/comments-section.astro';
 import ButtonLink from '#components/parts/button-link.astro';
 import TermLinks from '#components/parts/term-links.astro';
@@ -16,13 +18,21 @@ import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
+import { getLinkSourceLabel } from '#lib/utils/links.ts';
 import { getCollectionUrl, getSiteUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
+import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 
 interface Props {
 	entry: CollectionEntry<'reviews'>;
+}
+
+interface ReviewAction {
+	href: string;
+	icon?: IconId | undefined;
+	label: string;
 }
 
 const { entry } = Astro.props;
@@ -44,6 +54,17 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 
 // Contributors beyond the matched artist stay in the term links below, not in the heading
 const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.releaseTitle, artistTerms);
+
+const youtubeUrl = getYoutubeSearchUrl(entry.data.youtubeSearch, artist ? [artist] : [], title);
+
+// Every outbound link is a place to hear or buy the release, so all of them read as one row
+const actions: Array<ReviewAction> = (entry.data.links ?? []).map((url) => ({
+	href: url,
+	label: getLinkSourceLabel(url),
+}));
+
+if (discogsUrl) actions.push({ href: discogsUrl, label: t('detail.discogs') });
+if (youtubeUrl) actions.push({ href: youtubeUrl, icon: 'youtube', label: t('detail.youtube') });
 
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 const kind = { label: t('collection.reviews.title'), url: getCollectionUrl('reviews') };
@@ -72,12 +93,23 @@ const schemas = getReviewSchemas(entry, {
 	{...description ? { description } : {}}
 >
 	<Content />
-	<Fragment slot="links">
+	<Fragment slot="actions">
 		{
-			discogsUrl ? (
-				<ButtonLink href={discogsUrl} rel="noreferrer" target="_blank">
-					{t('detail.discogs')}
-				</ButtonLink>
+			actions.length > 0 ? (
+				<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
+					{actions.map((action) => (
+						<li>
+							<ButtonLink
+								href={action.href}
+								rel="noreferrer"
+								target="_blank"
+								{...(action.icon ? { icon: action.icon } : {})}
+							>
+								{action.label}
+							</ButtonLink>
+						</li>
+					))}
+				</ul>
 			) : undefined
 		}
 	</Fragment>

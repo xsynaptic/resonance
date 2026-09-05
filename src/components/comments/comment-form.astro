@@ -27,10 +27,14 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 	</noscript>
 	<Button data-open-form hidden>{t('comments.form.heading')}</Button>
 	<form action="/api/comments" class="space-y-4" data-comment-form hidden method="post">
-		<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+		<div class="flex items-start justify-between gap-x-4">
 			<h2 class="heading-section">{t('comments.form.heading')}</h2>
-			<button class="comment-action" data-cancel-reply hidden type="button"
-				>{t('comments.form.cancelReply')}</button
+			<button
+				aria-label={t('comments.form.close')}
+				class="comment-close"
+				data-close-form
+				title={t('comments.form.close')}
+				type="button">&times;</button
 			>
 		</div>
 		<p class="text-sm text-ink-500">{t('comments.form.moderationNote')}</p>
@@ -75,7 +79,12 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 					name="authorEmail"
 					type="email"
 				/>
-				<p class="comment-hint" id="comment-email-hint">{t('comments.form.authorEmailHint')}</p>
+				<p class="comment-hint" id="comment-email-hint">
+					{t('comments.form.authorEmailHintLead')}{' '}
+					<Anchor href="https://gravatar.com" rel="noreferrer" target="_blank"
+						>{t('comments.form.authorEmailHintLink')}</Anchor
+					>{t('comments.form.authorEmailHintTail')}
+				</p>
 			</div>
 		</div>
 		<div>

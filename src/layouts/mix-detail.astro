@@ -88,7 +88,7 @@ const queueItem = isPlayerEnabled
 		<PlayerPayload items={queueItem ? [queueItem] : []} />
 		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
 	</Fragment>
-	<Fragment slot="links">
+	<Fragment slot="actions">
 		<AudioLinks
 			files={entry.data.files}
 			links={entry.data.links}

@@ -7,6 +7,7 @@ import MediaImage from '#components/parts/media-image.astro';
 import RefList from '#components/parts/ref-list.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
+import { getLinkSourceLabel } from '#lib/utils/links.ts';
 
 interface Props {
 	rank?: number | undefined;
@@ -23,18 +24,11 @@ const { rank, selection } = Astro.props;
 const { anchor, artists, discogsUrl, href, imagePath, labels, linkYoutube, title, year } =
 	selection;
 
-function getSourceLabel(url: string): string {
-	const host = new URL(url).hostname.replace(/^www\./, '');
-	const name = host.split('.').at(-2) ?? host;
-
-	return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
 // Every outbound link on a selection is a place to get the release, so all of them read as one
 const buttons: Array<SelectionLink> = selection.links.map((url) => ({
 	href: url,
 	icon: 'download' as const,
-	label: getSourceLabel(url),
+	label: getLinkSourceLabel(url),
 }));
 
 if (discogsUrl) buttons.push({ href: discogsUrl, label: 'Discogs' });

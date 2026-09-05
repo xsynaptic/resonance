@@ -48,14 +48,6 @@ class CommentsSection extends HTMLElement {
 		void this.#widget.remove();
 	}
 
-	#cancelReply() {
-		this.#returnFormHome();
-		this.#renderTurnstile();
-
-		this.#replyOrigin?.focus();
-		this.#replyOrigin = undefined;
-	}
-
 	#clearDetails() {
 		clearStoredDetails();
 
@@ -64,6 +56,29 @@ class CommentsSection extends HTMLElement {
 		if (remember) remember.checked = false;
 
 		this.#toggle('[data-clear-stored]', false);
+	}
+
+	#closeForm() {
+		// A reply moved the form under a comment, so returning focus keeps the page position meaningful
+		const origin = this.#replyOrigin ?? this.querySelector<HTMLElement>('[data-open-form]');
+
+		this.#collapseForm();
+
+		this.#replyOrigin = undefined;
+		origin?.focus();
+	}
+
+	// Collapses without moving focus, which is what an accepted comment wants; `role="status"` announces it
+	#collapseForm() {
+		const form = this.#form;
+
+		if (!form) return;
+
+		this.#replyOrigin?.setAttribute('aria-expanded', 'false');
+		this.#returnFormHome();
+
+		form.hidden = true;
+		this.#toggle('[data-open-form]', true);
 	}
 
 	#field(name: string) {
@@ -79,8 +94,9 @@ class CommentsSection extends HTMLElement {
 
 		if (body) body.value = '';
 
+		this.#collapseForm();
+
 		this.#replyOrigin = undefined;
-		this.#returnFormHome();
 		this.#showReceivedNotice();
 	}
 
@@ -99,8 +115,8 @@ class CommentsSection extends HTMLElement {
 			return;
 		}
 
-		if (event.target.closest('[data-cancel-reply]')) {
-			this.#cancelReply();
+		if (event.target.closest('[data-close-form]')) {
+			this.#closeForm();
 			return;
 		}
 
@@ -188,7 +204,6 @@ class CommentsSection extends HTMLElement {
 
 		home.append(form);
 		this.#field('parentId').value = '';
-		this.#toggle('[data-cancel-reply]', false);
 	}
 
 	#saveDetails() {
@@ -261,18 +276,26 @@ class CommentsSection extends HTMLElement {
 
 		if (!commentId || !form) return;
 
+		// The button reads as a toggle while its own reply is open
+		if (!form.hidden && this.#replyOrigin === button) {
+			this.#closeForm();
+			return;
+		}
+
 		const comment = this.querySelector(`#comment-${CSS.escape(commentId)}`);
 
 		if (!comment) return;
+
+		this.#replyOrigin?.setAttribute('aria-expanded', 'false');
 
 		comment.after(form);
 		form.hidden = false;
 		this.#toggle('[data-open-form]', false);
 		this.#field('parentId').value = commentId;
-		this.#toggle('[data-cancel-reply]', true);
 		this.#renderTurnstile();
 
 		this.#replyOrigin = button;
+		button.setAttribute('aria-expanded', 'true');
 		this.#field('author').focus();
 	}
 

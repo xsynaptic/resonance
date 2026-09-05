@@ -54,7 +54,7 @@
 	background-image:
 		linear-gradient(
 			to bottom,
-			color-mix(in srgb, var(--color-surface-800) 80%, transparent),
+			color-mix(in srgb, var(--color-surface-700) 80%, transparent),
 			transparent
 		),
 		linear-gradient(

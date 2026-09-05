@@ -54,8 +54,9 @@ menu-navigation {
 	color: var(--color-accent-400);
 }
 
+/* The whole trigger is one target: hovering either half lights both */
 @media (hover: hover) {
-	.nav-link:hover {
+	.nav-trigger:hover .nav-link {
 		color: var(--color-accent-400);
 	}
 }
@@ -82,7 +83,7 @@ menu-navigation {
 }
 
 @media (hover: hover) {
-	.nav-toggle:hover {
+	.nav-trigger:hover .nav-toggle {
 		color: var(--color-highlight-400);
 	}
 }
@@ -232,8 +233,9 @@ menu-navigation {
 	border-bottom-left-radius: 0;
 }
 
+/* Flipping in place reads as a hinge; the 1px lift keeps the glyph optically centred */
 .nav-item[data-open] > .nav-trigger > .nav-toggle > .nav-icon {
-	transform: scaleY(-1);
+	transform: translateY(-1px) scaleY(-1);
 }
 
 @media (hover: hover) {
@@ -251,7 +253,7 @@ menu-navigation {
 		border-bottom-left-radius: 0;
 	}
 
-	.nav-item:hover > .nav-trigger > .nav-icon {
-		transform: scaleY(-1);
+	.nav-item[data-has-submenu]:hover > .nav-trigger > .nav-toggle > .nav-icon {
+		transform: translateY(-1px) scaleY(-1);
 	}
 }

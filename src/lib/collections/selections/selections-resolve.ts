@@ -11,6 +11,7 @@ import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 import { toSlug } from '#lib/utils/text.ts';
+import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 
 export interface ResolvedSelection {
 	anchor: string;
@@ -123,7 +124,7 @@ async function resolveSelection(selection: SelectionValue): Promise<ResolvedSele
 		imagePath: facts.imageFeatured,
 		labels,
 		links: facts.links ?? [],
-		linkYoutube: youtubeSearchUrl(facts.youtubeSearch, artists, title),
+		linkYoutube: getYoutubeSearchUrl(facts.youtubeSearch, artists, title),
 		title,
 		year: facts.year,
 	};
@@ -133,17 +134,4 @@ function toAnchor(entryId: string | undefined, artists: Array<ResolvedRef>, titl
 	if (entryId !== undefined) return entryId;
 
 	return toSlug([...artists.map((artist) => artist.label), title].filter(Boolean).join(' '));
-}
-
-function youtubeSearchUrl(
-	wanted: boolean | undefined,
-	artists: Array<ResolvedRef>,
-	title: string,
-): string | undefined {
-	if (wanted !== true) return undefined;
-
-	const query = [...artists.map((artist) => artist.label), title].filter(Boolean).join(' ');
-	if (query === '') return undefined;
-
-	return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 }

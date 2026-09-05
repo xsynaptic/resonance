@@ -1,11 +1,15 @@
 /* Shared by button.astro and button-link.astro, so the two stay one visual thing */
 .button-x {
+	--button-sheen: color-mix(in srgb, var(--color-surface-300) 50%, transparent);
+
 	display: inline-flex;
 	align-items: center;
 	font-weight: 700;
 	color: var(--color-ink-200);
 	cursor: pointer;
 	background-color: var(--color-surface-400);
+	background-image: linear-gradient(to top, transparent, var(--button-sheen));
+	background-repeat: no-repeat;
 	border-radius: var(--radius-sm);
 	transition:
 		color 150ms var(--default-transition-timing-function),
@@ -13,12 +17,16 @@
 }
 
 .button-x:focus-visible {
+	--button-sheen: color-mix(in srgb, var(--color-surface-200) 50%, transparent);
+
 	color: var(--color-ink-100);
 	background-color: var(--color-surface-300);
 }
 
 @media (hover: hover) {
 	.button-x:hover:not(:disabled) {
+		--button-sheen: color-mix(in srgb, var(--color-surface-200) 50%, transparent);
+
 		color: var(--color-ink-100);
 		background-color: var(--color-surface-300);
 	}
@@ -35,6 +43,7 @@
 	padding-inline: calc(var(--spacing) * 3);
 	font-size: var(--text-sm);
 	line-height: var(--text-sm--line-height);
+	box-shadow: var(--shadow-sm);
 }
 
 .button-small {

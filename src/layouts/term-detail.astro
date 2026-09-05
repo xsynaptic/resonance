@@ -16,6 +16,7 @@ import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
+import { getTermRelations } from '#lib/collections/terms/term-relations.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
@@ -47,6 +48,9 @@ const memberLinks =
 	term.collection === 'artists' ? await resolveRefs('artists', term.data.members) : [];
 const projectLinks =
 	term.collection === 'artists' ? await resolveRefs('artists', term.data.projects) : [];
+
+const relationGroups =
+	page.currentPage === 1 ? await getTermRelations(term.collection, term.id) : [];
 
 // A term's description is its body, so the page head derives from it too
 const body = term.body?.trim() ?? '';
@@ -119,10 +123,13 @@ const schemas =
 		}
 	</div>
 	{
-		memberLinks.length > 0 || projectLinks.length > 0 ? (
+		memberLinks.length > 0 || projectLinks.length > 0 || relationGroups.length > 0 ? (
 			<div class="mb-6 space-y-1">
 				<TermLinks heading={t('artist.members')} terms={memberLinks} />
 				<TermLinks heading={t('artist.projects')} terms={projectLinks} />
+				{relationGroups.map((group) => (
+					<TermLinks heading={group.heading} terms={group.terms} />
+				))}
 			</div>
 		) : undefined
 	}

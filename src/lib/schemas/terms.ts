@@ -7,6 +7,7 @@ import { RefSchema } from '#lib/schemas/refs.ts';
 
 // Shared term fields; `description` lives in the body, not frontmatter
 const termBaseSchema = {
+	_entryCount: z.number().int().optional(),
 	imageFeatured: ImageFeaturedSchema.optional(),
 	links: z.string().array().optional(),
 	nameVariant: z.string().optional(),

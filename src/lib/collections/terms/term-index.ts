@@ -2,7 +2,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
-import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+import type { ContentCatalogItem, TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { RefValue } from '#lib/schemas/refs.ts';
 
@@ -175,6 +175,18 @@ export const getRegionsIndex = makeTermIndex((entry) => entry.data.regions, roll
 export const getStylesIndex = makeTermIndex((entry) => entry.data.styles, rollUp('styles'));
 
 export const getThemesIndex = makeTermIndex((entry) => entry.data.themes);
+
+// The selector `getTermCollection()` reads to stamp `_entryCount`; every Term collection has an index
+export const termIndexes = {
+	artists: getArtistsIndex,
+	eras: getErasIndex,
+	formats: getFormatsIndex,
+	labels: getLabelsIndex,
+	regions: getRegionsIndex,
+	series: getSeriesIndex,
+	styles: getStylesIndex,
+	themes: getThemesIndex,
+} as const satisfies Record<TermCollectionKey, () => Promise<TermIndex>>;
 
 let seriesIndexPromise: Promise<TermIndex> | undefined;
 

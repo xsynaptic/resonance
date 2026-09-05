@@ -8,6 +8,8 @@ import RefText from '#components/parts/ref-text.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatDate } from '#lib/utils/date.ts';
 
+const headerStyleLimit = 3;
+
 interface Props {
 	artist?: ResolvedRef | undefined;
 	breadcrumbTrail?: Array<ResolvedRef> | undefined;
@@ -23,7 +25,8 @@ interface Props {
 const { artist, breadcrumbTrail, date, kind, labels, releaseTitle, releaseYear, styles, title } =
 	Astro.props;
 
-const styleTerms = styles ?? [];
+// Frontmatter order is the author's own ranking; the coda carries the rest, sorted by content count
+const styleTerms = (styles ?? []).slice(0, headerStyleLimit);
 const releaseLabels = labels ?? [];
 const hasRelease = Boolean(releaseYear) || releaseLabels.length > 0;
 const releaseLead = t(releaseLabels.length > 0 ? 'detail.releasedBy' : 'detail.released');

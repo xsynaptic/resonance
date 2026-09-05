@@ -8,6 +8,7 @@ import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { getPostSchemas } from '#lib/collections/posts/posts-schema.ts';
+import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
@@ -27,6 +28,7 @@ const formatTerms = await resolveTermLinks(
 	entry.data.format ? [entry.data.format] : undefined,
 );
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
+const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const description = await getEntryDescription(entry);
@@ -60,6 +62,7 @@ const schemas = getPostSchemas(entry, {
 	<Fragment slot="sections">
 		<SectionCoda class="mt-10 content-measure">
 			<TermLinks heading={t('collection.formats.label')} terms={formatTerms} />
+			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 		</SectionCoda>

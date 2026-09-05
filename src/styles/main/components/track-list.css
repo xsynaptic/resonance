@@ -89,6 +89,30 @@
 	margin-inline-start: calc(var(--spacing) * 2);
 }
 
+/* Full bleed below sm; the row's own gutter is what keeps its text on the content column's margin */
+@media (width < 40rem) {
+	.track-list {
+		margin-inline: calc(var(--content-gutter) * -1);
+	}
+
+	/* The row's own line-height governs the strut behind the inline metadata, not the metadata's */
+	.track-item {
+		padding: 5px var(--content-gutter) 8px;
+		line-height: 20px;
+	}
+
+	/* The row padding above replaces this; left in, it collapses out and gaps the stripes */
+	.track-title-line {
+		margin-top: 0;
+	}
+
+	/* A radius sitting on the viewport edge reads as a mistake */
+	.track-item:first-child,
+	.track-item:last-child {
+		border-radius: 0;
+	}
+}
+
 @media (width >= 40rem) {
 	.track-item {
 		display: grid;

@@ -3,4 +3,19 @@
 	--content-chevron: '\203A';
 	--content-dot: '\00B7';
 	--content-slash: '/';
+
+	/* The page gutter, so anything bleeding past the column can negate exactly what the column pads */
+	--content-gutter: calc(var(--spacing) * 4);
+}
+
+@media (width >= 30rem) {
+	:root {
+		--content-gutter: calc(var(--spacing) * 6);
+	}
+}
+
+@media (width >= 40rem) {
+	:root {
+		--content-gutter: calc(var(--spacing) * 10);
+	}
 }

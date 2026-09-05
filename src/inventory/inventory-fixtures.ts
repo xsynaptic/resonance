@@ -84,7 +84,7 @@ export async function getInventoryFixtures() {
 		sampleTerms('artists'),
 		sampleTerms('formats', 1),
 		sampleTerms('labels', 4),
-		sampleTerms('styles', 3),
+		sampleTerms('styles', 5),
 		sampleTerms('themes', 4),
 	]);
 

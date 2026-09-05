@@ -7,8 +7,13 @@ menu-navigation {
 	display: contents;
 }
 
+/* Below md the nav is its own row; the pull matches the trigger padding, aligning link text with the title */
 .nav-menu {
 	position: relative;
+
+	@media (width < 48rem) {
+		margin-inline: calc(var(--spacing) * -2.5);
+	}
 }
 
 .nav-ul {

@@ -501,7 +501,10 @@ const paginationPage: Page<ContentCatalogItem> = {
 		<Specimen name="SectionDetailHeader" note="With a breadcrumb trail.">
 			<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title="Under a vocabulary" />
 		</Specimen>
-		<Specimen name="SectionDetailHeader" note="With styles above, and a kind and date below.">
+		<Specimen
+			name="SectionDetailHeader"
+			note="With styles above, and a kind and date below. Five styles go in and three come out: the header takes the first three in frontmatter order and the coda carries the whole list."
+		>
 			<SectionDetailHeader
 				date={new Date()}
 				kind={{ label: 'Mixes', url: '/mixes/' }}
@@ -615,7 +618,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="AudioCounts"
-			note="One figure per mix, never a sum: a download, a stream and a play are three different acts. Only downloads carries data here, so the real value is first and the others are fixtures."
+			note="Coda rows, so they sit in the same rhythm as TermLinks beside them. One figure per mix, never a sum: a download, a stream and a play are three different acts. Only downloads carries data here, so the real value is first and the others are fixtures."
 			source="src/components/parts/audio-counts.astro"
 		>
 			{

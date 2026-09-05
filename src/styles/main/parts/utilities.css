@@ -1,8 +1,9 @@
 /* Page wrapper: the one width and gutter every band aligns to, chrome and content alike */
 @utility content-wide {
-	@apply mx-auto px-6 sm:px-10;
+	@apply mx-auto;
 
 	max-width: var(--spacing-content-wide);
+	padding-inline: var(--content-gutter);
 }
 
 /* Readable measure: caps a run of text where it sits, without centering it */

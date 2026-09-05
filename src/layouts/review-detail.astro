@@ -11,6 +11,7 @@ import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getReviewSchemas } from '#lib/collections/reviews/reviews-schema.ts';
+import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
@@ -29,6 +30,7 @@ const { Content } = await render(entry);
 
 const artistTerms = await resolveRefs('artists', entry.data.artists);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
+const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const regionTerms = await resolveTermLinks('regions', entry.data.regions);
 const eraTerms = await resolveTermLinks('eras', entry.data.eras);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
@@ -93,7 +95,7 @@ const schemas = getReviewSchemas(entry, {
 			<TermLinks heading={t('collection.artists.title')} terms={artistTerms} />
 			<TermLinks heading={t('collection.regions.title')} terms={regionTerms} />
 			<TermLinks heading={t('collection.eras.title')} terms={eraTerms} />
-			<TermLinks heading={t('collection.styles.title')} terms={styleTerms} />
+			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 		</SectionCoda>
 	</Fragment>

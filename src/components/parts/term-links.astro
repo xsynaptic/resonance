@@ -2,6 +2,7 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import Anchor from '#components/parts/anchor.astro';
+import CodaRow from '#components/parts/coda-row.astro';
 
 interface Props {
 	heading: string;
@@ -13,8 +14,7 @@ const { heading, terms } = Astro.props;
 
 {
 	terms.length > 0 ? (
-		<div class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 text-sm">
-			<span class="font-medium text-ink-500">{heading}:</span>
+		<CodaRow heading={heading}>
 			{terms.map((term, index) => (
 				<span class="flex items-baseline gap-x-1.5">
 					{index > 0 ? (
@@ -29,6 +29,6 @@ const { heading, terms } = Astro.props;
 					)}
 				</span>
 			))}
-		</div>
+		</CodaRow>
 	) : undefined
 }

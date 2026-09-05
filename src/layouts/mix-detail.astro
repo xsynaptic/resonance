@@ -18,6 +18,7 @@ import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getMixSchemas } from '#lib/collections/mixes/mixes-schema.ts';
+import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
@@ -40,6 +41,7 @@ const aliasTerms = await resolveTermLinks(
 	entry.data.alias ? [entry.data.alias] : undefined,
 );
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
+const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
 const labelTerms = await resolveRefs('labels', entry.data.labels);
 const downloads = await getDownloadCount(entry.data);
@@ -91,14 +93,15 @@ const queueItem = isPlayerEnabled
 			links={entry.data.links}
 			{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
 		/>
-		<AudioCounts
-			downloads={downloads}
-			mixcloudPlays={mixcloudPlays}
-			soundcloudPlays={soundcloudPlays}
-		/>
 	</Fragment>
 	<Fragment slot="sections">
 		<SectionCoda>
+			<AudioCounts
+				downloads={downloads}
+				mixcloudPlays={mixcloudPlays}
+				soundcloudPlays={soundcloudPlays}
+			/>
+			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 		</SectionCoda>
 	</Fragment>

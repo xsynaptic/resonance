@@ -1,7 +1,7 @@
 ---
 import type { StringKey } from '#lib/i18n/i18n-strings.ts';
 
-import DividedItem from '#components/parts/divided-item.astro';
+import CodaRow from '#components/parts/coda-row.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
 
@@ -14,36 +14,35 @@ interface Props {
 
 const { downloads, mixcloudPlays, soundcloudPlays, streams } = Astro.props;
 
-function toCount(keys: { one: StringKey; other: StringKey }, value: number | undefined) {
+function toPlaysRow(heading: StringKey, value: number | undefined) {
 	if (!value) return;
 
-	return formatStringTemplate(t(value === 1 ? keys.one : keys.other), {
-		count: formatNumber({ number: value }),
-	});
+	return {
+		heading: t(heading),
+		value: formatStringTemplate(t(value === 1 ? 'audio.plays.one' : 'audio.plays.other'), {
+			count: formatNumber({ number: value }),
+		}),
+	};
 }
 
-const counts = [
-	toCount({ one: 'audio.downloads.one', other: 'audio.downloads.other' }, downloads),
-	toCount({ one: 'audio.streams.one', other: 'audio.streams.other' }, streams),
-	toCount({ one: 'audio.mixcloudPlays.one', other: 'audio.mixcloudPlays.other' }, mixcloudPlays),
-	toCount(
-		{ one: 'audio.soundcloudPlays.one', other: 'audio.soundcloudPlays.other' },
-		soundcloudPlays,
-	),
-].filter((count) => count !== undefined);
+function toTotalRow(heading: StringKey, value: number | undefined) {
+	if (!value) return;
+
+	return { heading: t(heading), value: formatNumber({ number: value }) };
+}
+
+const rows = [
+	toTotalRow('audio.downloadsLabel', downloads),
+	toTotalRow('audio.streamsLabel', streams),
+	toPlaysRow('audio.mixcloud', mixcloudPlays),
+	toPlaysRow('audio.soundcloud', soundcloudPlays),
+].filter((row) => row !== undefined);
 ---
 
 {
-	counts.length > 0 ? (
-		<ul
-			aria-label={t('audio.countsLabel')}
-			class="audio-counts mt-2"
-			data-nosnippet
-			data-pagefind-ignore
-		>
-			{counts.map((count) => (
-				<DividedItem as="li">{count}</DividedItem>
-			))}
-		</ul>
-	) : undefined
+	rows.map((row) => (
+		<CodaRow heading={row.heading}>
+			<span class="text-ink-300">{row.value}</span>
+		</CodaRow>
+	))
 }

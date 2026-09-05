@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { buildCueSheet } from './cue-sheet.ts';
+import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
 
 function indexOf(timestamp: string): string | undefined {
 	const sheet = buildCueSheet({

@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/prefer-https -- `http:` is an allowed scheme, so the fixtures must cover it */
 import { describe, expect, test } from 'vitest';
 
-import { isSafeUrl, renderCommentBody, toAuthorHref } from './comment-markdown.ts';
+import { isSafeUrl, renderCommentBody, toAuthorHref } from '#lib/utils/comment-markdown.ts';
 
 const allowedTags = new Set(['a', 'br', 'code', 'em', 'p', 'strong']);
 

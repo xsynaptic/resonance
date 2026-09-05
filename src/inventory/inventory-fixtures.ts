@@ -101,6 +101,7 @@ const playerLabels: PlayerLabels = {
 	empty: t('player.empty'),
 	error: t('player.error'),
 	loading: t('player.loading'),
+	mute: t('player.mute'),
 	next: t('player.next'),
 	nowPlaying: t('player.nowPlaying'),
 	pause: t('player.pause'),
@@ -110,6 +111,7 @@ const playerLabels: PlayerLabels = {
 	removeFromQueue: t('player.removeFromQueue'),
 	seek: t('player.seek'),
 	shuffle: t('player.shuffle'),
+	unmute: t('player.unmute'),
 	volume: t('player.volume'),
 };
 

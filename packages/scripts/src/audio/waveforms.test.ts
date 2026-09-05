@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { distillWaveform, parseWaveformHeader } from './waveforms.ts';
+import { distillWaveform, parseWaveformHeader } from './waveforms.js';
 
 interface DatOverrides {
 	flags?: number;

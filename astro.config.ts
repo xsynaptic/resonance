@@ -11,8 +11,8 @@ import { isIndexableUrlPath, readSitemapLastmod } from '@xsynaptic/shared/sitema
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 
-import inventory from './src/inventory/inventory-integration.ts';
-import { shikiTheme } from './src/lib/utils/shiki-theme.ts';
+import inventory from '#inventory/inventory-integration.ts';
+import { shikiTheme } from '#lib/utils/shiki-theme.ts';
 
 // One origin for the app and the deploy scripts; a mismatch misses every lastmod lookup silently
 // `astro:env` is unavailable while the config evaluates, hence `process.env`

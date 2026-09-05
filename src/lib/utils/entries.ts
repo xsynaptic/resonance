@@ -4,6 +4,8 @@ import { getCollection } from 'astro:content';
 
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
+const titleSeparator = ' - ';
+
 // A selection's `entryId` names an entry by bare slug (cross-collection); resolve in priority order
 const linkableCollections = ['mixes', 'reviews', 'posts'] as const satisfies Array<CollectionKey>;
 
@@ -28,22 +30,30 @@ export async function getEntryBySlug(slug: string): Promise<LinkableEntry | unde
 	return entry;
 }
 
-// Reviews carry the full "Artist - Release" title plus a bare releaseTitle, so the artist half can link
+// Reviews carry the full "Artist - Release" title plus a bare releaseTitle
+// Callers with no resolved artist refs still need the test, so it lives apart from the split
+export function matchReleaseTitle(title: string, releaseTitle: string | undefined) {
+	return releaseTitle !== undefined && title.endsWith(`${titleSeparator}${releaseTitle}`)
+		? releaseTitle
+		: undefined;
+}
+
 // The prefix links only when it matches a resolved artist ref exactly; anything else renders unsplit
 export function splitReleaseTitle(
 	title: string,
 	releaseTitle: string | undefined,
 	artists: Array<ResolvedRef>,
 ): ReleaseTitle {
-	if (releaseTitle === undefined) return { title };
+	const work = matchReleaseTitle(title, releaseTitle);
 
-	const suffix = ` - ${releaseTitle}`;
-	if (!title.endsWith(suffix)) return { title };
+	if (work === undefined) return { title };
 
-	const artist = artists.find((ref) => ref.label === title.slice(0, -suffix.length));
+	const artistName = title.slice(0, -(titleSeparator.length + work.length));
+	const artist = artists.find((ref) => ref.label === artistName);
+
 	if (!artist) return { title };
 
-	return { artist, title: releaseTitle };
+	return { artist, title: work };
 }
 
 async function buildSlugMap(): Promise<Map<string, LinkableEntry>> {

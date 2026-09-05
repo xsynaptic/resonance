@@ -26,7 +26,7 @@ import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { site } from '#lib/site.ts';
-import { splitReleaseTitle } from '#lib/utils/entries.ts';
+import { matchReleaseTitle, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
@@ -162,9 +162,7 @@ function cardItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefi
 }
 
 function cardWorkItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefined {
-	return items.find(
-		(item) => item.releaseTitle !== undefined && item.title.endsWith(` - ${item.releaseTitle}`),
-	);
+	return items.find((item) => matchReleaseTitle(item.title, item.releaseTitle) !== undefined);
 }
 
 function hasCoverOnDisk(entry: {

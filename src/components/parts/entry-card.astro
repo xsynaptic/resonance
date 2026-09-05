@@ -1,6 +1,7 @@
 ---
 import MediaImage from '#components/parts/media-image.astro';
 import { formatDate } from '#lib/utils/date.ts';
+import { matchReleaseTitle } from '#lib/utils/entries.ts';
 
 interface Props {
 	class?: string | undefined;
@@ -24,8 +25,7 @@ const {
 	title,
 } = Astro.props;
 
-const work =
-	releaseTitle !== undefined && title.endsWith(` - ${releaseTitle}`) ? releaseTitle : undefined;
+const work = matchReleaseTitle(title, releaseTitle);
 ---
 
 <div class:list={['h-full rounded-lg border border-surface-700 bg-surface-600 p-2', className]}>

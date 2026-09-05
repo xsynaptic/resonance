@@ -24,7 +24,9 @@ if (params && mini) {
 	params.set('mini', '1');
 }
 
-const src = params ? `https://www.mixcloud.com/widget/iframe/?${params.toString()}` : undefined;
+// `www.mixcloud.com/widget/iframe/` 301s here
+// The `allow` attribute delegates to the src origin only; the redirect strips the frame's permissions
+const src = params ? `https://player-widget.mixcloud.com/?${params.toString()}` : undefined;
 const height = mini ? 60 : 120;
 ---
 

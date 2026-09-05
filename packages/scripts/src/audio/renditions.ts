@@ -7,9 +7,9 @@ import { pipeline } from 'node:stream/promises';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
-import { cleanStaleTmp } from '../shared/utils.js';
-import { audioSourceDir, streamsDir } from './audio-paths.js';
-import { collectAudioSources } from './audio-sources.js';
+import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
+import { collectAudioSources } from '#audio/audio-sources.ts';
+import { cleanStaleTmp } from '#shared/utils.ts';
 
 const concurrency = 3;
 const renditionExtension = '.webm';
@@ -34,7 +34,7 @@ const encoderArgs = [
 
 // Stamped into every rendition and checked on the next run
 // mtime can't see a settings change; without this an encoderArgs edit leaves old encodes in place
-const renditionProfile = crypto
+const encoderArgsHash = crypto
 	.createHash('sha256')
 	.update(encoderArgs.join(' '))
 	.digest('hex')
@@ -69,19 +69,30 @@ export async function collectRenditions(streamsPath: string): Promise<Map<string
 	for (const entry of entries) {
 		const base = renditionPattern.exec(entry)?.groups?.base;
 
-		if (base !== undefined) renditions.set(base, entry);
+		if (base === undefined) continue;
+
+		const existing = renditions.get(base);
+
+		// An interrupted encode leaves both hashed files; keeping either one silently ships a stale stream name
+		if (existing !== undefined) {
+			throw new Error(
+				`Two renditions for "${base}": ${existing} and ${entry}. Delete the stale one and re-run.`,
+			);
+		}
+
+		renditions.set(base, entry);
 	}
 
 	return renditions;
 }
 
 // 160kbps Opus .webm streaming renditions per source (FLAC preferred, MP3 fallback)
-// Incremental: skips outputs newer than their source and stamped with the current encoder profile
+// Incremental: skips outputs newer than their source and stamped with the current encoder args hash
 // Atomic: encodes to a tmp file then renames onto the hashed name
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	// ffprobe too: it reads the profile deciding what is pending, so without it every file re-encodes
+	// ffprobe too: it reads the hash deciding what is pending, so without it every file re-encodes
 	for (const binary of ['ffmpeg', 'ffprobe']) {
 		try {
 			await $`which ${binary}`.quiet();
@@ -151,32 +162,12 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	);
 }
 
-// Reads only the header, which -cues_to_front keeps at the front of the file
-// An empty result marks the rendition stale, so the first failure is reported rather than swallowed
-export async function readRenditionProfile(output: string): Promise<string> {
-	try {
-		const result =
-			await $`ffprobe -v error -show_entries format_tags=RENDITION_PROFILE -of default=nw=1:nk=1 ${output}`.quiet();
-		return result.stdout.trim();
-	} catch (error) {
-		if (!hasReportedProbeFailure) {
-			hasReportedProbeFailure = true;
-			console.warn(
-				chalk.yellow(
-					`  ffprobe failed on ${path.basename(output)}; treating as stale: ${String(error)}`,
-				),
-			);
-		}
-		return '';
-	}
-}
-
 // Returns the rendition's filename, which the caller cannot predict: it names the encoded bytes
 async function encode(job: RenditionJob, streamsPath: string): Promise<string> {
 	const tmp = path.join(streamsPath, `${job.base}${tmpExtension}`);
 
 	// -f webm is explicit because the .tmp suffix hides the container format
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`RENDITION_PROFILE=${renditionProfile}`} -f webm ${tmp}`;
+	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`RENDITION_PROFILE=${encoderArgsHash}`} -f webm ${tmp}`;
 
 	const name = `${job.base}.${await hashFile(tmp)}${renditionExtension}`;
 
@@ -210,5 +201,25 @@ async function isUpToDate(job: RenditionJob, streamsPath: string): Promise<boole
 		return false;
 	}
 
-	return (await readRenditionProfile(output)) === renditionProfile;
+	return (await readEncoderArgsHash(output)) === encoderArgsHash;
+}
+
+// Reads only the header, which -cues_to_front keeps at the front of the file
+// An empty result marks the rendition stale, so the first failure is reported rather than swallowed
+async function readEncoderArgsHash(output: string): Promise<string> {
+	try {
+		const result =
+			await $`ffprobe -v error -show_entries format_tags=RENDITION_PROFILE -of default=nw=1:nk=1 ${output}`.quiet();
+		return result.stdout.trim();
+	} catch (error) {
+		if (!hasReportedProbeFailure) {
+			hasReportedProbeFailure = true;
+			console.warn(
+				chalk.yellow(
+					`  ffprobe failed on ${path.basename(output)}; treating as stale: ${String(error)}`,
+				),
+			);
+		}
+		return '';
+	}
 }

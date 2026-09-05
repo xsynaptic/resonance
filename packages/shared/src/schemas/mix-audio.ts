@@ -7,7 +7,6 @@ export const mixAudioVersion = 1;
 const MixAudioEntrySchema = z.object({
 	base: z.string(),
 	peaks: z.number().array(),
-	profile: z.string(),
 	seconds: z.number(),
 	sources: z.string().array(),
 	stream: z.string(),

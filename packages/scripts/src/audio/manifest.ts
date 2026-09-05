@@ -7,10 +7,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
-import { audioSourceDir, streamsDir, waveformsCacheDir } from './audio-paths.js';
-import { collectAudioSources } from './audio-sources.js';
-import { collectRenditions, readRenditionProfile } from './renditions.js';
-import { previewVersion } from './waveforms.js';
+import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
+import { collectAudioSources } from '#audio/audio-sources.ts';
+import { collectRenditions } from '#audio/renditions.ts';
+import { previewVersion } from '#audio/waveforms.ts';
 
 const previewExtension = '.json';
 const tmpExtension = '.tmp';
@@ -53,7 +53,6 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 		mixes.push({
 			base: source.base,
 			peaks: preview.values,
-			profile: await readRenditionProfile(path.join(streamsPath, stream)),
 			seconds: preview.seconds,
 			sources: source.files,
 			stream,
@@ -70,6 +69,8 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 		console.warn(chalk.yellow(`  ${String(incomplete.length)} incomplete and left out:`));
 		for (const base of incomplete) console.warn(chalk.yellow(`    ${base}`));
 	}
+
+	await assertManifestNotEmptied(mixes.length, rootPath);
 
 	if (dryRun) {
 		console.log(chalk.yellow(`  DRY RUN write: ${outputPath}`));
@@ -93,6 +94,19 @@ export async function readManifestStreams(rootPath: string): Promise<Array<strin
 	} catch {
 		return [];
 	}
+}
+
+// An audio directory that exists but is empty reads as zero sources rather than an error
+async function assertManifestNotEmptied(count: number, rootPath: string): Promise<void> {
+	if (count > 0) return;
+
+	const existing = await readManifestStreams(rootPath);
+
+	if (existing.length === 0) return;
+
+	throw new Error(
+		`Refusing to overwrite ${String(existing.length)} manifest entries with an empty manifest; no audio sources found in ${audioSourceDir}`,
+	);
 }
 
 async function readPreview(file: string) {

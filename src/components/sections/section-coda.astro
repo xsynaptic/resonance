@@ -14,7 +14,7 @@ const content = await renderSlot(Astro.slots);
 	content ? (
 		<div
 			class:list={[
-				'space-y-2 rounded-lg border border-surface-700 bg-surface-600 px-5 py-4 text-sm',
+				'content-bleed space-y-2 border-y border-surface-700 bg-surface-600 content-bleed-inset py-4 text-sm sm:rounded-lg sm:border sm:px-5',
 				className,
 			]}
 			data-nosnippet

@@ -1,13 +1,18 @@
 /* The px rhythm below is production's, which is what sits the small italic index just above the title's baseline */
 .track-list {
+	@apply content-bleed;
+
 	font-feature-settings: 'lnum';
 }
 
 /* Zero out the global list margins so the striped rows read as one contiguous container */
 .track-item {
 	display: block;
-	padding: 0 5px;
+	padding-inline: 5px;
 	margin: 0;
+
+	/* The row's own gutter is what keeps its text on the content column while the list bleeds */
+	@apply content-bleed-inset;
 }
 
 .track-item:nth-child(odd) {
@@ -16,14 +21,6 @@
 
 .track-item:nth-child(even) {
 	background-color: var(--color-surface-700);
-}
-
-.track-item:first-child {
-	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
-
-.track-item:last-child {
-	border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 /* The section renders inside .prose-x, whose underline and halo are too heavy for rows this dense */
@@ -89,27 +86,16 @@
 	margin-inline-start: calc(var(--spacing) * 2);
 }
 
-/* Full bleed below sm; the row's own gutter is what keeps its text on the content column's margin */
 @media (width < 40rem) {
-	.track-list {
-		margin-inline: calc(var(--content-gutter) * -1);
-	}
-
 	/* The row's own line-height governs the strut behind the inline metadata, not the metadata's */
 	.track-item {
-		padding: 5px var(--content-gutter) 8px;
+		padding-block: 5px 8px;
 		line-height: 20px;
 	}
 
 	/* The row padding above replaces this; left in, it collapses out and gaps the stripes */
 	.track-title-line {
 		margin-top: 0;
-	}
-
-	/* A radius sitting on the viewport edge reads as a mistake */
-	.track-item:first-child,
-	.track-item:last-child {
-		border-radius: 0;
 	}
 }
 
@@ -120,6 +106,15 @@
 			'index title title'
 			'. label time';
 		grid-template-columns: 25px 2fr 1fr;
+	}
+
+	/* The radius arrives with the gutter; below this the list is bled and a corner on the viewport edge reads as a mistake */
+	.track-item:first-child {
+		border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+	}
+
+	.track-item:last-child {
+		border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 	}
 
 	.track-index {

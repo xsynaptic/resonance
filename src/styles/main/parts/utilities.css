@@ -11,6 +11,20 @@
 	max-width: var(--spacing-prose);
 }
 
+/* Below sm the gutter is worth more as content than as margin; the block reaches the viewport edge */
+@utility content-bleed {
+	@media (width < 40rem) {
+		margin-inline: calc(var(--content-gutter) * -1);
+	}
+}
+
+/* The other half of content-bleed: puts the column's margin back on whichever element carries the text */
+@utility content-bleed-inset {
+	@media (width < 40rem) {
+		padding-inline: var(--content-gutter);
+	}
+}
+
 /* Pair with a bg gradient utility; tune per element via [--pattern-color:...], [--pattern-opacity:.2], [--pattern-image:url('...')] */
 @utility maze {
 	position: relative;

@@ -799,7 +799,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 	</Section>
 	<Section
-		note="Two more are on screen rather than in a box: entry-grid lays out the EntryCard specimen above, and content-wide is the column this page sits in."
+		note="Two more are on screen rather than in a box: entry-grid lays out the EntryCard specimen above, and content-wide is the column this page sits in. The SectionCoda, MediaFeatured, EmbedFrame and TrackList specimens all bleed under sm."
 		title="Utilities"
 	>
 		<Specimen
@@ -822,6 +822,17 @@ const paginationPage: Page<ContentCatalogItem> = {
 				This paragraph stops at 50rem however wide the column around it gets, which keeps an
 				introduction readable on a large screen without pulling it out of the grid.
 			</p>
+		</Specimen>
+		<Specimen
+			name="content-bleed / content-bleed-inset"
+			note="Below <code>sm</code> the pair takes a block to the viewport edge: <code>content-bleed</code> negates the page gutter, <code>content-bleed-inset</code> puts it back as padding on whichever element carries the text. Both on one element where the block's own background bleeds (<code>SectionCoda</code>), or split across container and child where the child's background has to reach the edge (the track list's stripes). Narrow the viewport under 640px to see it."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<div class="content-bleed bg-surface-700 content-bleed-inset py-3 sm:px-3">
+				Bled and inset together, so this text stays on the column while the band behind it runs to
+				the edge.
+			</div>
+			<div class="content-bleed mt-2 bg-surface-600 py-3 text-center">Bled on its own.</div>
 		</Specimen>
 	</Section>
 </MainSite>

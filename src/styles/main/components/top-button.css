@@ -1,6 +1,9 @@
 /* Hook is the custom element itself; `inert` is the hidden state, so the button is both
    unreachable and out of the way in one attribute */
+
+/* Hiding translates the button down over the player bar rather than off-screen, so it fades too */
 top-button {
+	opacity: 0;
 	translate: 0 150%;
 	transition:
 		translate 200ms ease-out,
@@ -8,11 +11,11 @@ top-button {
 }
 
 top-button:not([inert]) {
+	opacity: 1;
 	translate: 0 0;
 }
 
-/* Before the element upgrades there is no scroll state to hide it, and it would flash on load */
+/* The base rule already hides it before the element upgrades; this stops a tap landing on it */
 top-button:not(:defined) {
 	pointer-events: none;
-	opacity: 0;
 }

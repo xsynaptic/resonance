@@ -1,7 +1,15 @@
 .embed-frame {
+	@apply content-bleed;
+
 	overflow: hidden;
 	background-color: var(--color-surface-800);
-	border-radius: var(--radius-md);
+}
+
+/* The radius arrives with the gutter; below this the frame is bled to the viewport edge */
+@media (width >= 40rem) {
+	.embed-frame {
+		border-radius: var(--radius-md);
+	}
 }
 
 .embed-frame iframe {

@@ -9,10 +9,10 @@ interface Props {
 const { alt, path } = Astro.props;
 ---
 
-<figure class="w-fit max-w-xl rounded-md bg-surface-800 p-2.5">
+<figure class="content-bleed bg-surface-800 sm:w-fit sm:max-w-xl sm:rounded-md sm:p-2.5">
 	<MediaImage
 		alt={alt}
-		class="block rounded-sm"
+		class="block w-full sm:w-auto sm:rounded-sm"
 		path={path}
 		priority={true}
 		sizes="(min-width: 64rem) 35rem, (min-width: 40rem) 32rem, 100vw"

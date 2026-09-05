@@ -35,6 +35,13 @@
 	height: 100%;
 }
 
+/* Under two full slides the fixed width leaves a stub of the next card hanging in view */
+@media (width < 30rem) {
+	.carousel-slide {
+		width: 100%;
+	}
+}
+
 /* The chevron glyph paints narrower than its box, so the row hangs out past the content edge */
 .carousel-controls {
 	display: none;

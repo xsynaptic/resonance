@@ -4,3 +4,4 @@ dist
 .astro
 worker-configuration.d.ts
 *.sql
+src/components/main/main-structured-data.astro

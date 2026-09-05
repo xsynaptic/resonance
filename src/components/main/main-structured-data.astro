@@ -1,0 +1,15 @@
+---
+import type { Thing } from '#lib/utils/seo-structured-data.ts';
+
+import { serializeGraph } from '#lib/utils/seo-structured-data.ts';
+
+interface Props {
+	schemas: Array<Thing>;
+}
+
+const { schemas } = Astro.props;
+
+// Prettier-ignored: prettier-plugin-astro self-closes this into `<script/>`, invalid for a raw-text element
+---
+
+<script is:inline set:html={serializeGraph(schemas)} type="application/ld+json"></script>

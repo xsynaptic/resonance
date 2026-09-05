@@ -5,12 +5,15 @@ import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
 import { ClientRouter } from 'astro:transitions';
 
 import '#styles/main.css';
+import type { Thing } from '#lib/utils/seo-structured-data.ts';
+
 import MainAnalytics from '#components/main/main-analytics.astro';
 import MainFooter from '#components/main/main-footer.astro';
 import MainHeader from '#components/main/main-header.astro';
 import MainProgressLoading from '#components/main/main-progress-loading.astro';
 import MainSkipLink from '#components/main/main-skip-link.astro';
 import MainSprites from '#components/main/main-sprites.astro';
+import MainStructuredData from '#components/main/main-structured-data.astro';
 import MainTopButton from '#components/main/main-top-button.astro';
 import PlayerBar from '#components/player/player-bar.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -25,6 +28,7 @@ interface Props {
 	openGraphId?: string;
 	openGraphType?: 'article' | 'website';
 	publishedTime?: Date | undefined;
+	schemas?: Array<Thing> | undefined;
 	title?: string;
 }
 
@@ -34,6 +38,7 @@ const {
 	openGraphId,
 	openGraphType = 'website',
 	publishedTime,
+	schemas,
 	title,
 } = Astro.props;
 const pageTitle = title
@@ -91,6 +96,7 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 			) : undefined
 		}
 		<meta content="summary_large_image" name="twitter:card" />
+		<meta content="@DJBasilisk" name="twitter:site" />
 		{
 			UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (
 				<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
@@ -112,5 +118,6 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<MainFooter />
 		<MainTopButton />
 		<PlayerBar />
+		{schemas && schemas.length > 0 ? <MainStructuredData schemas={schemas} /> : undefined}
 	</body>
 </html>

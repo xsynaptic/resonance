@@ -8,6 +8,7 @@ export default defineConfig({
 			'astro:content': fileURLToPath(
 				new URL('src/lib/collections/astro-content-stub.ts', import.meta.url),
 			),
+			'astro:env/server': fileURLToPath(new URL('src/lib/astro-env-stub.ts', import.meta.url)),
 		},
 	},
 	test: {

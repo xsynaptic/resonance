@@ -6,6 +6,10 @@ export const site = {
 	title: siteTitle,
 } as const;
 
+export function getSiteUrl(...routeParts: Array<string>): string {
+	return [import.meta.env.SITE, ...routeParts, '/'].join('/').replaceAll(/(?<!:)\/\/+/g, '/');
+}
+
 export const downloadBaseUrl = new URL('artifacts/', FILES_URL).href;
 
 export const streamBaseUrl = new URL('stream/', FILES_URL).href;

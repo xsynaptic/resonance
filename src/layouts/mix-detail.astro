@@ -17,13 +17,14 @@ import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
+import { getMixSchemas } from '#lib/collections/mixes/mixes-schema.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
 import { getSoundcloudPlayCount } from '#lib/platform-stats/soundcloud-stats.ts';
 import { isPlayerEnabled, site } from '#lib/site.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
+import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -49,6 +50,16 @@ const description = await getEntryDescription(entry);
 
 const [alias] = aliasTerms;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
+const openGraphId = getOpenGraphId(entry.collection, entry.id);
+
+const kind = { label: t('collection.mixes.title'), url: '/mixes/' };
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const schemas = getMixSchemas(entry, {
+	description,
+	imageUrl: getOpenGraphImageUrl(openGraphId, Astro.site),
+	kind,
+	url: pageUrl,
+});
 
 const queueItem = isPlayerEnabled
 	? await getMixQueueItem(entry, alias?.label ?? site.title)
@@ -57,10 +68,11 @@ const queueItem = isPlayerEnabled
 
 <ReleaseDetail
 	date={entry.data.dateCreated}
-	kind={{ label: t('collection.mixes.title'), url: '/mixes/' }}
+	kind={kind}
 	labels={labelTerms}
-	openGraphId={getOpenGraphId(entry.collection, entry.id)}
+	openGraphId={openGraphId}
 	releaseTitle={entry.data.title}
+	schemas={schemas}
 	styles={styleTerms}
 	title={entry.data.title}
 	{...alias ? { artist: alias } : {}}

@@ -1,4 +1,5 @@
 ---
+import type { Thing } from '#lib/utils/seo-structured-data.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
@@ -13,11 +14,12 @@ interface Props {
 	imageHero?: string | undefined;
 	kind?: ResolvedRef | undefined;
 	openGraphId: string;
+	schemas?: Array<Thing> | undefined;
 	styles?: Array<ResolvedRef> | undefined;
 	title: string;
 }
 
-const { date, description, imageFeatured, imageHero, kind, openGraphId, styles, title } =
+const { date, description, imageFeatured, imageHero, kind, openGraphId, schemas, styles, title } =
 	Astro.props;
 ---
 
@@ -25,6 +27,7 @@ const { date, description, imageFeatured, imageHero, kind, openGraphId, styles, 
 	openGraphId={openGraphId}
 	openGraphType="article"
 	publishedTime={date}
+	schemas={schemas}
 	title={title}
 	{...description ? { description } : {}}
 >

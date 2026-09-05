@@ -9,6 +9,7 @@ import MainSite from '#components/main/main-site.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
+import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -28,9 +29,15 @@ const posts = await Promise.all(
 		return { Content, entry, format: formats.at(0) };
 	}),
 );
+
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const schemas =
+	page.currentPage === 1
+		? buildCollectionGraph({ description: undefined, title, url: pageUrl })
+		: undefined;
 ---
 
-<MainSite noIndex={page.currentPage > 1} title={title}>
+<MainSite noIndex={page.currentPage > 1} schemas={schemas} title={title}>
 	<PageTitle title={title} />
 	{
 		posts.map(({ Content, entry, format }) => (

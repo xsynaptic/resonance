@@ -19,6 +19,7 @@ import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
+import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
@@ -67,11 +68,23 @@ const breadcrumbTrail: Array<ResolvedRef> = [
 	},
 	...(isHierarchical(term.collection) ? await resolveAncestors(term.collection, term.id) : []),
 ];
+
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const schemas =
+	page.currentPage === 1
+		? buildCollectionGraph({
+				description,
+				title: term.data.title,
+				trail: breadcrumbTrail,
+				url: pageUrl,
+			})
+		: undefined;
 ---
 
 <MainSite
 	noIndex={page.currentPage > 1}
 	openGraphId={getOpenGraphId(term.collection, term.id)}
+	schemas={schemas}
 	title={term.data.title}
 	{...description ? { description } : {}}
 >

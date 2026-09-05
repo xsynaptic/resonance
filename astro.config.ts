@@ -31,6 +31,8 @@ export default defineConfig({
 	// `getViteConfig` scripts run Vite in serve mode, where Astro reads the store from `.astro`
 	// Pointing the cache here is what makes `astro sync` and `astro build` write the file those scripts read
 	cacheDir: './.astro/',
+	// It covers the bottom bar in every screenshot; re-enable by hand for an audit
+	devToolbar: { enabled: false },
 	env: {
 		schema: {
 			FILES_URL: envField.string({

@@ -566,3 +566,36 @@ describe('volume', () => {
 		expect(store.getState().volume).toBe(0.2);
 	});
 });
+
+describe('time mode', () => {
+	test('flips between elapsed and remaining', () => {
+		const store = configured();
+
+		expect(store.getState().timeMode).toBe('elapsed');
+
+		store.getState().toggleTimeMode();
+		expect(store.getState().timeMode).toBe('remaining');
+
+		store.getState().toggleTimeMode();
+		expect(store.getState().timeMode).toBe('elapsed');
+
+		localStorage.removeItem('player:time-mode');
+	});
+
+	test('persists the choice and restores it on configure', () => {
+		configured().getState().toggleTimeMode();
+
+		expect(localStorage.getItem('player:time-mode')).toBe('remaining');
+		expect(configured().getState().timeMode).toBe('remaining');
+
+		localStorage.removeItem('player:time-mode');
+	});
+
+	test('ignores a stored value that is not a mode', () => {
+		localStorage.setItem('player:time-mode', 'sideways');
+
+		expect(configured().getState().timeMode).toBe('elapsed');
+
+		localStorage.removeItem('player:time-mode');
+	});
+});

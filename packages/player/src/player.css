@@ -15,11 +15,18 @@
 	--player-accent: #10b981;
 	--player-waveform-track: #525252;
 	--player-accent-bright: #34d399;
+
+	/* Read the same way, so each must resolve to a px length rather than to a `var()` chain or another unit */
+	--player-waveform-bar: 2px;
+	--player-waveform-gap: 1px;
+	--player-waveform-radius: 1px;
 	--player-focus-ring: var(--player-accent);
 	--player-gap: 0.75rem;
 	--player-gap-tight: 0.5rem;
 	--player-padding-inline: 1rem;
-	--player-padding-block: 0.5rem;
+	--player-padding-block: 0.625rem;
+	--player-info-width: 18rem;
+	--player-waveform-height: 3rem;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
 	--player-font-family: inherit;
@@ -124,7 +131,15 @@
 	min-width: 0;
 }
 
+.player-track-meta {
+	display: flex;
+	gap: var(--player-gap-tight);
+	align-items: baseline;
+	justify-content: flex-end;
+}
+
 .player-track-empty {
+	display: block;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -136,13 +151,10 @@
 
 .player-track-title {
 	display: block;
-	overflow: hidden;
-	text-overflow: ellipsis;
 	font-size: var(--player-font-size);
 	font-weight: 500;
 	line-height: 1.25rem;
 	color: var(--player-text-strong);
-	white-space: nowrap;
 	text-decoration: none;
 }
 
@@ -157,37 +169,149 @@
 }
 
 .player-track-artist {
-	display: block;
-	overflow: hidden;
-	text-overflow: ellipsis;
 	font-size: var(--player-font-size-small);
 	line-height: 1rem;
 	color: var(--player-text-muted);
+}
+
+/* The artist takes the row and pushes whatever the host composed in, the clock here, to the end */
+.player-track-meta .player-track-artist {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Clipping and the ellipsis live here rather than on the line, so the marquee owns the box it travels inside */
+.player-marquee {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
+/* Inline would refuse the translate */
+.player-marquee-text {
+	display: inline-block;
+}
+
+/* An ellipsis cannot follow travelling text; at rest the fade says the same thing */
+.player-marquee[data-overflow] {
+	mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+	mask-repeat: no-repeat;
+}
+
+.player-marquee[data-overflow] .player-marquee-text {
+	animation: player-marquee var(--player-marquee-duration) var(--player-marquee-timing) infinite;
+}
+
+/* The title is a link, so it has to be readable and clickable while the line is travelling */
+@media (hover: hover) {
+	.player-marquee[data-overflow]:hover .player-marquee-text {
+		animation-play-state: paused;
+	}
+}
+
+.player-marquee[data-overflow]:focus-within .player-marquee-text {
+	animation-play-state: paused;
+}
+
+/* The easing carries the holds; the distance is written by the measurement */
+@keyframes player-marquee {
+	from {
+		translate: 0;
+	}
+
+	to {
+		translate: calc(-1 * var(--player-marquee-distance));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-marquee[data-overflow] {
+		mask: none;
+	}
+
+	/* Back to an inline run, which is what `text-overflow` needs to draw its ellipsis */
+	.player-marquee[data-overflow] .player-marquee-text {
+		display: inline;
+		animation: none;
+	}
+}
+
+/* Tabular numerals over a floor wide enough for `-85:32`, so flipping modes never moves the artist beside it */
 .player-time {
 	flex-shrink: 0;
+	min-width: 4.5ch;
 	font-family: var(--player-font-mono);
 	font-size: var(--player-font-size-small);
 	font-variant-numeric: tabular-nums;
 	line-height: 1rem;
 	color: var(--player-text-muted);
+	text-align: right;
 	white-space: nowrap;
+	cursor: pointer;
 }
 
+@media (hover: hover) {
+	.player-time:hover {
+		color: var(--player-text-mid);
+	}
+}
+
+.player-time:focus-visible {
+	color: var(--player-text-mid);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: 2px;
+}
+
+/* 2rem wide at every viewport, which is what makes volume affordable on a phone */
 .player-volume {
+	position: relative;
 	display: flex;
-	gap: var(--player-gap-tight);
+	flex-shrink: 0;
 	align-items: center;
 	color: var(--player-text-muted);
 }
 
+/* Above the trigger and centred on it; `display: none` closed, so a shut panel costs nothing */
+.player-volume-panel {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	display: none;
+	flex-direction: column;
+	gap: var(--player-gap-tight);
+	align-items: center;
+	padding: var(--player-gap-tight);
+	margin-bottom: var(--player-gap-tight);
+	background-color: var(--player-surface-raised);
+	border: 1px solid var(--player-border);
+	border-radius: var(--player-radius-large);
+	box-shadow:
+		0 20px 25px -5px rgb(0 0 0 / 10%),
+		0 8px 10px -6px rgb(0 0 0 / 10%);
+	translate: -50%;
+}
+
+/* Both mechanisms sit here rather than one outside: where the pointer cannot hover, `data-open` is the
+   whole story, and a `:focus-within` that opened the panel there would fight the trigger's own toggle */
+@media (hover: hover) {
+	.player-volume:hover .player-volume-panel,
+	.player-volume:focus-within .player-volume-panel {
+		display: flex;
+	}
+}
+
+.player-volume[data-open] .player-volume-panel {
+	display: flex;
+}
+
+/* The modern vertical range: `orient` and `appearance: slider-vertical` are both deprecated */
 .player-volume-slider {
-	width: 5rem;
-	height: 0.25rem;
+	height: 6rem;
 	accent-color: var(--player-accent);
 	cursor: pointer;
+	direction: rtl;
+	writing-mode: vertical-lr;
 }
 
 .player-seek {
@@ -202,10 +326,13 @@
 	opacity: 0.5;
 }
 
+/* The `width` attribute the renderer sets is the canvas's intrinsic size, so `min-width: auto` would floor
+   this flex item at the buffer's width and push it out over whatever sits beside it */
 .player-waveform {
 	display: block;
 	width: 100%;
-	height: 2.5rem;
+	min-width: 0;
+	height: var(--player-waveform-height);
 	touch-action: none;
 	cursor: pointer;
 }
@@ -215,11 +342,12 @@
 	outline-offset: 2px;
 }
 
+/* Transparent, and spaced off the waveform; both are accent-coloured and read as one shape when they touch */
 .player-scope {
 	display: block;
 	width: 6rem;
 	height: 2rem;
-	background-color: color-mix(in oklab, var(--player-surface-raised) 60%, transparent);
+	margin-left: var(--player-gap);
 	border-radius: var(--player-radius);
 }
 
@@ -381,6 +509,14 @@
 	min-width: 0;
 }
 
+/* A marquee needs a box to overflow, so the info window is sized rather than fitted to its content.
+   The width rather than a flex basis: a shrinkable basis contributes only the content size to the lead
+   group's own intrinsic width, which collapsed the box back onto the title */
+.player-bar .player-track {
+	flex: 0 1 auto;
+	width: var(--player-info-width);
+}
+
 .player-bar-scrub {
 	display: flex;
 	flex: 2;
@@ -396,9 +532,8 @@
 
 /* `48rem` and `40rem` are Tailwind's `md` and `sm`; a custom property cannot be read inside a media query */
 @media (width < 48rem) {
-	/* The scope and volume cost 204px the row does not have; volume belongs to the OS on a touch device */
-	.player-bar .player-scope,
-	.player-bar .player-volume {
+	/* The scope costs 108px the row does not have, and reads as decoration beside the waveform */
+	.player-bar .player-scope {
 		display: none;
 	}
 }

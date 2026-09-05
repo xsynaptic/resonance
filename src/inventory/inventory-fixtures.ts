@@ -111,6 +111,7 @@ const playerLabels: PlayerLabels = {
 	removeFromQueue: t('player.removeFromQueue'),
 	seek: t('player.seek'),
 	shuffle: t('player.shuffle'),
+	toggleTimeMode: t('player.toggleTimeMode'),
 	unmute: t('player.unmute'),
 	volume: t('player.volume'),
 };

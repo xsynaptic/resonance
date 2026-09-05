@@ -46,6 +46,7 @@ const labels = {
 	removeFromQueue: 'Remove',
 	seek: 'Seek',
 	shuffle: 'Shuffle',
+	toggleTimeMode: 'Toggle elapsed and remaining',
 	unmute: 'Unmute',
 	volume: 'Volume',
 };
@@ -233,13 +234,53 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('status')).toHaveTextContent(labels.error);
 	});
 
+	test('flips the clock between elapsed and remaining', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+			store.setState({ currentTimeS: 64 });
+		});
+
+		const clock = screen.getByRole('button', { name: labels.toggleTimeMode });
+
+		expect(clock).toHaveTextContent('1:04');
+
+		fireEvent.click(clock);
+
+		expect(clock).toHaveTextContent('-1:56');
+		expect(clock).toHaveAttribute('data-mode', 'remaining');
+
+		localStorage.removeItem('player:time-mode');
+	});
+
+	test('renders what the host composed into the track info beside the artist', () => {
+		const store = createPlayerStore();
+
+		render(
+			<Player.Root store={store} urls={testUrls}>
+				<Player.TrackInfo emptyLabel={labels.nowPlaying}>
+					<span>Composed in</span>
+				</Player.TrackInfo>
+			</Player.Root>,
+		);
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+		});
+
+		expect(screen.getByText('Nebula Drift').closest('.player-track-meta')).toHaveTextContent(
+			'Composed in',
+		);
+	});
+
 	test('renders a host composition of the parts through Player.Root', () => {
 		const store = createPlayerStore();
 
 		render(
 			<Player.Root className="host-bar" store={store} urls={testUrls}>
 				<Player.Transport labels={labels} />
-				<Player.Time />
+				<Player.Time label={labels.toggleTimeMode} />
 			</Player.Root>,
 		);
 

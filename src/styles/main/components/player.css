@@ -20,6 +20,11 @@
 	--player-font-mono: var(--font-mono);
 }
 
+/* Nothing queued means no bar; the sticky dock collapses to where `MainTopButton` sits with the flag off */
+.player-bar[data-empty] {
+	display: none;
+}
+
 /* The island marks the row whose mix is loaded */
 [data-track-id][data-playing] .button-icon {
 	color: var(--color-accent-400);

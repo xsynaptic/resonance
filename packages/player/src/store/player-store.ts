@@ -7,6 +7,7 @@ import type {
 	PlaybackError,
 	PlaybackErrorStage,
 	PlayerStatus,
+	PlayerTimeMode,
 	PlayerUrls,
 	QueueItem,
 } from '#types.ts';
@@ -29,6 +30,7 @@ import {
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
 const RESTART_THRESHOLD_S = 3;
+const TIME_MODE_STORAGE_KEY = 'player:time-mode';
 const VOLUME_STORAGE_KEY = 'player:volume';
 
 export type PlayerStore = PlayerActions & PlayerState;
@@ -65,6 +67,7 @@ interface PlayerActions {
 	toggleMute: () => void;
 	togglePlay: () => void;
 	toggleShuffle: () => void;
+	toggleTimeMode: () => void;
 	toggleTray: () => void;
 }
 
@@ -81,6 +84,8 @@ interface PlayerState {
 	playOrder: Array<number>;
 	queue: Array<QueueItem>;
 	status: PlayerStatus;
+	// A listener preference rather than playback state, so it is persisted beside the volume
+	timeMode: PlayerTimeMode;
 	// `undefined` renders the player inert
 	urls: PlayerUrls | undefined;
 	volume: number;
@@ -96,6 +101,7 @@ const initialPlayerState: PlayerState = {
 	playOrder: [],
 	queue: [],
 	status: 'idle',
+	timeMode: 'elapsed',
 	urls: undefined,
 	volume: 1,
 };
@@ -260,11 +266,14 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			configure: ({ urls }) => {
 				set({ urls });
 
-				const stored = readStoredVolume();
-				if (stored === undefined) return;
+				const storedTimeMode = readStoredTimeMode();
+				if (storedTimeMode !== undefined) set({ timeMode: storedTimeMode });
 
-				set({ volume: stored });
-				engine?.setVolume(stored);
+				const storedVolume = readStoredVolume();
+				if (storedVolume === undefined) return;
+
+				set({ volume: storedVolume });
+				engine?.setVolume(storedVolume);
 			},
 
 			getAnalyser: () => engine?.analyser(),
@@ -475,6 +484,13 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				});
 			},
 
+			toggleTimeMode: () => {
+				const timeMode = get().timeMode === 'elapsed' ? 'remaining' : 'elapsed';
+
+				set({ timeMode });
+				persistTimeMode(timeMode);
+			},
+
 			toggleTray: () => {
 				set((state) => ({ isTrayOpen: !state.isTrayOpen }));
 			},
@@ -490,10 +506,24 @@ function orderFor(length: number, currentIndex: number | undefined, isShuffling:
 	return isShuffling ? shuffledOrder(length, currentIndex) : identityOrder(length);
 }
 
+function persistTimeMode(timeMode: PlayerTimeMode): void {
+	if (typeof localStorage === 'undefined') return;
+
+	localStorage.setItem(TIME_MODE_STORAGE_KEY, timeMode);
+}
+
 function persistVolume(volume: number): void {
 	if (typeof localStorage === 'undefined') return;
 
 	localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
+}
+
+function readStoredTimeMode(): PlayerTimeMode | undefined {
+	if (typeof localStorage === 'undefined') return undefined;
+
+	const stored = localStorage.getItem(TIME_MODE_STORAGE_KEY);
+
+	return stored === 'elapsed' || stored === 'remaining' ? stored : undefined;
 }
 
 function readStoredVolume(): number | undefined {

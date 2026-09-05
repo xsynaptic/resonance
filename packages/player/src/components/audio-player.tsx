@@ -45,10 +45,11 @@ export function AudioPlayer(props: AudioPlayerProps) {
 		>
 			<div className="player-bar-lead">
 				<TransportControls labels={labels} />
-				<TrackInfo emptyLabel={labels.nowPlaying} />
+				<TrackInfo emptyLabel={labels.nowPlaying}>
+					<TimeDisplay label={labels.toggleTimeMode} />
+				</TrackInfo>
 			</div>
 			<div className="player-bar-scrub">
-				<TimeDisplay />
 				<SeekBar label={labels.seek} />
 			</div>
 			<div className="player-bar-tail">

@@ -10,6 +10,7 @@ export interface MiniPlayerLabels {
 	play: string;
 	previous: string;
 	seek: string;
+	toggleTimeMode: string;
 	unmute: string;
 	volume: string;
 }
@@ -31,6 +32,8 @@ export interface PlayerLabels extends MiniPlayerLabels {
 
 // `capped` is terminal like `error`, but nothing failed: the host's resolver declined to serve the track
 export type PlayerStatus = 'capped' | 'error' | 'idle' | 'loading' | 'paused' | 'playing';
+
+export type PlayerTimeMode = 'elapsed' | 'remaining';
 
 // The host owns its route shapes, so the package asks for a track's URLs rather than deriving them
 export interface PlayerUrls {

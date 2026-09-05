@@ -138,6 +138,7 @@ const strings = {
 	'player.removeFromQueue': 'Remove from the queue',
 	'player.seek': 'Seek',
 	'player.shuffle': 'Shuffle',
+	'player.toggleTimeMode': 'Toggle elapsed and remaining',
 	'player.unmute': 'Unmute',
 	'player.volume': 'Volume',
 	'search.input.placeholder': 'Search the site…',

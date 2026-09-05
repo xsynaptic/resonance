@@ -36,7 +36,15 @@ function RootElement({
 	className,
 	...rest
 }: Omit<PlayerRootProps, 'store' | 'urls'>) {
+	const isEmpty = usePlayer((state) => state.queue.length === 0);
 	const status = usePlayer((state) => state.status);
 
-	return <RootTag className={joinClassNames('player', className)} data-status={status} {...rest} />;
+	return (
+		<RootTag
+			className={joinClassNames('player', className)}
+			data-empty={isEmpty ? '' : undefined}
+			data-status={status}
+			{...rest}
+		/>
+	);
 }

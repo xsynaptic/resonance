@@ -6,6 +6,7 @@ import type { PlayerUrls } from '#types.ts';
 
 import { joinClassNames } from '#lib/class-names.ts';
 import { formatClock } from '#lib/format.ts';
+import { resamplePeaks } from '#waveform/resample.ts';
 import { loadWaveform } from '#waveform/waveform-cache.ts';
 
 const TARGET_BUCKETS = 400;
@@ -22,6 +23,13 @@ const KEY_STEPS_S = new Map<string, number>([
 	['PageDown', -PAGE_STEP_S],
 	['PageUp', PAGE_STEP_S],
 ]);
+
+interface BarLayout {
+	bar: number;
+	height: number;
+	pitch: number;
+	radius: number;
+}
 
 interface HiResPeaks {
 	peaks: ReadonlyArray<number>;
@@ -87,10 +95,31 @@ export function WaveformCanvas({
 	const peaks = hiRes?.trackId === trackId ? hiRes.peaks : overview;
 	const progress = durationS && durationS > 0 ? Math.min(1, currentTimeS / durationS) : 0;
 
+	// Held in a ref so the observer below can stay mounted across every clock tick
+	const drawRef = useRef<() => void>(noDraw);
+
+	useEffect(() => {
+		drawRef.current = () => {
+			const canvas = canvasRef.current;
+			if (canvas) draw(canvas, peaks, progress);
+		};
+		drawRef.current();
+	}, [peaks, progress, themeVersion]);
+
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		if (canvas) draw(canvas, peaks, progress);
-	}, [peaks, progress, themeVersion]);
+		if (!canvas) return;
+
+		const observer = new ResizeObserver(() => {
+			drawRef.current();
+		});
+
+		observer.observe(canvas);
+
+		return () => {
+			observer.disconnect();
+		};
+	}, []);
 
 	function seekToPointer(event: PointerEvent<HTMLCanvasElement>): void {
 		if (durationS === undefined) return;
@@ -134,33 +163,76 @@ export function WaveformCanvas({
 	);
 }
 
+function barsPath(bars: ReadonlyArray<number>, { bar, height, pitch, radius }: BarLayout): Path2D {
+	const path = new Path2D();
+
+	for (const [index, peak] of bars.entries()) {
+		const barHeight = Math.max(1, Math.round(peak * height));
+		const x = index * pitch;
+		const y = Math.round((height - barHeight) / 2);
+
+		if (radius > 0) path.roundRect(x, y, bar, barHeight, radius);
+		else path.rect(x, y, bar, barHeight);
+	}
+
+	return path;
+}
+
+function clipToProgress(
+	context: CanvasRenderingContext2D,
+	width: number,
+	height: number,
+	progress: number,
+	paint: () => void,
+): void {
+	const played = progress * width;
+	if (played <= 0) return;
+
+	context.save();
+	context.beginPath();
+	context.rect(0, 0, played, height);
+	context.clip();
+	paint();
+	context.restore();
+}
+
+// Every length is in device pixels: a bar pitch that is not a whole number of them aliases each bar differently
 function draw(canvas: HTMLCanvasElement, peaks: ReadonlyArray<number>, progress: number): void {
 	const context = canvas.getContext('2d');
 	if (!context || peaks.length === 0) return;
 
 	const ratio = window.devicePixelRatio || 1;
-	const width = canvas.clientWidth;
-	const height = canvas.clientHeight;
+	const width = Math.max(1, Math.round(canvas.clientWidth * ratio));
+	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
 
-	canvas.width = Math.max(1, Math.floor(width * ratio));
-	canvas.height = Math.max(1, Math.floor(height * ratio));
-	context.scale(ratio, ratio);
+	canvas.width = width;
+	canvas.height = height;
 	context.clearRect(0, 0, width, height);
 
-	const barWidth = width / peaks.length;
-	const playedBars = progress * peaks.length;
 	const styles = getComputedStyle(canvas);
-	const playedColor = styles.getPropertyValue('--player-accent');
-	const trackColor = styles.getPropertyValue('--player-waveform-track');
+	const bar = Math.max(1, readDevicePixels(styles, '--player-waveform-bar', ratio, 2));
+	const gap = readDevicePixels(styles, '--player-waveform-gap', ratio, 1);
+	const pitch = bar + gap;
+	const layout = {
+		bar,
+		height,
+		pitch,
+		radius: readDevicePixels(styles, '--player-waveform-radius', ratio, 0),
+	} satisfies BarLayout;
 
-	for (const [index, peak] of peaks.entries()) {
-		const barHeight = Math.max(1, peak * height);
-		const x = index * barWidth;
-		const y = (height - barHeight) / 2;
+	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
+	const bars = resamplePeaks(peaks, Math.max(1, Math.floor((width + gap) / pitch)));
 
-		context.fillStyle = index <= playedBars ? playedColor : trackColor;
-		context.fillRect(x, y, Math.max(1, barWidth - 1), barHeight);
-	}
+	const path = barsPath(bars, layout);
+
+	context.fillStyle = styles.getPropertyValue('--player-waveform-track');
+	context.fill(path);
+
+	// A clip rather than a colour per bar, so the played edge lands mid-bar instead of jumping a whole one
+	clipToProgress(context, width, height, progress, () => {
+		context.fillStyle = styles.getPropertyValue('--player-accent');
+		context.fill(path);
+	});
 }
 
 // The keys `role="slider"` contracts for; anything else falls through to the page
@@ -171,4 +243,21 @@ function keyTarget(key: string, currentTimeS: number, durationS: number): number
 	const step = KEY_STEPS_S.get(key);
 
 	return step === undefined ? undefined : currentTimeS + step;
+}
+
+function noDraw(): void {
+	return;
+}
+
+// The token has to resolve to a px length: a custom property cannot be converted from any other unit without a probe element
+function readDevicePixels(
+	styles: CSSStyleDeclaration,
+	property: string,
+	ratio: number,
+	fallback: number,
+): number {
+	// eslint-disable-next-line unicorn/prefer-number-coercion -- `Number('2px')` is NaN; the token carries its unit
+	const parsed = Number.parseFloat(styles.getPropertyValue(property));
+
+	return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : fallback) * ratio));
 }

@@ -64,6 +64,14 @@ export function VolumeIcon() {
 	);
 }
 
+export function VolumeLowIcon() {
+	return (
+		<Icon>
+			<path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7" />
+		</Icon>
+	);
+}
+
 export function VolumeMutedIcon() {
 	return (
 		<Icon>

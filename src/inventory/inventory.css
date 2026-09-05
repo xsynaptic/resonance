@@ -1,3 +1,22 @@
 @import '../styles/main.css' theme(static);
 
 @source './*.{astro,mdx,tsx}';
+
+/* Unlayered, so it beats the site's rule hiding an empty bar; this specimen exists to show that state */
+.inventory-player-empty .player-bar[data-empty] {
+	display: flex;
+}
+
+/* The panel opens on hover or focus on this machine, so the specimen pins it open to be looked at */
+.inventory-volume-open .player-volume-panel {
+	display: flex;
+}
+
+/* What the waveform's pitch tokens do, against the shipping default */
+.inventory-waveform-square {
+	--player-waveform-radius: 0;
+}
+
+.inventory-waveform-chunky {
+	--player-waveform-bar: 3px;
+}

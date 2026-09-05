@@ -36,7 +36,11 @@ import SectionHome from '#components/sections/section-home.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import { getInventoryFixtures } from '#inventory/inventory-fixtures.ts';
-import { PlayerSpecimen } from '#inventory/inventory-player.tsx';
+import {
+	PlayerSpecimen,
+	VolumeSpecimen,
+	WaveformComparison,
+} from '#inventory/inventory-player.tsx';
 import ProseSample from '#inventory/inventory-prose-sample.mdx';
 import Section from '#inventory/inventory-section.astro';
 import Specimen from '#inventory/inventory-specimen.astro';
@@ -668,10 +672,24 @@ const paginationPage: Page<ContentCatalogItem> = {
 	>
 		<Specimen
 			name="AudioPlayer"
-			note="The full layout: transport, track info, clock, seek surface, status region, signal display, volume and the queue. The seek surface is the waveform canvas, painted from the mix's measured peaks."
+			note="The full layout: transport, the info window, seek surface, status region, signal display, volume and the queue. The info window is a fixed 18rem box holding the title, the artist and the clock, so the seek surface takes whatever is left. The seek surface is the waveform canvas, painted from the mix's measured peaks."
 			source="packages/player/src/components/audio-player.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="full" />
+		</Specimen>
+		<Specimen
+			name="MarqueeText"
+			note="A title and an artist too long for the info window. The measurement writes <code>data-overflow</code> and the distance, and CSS does the rest: an 8s hold, travel at 40px/s, an 8s hold, travel back. The edge is a fade mask rather than an ellipsis, because an ellipsis cannot follow travelling text. Hover or focus pauses it, and <code>prefers-reduced-motion</code> stops it and restores the ellipsis. A line that fits never moves."
+			source="packages/player/src/components/marquee-text.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="marquee" />
+		</Specimen>
+		<Specimen
+			name="Player.Time"
+			note="The clock in remaining mode, seeded a third of the way in. It is a toggle button: clicking it flips between elapsed (<code>32:04</code>) and remaining (<code>-85:32</code>), one number either way, and the choice persists under <code>player:time-mode</code>. <code>data-mode</code> is the styling hook and <code>aria-pressed</code> carries the state."
+			source="packages/player/src/components/time-display.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="remaining" />
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
@@ -688,6 +706,22 @@ const paginationPage: Page<ContentCatalogItem> = {
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="toggle" />
 		</Specimen>
 		<Specimen
+			name="Player.Seek"
+			note="The seek surface, and what its pitch tokens do. The renderer picks its bar count from the box in whole device pixels and resamples the 400 peaks to it, so a variation is nothing but tokens on a wrapper: <code>--player-waveform-bar</code>, <code>--player-waveform-gap</code> and <code>--player-waveform-radius</code>. The default is 2px, 1px and 1px. Each is shown at the full width and again in a 24rem column, so the low-bar-count end of the resampling sits beside the high end."
+			source="packages/player/src/waveform/waveform-canvas.tsx"
+		>
+			<WaveformComparison client:load items={playerItems} labels={playerLabels} />
+		</Specimen>
+		<Specimen
+			name="Player.Volume"
+			note="A 2rem button with a vertical slider above it, pinned open here. With a hover-capable pointer the button mutes and the panel opens on hover or focus; without one the button opens the panel and mute is a second button inside it, so volume is reachable on a phone. The slider is <code>writing-mode: vertical-lr</code> with <code>direction: rtl</code>, not the deprecated <code>orient</code> attribute. Escape closes it and returns focus to the button, and the icon reads the level in three states rather than two."
+			source="packages/player/src/components/volume-control.tsx"
+		>
+			<div class="pt-36">
+				<VolumeSpecimen client:load labels={playerLabels} />
+			</div>
+		</Specimen>
+		<Specimen
 			name="Player.Queue"
 			note="The tray open over a sectioned queue. A heading is drawn above the first item of each section, and a queue carrying any heading loses shuffle, so only Clear is offered. The loaded row is marked with <code>data-current</code>."
 			source="packages/player/src/components/queue-control.tsx"
@@ -698,10 +732,12 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="Nothing queued: the transport is disabled, the clock reads its placeholder, the seek surface falls back to a disabled range input and the track line carries the <code>nowPlaying</code> label."
+			note="Nothing queued: the root carries <code>data-empty</code>, the transport is disabled, the clock reads its placeholder, the seek surface falls back to a disabled range input and the track line carries the <code>nowPlaying</code> label. The site hides this state outright, so the specimen opts back in to show it."
 			source="packages/player/src/components/audio-player.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="empty" />
+			<div class="inventory-player-empty">
+				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="empty" />
+			</div>
 		</Specimen>
 		<Specimen
 			name="Player.Status"

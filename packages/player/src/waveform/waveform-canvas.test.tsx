@@ -5,16 +5,25 @@ import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
 
 const resolveNothing = () => Promise.resolve(undefined);
 
+// Vitest wants a constructible stub, and the renderer never reads back from the path it builds
+class StubPath2D {
+	closePath = vi.fn();
+	lineTo = vi.fn();
+	moveTo = vi.fn();
+	rect = vi.fn();
+	roundRect = vi.fn();
+}
+
 const themes = {
 	dim: { '--player-accent': '#1c7a55', '--player-waveform-track': '#333333' },
 	lit: { '--player-accent': '#10b981', '--player-waveform-track': '#cccccc' },
 };
 
-// A quarter of the way in over four buckets: two bars played, two not
+// The whole waveform is laid down in the track colour and the played part clipped over it
 function painted(theme: keyof typeof themes) {
 	const { '--player-accent': played, '--player-waveform-track': track } = themes[theme];
 
-	return [played, played, track, track];
+	return [track, played];
 }
 
 function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: Array<number> }) {
@@ -33,26 +42,42 @@ function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: 
 	);
 }
 
-// happy-dom has no 2d context and resolves no custom property; the fills record what was painted
+// happy-dom has no 2d context and resolves no custom property; the fills record the colours in the order painted
 function stubPainting() {
 	const fills: Array<string> = [];
 	const context = {
+		beginPath: vi.fn(),
 		clearRect: vi.fn(),
-		fillRect: () => {
-			fills.push(context.fillStyle);
+		clip: vi.fn(),
+		fill: (_path?: Path2D) => {
+			if (fills.at(-1) !== context.fillStyle) fills.push(context.fillStyle);
 		},
 		fillStyle: '',
-		scale: vi.fn(),
+		rect: vi.fn(),
+		restore: vi.fn(),
+		roundRect: vi.fn(),
+		save: vi.fn(),
 	};
 
 	vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
 		context as unknown as CanvasRenderingContext2D,
 	);
+
+	// happy-dom has no Path2D either; the renderer only builds a path and hands it to `fill`
+	vi.stubGlobal('Path2D', StubPath2D);
+
+	// A bar count needs layout, which happy-dom does not do; the box is stubbed so the geometry resolves
+	vi.spyOn(HTMLCanvasElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+	vi.spyOn(HTMLCanvasElement.prototype, 'clientHeight', 'get').mockReturnValue(48);
+
+	// The renderer also reads the pitch tokens, which no theme here declares; those fall back to the defaults
 	vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
-		getPropertyValue: (property: string) =>
-			themes[document.documentElement.dataset.theme === 'dim' ? 'dim' : 'lit'][
-				property as keyof (typeof themes)['lit']
-			],
+		getPropertyValue: (property: string): string => {
+			const theme: Partial<Record<string, string>> =
+				themes[document.documentElement.dataset.theme === 'dim' ? 'dim' : 'lit'];
+
+			return theme[property] ?? '';
+		},
 	} as unknown as CSSStyleDeclaration);
 
 	return fills;
@@ -61,6 +86,7 @@ function stubPainting() {
 afterEach(() => {
 	cleanup();
 	vi.restoreAllMocks();
+	vi.unstubAllGlobals();
 	delete document.documentElement.dataset.theme;
 });
 

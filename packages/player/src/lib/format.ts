@@ -1,9 +1,11 @@
+// A negative value is the remaining-time idiom, so the sign is part of the format rather than a rejected input
 export function formatClock(seconds: number): string {
-	if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+	if (!Number.isFinite(seconds)) return '0:00';
 
-	const total = Math.floor(seconds);
+	const total = Math.floor(Math.abs(seconds));
 	const minutes = Math.floor(total / 60);
 	const remainder = total % 60;
+	const sign = seconds < 0 ? '-' : '';
 
-	return `${String(minutes)}:${String(remainder).padStart(2, '0')}`;
+	return `${sign}${String(minutes)}:${String(remainder).padStart(2, '0')}`;
 }

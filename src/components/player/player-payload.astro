@@ -1,0 +1,17 @@
+---
+import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+
+import { jsonForScript } from '#lib/utils/json-script.ts';
+
+interface Props {
+	items: Array<PlayerPayloadItem>;
+}
+
+const { items } = Astro.props;
+---
+
+{
+	items.length > 0 ? (
+		<script data-player-payload is:inline set:html={jsonForScript(items)} type="application/json" />
+	) : undefined
+}

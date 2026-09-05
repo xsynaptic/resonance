@@ -8,16 +8,20 @@ import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import PlayerPayload from '#components/player/player-payload.astro';
+import PlayerPlay from '#components/player/player-play.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
+import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
 import { getSoundcloudPlayCount } from '#lib/platform-stats/soundcloud-stats.ts';
+import { isPlayerEnabled, site } from '#lib/site.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
@@ -45,6 +49,10 @@ const description = await getEntryDescription(entry);
 
 const [alias] = aliasTerms;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
+
+const queueItem = isPlayerEnabled
+	? await getMixQueueItem(entry, alias?.label ?? site.title)
+	: undefined;
 ---
 
 <ReleaseDetail
@@ -60,11 +68,11 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 	{...description ? { description } : {}}
 >
 	<Content />
-	<EmbedAudio
-		mixcloudLink={entry.data.mixcloudLink}
-		slot="media"
-		soundcloudLink={entry.data.soundcloudLink}
-	/>
+	<Fragment slot="media">
+		{queueItem ? <PlayerPlay trackId={entry.id} /> : undefined}
+		<PlayerPayload items={queueItem ? [queueItem] : []} />
+		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
+	</Fragment>
 	<Fragment slot="links">
 		<AudioLinks
 			files={entry.data.files}

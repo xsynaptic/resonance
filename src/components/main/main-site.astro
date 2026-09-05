@@ -12,6 +12,7 @@ import MainProgressLoading from '#components/main/main-progress-loading.astro';
 import MainSkipLink from '#components/main/main-skip-link.astro';
 import MainSprites from '#components/main/main-sprites.astro';
 import MainTopButton from '#components/main/main-top-button.astro';
+import PlayerBar from '#components/player/player-bar.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
@@ -110,5 +111,6 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		</main>
 		<MainFooter />
 		<MainTopButton />
+		<PlayerBar />
 	</body>
 </html>

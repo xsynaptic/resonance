@@ -11,8 +11,6 @@ export default {
 				'src/components/embed/embed-youtube.astro',
 				// The inventory; injected by entrypoint string in the integration, not imported
 				'src/inventory/inventory.astro',
-				// Staged ahead of the player port; drop this line, not the file, once something imports it
-				'src/lib/collections/mixes/mixes-audio.ts',
 			],
 			ignoreDependencies: [
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })
@@ -22,10 +20,8 @@ export default {
 		'packages/content': {
 			// The content scripts delegate to root via `pnpm -w run`, which knip reads as a binary
 			ignoreBinaries: ['check-content', 'content-schemas', 'fix-content', 'validate-content'],
-			ignoreDependencies: [
-				'mdxlint', // enables knip's MDX plugin here; there is no `astro` devDep to do it
-				'react', // type-only: jsxImportSource in tsconfig, React.JSX in the MDX ambient types
-			],
+			// Enables knip's MDX plugin here; there is no `astro` devDep to do it
+			ignoreDependencies: ['mdxlint'],
 		},
 		'packages/scripts': {
 			ignoreBinaries: ['audiowaveform', 'ffmpeg', 'ffprobe', 'ssh-add'],

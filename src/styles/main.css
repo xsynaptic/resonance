@@ -40,3 +40,5 @@
 @import './main/components/top-button.css' layer(components);
 @import './main/components/selections.css' layer(components);
 @import './main/components/track-list.css' layer(components);
+@import '@xsynaptic/player/player.css' layer(components);
+@import './main/components/player.css' layer(components);

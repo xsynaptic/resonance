@@ -1,0 +1,23 @@
+/* The package's tokens default to its own palette; this maps them onto the theme */
+.player-bar {
+	--player-text-bright: var(--color-ink-100);
+	--player-text-strong: var(--color-ink-200);
+	--player-text-mid: var(--color-ink-300);
+	--player-text: var(--color-ink-400);
+	--player-text-muted: var(--color-ink-600);
+	--player-text-dim: var(--color-ink-700);
+	--player-surface: var(--color-surface-900);
+	--player-surface-raised: var(--color-surface-800);
+	--player-surface-hover: var(--color-surface-700);
+	--player-border: var(--color-surface-700);
+	--player-border-strong: var(--color-surface-600);
+	--player-accent: var(--color-accent-500);
+	--player-accent-bright: var(--color-accent-400);
+	--player-waveform-track: var(--color-surface-400);
+	--player-font-mono: var(--font-mono);
+}
+
+/* The island marks the row whose mix is loaded */
+[data-track-id][data-playing] .button-icon {
+	color: var(--color-accent-400);
+}

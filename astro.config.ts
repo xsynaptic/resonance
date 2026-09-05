@@ -1,5 +1,6 @@
 import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import buildLogger from '@xsynaptic/astro-build-logger';
@@ -39,6 +40,7 @@ export default defineConfig({
 			}),
 			// Domain the Open Graph cards are served from; unset means the site's own origin
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
+			PLAYER_ENABLED: envField.boolean({ access: 'public', context: 'server', default: false }),
 			TURNSTILE_SITE_KEY: envField.string({ access: 'public', context: 'server' }),
 			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
 			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),
@@ -68,6 +70,7 @@ export default defineConfig({
 		responsiveStyles: true,
 	},
 	integrations: [
+		react(),
 		mdx(),
 		sitemap({
 			filter: (page) => isIndexableUrlPath(new URL(page).pathname),

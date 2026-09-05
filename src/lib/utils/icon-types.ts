@@ -7,5 +7,6 @@ export type IconId =
 	| 'download'
 	| 'magnifying-glass'
 	| 'mixcloud'
+	| 'play'
 	| 'soundcloud'
 	| 'youtube';

@@ -1,4 +1,7 @@
+import type { ESLint } from 'eslint';
+
 import { getAstroConfig, getConfig, getWebComponentConfig } from '@xsynaptic/eslint-config';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 
 export default getConfig(
@@ -30,7 +33,7 @@ export default getConfig(
 		},
 		{
 			// These files run in the browser and might need browser globals
-			files: ['src/components/**/*'],
+			files: ['src/components/**/*', 'packages/player/**/*'],
 			languageOptions: {
 				globals: {
 					...Object.fromEntries(Object.keys(globals.node).map((key) => [key, 'off'])),
@@ -39,6 +42,16 @@ export default getConfig(
 			},
 			rules: {
 				'unicorn/prefer-global-this': 'off',
+			},
+		},
+		{
+			files: ['**/*.tsx'],
+			plugins: {
+				'react-hooks': reactHooksPlugin as unknown as ESLint.Plugin,
+			},
+			rules: {
+				...reactHooksPlugin.configs['recommended-latest'].rules,
+				'react-hooks/component-hook-factories': 'error',
 			},
 		},
 		getWebComponentConfig(['src/components/**/*.ts']),

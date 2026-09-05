@@ -1,0 +1,26 @@
+{
+	"name": "@xsynaptic/player",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": "./src/index.ts",
+		"./player.css": "./src/player.css"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"dependencies": {
+		"waveform-data": "^4.5.2",
+		"zustand": "^5.0.15"
+	},
+	"peerDependencies": {
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8"
+	},
+	"devDependencies": {
+		"@testing-library/jest-dom": "^7.0.1",
+		"@testing-library/react": "^16.3.3"
+	}
+}

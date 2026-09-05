@@ -1,0 +1,32 @@
+---
+import { PlayerIsland } from '#components/player/player-island.tsx';
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { isPlayerEnabled } from '#lib/site.ts';
+
+// Serialized as island props rather than imported into the island, which would ship the whole strings table
+const labels = {
+	capped: t('player.capped'),
+	clearQueue: t('player.clearQueue'),
+	empty: t('player.empty'),
+	error: t('player.error'),
+	loading: t('player.loading'),
+	next: t('player.next'),
+	nowPlaying: t('player.nowPlaying'),
+	pause: t('player.pause'),
+	play: t('player.play'),
+	previous: t('player.previous'),
+	queue: t('player.queue'),
+	removeFromQueue: t('player.removeFromQueue'),
+	seek: t('player.seek'),
+	shuffle: t('player.shuffle'),
+	volume: t('player.volume'),
+};
+---
+
+{
+	isPlayerEnabled ? (
+		<div class="sticky bottom-0 z-player">
+			<PlayerIsland client:idle labels={labels} transition:persist="player" />
+		</div>
+	) : undefined
+}

@@ -6,6 +6,7 @@ import type { CommentsCollection } from '#lib/comments/comments-data.ts';
 import Anchor from '#components/parts/anchor.astro';
 import Button from '#components/parts/button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 
 interface Props {
 	collection: CommentsCollection;
@@ -55,7 +56,9 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 				/>
 				<p class="comment-hint" id="comment-author-hint">
 					{t('comments.form.privacyLead')}{' '}
-					<Anchor href="/privacy-policy/">{t('comments.form.privacyLink')}</Anchor>.
+					<Anchor href={getContentUrl('pages', 'privacy-policy')}
+						>{t('comments.form.privacyLink')}</Anchor
+					>.
 				</p>
 			</div>
 			<div>

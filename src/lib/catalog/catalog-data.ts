@@ -1,6 +1,5 @@
 import type { ImageFeatured } from '@xsynaptic/shared/schemas';
 
-import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
 
 import type { Catalog } from '#lib/catalog/catalog-factory.ts';
@@ -16,6 +15,7 @@ import type { LabelRefValue } from '#lib/schemas/refs.ts';
 
 import { createCatalog } from '#lib/catalog/catalog-factory.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
 const contentCollections = [

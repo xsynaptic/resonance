@@ -5,7 +5,7 @@ import {
 } from '@xsynaptic/shared/constants';
 import { OG_BASE_URL } from 'astro:env/server';
 
-export { getOpenGraphId } from '@xsynaptic/shared/routing';
+export { getOpenGraphId } from '@xsynaptic/shared/open-graph';
 
 // `OG_BASE_URL` is the seam for another origin; unset today, so cards ship from `dist/`
 export function getOpenGraphImageUrl(

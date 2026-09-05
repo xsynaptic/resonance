@@ -12,6 +12,7 @@ import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
+import { getCollectionUrl, getSiteUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -37,8 +38,8 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
-const kind = { label: t('collection.posts.title'), url: '/blog/' };
-const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const kind = { label: t('collection.posts.title'), url: getCollectionUrl('posts') };
+const pageUrl = getSiteUrl(Astro.url.pathname);
 const schemas = getPostSchemas(entry, {
 	description,
 	imageUrl: getOpenGraphImageUrl(openGraphId, Astro.site),

@@ -1,5 +1,5 @@
 import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
-import { getOpenGraphId } from '@xsynaptic/shared/routing';
+import { getOpenGraphId } from '@xsynaptic/shared/open-graph';
 
 import type { ContentEntry } from '../shared/astro-content.js';
 import type { OpenGraphEntry } from './types.js';

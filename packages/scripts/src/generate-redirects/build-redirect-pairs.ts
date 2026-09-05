@@ -1,4 +1,5 @@
-import { getContentUrl, getOpenGraphPath } from '@xsynaptic/shared/routing';
+import { getOpenGraphPath } from '@xsynaptic/shared/open-graph';
+import { getContentUrl } from '@xsynaptic/shared/routing';
 
 import type { ContentEntry } from '../shared/astro-content.js';
 

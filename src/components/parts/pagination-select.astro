@@ -14,9 +14,15 @@ const { class: className, page, ...props } = Astro.props;
 
 const { currentPage, lastPage, url } = page;
 
+function withTrailingSlash(path: string): string {
+	return `${path.replace(/\/$/, '')}/`;
+}
+
 // Root-relative base for client-built URLs; `url.first` is unset on the first page
-// The site does not force trailing slashes, and the base needs one
-const pageBasePath = `${(url.first ?? url.current).replace(/\/$/, '')}/`;
+const pageBasePath = withTrailingSlash(url.first ?? url.current);
+
+const previousUrl = url.prev ? withTrailingSlash(url.prev) : undefined;
+const nextUrl = url.next ? withTrailingSlash(url.next) : undefined;
 ---
 
 {
@@ -75,17 +81,17 @@ const pageBasePath = `${(url.first ?? url.current).replace(/\/$/, '')}/`;
 					</form>
 				</div>
 				<div class="flex items-center gap-6">
-					{url.prev ? (
+					{previousUrl ? (
 						<span class="flex flex-wrap gap-1">
 							<span class="text-highlight-500 select-none">&lsaquo;</span>
-							<Anchor aria-label={t('pagination.previousPage')} href={url.prev}>
+							<Anchor aria-label={t('pagination.previousPage')} href={previousUrl}>
 								{t('pagination.previous')}
 							</Anchor>
 						</span>
 					) : undefined}
-					{url.next ? (
+					{nextUrl ? (
 						<span class="flex flex-wrap gap-1">
-							<Anchor aria-label={t('pagination.nextPage')} href={url.next}>
+							<Anchor aria-label={t('pagination.nextPage')} href={nextUrl}>
 								{t('pagination.next')}
 							</Anchor>
 							<span class="text-highlight-500 select-none">&rsaquo;</span>

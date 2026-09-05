@@ -1,19 +1,21 @@
 import type { MenuItem } from '#components/menu/menu-types.ts';
 
+import { getCollectionUrl, getContentUrl } from '#lib/utils/routing.ts';
+
 export const menuHeaderItems = [
-	{ title: 'Mixes', url: '/mixes' },
-	{ title: 'Reviews', url: '/reviews' },
+	{ title: 'Mixes', url: getCollectionUrl('mixes') },
+	{ title: 'Reviews', url: getCollectionUrl('reviews') },
 	{
 		children: [
-			{ title: 'Selections', url: '/formats/selections' },
-			{ title: 'Album Artwork', url: '/formats/album-artwork' },
-			{ title: 'Notes', url: '/formats/notes' },
-			{ title: 'Quotations', url: '/formats/quotations' },
-			{ title: 'Tracks', url: '/formats/tracks' },
-			{ title: 'Articles', url: '/formats/articles' },
+			{ title: 'Selections', url: getContentUrl('formats', 'selections') },
+			{ title: 'Album Artwork', url: getContentUrl('formats', 'album-artwork') },
+			{ title: 'Notes', url: getContentUrl('formats', 'notes') },
+			{ title: 'Quotations', url: getContentUrl('formats', 'quotations') },
+			{ title: 'Tracks', url: getContentUrl('formats', 'tracks') },
+			{ title: 'Articles', url: getContentUrl('formats', 'articles') },
 		],
 		title: 'Blog',
-		url: '/blog',
+		url: getCollectionUrl('posts'),
 	},
 	{
 		children: [
@@ -25,16 +27,19 @@ export const menuHeaderItems = [
 			{ rel: 'me', title: 'X', url: 'https://x.com/djbasilisk' },
 		],
 		title: 'Profile',
-		url: '/profile',
+		url: getContentUrl('pages', 'profile'),
 	},
 	{
 		children: [
-			{ title: 'Frequently Asked Questions', url: '/frequently-asked-questions' },
-			{ title: 'Resources', url: '/resources' },
-			{ title: 'Booking', url: '/booking' },
-			{ title: 'Contact', url: '/contact' },
+			{
+				title: 'Frequently Asked Questions',
+				url: getContentUrl('pages', 'frequently-asked-questions'),
+			},
+			{ title: 'Resources', url: getContentUrl('pages', 'resources') },
+			{ title: 'Booking', url: getContentUrl('pages', 'booking') },
+			{ title: 'Contact', url: getContentUrl('pages', 'contact') },
 		],
 		title: 'About',
-		url: '/about',
+		url: getContentUrl('pages', 'about'),
 	},
 ] satisfies Array<MenuItem>;

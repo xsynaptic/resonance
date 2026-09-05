@@ -25,5 +25,7 @@ export function isActiveMenuItem(item: MenuItem, pathname: string): boolean {
 export function isActiveMenuPath(url: string | undefined, pathname: string): boolean {
 	if (!url || url.startsWith('http')) return false;
 
-	return pathname === url || pathname.startsWith(`${url}/`);
+	const path = pathname.endsWith('/') ? pathname : `${pathname}/`;
+
+	return path.startsWith(url);
 }

@@ -1,6 +1,7 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
-import { getSiteUrl, site } from '#lib/site.ts';
+import { site } from '#lib/site.ts';
+import { getContentUrl, getSiteUrl } from '#lib/utils/routing.ts';
 
 const SchemaTypeEnum = {
 	Article: 'Article',
@@ -121,7 +122,7 @@ interface WebSite extends IdReference {
 export const profilePageId = 'profile';
 
 const siteUrl = getSiteUrl();
-const profileUrl = getSiteUrl(profilePageId);
+const profileUrl = getSiteUrl(getContentUrl('pages', profilePageId));
 
 const ids = {
 	album: (pageUrl: string) => `${pageUrl}#album`,

@@ -1,12 +1,12 @@
 import type { QueueItem } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
-import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getImage } from 'astro:assets';
 
 import { getMixAudio } from '#lib/collections/mixes/mixes-audio.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 
 // The rendition is resolved at build time, so the island's stream resolver reads it off the queue
 export interface PlayerPayloadItem extends QueueItem {

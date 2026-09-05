@@ -2,13 +2,13 @@
 import type { Page } from 'astro';
 import type { CollectionEntry } from 'astro:content';
 
-import { getContentUrl } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
 import MainSite from '#components/main/main-site.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
+import { getContentUrl, getSiteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { resolveTermLinks } from '#lib/utils/terms.ts';
 
@@ -30,7 +30,7 @@ const posts = await Promise.all(
 	}),
 );
 
-const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const pageUrl = getSiteUrl(Astro.url.pathname);
 const schemas =
 	page.currentPage === 1
 		? buildCollectionGraph({ description: undefined, title, url: pageUrl })

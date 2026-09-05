@@ -1,12 +1,12 @@
 import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 
-import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getCollection, getEntries } from 'astro:content';
 
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { LabelRefValue, RefValue } from '#lib/schemas/refs.ts';
 
 import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 import { toSlug } from '#lib/utils/text.ts';
 
 // url is set only when the ref links to a catalog entry; free-text and unresolved ids render plain

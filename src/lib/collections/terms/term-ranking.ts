@@ -1,11 +1,11 @@
 import type { ReferenceDataEntry } from 'astro:content';
 
-import { getContentUrl } from '@xsynaptic/shared/routing';
 import { getEntries } from 'astro:content';
 
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import { getStylesIndex } from '#lib/collections/terms/term-index.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 
 // The header leads with frontmatter order; the coda leads with whichever styles carry the most content
 export async function resolveStylesRanked(

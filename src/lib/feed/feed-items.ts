@@ -1,7 +1,5 @@
 import type { RSSFeedItem } from '@astrojs/rss';
 
-import { getContentUrl } from '@xsynaptic/shared/routing';
-
 import type { FeedEntry } from '#lib/feed/feed-render.ts';
 
 import { feedItemCount } from '#constants.ts';
@@ -10,6 +8,7 @@ import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
 import { renderFeedContent } from '#lib/feed/feed-render.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
+import { getContentUrl } from '#lib/utils/routing.ts';
 
 export async function getFeedItems(site: URL) {
 	const [mixes, posts, reviews] = await Promise.all([

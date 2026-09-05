@@ -8,6 +8,7 @@ import EntryCard from '#components/parts/entry-card.astro';
 import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
+import { getSiteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
@@ -23,7 +24,7 @@ const { description, groupByYear = false, page, title } = Astro.props;
 
 const metaDescription = description ? await toExcerpt(description) : undefined;
 
-const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const pageUrl = getSiteUrl(Astro.url.pathname);
 const schemas =
 	page.currentPage === 1
 		? buildCollectionGraph({ description: metaDescription, title, url: pageUrl })

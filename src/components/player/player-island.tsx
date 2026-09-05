@@ -99,11 +99,12 @@ function queuedItem(trackId: string): PlayerPayloadItem | undefined {
 }
 
 function readPayload(): Array<PlayerPayloadItem> | undefined {
-	const script = document.querySelector<HTMLScriptElement>('script[data-player-payload]');
-	if (!script?.textContent) return undefined;
+	const payload =
+		document.querySelector<HTMLElement>('[data-player-payload]')?.dataset.playerPayload;
+	if (!payload) return undefined;
 
 	try {
-		return JSON.parse(script.textContent) as Array<PlayerPayloadItem>;
+		return JSON.parse(payload) as Array<PlayerPayloadItem>;
 	} catch {
 		return undefined;
 	}

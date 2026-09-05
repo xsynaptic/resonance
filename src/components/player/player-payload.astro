@@ -1,17 +1,13 @@
 ---
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
-import { jsonForScript } from '#lib/utils/json-script.ts';
-
 interface Props {
 	items: Array<PlayerPayloadItem>;
 }
 
 const { items } = Astro.props;
+
+// An attribute, not a script body; the parser decodes entities here, so Astro's own escaping suffices
 ---
 
-{
-	items.length > 0 ? (
-		<script data-player-payload is:inline set:html={jsonForScript(items)} type="application/json" />
-	) : undefined
-}
+{items.length > 0 ? <div data-player-payload={JSON.stringify(items)} hidden /> : undefined}

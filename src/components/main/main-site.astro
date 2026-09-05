@@ -117,8 +117,10 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 			</div>
 		</main>
 		<MainFooter />
-		<MainTopButton />
-		<PlayerBar />
+		<div class="sticky bottom-0 z-player">
+			<MainTopButton />
+			<PlayerBar />
+		</div>
 		{schemas && schemas.length > 0 ? <MainStructuredData schemas={schemas} /> : undefined}
 	</body>
 </html>

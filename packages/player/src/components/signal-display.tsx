@@ -43,9 +43,12 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 			frame = requestAnimationFrame(render);
 			if (document.hidden) return;
 
+			// Don't draw the scope without enough room to do so
+			const width = canvas.clientWidth;
+			if (width === 0) return;
+
 			analyser.getByteTimeDomainData(samples);
 
-			const width = canvas.clientWidth;
 			const height = canvas.clientHeight;
 
 			context.clearRect(0, 0, width, height);

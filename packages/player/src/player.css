@@ -101,6 +101,7 @@
 
 .player-transport {
 	display: flex;
+	flex-shrink: 0;
 	gap: 0.25rem;
 	align-items: center;
 }
@@ -210,6 +211,7 @@
 
 .player-queue {
 	position: relative;
+	flex-shrink: 0;
 }
 
 .player-queue-badge {
@@ -374,4 +376,23 @@
 	display: flex;
 	gap: var(--player-gap);
 	align-items: center;
+}
+
+/* `40rem` is Tailwind's `sm`; a custom property cannot be read inside a media query */
+@media (width < 40rem) {
+	/* The tail's 272px is more than the row has to give; volume belongs to the OS on a touch device */
+	.player-bar .player-scope,
+	.player-bar .player-time,
+	.player-bar .player-volume {
+		display: none;
+	}
+
+	/* Title takes what it needs and the seek bar absorbs the rest, down to a floor wide enough to grab */
+	.player-bar-lead {
+		flex: 0 1 auto;
+	}
+
+	.player-bar-scrub {
+		min-width: 4rem;
+	}
 }

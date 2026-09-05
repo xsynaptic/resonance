@@ -36,4 +36,23 @@ describe('collectMissingImageIssues', () => {
 			{ imagePath: '2011/01/gone.jpg', location: 'collections/posts/2011/a-post.mdx' },
 		]);
 	});
+
+	test('ignores a data- prop and a longer tag name that merely starts with Img', () => {
+		const entries = [
+			makeEntry({
+				body: '<Img data-src="2011/01/gone.jpg" />\n<ImgGroup src="2011/01/group.jpg" />',
+				id: 'a-post',
+			}),
+		];
+
+		expect(collectMissingImageIssues(entries, mediaFiles)).toEqual([]);
+	});
+
+	test('reads a single-quoted src', () => {
+		const entries = [makeEntry({ body: "<Img src='2011/01/gone.jpg' />", id: 'a-post' })];
+
+		expect(collectMissingImageIssues(entries, mediaFiles)).toEqual([
+			{ imagePath: '2011/01/gone.jpg', location: 'a-post' },
+		]);
+	});
 });

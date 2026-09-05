@@ -5,12 +5,12 @@ import type { ContentEntry } from '../shared/astro-content.js';
 import type { ValidationResult } from './validation-result.js';
 
 import { extractImageFeaturedIds } from '../shared/images.js';
+import { findComponentTags, getTagProp } from './component-tags.js';
 import { toValidationResult } from './validation-result.js';
 
 // Media paths are relative to packages/content/media and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image
 const imageExtensions = /\.(avif|gif|jpe?g|png|webp)$/i;
-const imgTagRegex = /<Img\s+[^>]*src=["']([^"']+)["']/g;
 
 interface MissingImageIssue {
 	imagePath: string;
@@ -53,12 +53,11 @@ function collectEntryImagePaths(entry: ContentEntry): Set<string> {
 	const selections = Array.isArray(entry.data.selections)
 		? (entry.data.selections as Array<Record<string, unknown>>)
 		: [];
-	const bodyMatches = [...(entry.body ?? '').matchAll(imgTagRegex)];
+	const bodyImagePaths = findComponentTags(entry.body ?? '', ['Img']).map((tag) =>
+		getTagProp(tag, 'src'),
+	);
 
-	const values = [
-		...selections.map((selection) => selection.imageFeatured),
-		...bodyMatches.map((match) => match[1]),
-	];
+	const values = [...selections.map((selection) => selection.imageFeatured), ...bodyImagePaths];
 
 	return new Set([
 		...extractImageFeaturedIds(entry.data),

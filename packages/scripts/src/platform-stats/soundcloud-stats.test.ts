@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { pullSoundcloudStats, soundcloudStatsPath } from './soundcloud-stats.js';
+import { pullSoundcloudStats, soundcloudStatsPath } from '#platform-stats/soundcloud-stats.ts';
 
 const tokenUrl = 'https://secure.soundcloud.com/oauth/token';
 const resolveUrl = 'https://api.soundcloud.com/resolve';

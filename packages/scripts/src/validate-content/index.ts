@@ -2,26 +2,26 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
-import type { ValidationResult } from './validation-result.js';
+import type { ValidationResult } from '#validate-content/validation-result.ts';
 
-import { mixcloudStatsPath } from '../platform-stats/mixcloud-stats.js';
-import { readGenerationKeys } from '../platform-stats/platform-stats-file.js';
-import { soundcloudStatsPath } from '../platform-stats/soundcloud-stats.js';
-import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { validateBodyMarkers } from './body-markers.js';
-import { validateDownloadsLegacy } from './downloads-legacy.js';
-import { validateEntryIds } from './entry-ids.js';
-import { validateImages } from './images.js';
-import { validateLinkIds } from './link-ids.js';
-import { validateMdxComponents } from './mdx.js';
-import { validatePlatformLinks } from './platform-links.js';
-import { validateReferences } from './references.js';
-import { validateRefs } from './refs.js';
-import { validateReviewFolders } from './review-folders.js';
-import { validateSeriesItems } from './series-items.js';
-import { validateTrackTimestamps } from './track-timestamps.js';
-import { reportValidationResult } from './validation-result.js';
+import { mixcloudStatsPath } from '#platform-stats/mixcloud-stats.ts';
+import { readGenerationKeys } from '#platform-stats/platform-stats-file.ts';
+import { soundcloudStatsPath } from '#platform-stats/soundcloud-stats.ts';
+import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
+import { validateBodyMarkers } from '#validate-content/body-markers.ts';
+import { validateDownloadsLegacy } from '#validate-content/downloads-legacy.ts';
+import { validateEntryIds } from '#validate-content/entry-ids.ts';
+import { validateImages } from '#validate-content/images.ts';
+import { validateLinkIds } from '#validate-content/link-ids.ts';
+import { validateMdxComponents } from '#validate-content/mdx.ts';
+import { validatePlatformLinks } from '#validate-content/platform-links.ts';
+import { validateReferences } from '#validate-content/references.ts';
+import { validateRefs } from '#validate-content/refs.ts';
+import { validateReviewFolders } from '#validate-content/review-folders.ts';
+import { validateSeriesItems } from '#validate-content/series-items.ts';
+import { validateTrackTimestamps } from '#validate-content/track-timestamps.ts';
+import { reportValidationResult } from '#validate-content/validation-result.ts';
 
 // `downloads` is excluded; it is generated from JSON and carries none of the fields these read
 const contentCollections = [

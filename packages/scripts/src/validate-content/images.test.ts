@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { collectMissingImageIssues } from './images.js';
-import { makeEntry } from './validate-test-utils.js';
+import { collectMissingImageIssues } from '#validate-content/images.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 const mediaFiles = new Set(['2010/04/cover.jpg', '2015/11/original.jpg']);
 

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parse } from 'yaml';
 
-import { audioSourceDir, mixesContentDir } from './audio-paths.js';
+import { audioSourceDir, mixesContentDir } from '#audio/audio-paths.ts';
 
 const audioExtensions = new Set(['.flac', '.mp3']);
 

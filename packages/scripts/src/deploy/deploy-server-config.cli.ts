@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { loadDeployConfig } from './deploy-config.js';
-import { deployServerConfig } from './deploy-server-config.js';
+import { loadDeployConfig } from '#deploy/deploy-config.ts';
+import { deployServerConfig } from '#deploy/deploy-server-config.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 const { values } = parseArgs({
 	args: process.argv.slice(2),

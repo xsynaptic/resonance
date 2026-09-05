@@ -1,11 +1,11 @@
 import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
 import { getOpenGraphId } from '@xsynaptic/shared/open-graph';
 
-import type { ContentEntry } from '../shared/astro-content.js';
-import type { OpenGraphEntry } from './types.js';
+import type { OpenGraphEntry } from '#og-image/types.ts';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { extractImageFeaturedIds } from '../shared/images.js';
-import { getCollectionLabel } from './labels.js';
+import { getCollectionLabel } from '#og-image/labels.ts';
+import { extractImageFeaturedIds } from '#shared/images.ts';
 
 /**
  * The card list pages, term indexes and 404 all fall back to. Its digest is fixed, so it renders

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { collectRefIssues } from './refs.js';
-import { makeEntry } from './validate-test-utils.js';
+import { collectRefIssues } from '#validate-content/refs.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 const catalog = [
 	makeEntry({ collection: 'artists', id: 'shpongle' }),

@@ -1,17 +1,21 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
-import type { StepStatus } from '../shared/step-status.js';
-import type { StatsGeneration, StatsItem } from './platform-stats-file.js';
-import type { SoundcloudTrack } from './soundcloud-api.js';
+import type { StatsGeneration, StatsItem } from '#platform-stats/platform-stats-file.ts';
+import type { SoundcloudTrack } from '#platform-stats/soundcloud-api.ts';
+import type { StepStatus } from '#shared/step-status.ts';
 
 import {
 	appendGeneration,
 	isFresh,
 	readLastGeneration,
 	toStatsKey,
-} from './platform-stats-file.js';
-import { fetchAccessToken, fetchAccountTracks, resolveAccountUrn } from './soundcloud-api.js';
+} from '#platform-stats/platform-stats-file.ts';
+import {
+	fetchAccessToken,
+	fetchAccountTracks,
+	resolveAccountUrn,
+} from '#platform-stats/soundcloud-api.ts';
 
 // Written as an array to match the Mixcloud sweep, so a second account is a one-line edit
 const accounts = ['djbasilisk'];

@@ -5,9 +5,9 @@ import sharp from 'sharp';
 import { render, setGlyphCacheMaxBytes } from 'takumi-js';
 import { Renderer } from 'takumi-js/node';
 
-import type { OpenGraphCard } from './types.js';
+import type { OpenGraphCard } from '#og-image/types.ts';
 
-import { coverSize, getOpenGraphElement } from './element.js';
+import { coverSize, getOpenGraphElement } from '#og-image/element.tsx';
 
 // The 8 MiB default evicts glyphs mid-run once a few faces and sizes are in play
 const glyphCacheBytes = 64 * 1024 * 1024;

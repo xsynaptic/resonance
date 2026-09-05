@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { collectTimestampIssues } from './track-timestamps.js';
-import { makeEntry } from './validate-test-utils.js';
+import { collectTimestampIssues } from '#validate-content/track-timestamps.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 function makeMix(timestamps: Array<string | undefined>, filePath?: string) {
 	return makeEntry({

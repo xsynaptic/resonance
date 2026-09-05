@@ -3,7 +3,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { appendGeneration, readLastGeneration, toStatsKey } from './platform-stats-file.js';
+import {
+	appendGeneration,
+	readLastGeneration,
+	toStatsKey,
+} from '#platform-stats/platform-stats-file.ts';
 
 async function writeLog(lines: string): Promise<string> {
 	const directory = await mkdtemp(path.join(os.tmpdir(), 'platform-stats-'));

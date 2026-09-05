@@ -1,6 +1,6 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toValidationResult } from './validation-result.js';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 interface DuplicateIdIssue {
 	id: string;

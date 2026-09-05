@@ -3,7 +3,7 @@
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { isPathPresent } from '../shared/utils.js';
+import { isPathPresent } from '#shared/utils.ts';
 
 // Carried on every line rather than in a file header, so an old line stays readable beside a new one
 const generationVersion = 1;

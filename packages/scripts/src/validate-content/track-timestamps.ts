@@ -1,6 +1,6 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toValidationResult } from './validation-result.js';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 const timestampRegex = /^(\d{2}):([0-5]\d):([0-5]\d)(?:\.(\d{1,2}))?$/;
 

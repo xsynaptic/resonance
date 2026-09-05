@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { pullMixcloudStats } from './mixcloud-stats.js';
+import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 const { values } = parseArgs({
 	args: process.argv.slice(2),

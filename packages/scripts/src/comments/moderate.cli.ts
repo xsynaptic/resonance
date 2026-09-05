@@ -2,9 +2,9 @@
 import chalk from 'chalk';
 import { parseArgs } from 'node:util';
 
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { deleteComment, moderateComments } from './moderate.js';
-import { reportOrphans } from './orphans.js';
+import { deleteComment, moderateComments } from '#comments/moderate.ts';
+import { reportOrphans } from '#comments/orphans.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 const usage = `
   ${chalk.bold('pnpm comments')}                  moderate the pending queue

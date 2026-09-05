@@ -1,11 +1,11 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
-import type { DeployConfig } from './deploy-config.js';
+import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { audioSourceDir, streamsDir } from '../audio/audio-paths.js';
-import { ensureSshKeychain, isPathPresent } from '../shared/utils.js';
-import { rsync } from './rsync-exec.js';
+import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
+import { rsync } from '#deploy/rsync-exec.ts';
+import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
 // The one place the server layout is named; stats-pull derives its own path from this
 export const remoteRoot = '/srv/resonance';

@@ -1,7 +1,7 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { getIdsByCollection } from '../shared/entries.js';
-import { toValidationResult } from './validation-result.js';
+import { getIdsByCollection } from '#shared/entries.ts';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 interface EntryReference {
 	collection: string;

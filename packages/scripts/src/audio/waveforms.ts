@@ -4,9 +4,9 @@ import path from 'node:path';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
-import { cleanStaleTmp } from '../shared/utils.js';
-import { audioSourceDir, waveformsCacheDir } from './audio-paths.js';
-import { collectAudioSources } from './audio-sources.js';
+import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
+import { collectAudioSources } from '#audio/audio-sources.ts';
+import { cleanStaleTmp } from '#shared/utils.ts';
 
 const concurrency = 6;
 const archiveExtension = '.dat';

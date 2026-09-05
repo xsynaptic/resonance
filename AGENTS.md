@@ -27,8 +27,7 @@ A `ready` document can still hold settled items. Those carry their disposition i
 
 ## Conventions
 
-- Imports use Node `#*` subpaths mapped to `./src/*`, and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config.
-- `src/components/menu/menu-navigation.ts` is a later, better-organized refactor of its spectralcodex original and is **ahead of it**. Do not re-copy that file from there.
+- Imports use Node `#*` subpaths and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config. The `#*` imports map is per package and does not cascade; every package defines its own. A relative import inside a package is a mistake, including for a sibling file.
 
 ## Styling
 

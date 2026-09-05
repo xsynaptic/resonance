@@ -2,10 +2,10 @@ import { queryComments } from '@xsynaptic/shared/comments';
 import chalk from 'chalk';
 import { $ } from 'zx';
 
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
-import { toFormerIds } from '../shared/entries.js';
+import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { toFormerIds } from '#shared/entries.ts';
 
 export interface OrphansOptions {
 	isLocal: boolean;

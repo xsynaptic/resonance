@@ -3,9 +3,12 @@ import chalk from 'chalk';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { buildRedirectPairs, redirectCollections } from './build-redirect-pairs.js';
+import {
+	buildRedirectPairs,
+	redirectCollections,
+} from '#generate-redirects/build-redirect-pairs.ts';
+import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 // WordPress permalinks the site no longer answers to, written by hand because no field records them
 const structuralRedirects: Array<[string, string]> = [

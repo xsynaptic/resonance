@@ -4,6 +4,9 @@
 	"description": "Build and deploy scripts for Resonance",
 	"type": "module",
 	"private": true,
+	"imports": {
+		"#*": "./src/*"
+	},
 	"scripts": {
 		"comments": "tsx ./src/comments/moderate.cli.ts",
 		"comments-backup": "tsx ./src/comments/backup.cli.ts",

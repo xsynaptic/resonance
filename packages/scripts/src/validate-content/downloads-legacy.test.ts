@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { validateDownloadsLegacy } from './downloads-legacy.js';
-import { makeEntry } from './validate-test-utils.js';
+import { validateDownloadsLegacy } from '#validate-content/downloads-legacy.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 describe('validateDownloadsLegacy', () => {
 	test('passes when every format has a file', () => {

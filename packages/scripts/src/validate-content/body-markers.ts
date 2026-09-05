@@ -1,6 +1,6 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toValidationResult } from './validation-result.js';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // `<TrackList tracks={frontmatter.tracks} />` and `<Selections items={frontmatter.selections} />`
 // are the only things that render those fields, and the layouts do not

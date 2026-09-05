@@ -2,11 +2,11 @@ import { openGraphBasePath } from '@xsynaptic/shared/constants';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import type { OpenGraphEntry } from './types.js';
+import type { OpenGraphEntry } from '#og-image/types.ts';
 
-import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
-import { getDefaultEntry, toOpenGraphEntry } from './content.js';
-import { openGraphCollections } from './labels.js';
+import { getDefaultEntry, toOpenGraphEntry } from '#og-image/content.ts';
+import { openGraphCollections } from '#og-image/labels.ts';
+import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 
 // Astro writes `content` before `property`, and `og:image:width` must not match
 const openGraphMetaPattern = /<meta content="([^"]+)" property="og:image"\s*\/?>/g;

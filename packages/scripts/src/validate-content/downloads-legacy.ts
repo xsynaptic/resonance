@@ -1,6 +1,6 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toValidationResult } from './validation-result.js';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // The frozen counts are keyed on format, so a mix that drops a format keeps a count nothing renders
 export function validateDownloadsLegacy(entries: Array<ContentEntry>) {

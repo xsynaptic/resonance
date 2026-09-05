@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { collectReferenceIssues } from './references.js';
-import { makeEntry, makeRefs } from './validate-test-utils.js';
+import { collectReferenceIssues } from '#validate-content/references.ts';
+import { makeEntry, makeRefs } from '#validate-content/validate-test-utils.ts';
 
 // The checked set is whichever collections the passed entries belong to
 function makeEntries(mixes: Array<ReturnType<typeof makeEntry>>) {

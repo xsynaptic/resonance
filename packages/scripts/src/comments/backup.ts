@@ -3,9 +3,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
 
-import type { StepStatus } from '../shared/step-status.js';
+import type { StepStatus } from '#shared/step-status.ts';
 
-import { isPathPresent } from '../shared/utils.js';
+import { isPathPresent } from '#shared/utils.ts';
 
 const databaseName = 'resonance-comments';
 

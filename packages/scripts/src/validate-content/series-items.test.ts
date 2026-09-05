@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { validateSeriesItems } from './series-items.js';
-import { makeEntry } from './validate-test-utils.js';
+import { validateSeriesItems } from '#validate-content/series-items.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 const members = [makeEntry({ id: 'all-stars-2011' }), makeEntry({ id: 'a-review' })];
 

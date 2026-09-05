@@ -8,13 +8,13 @@ import { promises as fs, rmSync } from 'node:fs';
 import path from 'node:path';
 import pLimit from 'p-limit';
 
-import type { FontsourceConfig } from './fonts.js';
-import type { OpenGraphEntry } from './types.js';
+import type { FontsourceConfig } from '#og-image/fonts.ts';
+import type { OpenGraphEntry } from '#og-image/types.ts';
 
-import { getBuiltEntries } from './built-entries.js';
-import { fontsourceFonts } from './fonts.js';
-import { createRenderer, processCover } from './generate.js';
-import { createOutputCache, getCacheKey } from './output-cache.js';
+import { getBuiltEntries } from '#og-image/built-entries.ts';
+import { fontsourceFonts } from '#og-image/fonts.ts';
+import { createRenderer, processCover } from '#og-image/generate.ts';
+import { createOutputCache, getCacheKey } from '#og-image/output-cache.ts';
 
 // Matches the Astro font config; the site pulls the same faces through fontProviders.fontsource()
 const fontConfigs: Array<FontsourceConfig> = [

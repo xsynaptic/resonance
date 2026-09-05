@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-import { findWorkspaceRoot } from '../shared/utils.js';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 // Written by `astro sync`, one JSON schema per collection
 const schemaDir = '.astro/collections';

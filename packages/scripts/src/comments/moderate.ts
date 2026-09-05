@@ -5,7 +5,7 @@ import { executeComments, queryComments, toIdLiteral } from '@xsynaptic/shared/c
 import chalk from 'chalk';
 import { once } from 'node:events';
 
-import { pullComments } from './pull.js';
+import { pullComments } from '#comments/pull.ts';
 
 export interface ModerateOptions {
 	isLocal: boolean;

@@ -8,21 +8,21 @@ import tls from 'node:tls';
 import { parseArgs } from 'node:util';
 import { $ } from 'zx';
 
-import type { StepStatus } from '../shared/step-status.js';
+import type { StepStatus } from '#shared/step-status.ts';
 
-import { generateAudioManifest, readManifestStreams } from '../audio/manifest.js';
-import { generateRenditions } from '../audio/renditions.js';
-import { validateAudio } from '../audio/validate.js';
-import { generateWaveforms } from '../audio/waveforms.js';
-import { backupIfStale } from '../comments/backup.js';
-import { pullComments } from '../comments/pull.js';
-import { pullMixcloudStats } from '../platform-stats/mixcloud-stats.js';
-import { pullSoundcloudStats } from '../platform-stats/soundcloud-stats.js';
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { deployApp } from './deploy-app.js';
-import { deployAudio } from './deploy-audio.js';
-import { loadDeployConfig, printDeployConfig } from './deploy-config.js';
-import { pullStats } from './stats-pull.js';
+import { generateAudioManifest, readManifestStreams } from '#audio/manifest.ts';
+import { generateRenditions } from '#audio/renditions.ts';
+import { validateAudio } from '#audio/validate.ts';
+import { generateWaveforms } from '#audio/waveforms.ts';
+import { backupIfStale } from '#comments/backup.ts';
+import { pullComments } from '#comments/pull.ts';
+import { deployApp } from '#deploy/deploy-app.ts';
+import { deployAudio } from '#deploy/deploy-audio.ts';
+import { loadDeployConfig, printDeployConfig } from '#deploy/deploy-config.ts';
+import { pullStats } from '#deploy/stats-pull.ts';
+import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
+import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 interface MediaProbe {
 	contentTypePrefix: string;

@@ -1,7 +1,11 @@
 import { describe, expect, test } from 'vitest';
 
-import { findComponentTags, getBodyLineOffset, getTagProp } from './component-tags.js';
-import { makeEntry } from './validate-test-utils.js';
+import {
+	findComponentTags,
+	getBodyLineOffset,
+	getTagProp,
+} from '#validate-content/component-tags.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 const rootPath = import.meta.dirname;
 

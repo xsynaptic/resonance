@@ -2,12 +2,12 @@ import chalk from 'chalk';
 import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
-import type { StepStatus } from '../shared/step-status.js';
-import type { DeployConfig } from './deploy-config.js';
+import type { DeployConfig } from '#deploy/deploy-config.ts';
+import type { StepStatus } from '#shared/step-status.ts';
 
-import { ensureSshKeychain, isPathPresent } from '../shared/utils.js';
-import { remoteRoot } from './deploy-audio.js';
-import { rsync } from './rsync-exec.js';
+import { remoteRoot } from '#deploy/deploy-audio.ts';
+import { rsync } from '#deploy/rsync-exec.ts';
+import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
 // Matches STATE_DIR in deploy/stats/download-stats.py
 const remoteStatsDir = `${remoteRoot}/stats`;

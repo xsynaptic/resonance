@@ -4,8 +4,8 @@ import chalk from 'chalk';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { getCollectionEntries, withAstroContent } from '../shared/astro-content.js';
-import { getGitFileDates } from './git-file-dates.js';
+import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { getGitFileDates } from '#sitemap-lastmod/git-file-dates.ts';
 
 // Collections such as `comments` and `downloads` are generated, carrying no file to date
 const datedCollections = [

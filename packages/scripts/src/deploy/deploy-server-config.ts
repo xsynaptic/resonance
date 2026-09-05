@@ -1,10 +1,10 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
-import type { DeployConfig } from './deploy-config.js';
+import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { ensureSshKeychain } from '../shared/utils.js';
-import { rsync, sshExec } from './rsync-exec.js';
+import { rsync, sshExec } from '#deploy/rsync-exec.ts';
+import { ensureSshKeychain } from '#shared/utils.ts';
 
 // Remote server layout; the vhost beside this already names that box's IP and paths
 const stagingPath = '<staging-path>';

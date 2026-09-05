@@ -2,8 +2,8 @@ import { openGraphImageHeight, openGraphImageWidth, siteTitle } from '@xsynaptic
 import { readFileSync } from 'node:fs';
 import { Bitmap } from 'takumi-js/helpers/jsx';
 
-import type { ProcessedImage } from './generate.js';
-import type { OpenGraphCard } from './types.js';
+import type { ProcessedImage } from '#og-image/generate.ts';
+import type { OpenGraphCard } from '#og-image/types.ts';
 
 // Palette tokens from src/styles/main/parts/theme.css, resolved to hex
 const colorBackground = '#1c1f21'; // surface-900

@@ -7,7 +7,7 @@ import {
 	executeComments,
 	queryComments,
 	toIdLiteral,
-} from './comments-d1.ts';
+} from '#comments/comments-d1.ts';
 
 const execFile = vi.hoisted(() => vi.fn());
 

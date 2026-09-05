@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { toFormerIds, toReferenceIds } from './entries.js';
+import { toFormerIds, toReferenceIds } from '#shared/entries.ts';
 
 describe('toFormerIds', () => {
 	test('returns the former slugs an entry answers to', () => {

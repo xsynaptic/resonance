@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { backupComments } from './backup.js';
+import { backupComments } from '#comments/backup.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 await backupComments({
 	isLocal: process.argv.includes('--local'),

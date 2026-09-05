@@ -4,6 +4,9 @@
 	"description": "Code shared between the Resonance app and its build scripts",
 	"type": "module",
 	"private": true,
+	"imports": {
+		"#*": "./src/*"
+	},
 	"exports": {
 		"./comments": "./src/comments/index.ts",
 		"./constants": "./src/constants.ts",

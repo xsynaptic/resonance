@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { validateBodyMarkers } from './body-markers.js';
-import { makeEntry } from './validate-test-utils.js';
+import { validateBodyMarkers } from '#validate-content/body-markers.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 describe('validateBodyMarkers', () => {
 	test('passes when each field has its tag and each tag has its field', () => {

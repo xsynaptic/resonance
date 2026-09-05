@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest';
 
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { makeEntry } from '../validate-content/validate-test-utils.js';
-import { buildRedirectPairs } from './build-redirect-pairs.js';
+import { buildRedirectPairs } from '#generate-redirects/build-redirect-pairs.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 // Collection order is the generator's, not the fixture's, so the entries go in flat
 function makeEntries(populated: Record<string, Array<ContentEntry>>): Array<ContentEntry> {

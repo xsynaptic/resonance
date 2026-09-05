@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { findWorkspaceRoot } from '../shared/utils.js';
-import { generateAudioManifest } from './manifest.js';
+import { generateAudioManifest } from '#audio/manifest.ts';
+import { findWorkspaceRoot } from '#shared/utils.ts';
 
 const { values } = parseArgs({
 	args: process.argv.slice(2),

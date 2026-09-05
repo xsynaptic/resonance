@@ -1,8 +1,8 @@
-import type { ContentEntry } from '../shared/astro-content.js';
-import type { ValidationIssue, ValidationResult } from './validation-result.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
+import type { ValidationIssue, ValidationResult } from '#validate-content/validation-result.ts';
 
-import { toStatsKey } from '../platform-stats/platform-stats-file.js';
-import { toValidationResult } from './validation-result.js';
+import { toStatsKey } from '#platform-stats/platform-stats-file.ts';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // The one SoundCloud account this site publishes as; a URL under any other is somebody else's
 const soundcloudAccountPrefix = 'https://soundcloud.com/djbasilisk/';

@@ -1,12 +1,12 @@
 import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
-import type { ContentEntry } from '../shared/astro-content.js';
-import type { ValidationResult } from './validation-result.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
+import type { ValidationResult } from '#validate-content/validation-result.ts';
 
-import { extractImageFeaturedIds } from '../shared/images.js';
-import { findComponentTags, getTagProp } from './component-tags.js';
-import { toValidationResult } from './validation-result.js';
+import { extractImageFeaturedIds } from '#shared/images.ts';
+import { findComponentTags, getTagProp } from '#validate-content/component-tags.ts';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // Media paths are relative to packages/content/media and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
 
-import { isPathPresent } from '../shared/utils.js';
+import { isPathPresent } from '#shared/utils.ts';
 
 // Cloudflare Workers free tier allows 20,000 assets per version and 25 MiB per asset
 const fileCountError = 19_500;

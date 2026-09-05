@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { z } from 'zod';
 
-import { sitemapLastmodPath } from './constants.ts';
+import { sitemapLastmodPath } from '#constants.ts';
 
 const SitemapLastmodSchema = z.object({
 	generatedAt: z.string(),

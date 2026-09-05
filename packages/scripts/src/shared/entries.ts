@@ -1,5 +1,5 @@
 // The domain helpers that outlived the hand-rolled data store reader; pure, so anything may import them
-import type { ContentEntry } from './astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
 // Which ids exist per collection, for checking that a reference resolves where it says it does
 export function getIdsByCollection(entries: Array<Pick<ContentEntry, 'collection' | 'id'>>) {

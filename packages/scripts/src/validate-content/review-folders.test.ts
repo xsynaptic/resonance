@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { validateReviewFolders } from './review-folders.js';
-import { makeEntry } from './validate-test-utils.js';
+import { validateReviewFolders } from '#validate-content/review-folders.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 describe('validateReviewFolders', () => {
 	test('passes a review filed under its release year', () => {

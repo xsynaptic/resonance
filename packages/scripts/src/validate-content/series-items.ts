@@ -1,6 +1,6 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toValidationResult } from './validation-result.js';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // Plain strings rather than references, because a series spans collections
 // An unresolved item is dropped from the index behind a DEV-only warning, so it is silent in CI

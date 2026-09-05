@@ -1,15 +1,15 @@
 import chalk from 'chalk';
 import path from 'node:path';
 
-import type { StepStatus } from '../shared/step-status.js';
-import type { StatsItem } from './platform-stats-file.js';
+import type { StatsItem } from '#platform-stats/platform-stats-file.ts';
+import type { StepStatus } from '#shared/step-status.ts';
 
 import {
 	appendGeneration,
 	isFresh,
 	readLastGeneration,
 	toStatsKey,
-} from './platform-stats-file.js';
+} from '#platform-stats/platform-stats-file.ts';
 
 // Mixcloud's public REST API: no key, no auth, no registration
 // An account sweep returns the whole catalog, so never fetch per mix

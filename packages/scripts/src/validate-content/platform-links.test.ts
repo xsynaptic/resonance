@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { validatePlatformLinks } from './platform-links.js';
-import { makeEntry } from './validate-test-utils.js';
+import { validatePlatformLinks } from '#validate-content/platform-links.ts';
+import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 const keys = {
 	mixcloud: new Set(['/basilisk/a-mix']),

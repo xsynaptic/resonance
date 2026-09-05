@@ -1,9 +1,9 @@
 import { getOpenGraphPath } from '@xsynaptic/shared/open-graph';
 import { getContentUrl } from '@xsynaptic/shared/routing';
 
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toFormerIds } from '../shared/entries.js';
+import { toFormerIds } from '#shared/entries.ts';
 
 // Terms carry no formerIds: their slugs never changed, only the base path they sit under
 export const redirectCollections = ['mixes', 'pages', 'posts', 'reviews'] as const;

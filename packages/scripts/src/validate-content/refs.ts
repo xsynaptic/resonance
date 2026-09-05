@@ -1,7 +1,7 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { getIdsByCollection, toReferenceIds } from '../shared/entries.js';
-import { toValidationResult } from './validation-result.js';
+import { getIdsByCollection, toReferenceIds } from '#shared/entries.ts';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // Every schema carrying these is `.strict()`, so a field name here cannot mean anything else
 // The extractor emits both forms: `{ id }` where the name resolved to a term, a bare string where not

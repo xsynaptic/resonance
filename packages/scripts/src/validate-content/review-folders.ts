@@ -1,6 +1,6 @@
-import type { ContentEntry } from '../shared/astro-content.js';
+import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { toValidationResult } from './validation-result.js';
+import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // Reviews shelve by year of release, and the root is the "no releaseYear yet" shelf
 // Slugs are path-independent, so a file left in the wrong folder breaks nothing and shows nowhere

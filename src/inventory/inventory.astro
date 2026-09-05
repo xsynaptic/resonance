@@ -803,13 +803,11 @@ const paginationPage: Page<ContentCatalogItem> = {
 		title="Utilities"
 	>
 		<Specimen
-			name="maze"
-			note="A masked pattern above the element's own background, below its content. Tune with --pattern-color, --pattern-opacity, --pattern-size."
+			name="pattern-maze-*"
+			note="A masked pattern above the element's own background, below its content. The value names the colour and the modifier its opacity, defaulting to 20%; --pattern-maze-size sets the tile."
 			source="src/styles/main/parts/utilities.css"
 		>
-			<div
-				class="maze rounded-md bg-surface-800 p-5 [--pattern-color:var(--color-surface-300)] [--pattern-opacity:0.35]"
-			>
+			<div class="pattern-maze-surface-300/35 rounded-md bg-surface-800 p-5">
 				The header and footer bands both sit on this.
 			</div>
 		</Specimen>

@@ -1,13 +1,13 @@
 .colophon {
 	display: flex;
 	flex-wrap: wrap;
-	gap: calc(var(--spacing) * 2) calc(var(--spacing) * 1);
+	row-gap: calc(var(--spacing) * 2);
 	font-size: var(--text-xs);
 	line-height: var(--text-xs--line-height);
 	color: var(--color-ink-700);
 }
 
-/* Below sm the items flow as running text; a flex gap here would land on one side of the glyph only */
+/* Below sm the items flow as running text, wrapping mid-item rather than as whole units */
 @media (width < 40rem) {
 	.colophon {
 		display: block;

@@ -25,8 +25,46 @@
 	}
 }
 
-/* Pair with a bg gradient utility; tune per element via [--pattern-color:...], [--pattern-opacity:.2], [--pattern-image:url('...')] */
-@utility maze {
+/* A fixed height, so the fade reads the same however much content the band holds */
+@utility band-fade {
+	background-repeat: no-repeat;
+	background-position: top, bottom;
+	background-size: 100% calc(var(--spacing) * 50);
+}
+
+@utility band-fade-content {
+	@apply band-fade;
+
+	background-image:
+		linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--color-surface-400) 80%, transparent),
+			transparent
+		),
+		linear-gradient(
+			to top,
+			color-mix(in srgb, var(--color-surface-400) 80%, transparent),
+			transparent
+		);
+}
+
+@utility band-fade-footer {
+	@apply band-fade;
+
+	background-image:
+		linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--color-surface-800) 80%, transparent),
+			transparent
+		),
+		linear-gradient(
+			to top,
+			color-mix(in srgb, var(--color-surface-950) 80%, transparent),
+			transparent
+		);
+}
+
+@utility pattern-maze-* {
 	position: relative;
 	isolation: isolate;
 
@@ -36,10 +74,8 @@
 		inset: 0;
 		z-index: -1;
 		content: '';
-		background-color: var(--pattern-color, var(--color-surface-600));
-		opacity: var(--pattern-opacity, 0.2);
-		mask: var(--pattern-image, url('/patterns/maze.svg')) 0 0 / var(--pattern-size, 60px 60px)
-			repeat;
+		background-color: --alpha(--value(--color-*) / calc(--modifier(integer, --default(20)) * 1%));
+		mask: url('/patterns/maze.svg') 0 0 / var(--pattern-maze-size, 60px 60px) repeat;
 	}
 }
 

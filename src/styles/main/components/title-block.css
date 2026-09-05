@@ -5,17 +5,8 @@
 
 	display: flex;
 	flex-wrap: wrap;
-	column-gap: var(--divider-space);
 	font-size: var(--text-sm);
 	line-height: var(--leading-loose);
-}
-
-/* Below sm the glyph carries its own margin on both sides; a container gap would double the trailing one */
-@media (width < 40rem) {
-	.title-eyebrow,
-	.title-meta {
-		column-gap: 0;
-	}
 }
 
 .title-eyebrow {

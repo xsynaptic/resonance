@@ -74,9 +74,7 @@
 
 /* Gravatar is asked for `d=blank`, so the maze tile behind shows through when there is none */
 .comment-avatar {
-	--pattern-size: 24px 24px;
-	--pattern-color: var(--color-surface-950);
-	--pattern-opacity: 0.55;
+	--pattern-maze-size: 24px 24px;
 
 	flex-shrink: 0;
 	width: calc(var(--spacing) * 12);

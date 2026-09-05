@@ -13,10 +13,9 @@ const { hero = false } = Astro.props;
 
 <header
 	class:list={[
-		'maze relative z-header bg-surface-700 bg-linear-to-t from-surface-800 to-transparent',
-		'[--pattern-color:var(--color-surface-500)]',
+		'pattern-maze-surface-500 relative z-header bg-surface-700 bg-linear-to-t from-surface-800 to-transparent',
 		hero
-			? 'md:absolute md:inset-x-0 md:top-0 md:bg-transparent md:bg-linear-to-b md:from-surface-600/90 md:to-surface-600/70 md:[--pattern-opacity:0]'
+			? 'md:pattern-maze-surface-500/0 md:absolute md:inset-x-0 md:top-0 md:bg-transparent md:bg-linear-to-b md:from-surface-600/90 md:to-surface-600/70'
 			: undefined,
 	]}
 >

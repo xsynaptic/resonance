@@ -357,9 +357,10 @@
 	backdrop-filter: blur(8px);
 }
 
+/* A grow factor here left the title 0px at 641 and 27px at 768 */
 .player-bar-lead {
 	display: flex;
-	flex: 1 1 0%;
+	flex: 0 1 auto;
 	gap: var(--player-gap);
 	align-items: center;
 	min-width: 0;
@@ -378,20 +379,22 @@
 	align-items: center;
 }
 
-/* `40rem` is Tailwind's `sm`; a custom property cannot be read inside a media query */
-@media (width < 40rem) {
-	/* The tail's 272px is more than the row has to give; volume belongs to the OS on a touch device */
+/* `48rem` and `40rem` are Tailwind's `md` and `sm`; a custom property cannot be read inside a media query */
+@media (width < 48rem) {
+	/* The scope and volume cost 204px the row does not have; volume belongs to the OS on a touch device */
 	.player-bar .player-scope,
-	.player-bar .player-time,
 	.player-bar .player-volume {
 		display: none;
 	}
+}
 
-	/* Title takes what it needs and the seek bar absorbs the rest, down to a floor wide enough to grab */
-	.player-bar-lead {
-		flex: 0 1 auto;
+@media (width < 40rem) {
+	/* The clock is the widest thing left after the transport; the waveform's progress still reads position */
+	.player-bar .player-time {
+		display: none;
 	}
 
+	/* Wide enough to grab; the title truncates once the bar reaches it */
 	.player-bar-scrub {
 		min-width: 4rem;
 	}

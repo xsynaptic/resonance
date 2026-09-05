@@ -530,4 +530,39 @@ describe('volume', () => {
 
 		localStorage.removeItem('player:volume');
 	});
+
+	test('mutes to zero and unmutes to the level held when muting', () => {
+		const store = configured();
+
+		store.getState().setVolume(0.7);
+
+		store.getState().toggleMute();
+		expect(store.getState().volume).toBe(0);
+
+		store.getState().toggleMute();
+		expect(store.getState().volume).toBe(0.7);
+	});
+
+	test('unmutes to full when nothing was muted', () => {
+		const store = configured();
+
+		store.getState().setVolume(0);
+
+		store.getState().toggleMute();
+		expect(store.getState().volume).toBe(1);
+	});
+
+	test('leaves the slider at the level it was dragged to while muted', () => {
+		const store = configured();
+
+		store.getState().setVolume(0.7);
+		store.getState().toggleMute();
+		store.getState().setVolume(0.2);
+
+		store.getState().toggleMute();
+		expect(store.getState().volume).toBe(0);
+
+		store.getState().toggleMute();
+		expect(store.getState().volume).toBe(0.2);
+	});
 });

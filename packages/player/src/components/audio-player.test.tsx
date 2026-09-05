@@ -36,6 +36,7 @@ const labels = {
 	empty: 'Queue is empty',
 	error: 'Playback error',
 	loading: 'Loading',
+	mute: 'Mute',
 	next: 'Next',
 	nowPlaying: 'Nothing playing',
 	pause: 'Pause',
@@ -45,6 +46,7 @@ const labels = {
 	removeFromQueue: 'Remove',
 	seek: 'Seek',
 	shuffle: 'Shuffle',
+	unmute: 'Unmute',
 	volume: 'Volume',
 };
 

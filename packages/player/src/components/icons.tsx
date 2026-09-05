@@ -64,6 +64,14 @@ export function VolumeIcon() {
 	);
 }
 
+export function VolumeMutedIcon() {
+	return (
+		<Icon>
+			<path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" />
+		</Icon>
+	);
+}
+
 function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
 	return (
 		<svg

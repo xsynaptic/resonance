@@ -54,7 +54,7 @@ export function AudioPlayer(props: AudioPlayerProps) {
 			<div className="player-bar-tail">
 				<StatusRegion labels={labels} />
 				{isFull ? <SignalDisplay /> : undefined}
-				<VolumeControl label={labels.volume} />
+				<VolumeControl labels={labels} />
 				{isFull ? <QueueControl actions={props.queueActions} labels={props.labels} /> : undefined}
 			</div>
 		</PlayerRoot>

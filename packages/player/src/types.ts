@@ -3,12 +3,14 @@ export interface MiniPlayerLabels {
 	capped: string;
 	error: string;
 	loading: string;
+	mute: string;
 	next: string;
 	nowPlaying: string;
 	pause: string;
 	play: string;
 	previous: string;
 	seek: string;
+	unmute: string;
 	volume: string;
 }
 

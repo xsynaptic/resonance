@@ -61,6 +61,8 @@ interface PlayerActions {
 	seek: (seconds: number) => void;
 	setVolume: (volume: number) => void;
 	stop: () => void;
+	// Drops to silence and back to the level held when muting; a manual drag to zero unmutes to full
+	toggleMute: () => void;
 	togglePlay: () => void;
 	toggleShuffle: () => void;
 	toggleTray: () => void;
@@ -103,6 +105,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 		// Created on the first action that needs it, inside a user gesture and on the client
 		let engine: AudioEngine | undefined;
 		let loading: LoadAttempt | undefined;
+		let volumeBeforeMute: number | undefined;
 
 		function ensureEngine(): AudioEngine {
 			if (engine) return engine;
@@ -221,6 +224,14 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			}
 
 			loadIndex(upcoming, true);
+		}
+
+		function applyVolume(volume: number): void {
+			const clamped = clampVolume(volume);
+
+			set({ volume: clamped });
+			persistVolume(clamped);
+			engine?.setVolume(clamped);
 		}
 
 		// Whatever resolve is in flight answers into nothing rather than reloading what was dropped
@@ -414,16 +425,23 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			},
 
 			setVolume: (volume) => {
-				const clamped = clampVolume(volume);
-
-				set({ volume: clamped });
-				persistVolume(clamped);
-				engine?.setVolume(clamped);
+				applyVolume(volume);
 			},
 
 			stop: () => {
 				unload();
 				set({ currentTimeS: 0, status: 'idle' });
+			},
+
+			toggleMute: () => {
+				const { volume } = get();
+				if (volume > 0) {
+					volumeBeforeMute = volume;
+					applyVolume(0);
+					return;
+				}
+
+				applyVolume(volumeBeforeMute ?? 1);
 			},
 
 			togglePlay: () => {

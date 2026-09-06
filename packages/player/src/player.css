@@ -11,10 +11,34 @@
 	--player-border: #262626;
 	--player-border-strong: #404040;
 
+	/* The transport, volume and queue controls; a host takes them off the text ramp by overriding these three */
+	--player-control: var(--player-text);
+	--player-control-bright: var(--player-text-bright);
+	--player-control-strong: var(--player-text-strong);
+
 	/* Read from JS when a canvas paints, so an override must resolve to a colour, never to a `var()` chain */
 	--player-accent: #10b981;
+	--player-waveform-played: #10b981;
 	--player-waveform-track: #525252;
 	--player-accent-bright: #34d399;
+	--player-panel-wave: #34d399;
+	--player-panel-wave-edge: #065f46;
+	--player-panel-void: #262626;
+	--player-panel-edge: #525252;
+
+	/* The panel's colours that stay in CSS rather than being read onto the canvas */
+	--player-panel-now: #fafafa;
+	--player-panel-now-soft: #a3a3a3;
+	--player-panel-surface: #0a0a0a;
+	--player-panel-surface-deep: #000;
+
+	/* The fader cap's face; its lit edge, its shadow and its engraved line are all mixed from it */
+	--player-fader-cap: #525252;
+
+	/* The slot the fader rides; the component writes the level and this value is only its fallback */
+	--player-volume-track: #525252;
+	--player-volume-track-bright: #737373;
+	--player-volume-level: 100%;
 
 	/* Read the same way, so each must resolve to a px length rather than to a `var()` chain or another unit */
 	--player-waveform-bar: 2px;
@@ -25,7 +49,8 @@
 	--player-gap-tight: 0.5rem;
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
-	--player-info-width: 18rem;
+	--player-info-width: 14.4rem;
+	--player-panel-height: 7.5rem;
 	--player-waveform-height: 3rem;
 	--player-waveform-height-expanded: 3.5rem;
 	--player-font-size: 0.875rem;
@@ -65,7 +90,7 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--player-text);
+	color: var(--player-control);
 	border-radius: var(--player-radius);
 	transition:
 		color 150ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -75,13 +100,13 @@
 
 @media (hover: hover) {
 	.player-button:hover {
-		color: var(--player-text-bright);
+		color: var(--player-control-bright);
 	}
 }
 
 /* An outline follows the border radius and stays visible under a host that restyles the rest */
 .player-button:focus-visible {
-	color: var(--player-text-bright);
+	color: var(--player-control-bright);
 	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 0;
 }
@@ -102,23 +127,41 @@
 	height: 1.5rem;
 }
 
+/* A circle, so the one filled control reads as the centre of the transport rather than as another key */
 .player-button-primary {
 	width: 2.25rem;
 	height: 2.25rem;
 	color: var(--player-surface-raised);
-	background-color: var(--player-text-strong);
+	background-color: var(--player-control-strong);
+	border-radius: 9999px;
 }
 
 @media (hover: hover) {
 	.player-button-primary:hover {
 		color: var(--player-surface-raised);
-		background-color: var(--player-text-bright);
+		background-color: var(--player-control-bright);
 	}
 }
 
 .player-button-primary:focus-visible {
 	color: var(--player-surface-raised);
-	background-color: var(--player-text-bright);
+	background-color: var(--player-control-bright);
+}
+
+/* Secondary to the filled centre beside them, so the eye lands on play first
+   Their own hover and focus, because `.player-button`'s sit earlier at the same specificity */
+.player-skip {
+	color: color-mix(in oklab, var(--player-control) 65%, var(--player-surface));
+}
+
+@media (hover: hover) {
+	.player-skip:hover {
+		color: var(--player-control-bright);
+	}
+}
+
+.player-skip:focus-visible {
+	color: var(--player-control-bright);
 }
 
 .player-transport {
@@ -286,11 +329,21 @@
 	margin-bottom: var(--player-gap-tight);
 	background-color: var(--player-surface-raised);
 	border: 1px solid var(--player-border);
-	border-radius: var(--player-radius-large);
+	border-radius: var(--player-radius);
 	box-shadow:
 		0 20px 25px -5px rgb(0 0 0 / 10%),
 		0 8px 10px -6px rgb(0 0 0 / 10%);
 	translate: -50%;
+}
+
+/* Bridges the gap up to the trigger, which would otherwise drop the hover on the way to the panel */
+.player-volume-panel::after {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	left: 0;
+	height: var(--player-gap-tight);
+	content: '';
 }
 
 /* Inside the query, because a `:focus-within` outside it would open the panel on a tap and then fight the toggle */
@@ -305,13 +358,96 @@
 	display: flex;
 }
 
-/* The modern vertical range: `orient` and `appearance: slider-vertical` are both deprecated */
+/* A mixer fader rather than the UA pill: a thin recessed slot with a cap riding it
+   The modern vertical range; `orient` and `appearance: slider-vertical` are both deprecated */
 .player-volume-slider {
+	width: 1.5rem;
 	height: 6rem;
-	accent-color: var(--player-accent);
+	appearance: none;
 	cursor: pointer;
+	background: transparent;
 	direction: rtl;
 	writing-mode: vertical-lr;
+}
+
+/* Drawing the track here leaves `accent-color` nothing to do, so the level is a gradient stop instead
+   The inset shadow is what sinks the slot into the panel rather than laying it on top */
+.player-volume-slider::-webkit-slider-runnable-track {
+	width: 0.25rem;
+	background-image: linear-gradient(
+		to top,
+		var(--player-accent) var(--player-volume-level),
+		var(--player-volume-track) var(--player-volume-level)
+	);
+	background-repeat: no-repeat;
+	border-radius: 1px;
+	box-shadow: inset 0 0 2px 1px rgb(0 0 0 / 55%);
+}
+
+/* Lit from above, engraved across the middle, sitting proud of the slot on its own shadow */
+.player-volume-slider::-webkit-slider-thumb {
+	width: 1.25rem;
+	height: 0.625rem;
+	margin-block: calc((0.25rem - 1.25rem) / 2);
+	appearance: none;
+	background-image:
+		linear-gradient(
+			to bottom,
+			transparent calc(50% - 1px),
+			color-mix(in oklab, var(--player-fader-cap) 55%, #000) calc(50% - 1px) 50%,
+			color-mix(in oklab, var(--player-fader-cap) 70%, #fff) 50% calc(50% + 1px),
+			transparent calc(50% + 1px)
+		),
+		linear-gradient(
+			to bottom,
+			color-mix(in oklab, var(--player-fader-cap) 60%, #fff),
+			var(--player-fader-cap) 45%,
+			color-mix(in oklab, var(--player-fader-cap) 65%, #000)
+		);
+	background-repeat: no-repeat;
+	border-radius: 2px;
+	box-shadow:
+		0 1px 3px rgb(0 0 0 / 65%),
+		inset 0 0 0 1px color-mix(in oklab, var(--player-fader-cap) 55%, #000);
+}
+
+.player-volume-slider::-moz-range-track {
+	width: 0.25rem;
+	background: var(--player-volume-track);
+	border-radius: 1px;
+	box-shadow: inset 0 0 2px 1px rgb(0 0 0 / 55%);
+}
+
+.player-volume-slider::-moz-range-progress {
+	width: 0.25rem;
+	background: var(--player-accent);
+	border-radius: 1px;
+}
+
+.player-volume-slider::-moz-range-thumb {
+	width: 1.25rem;
+	height: 0.625rem;
+	background-image: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--player-fader-cap) 60%, #fff),
+		var(--player-fader-cap) 45%,
+		color-mix(in oklab, var(--player-fader-cap) 65%, #000)
+	);
+	background-repeat: no-repeat;
+	border: 1px solid color-mix(in oklab, var(--player-fader-cap) 55%, #000);
+	border-radius: 2px;
+	box-shadow: 0 1px 3px rgb(0 0 0 / 65%);
+}
+
+/* On the slider, not on `.player-volume`, which is already hovered whenever the panel is visible */
+@media (hover: hover) {
+	.player-volume-slider:hover {
+		--player-volume-track: var(--player-volume-track-bright);
+	}
+}
+
+.player-volume-slider:focus-visible {
+	--player-volume-track: var(--player-volume-track-bright);
 }
 
 .player-seek {
@@ -558,6 +694,133 @@
 	clip-path: inset(50%);
 }
 
+/* In flow rather than absolute, so page content never sits behind it; full-bleed through the bar's own padding
+   `pan-y` leaves vertical scrolling to the page and takes horizontal drags for the panel */
+.player-panel {
+	position: relative;
+	height: var(--player-panel-height);
+	margin: calc(-1 * var(--player-padding-block)) calc(-1 * var(--player-padding-inline))
+		var(--player-padding-block);
+	overflow: hidden;
+	touch-action: pan-y;
+	cursor: grab;
+	user-select: none;
+	background-image: linear-gradient(
+		to bottom,
+		var(--player-panel-surface),
+		var(--player-panel-surface-deep) 50%,
+		var(--player-panel-surface)
+	);
+	background-repeat: no-repeat;
+	border-bottom: 1px solid var(--player-border);
+}
+
+.player-panel[data-dragging] {
+	cursor: grabbing;
+}
+
+.player-panel-canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* The present, fixed at the centre while the waveform travels past it */
+.player-panel-playhead {
+	position: absolute;
+	inset-block: 0;
+	left: 50%;
+	width: 1px;
+	background-color: var(--player-panel-now);
+	translate: -50%;
+}
+
+/* Fixed to the foot of the panel; the labels travel across this scrim and are clipped by it
+   Both labels sit in the one grid cell, so the arriving one crosses the parked one rather than stacking under it */
+.player-panel-readout {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: grid;
+	overflow: hidden;
+	pointer-events: none;
+	background-image: linear-gradient(to top, var(--player-surface), transparent);
+	background-repeat: no-repeat;
+}
+
+/* `translate` and `opacity` are written per frame by the panel's own loop, in CSS pixels from the left edge */
+.player-panel-now {
+	display: flex;
+	grid-area: 1 / 1;
+	align-items: baseline;
+	justify-self: start;
+	padding-block: 0.25rem;
+	white-space: nowrap;
+}
+
+.player-panel-now[data-empty] {
+	visibility: hidden;
+}
+
+.player-panel-now-artist {
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-panel-now);
+}
+
+/* The site writes a track as artist, dash, title; hanging the dash here takes it away with an empty artist */
+.player-panel-now-artist:not(:empty)::after {
+	padding-inline: 0.3em;
+	color: var(--player-panel-now-soft);
+	content: '-';
+}
+
+.player-panel-now-title {
+	font-size: var(--player-font-size);
+	line-height: 1.25rem;
+	color: var(--player-panel-now-soft);
+}
+
+/* Past the last timestamp the title is a guess, so it reads as one and this note says why */
+.player-panel-now-note {
+	display: none;
+	flex-shrink: 0;
+	margin-left: var(--player-gap-tight);
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-text-dim);
+}
+
+.player-panel-now[data-uncertain] .player-panel-now-title,
+.player-panel-now[data-uncertain] .player-panel-now-artist {
+	color: var(--player-text-dim);
+}
+
+.player-panel-now[data-uncertain] .player-panel-now-artist::after {
+	color: var(--player-text-dim);
+}
+
+.player-panel-now[data-uncertain] .player-panel-now-note {
+	display: block;
+}
+
+/* Open reads as on, in the signal hue rather than the transport's */
+.player-panel-toggle[aria-pressed='true'] {
+	color: var(--player-accent);
+}
+
+@media (hover: hover) {
+	.player-panel-toggle[aria-pressed='true']:hover {
+		color: var(--player-accent-bright);
+	}
+}
+
+.player-panel-toggle[aria-pressed='true']:focus-visible {
+	color: var(--player-accent-bright);
+}
+
 /* The one prebuilt bar, and the container the layout below answers to; an element cannot query itself */
 .player-bar {
 	position: relative;
@@ -572,8 +835,9 @@
 
 /* The info window is sized by its track: a grid item with a definite width overflows the track it sits in */
 .player-bar-grid {
-	--player-layout-areas: 'transport info seek scope volume queue';
-	--player-layout-columns: auto minmax(0, var(--player-info-width)) minmax(0, 1fr) auto auto auto;
+	--player-layout-areas: 'transport info seek scope panel volume queue';
+	--player-layout-columns: auto minmax(0, var(--player-info-width)) minmax(0, 1fr) auto auto auto
+		auto;
 	--player-layout-scope: block;
 	--player-layout-skip: none;
 
@@ -587,8 +851,8 @@
 /* Compact's fixed parts measure 628, so 200px of waveform wants 828px; a container query reads the content box */
 @container (width < 52rem) {
 	.player-bar:not([data-layout]) .player-bar-grid {
-		--player-layout-areas: 'info info volume queue' 'transport seek seek seek';
-		--player-layout-columns: auto minmax(0, 1fr) auto auto;
+		--player-layout-areas: 'info info panel volume queue' 'transport seek seek seek seek';
+		--player-layout-columns: auto minmax(0, 1fr) auto auto auto;
 		--player-layout-scope: none;
 		--player-layout-skip: inline-flex;
 		--player-waveform-height: var(--player-waveform-height-expanded);
@@ -596,8 +860,8 @@
 }
 
 .player-bar[data-layout='expanded'] .player-bar-grid {
-	--player-layout-areas: 'info info volume queue' 'transport seek seek seek';
-	--player-layout-columns: auto minmax(0, 1fr) auto auto;
+	--player-layout-areas: 'info info panel volume queue' 'transport seek seek seek seek';
+	--player-layout-columns: auto minmax(0, 1fr) auto auto auto;
 	--player-layout-scope: none;
 	--player-layout-skip: inline-flex;
 	--player-waveform-height: var(--player-waveform-height-expanded);
@@ -618,6 +882,10 @@
 .player-bar-grid .player-scope {
 	display: var(--player-layout-scope);
 	grid-area: scope;
+}
+
+.player-bar-grid .player-panel-toggle {
+	grid-area: panel;
 }
 
 .player-bar-grid .player-volume {

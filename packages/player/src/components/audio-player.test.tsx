@@ -8,6 +8,7 @@ const engineMock = vi.hoisted(() => ({
 	analyser: vi.fn(),
 	currentTime: vi.fn(() => 0),
 	load: vi.fn(() => Promise.resolve()),
+	outputDelay: vi.fn(() => 0),
 	pause: vi.fn(),
 	play: vi.fn(() => Promise.resolve()),
 	prepare: vi.fn(),
@@ -50,9 +51,11 @@ const labels = {
 	shuffle: 'Shuffle',
 	skipBack: 'Back 30 seconds',
 	skipForward: 'Forward 30 seconds',
+	timestampsPartial: 'Timestamps end here',
 	toggleTimeMode: 'Toggle elapsed and remaining',
 	unmute: 'Unmute',
 	volume: 'Volume',
+	waveformPanel: 'Waveform detail',
 };
 
 function makeItem(id: string, extra: Partial<QueueItem> = {}): QueueItem {
@@ -107,7 +110,7 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('button', { name: labels.play })).toBeEnabled();
 
 		await waitFor(() => {
-			expect(engineMock.load).toHaveBeenCalledWith('https://api.test/tracks/a/stream', 1, true);
+			expect(engineMock.load).toHaveBeenCalledWith('https://api.test/tracks/a/stream', 1, true, 0);
 		});
 	});
 

@@ -11,8 +11,9 @@ export default {
 				// MDX auto-import components; referenced via satteri-auto-import, not static imports
 				'src/components/mdx/**/*.astro',
 				'src/components/embed/embed-youtube.astro',
-				// The inventory; injected by entrypoint string in the integration, not imported
+				// The inventory and the dev waveform route; injected by entrypoint string, not imported
 				'src/inventory/inventory.astro',
+				'src/dev/waveform-archive.ts',
 			],
 			ignoreDependencies: [
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })

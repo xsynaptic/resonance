@@ -7,3 +7,5 @@ export { TimeDisplay as Time } from '#components/time-display.tsx';
 export { TrackInfo } from '#components/track-info.tsx';
 export { TransportControls as Transport } from '#components/transport-controls.tsx';
 export { VolumeControl as Volume } from '#components/volume-control.tsx';
+export { WaveformPanel } from '#components/waveform-panel.tsx';
+export { WaveformToggle } from '#components/waveform-toggle.tsx';

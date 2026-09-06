@@ -21,6 +21,7 @@ export type PlayerRootProps = ComponentPropsWithoutRef<'div'> & {
 export function PlayerRoot({ store = playerStore, urls, ...rest }: PlayerRootProps) {
 	useEffect(() => {
 		store.getState().hydratePreferences();
+		store.getState().hydrateQueue();
 	}, [store]);
 
 	useEffect(() => {

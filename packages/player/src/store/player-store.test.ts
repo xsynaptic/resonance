@@ -15,6 +15,7 @@ function createFakeEngine() {
 		analyser: vi.fn(),
 		currentTime: vi.fn(() => time),
 		load: vi.fn(() => Promise.resolve()),
+		outputDelay: vi.fn(() => 0),
 		pause: vi.fn(),
 		play: vi.fn(() => Promise.resolve()),
 		prepare: vi.fn(),
@@ -61,10 +62,25 @@ function makeItem(id: string): QueueItem {
 
 const release = [makeItem('a'), makeItem('b'), makeItem('c')];
 
+interface StoredQueueRecord {
+	currentIndex: number | undefined;
+	currentTimeS: number;
+	queue: Array<{ trackId: string }>;
+}
+
 function configured(): StoreApi<PlayerStore> {
 	return withResolver((trackId) =>
 		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
 	);
+}
+
+// The position drifting between queue changes goes out on `pagehide`
+function leavePage(): void {
+	window.dispatchEvent(new Event('pagehide'));
+}
+
+function storedQueue(): null | StoredQueueRecord {
+	return JSON.parse(localStorage.getItem('player:v1:queue') ?? 'null') as null | StoredQueueRecord;
 }
 
 function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
@@ -96,7 +112,7 @@ describe('playTrack', () => {
 		expect(state.currentIndex).toBe(1);
 
 		await vi.waitFor(() => {
-			expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/tracks/b/stream', 1, true);
+			expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/tracks/b/stream', 1, true, 0);
 		});
 	});
 
@@ -158,6 +174,43 @@ describe('playRelease', () => {
 
 		expect(state.queue).toHaveLength(6);
 		expect(state.currentIndex).toBe(3);
+	});
+});
+
+describe('queueTrack', () => {
+	test('appends the clicked track without loading or playing it', () => {
+		const store = configured();
+
+		store.getState().loadQueue([makeItem('x')]);
+		store.getState().queueTrack(release, 'c');
+
+		const state = store.getState();
+
+		expect(state.queue).toHaveLength(2);
+		expect(state.queue[1]?.trackId).toBe('c');
+		expect(state.currentIndex).toBeUndefined();
+		expect(state.status).toBe('idle');
+		expect(fake.engine.load).not.toHaveBeenCalled();
+	});
+
+	test('leaves the loaded track where it is', () => {
+		const store = configured();
+
+		store.getState().loadQueue([makeItem('x')]);
+		store.getState().playAt(0);
+		store.getState().queueTrack(release, 'c');
+
+		expect(store.getState().currentIndex).toBe(0);
+		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['x', 'c']);
+	});
+
+	test('leaves a track already queued where it is', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		store.getState().queueTrack(release, 'b');
+
+		expect(store.getState().queue).toHaveLength(3);
 	});
 });
 
@@ -467,6 +520,18 @@ describe('transport', () => {
 		expect(fake.engine.pause).toHaveBeenCalled();
 	});
 
+	// The loaded track keeps its index only until a row above it goes, and reloading it would restart the sound
+	test('pauses rather than reloads after a row above the loaded track is removed', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'b');
+		store.setState({ status: 'playing' });
+		store.getState().removeAt(0);
+		store.getState().togglePlay();
+
+		expect(fake.engine.pause).toHaveBeenCalled();
+	});
+
 	test('resumes the engine when toggled while paused', () => {
 		const store = configured();
 
@@ -612,7 +677,7 @@ describe('engine errors', () => {
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		});
-		expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/b', 1, true);
+		expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/b', 1, true, 0);
 	});
 
 	test('enters the error state when the resolve itself never answers', async () => {
@@ -722,6 +787,128 @@ describe('time mode', () => {
 		expect(store.getState().timeMode).toBe('elapsed');
 
 		localStorage.removeItem('player:v1:time-mode');
+	});
+});
+
+describe('queue persistence', () => {
+	test('writes the queue as it changes, and clears it when the queue empties', () => {
+		const store = configured();
+
+		store.getState().hydrateQueue();
+		store.getState().playTrack(release, 'b');
+
+		expect(storedQueue()?.queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+		expect(storedQueue()?.currentIndex).toBe(1);
+
+		store.getState().clearQueue();
+		expect(localStorage.getItem('player:v1:queue')).toBeNull();
+	});
+
+	test('restores the queue and its position without loading anything', () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().playTrack(release, 'b');
+		first.getState().seek(42);
+		leavePage();
+
+		fake = createFakeEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+
+		const state = second.getState();
+
+		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+		expect(state.currentIndex).toBe(1);
+		expect(state.currentTimeS).toBe(42);
+		expect(state.status).toBe('idle');
+		expect(fake.engine.load).not.toHaveBeenCalled();
+
+		localStorage.removeItem('player:v1:queue');
+	});
+
+	test('loads a restored track at the stored position on the first press', async () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().playTrack(release, 'b');
+		first.getState().seek(42);
+		leavePage();
+
+		fake = createFakeEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+		second.getState().togglePlay();
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledWith(
+				'https://api.test/tracks/b/stream',
+				1,
+				true,
+				42,
+			);
+		});
+
+		localStorage.removeItem('player:v1:queue');
+	});
+
+	test('stamps a restored queue with fresh ids rather than the ones it was stored with', () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().loadQueue(release);
+
+		fake = createFakeEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+		second.getState().playTrack([makeItem('d')], 'd');
+
+		const ids = second.getState().queue.map((item) => item.queueId);
+
+		expect(new Set(ids).size).toBe(ids.length);
+
+		localStorage.removeItem('player:v1:queue');
+	});
+
+	test('ignores a stored entry whose index falls outside the queue', () => {
+		localStorage.setItem(
+			'player:v1:queue',
+			JSON.stringify({ currentIndex: 9, currentTimeS: 42, isShuffling: false, queue: release }),
+		);
+
+		const store = configured();
+
+		store.getState().hydrateQueue();
+
+		expect(store.getState().queue).toHaveLength(3);
+		expect(store.getState().currentIndex).toBeUndefined();
+		expect(store.getState().currentTimeS).toBe(0);
+
+		localStorage.removeItem('player:v1:queue');
+	});
+
+	test('keeps what a page queued before the restore ran', () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().loadQueue(release);
+
+		fake = createFakeEngine();
+
+		const second = configured();
+
+		second.getState().loadQueue([makeItem('x')]);
+		second.getState().hydrateQueue();
+
+		expect(second.getState().queue).toHaveLength(1);
+
+		localStorage.removeItem('player:v1:queue');
 	});
 });
 

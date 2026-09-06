@@ -4,7 +4,10 @@ import type { PlaybackErrorStage } from '#types.ts';
 export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
 	currentTime(): number;
-	load(src: string, gain: number, shouldAutoplay: boolean): Promise<void>;
+	// `startS` resumes a restored queue where it left off; the element takes it only once metadata has landed
+	load(src: string, gain: number, shouldAutoplay: boolean, startS: number): Promise<void>;
+	// How far the element's clock runs ahead of the sound: the graph's delay plus the device's
+	outputDelay(): number;
 	pause(): void;
 	play(): Promise<void>;
 	// Builds the graph inside the gesture, before the stream URL's await moves execution out of it
@@ -35,10 +38,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	let normalizationNode: GainNode | undefined;
 	let volumeNode: GainNode | undefined;
 	let analyserNode: AnalyserNode | undefined;
+	let analysisDelayS = 0;
 
 	// Applied to the live nodes once the graph exists
 	let pendingGain = 1;
 	let pendingVolume = 1;
+	let pendingStartS: number | undefined;
 
 	// A media element source can be created once, so the graph is built once, inside the first gesture
 	function ensureGraph(): void {
@@ -57,8 +62,11 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		volumeNode.gain.value = pendingVolume;
 
 		// Playback waits for the analysis window rather than the display trailing the sound
+		analysisDelayS = analysisDelaySeconds(analyserNode);
+
 		const delayNode = context.createDelay(1);
-		delayNode.delayTime.value = analysisDelaySeconds(analyserNode);
+
+		delayNode.delayTime.value = analysisDelayS;
 
 		// The tap sits ahead of the volume stage so the display follows the track, not the volume knob
 		context
@@ -75,6 +83,11 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	});
 	audio.addEventListener('loadedmetadata', () => {
 		callbacks.onDuration(Number.isFinite(audio.duration) ? audio.duration : undefined);
+
+		if (pendingStartS === undefined) return;
+
+		audio.currentTime = pendingStartS;
+		pendingStartS = undefined;
 	});
 	audio.addEventListener('ended', () => {
 		callbacks.onEnded();
@@ -110,8 +123,9 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	return {
 		analyser: () => analyserNode,
 		currentTime: () => audio.currentTime,
-		async load(src, gain, shouldAutoplay) {
+		async load(src, gain, shouldAutoplay, startS) {
 			pendingGain = gain;
+			pendingStartS = startS > 0 ? startS : undefined;
 			if (normalizationNode) normalizationNode.gain.value = gain;
 
 			audio.src = src;
@@ -122,6 +136,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			callbacks.onStatus('loading');
 			await play();
 		},
+		outputDelay: () => (context === undefined ? 0 : analysisDelayS + outputLatencyS(context)),
 		pause: () => {
 			audio.pause();
 		},
@@ -132,9 +147,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		},
 		reset: () => {
 			audio.pause();
+			pendingStartS = undefined;
 			audio.currentTime = 0;
 		},
+		// A seek during the load wins over the offset the load was given
 		seek: (seconds) => {
+			pendingStartS = undefined;
 			audio.currentTime = seconds;
 		},
 		setVolume: (volume) => {

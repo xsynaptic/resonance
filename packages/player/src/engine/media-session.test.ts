@@ -54,6 +54,7 @@ function loadedStore() {
 			analyser: vi.fn(),
 			currentTime: vi.fn(() => 0),
 			load: vi.fn(() => Promise.resolve()),
+			outputDelay: vi.fn(() => 0),
 			pause: vi.fn(),
 			play: vi.fn(() => Promise.resolve()),
 			prepare: vi.fn(),

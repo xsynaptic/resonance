@@ -13,6 +13,8 @@ import { TimeDisplay } from '#components/time-display.tsx';
 import { TrackInfo } from '#components/track-info.tsx';
 import { TransportControls } from '#components/transport-controls.tsx';
 import { VolumeControl } from '#components/volume-control.tsx';
+import { WaveformPanel } from '#components/waveform-panel.tsx';
+import { WaveformToggle } from '#components/waveform-toggle.tsx';
 
 export interface AudioPlayerProps {
 	labels: PlayerLabels;
@@ -44,6 +46,7 @@ export function AudioPlayer({
 			store={store}
 			urls={urls}
 		>
+			<WaveformPanel labels={labels} />
 			<div className="player-bar-grid">
 				<TransportControls labels={labels} skipSeconds={skipSeconds} />
 				<TrackInfo emptyLabel={labels.nowPlaying}>
@@ -52,6 +55,7 @@ export function AudioPlayer({
 				<SeekBar className="player-bar-seek" label={labels.seek} />
 				<StatusRegion labels={labels} />
 				<SignalDisplay />
+				<WaveformToggle label={labels.waveformPanel} />
 				<VolumeControl labels={labels} />
 				<QueueControl actions={queueActions} labels={labels} />
 			</div>

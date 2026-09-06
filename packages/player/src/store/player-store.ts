@@ -30,6 +30,7 @@ import { canMove } from '#queue/reorder.ts';
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
 const restartThresholdSeconds = 3;
+const queueStorageKey = 'player:v1:queue';
 const timeModeStorageKey = 'player:v1:time-mode';
 const volumeStorageKey = 'player:v1:volume';
 
@@ -46,6 +47,7 @@ interface LoadAttempt {
 	autoplay: boolean;
 	index: number;
 	isRetry: boolean;
+	startS: number;
 }
 
 // Property syntax so a component can select one action without tripping `unbound-method`
@@ -55,8 +57,14 @@ interface PlayerActions {
 	configure: (config: { urls: PlayerUrls | undefined }) => void;
 	// Read inside a rAF loop, never as a render input
 	getAnalyser: () => AnalyserNode | undefined;
+	// The element's own clock, far finer than the `timeupdate` behind `currentTimeS`; also rAF-only
+	getCurrentTime: () => number | undefined;
+	// Seconds the element's clock runs ahead of the sound; a display reading that clock owes this back
+	getOutputDelay: () => number;
 	// Reads the listener's persisted preferences; separate from `configure` so a re-render cannot re-run it
 	hydratePreferences: () => void;
+	// Puts back the queue this browser left: positioned, with nothing loaded and nothing playing
+	hydrateQueue: () => void;
 	// Replaces the queue without touching the engine; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
 	// Refused on a sectioned queue, the way shuffle is; a shuffled play order moves with the item rather than reshuffling
@@ -69,6 +77,8 @@ interface PlayerActions {
 	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
 	playTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
 	previous: () => void;
+	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
+	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
 	removeAt: (index: number) => void;
 	// Swaps out everything after `index`, leaving the loaded track and what came before it alone
 	replaceAfter: (index: number, items: ReadonlyArray<QueueItem>) => void;
@@ -79,6 +89,8 @@ interface PlayerActions {
 	stop: () => void;
 	// Drops to silence and back to the level held when muting; a manual drag to zero unmutes to full
 	toggleMute: () => void;
+	// The scrolling detail panel above the bar; session state, not a persisted preference
+	togglePanel: () => void;
 	togglePlay: () => void;
 	toggleShuffle: () => void;
 	toggleTimeMode: () => void;
@@ -90,6 +102,7 @@ interface PlayerState {
 	currentIndex: number | undefined;
 	currentTimeS: number;
 	durationS: number | undefined;
+	isPanelOpen: boolean;
 	isShuffling: boolean;
 	isTrayOpen: boolean;
 	// The last terminal failure, cleared as a new load starts
@@ -105,10 +118,19 @@ interface PlayerState {
 	volume: number;
 }
 
+// What a reload puts back: the items, which one was loaded, and how far into it
+interface StoredQueue {
+	currentIndex: number | undefined;
+	currentTimeS: number;
+	isShuffling: boolean;
+	queue: Array<QueuedItem>;
+}
+
 const initialPlayerState: PlayerState = {
 	currentIndex: undefined,
 	currentTimeS: 0,
 	durationS: undefined,
+	isPanelOpen: false,
 	isShuffling: false,
 	isTrayOpen: false,
 	playbackError: undefined,
@@ -123,11 +145,14 @@ const initialPlayerState: PlayerState = {
 export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<PlayerStore> {
 	const createEngine = options?.createEngine ?? createAudioEngine;
 
-	return createStore<PlayerStore>()((set, get) => {
+	return createStore<PlayerStore>()((set, get, api) => {
 		// Created on the first action that needs it, inside a user gesture and on the client
 		let engine: AudioEngine | undefined;
 		let loading: LoadAttempt | undefined;
 		let volumeBeforeMute: number | undefined;
+
+		// By queue id rather than by index, which a removal or a reorder shifts under the loaded track
+		let loadedQueueId: string | undefined;
 
 		const nextQueueId = createQueueIds();
 
@@ -135,6 +160,10 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 		let isFlushBound = false;
 		let volumeWriteTimer: ReturnType<typeof setTimeout> | undefined;
 		let volumeToWrite: number | undefined;
+
+		let isQueueBound = false;
+		let persistedQueue: Array<QueuedItem> | undefined;
+		let persistedIndex: number | undefined;
 
 		function queueState(): QueueState {
 			const { currentIndex, isShuffling, playOrder, queue } = get();
@@ -167,6 +196,38 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 			volumeWriteTimer = setTimeout(flushVolume, volumeWriteDelayMs);
 		}
 
+		function writeQueue(): void {
+			const { currentIndex, currentTimeS, isShuffling, queue } = get();
+
+			if (queue.length === 0) {
+				removeStored(queueStorageKey);
+				return;
+			}
+
+			writeStored(
+				queueStorageKey,
+				JSON.stringify({ currentIndex, currentTimeS, isShuffling, queue } satisfies StoredQueue),
+			);
+		}
+
+		// Bound from a mount effect rather than at module load, because the store is also imported where there is no window
+		function bindQueue(): void {
+			if (isQueueBound) return;
+
+			isQueueBound = true;
+
+			// Queue changes write straight away; the position drifting between them goes out on `pagehide`
+			api.subscribe(() => {
+				const { currentIndex, queue } = get();
+				if (queue === persistedQueue && currentIndex === persistedIndex) return;
+
+				persistedQueue = queue;
+				persistedIndex = currentIndex;
+				writeQueue();
+			});
+			window.addEventListener('pagehide', writeQueue);
+		}
+
 		function ensureEngine(): AudioEngine {
 			if (engine) return engine;
 
@@ -180,7 +241,7 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 				// A resolved URL can go stale while the page sits open, so one failure earns one re-resolve
 				onError: (stage) => {
 					if (loading && !loading.isRetry) {
-						loadIndex(loading.index, loading.autoplay, true);
+						loadIndex(loading.index, loading.autoplay, true, loading.startS);
 						return;
 					}
 
@@ -213,14 +274,14 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 			});
 		}
 
-		function loadIndex(index: number, shouldAutoplay: boolean, isRetry = false): void {
+		function loadIndex(index: number, shouldAutoplay: boolean, isRetry = false, startS = 0): void {
 			const state = get();
 			const item = state.queue[index];
 			if (!item || state.urls === undefined) return;
 
 			set({
 				currentIndex: index,
-				currentTimeS: 0,
+				currentTimeS: startS,
 				durationS: item.durationMs === undefined ? undefined : item.durationMs / 1000,
 				playbackError: undefined,
 				status: 'loading',
@@ -232,9 +293,10 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 			const activeEngine = ensureEngine();
 			if (shouldAutoplay) activeEngine.prepare();
 
-			const attempt: LoadAttempt = { autoplay: shouldAutoplay, index, isRetry };
+			const attempt: LoadAttempt = { autoplay: shouldAutoplay, index, isRetry, startS };
 
 			loading = attempt;
+			loadedQueueId = item.queueId;
 
 			void state.urls
 				.stream(item.trackId)
@@ -247,7 +309,7 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 						return;
 					}
 
-					await activeEngine.load(resolution.url, gain, shouldAutoplay);
+					await activeEngine.load(resolution.url, gain, shouldAutoplay, startS);
 				})
 				.catch(() => {
 					if (loading !== attempt) return;
@@ -296,6 +358,7 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 		function unload(): void {
 			engine?.reset();
 			loading = undefined;
+			loadedQueueId = undefined;
 		}
 
 		return {
@@ -321,6 +384,10 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 
 			getAnalyser: () => engine?.analyser(),
 
+			getCurrentTime: () => engine?.currentTime(),
+
+			getOutputDelay: () => engine?.outputDelay() ?? 0,
+
 			hydratePreferences: () => {
 				const storedTimeMode = readStoredTimeMode();
 				if (storedTimeMode !== undefined) set({ timeMode: storedTimeMode });
@@ -330,6 +397,29 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 
 				set({ volume: storedVolume });
 				engine?.setVolume(storedVolume);
+			},
+
+			hydrateQueue: () => {
+				const stored = readStoredQueue();
+
+				// A page that queued something before this ran keeps what it queued
+				if (stored && get().queue.length === 0) {
+					const restored = loadedQueue(queueState(), stored.queue, nextQueueId);
+					const item =
+						stored.currentIndex === undefined ? undefined : stored.queue[stored.currentIndex];
+
+					set({
+						...shuffledQueue(
+							{ ...restored, currentIndex: stored.currentIndex },
+							stored.isShuffling,
+						),
+						currentTimeS: stored.currentTimeS,
+						durationS: item?.durationMs === undefined ? undefined : item.durationMs / 1000,
+						status: 'idle',
+					});
+				}
+
+				bindQueue();
 			},
 
 			loadQueue: (items) => {
@@ -385,6 +475,13 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 				}
 
 				loadIndex(back, true);
+			},
+
+			queueTrack: (releaseItems, trackId) => {
+				const appended = appendedQueue(queueState(), releaseItems, nextQueueId, trackId);
+				if (!appended) return;
+
+				set(appended.state);
 			},
 
 			removeAt: (index) => {
@@ -445,6 +542,10 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 				applyVolume(volumeBeforeMute ?? 1);
 			},
 
+			togglePanel: () => {
+				set((state) => ({ isPanelOpen: !state.isPanelOpen }));
+			},
+
 			togglePlay: () => {
 				const state = get();
 				if (state.currentIndex === undefined) {
@@ -452,6 +553,12 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 					if (first === undefined) return;
 
 					loadIndex(first, true);
+					return;
+				}
+
+				// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
+				if (loadedQueueId !== state.queue[state.currentIndex]?.queueId) {
+					loadIndex(state.currentIndex, true, false, state.currentTimeS);
 					return;
 				}
 
@@ -497,6 +604,28 @@ function readStored(key: string): string | undefined {
 	}
 }
 
+// Only this store writes the entry, so the guard covers a stale or hand-edited one rather than a foreign schema
+function readStoredQueue(): StoredQueue | undefined {
+	const stored = readStored(queueStorageKey);
+	if (stored === undefined) return undefined;
+
+	try {
+		const parsed = JSON.parse(stored) as StoredQueue;
+		if (!Array.isArray(parsed.queue) || parsed.queue.length === 0) return undefined;
+
+		const currentIndex = storedQueueIndex(parsed.currentIndex, parsed.queue.length);
+
+		return {
+			currentIndex,
+			currentTimeS: currentIndex === undefined ? 0 : storedTimeS(parsed.currentTimeS),
+			isShuffling: parsed.isShuffling,
+			queue: parsed.queue,
+		};
+	} catch {
+		return undefined;
+	}
+}
+
 function readStoredTimeMode(): PlayerTimeMode | undefined {
 	const stored = readStored(timeModeStorageKey);
 
@@ -510,6 +639,26 @@ function readStoredVolume(): number | undefined {
 	const value = Number(stored);
 
 	return Number.isFinite(value) ? clampVolume(value) : undefined;
+}
+
+function removeStored(key: string): void {
+	try {
+		localStorage.removeItem(key);
+	} catch {
+		return;
+	}
+}
+
+function storedQueueIndex(currentIndex: number | undefined, length: number): number | undefined {
+	if (typeof currentIndex !== 'number' || currentIndex < 0 || currentIndex >= length) {
+		return undefined;
+	}
+
+	return currentIndex;
+}
+
+function storedTimeS(currentTimeS: number): number {
+	return Number.isFinite(currentTimeS) ? Math.max(0, currentTimeS) : 0;
 }
 
 function writeStored(key: string, value: string): void {

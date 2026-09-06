@@ -114,6 +114,14 @@ export function VolumeMutedIcon() {
 	);
 }
 
+export function WaveformIcon() {
+	return (
+		<Icon>
+			<path d="M3 11v2M7 8v8M11 4v16M15 7v10M19 10v4" />
+		</Icon>
+	);
+}
+
 function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
 	return (
 		<svg

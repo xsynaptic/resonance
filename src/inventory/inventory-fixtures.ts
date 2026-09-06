@@ -117,9 +117,11 @@ const playerLabels: PlayerLabels = {
 	shuffle: t('player.shuffle'),
 	skipBack: formatStringTemplate(t('player.skipBack'), { seconds: skipSeconds }),
 	skipForward: formatStringTemplate(t('player.skipForward'), { seconds: skipSeconds }),
+	timestampsPartial: t('player.timestampsPartial'),
 	toggleTimeMode: t('player.toggleTimeMode'),
 	unmute: t('player.unmute'),
 	volume: t('player.volume'),
+	waveformPanel: t('player.waveformPanel'),
 };
 
 export async function getInventoryFixtures() {

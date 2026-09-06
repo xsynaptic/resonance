@@ -26,9 +26,11 @@ export interface PlayerLabels {
 	shuffle: string;
 	skipBack: string;
 	skipForward: string;
+	timestampsPartial: string;
 	toggleTimeMode: string;
 	unmute: string;
 	volume: string;
+	waveformPanel: string;
 }
 
 // `capped` is terminal like `error`, but nothing failed: the host's resolver declined to serve the track
@@ -38,9 +40,19 @@ export type PlayerTimeMode = 'elapsed' | 'remaining';
 
 // The host owns its route shapes, so the package asks for a track's URLs rather than deriving them
 export interface PlayerUrls {
+	// Full-resolution `.dat`, range-requested a window at a time; `undefined` leaves the panel on its grid
+	archive?: ((trackId: string) => Promise<string | undefined>) | undefined;
 	stream: (trackId: string) => Promise<StreamResolution>;
 	// `undefined` keeps the seek bar on the inline overview
 	waveform: (trackId: string) => Promise<string | undefined>;
+}
+
+// One timestamped track in a mix, resolved at build time because the browser has no artists catalog
+export interface QueueCuePoint {
+	// Empty where the track carries no credit
+	artistLine: string;
+	startS: number;
+	title: string;
 }
 
 // The store stamps an id as items are enqueued, so a row keeps its React identity across a reorder
@@ -52,6 +64,8 @@ export interface QueueItem {
 	albumLoudness: QueueLoudness;
 	artistLine: string;
 	artworkUrl?: string;
+	// Timestamped tracks in order; the panel draws a boundary at each one
+	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	durationMs?: number;
 	loudness: QueueLoudness;
 	// Absent renders the title as plain text
@@ -60,6 +74,8 @@ export interface QueueItem {
 	// A heading the tray draws above this item; a queue carrying any of these cannot shuffle
 	sectionLabel?: string;
 	title: string;
+	// The whole tracklist, so a mix indexed in part can say where the index runs out
+	trackCount?: number;
 	trackId: string;
 	// Normalized 0..1 peak per bucket; absent falls back to a range input
 	waveformOverview?: ReadonlyArray<number>;

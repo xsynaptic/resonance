@@ -1,4 +1,5 @@
 ---
+import ButtonSplit from '#components/parts/button-split.astro';
 import Button from '#components/parts/button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
@@ -10,5 +11,8 @@ const { trackId } = Astro.props;
 ---
 
 <div class="mt-4 first:mt-0" data-track-id={trackId}>
-	<Button data-play-track={trackId} icon="play">{t('player.play')}</Button>
+	<ButtonSplit>
+		<Button data-play-track={trackId} icon="play">{t('player.play')}</Button>
+		<Button data-queue-track={trackId}>{t('player.queue')}</Button>
+	</ButtonSplit>
 </div>

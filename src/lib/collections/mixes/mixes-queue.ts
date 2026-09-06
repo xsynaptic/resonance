@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getImage } from 'astro:assets';
 
 import { getMixAudio } from '#lib/collections/mixes/mixes-audio.ts';
+import { getMixCuePoints } from '#lib/collections/mixes/mixes-cue.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
@@ -22,6 +23,7 @@ export async function getMixQueueItem(
 	if (!audio) return undefined;
 
 	const artworkUrl = await getArtworkUrl(getImageFeaturedId(entry.data.imageFeatured));
+	const cuePoints = await getMixCuePoints(entry);
 
 	return {
 		albumLoudness: {},
@@ -35,6 +37,10 @@ export async function getMixQueueItem(
 		trackId: entry.id,
 		waveformOverview: audio.peaks,
 		...(artworkUrl ? { artworkUrl } : {}),
+		// Only alongside the cue points it qualifies; on its own the count tells the panel nothing
+		...(cuePoints.length > 0
+			? { cuePoints, trackCount: entry.data.tracks?.length ?? cuePoints.length }
+			: {}),
 	};
 }
 

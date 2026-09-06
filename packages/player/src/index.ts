@@ -9,6 +9,7 @@ export type {
 	PlaybackError,
 	PlayerLabels,
 	PlayerUrls,
+	QueueCuePoint,
 	QueueItem,
 	StreamResolution,
 } from '#types.ts';

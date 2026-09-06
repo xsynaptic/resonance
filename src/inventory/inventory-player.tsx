@@ -22,6 +22,8 @@ const createSilentEngine: CreateAudioEngine = (callbacks) => {
 
 			return Promise.resolve();
 		},
+		// No graph, so nothing stands between the clock and the sound
+		outputDelay: () => 0,
 		pause: () => {
 			callbacks.onStatus('paused');
 		},

@@ -8,8 +8,8 @@ import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import PlayerControls from '#components/player/player-controls.astro';
 import PlayerPayload from '#components/player/player-payload.astro';
-import PlayerPlay from '#components/player/player-play.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
@@ -85,7 +85,7 @@ const queueItem = isPlayerEnabled
 	<Content />
 	<Fragment slot="media">
 		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
-		{queueItem ? <PlayerPlay trackId={entry.id} /> : undefined}
+		{queueItem ? <PlayerControls trackId={entry.id} /> : undefined}
 		<PlayerPayload items={queueItem ? [queueItem] : []} />
 	</Fragment>
 	<Fragment slot="actions">

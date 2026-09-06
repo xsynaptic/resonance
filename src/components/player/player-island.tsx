@@ -6,9 +6,14 @@ import { useEffect } from 'react';
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 // Every stream URL is already in a payload and the manifest's peaks are the whole seek bar, so neither resolver touches the network
+// The archive is the exception: the panel range-requests it, and under `pnpm dev` a local route serves it
 const urls: PlayerUrls = {
+	archive: (trackId) =>
+		Promise.resolve(
+			import.meta.env.DEV ? `/waveform/${encodeURIComponent(trackId)}.dat` : undefined,
+		),
 	stream: (trackId) => {
-		const streamUrl = streamUrls.get(trackId);
+		const streamUrl = streamUrls.get(trackId) ?? queuedStreamUrl(trackId);
 		if (streamUrl === undefined) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
 		return Promise.resolve({ status: 'ok', url: streamUrl });
@@ -34,7 +39,7 @@ export function PlayerIsland({
 	// One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
 	useEffect(() => {
 		const onClick = (event: MouseEvent): void => {
-			playFromControl(event.target instanceof Element ? event.target : undefined);
+			dispatchControl(event.target instanceof Element ? event.target : undefined);
 		};
 
 		document.addEventListener('click', onClick);
@@ -79,30 +84,43 @@ function currentTrackId(): string | undefined {
 	return queue[currentIndex]?.trackId;
 }
 
+// The nearest verb wins, so a track's own control beats a play-all wrapping it
+function dispatchControl(target: Element | undefined): void {
+	const control = target?.closest<HTMLElement>(
+		'[data-queue-track],[data-play-track],[data-play-release]',
+	);
+	if (!control) return;
+
+	const items = readPayload();
+	if (!items) return;
+
+	const store = playerStore.getState();
+	const { playRelease, playTrack, queueTrack } = control.dataset;
+
+	if (queueTrack) {
+		store.queueTrack(items, queueTrack);
+		return;
+	}
+
+	if (playTrack) {
+		store.playTrack(items, playTrack);
+		return;
+	}
+
+	if (playRelease !== undefined) store.playRelease(items);
+}
+
 function markRows(trackId: string | undefined): void {
 	for (const row of document.querySelectorAll<HTMLElement>('[data-track-id]')) {
 		row.toggleAttribute('data-playing', trackId !== undefined && row.dataset.trackId === trackId);
 	}
 }
 
-function playFromControl(target: Element | undefined): void {
-	const trackControl = target?.closest<HTMLElement>('[data-play-track]');
-	const listControl = target?.closest<HTMLElement>('[data-play-release]');
-	if (!trackControl && !listControl) return;
+// A restored queue keeps the payload's own fields, so a track queued on a page this session never opened still resolves
+function queuedStreamUrl(trackId: string): string | undefined {
+	const queued = playerStore.getState().queue.find((item) => item.trackId === trackId);
 
-	const items = readPayload();
-	if (!items) return;
-
-	const store = playerStore.getState();
-
-	if (trackControl) {
-		const trackId = trackControl.dataset.playTrack;
-		if (trackId) store.playTrack(items, trackId);
-
-		return;
-	}
-
-	store.playRelease(items);
+	return (queued as Partial<PlayerPayloadItem> | undefined)?.streamUrl;
 }
 
 // Parsed once per payload rather than once per click; the string changes with each soft navigation

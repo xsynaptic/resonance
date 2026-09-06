@@ -11,6 +11,7 @@ import { isIndexableUrlPath, readSitemapLastmod } from '@xsynaptic/shared/sitema
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 
+import waveformArchive from '#dev/waveform-archive-integration.ts';
 import inventory from '#inventory/inventory-integration.ts';
 import { shikiTheme } from '#lib/utils/shiki-theme.ts';
 
@@ -89,6 +90,7 @@ export default defineConfig({
 		pagefind(),
 		buildLogger(),
 		inventory(),
+		waveformArchive(),
 	],
 	markdown: {
 		processor: satteri({

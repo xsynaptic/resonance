@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import type { PlayerLabels } from '#types.ts';
@@ -85,6 +87,7 @@ export function VolumeControl({
 						store.getState().setVolume(Number(event.target.value));
 					}}
 					step={0.01}
+					style={levelStyle(volume)}
 					type="range"
 					value={volume}
 				/>
@@ -114,6 +117,10 @@ function LevelIcon({ volume }: { volume: number }) {
 	if (volume < lowVolume) return <VolumeLowIcon />;
 
 	return <VolumeIcon />;
+}
+
+function levelStyle(volume: number): CSSProperties {
+	return { '--player-volume-level': `${String(volume * 100)}%` } as CSSProperties;
 }
 
 function subscribeHover(onChange: () => void): () => void {

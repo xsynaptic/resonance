@@ -1,9 +1,33 @@
+import type { QueueCuePoint } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
 import type { RefValue } from '#lib/schemas/refs.ts';
 
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
 import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
+
+// The player's index into a mix, resolved at build time because the browser has no artists catalog
+export async function getMixCuePoints(
+	entry: CollectionEntry<'mixes'>,
+): Promise<Array<QueueCuePoint>> {
+	if (!hasMixTimestamps(entry)) return [];
+
+	const points = await Promise.all(
+		(entry.data.tracks ?? []).map(async (track) => {
+			const startS =
+				track.timestamp === undefined ? undefined : parseTimestampSeconds(track.timestamp);
+			if (startS === undefined) return;
+
+			return {
+				artistLine: (await joinArtists(toRefArray(track.artists))) ?? '',
+				startS,
+				title: track.title,
+			} satisfies QueueCuePoint;
+		}),
+	);
+
+	return points.filter((point) => point !== undefined);
+}
 
 // One sheet per downloadable file: the tracklist is shared and only the FILE line differs
 // A FLAC cue is useless against the MP3, so the two are presented as a pair
@@ -47,4 +71,15 @@ async function joinArtists(refs: Array<RefValue> | undefined): Promise<string | 
 	if (resolved.length === 0) return undefined;
 
 	return resolved.map((ref) => ref.label).join(', ');
+}
+
+// The fractional part is hundredths of a second, matching the schema's `HH:MM:SS.dd`
+function parseTimestampSeconds(timestamp: string): number | undefined {
+	const match = /^(\d+):(\d+):(\d+)(?:\.(\d{1,2}))?$/.exec(timestamp);
+	if (!match) return undefined;
+
+	const [, hours = '0', minutes = '0', seconds = '0', fraction] = match;
+	const hundredths = fraction === undefined ? 0 : Number(fraction.padEnd(2, '0'));
+
+	return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds) + hundredths / 100;
 }

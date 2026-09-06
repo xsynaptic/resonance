@@ -9,6 +9,8 @@ import path from 'node:path';
 import { streamBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
+	// The archive's file name in `.cache/waveforms/`, without its extension
+	base: string;
 	peaks: Array<number>;
 	seconds: number;
 	streamUrl: string;
@@ -33,6 +35,7 @@ export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undef
 
 		if (entry) {
 			return {
+				base: entry.base,
 				peaks: entry.peaks,
 				seconds: entry.seconds,
 				streamUrl: `${streamBaseUrl}${encodeURIComponent(entry.stream)}`,

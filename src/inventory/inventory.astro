@@ -667,7 +667,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 	</Section>
 	<Section
-		note="The player package, rendered from its own parts. Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton and nothing here hijacks it. No specimen reaches the network: the stream resolver answers from the payload it was handed, and each loaded state is set on the store directly, because building the audio graph needs a gesture."
+		note="The player package, rendered from its own parts. Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton and nothing here hijacks it. No specimen reaches the network or builds an audio graph, which a browser refuses outside a gesture: the stream resolver answers from the payload it was handed, and a silent engine stands at the engine seam so each specimen reaches its state through the same actions the site uses."
 		title="Player"
 	>
 		<Specimen

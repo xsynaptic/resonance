@@ -2,7 +2,8 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import { createStore } from 'zustand/vanilla';
 
-import type { AudioEngine } from '#engine/audio-engine.ts';
+import type { AudioEngine, CreateAudioEngine } from '#engine/audio-engine.ts';
+import type { QueueState } from '#queue/queue-state.ts';
 import type {
 	PlaybackError,
 	PlaybackErrorStage,
@@ -14,21 +15,18 @@ import type {
 } from '#types.ts';
 
 import { createAudioEngine } from '#engine/audio-engine.ts';
-import {
-	bindMediaSession,
-	clearMediaMetadata,
-	setMediaMetadata,
-	setMediaPlaybackState,
-} from '#engine/media-session.ts';
 import { normalizationGain } from '#engine/playback-gain.ts';
 import {
-	identityOrder,
-	isSectioned,
-	nextInOrder,
-	previousInOrder,
-	shuffledOrder,
-} from '#queue/queue.ts';
-import { canMove, movedArray, movedIndex } from '#queue/reorder.ts';
+	appendedQueue,
+	createQueueIds,
+	loadedQueue,
+	movedItem,
+	removedAt,
+	replacedAfter,
+	shuffledQueue,
+} from '#queue/queue-state.ts';
+import { isSectioned, nextInOrder, previousInOrder } from '#queue/queue.ts';
+import { canMove } from '#queue/reorder.ts';
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
 const restartThresholdSeconds = 3;
@@ -38,6 +36,10 @@ const volumeStorageKey = 'player:v1:volume';
 const volumeWriteDelayMs = 250;
 
 export type PlayerStore = PlayerActions & PlayerState;
+
+export interface PlayerStoreOptions {
+	createEngine?: CreateAudioEngine | undefined;
+}
 
 // One trip through resolve-then-load, so a late answer can be recognized as stale
 interface LoadAttempt {
@@ -60,6 +62,7 @@ interface PlayerActions {
 	// Refused on a sectioned queue, the way shuffle is; a shuffled play order moves with the item rather than reshuffling
 	moveItem: (from: number, to: number) => void;
 	next: () => void;
+	pause: () => void;
 	playAt: (index: number) => void;
 	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
 	playRelease: (releaseItems: ReadonlyArray<QueueItem>) => void;
@@ -117,27 +120,26 @@ const initialPlayerState: PlayerState = {
 	volume: 1,
 };
 
-export function createPlayerStore(): StoreApi<PlayerStore> {
+export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<PlayerStore> {
+	const createEngine = options?.createEngine ?? createAudioEngine;
+
 	return createStore<PlayerStore>()((set, get) => {
 		// Created on the first action that needs it, inside a user gesture and on the client
 		let engine: AudioEngine | undefined;
 		let loading: LoadAttempt | undefined;
 		let volumeBeforeMute: number | undefined;
 
-		// Unique within one queue, which is all a React key needs; a duplicate `trackId` is reachable
-		let nextQueueId = 0;
+		const nextQueueId = createQueueIds();
 
 		// Per store rather than per module, so a second store never inherits a pending write
 		let isFlushBound = false;
 		let volumeWriteTimer: ReturnType<typeof setTimeout> | undefined;
 		let volumeToWrite: number | undefined;
 
-		function withQueueIds(items: ReadonlyArray<QueueItem>): Array<QueuedItem> {
-			return items.map((item) => {
-				nextQueueId += 1;
+		function queueState(): QueueState {
+			const { currentIndex, isShuffling, playOrder, queue } = get();
 
-				return { ...item, queueId: `q${String(nextQueueId)}` };
-			});
+			return { currentIndex, isShuffling, playOrder, queue };
 		}
 
 		function flushVolume(): void {
@@ -168,7 +170,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 		function ensureEngine(): AudioEngine {
 			if (engine) return engine;
 
-			engine = createAudioEngine({
+			engine = createEngine({
 				onDuration: (durationS) => {
 					set({ durationS });
 				},
@@ -186,31 +188,12 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				},
 				onStatus: (status) => {
 					set({ status });
-					if (status !== 'loading') setMediaPlaybackState(status);
 				},
 				onTime: (currentTimeS) => {
 					set({ currentTimeS });
 				},
 			});
 			engine.setVolume(get().volume);
-			bindMediaSession({
-				next: () => {
-					get().next();
-				},
-				pause: () => engine?.pause(),
-				play: () => {
-					get().togglePlay();
-				},
-				previous: () => {
-					get().previous();
-				},
-				seekBy: (deltaSeconds) => {
-					get().seekBy(deltaSeconds);
-				},
-				seekTo: (seconds) => {
-					get().seek(seconds);
-				},
-			});
 
 			return engine;
 		}
@@ -228,7 +211,6 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				playbackError: trackId === undefined ? undefined : { stage, trackId },
 				status: 'error',
 			});
-			setMediaPlaybackState('paused');
 		}
 
 		function loadIndex(index: number, shouldAutoplay: boolean, isRetry = false): void {
@@ -243,7 +225,6 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				playbackError: undefined,
 				status: 'loading',
 			});
-			setMediaMetadata(item);
 
 			const gain = normalizationGain(item, state.isShuffling);
 
@@ -263,7 +244,6 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 					// Not retried: a re-resolve would answer the same
 					if (resolution.status === 'capped') {
 						set({ status: 'capped' });
-						setMediaPlaybackState('paused');
 						return;
 					}
 
@@ -298,12 +278,24 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			engine?.setVolume(clamped);
 		}
 
+		// A jump onto a track that is already loaded is a transport toggle, not a reload
+		function enqueue(items: ReadonlyArray<QueueItem>, trackId?: string): void {
+			const appended = appendedQueue(queueState(), items, nextQueueId, trackId);
+			if (!appended) return;
+
+			if (appended.loadIndex === get().currentIndex) {
+				get().togglePlay();
+				return;
+			}
+
+			set(appended.state);
+			loadIndex(appended.loadIndex, true);
+		}
+
 		// Whatever resolve is in flight answers into nothing rather than reloading what was dropped
 		function unload(): void {
 			engine?.reset();
 			loading = undefined;
-			clearMediaMetadata();
-			setMediaPlaybackState('none');
 		}
 
 		return {
@@ -343,37 +335,27 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			loadQueue: (items) => {
 				if (items.length === 0) return;
 
-				// A sectioned queue lands unshuffled whatever the listener left the toggle on
-				const isShuffling = get().isShuffling && !isSectioned(items);
-
 				set({
-					currentIndex: undefined,
+					...loadedQueue(queueState(), items, nextQueueId),
 					currentTimeS: 0,
 					durationS: undefined,
-					isShuffling,
-					playOrder: orderFor(items.length, undefined, isShuffling),
-					queue: withQueueIds(items),
 					status: 'idle',
 				});
 			},
 
 			moveItem: (from, to) => {
-				const state = get();
+				const state = queueState();
 				if (isSectioned(state.queue) || !canMove(state.queue.length, from, to)) return;
 
-				set({
-					currentIndex:
-						state.currentIndex === undefined ? undefined : movedIndex(state.currentIndex, from, to),
-					// Remapping rather than reshuffling keeps the shuffled sequence the listener is hearing
-					playOrder: state.isShuffling
-						? state.playOrder.map((index) => movedIndex(index, from, to))
-						: identityOrder(state.queue.length),
-					queue: movedArray(state.queue, from, to),
-				});
+				set(movedItem(state, from, to));
 			},
 
 			next: () => {
 				advance();
+			},
+
+			pause: () => {
+				engine?.pause();
 			},
 
 			playAt: (index) => {
@@ -383,64 +365,11 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			},
 
 			playRelease: (releaseItems) => {
-				if (releaseItems.length === 0) return;
-
-				const state = get();
-				if (state.queue.length === 0) {
-					set({
-						playOrder: orderFor(releaseItems.length, 0, state.isShuffling),
-						queue: withQueueIds(releaseItems),
-					});
-					loadIndex(0, true);
-					return;
-				}
-
-				const firstAppended = state.queue.length;
-				const queue = [...state.queue, ...withQueueIds(releaseItems)];
-
-				set({
-					playOrder: orderFor(queue.length, firstAppended, state.isShuffling),
-					queue,
-				});
-				loadIndex(firstAppended, true);
+				enqueue(releaseItems);
 			},
 
 			playTrack: (releaseItems, trackId) => {
-				const state = get();
-				if (state.queue.length === 0) {
-					const startIndex = releaseItems.findIndex((item) => item.trackId === trackId);
-					if (startIndex === -1) return;
-
-					set({
-						playOrder: orderFor(releaseItems.length, startIndex, state.isShuffling),
-						queue: withQueueIds(releaseItems),
-					});
-					loadIndex(startIndex, true);
-					return;
-				}
-
-				// Already loaded is a transport toggle; already queued is a jump, not a second copy
-				const queued = state.queue.findIndex((item) => item.trackId === trackId);
-				if (queued === state.currentIndex) {
-					get().togglePlay();
-					return;
-				}
-				if (queued !== -1) {
-					loadIndex(queued, true);
-					return;
-				}
-
-				const found = releaseItems.find((item) => item.trackId === trackId);
-				if (!found) return;
-
-				const queue = [...state.queue, ...withQueueIds([found])];
-				const appendedIndex = queue.length - 1;
-
-				set({
-					playOrder: orderFor(queue.length, appendedIndex, state.isShuffling),
-					queue,
-				});
-				loadIndex(appendedIndex, true);
+				enqueue(releaseItems, trackId);
 			},
 
 			previous: () => {
@@ -459,50 +388,29 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 			},
 
 			removeAt: (index) => {
-				const state = get();
+				const state = queueState();
 				if (index < 0 || index >= state.queue.length) return;
-
-				const queue = state.queue.filter((_, position) => position !== index);
 
 				if (index === state.currentIndex) {
 					unload();
 					set({
-						currentIndex: undefined,
+						...removedAt(state, index),
 						currentTimeS: 0,
 						durationS: undefined,
-						playOrder: orderFor(queue.length, undefined, state.isShuffling),
-						queue,
 						status: 'idle',
 					});
 					return;
 				}
 
-				// Removing an earlier track shifts the loaded one down
-				const currentIndex =
-					state.currentIndex !== undefined && index < state.currentIndex
-						? state.currentIndex - 1
-						: state.currentIndex;
-
-				set({
-					currentIndex,
-					playOrder: orderFor(queue.length, currentIndex, state.isShuffling),
-					queue,
-				});
+				set(removedAt(state, index));
 			},
 
 			replaceAfter: (index, items) => {
-				const state = get();
+				const state = queueState();
 				if (index < 0 || index >= state.queue.length) return;
 				if (state.currentIndex !== undefined && state.currentIndex > index) return;
 
-				const queue = [...state.queue.slice(0, index + 1), ...withQueueIds(items)];
-				const isShuffling = state.isShuffling && !isSectioned(queue);
-
-				set({
-					isShuffling,
-					playOrder: orderFor(queue.length, state.currentIndex, isShuffling),
-					queue,
-				});
+				set(replacedAfter(state, index, items, nextQueueId));
 			},
 
 			seek: (seconds) => {
@@ -547,25 +455,19 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 					return;
 				}
 
-				const activeEngine = ensureEngine();
 				if (state.status === 'playing') {
-					activeEngine.pause();
+					get().pause();
 					return;
 				}
 
-				void activeEngine.play();
+				void ensureEngine().play();
 			},
 
 			toggleShuffle: () => {
-				const state = get();
+				const state = queueState();
 				if (isSectioned(state.queue)) return;
 
-				const isShuffling = !state.isShuffling;
-
-				set({
-					isShuffling,
-					playOrder: orderFor(state.queue.length, state.currentIndex, isShuffling),
-				});
+				set(shuffledQueue(state, !state.isShuffling));
 			},
 
 			toggleTimeMode: () => {
@@ -584,10 +486,6 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 
 function clampVolume(volume: number): number {
 	return Math.min(1, Math.max(0, volume));
-}
-
-function orderFor(length: number, currentIndex: number | undefined, isShuffling: boolean) {
-	return isShuffling ? shuffledOrder(length, currentIndex) : identityOrder(length);
 }
 
 // Reaching for `localStorage` throws where the getter does: Safari with cookies blocked, a sandboxed iframe

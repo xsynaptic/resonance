@@ -22,6 +22,8 @@ export interface AudioEngineCallbacks {
 	onTime: (currentTimeS: number) => void;
 }
 
+export type CreateAudioEngine = (callbacks: AudioEngineCallbacks) => AudioEngine;
+
 export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine {
 	const audio = new Audio();
 

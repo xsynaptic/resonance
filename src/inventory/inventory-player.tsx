@@ -1,4 +1,4 @@
-import type { PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
+import type { CreateAudioEngine, PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
 
 import { AudioPlayer, createPlayerStore, Player } from '@xsynaptic/player';
 import { useEffect, useState } from 'react';
@@ -7,6 +7,40 @@ import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 export const skipSeconds = 30;
 
+const silentAnalyser: AnalyserNode | undefined = undefined;
+
+// A browser refuses an audio graph outside a gesture, so the specimens stand at the engine seam instead
+const createSilentEngine: CreateAudioEngine = (callbacks) => {
+	let currentTimeS = 0;
+
+	return {
+		analyser: () => silentAnalyser,
+		currentTime: () => currentTimeS,
+		// A specimen lands loaded and paused, where a real engine would go on to play
+		load: () => {
+			callbacks.onStatus('paused');
+
+			return Promise.resolve();
+		},
+		pause: () => {
+			callbacks.onStatus('paused');
+		},
+		play: () => Promise.resolve(),
+		prepare: () => {
+			// No graph to build
+		},
+		reset: () => {
+			currentTimeS = 0;
+		},
+		seek: (seconds) => {
+			currentTimeS = seconds;
+		},
+		setVolume: () => {
+			// No gain stage to drive
+		},
+	};
+};
+
 interface PlayerSpecimenProps {
 	items: Array<PlayerPayloadItem>;
 	labels: PlayerLabels;
@@ -14,11 +48,11 @@ interface PlayerSpecimenProps {
 	variant?: 'compact' | 'expanded';
 }
 
-type SpecimenStore = ReturnType<typeof createPlayerStore>;
+type SpecimenStore = ReturnType<typeof createSpecimenStore>;
 
 // Each specimen holds its own store, so the live bar keeps the singleton and playing here never hijacks it
 export function PlayerSpecimen({ items, labels, specimen, variant }: PlayerSpecimenProps) {
-	const [store] = useState(createPlayerStore);
+	const [store] = useState(createSpecimenStore);
 	const [urls] = useState(() => (specimen === 'error' ? failingUrls : queuedUrls(items)));
 
 	useEffect(() => {
@@ -36,6 +70,10 @@ export function PlayerSpecimen({ items, labels, specimen, variant }: PlayerSpeci
 	);
 }
 
+function createSpecimenStore() {
+	return createPlayerStore({ createEngine: createSilentEngine });
+}
+
 // Each variation is nothing but tokens on the wrapper, which the renderer reads when it paints
 const waveformVariations = [
 	{ className: undefined, label: '2px bar, 1px gap, 1px radius (the default)' },
@@ -45,7 +83,7 @@ const waveformVariations = [
 
 // The panel is `display: none` until it opens, so the specimen pins it open through a class of its own
 export function VolumeSpecimen({ labels }: { labels: PlayerLabels }) {
-	const [store] = useState(createPlayerStore);
+	const [store] = useState(createSpecimenStore);
 
 	return (
 		<Player.Root
@@ -66,14 +104,13 @@ export function WaveformComparison({
 	items: Array<PlayerPayloadItem>;
 	labels: PlayerLabels;
 }) {
-	const [store] = useState(createPlayerStore);
+	const [store] = useState(createSpecimenStore);
 	const [urls] = useState(() => queuedUrls(items));
 
 	useEffect(() => {
-		const durationS = items[0]?.durationMs === undefined ? undefined : items[0].durationMs / 1000;
-
 		store.getState().loadQueue(items);
-		store.setState({ currentIndex: 0, currentTimeS: (durationS ?? 0) / 3, durationS });
+		store.getState().playAt(0);
+		store.getState().seek((store.getState().durationS ?? 0) / 3);
 	}, [items, store]);
 
 	return (
@@ -104,10 +141,11 @@ const failingUrls: PlayerUrls = {
 };
 
 // Astro cannot serialize a function across the island boundary, so the resolvers are built from the payload here
+// Any id resolves: the tray specimen synthesizes its own to get distinct rows, and a specimen shows layout rather than resolution
 function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
 	return {
 		stream: (trackId) => {
-			const item = items.find((queued) => queued.trackId === trackId);
+			const item = items.find((queued) => queued.trackId === trackId) ?? items[0];
 			if (!item) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
 			return Promise.resolve({ status: 'ok', url: item.streamUrl });
@@ -169,7 +207,9 @@ function seed(
 	if (specimen === 'empty') return;
 
 	store.getState().loadQueue(queueFor(specimen, items));
-	seedLoaded(store, items);
+
+	// The error specimen's resolver rejects, so its state comes from the failure rather than being written
+	store.getState().playAt(0);
 
 	if (isTraySpecimen(specimen)) {
 		store.setState({ isTrayOpen: true });
@@ -178,29 +218,9 @@ function seed(
 
 	// A third of the way in, so the remaining clock reads a figure rather than the whole duration
 	if (specimen === 'remaining') {
-		store.setState({
-			currentTimeS: (store.getState().durationS ?? 0) / 3,
-			timeMode: 'remaining',
-		});
-		return;
+		store.getState().seek((store.getState().durationS ?? 0) / 3);
+		store.setState({ timeMode: 'remaining' });
 	}
-
-	if (specimen === 'error') {
-		store.setState({
-			playbackError: { stage: 'resolve', trackId: items[0]?.trackId ?? '' },
-			status: 'error',
-		});
-	}
-}
-
-// `playAt` would build the audio graph, which a browser refuses outside a gesture, so the loaded state is set directly
-function seedLoaded(store: SpecimenStore, items: ReadonlyArray<PlayerPayloadItem>): void {
-	const first = items[0];
-
-	store.setState({
-		currentIndex: 0,
-		durationS: first?.durationMs === undefined ? undefined : first.durationMs / 1000,
-	});
 }
 
 function trayQueue(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {

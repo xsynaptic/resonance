@@ -2,47 +2,49 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import type { AudioEngineCallbacks } from '#engine/audio-engine.ts';
+import type { AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
+import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
 
-// The engine is mocked behind its module seam; the fake drives currentTime and captures callbacks
-const engineMock = vi.hoisted(() => {
+import { createPlayerStore } from '#store/player-store.ts';
+
+function createFakeEngine() {
 	let time = 0;
-	const captured: { callbacks: AudioEngineCallbacks | undefined } = { callbacks: undefined };
+	const callbacks: { current: AudioEngineCallbacks | undefined } = { current: undefined };
+	const engine = {
+		analyser: vi.fn(),
+		currentTime: vi.fn(() => time),
+		load: vi.fn(() => Promise.resolve()),
+		pause: vi.fn(),
+		play: vi.fn(() => Promise.resolve()),
+		prepare: vi.fn(),
+		reset: vi.fn(() => {
+			time = 0;
+		}),
+		seek: vi.fn((seconds: number) => {
+			time = seconds;
+		}),
+		setVolume: vi.fn(),
+	};
+
+	const createEngine: CreateAudioEngine = (given) => {
+		callbacks.current = given;
+
+		return engine;
+	};
 
 	return {
-		captured,
-		engine: {
-			analyser: vi.fn(),
-			currentTime: vi.fn(() => time),
-			load: vi.fn(() => Promise.resolve()),
-			pause: vi.fn(),
-			play: vi.fn(() => Promise.resolve()),
-			prepare: vi.fn(),
-			reset: vi.fn(() => {
-				time = 0;
-			}),
-			seek: vi.fn((seconds: number) => {
-				time = seconds;
-			}),
-			setVolume: vi.fn(),
-		},
+		callbacks,
+		createEngine,
+		engine,
 		setTime: (seconds: number) => {
 			time = seconds;
 		},
 	};
-});
+}
 
-vi.mock('#engine/audio-engine.ts', () => ({
-	createAudioEngine: (callbacks: AudioEngineCallbacks) => {
-		engineMock.captured.callbacks = callbacks;
-		return engineMock.engine;
-	},
-}));
-
-import type { PlayerStore } from '#store/player-store.ts';
-
-import { createPlayerStore } from '#store/player-store.ts';
+// Replaced per test, so nothing a store did survives into the next one
+let fake = createFakeEngine();
 
 function makeItem(id: string): QueueItem {
 	return {
@@ -66,7 +68,7 @@ function configured(): StoreApi<PlayerStore> {
 }
 
 function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
-	const store = createPlayerStore();
+	const store = createPlayerStore({ createEngine: fake.createEngine });
 
 	store.getState().configure({
 		urls: {
@@ -79,8 +81,7 @@ function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
 }
 
 beforeEach(() => {
-	vi.clearAllMocks();
-	engineMock.setTime(0);
+	fake = createFakeEngine();
 });
 
 describe('playTrack', () => {
@@ -95,11 +96,7 @@ describe('playTrack', () => {
 		expect(state.currentIndex).toBe(1);
 
 		await vi.waitFor(() => {
-			expect(engineMock.engine.load).toHaveBeenCalledWith(
-				'https://api.test/tracks/b/stream',
-				1,
-				true,
-			);
+			expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/tracks/b/stream', 1, true);
 		});
 	});
 
@@ -137,7 +134,7 @@ describe('playTrack', () => {
 
 		expect(store.getState().queue).toHaveLength(3);
 		expect(store.getState().currentIndex).toBe(0);
-		expect(engineMock.engine.pause).toHaveBeenCalled();
+		expect(fake.engine.pause).toHaveBeenCalled();
 	});
 });
 
@@ -176,7 +173,7 @@ describe('loadQueue', () => {
 		expect(state.playOrder).toStrictEqual([0, 1, 2]);
 		expect(state.currentIndex).toBeUndefined();
 		expect(state.status).toBe('idle');
-		expect(engineMock.engine.load).not.toHaveBeenCalled();
+		expect(fake.engine.load).not.toHaveBeenCalled();
 	});
 
 	test('ignores an empty queue rather than clearing what is loaded', () => {
@@ -216,18 +213,18 @@ describe('previous', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'b');
-		engineMock.setTime(5);
+		fake.setTime(5);
 		store.getState().previous();
 
 		expect(store.getState().currentIndex).toBe(1);
-		expect(engineMock.engine.seek).toHaveBeenCalledWith(0);
+		expect(fake.engine.seek).toHaveBeenCalledWith(0);
 	});
 
 	test('steps back within the opening seconds', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'b');
-		engineMock.setTime(1);
+		fake.setTime(1);
 		store.getState().previous();
 
 		expect(store.getState().currentIndex).toBe(0);
@@ -237,11 +234,11 @@ describe('previous', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		engineMock.setTime(1);
+		fake.setTime(1);
 		store.getState().previous();
 
 		expect(store.getState().currentIndex).toBe(0);
-		expect(engineMock.engine.seek).toHaveBeenCalledWith(0);
+		expect(fake.engine.seek).toHaveBeenCalledWith(0);
 	});
 });
 
@@ -257,7 +254,7 @@ describe('shuffle', () => {
 		store.getState().next();
 		expect(store.getState().currentIndex).toBe(2);
 
-		engineMock.setTime(1);
+		fake.setTime(1);
 		store.getState().previous();
 		expect(store.getState().currentIndex).toBe(0);
 
@@ -320,7 +317,7 @@ describe('queue editing', () => {
 		expect(state.queue).toHaveLength(2);
 		expect(state.currentIndex).toBeUndefined();
 		expect(state.status).toBe('idle');
-		expect(engineMock.engine.reset).toHaveBeenCalled();
+		expect(fake.engine.reset).toHaveBeenCalled();
 	});
 
 	test('swaps out everything after the loaded track', () => {
@@ -353,7 +350,7 @@ describe('queue editing', () => {
 
 		expect(store.getState().queue).toHaveLength(0);
 		expect(store.getState().currentIndex).toBeUndefined();
-		expect(engineMock.engine.reset).toHaveBeenCalled();
+		expect(fake.engine.reset).toHaveBeenCalled();
 	});
 
 	test('gives every enqueued item an id, including a second copy of the same track', () => {
@@ -377,7 +374,7 @@ describe('queue editing', () => {
 		resolve({ status: 'ok', url: 'https://api.test/tracks/a/stream' });
 		await Promise.resolve();
 
-		expect(engineMock.engine.load).not.toHaveBeenCalled();
+		expect(fake.engine.load).not.toHaveBeenCalled();
 	});
 });
 
@@ -467,7 +464,7 @@ describe('transport', () => {
 		store.setState({ status: 'playing' });
 		store.getState().togglePlay();
 
-		expect(engineMock.engine.pause).toHaveBeenCalled();
+		expect(fake.engine.pause).toHaveBeenCalled();
 	});
 
 	test('resumes the engine when toggled while paused', () => {
@@ -477,7 +474,7 @@ describe('transport', () => {
 		store.setState({ status: 'paused' });
 		store.getState().togglePlay();
 
-		expect(engineMock.engine.play).toHaveBeenCalled();
+		expect(fake.engine.play).toHaveBeenCalled();
 	});
 
 	test('starts the first play-order track when nothing is loaded', () => {
@@ -497,7 +494,7 @@ describe('transport', () => {
 		store.getState().playTrack(release, 'a');
 		store.getState().seek(42);
 
-		expect(engineMock.engine.seek).toHaveBeenCalledWith(42);
+		expect(fake.engine.seek).toHaveBeenCalledWith(42);
 		expect(store.getState().currentTimeS).toBe(42);
 	});
 
@@ -536,7 +533,7 @@ describe('transport', () => {
 		store.setState({ currentTimeS: 30, status: 'playing' });
 		store.getState().stop();
 
-		expect(engineMock.engine.reset).toHaveBeenCalled();
+		expect(fake.engine.reset).toHaveBeenCalled();
 		expect(store.getState().status).toBe('idle');
 		expect(store.getState().currentTimeS).toBe(0);
 	});
@@ -565,17 +562,17 @@ describe('engine errors', () => {
 
 		store.getState().playTrack(release, 'a');
 		await vi.waitFor(() => {
-			expect(engineMock.engine.load).toHaveBeenCalledTimes(1);
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		});
 
-		engineMock.captured.callbacks?.onError('network');
+		fake.callbacks.current?.onError('network');
 		await vi.waitFor(() => {
-			expect(engineMock.engine.load).toHaveBeenCalledTimes(2);
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
 		});
 		expect(resolved).toStrictEqual(['a', 'a']);
 		expect(store.getState().status).not.toBe('error');
 
-		engineMock.captured.callbacks?.onError('network');
+		fake.callbacks.current?.onError('network');
 		expect(store.getState().status).toBe('error');
 		expect(store.getState().playbackError).toStrictEqual({ stage: 'network', trackId: 'a' });
 	});
@@ -592,7 +589,7 @@ describe('engine errors', () => {
 			expect(store.getState().status).toBe('capped');
 		});
 
-		expect(engineMock.engine.load).not.toHaveBeenCalled();
+		expect(fake.engine.load).not.toHaveBeenCalled();
 		expect(resolved).toStrictEqual(['a']);
 	});
 
@@ -613,9 +610,9 @@ describe('engine errors', () => {
 		pending.get('a')?.({ status: 'ok', url: 'https://api.test/a' });
 
 		await vi.waitFor(() => {
-			expect(engineMock.engine.load).toHaveBeenCalledTimes(1);
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		});
-		expect(engineMock.engine.load).toHaveBeenCalledWith('https://api.test/b', 1, true);
+		expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/b', 1, true);
 	});
 
 	test('enters the error state when the resolve itself never answers', async () => {
@@ -626,7 +623,7 @@ describe('engine errors', () => {
 			expect(store.getState().status).toBe('error');
 		});
 
-		expect(engineMock.engine.load).not.toHaveBeenCalled();
+		expect(fake.engine.load).not.toHaveBeenCalled();
 	});
 });
 
@@ -783,7 +780,7 @@ describe('storage', () => {
 
 describe('configure', () => {
 	test('ignores a repeat of the resolvers it already holds', () => {
-		const store = createPlayerStore();
+		const store = createPlayerStore({ createEngine: fake.createEngine });
 		const urls: PlayerUrls = {
 			stream: () => Promise.resolve<StreamResolution>({ status: 'ok', url: 'https://api.test/a' }),
 			waveform: () => Promise.resolve(undefined),

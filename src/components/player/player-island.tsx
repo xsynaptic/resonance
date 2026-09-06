@@ -1,23 +1,26 @@
 import type { PlayerLabels, PlayerUrls } from '@xsynaptic/player';
 
-import { AudioPlayer, playerStore } from '@xsynaptic/player';
+import { AudioPlayer, bindMediaSession, playerStore } from '@xsynaptic/player';
 import { useEffect } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
-// Every stream URL is already in the queue and the manifest's peaks are the whole seek bar, so neither resolver touches the network
+// Every stream URL is already in a payload and the manifest's peaks are the whole seek bar, so neither resolver touches the network
 const urls: PlayerUrls = {
 	stream: (trackId) => {
-		const item = queuedItem(trackId);
-		if (item === undefined) return Promise.reject(new Error(`No stream URL for ${trackId}`));
+		const streamUrl = streamUrls.get(trackId);
+		if (streamUrl === undefined) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
-		return Promise.resolve({ status: 'ok', url: item.streamUrl });
+		return Promise.resolve({ status: 'ok', url: streamUrl });
 	},
 	waveform: () => Promise.resolve(undefined),
 };
 
 let parsedSource: string | undefined;
 let parsedItems: Array<PlayerPayloadItem> | undefined;
+
+// Kept across soft navigations: a queue outlives the page it was built from, and the next page's payload need not carry it
+const streamUrls = new Map<string, string>();
 
 export function PlayerIsland({
 	labels,
@@ -26,6 +29,8 @@ export function PlayerIsland({
 	labels: PlayerLabels;
 	skipSeconds: number;
 }) {
+	useEffect(() => bindMediaSession(playerStore), []);
+
 	// One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
 	useEffect(() => {
 		const onClick = (event: MouseEvent): void => {
@@ -100,13 +105,6 @@ function playFromControl(target: Element | undefined): void {
 	store.playRelease(items);
 }
 
-// The store types its queue as the package's `QueueItem`, which does not carry the field the payload adds
-function queuedItem(trackId: string): PlayerPayloadItem | undefined {
-	const found = playerStore.getState().queue.find((queued) => queued.trackId === trackId);
-
-	return found as PlayerPayloadItem | undefined;
-}
-
 // Parsed once per payload rather than once per click; the string changes with each soft navigation
 function readPayload(): Array<PlayerPayloadItem> | undefined {
 	const payload =
@@ -118,6 +116,8 @@ function readPayload(): Array<PlayerPayloadItem> | undefined {
 
 	try {
 		parsedItems = JSON.parse(payload) as Array<PlayerPayloadItem>;
+
+		for (const item of parsedItems) streamUrls.set(item.trackId, item.streamUrl);
 	} catch {
 		parsedItems = undefined;
 	}

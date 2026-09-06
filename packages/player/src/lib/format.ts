@@ -9,3 +9,7 @@ export function formatClock(seconds: number): string {
 
 	return `${sign}${String(minutes)}:${String(remainder).padStart(2, '0')}`;
 }
+
+export function formatTemplate(template: string, values: Record<string, number | string>): string {
+	return template.replaceAll(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
+}

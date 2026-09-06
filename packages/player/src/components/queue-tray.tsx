@@ -1,17 +1,23 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 import type { PlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
-import { CloseIcon, ShuffleIcon } from '#components/icons.tsx';
+import { CloseIcon, DragHandleIcon, PlayingIcon, ShuffleIcon } from '#components/icons.tsx';
+import { formatTemplate } from '#lib/format.ts';
 import { isSectioned } from '#queue/queue.ts';
+import { canMove } from '#queue/reorder.ts';
+import { useRowDrag } from '#queue/use-row-drag.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 interface QueueTrayProps {
 	actions?: ReactNode;
-	labels: Pick<PlayerLabels, 'clearQueue' | 'empty' | 'removeFromQueue' | 'shuffle'>;
+	labels: Pick<
+		PlayerLabels,
+		'clearQueue' | 'empty' | 'moved' | 'removeFromQueue' | 'reorder' | 'shuffle'
+	>;
 }
 
 // Closed renders nothing, so an idle tray costs no layout and its subscriptions no renders
@@ -29,10 +35,46 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 	const isShuffling = usePlayer((state) => state.isShuffling);
 	const store = usePlayerStoreApi();
 
+	const listRef = useRef<HTMLUListElement>(null);
+	const focusAfterMoveRef = useRef<string | undefined>(undefined);
+	const [announcement, setAnnouncement] = useState('');
+
+	const canReorder = !isSectioned(queue);
+
+	function move(from: number, to: number): void {
+		focusAfterMoveRef.current = queue[from]?.queueId;
+		store.getState().moveItem(from, to);
+		setAnnouncement(formatTemplate(labels.moved, { position: to + 1, total: queue.length }));
+	}
+
+	function onHandleKeyDown(event: ReactKeyboardEvent<HTMLElement>, index: number): void {
+		if (!event.altKey) return;
+		if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+		const to = event.key === 'ArrowUp' ? index - 1 : index + 1;
+		if (!canMove(queue.length, index, to)) return;
+
+		event.preventDefault();
+		move(index, to);
+	}
+
+	const drag = useRowDrag({ listRef, onMove: move });
+
+	// Moving a node in the DOM blurs it, whether the move came from the keyboard or from a drag
+	useEffect(() => {
+		const queueId = focusAfterMoveRef.current;
+		if (queueId === undefined) return;
+
+		focusAfterMoveRef.current = undefined;
+		listRef.current
+			?.querySelector<HTMLElement>(`[data-queue-id="${CSS.escape(queueId)}"] .player-tray-handle`)
+			?.focus();
+	}, [queue]);
+
 	return (
 		<div className="player-tray">
 			<div className="player-tray-header">
-				{isSectioned(queue) ? undefined : (
+				{canReorder ? (
 					<button
 						aria-label={labels.shuffle}
 						aria-pressed={isShuffling}
@@ -45,7 +87,7 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 						<ShuffleIcon />
 						{labels.shuffle}
 					</button>
-				)}
+				) : undefined}
 				<button
 					className="player-tray-action"
 					onClick={() => {
@@ -60,16 +102,35 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 			{queue.length === 0 ? (
 				<p className="player-tray-empty">{labels.empty}</p>
 			) : (
-				<ul className="player-tray-list">
+				<ul className="player-tray-list" ref={listRef}>
 					{queue.map((item, index) => (
-						<Fragment key={`${item.trackId}-${String(index)}`}>
+						<Fragment key={item.queueId}>
 							{item.sectionLabel === undefined ? undefined : (
 								<li className="player-tray-section">{item.sectionLabel}</li>
 							)}
 							<li
 								className="player-tray-item"
 								data-current={index === currentIndex ? '' : undefined}
+								data-queue-id={item.queueId}
 							>
+								{canReorder ? (
+									<button
+										aria-label={labels.reorder}
+										className="player-tray-handle"
+										onKeyDown={(event) => {
+											onHandleKeyDown(event, index);
+										}}
+										onPointerCancel={drag.onPointerCancel}
+										onPointerDown={(event) => {
+											drag.onPointerDown(event, index);
+										}}
+										onPointerMove={drag.onPointerMove}
+										onPointerUp={drag.onPointerUp}
+										type="button"
+									>
+										<DragHandleIcon />
+									</button>
+								) : undefined}
 								<button
 									className="player-tray-pick"
 									onClick={() => {
@@ -77,7 +138,10 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 									}}
 									type="button"
 								>
-									<span className="player-tray-title">{item.title}</span>{' '}
+									<span className="player-tray-title">
+										{index === currentIndex ? <PlayingIcon /> : undefined}
+										<span className="player-tray-name">{item.title}</span>
+									</span>
 									<span className="player-tray-artist">{item.artistLine}</span>
 								</button>
 								<Button
@@ -94,6 +158,9 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 					))}
 				</ul>
 			)}
+			<p aria-live="polite" className="player-tray-status" role="status">
+				{announcement}
+			</p>
 		</div>
 	);
 }

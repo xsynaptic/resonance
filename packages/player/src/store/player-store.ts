@@ -9,6 +9,7 @@ import type {
 	PlayerStatus,
 	PlayerTimeMode,
 	PlayerUrls,
+	QueuedItem,
 	QueueItem,
 } from '#types.ts';
 
@@ -27,6 +28,7 @@ import {
 	previousInOrder,
 	shuffledOrder,
 } from '#queue/queue.ts';
+import { canMove, movedArray, movedIndex } from '#queue/reorder.ts';
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
 const restartThresholdSeconds = 3;
@@ -55,6 +57,8 @@ interface PlayerActions {
 	hydratePreferences: () => void;
 	// Replaces the queue without touching the engine; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
+	// Refused on a sectioned queue, the way shuffle is; a shuffled play order moves with the item rather than reshuffling
+	moveItem: (from: number, to: number) => void;
 	next: () => void;
 	playAt: (index: number) => void;
 	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
@@ -89,7 +93,7 @@ interface PlayerState {
 	playbackError: PlaybackError | undefined;
 	// A permutation of queue indices; reshuffled when shuffle toggles or items are appended
 	playOrder: Array<number>;
-	queue: Array<QueueItem>;
+	queue: Array<QueuedItem>;
 	status: PlayerStatus;
 	// A listener preference rather than playback state, so it is persisted beside the volume
 	timeMode: PlayerTimeMode;
@@ -120,10 +124,21 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 		let loading: LoadAttempt | undefined;
 		let volumeBeforeMute: number | undefined;
 
+		// Unique within one queue, which is all a React key needs; a duplicate `trackId` is reachable
+		let nextQueueId = 0;
+
 		// Per store rather than per module, so a second store never inherits a pending write
 		let isFlushBound = false;
 		let volumeWriteTimer: ReturnType<typeof setTimeout> | undefined;
 		let volumeToWrite: number | undefined;
+
+		function withQueueIds(items: ReadonlyArray<QueueItem>): Array<QueuedItem> {
+			return items.map((item) => {
+				nextQueueId += 1;
+
+				return { ...item, queueId: `q${String(nextQueueId)}` };
+			});
+		}
 
 		function flushVolume(): void {
 			if (volumeWriteTimer !== undefined) clearTimeout(volumeWriteTimer);
@@ -337,8 +352,23 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 					durationS: undefined,
 					isShuffling,
 					playOrder: orderFor(items.length, undefined, isShuffling),
-					queue: [...items],
+					queue: withQueueIds(items),
 					status: 'idle',
+				});
+			},
+
+			moveItem: (from, to) => {
+				const state = get();
+				if (isSectioned(state.queue) || !canMove(state.queue.length, from, to)) return;
+
+				set({
+					currentIndex:
+						state.currentIndex === undefined ? undefined : movedIndex(state.currentIndex, from, to),
+					// Remapping rather than reshuffling keeps the shuffled sequence the listener is hearing
+					playOrder: state.isShuffling
+						? state.playOrder.map((index) => movedIndex(index, from, to))
+						: identityOrder(state.queue.length),
+					queue: movedArray(state.queue, from, to),
 				});
 			},
 
@@ -359,14 +389,14 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				if (state.queue.length === 0) {
 					set({
 						playOrder: orderFor(releaseItems.length, 0, state.isShuffling),
-						queue: [...releaseItems],
+						queue: withQueueIds(releaseItems),
 					});
 					loadIndex(0, true);
 					return;
 				}
 
 				const firstAppended = state.queue.length;
-				const queue = [...state.queue, ...releaseItems];
+				const queue = [...state.queue, ...withQueueIds(releaseItems)];
 
 				set({
 					playOrder: orderFor(queue.length, firstAppended, state.isShuffling),
@@ -383,7 +413,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 
 					set({
 						playOrder: orderFor(releaseItems.length, startIndex, state.isShuffling),
-						queue: [...releaseItems],
+						queue: withQueueIds(releaseItems),
 					});
 					loadIndex(startIndex, true);
 					return;
@@ -403,7 +433,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				const found = releaseItems.find((item) => item.trackId === trackId);
 				if (!found) return;
 
-				const queue = [...state.queue, found];
+				const queue = [...state.queue, ...withQueueIds([found])];
 				const appendedIndex = queue.length - 1;
 
 				set({
@@ -465,7 +495,7 @@ export function createPlayerStore(): StoreApi<PlayerStore> {
 				if (index < 0 || index >= state.queue.length) return;
 				if (state.currentIndex !== undefined && state.currentIndex > index) return;
 
-				const queue = [...state.queue.slice(0, index + 1), ...items];
+				const queue = [...state.queue.slice(0, index + 1), ...withQueueIds(items)];
 				const isShuffling = state.isShuffling && !isSectioned(queue);
 
 				set({

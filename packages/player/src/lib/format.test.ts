@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { formatClock } from '#lib/format.ts';
+import { formatClock, formatTemplate } from '#lib/format.ts';
 
 describe('formatClock', () => {
 	test('pads the seconds and leaves the minutes bare', () => {
@@ -25,5 +25,17 @@ describe('formatClock', () => {
 	test('falls back on a value that is not a number of seconds', () => {
 		expect(formatClock(NaN)).toBe('0:00');
 		expect(formatClock(Infinity)).toBe('0:00');
+	});
+});
+
+describe('formatTemplate', () => {
+	test('fills in every placeholder it is given', () => {
+		expect(
+			formatTemplate('Moved to position {position} of {total}', { position: 3, total: 7 }),
+		).toBe('Moved to position 3 of 7');
+	});
+
+	test('empties a placeholder with no value', () => {
+		expect(formatTemplate('{missing}!', {})).toBe('!');
 	});
 });

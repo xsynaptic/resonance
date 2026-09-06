@@ -372,16 +372,20 @@
 	position: absolute;
 	right: 0;
 	bottom: 100%;
-	width: 20rem;
-	max-height: 20rem;
+	width: min(26rem, 100vw - 2rem);
 	margin-bottom: var(--player-gap-tight);
-	overflow-y: auto;
+	overflow: hidden;
 	background-color: var(--player-surface-raised);
 	border: 1px solid var(--player-border);
 	border-radius: var(--player-radius-large);
 	box-shadow:
 		0 20px 25px -5px rgb(0 0 0 / 10%),
 		0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+.player-tray-list {
+	max-height: 20rem;
+	overflow-y: auto;
 }
 
 .player-tray-header {
@@ -438,10 +442,51 @@
 }
 
 .player-tray-item {
+	position: relative;
 	display: flex;
 	gap: var(--player-gap-tight);
 	align-items: center;
+	contain-intrinsic-size: auto 3.25rem;
 	padding-inline: 0.5rem;
+	content-visibility: auto;
+}
+
+/* Lifted over the rows it is passing, which are transformed under it */
+.player-tray-item[data-dragging] {
+	z-index: 1;
+	background-color: var(--player-surface-hover);
+	box-shadow: 0 8px 10px -6px rgb(0 0 0 / 40%);
+}
+
+.player-tray-handle {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	color: var(--player-text-dim);
+
+	/* Scrolling the tray by touch would otherwise cancel the drag the moment it starts */
+	touch-action: none;
+	cursor: grab;
+	border-radius: var(--player-radius);
+}
+
+@media (hover: hover) {
+	.player-tray-handle:hover {
+		color: var(--player-text-mid);
+	}
+}
+
+.player-tray-handle:focus-visible {
+	color: var(--player-text-mid);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: -2px;
+}
+
+.player-tray-item[data-dragging] .player-tray-handle {
+	cursor: grabbing;
 }
 
 @media (hover: hover) {
@@ -458,13 +503,8 @@
 	flex: 1 1 0%;
 	min-width: 0;
 	padding-block: 0.5rem;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	font-size: var(--player-font-size-small);
-	line-height: 1rem;
 	color: var(--player-text);
 	text-align: left;
-	white-space: nowrap;
 }
 
 .player-tray-pick:focus-visible {
@@ -477,14 +517,45 @@
 	color: var(--player-accent-bright);
 }
 
+/* Flex, so the playing glyph sits beside the title without growing the line box it would share */
 .player-tray-title {
+	display: flex;
+	gap: 0.25rem;
+	align-items: center;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+}
+
+.player-tray-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
 .player-tray-artist {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
 	color: var(--player-text-dim);
+	white-space: nowrap;
+}
+
+.player-tray-item[data-current] .player-tray-title svg {
+	flex-shrink: 0;
+	color: var(--player-accent-bright);
+}
+
+/* Announced, not shown: the tray already shows where the row landed */
+.player-tray-status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	white-space: nowrap;
+	clip-path: inset(50%);
 }
 
 /* The one prebuilt bar, and the container the layout below answers to; an element cannot query itself */

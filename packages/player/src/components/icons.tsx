@@ -8,6 +8,14 @@ export function CloseIcon() {
 	);
 }
 
+export function DragHandleIcon() {
+	return (
+		<Icon height="16" width="16">
+			<path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01" />
+		</Icon>
+	);
+}
+
 export function NextIcon() {
 	return (
 		<Icon fill="currentColor" stroke="none">
@@ -28,6 +36,14 @@ export function PlayIcon() {
 	return (
 		<Icon fill="currentColor" stroke="none">
 			<path d="M8 5v14l11-7z" />
+		</Icon>
+	);
+}
+
+export function PlayingIcon() {
+	return (
+		<Icon height="14" width="14">
+			<path d="M6 15v-6M12 19V5M18 16V8" />
 		</Icon>
 	);
 }

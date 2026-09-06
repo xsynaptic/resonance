@@ -744,11 +744,25 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="Player.Queue"
-			note="The tray open over a sectioned queue. A heading is drawn above the first item of each section, and a queue carrying any heading loses shuffle, so only Clear is offered. The loaded row is marked with <code>data-current</code>."
+			note="The tray open over a plain queue. Rows read as two lines, the loaded one carries <code>data-current</code> and a playing glyph, and each carries a drag handle: pointer drag reorders, and so does Alt+ArrowUp or Alt+ArrowDown with the handle focused. A move is announced through a live region inside the tray."
+			source="packages/player/src/components/queue-tray.tsx"
+		>
+			<div class="pt-96">
+				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="tray" />
+			</div>
+		</Specimen>
+		<Specimen
+			name="Player.Queue sectioned"
+			note="The same tray over a sectioned queue. A heading is drawn above the first item of each section, and a queue carrying any heading can neither shuffle nor reorder, so both the shuffle button and the drag handles are gone."
 			source="packages/player/src/components/queue-control.tsx"
 		>
 			<div class="pt-44">
-				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="tray" />
+				<PlayerSpecimen
+					client:load
+					items={playerItems}
+					labels={playerLabels}
+					specimen="tray-sectioned"
+				/>
 			</div>
 		</Specimen>
 		<Specimen

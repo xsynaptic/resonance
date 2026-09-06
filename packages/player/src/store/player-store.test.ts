@@ -356,6 +356,18 @@ describe('queue editing', () => {
 		expect(engineMock.engine.reset).toHaveBeenCalled();
 	});
 
+	test('gives every enqueued item an id, including a second copy of the same track', () => {
+		const store = configured();
+
+		store.getState().loadQueue(release);
+		store.getState().playRelease(release);
+
+		const ids = store.getState().queue.map((item) => item.queueId);
+
+		expect(ids).toHaveLength(6);
+		expect(new Set(ids).size).toBe(6);
+	});
+
 	test('drops a resolve in flight when the loaded track is removed', async () => {
 		const { promise, resolve } = Promise.withResolvers<StreamResolution>();
 		const store = withResolver(() => promise);
@@ -366,6 +378,84 @@ describe('queue editing', () => {
 		await Promise.resolve();
 
 		expect(engineMock.engine.load).not.toHaveBeenCalled();
+	});
+});
+
+describe('moveItem', () => {
+	test('moves the row and leaves the play order following the queue', () => {
+		const store = configured();
+
+		store.getState().loadQueue(release);
+		store.getState().moveItem(0, 2);
+
+		const state = store.getState();
+
+		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['b', 'c', 'a']);
+		expect(state.playOrder).toStrictEqual([0, 1, 2]);
+	});
+
+	test('carries the loaded track with it', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		store.getState().moveItem(0, 2);
+
+		expect(store.getState().currentIndex).toBe(2);
+	});
+
+	test('shifts the loaded track when a row moves past it', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'b');
+		store.getState().moveItem(2, 0);
+
+		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['c', 'a', 'b']);
+		expect(store.getState().currentIndex).toBe(2);
+	});
+
+	test('leaves the loaded track alone when the move happens beside it', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		store.getState().moveItem(1, 2);
+
+		expect(store.getState().currentIndex).toBe(0);
+	});
+
+	test('keeps a shuffled sequence in its order rather than reshuffling', () => {
+		const store = configured();
+
+		store.getState().loadQueue(release);
+		store.setState({ isShuffling: true, playOrder: [2, 0, 1] });
+		store.getState().moveItem(0, 2);
+
+		const state = store.getState();
+
+		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['b', 'c', 'a']);
+		expect(state.playOrder.map((index) => state.queue[index]?.trackId)).toStrictEqual([
+			'c',
+			'a',
+			'b',
+		]);
+	});
+
+	test('refuses to reorder a sectioned queue', () => {
+		const store = configured();
+
+		store.getState().loadQueue(release.map((item) => ({ ...item, sectionLabel: 'Section' })));
+		store.getState().moveItem(0, 2);
+
+		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+	});
+
+	test('refuses an index outside the queue', () => {
+		const store = configured();
+
+		store.getState().loadQueue(release);
+		store.getState().moveItem(0, 3);
+		store.getState().moveItem(-1, 1);
+
+		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
 	});
 });
 

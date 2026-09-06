@@ -10,7 +10,7 @@ export const skipSeconds = 30;
 interface PlayerSpecimenProps {
 	items: Array<PlayerPayloadItem>;
 	labels: PlayerLabels;
-	specimen: 'default' | 'empty' | 'error' | 'marquee' | 'remaining' | 'tray';
+	specimen: 'default' | 'empty' | 'error' | 'marquee' | 'remaining' | 'tray' | 'tray-sectioned';
 	variant?: 'compact' | 'expanded';
 }
 
@@ -120,6 +120,10 @@ function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
 const marqueeArtist = 'Basilisk, with Nebula Drift, Forest Signal and the Ektoplazm Sound System';
 const marqueeTitle = 'Deep Forest Transmissions From The Edge Of A Very Long Winter Night';
 
+function isTraySpecimen(specimen: PlayerSpecimenProps['specimen']): boolean {
+	return specimen === 'tray' || specimen === 'tray-sectioned';
+}
+
 function marqueed(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
 	const [first, ...rest] = items;
 	if (!first) return [...items];
@@ -132,10 +136,22 @@ function queueFor(
 	items: ReadonlyArray<PlayerPayloadItem>,
 ): ReadonlyArray<QueueItem> {
 	if (specimen === 'marquee') return marqueed(items);
-	if (specimen === 'tray') return sectioned(items);
+	if (specimen === 'tray') return trayQueue(items);
+	if (specimen === 'tray-sectioned') return sectioned(items);
 
 	return items;
 }
+
+// Enough rows to scroll, at title lengths that show both the two-line row and where it truncates
+const trayTitles = [
+	'Mountain Calling',
+	'Nightfall Over The Northern Cordillera, An Extended Transmission For The Long Dark',
+	'Drift',
+	'Deep Forest Transmissions',
+	'Signal Path',
+	'The Ektoplazm Sound System Presents An Autumn Selection',
+	'Reclaim',
+];
 
 // A queue carrying any heading cannot shuffle
 function sectioned(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
@@ -155,7 +171,7 @@ function seed(
 	store.getState().loadQueue(queueFor(specimen, items));
 	seedLoaded(store, items);
 
-	if (specimen === 'tray') {
+	if (isTraySpecimen(specimen)) {
 		store.setState({ isTrayOpen: true });
 		return;
 	}
@@ -185,4 +201,15 @@ function seedLoaded(store: SpecimenStore, items: ReadonlyArray<PlayerPayloadItem
 		currentIndex: 0,
 		durationS: first?.durationMs === undefined ? undefined : first.durationMs / 1000,
 	});
+}
+
+function trayQueue(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
+	const first = items[0];
+	if (!first) return [];
+
+	return trayTitles.map((title, index) => ({
+		...(items[index % items.length] ?? first),
+		title,
+		trackId: `inventory-tray-${String(index)}`,
+	}));
 }

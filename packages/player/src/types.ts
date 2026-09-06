@@ -11,6 +11,8 @@ export interface PlayerLabels {
 	empty: string;
 	error: string;
 	loading: string;
+	// Carries `{position}` and `{total}`, filled in as a row lands
+	moved: string;
 	mute: string;
 	next: string;
 	nowPlaying: string;
@@ -19,6 +21,7 @@ export interface PlayerLabels {
 	previous: string;
 	queue: string;
 	removeFromQueue: string;
+	reorder: string;
 	seek: string;
 	shuffle: string;
 	skipBack: string;
@@ -38,6 +41,11 @@ export interface PlayerUrls {
 	stream: (trackId: string) => Promise<StreamResolution>;
 	// `undefined` keeps the seek bar on the inline overview
 	waveform: (trackId: string) => Promise<string | undefined>;
+}
+
+// The store stamps an id as items are enqueued, so a row keeps its React identity across a reorder
+export interface QueuedItem extends QueueItem {
+	queueId: string;
 }
 
 export interface QueueItem {

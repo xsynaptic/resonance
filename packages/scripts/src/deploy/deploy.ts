@@ -17,7 +17,7 @@ import { generateWaveforms } from '#audio/waveforms.ts';
 import { backupIfStale } from '#comments/backup.ts';
 import { pullComments } from '#comments/pull.ts';
 import { deployApp } from '#deploy/deploy-app.ts';
-import { deployAudio } from '#deploy/deploy-audio.ts';
+import { deployAudio, reapRenditions } from '#deploy/deploy-audio.ts';
 import { loadDeployConfig, printDeployConfig } from '#deploy/deploy-config.ts';
 import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
@@ -289,6 +289,9 @@ try {
 	// Audio before site: new pages must never go live while their files are still uploading
 	const uploaded = await deployAudio({ config, dryRun: isDryRun, rootPath });
 	await deployApp({ dryRun: isDryRun, rootPath });
+
+	// Only now is the generation the old pages named unreachable
+	await reapRenditions({ config, dryRun: isDryRun, rootPath });
 
 	const manifestStreams = await readManifestStreams(rootPath);
 

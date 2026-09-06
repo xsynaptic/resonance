@@ -42,7 +42,7 @@ interface DeployAudioOptions {
 
 // mtime+size, not checksum: audio is append-only and multi-gigabyte, so a no-op run is near-instant
 // The originals leg never deletes, so a local mistake can't wipe the archive
-// The stream leg does, because a re-encode would otherwise strand 12 GB under the old hashed name
+// Neither does the stream leg; reapRenditions clears superseded hashes once the new pages are live
 export async function deployAudio(options: DeployAudioOptions): Promise<DeployedAudio> {
 	const { config, dryRun = false, rootPath } = options;
 
@@ -79,7 +79,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 		streamOutput = await rsync(`${streamsPath}/`, `${config.remoteHost}:${remoteRoot}/stream/`, {
 			dryRun,
 			excludes: rsyncExcludes,
-			extraFlags: [...rsyncFlags, '--delete'],
+			extraFlags: rsyncFlags,
 		});
 	} else {
 		console.log(
@@ -97,6 +97,39 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 	);
 
 	return { originals, renditions };
+}
+
+// A rendition is named for its own bytes, so a re-encode lands beside the generation the live site
+// still references; deleting before the new pages ship would 404 every stream for the whole upload
+// Nothing transfers here: the upload pass already matched mtime and size, so only orphans go
+export async function reapRenditions(options: DeployAudioOptions): Promise<void> {
+	const { config, dryRun = false, rootPath } = options;
+
+	const streamsPath = path.join(rootPath, streamsDir);
+
+	if (!(await isPathPresent(streamsPath))) return;
+
+	console.log(chalk.blue('Reaping superseded renditions...'));
+	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
+
+	const output = await rsync(`${streamsPath}/`, `${config.remoteHost}:${remoteRoot}/stream/`, {
+		dryRun,
+		excludes: rsyncExcludes,
+		extraFlags: [...rsyncFlags, '--delete'],
+	});
+
+	console.log(
+		chalk.green(
+			`Reaped ${String(countDeleted(output, transferredRendition))} superseded rendition(s)`,
+		),
+	);
+}
+
+function countDeleted(output: string, pattern: RegExp): number {
+	return output
+		.split('\n')
+		.map((line) => line.trim())
+		.filter((line) => line.startsWith('deleting ') && pattern.test(line)).length;
 }
 
 // --progress writes its own lines into the same stream, so match on the extension rather than shape

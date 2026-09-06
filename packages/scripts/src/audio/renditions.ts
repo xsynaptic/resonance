@@ -27,9 +27,13 @@ const encoderArgs = [
 	'-c:a',
 	'libopus',
 	'-b:a',
-	'160k',
+	'128k',
 	'-cues_to_front', // Puts the seek index before the clusters so a seek needs no round trip to the tail
 	'1',
+	'-fflags', // Drops the random webm track UID, so an unchanged re-encode keeps its content hash
+	'+bitexact',
+	'-flags:a',
+	'+bitexact',
 ];
 
 // Stamped into every rendition and checked on the next run
@@ -86,7 +90,7 @@ export async function collectRenditions(streamsPath: string): Promise<Map<string
 	return renditions;
 }
 
-// 160kbps Opus .webm streaming renditions per source (FLAC preferred, MP3 fallback)
+// 128kbps Opus .webm streaming renditions per source (FLAC preferred, MP3 fallback)
 // Incremental: skips outputs newer than their source and stamped with the current encoder args hash
 // Atomic: encodes to a tmp file then renames onto the hashed name
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
@@ -167,13 +171,13 @@ async function encode(job: RenditionJob, streamsPath: string): Promise<string> {
 	const tmp = path.join(streamsPath, `${job.base}${tmpExtension}`);
 
 	// -f webm is explicit because the .tmp suffix hides the container format
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`RENDITION_PROFILE=${encoderArgsHash}`} -f webm ${tmp}`;
+	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} ${encoderArgs} -metadata ${`ENCODER_ARGS_HASH=${encoderArgsHash}`} -f webm ${tmp}`;
 
 	const name = `${job.base}.${await hashFile(tmp)}${renditionExtension}`;
 
 	await fs.rename(tmp, path.join(streamsPath, name));
 
-	// The previous hash is unreachable the moment this one lands, and the stream leg deploys --delete
+	// The previous hash is unreachable the moment this one lands; the stream leg reaps its remote twin
 	if (job.existing !== undefined && job.existing !== name) {
 		await fs.rm(path.join(streamsPath, job.existing), { force: true });
 	}
@@ -209,7 +213,7 @@ async function isUpToDate(job: RenditionJob, streamsPath: string): Promise<boole
 async function readEncoderArgsHash(output: string): Promise<string> {
 	try {
 		const result =
-			await $`ffprobe -v error -show_entries format_tags=RENDITION_PROFILE -of default=nw=1:nk=1 ${output}`.quiet();
+			await $`ffprobe -v error -show_entries format_tags=ENCODER_ARGS_HASH -of default=nw=1:nk=1 ${output}`.quiet();
 		return result.stdout.trim();
 	} catch (error) {
 		if (!hasReportedProbeFailure) {

@@ -1,12 +1,18 @@
 /* Related carousel: a scroll-snap track that works unenhanced; the element adds prev/next controls */
+
+/* Column count answers to the track, not the viewport, so a narrower well still gets whole columns */
 .carousel {
 	position: relative;
 	display: block;
+	container-type: inline-size;
 }
 
 .carousel-track {
+	--carousel-columns: 1;
+	--carousel-gap: calc(var(--spacing) * 4);
+
 	display: flex;
-	column-gap: calc(var(--spacing) * 4);
+	column-gap: var(--carousel-gap);
 	padding: 0;
 	margin: 0;
 	overflow-x: auto;
@@ -24,21 +30,37 @@
 	display: none;
 }
 
-.carousel-slide {
+/* Columns divide the track exactly, so a screen of slides always ends flush with the container edge */
+.carousel-track > li {
 	flex: 0 0 auto;
-	width: 12.5rem;
+	width: calc(
+		(100% - (var(--carousel-columns) - 1) * var(--carousel-gap)) / var(--carousel-columns)
+	);
 	margin: 0;
 	scroll-snap-align: start;
 }
 
-.carousel-slide > * {
+.carousel-track > li > * {
 	height: 100%;
 }
 
-/* Under two full slides the fixed width leaves a stub of the next card hanging in view */
-@media (width < 30rem) {
-	.carousel-slide {
-		width: 100%;
+/* A full-bleed card stops reading as a card past this, and two columns still leave 13rem each */
+@container (width >= 27rem) {
+	.carousel-track {
+		--carousel-columns: 2;
+	}
+}
+
+/* These two fire where a slide would otherwise grow past 19rem */
+@container (width >= 39rem) {
+	.carousel-track {
+		--carousel-columns: 3;
+	}
+}
+
+@container (width >= 59rem) {
+	.carousel-track {
+		--carousel-columns: 4;
 	}
 }
 
@@ -50,7 +72,7 @@
 	margin-bottom: calc(var(--spacing) * 3);
 }
 
-.carousel[data-enhanced] .carousel-controls {
+.carousel[data-enhanced][data-overflow] .carousel-controls {
 	display: flex;
 }
 
@@ -83,12 +105,9 @@
 	height: 2.25rem;
 }
 
-@media (width >= 64rem) {
-	.carousel-slide {
-		width: calc(25% - calc(var(--spacing) * 3));
-	}
-
-	.carousel[data-enhanced] .carousel-controls {
+/* Room for the chevrons outside the track arrives with the fourth column */
+@container (width >= 59rem) {
+	.carousel[data-enhanced][data-overflow] .carousel-controls {
 		display: contents;
 	}
 

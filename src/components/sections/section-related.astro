@@ -18,7 +18,7 @@ const { items } = Astro.props;
 			<h2 class="heading-section mb-4">{t('section.related.heading')}</h2>
 			<Carousel label={t('section.related.carouselLabel')}>
 				{items.map((item) => (
-					<li class="carousel-slide">
+					<li>
 						<EntryCard
 							date={item.date}
 							href={item.url}

@@ -1,22 +1,36 @@
 import { z } from 'zod';
 
-export const mixAudioVersion = 1;
+export const mixStreamsVersion = 1;
+export const mixWaveformsVersion = 1;
 
-// Sorted by `base` so a re-run diffs cleanly
+// Both are sorted by `base` so a re-run diffs cleanly
+const MixStreamEntrySchema = z.object({
+	base: z.string(),
+	stream: z.string(),
+});
+
+export type MixStreamEntry = z.infer<typeof MixStreamEntrySchema>;
+
+export const MixStreamsDocumentSchema = z.object({
+	mixes: MixStreamEntrySchema.array(),
+	version: z.literal(mixStreamsVersion),
+});
+
+export type MixStreamsDocument = z.infer<typeof MixStreamsDocumentSchema>;
+
 // `sources` lists every file sharing the base, so a consumer looks up a name it already has
-const MixAudioEntrySchema = z.object({
+const MixWaveformEntrySchema = z.object({
 	base: z.string(),
 	peaks: z.number().array(),
 	seconds: z.number(),
 	sources: z.string().array(),
-	stream: z.string(),
 });
 
-export type MixAudioEntry = z.infer<typeof MixAudioEntrySchema>;
+export type MixWaveformEntry = z.infer<typeof MixWaveformEntrySchema>;
 
-export const MixAudioDocumentSchema = z.object({
-	mixes: MixAudioEntrySchema.array(),
-	version: z.literal(mixAudioVersion),
+export const MixWaveformsDocumentSchema = z.object({
+	mixes: MixWaveformEntrySchema.array(),
+	version: z.literal(mixWaveformsVersion),
 });
 
-export type MixAudioDocument = z.infer<typeof MixAudioDocumentSchema>;
+export type MixWaveformsDocument = z.infer<typeof MixWaveformsDocumentSchema>;

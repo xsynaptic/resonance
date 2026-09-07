@@ -6,6 +6,16 @@ export type {
 	ImageFeaturedObject,
 } from '#schemas/image-featured.ts';
 
-export { MixAudioDocumentSchema, mixAudioVersion } from '#schemas/mix-audio.ts';
+export {
+	MixStreamsDocumentSchema,
+	mixStreamsVersion,
+	MixWaveformsDocumentSchema,
+	mixWaveformsVersion,
+} from '#schemas/mix-audio.ts';
 
-export type { MixAudioDocument, MixAudioEntry } from '#schemas/mix-audio.ts';
+export type {
+	MixStreamEntry,
+	MixStreamsDocument,
+	MixWaveformEntry,
+	MixWaveformsDocument,
+} from '#schemas/mix-audio.ts';

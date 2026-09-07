@@ -24,5 +24,6 @@ export const siteTitle = 'DJ Basilisk';
 // Incremental LQIP cache, written before the build and read back when a media image renders
 export const mediaLqipPath = './.cache/media-lqip.json';
 
-// Committed, because the sources, the renditions and the waveform cache are all gitignored
-export const mixAudioPath = './packages/content/data/mix-audio.json';
+// Streaming metadata and waveforms
+export const mixStreamsPath = './packages/content/data/mix-streams.json';
+export const mixWaveformsPath = './packages/content/data/mix-waveforms.json';

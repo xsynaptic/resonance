@@ -1,7 +1,11 @@
-import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
+import type { MixStreamEntry, MixWaveformEntry } from '@xsynaptic/shared/schemas';
 
-import { mixAudioPath } from '@xsynaptic/shared/constants';
-import { MixAudioDocumentSchema, mixAudioVersion } from '@xsynaptic/shared/schemas';
+import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
+import {
+	MixStreamsDocumentSchema,
+	mixStreamsVersion,
+	mixWaveformsVersion,
+} from '@xsynaptic/shared/schemas';
 import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -33,12 +37,14 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 
 	const streamsPath = path.join(rootPath, streamsDir);
 	const cacheDir = path.join(rootPath, waveformsCacheDir);
-	const outputPath = path.resolve(rootPath, mixAudioPath);
+	const streamsOutputPath = path.resolve(rootPath, mixStreamsPath);
+	const waveformsOutputPath = path.resolve(rootPath, mixWaveformsPath);
 
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 	const renditions = await collectRenditions(streamsPath);
 
-	const mixes: Array<MixAudioEntry> = [];
+	const streamEntries: Array<MixStreamEntry> = [];
+	const waveformEntries: Array<MixWaveformEntry> = [];
 	const incomplete: Array<string> = [];
 
 	for (const source of sources) {
@@ -50,18 +56,18 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 			continue;
 		}
 
-		mixes.push({
+		streamEntries.push({ base: source.base, stream });
+		waveformEntries.push({
 			base: source.base,
 			peaks: preview.values,
 			seconds: preview.seconds,
 			sources: source.files,
-			stream,
 		});
 	}
 
 	console.log(
 		chalk.blue(
-			`Manifest: ${String(mixes.length)} of ${String(sources.length)} mixes carry a rendition and a preview`,
+			`Manifest: ${String(streamEntries.length)} of ${String(sources.length)} mixes carry a rendition and a preview`,
 		),
 	);
 
@@ -70,27 +76,30 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 		for (const base of incomplete) console.warn(chalk.yellow(`    ${base}`));
 	}
 
-	await assertManifestNotEmptied(mixes.length, rootPath);
+	await assertManifestNotEmptied(streamEntries.length, rootPath);
 
 	if (dryRun) {
-		console.log(chalk.yellow(`  DRY RUN write: ${outputPath}`));
+		console.log(chalk.yellow(`  DRY RUN write: ${streamsOutputPath}`));
+		console.log(chalk.yellow(`  DRY RUN write: ${waveformsOutputPath}`));
 		return;
 	}
 
-	await fs.mkdir(path.dirname(outputPath), { recursive: true });
-	await writeManifest(outputPath, mixes);
+	await fs.mkdir(path.dirname(streamsOutputPath), { recursive: true });
+	await writeDocument(streamsOutputPath, streamEntries, mixStreamsVersion);
+	await writeDocument(waveformsOutputPath, waveformEntries, mixWaveformsVersion);
 
-	console.log(chalk.green(`Manifest written: ${outputPath}`));
+	console.log(chalk.green(`Manifest written: ${streamsOutputPath}`));
+	console.log(chalk.green(`Manifest written: ${waveformsOutputPath}`));
 }
 
 // The deploy probe needs a rendition filename, and the manifest is the only place one is written
 export async function readManifestStreams(rootPath: string): Promise<Array<string>> {
 	try {
 		const raw: unknown = JSON.parse(
-			await fs.readFile(path.resolve(rootPath, mixAudioPath), 'utf8'),
+			await fs.readFile(path.resolve(rootPath, mixStreamsPath), 'utf8'),
 		);
 
-		return MixAudioDocumentSchema.parse(raw).mixes.map((mix) => mix.stream);
+		return MixStreamsDocumentSchema.parse(raw).mixes.map((mix) => mix.stream);
 	} catch {
 		return [];
 	}
@@ -119,10 +128,14 @@ async function readPreview(file: string) {
 	}
 }
 
-// One line per mix, so a diff names the mixes that changed; 400 peaks pretty-printed is 27k lines
-async function writeManifest(outputPath: string, mixes: Array<MixAudioEntry>): Promise<void> {
-	const rows = mixes.map((mix) => `\t\t${JSON.stringify(mix)}`).join(',\n');
-	const document = `{\n\t"mixes": [\n${rows}\n\t],\n\t"version": ${String(mixAudioVersion)}\n}\n`;
+// One row per line, so a diff names the mixes that changed; 400 peaks pretty-printed is 27k lines
+async function writeDocument(
+	outputPath: string,
+	entries: Array<MixStreamEntry | MixWaveformEntry>,
+	version: number,
+): Promise<void> {
+	const rows = entries.map((entry) => `\t\t${JSON.stringify(entry)}`).join(',\n');
+	const document = `{\n\t"mixes": [\n${rows}\n\t],\n\t"version": ${String(version)}\n}\n`;
 	const tmp = `${outputPath}${tmpExtension}`;
 
 	await fs.writeFile(tmp, document, 'utf8');

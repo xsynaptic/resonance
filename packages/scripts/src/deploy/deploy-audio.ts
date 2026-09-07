@@ -13,10 +13,11 @@ export const remoteRoot = '/srv/resonance';
 const rsyncExcludes = ['.DS_Store', '*.tmp', '.gitkeep'];
 
 const rsyncFlags = [
-	`--partial-dir=${remoteRoot}/.rsync-partial`,
+	// `--partial-dir` basis fails verification from rsync 3.5.0 to the box's 3.2.7
+	'--partial',
 	// -a would carry a 0600 source through to the box, where the `the-web-server` worker could not read it
 	'--chmod=D755,F644',
-	// A sleeping laptop should fail the run and resume from the partial dir, not hang on TCP
+	// A sleeping laptop should fail the run and resume from the partial file, not hang on TCP
 	'--timeout=60',
 	'-e',
 	'ssh -o ConnectTimeout=15',

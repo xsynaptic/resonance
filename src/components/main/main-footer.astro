@@ -1,5 +1,5 @@
 ---
-import MenuFooter from '#components/menu/menu-footer.astro';
+import NavigationFooter from '#components/navigation/navigation-footer.astro';
 import Anchor from '#components/parts/anchor.astro';
 import DividedItem from '#components/parts/divided-item.astro';
 import { getDownloadTotal } from '#lib/collections/downloads/downloads-data.ts';
@@ -57,7 +57,7 @@ const year = new Date().getFullYear();
 				}
 			</ul>
 		</section>
-		<MenuFooter />
+		<NavigationFooter />
 	</div>
 	<ul aria-label={t('footer.colophonLabel')} class="colophon content-wide py-6">
 		<DividedItem as="li" dividerColor="muted">

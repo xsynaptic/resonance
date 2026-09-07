@@ -1,7 +1,7 @@
 /**
  * A disclosure navigation menu web component; DOM contract:
  *
- * <menu-navigation>
+ * <site-navigation>
  *   <nav>
  *     <ul>
  *       <li>
@@ -11,7 +11,7 @@
  *       </li>
  *     </ul>
  *   </nav>
- * </menu-navigation>
+ * </site-navigation>
  *
  * Every link stays in the tab order and keeps its own semantics, so the toggle is the only thing
  * this owns. Menu and menubar roles are deliberately absent: they are for application menus, and
@@ -23,7 +23,7 @@
  */
 let instanceCount = 0;
 
-class MenuNavigation extends HTMLElement {
+class SiteNavigation extends HTMLElement {
 	#abortController: AbortController | undefined;
 	#initialized = false;
 	#instanceId = `nav-${String(instanceCount++)}`;
@@ -166,14 +166,14 @@ class MenuNavigation extends HTMLElement {
 	}
 }
 
-if (!customElements.get('menu-navigation')) {
-	customElements.define('menu-navigation', MenuNavigation);
+if (!customElements.get('site-navigation')) {
+	customElements.define('site-navigation', SiteNavigation);
 }
 
 export {};
 
 declare global {
 	interface HTMLElementTagNameMap {
-		'menu-navigation': MenuNavigation;
+		'site-navigation': SiteNavigation;
 	}
 }

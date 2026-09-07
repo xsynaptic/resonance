@@ -1,29 +1,29 @@
 ---
-import type { MenuItem } from '#components/menu/menu-types.ts';
+import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
 import {
-	getMenuItemAriaLabel,
-	getMenuItemTriggerType,
-	isActiveMenuPath,
-} from '#components/menu/menu-utils.ts';
+	getNavigationItemAriaLabel,
+	getNavigationItemTriggerType,
+	isActiveNavigationPath,
+} from '#components/navigation/navigation-utils.ts';
 
 interface Props {
 	hasChildren: boolean;
-	item: MenuItem;
+	item: NavigationItem;
 }
 
 const { hasChildren, item } = Astro.props;
 
 const { pathname } = Astro.url;
 
-const triggerType = getMenuItemTriggerType(item);
+const triggerType = getNavigationItemTriggerType(item);
 ---
 
 <div class="nav-sub-trigger">
 	{
 		triggerType === 'anchor' ? (
 			<a
-				aria-current={isActiveMenuPath(item.url, pathname) ? 'page' : undefined}
+				aria-current={isActiveNavigationPath(item.url, pathname) ? 'page' : undefined}
 				class="nav-sub-link"
 				href={item.url}
 				{...(item.rel ? { rel: item.rel } : undefined)}
@@ -44,7 +44,7 @@ const triggerType = getMenuItemTriggerType(item);
 		hasChildren ? (
 			<button
 				aria-expanded="false"
-				aria-label={getMenuItemAriaLabel(item)}
+				aria-label={getNavigationItemAriaLabel(item)}
 				class="nav-sub-toggle"
 				data-nav-toggle
 				type="button"

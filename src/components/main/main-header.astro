@@ -1,5 +1,5 @@
 ---
-import MenuHeader from '#components/menu/menu-header.astro';
+import NavigationHeader from '#components/navigation/navigation-header.astro';
 import Anchor from '#components/parts/anchor.astro';
 import Search from '#components/search/search.astro';
 import { site } from '#lib/site.ts';
@@ -24,6 +24,6 @@ const { hero = false } = Astro.props;
 			{site.title}
 		</Anchor>
 		<Search class="md:order-1" />
-		<MenuHeader class="w-full md:w-auto" />
+		<NavigationHeader class="w-full md:w-auto" />
 	</div>
 </header>

@@ -6,7 +6,7 @@ export const site = {
 	title: siteTitle,
 } as const;
 
-// Curated for the Person node's `sameAs`, kept separate from the menu's `rel="me"` navigation links
+// Curated for the Person node's `sameAs`, kept separate from the navigation's `rel="me"` links
 export const identityLinks = [
 	'https://www.facebook.com/dj.basilisk',
 	'https://www.instagram.com/djbasilisk',

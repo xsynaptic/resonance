@@ -1,28 +1,28 @@
-import type { MenuItem } from '#components/menu/menu-types.ts';
+import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
-export function getMenuItemAriaLabel(item: MenuItem) {
+export function getNavigationItemAriaLabel(item: NavigationItem) {
 	return formatStringTemplate(t('nav.submenu.label'), { title: item.title });
 }
 
 // Anchors are navigable, buttons open a submenu, spans are plain labels
-export function getMenuItemTriggerType(item: MenuItem) {
+export function getNavigationItemTriggerType(item: NavigationItem) {
 	if (item.url) return 'anchor';
 	if (item.children?.length) return 'button';
 
 	return 'span';
 }
 
-export function isActiveMenuItem(item: MenuItem, pathname: string): boolean {
-	if (isActiveMenuPath(item.url, pathname)) return true;
+export function isActiveNavigationItem(item: NavigationItem, pathname: string): boolean {
+	if (isActiveNavigationPath(item.url, pathname)) return true;
 
-	return item.children?.some((child) => isActiveMenuItem(child, pathname)) ?? false;
+	return item.children?.some((child) => isActiveNavigationItem(child, pathname)) ?? false;
 }
 
 // External URLs are never a page in this site, so they never take the active state
-export function isActiveMenuPath(url: string | undefined, pathname: string): boolean {
+export function isActiveNavigationPath(url: string | undefined, pathname: string): boolean {
 	if (!url || url.startsWith('http')) return false;
 
 	const path = pathname.endsWith('/') ? pathname : `${pathname}/`;

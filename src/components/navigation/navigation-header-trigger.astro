@@ -1,30 +1,32 @@
 ---
-import type { MenuItem } from '#components/menu/menu-types.ts';
+import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
 import {
-	getMenuItemAriaLabel,
-	getMenuItemTriggerType,
-	isActiveMenuItem,
-	isActiveMenuPath,
-} from '#components/menu/menu-utils.ts';
+	getNavigationItemAriaLabel,
+	getNavigationItemTriggerType,
+	isActiveNavigationItem,
+	isActiveNavigationPath,
+} from '#components/navigation/navigation-utils.ts';
 
 interface Props {
 	hasChildren: boolean;
-	item: MenuItem;
+	item: NavigationItem;
 }
 
 const { hasChildren, item } = Astro.props;
 
 const { pathname } = Astro.url;
 
-const triggerType = getMenuItemTriggerType(item);
+const triggerType = getNavigationItemTriggerType(item);
 ---
 
-<div class:list={['nav-trigger', isActiveMenuItem(item, pathname) ? 'nav-current' : undefined]}>
+<div
+	class:list={['nav-trigger', isActiveNavigationItem(item, pathname) ? 'nav-current' : undefined]}
+>
 	{
 		triggerType === 'anchor' ? (
 			<a
-				aria-current={isActiveMenuPath(item.url, pathname) ? 'page' : undefined}
+				aria-current={isActiveNavigationPath(item.url, pathname) ? 'page' : undefined}
 				class="nav-link"
 				href={item.url}
 				{...(item.rel ? { rel: item.rel } : undefined)}
@@ -45,7 +47,7 @@ const triggerType = getMenuItemTriggerType(item);
 		hasChildren ? (
 			<button
 				aria-expanded="false"
-				aria-label={getMenuItemAriaLabel(item)}
+				aria-label={getNavigationItemAriaLabel(item)}
 				class="nav-toggle"
 				data-nav-toggle
 				type="button"

@@ -1,8 +1,8 @@
-import type { MenuItem } from '#components/menu/menu-types.ts';
+import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
 import { getCollectionUrl, getContentUrl } from '#lib/utils/routing.ts';
 
-export const menuHeaderItems = [
+export const navigationHeaderItems = [
 	{ title: 'Mixes', url: getCollectionUrl('mixes') },
 	{ title: 'Reviews', url: getCollectionUrl('reviews') },
 	{
@@ -42,4 +42,4 @@ export const menuHeaderItems = [
 		title: 'About',
 		url: getContentUrl('pages', 'about'),
 	},
-] satisfies Array<MenuItem>;
+] satisfies Array<NavigationItem>;

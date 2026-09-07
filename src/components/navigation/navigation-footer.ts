@@ -1,9 +1,9 @@
-import type { MenuItem } from '#components/menu/menu-types.ts';
+import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
 import { getCollectionUrl } from '#lib/utils/routing.ts';
 
 // Term list pages not in the header
-export const menuFooterItems = [
+export const navigationFooterItems = [
 	{ title: 'Artists', url: getCollectionUrl('artists') },
 	{ title: 'Styles', url: getCollectionUrl('styles') },
 	{ title: 'Labels', url: getCollectionUrl('labels') },
@@ -11,4 +11,4 @@ export const menuFooterItems = [
 	{ title: 'Eras', url: getCollectionUrl('eras') },
 	{ title: 'Formats', url: getCollectionUrl('formats') },
 	{ title: 'Themes', url: getCollectionUrl('themes') },
-] satisfies Array<MenuItem>;
+] satisfies Array<NavigationItem>;

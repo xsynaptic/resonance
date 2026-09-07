@@ -1,9 +1,9 @@
-/* Hooks are nav-*; menu-navigation.ts selects by structure and data-nav-toggle, so they are styling-only */
+/* Hooks are nav-*; navigation-site.ts selects by structure and data-nav-toggle, so they are styling-only */
 
-/* Interactive state (data-has-submenu, data-open) is injected by menu-navigation.ts */
+/* Interactive state (data-has-submenu, data-open) is injected by navigation-site.ts */
 
 /* The custom element is a JS host only; the nav itself has to be the flex item in the header row */
-menu-navigation {
+site-navigation {
 	display: contents;
 }
 

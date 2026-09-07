@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from 'astro/types';
 
 import { navigationFooterItems } from '#components/navigation/navigation-footer.ts';
-import { isActiveNavigationPath } from '#components/navigation/navigation-utils.ts';
+import { isCurrentNavigationPath } from '#components/navigation/navigation-utils.ts';
 import Anchor from '#components/parts/anchor.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
@@ -21,7 +21,7 @@ const { pathname } = Astro.url;
 				<li>
 					<Anchor
 						anchorColor="muted"
-						aria-current={isActiveNavigationPath(item.url, pathname) ? 'page' : undefined}
+						aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
 						class="inline-block"
 						href={item.url}
 					>

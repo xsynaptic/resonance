@@ -20,7 +20,7 @@ import { getTermRelations } from '#lib/collections/terms/term-relations.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
-import { getCollectionUrl, getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
@@ -69,12 +69,12 @@ const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = group
 const breadcrumbTrail: Array<ResolvedRef> = [
 	{
 		label: t(`collection.${term.collection}.title`),
-		url: getCollectionUrl(term.collection),
+		url: getCollectionPath(term.collection),
 	},
 	...(isHierarchical(term.collection) ? await resolveAncestors(term.collection, term.id) : []),
 ];
 
-const pageUrl = getSiteUrl(Astro.url.pathname);
+const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas =
 	page.currentPage === 1
 		? buildCollectionGraph({

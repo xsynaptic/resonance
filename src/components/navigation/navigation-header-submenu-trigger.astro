@@ -4,7 +4,7 @@ import type { NavigationItem } from '#components/navigation/navigation-types.ts'
 import {
 	getNavigationItemAriaLabel,
 	getNavigationItemTriggerType,
-	isActiveNavigationPath,
+	isCurrentNavigationPath,
 } from '#components/navigation/navigation-utils.ts';
 
 interface Props {
@@ -23,7 +23,7 @@ const triggerType = getNavigationItemTriggerType(item);
 	{
 		triggerType === 'anchor' ? (
 			<a
-				aria-current={isActiveNavigationPath(item.url, pathname) ? 'page' : undefined}
+				aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
 				class="nav-sub-link"
 				href={item.url}
 				{...(item.rel ? { rel: item.rel } : undefined)}

@@ -1,5 +1,5 @@
 import { sitemapLastmodPath } from '@xsynaptic/shared/constants';
-import { getContentUrl } from '@xsynaptic/shared/routing';
+import { getContentPath } from '@xsynaptic/shared/routing';
 import chalk from 'chalk';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -67,7 +67,7 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 			continue;
 		}
 
-		urls[new URL(getContentUrl(entry.collection, entry.id), options.siteUrl).href] = gitDate;
+		urls[new URL(getContentPath(entry.collection, entry.id), options.siteUrl).href] = gitDate;
 		resolvedCount++;
 	}
 

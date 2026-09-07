@@ -7,7 +7,7 @@ import ContentDetail from '#layouts/content-detail.astro';
 import { getPageSchemas } from '#lib/collections/pages/pages-schema.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
-import { getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 
 interface Props {
@@ -23,7 +23,7 @@ const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
-const pageUrl = getSiteUrl(Astro.url.pathname);
+const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = getPageSchemas(entry, {
 	description,
 	url: pageUrl,

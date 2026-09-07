@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import type { TitledCollectionKey } from '#lib/utils/terms.ts';
 
 import { getTermHierarchy, isHierarchical } from '#lib/collections/terms/hierarchy.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 
 // `sortKey` is set only where alphabetical order is wrong for the vocabulary; see `getEraSortKey`
 export interface DirectoryTerm {
@@ -25,7 +25,7 @@ export async function getDirectoryTerms(
 
 		return {
 			title,
-			url: getContentUrl(collection, id),
+			url: getContentPath(collection, id),
 			...(sortKey === undefined ? {} : { sortKey }),
 		};
 	};

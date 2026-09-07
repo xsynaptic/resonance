@@ -15,7 +15,7 @@ import type { LabelRefValue } from '#lib/schemas/refs.ts';
 
 import { createCatalog } from '#lib/catalog/catalog-factory.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 import { resolveRefs } from '#lib/utils/terms.ts';
 
 const contentCollections = [
@@ -150,7 +150,7 @@ async function toContentItem(
 		releaseTitle: entry.data.releaseTitle,
 		subtitle: await metaLine(collection, entry),
 		title: entry.data.title,
-		url: getContentUrl(collection, entry.id),
+		url: getContentPath(collection, entry.id),
 	};
 }
 
@@ -160,6 +160,6 @@ function toTermItem(collection: TermCollectionKey, entry: TermEntry): TermCatalo
 		id: entry.id,
 		image: getImageFeaturedId(entry.data.imageFeatured),
 		title: entry.data.title,
-		url: getContentUrl(collection, entry.id),
+		url: getContentPath(collection, entry.id),
 	};
 }

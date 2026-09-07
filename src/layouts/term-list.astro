@@ -5,7 +5,7 @@ import MainSite from '#components/main/main-site.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
-import { getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 
@@ -18,7 +18,7 @@ const { collection, title } = Astro.props;
 
 const terms = await getDirectoryTerms(collection);
 
-const pageUrl = getSiteUrl(Astro.url.pathname);
+const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = buildCollectionGraph({ description: undefined, title, url: pageUrl });
 ---
 

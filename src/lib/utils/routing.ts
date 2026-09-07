@@ -1,5 +1,5 @@
-export { getCollectionUrl, getContentUrl } from '@xsynaptic/shared/routing';
+export { getCollectionPath, getContentPath } from '@xsynaptic/shared/routing';
 
-export function getSiteUrl(...routeParts: Array<string>): string {
-	return [import.meta.env.SITE, ...routeParts].join('/').replaceAll(/(?<!:)\/\/+/g, '/');
+export function getAbsoluteUrl(path: string): string {
+	return new URL(path, import.meta.env.SITE).href;
 }

@@ -5,7 +5,7 @@ import { getEntries } from 'astro:content';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import { getStylesIndex } from '#lib/collections/terms/term-index.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 
 // The header leads with frontmatter order; the coda leads with whichever styles carry the most content
 export async function resolveStylesRanked(
@@ -22,5 +22,5 @@ export async function resolveStylesRanked(
 	// A tie keeps frontmatter order; `sort` is stable
 	return [...entries]
 		.sort((first, second) => countOf(second.id) - countOf(first.id))
-		.map((entry) => ({ label: entry.data.title, url: getContentUrl('styles', entry.id) }));
+		.map((entry) => ({ label: entry.data.title, url: getContentPath('styles', entry.id) }));
 }

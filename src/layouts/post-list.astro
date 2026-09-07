@@ -8,7 +8,7 @@ import MainSite from '#components/main/main-site.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
-import { getContentUrl, getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveTermLinks } from '#lib/utils/terms.ts';
@@ -31,7 +31,7 @@ const posts = await Promise.all(
 	}),
 );
 
-const pageUrl = getSiteUrl(Astro.url.pathname);
+const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas =
 	page.currentPage === 1
 		? buildCollectionGraph({ description: undefined, title, url: pageUrl })
@@ -49,7 +49,7 @@ const schemas =
 		posts.map(({ Content, entry, format }) => (
 			<SectionPostExcerpt
 				date={entry.data.dateCreated}
-				href={getContentUrl('posts', entry.id)}
+				href={getContentPath('posts', entry.id)}
 				title={entry.data.title}
 				{...(format ? { format } : {})}
 			>

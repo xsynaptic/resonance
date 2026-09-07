@@ -8,7 +8,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryBySlug, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 import { toSlug } from '#lib/utils/text.ts';
 import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
@@ -55,7 +55,7 @@ export async function resolveSelections(
 }
 
 async function deriveFromEntry(entry: LinkableEntry): Promise<DerivedSelection> {
-	const href = getContentUrl(entry.collection, entry.id);
+	const href = getContentPath(entry.collection, entry.id);
 	const imageFeatured = getImageFeaturedId(entry.data.imageFeatured);
 
 	if (entry.collection !== 'reviews') {

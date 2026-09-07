@@ -6,7 +6,7 @@ import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts
 import type { LabelRefValue, RefValue } from '#lib/schemas/refs.ts';
 
 import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 import { toSlug } from '#lib/utils/text.ts';
 
 // url is set only when the ref links to a catalog entry; free-text and unresolved ids render plain
@@ -45,7 +45,7 @@ export async function resolveAncestors(
 
 	return ids.map((ancestorId) => ({
 		label: titles.get(ancestorId) ?? ancestorId,
-		url: getContentUrl(collection, ancestorId),
+		url: getContentPath(collection, ancestorId),
 	}));
 }
 
@@ -63,7 +63,9 @@ export async function resolveRefs(
 		if (typeof ref === 'string') {
 			const id = slugs.get(toSlug(ref));
 			// Keep the written spelling; only the link comes from the catalog
-			return id === undefined ? { label: ref } : { label: ref, url: getContentUrl(collection, id) };
+			return id === undefined
+				? { label: ref }
+				: { label: ref, url: getContentPath(collection, id) };
 		}
 
 		const title = titles.get(ref.id);
@@ -72,7 +74,7 @@ export async function resolveRefs(
 			return { label: ref.name ?? ref.id };
 		}
 
-		return { label: ref.name ?? title, url: getContentUrl(collection, ref.id) };
+		return { label: ref.name ?? title, url: getContentPath(collection, ref.id) };
 	});
 }
 
@@ -87,7 +89,7 @@ export async function resolveTermLinks(
 
 	return entries.map((entry) => ({
 		label: entry.data.title,
-		url: getContentUrl(collection, entry.id),
+		url: getContentPath(collection, entry.id),
 	}));
 }
 

@@ -19,7 +19,7 @@ import PlayerBar from '#components/player/player-bar.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
-import { getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
@@ -46,7 +46,7 @@ const pageTitle = title
 	? formatStringTemplate(t('site.pageTitle'), { siteTitle: site.title, title })
 	: site.title;
 
-const pageUrl = getSiteUrl(Astro.url.pathname);
+const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
 
 // Without max-image-preview:large Google caps image previews at thumbnail size
@@ -67,9 +67,9 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<link href="/favicon.ico" rel="icon" sizes="32x32" />
 		<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
 		<link href="/apple-touch-icon.png" rel="apple-touch-icon" />
-		<link href={getSiteUrl('/sitemap-index.xml')} rel="sitemap" />
+		<link href={getAbsoluteUrl('/sitemap-index.xml')} rel="sitemap" />
 		<link
-			href={getSiteUrl('/rss.xml')}
+			href={getAbsoluteUrl('/rss.xml')}
 			rel="alternate"
 			title={site.title}
 			type="application/rss+xml"

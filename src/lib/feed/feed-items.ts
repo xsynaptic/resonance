@@ -8,7 +8,7 @@ import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
 import { renderFeedContent } from '#lib/feed/feed-render.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 
 export async function getFeedItems(site: URL) {
 	const [mixes, posts, reviews] = await Promise.all([
@@ -29,7 +29,7 @@ async function toFeedItem(entry: FeedEntry, site: URL) {
 	const content = await renderFeedContent(entry, site);
 
 	return {
-		link: getContentUrl(entry.collection, entry.id),
+		link: getContentPath(entry.collection, entry.id),
 		pubDate: entry.data.dateCreated,
 		title: entry.data.title,
 		...(description ? { description } : {}),

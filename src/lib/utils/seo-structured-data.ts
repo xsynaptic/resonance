@@ -1,7 +1,7 @@
 import type { ResolvedRef } from '#lib/utils/terms.ts';
 
 import { site } from '#lib/site.ts';
-import { getContentUrl, getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
 
 export type Thing =
 	Article | BreadcrumbList | CollectionPage | MusicPlaylist | Person | Review | WebPage | WebSite;
@@ -112,8 +112,8 @@ interface WebSite extends IdReference {
 
 export const profilePageId = 'profile';
 
-const siteUrl = getSiteUrl();
-const profileUrl = getSiteUrl(getContentUrl('pages', profilePageId));
+const siteUrl = getAbsoluteUrl('/');
+const profileUrl = getAbsoluteUrl(getContentPath('pages', profilePageId));
 
 const ids = {
 	album: (pageUrl: string) => `${pageUrl}#album`,
@@ -174,7 +174,7 @@ export function buildCollectionGraph(props: {
 				{ name: site.title, url: siteUrl },
 				...(props.trail ?? []).map((ref) => ({
 					name: ref.label,
-					...(ref.url ? { url: getSiteUrl(ref.url) } : {}),
+					...(ref.url ? { url: getAbsoluteUrl(ref.url) } : {}),
 				})),
 				{ name: props.title },
 			],
@@ -195,7 +195,10 @@ export function buildEntryGraph(props: {
 		buildBreadcrumbSchema(
 			[
 				{ name: site.title, url: siteUrl },
-				{ name: props.kind.label, ...(props.kind.url ? { url: getSiteUrl(props.kind.url) } : {}) },
+				{
+					name: props.kind.label,
+					...(props.kind.url ? { url: getAbsoluteUrl(props.kind.url) } : {}),
+				},
 				{ name: props.title },
 			],
 			props.url,

@@ -16,11 +16,11 @@ export type IndexedCollection =
 // Posts render at the root, so their index cannot sit at /posts/
 const collectionIndexPaths: Partial<Record<IndexedCollection, string>> = { posts: 'blog' };
 
-export function getCollectionUrl(collection: IndexedCollection): string {
+export function getCollectionPath(collection: IndexedCollection): string {
 	return `/${collectionIndexPaths[collection] ?? collection}/`;
 }
 
-export function getContentUrl(collection: string, slug: string): string {
+export function getContentPath(collection: string, slug: string): string {
 	if (rootCollections.has(collection)) {
 		return `/${slug}/`;
 	}

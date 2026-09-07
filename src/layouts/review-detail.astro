@@ -19,7 +19,7 @@ import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getLinkSourceLabel } from '#lib/utils/links.ts';
-import { getCollectionUrl, getSiteUrl } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
@@ -67,8 +67,8 @@ if (discogsUrl) actions.push({ href: discogsUrl, label: t('detail.discogs') });
 if (youtubeUrl) actions.push({ href: youtubeUrl, icon: 'youtube', label: t('detail.youtube') });
 
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
-const kind = { label: t('collection.reviews.title'), url: getCollectionUrl('reviews') };
-const pageUrl = getSiteUrl(Astro.url.pathname);
+const kind = { label: t('collection.reviews.title'), url: getCollectionPath('reviews') };
+const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = getReviewSchemas(entry, {
 	artists: artistTerms,
 	kind,

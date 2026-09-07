@@ -25,7 +25,15 @@ export function isActiveNavigationItem(item: NavigationItem, pathname: string): 
 export function isActiveNavigationPath(url: string | undefined, pathname: string): boolean {
 	if (!url || url.startsWith('http')) return false;
 
-	const path = pathname.endsWith('/') ? pathname : `${pathname}/`;
+	return normalizePathname(pathname).startsWith(url);
+}
 
-	return path.startsWith(url);
+export function isCurrentNavigationPath(url: string | undefined, pathname: string): boolean {
+	if (!url || url.startsWith('http')) return false;
+
+	return normalizePathname(pathname) === url;
+}
+
+function normalizePathname(pathname: string): string {
+	return pathname.endsWith('/') ? pathname : `${pathname}/`;
 }

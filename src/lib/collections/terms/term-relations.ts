@@ -8,7 +8,7 @@ import type { ResolvedRef } from '#lib/utils/terms.ts';
 import { getTermHierarchy, isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { getTermCollection } from '#lib/collections/terms/term-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 
 export interface TermRelationGroup {
 	heading: string;
@@ -49,7 +49,7 @@ export async function getTermRelations(
 			.sort(byEntryCount)
 			.map((entry) => ({
 				label: entry.data.title,
-				url: getContentUrl(collection, entry.id),
+				url: getContentPath(collection, entry.id),
 			}));
 
 		return { heading: t(heading), terms };

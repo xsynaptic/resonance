@@ -1,5 +1,5 @@
 import { getOpenGraphPath } from '@xsynaptic/shared/open-graph';
-import { getContentUrl } from '@xsynaptic/shared/routing';
+import { getContentPath } from '@xsynaptic/shared/routing';
 
 import type { ContentEntry } from '#shared/astro-content.ts';
 
@@ -34,7 +34,7 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 	const skipped: Array<string> = [];
 
 	for (const { collection, formerId, id } of collectCandidates(entries)) {
-		const from = getContentUrl(collection, formerId);
+		const from = getContentPath(collection, formerId);
 
 		// Cloudflare follows a redirect whether or not an asset sits at the path, so this is a bug
 		if (livePaths.has(from)) {
@@ -51,7 +51,7 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 
 		// A platform re-fetching only the cached card URL never sees the page redirect
 		pairs.push(
-			{ from, to: getContentUrl(collection, id) },
+			{ from, to: getContentPath(collection, id) },
 			{ from: getOpenGraphPath(collection, formerId), to: getOpenGraphPath(collection, id) },
 		);
 	}
@@ -73,7 +73,7 @@ function collectCandidates(entries: Array<ContentEntry>): Array<RedirectCandidat
 function collectLivePaths(entries: Array<ContentEntry>): Set<string> {
 	return new Set(
 		redirectCollections.flatMap((collection) =>
-			entriesFrom(entries, collection).map((entry) => getContentUrl(collection, entry.id)),
+			entriesFrom(entries, collection).map((entry) => getContentPath(collection, entry.id)),
 		),
 	);
 }

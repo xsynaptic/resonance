@@ -20,6 +20,7 @@ import { validateReferences } from '#validate-content/references.ts';
 import { validateRefs } from '#validate-content/refs.ts';
 import { validateReviewFolders } from '#validate-content/review-folders.ts';
 import { validateSeriesItems } from '#validate-content/series-items.ts';
+import { validateTrackGroups } from '#validate-content/track-groups.ts';
 import { validateTrackTimestamps } from '#validate-content/track-timestamps.ts';
 import { reportValidationResult } from '#validate-content/validation-result.ts';
 
@@ -81,6 +82,7 @@ const validations = {
 	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
 	'series-items': () =>
 		validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
+	'track-groups': () => validateTrackGroups(entriesFrom('mixes')),
 	'track-timestamps': () => validateTrackTimestamps(entriesFrom(...audioCollections)),
 } satisfies Record<string, () => ValidationResult>;
 

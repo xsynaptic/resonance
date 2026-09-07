@@ -58,13 +58,16 @@ function collectContainerRefs(items: unknown, container: string, fields: Record<
 	for (const [index, item] of values.entries()) {
 		if (item === null || typeof item !== 'object') continue;
 
-		refs.push(
-			...collectFieldRefs(
-				item as Record<string, unknown>,
-				fields,
-				`${container}[${index.toString()}].`,
-			),
-		);
+		const record = item as Record<string, unknown>;
+		const prefix = `${container}[${index.toString()}].`;
+
+		// A grouped tracklist nests its tracks one level down, so the path reads `tracks[0].tracks[3].labels`
+		if (Array.isArray(record.tracks)) {
+			refs.push(...collectContainerRefs(record.tracks, `${prefix}tracks`, fields));
+			continue;
+		}
+
+		refs.push(...collectFieldRefs(record, fields, prefix));
 	}
 
 	return refs;

@@ -32,6 +32,22 @@ const TrackSchema = z
 
 export type TrackValue = z.infer<typeof TrackSchema>;
 
+// `files` names what a group's timestamps run against, so a split set carries one cue sheet per part
+const TrackGroupSchema = z
+	.object({
+		description: z.string().optional(),
+		files: z.string().array().optional(),
+		title: z.string(),
+		tracks: TrackSchema.array(),
+	})
+	.strict();
+
+// Union of arrays, not an array of unions: a half-grouped list is a mistake, not a shape
+const TracklistSchema = z.union([TrackSchema.array(), TrackGroupSchema.array()]);
+
+export type TrackGroupValue = z.infer<typeof TrackGroupSchema>;
+export type TracklistValue = z.infer<typeof TracklistSchema>;
+
 // One unified `releaseType` enum spans both (mix-live/mix-studio vs standard/compilation/album/remixes)
 // Series membership lives on the series entry
 const audioFields = {
@@ -39,7 +55,7 @@ const audioFields = {
 	releaseType: z
 		.enum(['standard', 'mix-live', 'mix-studio', 'compilation', 'album', 'remixes'])
 		.optional(),
-	tracks: TrackSchema.array().optional(),
+	tracks: TracklistSchema.optional(),
 };
 
 export const mixSchema = z
@@ -64,6 +80,8 @@ export const reviewSchema = z
 		...termFields,
 		...audioFields,
 		commentsEnabled: z.boolean().optional(),
+		// Which release a tracklist came from, where `discogsUrl` stays the reader-facing link
+		discogsReleaseId: z.number().int().positive().optional(),
 		discogsUrl: z.string().optional(),
 		rating: z.number().min(1).max(100).optional(),
 		// Reviews only: on a mix releaseTitle duplicates title and releaseYear duplicates its date

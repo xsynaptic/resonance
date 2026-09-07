@@ -78,6 +78,35 @@ describe('collectRefIssues', () => {
 		]);
 	});
 
+	test('reaches through a track group, naming the group and the track', () => {
+		const entries = [
+			makeEntry({
+				data: {
+					tracks: [
+						{ title: 'Disc One', tracks: [{ artists: ['Extrawelt'], title: 'Yummy Unbroken' }] },
+						{
+							title: 'Disc Two',
+							tracks: [
+								{ artists: ['Extrawelt'], title: 'First' },
+								{ labels: [{ id: 'nowhere' }], title: 'Second' },
+							],
+						},
+					],
+				},
+				id: 'a-mix',
+			}),
+		];
+
+		expect(collectRefIssues(entries, catalog)).toEqual([
+			{
+				collection: 'labels',
+				field: 'tracks[1].tracks[1].labels',
+				id: 'nowhere',
+				location: 'a-mix',
+			},
+		]);
+	});
+
 	test('reaches into a list item', () => {
 		const entries = [
 			makeEntry({

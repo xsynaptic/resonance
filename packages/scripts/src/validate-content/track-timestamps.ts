@@ -17,7 +17,8 @@ interface TimestampIssue {
 }
 
 // Timestamps become cue sheet `INDEX` values; the schema enforces their shape, not their order
-// The extractor merges a multi-tracklist mix lossily, so part two can restart at `00:00:00`
+// A group is its own audio file, so order is checked within a group and never across
+// A flat list restarting at zero is the extractor's lossy multi-tracklist merge, and is still an issue
 export function collectTimestampIssues(entries: Array<ContentEntry>) {
 	return entries.flatMap((entry) => collectEntryTimestampIssues(entry));
 }
@@ -43,8 +44,14 @@ export function validateTrackTimestamps(entries: Array<ContentEntry>) {
 }
 
 function collectEntryTimestampIssues(entry: ContentEntry) {
-	const timed = collectTimedTracks(entry);
+	const location = entry.filePath ?? entry.id;
 
+	return toTrackGroups(entry).flatMap((group) =>
+		collectGroupTimestampIssues(collectTimedTracks(group), location),
+	);
+}
+
+function collectGroupTimestampIssues(timed: Array<TimedTrack>, location: string) {
 	const issues: Array<TimestampIssue> = [];
 
 	for (const [index, track] of timed.entries()) {
@@ -54,21 +61,17 @@ function collectEntryTimestampIssues(entry: ContentEntry) {
 
 		issues.push({
 			detail: `Track ${track.position.toString()} "${track.title}" at ${track.timestamp} follows track ${previous.position.toString()} at ${previous.timestamp}`,
-			location: entry.filePath ?? entry.id,
+			location,
 		});
 	}
 
 	return issues;
 }
 
-function collectTimedTracks(entry: ContentEntry): Array<TimedTrack> {
-	const tracks = entry.data.tracks;
-
-	if (!Array.isArray(tracks)) return [];
-
+function collectTimedTracks(tracks: Array<unknown>): Array<TimedTrack> {
 	const timed: Array<TimedTrack> = [];
 
-	for (const [index, track] of (tracks as Array<unknown>).entries()) {
+	for (const [index, track] of tracks.entries()) {
 		if (track === null || typeof track !== 'object') continue;
 
 		const { timestamp, title } = track as { timestamp?: unknown; title?: unknown };
@@ -99,4 +102,21 @@ function toSeconds(timestamp: string): number | undefined {
 	const [, hours = '0', minutes = '0', seconds = '0', fraction = '0'] = match;
 
 	return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds) + Number(`0.${fraction}`);
+}
+
+function toTrackGroups(entry: ContentEntry): Array<Array<unknown>> {
+	const tracks = entry.data.tracks;
+
+	if (!Array.isArray(tracks)) return [];
+
+	const values = tracks as Array<unknown>;
+	const [first] = values;
+
+	if (first === null || typeof first !== 'object' || !('tracks' in first)) return [values];
+
+	return values.map((group) => {
+		const nested = (group as { tracks?: unknown }).tracks;
+
+		return Array.isArray(nested) ? (nested as Array<unknown>) : [];
+	});
 }

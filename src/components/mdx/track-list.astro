@@ -1,13 +1,24 @@
 ---
-import type { TrackValue } from '#lib/schemas/audio.ts';
+import type { TracklistValue, TrackValue } from '#lib/schemas/audio.ts';
 import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { TrackGroup } from '#lib/utils/track-groups.ts';
 
+import AudioLinks from '#components/parts/audio-links.astro';
 import RefList from '#components/parts/ref-list.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
+import { toTrackGroups } from '#lib/utils/track-groups.ts';
 
 interface Props {
-	tracks?: Array<TrackValue> | undefined;
+	tracks?: TracklistValue | undefined;
+}
+
+interface TrackGroupRows {
+	cueSlug: string | undefined;
+	description: string | undefined;
+	files: Array<string> | undefined;
+	rows: Array<TrackRow>;
+	title: string | undefined;
 }
 
 interface TrackRow {
@@ -25,6 +36,22 @@ interface TrackRow {
 const { tracks } = Astro.props;
 
 const { isFeed } = Astro.locals;
+
+// The tag is auto-imported into MDX bodies and has no props naming its entry, so the route supplies it
+// Off a mix detail page (feed, inventory) there is no slug and the cue half of a download drops out
+const { slug } = Astro.params;
+
+async function buildGroup(group: TrackGroup): Promise<TrackGroupRows> {
+	const hasTimestamp = group.tracks.some((track) => track.timestamp !== undefined);
+
+	return {
+		cueSlug: hasTimestamp && group.files ? slug : undefined,
+		description: group.description,
+		files: group.files,
+		rows: await Promise.all(group.tracks.map(buildRow)),
+		title: group.title,
+	};
+}
 
 async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
 	const [artists, labels, mixArtists] = await Promise.all([
@@ -79,60 +106,82 @@ function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array
 	return allNamed ? [] : mixArtists;
 }
 
-const rows = await Promise.all((tracks ?? []).map(buildRow));
+const groups = await Promise.all(toTrackGroups(tracks).map(buildGroup));
+
+const hasRows = groups.some((group) => group.rows.length > 0);
 ---
 
 {
-	isFeed && rows.length > 0 ? (
+	isFeed && hasRows ? (
 		<section>
 			<h2>{t('section.tracklist.heading')}</h2>
-			<ol>
-				{rows.map((row) => (
-					<li>{toFeedLine(row)}</li>
-				))}
-			</ol>
+			{groups.map((group) => (
+				<Fragment>
+					{group.title ? <h3>{group.title}</h3> : undefined}
+					{group.description ? <p>{group.description}</p> : undefined}
+					<ol>
+						{group.rows.map((row) => (
+							<li>{toFeedLine(row)}</li>
+						))}
+					</ol>
+				</Fragment>
+			))}
 		</section>
 	) : undefined
 }
 {
-	!isFeed && rows.length > 0 ? (
+	!isFeed && hasRows ? (
 		<section class="my-8">
 			<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
-			<ol class="track-list">
-				{rows.map((row) => (
-					<li class="track-item">
-						<span aria-hidden="true" class="track-index">
-							{row.position}.
-						</span>
-						<span class="track-title-line">
-							{row.artists.length > 0 ? (
-								<Fragment>
-									<strong>
-										<RefList refs={row.artists} />
-									</strong>
-									<span class="text-ink-600">{' - '}</span>
-								</Fragment>
-							) : undefined}
-							<span class="font-medium">{row.title}</span>
-							{row.remixCredit.length > 0 ? (
-								<span>
-									{' ('}
-									<RefList refs={row.remixCredit} />
-									{' remix)'}
+			{groups.map((group) => (
+				<Fragment>
+					{group.title ? <h3>{group.title}</h3> : undefined}
+					{group.description ? <p>{group.description}</p> : undefined}
+					{group.files ? (
+						<div class="mb-3">
+							<AudioLinks
+								files={group.files}
+								{...(group.cueSlug ? { cueSlug: group.cueSlug } : {})}
+							/>
+						</div>
+					) : undefined}
+					<ol class="track-list">
+						{group.rows.map((row) => (
+							<li class="track-item">
+								<span aria-hidden="true" class="track-index">
+									{row.position}.
 								</span>
-							) : undefined}
-						</span>
-						{row.hasMeta ? (
-							<span class="track-label-year">
-								<RefList refs={row.labels} />
-								{row.metaSeparator}
-								{row.year}
-							</span>
-						) : undefined}
-						{row.time ? <span class="track-time">{row.time}</span> : undefined}
-					</li>
-				))}
-			</ol>
+								<span class="track-title-line">
+									{row.artists.length > 0 ? (
+										<Fragment>
+											<strong>
+												<RefList refs={row.artists} />
+											</strong>
+											<span class="text-ink-600">{' - '}</span>
+										</Fragment>
+									) : undefined}
+									<span class="font-medium">{row.title}</span>
+									{row.remixCredit.length > 0 ? (
+										<span>
+											{' ('}
+											<RefList refs={row.remixCredit} />
+											{' remix)'}
+										</span>
+									) : undefined}
+								</span>
+								{row.hasMeta ? (
+									<span class="track-label-year">
+										<RefList refs={row.labels} />
+										{row.metaSeparator}
+										{row.year}
+									</span>
+								) : undefined}
+								{row.time ? <span class="track-time">{row.time}</span> : undefined}
+							</li>
+						))}
+					</ol>
+				</Fragment>
+			))}
 		</section>
 	) : undefined
 }

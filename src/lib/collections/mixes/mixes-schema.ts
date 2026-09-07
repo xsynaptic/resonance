@@ -8,6 +8,7 @@ import {
 	buildEntryGraph,
 	buildPlaylistSchema,
 } from '#lib/utils/seo-structured-data.ts';
+import { toFlatTracks } from '#lib/utils/track-groups.ts';
 
 // No `track` array; `track-list.astro` already renders the tracks as an <ol>
 export function getMixSchemas(
@@ -21,7 +22,7 @@ export function getMixSchemas(
 ): Array<Thing> {
 	const playlist = buildPlaylistSchema({
 		title: entry.data.title,
-		trackCount: entry.data.tracks?.length ?? 0,
+		trackCount: toFlatTracks(entry.data.tracks).length,
 		url: props.url,
 	});
 

@@ -7,7 +7,8 @@ import { getMixAudio } from '#lib/collections/mixes/mixes-audio.ts';
 import { getMixCuePoints } from '#lib/collections/mixes/mixes-cue.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
+import { toFlatTracks } from '#lib/utils/track-groups.ts';
 
 // Both files are resolved at build time, so the island's resolvers read them off the queue
 export interface PlayerPayloadItem extends QueueItem {
@@ -32,7 +33,7 @@ export async function getMixQueueItem(
 		artistLine,
 		durationMs: audio.seconds * 1000,
 		loudness: {},
-		releaseHref: getContentUrl('mixes', entry.id),
+		releaseHref: getContentPath('mixes', entry.id),
 		releaseTitle: entry.data.title,
 		streamUrl: audio.streamUrl,
 		title: entry.data.title,
@@ -41,7 +42,7 @@ export async function getMixQueueItem(
 		...(artworkUrl ? { artworkUrl } : {}),
 		// Only alongside the cue points it qualifies; on its own the count tells the panel nothing
 		...(cuePoints.length > 0
-			? { cuePoints, trackCount: entry.data.tracks?.length ?? cuePoints.length }
+			? { cuePoints, trackCount: toFlatTracks(entry.data.tracks).length || cuePoints.length }
 			: {}),
 	};
 }

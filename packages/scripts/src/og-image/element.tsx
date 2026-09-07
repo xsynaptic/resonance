@@ -7,7 +7,7 @@ import type { OpenGraphCard } from '#og-image/types.ts';
 
 // Palette tokens from src/styles/main/parts/theme.css, resolved to hex
 const colorBackground = '#1c1f21'; // surface-900
-const colorCoverFrame = '#2b3136'; // surface-700
+const colorImageFrame = '#2b3136'; // surface-700
 const colorTitle = '#e9f2f2'; // ink-50
 const colorBrand = '#819798'; // ink-600
 const colorLabel = '#fd8a30'; // highlight-400
@@ -15,19 +15,19 @@ const colorPattern = '#24292d'; // surface-600 at the `maze` utility's opacity, 
 
 const cardPadding = 64;
 const columnGap = 48;
-const coverFrame = 1;
+const featuredImageFrame = 1;
 
 // Three times the site's tile: a card is usually seen at a fraction of its 1200px output
 const patternSize = 180;
 
-export const coverSize = openGraphImageHeight - cardPadding * 2 - coverFrame * 2;
+export const featuredImageSize = openGraphImageHeight - cardPadding * 2 - featuredImageFrame * 2;
 
-// Where the gap before the cover starts, so the art stays the brightest thing on the card
-const patternFadeEnd = openGraphImageWidth - cardPadding - coverSize - columnGap;
+// Where the gap before the Featured Image starts, so the art stays the brightest thing on the card
+const patternFadeEnd = openGraphImageWidth - cardPadding - featuredImageSize - columnGap;
 
-// A cover takes most of the width, so the title has to give some back
-const titleSizeWithCover = 56;
-const titleSizeWithoutCover = 76;
+// A Featured Image takes most of the width, so the title has to give some back
+const titleSizeWithImage = 56;
+const titleSizeWithoutImage = 76;
 
 // `currentColor` has nothing to inherit from inside a data URI, so the tile is recolored on the way in
 function readPatternImage() {
@@ -40,7 +40,7 @@ function readPatternImage() {
 
 const patternImage = readPatternImage();
 
-export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage) {
+export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: ProcessedImage) {
 	return (
 		<div
 			style={{
@@ -60,8 +60,12 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 					backgroundSize: `${String(patternSize)}px ${String(patternSize)}px`,
 					display: 'flex',
 					inset: 0,
-					maskImage: `linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) ${String(patternFadeEnd)}px)`,
 					position: 'absolute',
+					...(featuredImage
+						? {
+								maskImage: `linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) ${String(patternFadeEnd)}px)`,
+							}
+						: {}),
 				}}
 			/>
 			<div
@@ -92,9 +96,9 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 						style={{
 							color: colorTitle,
 							fontFamily: 'Fira Sans',
-							fontSize: `${String(cover ? titleSizeWithCover : titleSizeWithoutCover)}px`,
+							fontSize: `${String(featuredImage ? titleSizeWithImage : titleSizeWithoutImage)}px`,
 							fontWeight: 700,
-							lineClamp: 3,
+							lineClamp: card.label ? 3 : 4,
 							lineHeight: 1.15,
 							textOverflow: 'ellipsis',
 						}}
@@ -115,20 +119,20 @@ export function getOpenGraphElement(card: OpenGraphCard, cover?: ProcessedImage)
 					{siteTitle.toUpperCase()}
 				</div>
 			</div>
-			{cover ? (
+			{featuredImage ? (
 				<div
 					style={{
-						backgroundColor: colorCoverFrame,
+						backgroundColor: colorImageFrame,
 						borderRadius: '5px',
 						display: 'flex',
-						padding: `${String(coverFrame)}px`,
+						padding: `${String(featuredImageFrame)}px`,
 					}}
 				>
 					<Bitmap
-						data={cover.data}
-						height={cover.height}
+						data={featuredImage.data}
+						height={featuredImage.height}
 						style={{ borderRadius: '4px' }}
-						width={cover.width}
+						width={featuredImage.width}
 					/>
 				</div>
 			) : undefined}

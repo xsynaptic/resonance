@@ -15,11 +15,19 @@ export const openGraphManifestFile = 'manifest.json';
 // The card every page without one of its own falls back to
 export const openGraphDefaultId = 'index-default';
 
+export const openGraphHomeId = 'index-home';
+
+// Resolved against `packages/content/media`, like a Featured Image in frontmatter
+export const openGraphHomeImageId = '2019/05/synaptic-fx-round-1.jpg';
+
 // Written by the sitemap-lastmod deploy step, read back when the Astro config loads
 export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';
 
 // The brand line on every OG card, and the site title; read by the app through `#lib/site.ts`
 export const siteTitle = 'DJ Basilisk';
+
+// Kept off `site.description`, which four other consumers read as an SEO string
+export const siteTagline = 'Mixcraft, reviews, and writing on electronic music since 2001';
 
 // Incremental LQIP cache, written before the build and read back when a media image renders
 export const mediaLqipPath = './.cache/media-lqip.json';

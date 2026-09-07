@@ -10,6 +10,7 @@ import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import { getContentUrl, getSiteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -37,7 +38,12 @@ const schemas =
 		: undefined;
 ---
 
-<MainSite noIndex={page.currentPage > 1} schemas={schemas} title={title}>
+<MainSite
+	noIndex={page.currentPage > 1}
+	openGraphId={getOpenGraphId('index', 'posts')}
+	schemas={schemas}
+	title={title}
+>
 	<PageTitle title={title} />
 	{
 		posts.map(({ Content, entry, format }) => (

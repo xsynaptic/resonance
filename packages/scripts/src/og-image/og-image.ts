@@ -13,7 +13,7 @@ import type { OpenGraphEntry } from '#og-image/types.ts';
 
 import { getBuiltEntries } from '#og-image/built-entries.ts';
 import { fontsourceFonts } from '#og-image/fonts.ts';
-import { createRenderer, processCover } from '#og-image/generate.ts';
+import { createRenderer, processFeaturedImage } from '#og-image/generate.ts';
 import { createOutputCache, getCacheKey } from '#og-image/output-cache.ts';
 
 // Matches the Astro font config; the site pulls the same faces through fontProviders.fontsource()
@@ -30,10 +30,10 @@ const fontConfigs: Array<FontsourceConfig> = [
 	},
 ];
 
-// Rendering is CPU-bound and each entry decodes its own cover, so one bound covers both
+// Rendering is CPU-bound and each entry decodes its own image, so one bound serves both
 const concurrency = 12;
 
-// Frontmatter cover paths are relative to this, matching `src/lib/utils/media.ts`
+// Frontmatter Featured Image paths are relative to this, matching `src/lib/utils/media.ts`
 const mediaRoot = 'packages/content/media';
 
 interface OpenGraphOptions {
@@ -71,11 +71,11 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	const limit = pLimit(concurrency);
 
 	let generatedCount = 0;
-	let missingCoverCount = 0;
+	let missingImageCount = 0;
 	let skippedCount = 0;
 	const errors: Array<string> = [];
 
-	async function getCoverModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
+	async function getImageModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
 		try {
 			const stats = await fs.stat(path.join(mediaPath, imageFeaturedId));
 
@@ -88,11 +88,11 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	async function renderEntry(entry: OpenGraphEntry): Promise<void> {
 		const { imageFeaturedId } = entry;
 
-		const coverModifiedTime = imageFeaturedId
-			? await getCoverModifiedTime(imageFeaturedId)
+		const imageModifiedTime = imageFeaturedId
+			? await getImageModifiedTime(imageFeaturedId)
 			: undefined;
 
-		const key = getCacheKey({ coverModifiedTime, digest: entry.digest, imageFeaturedId });
+		const key = getCacheKey({ digest: entry.digest, imageFeaturedId, imageModifiedTime });
 
 		if (cache.isFresh(entry.outputId, key)) {
 			skippedCount++;
@@ -100,17 +100,17 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 		}
 
 		// Originals are gitignored and may be absent; a card without its art still beats no card
-		if (imageFeaturedId && coverModifiedTime === undefined) {
-			console.log(chalk.yellow(`  Cover missing: ${imageFeaturedId} (${entry.outputId})`));
-			missingCoverCount++;
+		if (imageFeaturedId && imageModifiedTime === undefined) {
+			console.log(chalk.yellow(`  Featured Image missing: ${imageFeaturedId} (${entry.outputId})`));
+			missingImageCount++;
 		}
 
-		const cover =
-			imageFeaturedId && coverModifiedTime !== undefined
-				? await processCover(path.join(mediaPath, imageFeaturedId))
+		const featuredImage =
+			imageFeaturedId && imageModifiedTime !== undefined
+				? await processFeaturedImage(path.join(mediaPath, imageFeaturedId))
 				: undefined;
 
-		await cache.write(entry.outputId, key, await renderCard(entry, cover));
+		await cache.write(entry.outputId, key, await renderCard(entry, featuredImage));
 
 		generatedCount++;
 	}
@@ -133,7 +133,9 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 
 	console.log(
 		chalk.gray(`  ${String(generatedCount)} generated, ${String(skippedCount)} cached`) +
-			(missingCoverCount > 0 ? chalk.yellow(`, ${String(missingCoverCount)} without cover`) : ''),
+			(missingImageCount > 0
+				? chalk.yellow(`, ${String(missingImageCount)} without a Featured Image`)
+				: ''),
 	);
 
 	for (const error of errors) {

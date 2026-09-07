@@ -1,4 +1,3 @@
-import { openGraphDefaultId, siteTitle } from '@xsynaptic/shared/constants';
 import { getOpenGraphId } from '@xsynaptic/shared/open-graph';
 
 import type { OpenGraphEntry } from '#og-image/types.ts';
@@ -6,20 +5,6 @@ import type { ContentEntry } from '#shared/astro-content.ts';
 
 import { getCollectionLabel } from '#og-image/labels.ts';
 import { extractImageFeaturedIds } from '#shared/images.ts';
-
-/**
- * The card list pages, term indexes and 404 all fall back to. Its digest is fixed, so it renders
- * once and then stays cached until the template version changes.
- */
-export function getDefaultEntry(): OpenGraphEntry {
-	return {
-		digest: openGraphDefaultId,
-		imageFeaturedId: undefined,
-		label: undefined,
-		outputId: openGraphDefaultId,
-		title: siteTitle,
-	};
-}
 
 // The one place an entry becomes a card
 export function toOpenGraphEntry(entry: ContentEntry): OpenGraphEntry | undefined {

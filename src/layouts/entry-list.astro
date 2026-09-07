@@ -1,7 +1,7 @@
 ---
 import type { Page } from 'astro';
 
-import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+import type { ContentCatalogItem, ContentCollectionKey } from '#lib/catalog/catalog-types.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
@@ -10,17 +10,19 @@ import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import { getSiteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { toExcerpt } from '#lib/utils/text.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
+	collection: ContentCollectionKey;
 	description?: string | undefined;
 	groupByYear?: boolean | undefined;
 	page: Page<ContentCatalogItem>;
 	title: string;
 }
 
-const { description, groupByYear = false, page, title } = Astro.props;
+const { collection, description, groupByYear = false, page, title } = Astro.props;
 
 const metaDescription = description ? await toExcerpt(description) : undefined;
 
@@ -37,6 +39,7 @@ const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = group
 
 <MainSite
 	noIndex={page.currentPage > 1}
+	openGraphId={getOpenGraphId('index', collection)}
 	schemas={schemas}
 	title={title}
 	{...metaDescription ? { description: metaDescription } : {}}

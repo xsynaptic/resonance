@@ -1,4 +1,6 @@
 ---
+import { openGraphHomeId } from '@xsynaptic/shared/constants';
+
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
@@ -14,7 +16,7 @@ const reviewItems = catalog.byCollection('reviews').slice(0, 4);
 const postItems = catalog.byCollection('posts').slice(0, 4);
 ---
 
-<MainSite schemas={[buildWebSiteSchema(), buildAuthorSchema()]}>
+<MainSite openGraphId={openGraphHomeId} schemas={[buildWebSiteSchema(), buildAuthorSchema()]}>
 	<section class="mb-12">
 		<h1 class="title-main">{site.title}</h1>
 		<p class="mt-2 content-measure text-ink-300">{t('home.intro')}</p>

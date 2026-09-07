@@ -4,7 +4,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 // Bump when element.tsx changes, to regenerate every card
-const templateVersion = '4';
+const templateVersion = '5';
 
 /**
  * A stable `{id}.jpg` filename keeps the public URL fixed, so freshness lives in a manifest beside
@@ -50,15 +50,15 @@ export async function createOutputCache(directory: string) {
 	};
 }
 
-// A card goes stale when its content or its cover changes; the template version invalidates the lot
+// A card goes stale when its content or its Featured Image changes; the template version invalidates the lot
 export function getCacheKey({
-	coverModifiedTime,
 	digest,
 	imageFeaturedId,
+	imageModifiedTime,
 }: {
-	coverModifiedTime: number | undefined;
 	digest: string;
 	imageFeaturedId: string | undefined;
+	imageModifiedTime: number | undefined;
 }): string {
-	return [templateVersion, digest, imageFeaturedId ?? '', coverModifiedTime ?? ''].join(':');
+	return [templateVersion, digest, imageFeaturedId ?? '', imageModifiedTime ?? ''].join(':');
 }

@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import {
 	openGraphBasePath,
 	openGraphDefaultId,
+	openGraphHomeId,
 	openGraphImageFormat,
 	openGraphOutputPath,
 } from '@xsynaptic/shared/constants';
@@ -176,7 +177,7 @@ function cardWorkItem(items: Array<ContentCatalogItem>): ContentCatalogItem | un
 	return items.find((item) => matchReleaseTitle(item.title, item.releaseTitle) !== undefined);
 }
 
-function hasCoverOnDisk(entry: {
+function hasImageFeaturedOnDisk(entry: {
 	data: { imageFeatured?: Parameters<typeof getImageFeaturedId>[0] };
 }): boolean {
 	const imagePath = getImageFeaturedId(entry.data.imageFeatured);
@@ -277,21 +278,26 @@ async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 	]);
 
 	const contentEntries = [...mixes, ...reviews, ...posts];
-	const withCover = contentEntries.filter(hasCoverOnDisk);
-	const withoutCover = contentEntries.filter((entry) => !hasCoverOnDisk(entry));
+	const withImage = contentEntries.filter(hasImageFeaturedOnDisk);
+	const withoutImage = contentEntries.filter((entry) => !hasImageFeaturedOnDisk(entry));
 
 	const candidates = [
-		{ id: openGraphDefaultId, label: 'Default, behind every List Page and the 404' },
-		{ entry: mixes.find(hasCoverOnDisk), label: 'Mix with cover' },
-		{ entry: reviews.find(hasCoverOnDisk), label: 'Review with cover' },
-		{ entry: longestTitle(withoutCover), label: 'Longest title with no cover, set full width' },
+		{ id: openGraphHomeId, label: 'Homepage, the only index card with a Featured Image' },
+		{ id: 'index-mixes', label: 'List Page, where the pattern runs full width' },
+		{ id: openGraphDefaultId, label: 'Default, behind the 404 alone' },
+		{ entry: mixes.find(hasImageFeaturedOnDisk), label: 'Mix with a Featured Image' },
+		{ entry: reviews.find(hasImageFeaturedOnDisk), label: 'Review with a Featured Image' },
 		{
-			entry: longestTitle(withCover),
-			label: 'Longest title beside a cover, where the clamp bites first',
+			entry: longestTitle(withoutImage),
+			label: 'Longest title with no Featured Image, set full width',
 		},
 		{
-			entry: longestTitle(mixes.filter(hasCoverOnDisk)),
-			label: 'Longest mix title beside a cover',
+			entry: longestTitle(withImage),
+			label: 'Longest title beside a Featured Image, where the clamp bites first',
+		},
+		{
+			entry: longestTitle(mixes.filter(hasImageFeaturedOnDisk)),
+			label: 'Longest mix title beside a Featured Image',
 		},
 	];
 

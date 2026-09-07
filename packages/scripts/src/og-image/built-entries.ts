@@ -1,10 +1,17 @@
-import { openGraphBasePath } from '@xsynaptic/shared/constants';
+import {
+	openGraphBasePath,
+	openGraphDefaultId,
+	openGraphHomeId,
+	openGraphHomeImageId,
+	siteTagline,
+	siteTitle,
+} from '@xsynaptic/shared/constants';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { OpenGraphEntry } from '#og-image/types.ts';
 
-import { getDefaultEntry, toOpenGraphEntry } from '#og-image/content.ts';
+import { toOpenGraphEntry } from '#og-image/content.ts';
 import { openGraphCollections } from '#og-image/labels.ts';
 import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 
@@ -40,14 +47,36 @@ export async function getBuiltEntries({
 	return { entries, unresolved };
 }
 
+// Titles mirror `collection.*.title` in the app's `i18n-strings.ts`; no import map reaches it from here
+const indexEntries: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 'title'>> = [
+	{ imageFeaturedId: openGraphHomeImageId, outputId: openGraphHomeId, title: siteTagline },
+	{ imageFeaturedId: undefined, outputId: 'index-mixes', title: 'Mixes' },
+	{ imageFeaturedId: undefined, outputId: 'index-reviews', title: 'Reviews' },
+	{ imageFeaturedId: undefined, outputId: 'index-posts', title: 'Blog' },
+	{ imageFeaturedId: undefined, outputId: 'index-artists', title: 'Artists' },
+	{ imageFeaturedId: undefined, outputId: 'index-styles', title: 'Styles' },
+	{ imageFeaturedId: undefined, outputId: 'index-labels', title: 'Labels' },
+	{ imageFeaturedId: undefined, outputId: 'index-regions', title: 'Regions' },
+	{ imageFeaturedId: undefined, outputId: 'index-eras', title: 'Eras' },
+	{ imageFeaturedId: undefined, outputId: 'index-formats', title: 'Formats' },
+	{ imageFeaturedId: undefined, outputId: 'index-themes', title: 'Themes' },
+	{ imageFeaturedId: undefined, outputId: 'index-series', title: 'Series' },
+	{ imageFeaturedId: undefined, outputId: openGraphDefaultId, title: siteTitle },
+];
+
 // Every card an entry could produce, keyed by the stem the build asks for
 async function buildCandidates(): Promise<Map<string, OpenGraphEntry>> {
 	const contentEntries = await withAstroContent((content) =>
 		getCollectionEntries(content, openGraphCollections),
 	);
 
-	const defaultEntry = getDefaultEntry();
-	const candidates = new Map<string, OpenGraphEntry>([[defaultEntry.outputId, defaultEntry]]);
+	// The digest is the stem itself, so an index card renders once and stays cached
+	const candidates = new Map<string, OpenGraphEntry>(
+		indexEntries.map((entry) => [
+			entry.outputId,
+			{ ...entry, digest: entry.outputId, label: undefined },
+		]),
+	);
 
 	for (const contentEntry of contentEntries) {
 		const entry = toOpenGraphEntry(contentEntry);

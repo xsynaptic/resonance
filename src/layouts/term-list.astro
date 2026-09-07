@@ -7,6 +7,7 @@ import TermDirectory from '#components/parts/term-directory.astro';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getSiteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
 
 interface Props {
 	collection: TitledCollectionKey;
@@ -21,7 +22,7 @@ const pageUrl = getSiteUrl(Astro.url.pathname);
 const schemas = buildCollectionGraph({ description: undefined, title, url: pageUrl });
 ---
 
-<MainSite schemas={schemas} title={title}>
+<MainSite openGraphId={getOpenGraphId('index', collection)} schemas={schemas} title={title}>
 	<PageTitle title={title} />
 	<TermDirectory terms={terms} />
 </MainSite>

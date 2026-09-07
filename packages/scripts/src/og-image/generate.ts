@@ -7,7 +7,7 @@ import { Renderer } from 'takumi-js/node';
 
 import type { OpenGraphCard } from '#og-image/types.ts';
 
-import { coverSize, getOpenGraphElement } from '#og-image/element.tsx';
+import { featuredImageSize, getOpenGraphElement } from '#og-image/element.tsx';
 
 // The 8 MiB default evicts glyphs mid-run once a few faces and sizes are in play
 const glyphCacheBytes = 64 * 1024 * 1024;
@@ -30,9 +30,9 @@ export function createRenderer(fonts: Array<Font>) {
 
 	return async function renderOpenGraphImage(
 		card: OpenGraphCard,
-		cover?: ProcessedImage,
+		featuredImage?: ProcessedImage,
 	): Promise<Uint8Array> {
-		return render(getOpenGraphElement(card, cover), {
+		return render(getOpenGraphElement(card, featuredImage), {
 			fonts,
 			format: 'jpeg',
 			height: openGraphImageHeight,
@@ -44,10 +44,10 @@ export function createRenderer(fonts: Array<Font>) {
 }
 
 // Raw RGBA hands off to Takumi with no intermediate encode
-// Covers are square already in almost every case; `cover` handles the few that are not
-export async function processCover(imagePath: string): Promise<ProcessedImage> {
+// Featured Images are square in almost every case; `cover` fit handles the few that are not
+export async function processFeaturedImage(imagePath: string): Promise<ProcessedImage> {
 	const { data, info } = await sharp(imagePath)
-		.resize({ fit: 'cover', height: coverSize, width: coverSize })
+		.resize({ fit: 'cover', height: featuredImageSize, width: featuredImageSize })
 		.ensureAlpha()
 		.raw()
 		.toBuffer({ resolveWithObject: true });

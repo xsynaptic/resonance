@@ -66,7 +66,8 @@
 		margin-top: 0;
 	}
 
-	& :where(a) {
+	/* A button is not a text link; without this the prose rules underline and halo one written into a body */
+	& :where(a:not(.button-x)) {
 		color: var(--color-ink-200);
 		text-decoration-line: underline;
 		text-decoration-color: color-mix(in oklab, var(--color-ink-500) 30%, transparent);
@@ -81,19 +82,19 @@
 			text-decoration-color 150ms ease-in;
 	}
 
-	& :where(a):focus-visible {
+	& :where(a:not(.button-x)):focus-visible {
 		color: var(--color-ink-50);
 		text-decoration-color: color-mix(in oklab, var(--color-ink-500) 60%, transparent);
 	}
 
 	@media (hover: hover) {
-		& :where(a):hover {
+		& :where(a:not(.button-x)):hover {
 			color: var(--color-ink-50);
 			text-decoration-color: color-mix(in oklab, var(--color-ink-500) 60%, transparent);
 		}
 	}
 
-	& :where(a):active {
+	& :where(a:not(.button-x)):active {
 		color: var(--color-highlight-400);
 	}
 
@@ -130,7 +131,11 @@
 
 	& :where(:is(ul, ol) > li)::marker {
 		font-weight: var(--font-weight-normal);
-		color: var(--color-ink-500);
+		color: var(--color-highlight-500);
+	}
+
+	& :where(ol > li)::marker {
+		font-size: 0.875em;
 	}
 
 	& :where(:is(ul, ol) :is(ul, ol)) {

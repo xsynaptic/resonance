@@ -41,12 +41,12 @@ const hasFiles = files && files.length > 0;
 
 {
 	hasLinks || hasFiles ? (
-		<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
+		<ul class="m-0 flex list-none flex-wrap gap-2 p-0" data-pagefind-ignore>
 			{links?.map((link) => {
 				const { icon, label } = getLinkMeta(link);
 
 				return (
-					<li>
+					<li class="m-0">
 						<ButtonLink href={link} {...(icon ? { icon } : {})}>
 							{label}
 						</ButtonLink>
@@ -54,7 +54,7 @@ const hasFiles = files && files.length > 0;
 				);
 			})}
 			{files?.map((file) => (
-				<li>
+				<li class="m-0">
 					<ButtonSplit>
 						<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
 							{getFileLabel(file)}

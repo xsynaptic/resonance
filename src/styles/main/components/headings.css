@@ -68,6 +68,6 @@ h2.title-main {
 .heading-group {
 	font-size: var(--text-sm);
 	line-height: var(--text-sm--line-height);
-	color: var(--color-ink-600);
+	color: var(--color-ink-200);
 	letter-spacing: var(--tracking-wide);
 }

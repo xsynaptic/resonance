@@ -18,6 +18,7 @@
 		"comments": "pnpm -F @xsynaptic/scripts comments",
 		"comments-backup": "pnpm -F @xsynaptic/scripts comments-backup",
 		"comments-pull": "pnpm -F @xsynaptic/scripts comments-pull",
+		"discogs-tracklists": "pnpm -F @xsynaptic/scripts discogs-tracklists",
 		"deploy-app": "pnpm -F @xsynaptic/scripts deploy-app",
 		"deploy-audio": "pnpm -F @xsynaptic/scripts deploy-audio",
 		"deploy-server-config": "pnpm -F @xsynaptic/scripts deploy-server-config",

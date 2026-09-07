@@ -35,18 +35,17 @@ import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import SectionHome from '#components/sections/section-home.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import SectionRelated from '#components/sections/section-related.astro';
-import { getInventoryFixtures } from '#inventory/inventory-fixtures.ts';
+import { getInventoryFixtures } from '#dev/inventory/inventory-fixtures.ts';
 import {
 	PlayerSpecimen,
 	VolumeSpecimen,
 	WaveformComparison,
-} from '#inventory/inventory-player.tsx';
-import ProseSample from '#inventory/inventory-prose-sample.mdx';
-import Section from '#inventory/inventory-section.astro';
-import Specimen from '#inventory/inventory-specimen.astro';
+} from '#dev/inventory/inventory-player.tsx';
+import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
+import Section from '#dev/inventory/inventory-section.astro';
+import Specimen from '#dev/inventory/inventory-specimen.astro';
 import { toSlug } from '#lib/utils/text.ts';
-
-import './inventory.css';
+import '#dev/inventory/inventory.css';
 
 const {
 	artists,

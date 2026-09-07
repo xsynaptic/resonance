@@ -5,15 +5,11 @@ import { useEffect } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
-// Every stream URL is already in a payload and the manifest's peaks are the whole seek bar, so neither resolver touches the network
-// The archive is the exception: the panel range-requests it, and under `pnpm dev` a local route serves it
+// Both URLs come from the payload, so neither resolver touches the network
 const urls: PlayerUrls = {
-	archive: (trackId) =>
-		Promise.resolve(
-			import.meta.env.DEV ? `/waveform/${encodeURIComponent(trackId)}.dat` : undefined,
-		),
+	archive: (trackId) => Promise.resolve(resolve(trackId, 'archiveUrl')),
 	stream: (trackId) => {
-		const streamUrl = streamUrls.get(trackId) ?? queuedStreamUrl(trackId);
+		const streamUrl = resolve(trackId, 'streamUrl');
 		if (streamUrl === undefined) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
 		return Promise.resolve({ status: 'ok', url: streamUrl });
@@ -25,7 +21,7 @@ let parsedSource: string | undefined;
 let parsedItems: Array<PlayerPayloadItem> | undefined;
 
 // Kept across soft navigations: a queue outlives the page it was built from, and the next page's payload need not carry it
-const streamUrls = new Map<string, string>();
+const payloadItems = new Map<string, PlayerPayloadItem>();
 
 export function PlayerIsland({
 	labels,
@@ -116,13 +112,6 @@ function markRows(trackId: string | undefined): void {
 	}
 }
 
-// A restored queue keeps the payload's own fields, so a track queued on a page this session never opened still resolves
-function queuedStreamUrl(trackId: string): string | undefined {
-	const queued = playerStore.getState().queue.find((item) => item.trackId === trackId);
-
-	return (queued as Partial<PlayerPayloadItem> | undefined)?.streamUrl;
-}
-
 // Parsed once per payload rather than once per click; the string changes with each soft navigation
 function readPayload(): Array<PlayerPayloadItem> | undefined {
 	const payload =
@@ -135,10 +124,20 @@ function readPayload(): Array<PlayerPayloadItem> | undefined {
 	try {
 		parsedItems = JSON.parse(payload) as Array<PlayerPayloadItem>;
 
-		for (const item of parsedItems) streamUrls.set(item.trackId, item.streamUrl);
+		for (const item of parsedItems) payloadItems.set(item.trackId, item);
 	} catch {
 		parsedItems = undefined;
 	}
 
 	return parsedItems;
+}
+
+// A restored queue keeps the payload's fields, so a track queued on another page still resolves
+function resolve(trackId: string, field: 'archiveUrl' | 'streamUrl'): string | undefined {
+	const item =
+		payloadItems.get(trackId) ??
+		(playerStore.getState().queue.find((queued) => queued.trackId === trackId) as
+			Partial<PlayerPayloadItem> | undefined);
+
+	return item?.[field];
 }

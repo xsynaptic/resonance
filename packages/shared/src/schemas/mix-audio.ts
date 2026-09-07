@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const mixStreamsVersion = 1;
-export const mixWaveformsVersion = 1;
+export const mixWaveformsVersion = 2;
 
 // Both are sorted by `base` so a re-run diffs cleanly
 const MixStreamEntrySchema = z.object({
@@ -20,6 +20,7 @@ export type MixStreamsDocument = z.infer<typeof MixStreamsDocumentSchema>;
 
 // `sources` lists every file sharing the base, so a consumer looks up a name it already has
 const MixWaveformEntrySchema = z.object({
+	archive: z.string(),
 	base: z.string(),
 	peaks: z.number().array(),
 	seconds: z.number(),

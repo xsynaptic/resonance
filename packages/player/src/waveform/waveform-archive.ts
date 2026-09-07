@@ -109,7 +109,9 @@ async function fetchArchive(
 		const response = await fetch(url, {
 			headers: { Range: `bytes=0-${String(headerBytes - 1)}` },
 		});
-		if (!response.ok) return undefined;
+
+		// A 200 means the range was ignored, so this is the whole archive rather than its header
+		if (response.status !== 206) return undefined;
 
 		return readHeader(url, await response.arrayBuffer());
 	} catch {

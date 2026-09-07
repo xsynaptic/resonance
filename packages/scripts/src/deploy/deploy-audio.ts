@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
+import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { rsync } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
@@ -13,7 +13,6 @@ export const remoteRoot = '/srv/resonance';
 const rsyncExcludes = ['.DS_Store', '*.tmp', '.gitkeep'];
 
 const rsyncFlags = [
-	// `--partial-dir` basis fails verification from rsync 3.5.0 to the box's 3.2.7
 	'--partial',
 	// -a would carry a 0600 source through to the box, where the `the-web-server` worker could not read it
 	'--chmod=D755,F644',
@@ -29,8 +28,10 @@ const rsyncFlags = [
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
 const transferredRendition = /\.webm$/i;
+const transferredArchive = /\.dat$/i;
 
 export interface DeployedAudio {
+	archives: Array<string>;
 	originals: Array<string>;
 	renditions: Array<string>;
 }
@@ -41,9 +42,41 @@ interface DeployAudioOptions {
 	rootPath: string;
 }
 
+interface DerivedLeg {
+	excludes: Array<string>;
+	key: 'archives' | 'renditions';
+	label: string;
+	localDir: string;
+	missingHint: string;
+	remoteDir: string;
+	transferred: RegExp;
+}
+
+const derivedLegs: Array<DerivedLeg> = [
+	{
+		excludes: rsyncExcludes,
+		key: 'renditions',
+		label: 'Renditions',
+		localDir: streamsDir,
+		missingHint: 'run audio-renditions first',
+		remoteDir: 'stream',
+		transferred: transferredRendition,
+	},
+	{
+		// The previews share this directory but are inlined into pages, so nothing serves them
+		excludes: [...rsyncExcludes, '*.json'],
+		key: 'archives',
+		label: 'Archives',
+		localDir: waveformsCacheDir,
+		missingHint: 'run audio-waveforms first',
+		remoteDir: 'waveform',
+		transferred: transferredArchive,
+	},
+];
+
 // mtime+size, not checksum: audio is append-only and multi-gigabyte, so a no-op run is near-instant
 // The originals leg never deletes, so a local mistake can't wipe the archive
-// Neither does the stream leg; reapRenditions clears superseded hashes once the new pages are live
+// Neither do the derived legs; reapDerivedAudio clears superseded hashes once the new pages are live
 export async function deployAudio(options: DeployAudioOptions): Promise<DeployedAudio> {
 	const { config, dryRun = false, rootPath } = options;
 
@@ -54,8 +87,6 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 	}
 
 	await ensureSshKeychain();
-
-	const streamsPath = path.join(rootPath, streamsDir);
 
 	console.log(chalk.blue('Deploying audio...'));
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
@@ -71,59 +102,73 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 		{ dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
 	);
 
-	let streamOutput = '';
+	// One leg at a time, because the box serves other traffic
+	const derived: Pick<DeployedAudio, 'archives' | 'renditions'> = { archives: [], renditions: [] };
 
-	if (await isPathPresent(streamsPath)) {
+	for (const leg of derivedLegs) {
+		const localPath = path.join(rootPath, leg.localDir);
+
+		if (!(await isPathPresent(localPath))) {
+			console.log(
+				chalk.yellow(
+					`  No ${leg.label.toLowerCase()} directory yet; skipping /${leg.remoteDir}/ (${leg.missingHint})`,
+				),
+			);
+			continue;
+		}
+
 		console.log(
-			chalk.gray(`  Renditions: ${streamsPath}/ -> ${config.remoteHost}:${remoteRoot}/stream/`),
+			chalk.gray(
+				`  ${leg.label}: ${localPath}/ -> ${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
+			),
 		);
-		streamOutput = await rsync(`${streamsPath}/`, `${config.remoteHost}:${remoteRoot}/stream/`, {
-			dryRun,
-			excludes: rsyncExcludes,
-			extraFlags: rsyncFlags,
-		});
-	} else {
-		console.log(
-			chalk.yellow('  No renditions directory yet; skipping /stream/ (run audio-renditions first)'),
+
+		const output = await rsync(
+			`${localPath}/`,
+			`${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
+			{ dryRun, excludes: leg.excludes, extraFlags: rsyncFlags },
 		);
+
+		derived[leg.key] = parseTransferred(output, leg.transferred);
 	}
 
 	const originals = parseTransferred(artifactsOutput, transferredOriginal);
-	const renditions = parseTransferred(streamOutput, transferredRendition);
 
 	console.log(
 		chalk.green(
-			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(originals.length)} original(s), ${String(renditions.length)} rendition(s) transferred)`,
+			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(originals.length)} original(s), ${String(derived.renditions.length)} rendition(s), ${String(derived.archives.length)} archive(s) transferred)`,
 		),
 	);
 
-	return { originals, renditions };
+	return { ...derived, originals };
 }
 
-// A rendition is named for its own bytes, so a re-encode lands beside the generation the live site
-// still references; deleting before the new pages ship would 404 every stream for the whole upload
+// Both are named for their own bytes, so a re-derivation lands beside the live generation
+// Deleting before the new pages ship would 404 every one of them for the whole upload
 // Nothing transfers here: the upload pass already matched mtime and size, so only orphans go
-export async function reapRenditions(options: DeployAudioOptions): Promise<void> {
+export async function reapDerivedAudio(options: DeployAudioOptions): Promise<void> {
 	const { config, dryRun = false, rootPath } = options;
 
-	const streamsPath = path.join(rootPath, streamsDir);
+	for (const leg of derivedLegs) {
+		const localPath = path.join(rootPath, leg.localDir);
 
-	if (!(await isPathPresent(streamsPath))) return;
+		if (!(await isPathPresent(localPath))) continue;
 
-	console.log(chalk.blue('Reaping superseded renditions...'));
-	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
+		console.log(chalk.blue(`Reaping superseded ${leg.label.toLowerCase()}...`));
+		if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
-	const output = await rsync(`${streamsPath}/`, `${config.remoteHost}:${remoteRoot}/stream/`, {
-		dryRun,
-		excludes: rsyncExcludes,
-		extraFlags: [...rsyncFlags, '--delete'],
-	});
+		const output = await rsync(
+			`${localPath}/`,
+			`${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
+			{ dryRun, excludes: leg.excludes, extraFlags: [...rsyncFlags, '--delete'] },
+		);
 
-	console.log(
-		chalk.green(
-			`Reaped ${String(countDeleted(output, transferredRendition))} superseded rendition(s)`,
-		),
-	);
+		console.log(
+			chalk.green(
+				`Reaped ${String(countDeleted(output, leg.transferred))} superseded ${leg.label.toLowerCase()}`,
+			),
+		);
+	}
 }
 
 function countDeleted(output: string, pattern: RegExp): number {

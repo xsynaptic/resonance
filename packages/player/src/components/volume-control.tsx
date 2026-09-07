@@ -120,7 +120,7 @@ function LevelIcon({ volume }: { volume: number }) {
 }
 
 function levelStyle(volume: number): CSSProperties {
-	return { '--player-volume-level': `${String(volume * 100)}%` } as CSSProperties;
+	return { '--player-volume-level': `${String(volume * 100)}%` };
 }
 
 function subscribeHover(onChange: () => void): () => void {

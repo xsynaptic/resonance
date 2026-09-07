@@ -19,7 +19,7 @@ import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
 import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
 
-import { skipSeconds } from '#inventory/inventory-player.tsx';
+import { skipSeconds } from '#dev/inventory/inventory-player.tsx';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
@@ -86,9 +86,11 @@ const iconIds: Array<IconId> = [
 	'youtube',
 ];
 
-// No `waveformOverview`, so the seek bar falls back to its range input; the stream URL points back at this page
+// No `waveformOverview`, so the seek bar falls back to its range input
+// Both URLs point at this page, so nothing plays and the panel finds no archive
 const itemWithoutPeaks: PlayerPayloadItem = {
 	albumLoudness: {},
+	archiveUrl: '/inventory/#player',
 	artistLine: 'A Hand-Built Fixture',
 	durationMs: 2_400_000,
 	loudness: {},

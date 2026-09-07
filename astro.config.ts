@@ -11,8 +11,8 @@ import { isIndexableUrlPath, readSitemapLastmod } from '@xsynaptic/shared/sitema
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 
-import waveformArchive from '#dev/waveform-archive-integration.ts';
-import inventory from '#inventory/inventory-integration.ts';
+import devAudio from '#dev/audio/audio-integration.ts';
+import devInventory from '#dev/inventory/inventory-integration.ts';
 import { shikiTheme } from '#lib/utils/shiki-theme.ts';
 
 // One origin for the app and the deploy scripts; a mismatch misses every lastmod lookup silently
@@ -89,8 +89,8 @@ export default defineConfig({
 		fontDevtools({ providers: ['fontsource'] }),
 		pagefind(),
 		buildLogger(),
-		inventory(),
-		waveformArchive(),
+		devAudio(),
+		devInventory(),
 	],
 	markdown: {
 		processor: satteri({

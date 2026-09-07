@@ -18,7 +18,13 @@ export const identityLinks = [
 
 export const downloadBaseUrl = new URL('artifacts/', FILES_URL).href;
 
-export const streamBaseUrl = new URL('stream/', FILES_URL).href;
+// Both files exist locally, so dev serves its own rather than reading the production box
+// Downloads stay remote, because those are links a visitor follows rather than files the player reads
+export const streamBaseUrl = import.meta.env.DEV ? '/stream/' : new URL('stream/', FILES_URL).href;
+
+export const waveformBaseUrl = import.meta.env.DEV
+	? '/waveform/'
+	: new URL('waveform/', FILES_URL).href;
 
 // Dev always shows the player; a build shows it only where the deploying machine sets the variable
 export const isPlayerEnabled = import.meta.env.DEV || PLAYER_ENABLED;

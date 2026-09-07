@@ -4,6 +4,7 @@ import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
 import {
 	MixStreamsDocumentSchema,
 	mixStreamsVersion,
+	MixWaveformsDocumentSchema,
 	mixWaveformsVersion,
 } from '@xsynaptic/shared/schemas';
 import chalk from 'chalk';
@@ -11,10 +12,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
+import type { AudioSource } from '#audio/audio-sources.ts';
+
 import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
 import { collectRenditions } from '#audio/renditions.ts';
-import { previewVersion } from '#audio/waveforms.ts';
+import { collectArchives, previewVersion } from '#audio/waveforms.ts';
 
 const previewExtension = '.json';
 const tmpExtension = '.tmp';
@@ -42,32 +45,32 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 	const renditions = await collectRenditions(streamsPath);
+	const archives = await collectArchives(cacheDir);
 
 	const streamEntries: Array<MixStreamEntry> = [];
 	const waveformEntries: Array<MixWaveformEntry> = [];
 	const incomplete: Array<string> = [];
 
 	for (const source of sources) {
-		const stream = renditions.get(source.base);
-		const preview = await readPreview(path.join(cacheDir, `${source.base}${previewExtension}`));
+		const resolved = await resolveEntries({
+			archive: archives.get(source.base),
+			cacheDir,
+			source,
+			stream: renditions.get(source.base),
+		});
 
-		if (stream === undefined || preview === undefined) {
+		if (!resolved) {
 			incomplete.push(source.base);
 			continue;
 		}
 
-		streamEntries.push({ base: source.base, stream });
-		waveformEntries.push({
-			base: source.base,
-			peaks: preview.values,
-			seconds: preview.seconds,
-			sources: source.files,
-		});
+		streamEntries.push(resolved.stream);
+		waveformEntries.push(resolved.waveform);
 	}
 
 	console.log(
 		chalk.blue(
-			`Manifest: ${String(streamEntries.length)} of ${String(sources.length)} mixes carry a rendition and a preview`,
+			`Manifest: ${String(streamEntries.length)} of ${String(sources.length)} mixes carry a rendition, an archive and a preview`,
 		),
 	);
 
@@ -92,30 +95,49 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 	console.log(chalk.green(`Manifest written: ${waveformsOutputPath}`));
 }
 
-// The deploy probe needs a rendition filename, and the manifest is the only place one is written
-export async function readManifestStreams(rootPath: string): Promise<Array<string>> {
-	try {
-		const raw: unknown = JSON.parse(
-			await fs.readFile(path.resolve(rootPath, mixStreamsPath), 'utf8'),
-		);
+// The deploy probe needs a filename per location, and the manifests are the only place one is written
+export async function readManifestFiles(
+	rootPath: string,
+): Promise<{ archives: Array<string>; streams: Array<string> }> {
+	const [streams, waveforms] = await Promise.all([
+		readManifest(rootPath, mixStreamsPath, MixStreamsDocumentSchema),
+		readManifest(rootPath, mixWaveformsPath, MixWaveformsDocumentSchema),
+	]);
 
-		return MixStreamsDocumentSchema.parse(raw).mixes.map((mix) => mix.stream);
-	} catch {
-		return [];
-	}
+	return {
+		archives: waveforms?.mixes.map((mix) => mix.archive) ?? [],
+		streams: streams?.mixes.map((mix) => mix.stream) ?? [],
+	};
 }
 
 // An audio directory that exists but is empty reads as zero sources rather than an error
 async function assertManifestNotEmptied(count: number, rootPath: string): Promise<void> {
 	if (count > 0) return;
 
-	const existing = await readManifestStreams(rootPath);
+	const { streams } = await readManifestFiles(rootPath);
 
-	if (existing.length === 0) return;
+	if (streams.length === 0) return;
 
 	throw new Error(
-		`Refusing to overwrite ${String(existing.length)} manifest entries with an empty manifest; no audio sources found in ${audioSourceDir}`,
+		`Refusing to overwrite ${String(streams.length)} manifest entries with an empty manifest; no audio sources found in ${audioSourceDir}`,
 	);
+}
+
+// A missing or stale-version manifest reads as no files, which both callers handle
+async function readManifest<Output>(
+	rootPath: string,
+	manifestPath: string,
+	schema: z.ZodType<Output>,
+): Promise<Output | undefined> {
+	try {
+		const raw: unknown = JSON.parse(
+			await fs.readFile(path.resolve(rootPath, manifestPath), 'utf8'),
+		);
+
+		return schema.parse(raw);
+	} catch {
+		return undefined;
+	}
 }
 
 async function readPreview(file: string) {
@@ -126,6 +148,35 @@ async function readPreview(file: string) {
 	} catch {
 		return;
 	}
+}
+
+// A mix missing its rendition, archive or preview is left out rather than half-published
+async function resolveEntries({
+	archive,
+	cacheDir,
+	source,
+	stream,
+}: {
+	archive: string | undefined;
+	cacheDir: string;
+	source: AudioSource;
+	stream: string | undefined;
+}): Promise<undefined | { stream: MixStreamEntry; waveform: MixWaveformEntry }> {
+	if (archive === undefined || stream === undefined) return undefined;
+
+	const preview = await readPreview(path.join(cacheDir, `${source.base}${previewExtension}`));
+	if (preview === undefined) return undefined;
+
+	return {
+		stream: { base: source.base, stream },
+		waveform: {
+			archive,
+			base: source.base,
+			peaks: preview.values,
+			seconds: preview.seconds,
+			sources: source.files,
+		},
+	};
 }
 
 // One row per line, so a diff names the mixes that changed; 400 peaks pretty-printed is 27k lines

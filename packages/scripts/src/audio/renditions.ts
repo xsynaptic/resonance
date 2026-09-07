@@ -1,15 +1,13 @@
 import chalk from 'chalk';
 import crypto from 'node:crypto';
-import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import pLimit from 'p-limit';
 import { $ } from 'zx';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { cleanStaleTmp } from '#shared/utils.ts';
+import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
 const concurrency = 3;
 const renditionExtension = '.webm';
@@ -183,14 +181,6 @@ async function encode(job: RenditionJob, streamsPath: string): Promise<string> {
 	}
 
 	return name;
-}
-
-async function hashFile(file: string): Promise<string> {
-	const hash = crypto.createHash('sha256');
-
-	await pipeline(createReadStream(file), hash);
-
-	return hash.digest('hex').slice(0, 12);
 }
 
 async function isUpToDate(job: RenditionJob, streamsPath: string): Promise<boolean> {

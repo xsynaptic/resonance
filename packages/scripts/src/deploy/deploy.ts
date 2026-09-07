@@ -10,19 +10,25 @@ import { $ } from 'zx';
 
 import type { StepStatus } from '#shared/step-status.ts';
 
-import { generateAudioManifest, readManifestStreams } from '#audio/manifest.ts';
+import { generateAudioManifest, readManifestFiles } from '#audio/manifest.ts';
 import { generateRenditions } from '#audio/renditions.ts';
 import { validateAudio } from '#audio/validate.ts';
 import { generateWaveforms } from '#audio/waveforms.ts';
 import { backupIfStale } from '#comments/backup.ts';
 import { pullComments } from '#comments/pull.ts';
 import { deployApp } from '#deploy/deploy-app.ts';
-import { deployAudio, reapRenditions } from '#deploy/deploy-audio.ts';
+import { deployAudio, reapDerivedAudio } from '#deploy/deploy-audio.ts';
 import { loadDeployConfig, printDeployConfig } from '#deploy/deploy-config.ts';
 import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
+
+interface HealthCheckFiles {
+	archives: Array<string>;
+	originals: Array<string>;
+	renditions: Array<string>;
+}
 
 interface MediaProbe {
 	contentTypePrefix: string;
@@ -131,7 +137,7 @@ function formatStep({ label, status }: WarnOnlyStep): string {
 	return chalk.yellow(`  ⚠ ${label}`);
 }
 
-async function healthCheck(probeFiles: Array<string>, streamFiles: Array<string>): Promise<void> {
+async function healthCheck({ archives, originals, renditions }: HealthCheckFiles): Promise<void> {
 	console.log(chalk.blue(`Health check: ${config.siteUrl}`));
 
 	const siteResponse = await fetch(config.siteUrl, { signal: AbortSignal.timeout(15_000) });
@@ -144,22 +150,29 @@ async function healthCheck(probeFiles: Array<string>, streamFiles: Array<string>
 
 	recordStep('Certificate', await checkCertificate());
 
-	if (probeFiles.length === 0 && streamFiles.length === 0) {
+	if (archives.length === 0 && originals.length === 0 && renditions.length === 0) {
 		console.log(chalk.yellow('  No audio files to probe; skipping files health check'));
 		return;
 	}
 
 	await probeAll({
 		contentTypePrefix: 'audio/',
-		names: probeFiles,
+		names: originals,
 		pathPrefix: 'artifacts/',
 	});
 
-	// A rendition is served from its own location block, so probing an original proves nothing here
+	// Each is served from its own location block, so probing one proves nothing about the others
 	await probeAll({
 		contentTypePrefix: 'audio/webm',
-		names: streamFiles,
+		names: renditions,
 		pathPrefix: 'stream/',
+	});
+
+	// The only check that `gzip off` held: with gzip on, this answers 200 and the panel goes blank
+	await probeAll({
+		contentTypePrefix: 'application/octet-stream',
+		names: archives,
+		pathPrefix: 'waveform/',
 	});
 }
 
@@ -214,21 +227,19 @@ async function probeMedia({ contentTypePrefix, name, url }: MediaProbe): Promise
 	const filesResponse = await probeRange(url);
 
 	if (filesResponse.statusCode !== 206) {
-		throw new Error(
-			`Audio Range probe expected 206, got ${String(filesResponse.statusCode)}: ${url}`,
-		);
+		throw new Error(`Range probe expected 206, got ${String(filesResponse.statusCode)}: ${url}`);
 	}
 
 	// nginx omits Accept-Ranges from a 206, so Content-Range is the proof
 	const contentRange = filesResponse.headers['content-range'];
 	if (typeof contentRange !== 'string') {
-		throw new TypeError(`Audio probe returned 206 without a 'Content-Range' header: ${url}`);
+		throw new TypeError(`Range probe returned 206 without a 'Content-Range' header: ${url}`);
 	}
 
 	const contentType = filesResponse.headers['content-type'];
 	if (typeof contentType !== 'string' || !contentType.startsWith(contentTypePrefix)) {
 		throw new Error(
-			`Audio probe Content-Type is not ${contentTypePrefix}* (got '${String(contentType)}'): ${url}`,
+			`Range probe Content-Type is not ${contentTypePrefix}* (got '${String(contentType)}'): ${url}`,
 		);
 	}
 
@@ -254,7 +265,7 @@ function probeRange(probeUrl: string): Promise<ProbeResponse> {
 		);
 
 		request.on('timeout', () => {
-			request.destroy(new Error(`Audio probe to ${probeUrl} timed out`));
+			request.destroy(new Error(`Range probe to ${probeUrl} timed out`));
 		});
 		request.on('error', reject);
 		request.end();
@@ -291,19 +302,21 @@ try {
 	await deployApp({ dryRun: isDryRun, rootPath });
 
 	// Only now is the generation the old pages named unreachable
-	await reapRenditions({ config, dryRun: isDryRun, rootPath });
+	await reapDerivedAudio({ config, dryRun: isDryRun, rootPath });
 
-	const manifestStreams = await readManifestStreams(rootPath);
+	const manifest = await readManifestFiles(rootPath);
 
 	if (isDryRun) {
 		console.log(chalk.yellow('Skipping health checks (dry run)'));
 		recordStep('Certificate', 'skipped');
 	} else {
 		// Probe everything this run put on the box; a no-op run falls back to any one of each kind
-		await healthCheck(
-			uploaded.originals.length > 0 ? uploaded.originals : validatedFiles.slice(0, 1),
-			uploaded.renditions.length > 0 ? uploaded.renditions : manifestStreams.slice(0, 1),
-		);
+		await healthCheck({
+			archives: uploaded.archives.length > 0 ? uploaded.archives : manifest.archives.slice(0, 1),
+			originals: uploaded.originals.length > 0 ? uploaded.originals : validatedFiles.slice(0, 1),
+			renditions:
+				uploaded.renditions.length > 0 ? uploaded.renditions : manifest.streams.slice(0, 1),
+		});
 	}
 
 	printWarnOnlySummary();

@@ -6,14 +6,20 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { streamBaseUrl } from '#lib/site.ts';
+import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
-	// The archive's file name in `.cache/waveforms/`, without its extension
-	base: string;
+	archiveUrl: string;
 	peaks: Array<number>;
 	seconds: number;
 	streamUrl: string;
+}
+
+// The dev routes serve only filenames that appear here
+export interface MixAudioIndex {
+	archives: Set<string>;
+	byFile: Map<string, MixAudio>;
+	streams: Set<string>;
 }
 
 interface MixAudioSource {
@@ -21,17 +27,23 @@ interface MixAudioSource {
 }
 
 // Read once per build, not once per mix page
-let entriesPromise: Promise<Map<string, MixAudio>> | undefined;
+let indexPromise: Promise<MixAudioIndex> | undefined;
+
+export function getIndex(): Promise<MixAudioIndex> {
+	if (!indexPromise) indexPromise = buildIndex();
+
+	return indexPromise;
+}
 
 // The one seam consumers go through, so the filename convention stays in the manifest
 export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undefined> {
 	const files = mix.files ?? [];
 	if (files.length === 0) return undefined;
 
-	const entries = await getEntries();
+	const { byFile } = await getIndex();
 
 	for (const file of files) {
-		const entry = entries.get(file);
+		const entry = byFile.get(file);
 
 		if (entry) return entry;
 	}
@@ -39,16 +51,17 @@ export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undef
 	return undefined;
 }
 
-async function buildEntries(): Promise<Map<string, MixAudio>> {
+async function buildIndex(): Promise<MixAudioIndex> {
 	const [streams, waveforms] = await Promise.all([
 		readDocument(mixStreamsPath, MixStreamsDocumentSchema),
 		readDocument(mixWaveformsPath, MixWaveformsDocumentSchema),
 	]);
 
-	if (!streams || !waveforms) return new Map();
+	const index: MixAudioIndex = { archives: new Set(), byFile: new Map(), streams: new Set() };
+
+	if (!streams || !waveforms) return index;
 
 	const streamsByBase = new Map(streams.mixes.map((mix) => [mix.base, mix.stream]));
-	const entries = new Map<string, MixAudio>();
 
 	for (const waveform of waveforms.mixes) {
 		const stream = streamsByBase.get(waveform.base);
@@ -56,22 +69,19 @@ async function buildEntries(): Promise<Map<string, MixAudio>> {
 		if (stream === undefined) continue;
 
 		const audio = {
-			base: waveform.base,
+			archiveUrl: `${waveformBaseUrl}${encodeURIComponent(waveform.archive)}`,
 			peaks: waveform.peaks,
 			seconds: waveform.seconds,
 			streamUrl: `${streamBaseUrl}${encodeURIComponent(stream)}`,
 		};
 
-		for (const source of waveform.sources) entries.set(source, audio);
+		index.archives.add(waveform.archive);
+		index.streams.add(stream);
+
+		for (const source of waveform.sources) index.byFile.set(source, audio);
 	}
 
-	return entries;
-}
-
-function getEntries(): Promise<Map<string, MixAudio>> {
-	if (!entriesPromise) entriesPromise = buildEntries();
-
-	return entriesPromise;
+	return index;
 }
 
 // Warns rather than throws: a missing manifest renders no player, it does not fail the build

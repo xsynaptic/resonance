@@ -9,8 +9,9 @@ import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentUrl } from '#lib/utils/routing.ts';
 
-// The rendition is resolved at build time, so the island's stream resolver reads it off the queue
+// Both files are resolved at build time, so the island's resolvers read them off the queue
 export interface PlayerPayloadItem extends QueueItem {
+	archiveUrl: string;
 	streamUrl: string;
 }
 
@@ -27,6 +28,7 @@ export async function getMixQueueItem(
 
 	return {
 		albumLoudness: {},
+		archiveUrl: audio.archiveUrl,
 		artistLine,
 		durationMs: audio.seconds * 1000,
 		loudness: {},

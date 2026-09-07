@@ -15,8 +15,8 @@ interface InventoryOptions {
 
 const openGraphFilePattern = new RegExp(String.raw`^/[\w-]+\.${openGraphImageFormat}$`);
 
-export default function inventory({
-	entrypoint = './src/inventory/inventory.astro',
+export default function devInventory({
+	entrypoint = './src/dev/inventory/inventory.astro',
 	route = '/inventory',
 }: InventoryOptions = {}): AstroIntegration {
 	return {
@@ -47,6 +47,6 @@ export default function inventory({
 				});
 			},
 		},
-		name: 'inventory',
+		name: 'dev-inventory',
 	};
 }

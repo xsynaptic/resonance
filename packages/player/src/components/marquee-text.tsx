@@ -57,7 +57,7 @@ function marqueeStyle(distance: number): CSSProperties {
 		'--player-marquee-distance': `${String(distance)}px`,
 		'--player-marquee-duration': `${totalS.toFixed(2)}s`,
 		'--player-marquee-timing': `linear(0 0%, 0 ${holdEnd}%, 1 ${travelEnd}%, 1 ${holdBackEnd}%, 0 100%)`,
-	} as CSSProperties;
+	};
 }
 
 function percentOf(elapsedS: number, totalS: number): string {

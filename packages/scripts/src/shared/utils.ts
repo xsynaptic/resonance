@@ -1,6 +1,8 @@
-import { existsSync } from 'node:fs';
+import crypto from 'node:crypto';
+import { createReadStream, existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { $ } from 'zx';
 
 // Cached for the process: scripts only ever run from one place per invocation
@@ -46,6 +48,15 @@ export function findWorkspaceRoot(startDir: string = process.cwd()): string {
 	}
 
 	throw new Error(`Could not locate pnpm-workspace.yaml above ${startDir}`);
+}
+
+// 12 hex of a sha256 over a file's own bytes
+export async function hashFile(file: string): Promise<string> {
+	const hash = crypto.createHash('sha256');
+
+	await pipeline(createReadStream(file), hash);
+
+	return hash.digest('hex').slice(0, 12);
 }
 
 export async function isPathPresent(targetPath: string): Promise<boolean> {

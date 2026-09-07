@@ -6,12 +6,14 @@ import { $ } from 'zx';
 
 import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { cleanStaleTmp } from '#shared/utils.ts';
+import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
 const concurrency = 6;
 const archiveExtension = '.dat';
 const previewExtension = '.json';
 const tmpExtension = '.tmp';
+
+const archivePattern = /^(?<base>.+)\.[0-9a-f]{12}\.dat$/;
 
 const headerBytes = 20;
 const archiveVersion = 1;
@@ -36,7 +38,8 @@ export interface WaveformPreview {
 }
 
 interface WaveformJob {
-	archive: string;
+	base: string;
+	existing: string | undefined;
 	preview: string;
 	source: string;
 }
@@ -44,6 +47,38 @@ interface WaveformJob {
 interface WaveformsOptions {
 	dryRun?: boolean;
 	rootPath: string;
+}
+
+// Exported for the manifest step, which has to name the file the panel will range-request
+export async function collectArchives(cacheDir: string): Promise<Map<string, string>> {
+	let entries: Array<string>;
+
+	try {
+		entries = await fs.readdir(cacheDir);
+	} catch {
+		return new Map();
+	}
+
+	const archives = new Map<string, string>();
+
+	for (const entry of entries) {
+		const base = archivePattern.exec(entry)?.groups?.base;
+
+		if (base === undefined) continue;
+
+		const existing = archives.get(base);
+
+		// An interrupted analysis leaves both hashed files; keeping either one silently ships a stale name
+		if (existing !== undefined) {
+			throw new Error(
+				`Two archives for "${base}": ${existing} and ${entry}. Delete the stale one and re-run.`,
+			);
+		}
+
+		archives.set(base, entry);
+	}
+
+	return archives;
 }
 
 // Reduces the archive to at most 400 buckets of 0..1, ready to inline
@@ -96,16 +131,19 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 	const cacheDir = path.join(rootPath, waveformsCacheDir);
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 
+	await fs.mkdir(cacheDir, { recursive: true });
+	await cleanStaleTmp(cacheDir, tmpExtension);
+
+	const archives = await collectArchives(cacheDir);
+
 	const jobs = sources.map((source): WaveformJob => ({
-		archive: path.join(cacheDir, `${source.base}${archiveExtension}`),
+		base: source.base,
+		existing: archives.get(source.base),
 		preview: path.join(cacheDir, `${source.base}${previewExtension}`),
 		source: source.path,
 	}));
 
-	await fs.mkdir(cacheDir, { recursive: true });
-	await cleanStaleTmp(cacheDir, tmpExtension);
-
-	const plans = await Promise.all(jobs.map(planJob));
+	const plans = await Promise.all(jobs.map((job) => planJob(job, cacheDir)));
 	const pending = jobs
 		.map((job, index) => ({ job, plan: plans[index] ?? 'analyze' }))
 		.filter((entry) => entry.plan !== 'skip');
@@ -119,7 +157,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 
 	if (dryRun) {
 		for (const { job, plan } of pending) {
-			console.log(chalk.yellow(`  DRY RUN ${plan}: ${path.basename(job.archive)}`));
+			console.log(chalk.yellow(`  DRY RUN ${plan}: ${job.base}`));
 		}
 		return;
 	}
@@ -141,8 +179,10 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 	const results = await Promise.allSettled(
 		pending.map(({ job, plan }) =>
 			limit(async () => {
-				if (plan === 'analyze') await analyze(job);
-				await distill(job);
+				const archive = plan === 'analyze' ? await analyze(job, cacheDir) : job.existing;
+				if (archive === undefined) throw new Error(`No archive on disk for "${job.base}"`);
+
+				await distill(job, path.join(cacheDir, archive));
 				done += 1;
 				console.log(
 					chalk.green(
@@ -197,18 +237,28 @@ export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
 	return { pairs: buffer.readUInt32LE(16), sampleRate: buffer.readInt32LE(8), samplesPerPixel };
 }
 
-async function analyze(job: WaveformJob): Promise<void> {
-	const tmp = `${job.archive}${tmpExtension}`;
+// Returns the archive's filename, which the caller cannot predict: it names the analyzed bytes
+async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
+	const tmp = path.join(cacheDir, `${job.base}${archiveExtension}${tmpExtension}`);
 
 	// --output-format is explicit because the .tmp suffix hides the format
 	// No --amplitude-scale: the archive keeps true peaks and normalization happens at distillation
 	await $`audiowaveform -q -i ${job.source} -o ${tmp} --output-format dat -z ${String(expectedSamplesPerPixel)} -b 8`;
 
-	await fs.rename(tmp, job.archive);
+	const name = `${job.base}.${await hashFile(tmp)}${archiveExtension}`;
+
+	await fs.rename(tmp, path.join(cacheDir, name));
+
+	// The previous hash is unreachable the moment this one lands; the waveform leg reaps its remote twin
+	if (job.existing !== undefined && job.existing !== name) {
+		await fs.rm(path.join(cacheDir, job.existing), { force: true });
+	}
+
+	return name;
 }
 
-async function distill(job: WaveformJob): Promise<void> {
-	const preview = distillWaveform(await fs.readFile(job.archive));
+async function distill(job: WaveformJob, archive: string): Promise<void> {
+	const preview = distillWaveform(await fs.readFile(archive));
 	const tmp = `${job.preview}${tmpExtension}`;
 
 	await fs.writeFile(tmp, `${JSON.stringify(preview)}\n`, 'utf8');
@@ -268,8 +318,15 @@ async function isPreviewCurrent(preview: string, archive: string): Promise<boole
 	}
 }
 
-async function planJob(job: WaveformJob): Promise<'analyze' | 'distill' | 'skip'> {
-	if (!(await isArchiveCurrent(job.source, job.archive))) return 'analyze';
-	if (!(await isPreviewCurrent(job.preview, job.archive))) return 'distill';
+async function planJob(
+	job: WaveformJob,
+	cacheDir: string,
+): Promise<'analyze' | 'distill' | 'skip'> {
+	if (job.existing === undefined) return 'analyze';
+
+	const archive = path.join(cacheDir, job.existing);
+
+	if (!(await isArchiveCurrent(job.source, archive))) return 'analyze';
+	if (!(await isPreviewCurrent(job.preview, archive))) return 'distill';
 	return 'skip';
 }

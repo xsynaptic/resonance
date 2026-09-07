@@ -60,6 +60,10 @@ const probeUserAgent = 'resonance-deploy-probe';
 // certbot renews at 30 days, so fewer than this means the renewal timer has been failing for a week
 const certificateWarningDays = 21;
 
+// rsync already verified the transfer, so a probe is only testing the location block
+// Without a cap, a run that re-derives every archive probes all 68 to prove one block works
+const probeLimit = 3;
+
 const { values } = parseArgs({
 	args: process.argv.slice(2),
 	options: {
@@ -272,6 +276,10 @@ function probeRange(probeUrl: string): Promise<ProbeResponse> {
 	});
 }
 
+function probeSample(uploaded: Array<string>, fallback: Array<string>): Array<string> {
+	return (uploaded.length > 0 ? uploaded : fallback).slice(0, probeLimit);
+}
+
 function recordStep(label: string, status: StepStatus): void {
 	warnOnlySteps.push({ label, status });
 }
@@ -310,12 +318,11 @@ try {
 		console.log(chalk.yellow('Skipping health checks (dry run)'));
 		recordStep('Certificate', 'skipped');
 	} else {
-		// Probe everything this run put on the box; a no-op run falls back to any one of each kind
+		// Prefers what this run uploaded; a no-op run falls back to whatever the manifest names
 		await healthCheck({
-			archives: uploaded.archives.length > 0 ? uploaded.archives : manifest.archives.slice(0, 1),
-			originals: uploaded.originals.length > 0 ? uploaded.originals : validatedFiles.slice(0, 1),
-			renditions:
-				uploaded.renditions.length > 0 ? uploaded.renditions : manifest.streams.slice(0, 1),
+			archives: probeSample(uploaded.archives, manifest.archives),
+			originals: probeSample(uploaded.originals, validatedFiles),
+			renditions: probeSample(uploaded.renditions, manifest.streams),
 		});
 	}
 

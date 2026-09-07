@@ -14,7 +14,7 @@ import path from 'node:path';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
-import type { TrackValue } from '#lib/schemas/audio.ts';
+import type { TracklistValue } from '#lib/schemas/audio.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
 import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
@@ -30,7 +30,7 @@ import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts
 import { site } from '#lib/site.ts';
 import { matchReleaseTitle, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
-import { getContentUrl } from '#lib/utils/routing.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
@@ -54,7 +54,7 @@ interface MixSample {
 	// Absent when the mix has no rendition in the audio manifest
 	queueItem?: PlayerPayloadItem | undefined;
 	title: string;
-	tracks: Array<TrackValue>;
+	tracks: TracklistValue;
 }
 
 interface OpenGraphSample {
@@ -99,6 +99,29 @@ const itemWithoutPeaks: PlayerPayloadItem = {
 	title: 'A Mix With No Measured Peaks',
 	trackId: 'inventory-no-peaks',
 };
+
+// No mix in the corpus is split across audio files, so the grouped tracklist has to be hand-built
+// The filenames are fictional, so the download buttons dangle; the page carries no mix slug for a cue link
+const groupedTracks: TracklistValue = [
+	{
+		files: ['A Hand-Built Fixture - Part One.mp3'],
+		title: 'Part One',
+		tracks: [
+			{ artists: 'Biosphere', timestamp: '00:00:00', title: 'Kobresia' },
+			{ artists: 'Higher Intelligence Agency', timestamp: '00:06:12', title: 'Speech' },
+			{ artists: ['Pete Namlook', 'Bill Laswell'], timestamp: '00:14:48', title: 'Outland' },
+		],
+	},
+	{
+		description: 'A second part is its own file, so its timestamps run from zero again.',
+		files: ['A Hand-Built Fixture - Part Two.mp3'],
+		title: 'Part Two',
+		tracks: [
+			{ artists: 'O Yuki Conjugate', timestamp: '00:00:00', title: 'Black Magic Box' },
+			{ artists: 'Rapoon', timestamp: '00:09:37', title: 'Wanderer' },
+		],
+	},
+];
 
 const playerLabels: PlayerLabels = {
 	capped: t('player.capped'),
@@ -149,6 +172,7 @@ export async function getInventoryFixtures() {
 		cardWork: cardWorkItem(reviewItems),
 		excerpt: await sampleExcerpt(),
 		formats,
+		groupedTracks,
 		heroPath: await sampleHeroPath(),
 		iconIds,
 		imagePaths: await sampleImagePaths(4),
@@ -203,7 +227,7 @@ async function sampleExcerpt(): Promise<ExcerptSample | undefined> {
 	return {
 		Content,
 		date: entry.data.dateCreated,
-		href: getContentUrl('posts', entry.id),
+		href: getContentPath('posts', entry.id),
 		title: entry.data.title,
 	};
 }
@@ -382,7 +406,7 @@ async function sampleTerms(
 ): Promise<Array<ResolvedRef>> {
 	const entries = await getCollection(collection);
 	const terms = entries
-		.map((entry) => ({ label: entry.data.title, url: getContentUrl(collection, entry.id) }))
+		.map((entry) => ({ label: entry.data.title, url: getContentPath(collection, entry.id) }))
 		.sort((first, second) => first.label.localeCompare(second.label));
 
 	return limit === undefined ? terms : terms.slice(0, limit);

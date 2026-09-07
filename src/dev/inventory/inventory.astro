@@ -53,6 +53,7 @@ const {
 	cardWork,
 	excerpt,
 	formats,
+	groupedTracks,
 	heroPath,
 	iconIds,
 	imagePaths,
@@ -73,23 +74,14 @@ const {
 	vocabulary,
 } = await getInventoryFixtures();
 
-// Mirrors the ramps in styles/main/parts/theme.css, which define every step for all five
-const rampSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-const rampNames = ['surface', 'ink', 'accent', 'highlight', 'crimson'];
-
-const fontFamilies = [
-	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
-	{ name: 'font-body', note: 'Archivo, for body copy and chrome' },
-	{ name: 'font-mono', note: "System mono, for this page's own labels" },
-];
-
+// Hand-kept mirror of the Section titles below, which the nav links to by derived anchor
 const sectionTitles = [
 	'Foundations',
 	'Prose',
-	'Links, buttons, icons',
-	'References',
+	'Buttons, icons and dividers',
+	'References and terms',
 	'Cards and listings',
-	'Detail headers',
+	'Detail pages',
 	'Media',
 	'Open Graph',
 	'Audio',
@@ -101,6 +93,16 @@ const sectionTitles = [
 
 const hasHero = !Astro.url.pathname.replace(/\/$/, '').endsWith('/no-hero');
 
+// Mirrors the ramps in styles/main/parts/theme.css, which define every step for all five
+const rampSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const rampNames = ['surface', 'ink', 'accent', 'highlight', 'crimson'];
+
+const fontFamilies = [
+	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
+	{ name: 'font-body', note: 'Archivo, for body copy and chrome' },
+	{ name: 'font-mono', note: "System mono, for this page's own labels" },
+];
+
 function toDirectoryTerms(refs: Array<{ label: string; url?: string | undefined }>) {
 	return refs.flatMap((ref) => (ref.url === undefined ? [] : [{ title: ref.label, url: ref.url }]));
 }
@@ -111,20 +113,6 @@ const shortVocabularyTerms = toDirectoryTerms([...styles, ...themes, ...labels])
 const mixedRefs = [...artists.slice(0, 2), { label: 'An Uncatalogued Artist' }];
 
 const breadcrumbTrail = [{ label: 'Styles', url: '/styles/' }, ...styles.slice(0, 2)];
-
-// A selection's anchor id comes from its entry, so each order variant takes its own rows
-const unorderedSelections = selections.slice(0, 3);
-const orderedSelections = selections.slice(3, 6);
-const countdownSelections = selections.slice(6, 9);
-
-// Every field written inline, the authoring mode that needs no entry behind it
-const inlineSelection: SelectionValue = {
-	artists: 'A Free-Text Artist',
-	discogsUrl: 'https://www.discogs.com/',
-	labels: ['An Uncatalogued Label'],
-	title: 'A Release Named Inline',
-	year: '2003',
-};
 
 // Astro's own Page interface type-checks this, so a new required field surfaces here as a tsc error
 const paginationPage: Page<ContentCatalogItem> = {
@@ -143,6 +131,20 @@ const paginationPage: Page<ContentCatalogItem> = {
 		prev: '/reviews/2',
 	},
 };
+
+// A selection's anchor id comes from its entry, so each order variant takes its own rows
+const unorderedSelections = selections.slice(0, 3);
+const orderedSelections = selections.slice(3, 6);
+const countdownSelections = selections.slice(6, 9);
+
+// Every field written inline, the authoring mode that needs no entry behind it
+const inlineSelection: SelectionValue = {
+	artists: 'A Free-Text Artist',
+	discogsUrl: 'https://www.discogs.com/',
+	labels: ['An Uncatalogued Label'],
+	title: 'A Release Named Inline',
+	year: '2003',
+};
 ---
 
 <MainSite title="Inventory">
@@ -159,10 +161,12 @@ const paginationPage: Page<ContentCatalogItem> = {
 		) : undefined
 	}
 	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
-		Every component here is the real one, rendered with real props. Content-heavy props are found by
-		predicate rather than by name, so editing content never stales this page. The route is injected
-		under <code>astro dev</code> only; a build emits nothing for it. The header above is in its
-		{hasHero ? 'overlay' : 'normal'} variant:{' '}
+		Every component here is the real one, rendered with real props found by predicate rather than by
+		name, so editing content never stales this page. The route is injected under <code
+			>astro dev</code
+		> only; a build emits nothing for it. The header above is in its {
+			hasHero ? 'overlay' : 'normal'
+		} variant:{' '}
 		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
 			{hasHero ? 'drop the hero band' : 'restore the hero band'}
 		</Anchor> to see the other.
@@ -240,7 +244,7 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="Link roles"
-			note="Nothing ships a bare anchor in running text, so the base is a fallback rather than a role: it is deliberately quiet, one step off body colour with no underline. Every context that puts a link in prose claims it first. Hover, focus and active all differ; tab through for the focus treatment."
+			note="Nothing ships a bare anchor in running text, so the base is a fallback rather than a role: deliberately quiet, one step off body colour with no underline. Every context that puts a link in prose claims it first, and <code>Anchor</code> (<code>src/components/parts/anchor.astro</code>) carries two of those roles through <code>anchorColor</code>. Hover, focus and active all differ; tab through for the focus treatment."
 			source="src/styles/main/parts/base.css"
 		>
 			<div class="space-y-2">
@@ -248,44 +252,18 @@ const paginationPage: Page<ContentCatalogItem> = {
 					<p>Prose claims a link with <a href="/mixes/">an underline and a lift to ink-200</a>.</p>
 				</div>
 				<p>
-					<Anchor href="/mixes/">Anchor</Anchor> carries taxonomy, meta and navigation in highlight.
+					<Anchor href="/mixes/">anchorColor=&quot;highlight&quot;</Anchor>, the default, for
+					taxonomy, meta and navigation.
+				</p>
+				<p>
+					<Anchor anchorColor="muted" href="/mixes/">anchorColor=&quot;muted&quot;</Anchor>, a step
+					dimmer, for the footer.
 				</p>
 				<p class="title-meta">
 					<span><a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.</span
 					>
 				</p>
 				<p>And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.</p>
-			</div>
-		</Specimen>
-		<Specimen
-			name="DividedItem"
-			note="A glyph after every item, dropped on the last. The parent supplies the wrap and sets --divider-space for the room around the glyph; each item supplies its own separator, so one row can mix them. The as prop sets the tag. Used by the colophon, the audio counts, breadcrumbs, and both title meta rows."
-			source="src/components/parts/divided-item.astro"
-		>
-			<div class="flex flex-col gap-2">
-				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span">dividerContent=&quot;dot&quot; (default)</DividedItem>
-					<DividedItem as="span">three items</DividedItem>
-					<DividedItem as="span">two glyphs</DividedItem>
-				</div>
-				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerContent="slash"
-						>dividerContent=&quot;slash&quot;</DividedItem
-					>
-					<DividedItem as="span" dividerContent="slash">available, unused today</DividedItem>
-				</div>
-				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerContent="chevron">
-						dividerContent=&quot;chevron&quot;
-					</DividedItem>
-					<DividedItem as="span" dividerContent="chevron">for a trail</DividedItem>
-				</div>
-				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerColor="muted">dividerColor=&quot;muted&quot;</DividedItem>
-					<DividedItem as="span" dividerWeight="thin">dividerWeight=&quot;thin&quot;</DividedItem>
-					<DividedItem as="span">and the default, for comparison</DividedItem>
-					<DividedItem as="span">last, no glyph</DividedItem>
-				</div>
 			</div>
 		</Specimen>
 	</Section>
@@ -299,22 +277,11 @@ const paginationPage: Page<ContentCatalogItem> = {
 			</div>
 		</Specimen>
 	</Section>
-	<Section title="Links, buttons, icons">
-		<Specimen
-			name="Anchor"
-			note="Two roles: highlight for taxonomy, meta and navigation; muted a step dimmer, for the footer."
-			source="src/components/parts/anchor.astro"
-		>
-			<div class="flex flex-wrap items-center gap-4">
-				<Anchor href="/mixes/">anchorColor=&quot;highlight&quot; (default)</Anchor>
-				<Anchor anchorColor="muted" href="/mixes/">anchorColor=&quot;muted&quot;</Anchor>
-			</div>
-		</Specimen>
-		<Specimen
-			name="ButtonLink"
-			note="Both button components render the same .button-x classes; the tag is the only difference."
-			source="src/components/parts/button-link.astro"
-		>
+	<Section
+		note="Both button components render the same <code>.button-x</code> classes; the tag is the only difference."
+		title="Buttons, icons and dividers"
+	>
+		<Specimen name="ButtonLink" source="src/components/parts/button-link.astro">
 			<div class="flex flex-wrap items-center gap-4">
 				<ButtonLink href="/mixes/">standard</ButtonLink>
 				<ButtonLink href="/mixes/" icon="download">standard, icon</ButtonLink>
@@ -363,10 +330,41 @@ const paginationPage: Page<ContentCatalogItem> = {
 				}
 			</div>
 		</Specimen>
+		<Specimen
+			name="DividedItem"
+			note="A glyph after every item, dropped on the last. The parent supplies the wrap and sets --divider-space for the room around the glyph; each item supplies its own separator, so one row can mix them. The as prop sets the tag. Used by the colophon, the audio counts, breadcrumbs, and both title meta rows."
+			source="src/components/parts/divided-item.astro"
+		>
+			<div class="flex flex-col gap-2">
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span">dividerContent=&quot;dot&quot; (default)</DividedItem>
+					<DividedItem as="span">three items</DividedItem>
+					<DividedItem as="span">two glyphs</DividedItem>
+				</div>
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span" dividerContent="slash"
+						>dividerContent=&quot;slash&quot;</DividedItem
+					>
+					<DividedItem as="span" dividerContent="slash">available, unused today</DividedItem>
+				</div>
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span" dividerContent="chevron">
+						dividerContent=&quot;chevron&quot;
+					</DividedItem>
+					<DividedItem as="span" dividerContent="chevron">for a trail</DividedItem>
+				</div>
+				<div class="flex flex-wrap gap-x-1">
+					<DividedItem as="span" dividerColor="muted">dividerColor=&quot;muted&quot;</DividedItem>
+					<DividedItem as="span" dividerWeight="thin">dividerWeight=&quot;thin&quot;</DividedItem>
+					<DividedItem as="span">and the default, for comparison</DividedItem>
+					<DividedItem as="span">last, no glyph</DividedItem>
+				</div>
+			</div>
+		</Specimen>
 	</Section>
 	<Section
 		note="How a resolved reference renders. A ref with no url is either free text or an id that did not resolve; both stay plain instead of failing."
-		title="References"
+		title="References and terms"
 	>
 		<Specimen name="RefText" source="src/components/parts/ref-text.astro">
 			<div class="flex flex-wrap items-center gap-4">
@@ -390,17 +388,6 @@ const paginationPage: Page<ContentCatalogItem> = {
 			</div>
 		</Specimen>
 		<Specimen
-			name="SectionCoda"
-			note="The panel that closes a detail page. Every row inside returns undefined on an empty array, so the slot renders first and the box appears only if something came back."
-			source="src/components/sections/section-coda.astro"
-		>
-			<SectionCoda>
-				<TermLinks heading="Format" terms={formats} />
-				<TermLinks heading="Themes" terms={themes} />
-				<TermLinks heading="Labels" terms={labels} />
-			</SectionCoda>
-		</Specimen>
-		<Specimen
 			name="TermDirectory"
 			note="The body of every Term List Page. Sorts and buckets by initial itself, so terms arrive in any order; a name starting with anything but A-Z files under <code>#</code>. Only roots are bucketed, so the threshold counts roots, not terms."
 			source="src/components/parts/term-directory.astro"
@@ -420,11 +407,11 @@ const paginationPage: Page<ContentCatalogItem> = {
 		>
 			<TermDirectory terms={regionTree} />
 		</Specimen>
-		<Specimen name="Breadcrumbs" source="src/components/parts/breadcrumbs.astro">
-			<Breadcrumbs trail={breadcrumbTrail} />
-		</Specimen>
 	</Section>
-	<Section title="Cards and listings">
+	<Section
+		note="A List Page from the top down, then the two bands that reuse the same card elsewhere."
+		title="Cards and listings"
+	>
 		<Specimen
 			name="EntryCard"
 			note="Always square: the Blog stream is mostly Album Artwork, and a mixed-Format grid has to line up. The frame keeps its shape when the original is missing, which is routine in dev. A Review italicises the work half of its title, matching <code>SectionDetailHeader</code>."
@@ -471,6 +458,31 @@ const paginationPage: Page<ContentCatalogItem> = {
 		>
 			<ListGroupHeading label={String(new Date().getFullYear())} />
 		</Specimen>
+		<Specimen
+			name="SectionPostExcerpt"
+			note="The blog list row. The body truncates at the <code>More</code> fold, and the continue link appears only if something followed it."
+			source="src/components/sections/section-post-excerpt.astro"
+		>
+			{
+				excerpt ? (
+					<SectionPostExcerpt
+						date={excerpt.date}
+						href={excerpt.href}
+						title={excerpt.title}
+						{...(formats[0] ? { format: formats[0] } : {})}
+					>
+						<excerpt.Content />
+					</SectionPostExcerpt>
+				) : undefined
+			}
+		</Specimen>
+		<Specimen
+			name="PaginationSelect"
+			note="The counter becomes a page select once the custom element upgrades."
+			source="src/components/parts/pagination-select.astro"
+		>
+			<PaginationSelect page={paginationPage} />
+		</Specimen>
 		<Specimen name="SectionHome" source="src/components/sections/section-home.astro">
 			<SectionHome
 				heading="Latest Mixes"
@@ -486,18 +498,14 @@ const paginationPage: Page<ContentCatalogItem> = {
 		>
 			<SectionRelated items={reviewItems.slice(0, 8)} />
 		</Specimen>
-		<Specimen
-			name="PaginationSelect"
-			note="The counter becomes a page select once the custom element upgrades."
-			source="src/components/parts/pagination-select.astro"
-		>
-			<PaginationSelect page={paginationPage} />
-		</Specimen>
 	</Section>
 	<Section
-		note="SectionDetailHero is at the top of this page, in MainSite's hero slot, the only place it renders at full bleed. It also flips the site header into transparent overlay mode. A prerendered page cannot read a query parameter, so seeing the page without it takes a second injected route, <code>/inventory/no-hero</code>."
-		title="Detail headers"
+		note="What opens and closes a Detail Page. SectionDetailHero is at the top of this page, in MainSite's hero slot, the only place it renders at full bleed; it also flips the site header into transparent overlay mode. A prerendered page cannot read a query parameter, so seeing the page without it takes a second injected route, <code>/inventory/no-hero</code>."
+		title="Detail pages"
 	>
+		<Specimen name="Breadcrumbs" source="src/components/parts/breadcrumbs.astro">
+			<Breadcrumbs trail={breadcrumbTrail} />
+		</Specimen>
 		<Specimen
 			name="SectionDetailHeader"
 			note="Bare: a title and nothing else, the way a term detail page uses it."
@@ -538,11 +546,25 @@ const paginationPage: Page<ContentCatalogItem> = {
 				) : undefined
 			}
 		</Specimen>
+		<Specimen
+			name="SectionCoda"
+			note="The panel that closes a detail page. Every row inside returns undefined on an empty array, so the slot renders first and the box appears only if something came back."
+			source="src/components/sections/section-coda.astro"
+		>
+			<SectionCoda>
+				<TermLinks heading="Format" terms={formats} />
+				<TermLinks heading="Themes" terms={themes} />
+				<TermLinks heading="Labels" terms={labels} />
+			</SectionCoda>
+		</Specimen>
 	</Section>
-	<Section title="Media">
+	<Section
+		note="Originals are gitignored, so every specimen here resolves against whatever is on disk and renders nothing when the file is missing, rather than failing the build."
+		title="Media"
+	>
 		<Specimen
 			name="MediaImage"
-			note="Resolves a frontmatter media path, and renders nothing when the original is missing rather than failing the build."
+			note="Resolves a frontmatter media path and never upscales: the requested width is capped at the original's, which for most source artwork is around 600px."
 			source="src/components/parts/media-image.astro"
 		>
 			{heroPath ? <MediaImage alt="" path={heroPath} width={400} /> : undefined}
@@ -556,10 +578,12 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 		<Specimen
 			name="Img"
-			note="Auto-imported into MDX bodies, and the only image tag content authors write."
+			note="Auto-imported into MDX bodies, and the only image tag content authors write. Its children are the caption, which wraps the image in a figure; with none it emits the image alone, as MediaImage does above."
 			source="src/components/mdx/img.astro"
 		>
-			<div class="prose-x">{heroPath ? <Img src={heroPath} /> : undefined}</div>
+			<div class="prose-x">
+				{heroPath ? <Img src={heroPath}>A caption, written as the tag's children.</Img> : undefined}
+			</div>
 		</Specimen>
 		<Specimen
 			name="ImgGroup"
@@ -619,9 +643,14 @@ const paginationPage: Page<ContentCatalogItem> = {
 		<Specimen
 			name="AudioLinks"
 			note="The same files without <code>cueSlug</code>, which is how a mix with no timestamps renders. Each download stands alone, rounded at both ends, and no cue sheet is offered."
-			source="src/components/parts/audio-links.astro"
 		>
 			{mix ? <AudioLinks files={mix.files} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="AudioLinks"
+			note="Links but no files: the downloads and their CUE halves drop out, leaving the external links. Handed neither, the component renders nothing at all, which is under Empty states."
+		>
+			<AudioLinks links={mix?.links} />
 		</Specimen>
 		<Specimen
 			name="AudioCounts"
@@ -642,18 +671,9 @@ const paginationPage: Page<ContentCatalogItem> = {
 		<Specimen name="AudioCounts" note="A single of each, to check the pluralisation.">
 			<AudioCounts downloads={1} mixcloudPlays={1} soundcloudPlays={1} streams={1} />
 		</Specimen>
-		<Specimen name="EmbedMixcloud" source="src/components/embed/embed-mixcloud.astro">
-			{mixcloudUrl ? <EmbedMixcloud url={mixcloudUrl} /> : undefined}
-		</Specimen>
-		<Specimen name="EmbedMixcloud" note="mini: the single-row player.">
-			{mixcloudUrl ? <EmbedMixcloud mini url={mixcloudUrl} /> : undefined}
-		</Specimen>
-		<Specimen name="EmbedSoundcloud" source="src/components/embed/embed-soundcloud.astro">
-			{soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}
-		</Specimen>
 		<Specimen
 			name="EmbedFrame"
-			note="The shared frame both players sit in, here with an aspect ratio instead of a fixed height."
+			note="The shared frame both third-party players sit in, here with an aspect ratio instead of a fixed height."
 			source="src/components/embed/embed-frame.astro"
 		>
 			<EmbedFrame
@@ -664,36 +684,30 @@ const paginationPage: Page<ContentCatalogItem> = {
 				title="Embed frame sample"
 			/>
 		</Specimen>
+		<Specimen name="EmbedMixcloud" source="src/components/embed/embed-mixcloud.astro">
+			{mixcloudUrl ? <EmbedMixcloud url={mixcloudUrl} /> : undefined}
+		</Specimen>
+		<Specimen name="EmbedMixcloud" note="mini: the single-row player.">
+			{mixcloudUrl ? <EmbedMixcloud mini url={mixcloudUrl} /> : undefined}
+		</Specimen>
+		<Specimen name="EmbedSoundcloud" source="src/components/embed/embed-soundcloud.astro">
+			{soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}
+		</Specimen>
 	</Section>
 	<Section
-		note="The player package, rendered from its own parts. Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton and nothing here hijacks it. No specimen reaches the network or builds an audio graph, which a browser refuses outside a gesture: the stream resolver answers from the payload it was handed, and a silent engine stands at the engine seam so each specimen reaches its state through the same actions the site uses."
+		note="The player package, rendered from its own parts: the whole bar first, then the parts it is built from, then the two states the site normally hides. Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton and nothing here hijacks it. None reaches the network or builds an audio graph, which a browser refuses outside a gesture: the stream resolver answers from the payload it was handed, and a silent engine stands at the engine seam."
 		title="Player"
 	>
 		<Specimen
 			name="AudioPlayer"
-			note="One composition of parts, laid out by CSS grid areas: transport, the info window, seek surface, status region, signal display, volume and the queue. Unforced, as here, the bar reads its own width through a container query and picks a layout, so it answers to the box it is given rather than to the viewport. The info window's track is capped at 18rem and the seek surface takes whatever is left, painted from the mix's measured peaks."
+			note="One composition of parts laid out by CSS grid areas: transport, the info window, seek surface, status region, signal display, volume and the queue. Unforced, as here, the bar reads its own width through a container query, so it answers to the box it is given rather than to the viewport. The info window's track is capped at 18rem and the seek surface takes whatever is left, painted from the mix's measured peaks."
 			source="packages/player/src/components/audio-player.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
 		</Specimen>
 		<Specimen
-			name="MarqueeText"
-			note="A title and an artist too long for the info window. The measurement writes <code>data-overflow</code> and the distance, and CSS does the rest: an 8s hold, travel at 40px/s, an 8s hold, travel back. The edge is a fade mask rather than an ellipsis, because an ellipsis cannot follow travelling text. Hover or focus pauses it, and <code>prefers-reduced-motion</code> stops it and restores the ellipsis. A line that fits never moves."
-			source="packages/player/src/components/marquee-text.tsx"
-		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="marquee" />
-		</Specimen>
-		<Specimen
-			name="Player.Time"
-			note="The clock in remaining mode, seeded a third of the way in. It is a toggle button: clicking it flips between elapsed (<code>32:04</code>) and remaining (<code>-85:32</code>), one number either way, and the choice persists under <code>player:v1:time-mode</code>. <code>data-mode</code> is the styling hook and <code>aria-pressed</code> carries the state."
-			source="packages/player/src/components/time-display.tsx"
-		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="remaining" />
-		</Specimen>
-		<Specimen
 			name="AudioPlayer"
 			note="The compact layout, forced through <code>variant</code>, which writes <code>data-layout</code> on the bar and takes the choice away from the container query. One row: the scope is placed and the skip buttons are hidden."
-			source="packages/player/src/components/audio-player.tsx"
 		>
 			<PlayerSpecimen
 				client:load
@@ -706,7 +720,6 @@ const paginationPage: Page<ContentCatalogItem> = {
 		<Specimen
 			name="AudioPlayer"
 			note="The expanded layout, forced the same way. Two rows: the info window takes the first with volume and the queue, the waveform takes the second beside five transport buttons, and the skips seek 30 seconds through <code>seekBy</code>. The scope is not placed here. Both layouts are one DOM, so the switch remounts nothing and loses no state."
-			source="packages/player/src/components/audio-player.tsx"
 		>
 			<PlayerSpecimen
 				client:load
@@ -724,6 +737,20 @@ const paginationPage: Page<ContentCatalogItem> = {
 			<div class="max-w-[32rem]">
 				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
 			</div>
+		</Specimen>
+		<Specimen
+			name="MarqueeText"
+			note="A title and an artist too long for the info window. The measurement writes <code>data-overflow</code> and the distance, and CSS does the rest: an 8s hold, travel at 40px/s, an 8s hold, travel back. The edge is a fade mask rather than an ellipsis, because an ellipsis cannot follow travelling text. Hover or focus pauses it, <code>prefers-reduced-motion</code> stops it and restores the ellipsis, and a line that fits never moves."
+			source="packages/player/src/components/marquee-text.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="marquee" />
+		</Specimen>
+		<Specimen
+			name="Player.Time"
+			note="The clock in remaining mode, seeded a third of the way in. It is a toggle button: clicking it flips between elapsed (<code>32:04</code>) and remaining (<code>-85:32</code>), one number either way, and the choice persists under <code>player:v1:time-mode</code>. <code>data-mode</code> is the styling hook and <code>aria-pressed</code> carries the state."
+			source="packages/player/src/components/time-display.tsx"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="remaining" />
 		</Specimen>
 		<Specimen
 			name="Player.Seek"
@@ -767,7 +794,6 @@ const paginationPage: Page<ContentCatalogItem> = {
 		<Specimen
 			name="AudioPlayer"
 			note="Nothing queued: the root carries <code>data-empty</code>, the transport is disabled, the clock reads its placeholder, the seek surface falls back to a disabled range input and the track line carries the <code>nowPlaying</code> label. The site hides this state outright, so the specimen opts back in to show it."
-			source="packages/player/src/components/audio-player.tsx"
 		>
 			<div class="inventory-player-empty">
 				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="empty" />
@@ -782,16 +808,24 @@ const paginationPage: Page<ContentCatalogItem> = {
 		</Specimen>
 	</Section>
 	<Section
-		note="These render inside .prose-x in production, so they are wrapped in it here too."
+		note="The MDX tags an author writes in a body. These render inside .prose-x in production, so they are wrapped in it here too."
 		title="Content blocks"
 	>
 		<Specimen
 			name="TrackList"
-			note="Auto-imported into MDX bodies. The numeral and time columns appear from 40rem up. A time is a track's own <code>duration</code>; a mix's <code>timestamp</code> is cue-sheet data and never renders, so no row here carries one."
+			note="The numeral and time columns appear from 40rem up. A time is a track's own <code>duration</code>; a mix's <code>timestamp</code> is Cue Sheet data and never renders, so no row here carries one."
 			source="src/components/mdx/track-list.astro"
 		>
 			<div class="prose-x">
 				<TrackList tracks={mix?.tracks.slice(0, 6)} />
+			</div>
+		</Specimen>
+		<Specimen
+			name="TrackList"
+			note="The grouped form, hand-built: no mix in the corpus is split across audio files. Each group takes its own heading and its own list, numbered from one, and a group naming <code>files</code> carries its download buttons above its rows rather than in the page header. The filenames are fictional, so those buttons dangle, and their <code>CUE</code> halves are absent because this page has no mix slug for the route to key on."
+		>
+			<div class="prose-x">
+				<TrackList tracks={groupedTracks} />
 			</div>
 		</Specimen>
 		<Specimen
@@ -824,47 +858,21 @@ const paginationPage: Page<ContentCatalogItem> = {
 				<Selections items={[inlineSelection]} />
 			</div>
 		</Specimen>
-		<Specimen
-			name="SectionPostExcerpt"
-			note="The blog list row. The body truncates at the <code>More</code> fold, and the continue link appears only if something followed it."
-			source="src/components/sections/section-post-excerpt.astro"
-		>
-			{
-				excerpt ? (
-					<SectionPostExcerpt
-						date={excerpt.date}
-						href={excerpt.href}
-						title={excerpt.title}
-						{...(formats[0] ? { format: formats[0] } : {})}
-					>
-						<excerpt.Content />
-					</SectionPostExcerpt>
-				) : undefined
-			}
-		</Specimen>
 	</Section>
 	<Section
-		note="What a component does when its data is missing. The dashed frames belong to this page, not to the components; without them there would be nothing to see."
+		note="The dashed frame belongs to this page, not to the components inside it; without it there would be nothing to see."
 		title="Empty states"
 	>
 		<Specimen
 			name="Components that render nothing"
-			note="<code>TermLinks</code>, <code>SectionRelated</code>, <code>Selections</code> and <code>TrackList</code>, each handed an empty array. All four return <code>undefined</code>, with no placeholder and no reserved space."
+			note="<code>TermLinks</code>, <code>SectionRelated</code>, <code>Selections</code> and <code>TrackList</code>, each handed an empty array, and <code>AudioLinks</code> handed neither links nor files. All five return <code>undefined</code>, with no placeholder and no reserved space."
 		>
 			<div class="rounded-sm border border-dashed border-ink-700 p-4">
 				<TermLinks heading="Styles" terms={[]} />
 				<SectionRelated items={[]} />
 				<Selections items={[]} />
 				<TrackList tracks={[]} />
-			</div>
-		</Specimen>
-		<Specimen
-			name="AudioLinks"
-			note="Links but no files: the download controls and their attached CUE halves drop out, leaving the external links. Handed neither, it renders nothing."
-			source="src/components/parts/audio-links.astro"
-		>
-			<div class="rounded-sm border border-dashed border-ink-700 p-4">
-				<AudioLinks links={mix?.links} />
+				<AudioLinks />
 			</div>
 		</Specimen>
 	</Section>

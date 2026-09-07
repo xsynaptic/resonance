@@ -139,8 +139,8 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 									type="button"
 								>
 									<span className="player-tray-title">
-										{index === currentIndex ? <PlayingIcon /> : undefined}
 										<span className="player-tray-name">{item.title}</span>
+										{index === currentIndex ? <PlayingIcon /> : undefined}
 									</span>
 									<span className="player-tray-artist">{item.artistLine}</span>
 								</button>

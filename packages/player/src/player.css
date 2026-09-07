@@ -10,13 +10,9 @@
 	--player-surface-hover: #262626;
 	--player-border: #262626;
 	--player-border-strong: #404040;
-
-	/* The transport, volume and queue controls; a host takes them off the text ramp by overriding these three */
 	--player-control: var(--player-text);
 	--player-control-bright: var(--player-text-bright);
 	--player-control-strong: var(--player-text-strong);
-
-	/* Read from JS when a canvas paints, so an override must resolve to a colour, never to a `var()` chain */
 	--player-accent: #10b981;
 	--player-waveform-played: #10b981;
 	--player-waveform-track: #525252;
@@ -25,22 +21,14 @@
 	--player-panel-wave-edge: #065f46;
 	--player-panel-void: #262626;
 	--player-panel-edge: #525252;
-
-	/* The panel's colours that stay in CSS rather than being read onto the canvas */
 	--player-panel-now: #fafafa;
 	--player-panel-now-soft: #a3a3a3;
 	--player-panel-surface: #0a0a0a;
 	--player-panel-surface-deep: #000;
-
-	/* The fader cap's face; its lit edge, its shadow and its engraved line are all mixed from it */
 	--player-fader-cap: #525252;
-
-	/* The slot the fader rides; the component writes the level and this value is only its fallback */
 	--player-volume-track: #525252;
 	--player-volume-track-bright: #737373;
 	--player-volume-level: 100%;
-
-	/* Read the same way, so each must resolve to a px length rather than to a `var()` chain or another unit */
 	--player-waveform-bar: 2px;
 	--player-waveform-gap: 1px;
 	--player-waveform-radius: 1px;
@@ -50,6 +38,7 @@
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
 	--player-info-width: 14.4rem;
+	--player-clock-width: 3.75rem;
 	--player-panel-height: 7.5rem;
 	--player-waveform-height: 3rem;
 	--player-waveform-height-expanded: 3.5rem;
@@ -61,29 +50,46 @@
 	--player-radius-large: 0.5rem;
 }
 
-/* Structure only; decoration is the custom properties above, which a host redeclares on `:root` */
 .player {
 	font-family: var(--player-font-family);
 }
 
-/* Out of flow, so a status arriving mid-scrub cannot resize the seek bar or swallow a seek click */
 .player-status {
 	position: absolute;
 	top: 50%;
 	left: 50%;
+	display: flex;
+	visibility: hidden;
+	gap: 0.375rem;
+	align-items: center;
+	padding: 0.125rem 0.5rem;
 	font-size: var(--player-font-size-small);
 	line-height: 1rem;
 	color: var(--player-text-muted);
 	white-space: nowrap;
 	pointer-events: none;
-	translate: -50% -50%;
-}
-
-/* Sits over the waveform, so it needs a ground of its own to stay legible */
-.player-status:not(:empty) {
-	padding: 0.125rem 0.5rem;
 	background-color: color-mix(in oklab, var(--player-surface) 85%, transparent);
 	border-radius: var(--player-radius);
+	opacity: 0;
+	translate: -50% -50%;
+	transition:
+		opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+		visibility 200ms;
+}
+
+.player-status[data-visible] {
+	visibility: visible;
+	opacity: 1;
+}
+
+.player-status[data-visible][data-status='loading'] {
+	transition-delay: 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-status {
+		transition-duration: 1ms;
+	}
 }
 
 .player-button {
@@ -104,7 +110,6 @@
 	}
 }
 
-/* An outline follows the border radius and stays visible under a host that restyles the rest */
 .player-button:focus-visible {
 	color: var(--player-control-bright);
 	outline: 2px solid var(--player-focus-ring);
@@ -127,7 +132,6 @@
 	height: 1.5rem;
 }
 
-/* A circle, so the one filled control reads as the centre of the transport rather than as another key */
 .player-button-primary {
 	width: 2.25rem;
 	height: 2.25rem;
@@ -148,10 +152,8 @@
 	background-color: var(--player-control-bright);
 }
 
-/* Secondary to the filled centre beside them, so the eye lands on play first
-   Their own hover and focus, because `.player-button`'s sit earlier at the same specificity */
 .player-skip {
-	color: color-mix(in oklab, var(--player-control) 65%, var(--player-surface));
+	color: color-mix(in oklab, var(--player-control) 80%, var(--player-surface));
 }
 
 @media (hover: hover) {
@@ -176,10 +178,12 @@
 }
 
 .player-track-meta {
+	position: relative;
 	display: flex;
 	gap: var(--player-gap-tight);
 	align-items: baseline;
 	justify-content: flex-end;
+	padding-inline-end: var(--player-clock-width);
 }
 
 .player-track-empty {
@@ -218,13 +222,11 @@
 	color: var(--player-text-muted);
 }
 
-/* The artist takes the row and pushes whatever the host composed in, the clock here, to the end */
 .player-track-meta .player-track-artist {
 	flex: 1 1 auto;
 	min-width: 0;
 }
 
-/* Clipping and the ellipsis live here rather than on the line, so the marquee owns the box it travels inside */
 .player-marquee {
 	display: block;
 	overflow: hidden;
@@ -232,12 +234,10 @@
 	white-space: nowrap;
 }
 
-/* Inline would refuse the translate */
 .player-marquee-text {
 	display: inline-block;
 }
 
-/* An ellipsis cannot follow travelling text; at rest the fade says the same thing */
 .player-marquee[data-overflow] {
 	mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 	mask-repeat: no-repeat;
@@ -247,7 +247,6 @@
 	animation: player-marquee var(--player-marquee-duration) var(--player-marquee-timing) infinite;
 }
 
-/* The title is a link, so it has to be readable and clickable while the line is travelling */
 @media (hover: hover) {
 	.player-marquee[data-overflow]:hover .player-marquee-text {
 		animation-play-state: paused;
@@ -258,7 +257,6 @@
 	animation-play-state: paused;
 }
 
-/* The easing carries the holds; the distance is written by the measurement */
 @keyframes player-marquee {
 	from {
 		translate: 0;
@@ -274,17 +272,17 @@
 		mask: none;
 	}
 
-	/* Back to an inline run, which is what `text-overflow` needs to draw its ellipsis */
 	.player-marquee[data-overflow] .player-marquee-text {
 		display: inline;
 		animation: none;
 	}
 }
 
-/* Tabular numerals over a floor wide enough for `-85:32`, so flipping modes never moves the artist beside it */
 .player-time {
-	flex-shrink: 0;
-	min-width: 4.5ch;
+	position: absolute;
+	inset-block-end: 0;
+	inset-inline-end: 0;
+	width: var(--player-clock-width);
 	font-family: var(--player-font-mono);
 	font-size: var(--player-font-size-small);
 	font-variant-numeric: tabular-nums;
@@ -307,7 +305,6 @@
 	outline-offset: 2px;
 }
 
-/* 2rem wide at every viewport, which is what makes volume affordable on a phone */
 .player-volume {
 	position: relative;
 	display: flex;
@@ -316,7 +313,6 @@
 	color: var(--player-text-muted);
 }
 
-/* Above the trigger and centred on it; `display: none` closed, so a shut panel costs nothing */
 .player-volume-panel {
 	position: absolute;
 	bottom: 100%;
@@ -336,7 +332,6 @@
 	translate: -50%;
 }
 
-/* Bridges the gap up to the trigger, which would otherwise drop the hover on the way to the panel */
 .player-volume-panel::after {
 	position: absolute;
 	top: 100%;
@@ -346,7 +341,6 @@
 	content: '';
 }
 
-/* Inside the query, because a `:focus-within` outside it would open the panel on a tap and then fight the toggle */
 @media (hover: hover) {
 	.player-volume:hover .player-volume-panel,
 	.player-volume:focus-within .player-volume-panel {
@@ -358,8 +352,6 @@
 	display: flex;
 }
 
-/* A mixer fader rather than the UA pill: a thin recessed slot with a cap riding it
-   The modern vertical range; `orient` and `appearance: slider-vertical` are both deprecated */
 .player-volume-slider {
 	width: 1.5rem;
 	height: 6rem;
@@ -370,8 +362,6 @@
 	writing-mode: vertical-lr;
 }
 
-/* Drawing the track here leaves `accent-color` nothing to do, so the level is a gradient stop instead
-   The inset shadow is what sinks the slot into the panel rather than laying it on top */
 .player-volume-slider::-webkit-slider-runnable-track {
 	width: 0.25rem;
 	background-image: linear-gradient(
@@ -384,7 +374,6 @@
 	box-shadow: inset 0 0 2px 1px rgb(0 0 0 / 55%);
 }
 
-/* Lit from above, engraved across the middle, sitting proud of the slot on its own shadow */
 .player-volume-slider::-webkit-slider-thumb {
 	width: 1.25rem;
 	height: 0.625rem;
@@ -439,7 +428,6 @@
 	box-shadow: 0 1px 3px rgb(0 0 0 / 65%);
 }
 
-/* On the slider, not on `.player-volume`, which is already hovered whenever the panel is visible */
 @media (hover: hover) {
 	.player-volume-slider:hover {
 		--player-volume-track: var(--player-volume-track-bright);
@@ -462,7 +450,6 @@
 	opacity: 0.5;
 }
 
-/* The renderer's `width` attribute is the canvas's intrinsic size, which `min-width: auto` would floor this box at */
 .player-waveform {
 	display: block;
 	width: 100%;
@@ -477,7 +464,6 @@
 	outline-offset: 2px;
 }
 
-/* Transparent, and spaced off the waveform; both are accent-coloured and read as one shape when they touch */
 .player-scope {
 	display: block;
 	width: 6rem;
@@ -587,7 +573,6 @@
 	content-visibility: auto;
 }
 
-/* Lifted over the rows it is passing, which are transformed under it */
 .player-tray-item[data-dragging] {
 	z-index: 1;
 	background-color: var(--player-surface-hover);
@@ -602,8 +587,6 @@
 	width: 1.5rem;
 	height: 1.5rem;
 	color: var(--player-text-dim);
-
-	/* Scrolling the tray by touch would otherwise cancel the drag the moment it starts */
 	touch-action: none;
 	cursor: grab;
 	border-radius: var(--player-radius);
@@ -653,7 +636,6 @@
 	color: var(--player-accent-bright);
 }
 
-/* Flex, so the playing glyph sits beside the title without growing the line box it would share */
 .player-tray-title {
 	display: flex;
 	gap: 0.25rem;
@@ -684,7 +666,6 @@
 	color: var(--player-accent-bright);
 }
 
-/* Announced, not shown: the tray already shows where the row landed */
 .player-tray-status {
 	position: absolute;
 	width: 1px;
@@ -694,8 +675,6 @@
 	clip-path: inset(50%);
 }
 
-/* In flow rather than absolute, so page content never sits behind it; full-bleed through the bar's own padding
-   `pan-y` leaves vertical scrolling to the page and takes horizontal drags for the panel */
 .player-panel {
 	position: relative;
 	height: var(--player-panel-height);
@@ -725,7 +704,6 @@
 	height: 100%;
 }
 
-/* The present, fixed at the centre while the waveform travels past it */
 .player-panel-playhead {
 	position: absolute;
 	inset-block: 0;
@@ -735,8 +713,6 @@
 	translate: -50%;
 }
 
-/* Fixed to the foot of the panel; the labels travel across this scrim and are clipped by it
-   Both labels sit in the one grid cell, so the arriving one crosses the parked one rather than stacking under it */
 .player-panel-readout {
 	position: absolute;
 	right: 0;
@@ -749,7 +725,6 @@
 	background-repeat: no-repeat;
 }
 
-/* `translate` and `opacity` are written per frame by the panel's own loop, in CSS pixels from the left edge */
 .player-panel-now {
 	display: flex;
 	grid-area: 1 / 1;
@@ -770,7 +745,6 @@
 	color: var(--player-panel-now);
 }
 
-/* The site writes a track as artist, dash, title; hanging the dash here takes it away with an empty artist */
 .player-panel-now-artist:not(:empty)::after {
 	padding-inline: 0.3em;
 	color: var(--player-panel-now-soft);
@@ -783,7 +757,6 @@
 	color: var(--player-panel-now-soft);
 }
 
-/* Past the last timestamp the title is a guess, so it reads as one and this note says why */
 .player-panel-now-note {
 	display: none;
 	flex-shrink: 0;
@@ -806,7 +779,6 @@
 	display: block;
 }
 
-/* Open reads as on, in the signal hue rather than the transport's */
 .player-panel-toggle[aria-pressed='true'] {
 	color: var(--player-accent);
 }
@@ -821,7 +793,6 @@
 	color: var(--player-accent-bright);
 }
 
-/* The one prebuilt bar, and the container the layout below answers to; an element cannot query itself */
 .player-bar {
 	position: relative;
 	padding: var(--player-padding-block) var(--player-padding-inline);
@@ -831,9 +802,6 @@
 	backdrop-filter: blur(8px);
 }
 
-/* The layout is these four properties, so the container query and `data-layout` write the same declarations */
-
-/* The info window is sized by its track: a grid item with a definite width overflows the track it sits in */
 .player-bar-grid {
 	--player-layout-areas: 'transport info seek scope panel volume queue';
 	--player-layout-columns: auto minmax(0, var(--player-info-width)) minmax(0, 1fr) auto auto auto
@@ -848,7 +816,6 @@
 	align-items: center;
 }
 
-/* Compact's fixed parts measure 628, so 200px of waveform wants 828px; a container query reads the content box */
 @container (width < 52rem) {
 	.player-bar:not([data-layout]) .player-bar-grid {
 		--player-layout-areas: 'info info panel volume queue' 'transport seek seek seek seek';
@@ -900,8 +867,12 @@
 	display: var(--player-layout-skip);
 }
 
-/* `40rem` is Tailwind's `sm`; below it the waveform's progress is what reads position */
+/* `40rem` is Tailwind's `sm` */
 @container (width < 40rem) {
+	.player-bar .player-track-meta {
+		--player-clock-width: 0;
+	}
+
 	.player-bar .player-time {
 		display: none;
 	}

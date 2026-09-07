@@ -90,6 +90,21 @@ export function SkipForwardIcon({ seconds }: { seconds: number }) {
 	);
 }
 
+// Sized to the status line beside it rather than to the transport
+export function SkullIcon() {
+	return (
+		<Icon height="16" width="16">
+			<path
+				d="M12 1.5c-4.3 0-7.8 3.1-7.8 7 0 2.2 1.1 4.2 2.8 5.5v1.8A1.7 1.7 0 0 0 8.7 17.5h6.6a1.7 1.7 0 0 0 1.7-1.7v-1.8c1.7-1.3 2.8-3.3 2.8-5.5 0-3.9-3.5-7-7.8-7Zm-3 5.6a2.1 2.1 0 1 1 0 4.2 2.1 2.1 0 0 1 0-4.2Zm6 0a2.1 2.1 0 1 1 0 4.2 2.1 2.1 0 0 1 0-4.2Zm-3 5.5 1.3 2.4h-2.6L12 12.6Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				stroke="none"
+			/>
+			<path d="M5 18.6 19 22.5M19 18.6 5 22.5" strokeWidth="2.4" />
+		</Icon>
+	);
+}
+
 export function VolumeIcon() {
 	return (
 		<Icon>

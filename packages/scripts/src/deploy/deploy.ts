@@ -1,9 +1,6 @@
 #!/usr/bin/env tsx
-import type { IncomingHttpHeaders } from 'node:http';
-
 import chalk from 'chalk';
-import https from 'node:https';
-import net from 'node:net';
+import path from 'node:path';
 import tls from 'node:tls';
 import { parseArgs } from 'node:util';
 import { $ } from 'zx';
@@ -30,21 +27,10 @@ interface HealthCheckFiles {
 	renditions: Array<string>;
 }
 
-interface MediaProbe {
-	contentTypePrefix: string;
-	name: string;
-	url: string;
-}
-
 interface MediaProbeBatch {
 	contentTypePrefix: string;
 	names: Array<string>;
 	pathPrefix: string;
-}
-
-interface ProbeResponse {
-	headers: IncomingHttpHeaders;
-	statusCode: number;
 }
 
 interface WarnOnlyStep {
@@ -59,10 +45,6 @@ const probeUserAgent = 'resonance-deploy-probe';
 
 // certbot renews at 30 days, so fewer than this means the renewal timer has been failing for a week
 const certificateWarningDays = 21;
-
-// rsync already verified the transfer, so a probe is only testing the location block
-// Without a cap, a run that re-derives every archive probes all 68 to prove one block works
-const probeLimit = 3;
 
 const { values } = parseArgs({
 	args: process.argv.slice(2),
@@ -180,12 +162,9 @@ async function healthCheck({ archives, originals, renditions }: HealthCheckFiles
 	});
 }
 
-// Family pinned so the check cannot silently move to v6 the day an AAAA is published
-// `tls.ConnectionOptions` models no `family`, so the v4 socket is opened first and wrapped
 function peerCertificateValidTo(host: string): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const connection = net.connect({ family: 4, host, port: 443 });
-		const socket = tls.connect({ servername: host, socket: connection }, () => {
+		const socket = tls.connect({ host, port: 443 }, () => {
 			const validTo = socket.getPeerCertificate().valid_to;
 
 			socket.end();
@@ -215,69 +194,53 @@ function printWarnOnlySummary(): void {
 	);
 }
 
+// Stays a GET: nginx answers a HEAD with 200 and no `Content-Range`, defeating the probe
 async function probeAll({ contentTypePrefix, names, pathPrefix }: MediaProbeBatch): Promise<void> {
 	for (const name of names) {
-		await probeMedia({
-			contentTypePrefix,
-			name,
-			url: `${config.filesUrl}${pathPrefix}${encodeURIComponent(name)}`,
+		const url = `${config.filesUrl}${pathPrefix}${encodeURIComponent(name)}`;
+
+		console.log(chalk.blue(`Health check: ${url}`));
+
+		const response = await fetch(url, {
+			headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
+			signal: AbortSignal.timeout(15_000),
 		});
+
+		// Cancelled rather than read: a gzip regression answers 200 with the whole file
+		await response.body?.cancel();
+
+		if (response.status !== 206) {
+			throw new Error(`Range probe expected 206, got ${String(response.status)}: ${url}`);
+		}
+
+		// nginx omits Accept-Ranges from a 206, so Content-Range is the proof
+		const contentRange = response.headers.get('content-range');
+		if (contentRange === null) {
+			throw new TypeError(`Range probe returned 206 without a 'Content-Range' header: ${url}`);
+		}
+
+		const contentType = response.headers.get('content-type');
+		if (!contentType?.startsWith(contentTypePrefix)) {
+			throw new Error(
+				`Range probe Content-Type is not ${contentTypePrefix}* (got '${String(contentType)}'): ${url}`,
+			);
+		}
+
+		console.log(chalk.green(`  ${name} OK (206, ${contentRange}, ${contentType})`));
 	}
-}
-
-async function probeMedia({ contentTypePrefix, name, url }: MediaProbe): Promise<void> {
-	console.log(chalk.blue(`Health check: ${url}`));
-
-	const filesResponse = await probeRange(url);
-
-	if (filesResponse.statusCode !== 206) {
-		throw new Error(`Range probe expected 206, got ${String(filesResponse.statusCode)}: ${url}`);
-	}
-
-	// nginx omits Accept-Ranges from a 206, so Content-Range is the proof
-	const contentRange = filesResponse.headers['content-range'];
-	if (typeof contentRange !== 'string') {
-		throw new TypeError(`Range probe returned 206 without a 'Content-Range' header: ${url}`);
-	}
-
-	const contentType = filesResponse.headers['content-type'];
-	if (typeof contentType !== 'string' || !contentType.startsWith(contentTypePrefix)) {
-		throw new Error(
-			`Range probe Content-Type is not ${contentTypePrefix}* (got '${String(contentType)}'): ${url}`,
-		);
-	}
-
-	console.log(chalk.green(`  ${name} OK (206, ${contentRange}, ${contentType})`));
-}
-
-// Stays a GET; nginx logs `$body_bytes_sent` as 0 for a HEAD, and credits come from bytes
-// v4 pinned against Node 24's `autoSelectFamily`, which would otherwise pick either family
-function probeRange(probeUrl: string): Promise<ProbeResponse> {
-	return new Promise((resolve, reject) => {
-		const request = https.request(
-			probeUrl,
-			{
-				family: 4,
-				headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
-				method: 'GET',
-				timeout: 15_000,
-			},
-			(response) => {
-				response.resume();
-				resolve({ headers: response.headers, statusCode: response.statusCode ?? 0 });
-			},
-		);
-
-		request.on('timeout', () => {
-			request.destroy(new Error(`Range probe to ${probeUrl} timed out`));
-		});
-		request.on('error', reject);
-		request.end();
-	});
 }
 
 function probeSample(uploaded: Array<string>, fallback: Array<string>): Array<string> {
-	return (uploaded.length > 0 ? uploaded : fallback).slice(0, probeLimit);
+	const names = uploaded.length > 0 ? uploaded : fallback;
+	const firstByExtension = new Map<string, string>();
+
+	for (const name of names) {
+		const extension = path.extname(name);
+
+		if (!firstByExtension.has(extension)) firstByExtension.set(extension, name);
+	}
+
+	return [...firstByExtension.values()];
 }
 
 function recordStep(label: string, status: StepStatus): void {

@@ -70,7 +70,12 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 			? await getImageModifiedTime(imageFeaturedId)
 			: undefined;
 
-		const key = getCacheKey({ digest: entry.digest, imageFeaturedId, imageModifiedTime });
+		const key = getCacheKey({
+			digest: entry.digest,
+			imageFeaturedId,
+			imageModifiedTime,
+			style: entry.style,
+		});
 
 		if (cache.isFresh(entry.outputId, key)) {
 			skippedCount++;

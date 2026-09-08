@@ -11,7 +11,7 @@ import path from 'node:path';
 
 import type { OpenGraphEntry } from '#og-image/types.ts';
 
-import { toOpenGraphEntry } from '#og-image/content.ts';
+import { getStyleTitles, toOpenGraphEntry } from '#og-image/content.ts';
 import { openGraphCollections } from '#og-image/labels.ts';
 import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 
@@ -74,12 +74,14 @@ export async function buildCandidates(): Promise<Map<string, OpenGraphEntry>> {
 	const candidates = new Map<string, OpenGraphEntry>(
 		indexEntries.map((entry) => [
 			entry.outputId,
-			{ ...entry, digest: entry.outputId, label: undefined },
+			{ ...entry, digest: entry.outputId, label: undefined, style: undefined },
 		]),
 	);
 
+	const styleTitles = getStyleTitles(contentEntries);
+
 	for (const contentEntry of contentEntries) {
-		const entry = toOpenGraphEntry(contentEntry);
+		const entry = toOpenGraphEntry(contentEntry, styleTitles);
 
 		if (entry) candidates.set(entry.outputId, entry);
 	}

@@ -63,12 +63,20 @@ export function getCacheKey({
 	digest,
 	imageFeaturedId,
 	imageModifiedTime,
+	style,
 }: {
 	digest: string;
 	imageFeaturedId: string | undefined;
 	imageModifiedTime: number | undefined;
+	style: string | undefined;
 }): string {
-	return [templateVersion, digest, imageFeaturedId ?? '', imageModifiedTime ?? ''].join(':');
+	return [
+		templateVersion,
+		digest,
+		imageFeaturedId ?? '',
+		imageModifiedTime ?? '',
+		style ?? '',
+	].join(':');
 }
 
 function hashTemplateFiles(): string {

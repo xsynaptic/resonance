@@ -1,7 +1,6 @@
-// What the card itself draws
 export interface OpenGraphCard {
-	// Collection label shown as the eyebrow; absent on cards that get no eyebrow
 	label: string | undefined;
+	style: string | undefined;
 	title: string;
 }
 

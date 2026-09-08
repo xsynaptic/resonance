@@ -17,7 +17,10 @@ const fontConfigs: Array<FontsourceConfig> = [
 	{
 		name: 'Fira Sans',
 		package: 'fira-sans',
-		variants: [{ style: 'normal', subset: 'latin', weight: 700 }],
+		variants: [
+			{ style: 'normal', subset: 'latin', weight: 500 },
+			{ style: 'normal', subset: 'latin', weight: 700 },
+		],
 	},
 	{
 		name: 'Manrope',

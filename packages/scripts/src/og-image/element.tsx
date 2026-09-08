@@ -12,6 +12,7 @@ const colorImageBorder = '#22272a'; // surface-800
 const colorTitle = '#e9f2f2'; // ink-50
 const colorBrand = '#819798'; // ink-600
 const colorLabel = '#fd8a30'; // highlight-400
+const colorSeparator = '#819798'; // ink-600
 const colorPattern = '#24292d'; // surface-600 at the `maze` utility's opacity, flattened
 const colorGlow = 'rgba(115, 139, 156, 0.2)'; // surface-200
 
@@ -85,16 +86,33 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 					{card.label ? (
 						<div
 							style={{
+								alignItems: 'baseline',
 								color: colorLabel,
+								display: 'flex',
 								fontFamily: 'Fira Sans',
 								fontSize: '26px',
-								fontWeight: 700,
-								letterSpacing: '3px',
 								lineHeight: 1.2,
 								paddingBottom: '20px',
 							}}
 						>
-							{card.label.toUpperCase()}
+							<div style={{ flexShrink: 0, fontWeight: 700, letterSpacing: '3px' }}>
+								{card.label.toUpperCase()}
+							</div>
+							{card.style ? (
+								<>
+									<div style={{ color: colorSeparator, flexShrink: 0, padding: '0 12px' }}>·</div>
+									<div
+										style={{
+											fontWeight: 500,
+											lineClamp: 1,
+											minWidth: 0,
+											textOverflow: 'ellipsis',
+										}}
+									>
+										{card.style}
+									</div>
+								</>
+							) : undefined}
 						</div>
 					) : undefined}
 					<div

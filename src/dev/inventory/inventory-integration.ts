@@ -1,7 +1,5 @@
 import type { AstroIntegration } from 'astro';
 
-import { openGraphBasePath, openGraphImageFormat } from '@xsynaptic/shared/constants';
-
 interface InventoryOptions {
 	entrypoint?: string;
 	route?: string;
@@ -20,8 +18,8 @@ export default function devInventory({
 				injectRoute({ entrypoint, pattern: `${route}/no-hero` });
 
 				injectRoute({
-					entrypoint: './src/dev/inventory/og-card.ts',
-					pattern: `/${openGraphBasePath}/[id].${openGraphImageFormat}`,
+					entrypoint: './src/dev/inventory/inventory-og-image.ts',
+					pattern: `${route}/og/[key].jpg`,
 				});
 			},
 		},

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { parseArgs } from 'node:util';
 
-import { generateOpenGraphImages } from '#og-image/og-image.ts';
+import { generateOpenGraphImages } from '#og-image/index.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 
 const { values } = parseArgs({

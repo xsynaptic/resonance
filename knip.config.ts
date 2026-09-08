@@ -13,7 +13,7 @@ export default {
 				'src/components/embed/embed-youtube.astro',
 				// The inventory and the dev audio routes; injected by entrypoint string, not imported
 				'src/dev/inventory/inventory.astro',
-				'src/dev/inventory/og-card.ts',
+				'src/dev/inventory/inventory-og-image.ts',
 				'src/dev/audio/stream-rendition.ts',
 				'src/dev/audio/waveform-archive.ts',
 			],

@@ -48,7 +48,7 @@ export async function getBuiltEntries({
 }
 
 // Titles mirror `collection.*.title` in the app's `i18n-strings.ts`; no import map reaches it from here
-const indexEntries: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 'title'>> = [
+const indexCards: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 'title'>> = [
 	{ imageFeaturedId: openGraphHomeImageId, outputId: openGraphHomeId, title: siteTagline },
 	{ imageFeaturedId: undefined, outputId: 'index-mixes', title: 'Mixes' },
 	{ imageFeaturedId: undefined, outputId: 'index-reviews', title: 'Reviews' },
@@ -64,19 +64,23 @@ const indexEntries: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 
 	{ imageFeaturedId: undefined, outputId: openGraphDefaultId, title: siteTitle },
 ];
 
-// Every card an entry could produce, keyed by the stem the build asks for
-export async function buildCandidates(): Promise<Map<string, OpenGraphEntry>> {
-	const contentEntries = await withAstroContent((content) =>
-		getCollectionEntries(content, openGraphCollections),
-	);
-
-	// The digest is the stem itself, so an index card renders once and stays cached
-	const candidates = new Map<string, OpenGraphEntry>(
-		indexEntries.map((entry) => [
+// The digest is the stem itself, so an index card renders once and stays cached
+export function getOpenGraphIndexEntries(): Map<string, OpenGraphEntry> {
+	return new Map(
+		indexCards.map((entry) => [
 			entry.outputId,
 			{ ...entry, digest: entry.outputId, label: undefined, style: undefined },
 		]),
 	);
+}
+
+// Every card an entry could produce, keyed by the stem the build asks for
+async function buildCandidates(): Promise<Map<string, OpenGraphEntry>> {
+	const contentEntries = await withAstroContent((content) =>
+		getCollectionEntries(content, openGraphCollections),
+	);
+
+	const candidates = getOpenGraphIndexEntries();
 
 	const styleTitles = getStyleTitles(contentEntries);
 

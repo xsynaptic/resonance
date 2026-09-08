@@ -598,7 +598,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="The 1200×630 cards behind every page's <code>og:image</code>. Under <code>astro dev</code> the inventory integration draws each one per request from the current <code>element.tsx</code>, so editing the template and reloading is the iteration loop; the <code>.cache/og-image</code> output that <code>pnpm og-image</code> writes and <code>deploy-site</code> copies into <code>dist/og</code> is not consulted here. Shown at half size; any page's card can be opened from its head."
+		note="The 1200×630 cards behind every page's <code>og:image</code>. The inventory integration serves this sample from <code>/inventory/og/</code>, drawing each card per request from the current <code>element.tsx</code>, so editing the template and reloading is the iteration loop; the <code>.cache/og-image</code> output that <code>pnpm og-image</code> writes and <code>deploy-site</code> copies into <code>dist/og</code> is not consulted here. Shown at half size."
 		title="Open Graph"
 	>
 		<Specimen
@@ -616,11 +616,11 @@ const inlineSelection: SelectionValue = {
 									class="w-full rounded-sm border border-surface-700"
 									height={315}
 									loading="lazy"
-									src={card.path}
+									src={`/inventory/og/${card.key}.jpg`}
 									width={600}
 								/>
 								<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
-								<div class="font-mono text-[0.6875rem] text-ink-700">{card.path}</div>
+								<div class="font-mono text-[0.6875rem] text-ink-700">{card.entry.outputId}</div>
 							</li>
 						))}
 					</ul>

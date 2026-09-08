@@ -1,12 +1,13 @@
 import type { PlayerLabels } from '@xsynaptic/player';
+import type { OpenGraphEntry } from '@xsynaptic/scripts/og-image';
 import type { CollectionEntry } from 'astro:content';
 
 import {
-	openGraphBasePath,
-	openGraphDefaultId,
-	openGraphHomeId,
-	openGraphImageFormat,
-} from '@xsynaptic/shared/constants';
+	getOpenGraphIndexEntries,
+	getStyleTitles,
+	toOpenGraphEntry,
+} from '@xsynaptic/scripts/og-image';
+import { openGraphDefaultId, openGraphHomeId } from '@xsynaptic/shared/constants';
 import { getCollection, render } from 'astro:content';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
@@ -28,7 +29,6 @@ import { site } from '#lib/site.ts';
 import { matchReleaseTitle, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
@@ -55,9 +55,10 @@ interface MixSample {
 }
 
 interface OpenGraphSample {
+	entry: OpenGraphEntry;
+	// Addresses the dev-only route; the production stem is on `entry.outputId`
+	key: string;
 	label: string;
-	// Root-relative, so it resolves against whichever dev server is showing the page
-	path: string;
 }
 
 interface ReleaseSample {
@@ -177,7 +178,7 @@ export async function getInventoryFixtures() {
 		mix,
 		mixcloudUrl: await sampleMixField('mixcloudLink'),
 		mixItems,
-		openGraphCards: await sampleOpenGraphCards(),
+		openGraphCards: await getSampleOpenGraphCards(),
 		playerItems: [...(mix?.queueItem ? [mix.queueItem] : []), itemWithoutPeaks],
 		playerLabels,
 		regionTree: await getDirectoryTerms('regions'),
@@ -198,6 +199,97 @@ function cardItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefi
 
 function cardWorkItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefined {
 	return items.find((item) => matchReleaseTitle(item.title, item.releaseTitle) !== undefined);
+}
+
+async function createOpenGraphCards(): Promise<Array<OpenGraphSample>> {
+	const [mixes, reviews, posts, styles] = await Promise.all([
+		getCollection('mixes'),
+		getCollection('reviews'),
+		getCollection('posts'),
+		getCollection('styles'),
+	]);
+
+	const contentEntries = [...mixes, ...reviews, ...posts];
+	const withImage = contentEntries.filter(hasImageFeaturedOnDisk);
+	const withoutImage = contentEntries.filter((entry) => !hasImageFeaturedOnDisk(entry));
+
+	const indexEntries = getOpenGraphIndexEntries();
+	const styleTitles = getStyleTitles(styles);
+
+	function toEntry(
+		entry: CollectionEntry<'mixes' | 'posts' | 'reviews'> | undefined,
+	): OpenGraphEntry | undefined {
+		return entry ? toOpenGraphEntry(entry, styleTitles) : undefined;
+	}
+
+	const candidates = [
+		{
+			entry: indexEntries.get(openGraphHomeId),
+			key: 'home',
+			label: 'Homepage, the only index card with a Featured Image',
+		},
+		{
+			entry: indexEntries.get('index-mixes'),
+			key: 'index',
+			label: 'List Page, where the pattern runs full width',
+		},
+		{
+			entry: indexEntries.get(openGraphDefaultId),
+			key: 'default',
+			label: 'Default, behind the 404 alone',
+		},
+		{
+			entry: toEntry(mixes.find(hasImageFeaturedOnDisk)),
+			key: 'mix-image',
+			label: 'Mix with a Featured Image',
+		},
+		{
+			entry: toEntry(reviews.find(hasImageFeaturedOnDisk)),
+			key: 'review-image',
+			label: 'Review with a Featured Image',
+		},
+		{
+			entry: toEntry(longestTitle(withoutImage)),
+			key: 'title-long',
+			label: 'Longest title with no Featured Image, set full width',
+		},
+		{
+			entry: toEntry(longestTitle(withImage)),
+			key: 'title-long-image',
+			label: 'Longest title beside a Featured Image, where the clamp bites first',
+		},
+		{
+			entry: toEntry(longestTitle(mixes.filter(hasImageFeaturedOnDisk))),
+			key: 'mix-title-long',
+			label: 'Longest mix title beside a Featured Image',
+		},
+	];
+
+	const samples: Array<OpenGraphSample> = [];
+
+	// Two predicates can land on the same entry, and the same card drawn twice shows nothing new
+	const seen = new Set<string>();
+
+	for (const candidate of candidates) {
+		const { entry } = candidate;
+		if (!entry || seen.has(entry.outputId)) continue;
+
+		seen.add(entry.outputId);
+		samples.push({ ...candidate, entry });
+	}
+
+	return samples;
+}
+
+let openGraphCards: Promise<Array<OpenGraphSample>> | undefined;
+
+// `getStaticPaths` and the page both read this, and the dev server may call either more than once
+export function getSampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
+	if (!openGraphCards) {
+		openGraphCards = createOpenGraphCards();
+	}
+
+	return openGraphCards;
 }
 
 function hasImageFeaturedOnDisk(entry: {
@@ -290,57 +382,6 @@ async function sampleMixField(
 	}
 
 	return undefined;
-}
-
-async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
-	const [mixes, reviews, posts] = await Promise.all([
-		getCollection('mixes'),
-		getCollection('reviews'),
-		getCollection('posts'),
-	]);
-
-	const contentEntries = [...mixes, ...reviews, ...posts];
-	const withImage = contentEntries.filter(hasImageFeaturedOnDisk);
-	const withoutImage = contentEntries.filter((entry) => !hasImageFeaturedOnDisk(entry));
-
-	const candidates = [
-		{ id: openGraphHomeId, label: 'Homepage, the only index card with a Featured Image' },
-		{ id: 'index-mixes', label: 'List Page, where the pattern runs full width' },
-		{ id: openGraphDefaultId, label: 'Default, behind the 404 alone' },
-		{ entry: mixes.find(hasImageFeaturedOnDisk), label: 'Mix with a Featured Image' },
-		{ entry: reviews.find(hasImageFeaturedOnDisk), label: 'Review with a Featured Image' },
-		{
-			entry: longestTitle(withoutImage),
-			label: 'Longest title with no Featured Image, set full width',
-		},
-		{
-			entry: longestTitle(withImage),
-			label: 'Longest title beside a Featured Image, where the clamp bites first',
-		},
-		{
-			entry: longestTitle(mixes.filter(hasImageFeaturedOnDisk)),
-			label: 'Longest mix title beside a Featured Image',
-		},
-	];
-
-	const samples: Array<OpenGraphSample> = [];
-	const seen = new Set<string>();
-
-	for (const candidate of candidates) {
-		const id =
-			'id' in candidate
-				? candidate.id
-				: candidate.entry && getOpenGraphId(candidate.entry.collection, candidate.entry.id);
-		if (id === undefined || seen.has(id)) continue;
-
-		seen.add(id);
-		samples.push({
-			label: candidate.label,
-			path: `/${openGraphBasePath}/${id}.${openGraphImageFormat}`,
-		});
-	}
-
-	return samples;
 }
 
 // The alias fallback matches the Mix Detail Page, so the bar shows the artist line production would

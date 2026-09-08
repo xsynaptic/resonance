@@ -5,29 +5,11 @@ import sharp from 'sharp';
 import { render, setGlyphCacheMaxBytes } from 'takumi-js';
 import { Renderer } from 'takumi-js/node';
 
-import type { FontsourceConfig } from '#og-image/fonts.ts';
 import type { OpenGraphEntry } from '#og-image/types.ts';
 
 import { featuredImageSize, getOpenGraphElement } from '#og-image/element.tsx';
-import { fontsourceFonts } from '#og-image/fonts.ts';
+import { loadOpenGraphFonts } from '#og-image/fonts.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
-
-// Matches the Astro font config; the site pulls the same faces through fontProviders.fontsource()
-const fontConfigs: Array<FontsourceConfig> = [
-	{
-		name: 'Fira Sans',
-		package: 'fira-sans',
-		variants: [
-			{ style: 'normal', subset: 'latin', weight: 500 },
-			{ style: 'normal', subset: 'latin', weight: 700 },
-		],
-	},
-	{
-		name: 'Manrope',
-		package: 'manrope',
-		variants: [{ style: 'normal', subset: 'latin', weight: 800 }],
-	},
-];
 
 // The 8 MiB default evicts glyphs mid-run once a few faces and sizes are in play
 const glyphCacheBytes = 64 * 1024 * 1024;
@@ -49,7 +31,7 @@ export async function createCardRenderer() {
 	// Read when a cache is first used, so this has to run before the first render
 	setGlyphCacheMaxBytes(glyphCacheBytes);
 
-	const fonts = await fontsourceFonts(fontConfigs);
+	const fonts = await loadOpenGraphFonts();
 	const renderer = new Renderer();
 
 	return async function renderCard(entry: OpenGraphEntry): Promise<Uint8Array> {

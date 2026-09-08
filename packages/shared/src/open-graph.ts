@@ -1,10 +1,11 @@
 import { openGraphBasePath, openGraphImageFormat } from '#constants.ts';
 
-// Filename stem on disk and in the og:image URL; the generator and the page must agree
+// The one definition of a card's identity, read by the generator, the redirect map and the page
+// Kept free of node and image dependencies so production layouts can import it
 export function getOpenGraphId(collection: string, id: string): string {
 	return `${collection}-${id}`;
 }
 
-export function getOpenGraphPath(collection: string, id: string): string {
-	return `/${openGraphBasePath}/${getOpenGraphId(collection, id)}.${openGraphImageFormat}`;
+export function getOpenGraphPath(openGraphId: string): string {
+	return `/${openGraphBasePath}/${openGraphId}.${openGraphImageFormat}`;
 }

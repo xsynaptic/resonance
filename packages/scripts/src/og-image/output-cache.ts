@@ -10,15 +10,14 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 // Everything that decides a card's pixels; hashed so an edit can never be forgotten
-const templateFiles = ['element.tsx', 'generate.ts'];
+const templateFiles = ['element.tsx', 'fonts.ts', 'generate.ts'];
 
 const templateVersion = hashTemplateFiles();
 
-/**
- * A stable `{id}.jpg` filename keeps the public URL fixed, so freshness lives in a manifest beside
- * the cards rather than in their names. Loaded once and written once: a few hundred string pairs do
- * not justify a key-value store, which is what spectralcodex reaches for at its scale.
- */
+// A card's filename is its id alone, so nothing on disk records what it was drawn from; hashing the
+// key into the name instead would leave a stale file behind on every edit
+// Keys this run did not ask about are kept: no card file is ever deleted, so dropping one re-renders
+// a returning entry over bytes already on disk
 export async function createOutputCache(directory: string) {
 	const manifestPath = path.join(directory, openGraphManifestFile);
 

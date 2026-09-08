@@ -1,4 +1,4 @@
-import { getOpenGraphPath } from '@xsynaptic/shared/open-graph';
+import { getOpenGraphId, getOpenGraphPath } from '@xsynaptic/shared/open-graph';
 import { getContentPath } from '@xsynaptic/shared/routing';
 
 import type { ContentEntry } from '#shared/astro-content.ts';
@@ -52,7 +52,10 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 		// A platform re-fetching only the cached card URL never sees the page redirect
 		pairs.push(
 			{ from, to: getContentPath(collection, id) },
-			{ from: getOpenGraphPath(collection, formerId), to: getOpenGraphPath(collection, id) },
+			{
+				from: getOpenGraphPath(getOpenGraphId(collection, formerId)),
+				to: getOpenGraphPath(getOpenGraphId(collection, id)),
+			},
 		);
 	}
 

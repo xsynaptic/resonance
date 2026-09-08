@@ -13,7 +13,11 @@ interface Props extends HTMLAttributes<'button'> {
 const { class: className, icon, type = 'button', variant = 'standard', ...props } = Astro.props;
 ---
 
-<button class:list={['button-x', `button-${variant}`, className]} type={type} {...props}>
+<button
+	class:list={['button-x', 'prose-escape', `button-${variant}`, className]}
+	type={type}
+	{...props}
+>
 	{
 		icon ? (
 			<svg aria-hidden="true" class="button-icon">

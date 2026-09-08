@@ -16,17 +16,23 @@
 		margin-bottom: 0;
 	}
 
+	/* Prose granting margin to a component, rather than a rule the component fights; an escaped child gives it up */
 	& > :where(img, .img-group, .embed-frame) {
 		margin-block: calc(var(--spacing) * 6);
 	}
+}
 
-	& :where(h1, h2, h3, h4) {
+/* `prose-escape` opts an element and its subtree out of the element rules below, `not-prose` semantics */
+
+/* The guard is written once here; on each rule it would be 26 copies of the same selector */
+.prose-x :where(:not(.prose-escape, .prose-escape *)) {
+	&:where(h1, h2, h3, h4) {
 		font-family: var(--font-display);
 		font-feature-settings: 'lnum';
 		text-wrap: balance;
 	}
 
-	& :where(h1) {
+	&:where(h1) {
 		margin-top: 0;
 		margin-bottom: calc(var(--spacing) * 3);
 		font-size: 2.25em;
@@ -35,7 +41,7 @@
 		color: var(--color-accent-400);
 	}
 
-	& :where(h2) {
+	&:where(h2) {
 		margin-top: calc(var(--spacing) * 8);
 		margin-bottom: calc(var(--spacing) * 4);
 		font-size: 1.5em;
@@ -44,7 +50,7 @@
 		color: var(--color-accent-400);
 	}
 
-	& :where(h3) {
+	&:where(h3) {
 		margin-top: calc(var(--spacing) * 6);
 		margin-bottom: calc(var(--spacing) * 2);
 		font-size: 1.25em;
@@ -53,7 +59,7 @@
 		color: var(--color-accent-400);
 	}
 
-	& :where(h4) {
+	&:where(h4) {
 		margin-top: calc(var(--spacing) * 6);
 		margin-bottom: calc(var(--spacing) * 2);
 		font-size: 1.125em;
@@ -62,12 +68,11 @@
 		color: var(--color-accent-400);
 	}
 
-	& :where(:is(h1, h2, h3, h4) + *) {
+	&:where(:is(h1, h2, h3, h4) + *) {
 		margin-top: 0;
 	}
 
-	/* A button is not a text link; without this the prose rules underline and halo one written into a body */
-	& :where(a:not(.button-x)) {
+	&:where(a) {
 		color: var(--color-ink-200);
 		text-decoration-line: underline;
 		text-decoration-color: color-mix(in oklab, var(--color-ink-500) 30%, transparent);
@@ -82,68 +87,68 @@
 			text-decoration-color 150ms ease-in;
 	}
 
-	& :where(a:not(.button-x)):focus-visible {
+	&:where(a):focus-visible {
 		color: var(--color-ink-50);
 		text-decoration-color: color-mix(in oklab, var(--color-ink-500) 60%, transparent);
 	}
 
 	@media (hover: hover) {
-		& :where(a:not(.button-x)):hover {
+		&:where(a):hover {
 			color: var(--color-ink-50);
 			text-decoration-color: color-mix(in oklab, var(--color-ink-500) 60%, transparent);
 		}
 	}
 
-	& :where(a:not(.button-x)):active {
+	&:where(a):active {
 		color: var(--color-highlight-400);
 	}
 
-	& :where(a strong),
-	& :where(a code) {
+	&:where(a strong),
+	&:where(a code) {
 		color: inherit;
 	}
 
-	& :where(p) {
+	&:where(p) {
 		margin-top: 0;
 		margin-bottom: calc(var(--spacing) * 5);
 	}
 
-	& :where(strong) {
+	&:where(strong) {
 		font-weight: var(--font-weight-bold);
 		color: var(--color-ink-100);
 	}
 
-	& :where(ul) {
+	&:where(ul) {
 		padding: 0;
 		margin: 0 0 calc(var(--spacing) * 5);
 		list-style-type: disc;
 	}
 
-	& :where(ol) {
+	&:where(ol) {
 		padding: 0;
 		margin: 0 0 calc(var(--spacing) * 5);
 		list-style-type: decimal;
 	}
 
-	& :where(li) {
+	&:where(li) {
 		margin: 0 0 calc(var(--spacing) * 2) calc(var(--spacing) * 4);
 	}
 
-	& :where(:is(ul, ol) > li)::marker {
+	&:where(:is(ul, ol) > li)::marker {
 		font-weight: var(--font-weight-normal);
 		color: var(--color-highlight-500);
 	}
 
-	& :where(ol > li)::marker {
+	&:where(ol > li)::marker {
 		font-size: 0.875em;
 	}
 
-	& :where(:is(ul, ol) :is(ul, ol)) {
+	&:where(:is(ul, ol) :is(ul, ol)) {
 		margin-top: calc(var(--spacing) * 2);
 		margin-bottom: calc(var(--spacing) * 2);
 	}
 
-	& :where(blockquote) {
+	&:where(blockquote) {
 		padding-inline-start: calc(var(--spacing) * 5);
 		margin: calc(var(--spacing) * 6) 0;
 		font-style: italic;
@@ -152,14 +157,14 @@
 		border-inline-start: 0.25rem solid var(--color-surface-400);
 	}
 
-	& :where(code) {
+	&:where(code) {
 		font-size: 0.875em;
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-ink-50);
 	}
 
 	/* `scrollbar-width` does not inherit, unlike `scrollbar-color` */
-	& :where(pre) {
+	&:where(pre) {
 		padding: calc(var(--spacing) * 4);
 		margin: 0 0 calc(var(--spacing) * 5);
 		font-size: 0.875em;
@@ -169,14 +174,14 @@
 	}
 
 	/* Shiki colours each token inline; the inline-code rule above would otherwise bolden the block */
-	& :where(pre code) {
+	&:where(pre code) {
 		font-size: inherit;
 		font-weight: var(--font-weight-normal);
 		color: inherit;
 	}
 
 	/* Vertical padding on an inline box grows the band without entering the line box */
-	& :where(mark) {
+	&:where(mark) {
 		padding-block: 1px;
 		padding-inline: 0.2em;
 		color: var(--color-surface-800);
@@ -184,13 +189,13 @@
 		border-radius: var(--radius-xs);
 	}
 
-	& :where(hr) {
+	&:where(hr) {
 		margin: calc(var(--spacing) * 10) 0;
 		border: 0;
 		border-top: 1px solid var(--color-surface-400);
 	}
 
-	& :where(hr + *) {
+	&:where(hr + *) {
 		margin-top: 0;
 	}
 }

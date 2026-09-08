@@ -1,13 +1,15 @@
+/* Escaped from prose, so the foot of a group comes from here rather than from the prose `ol` rule */
 .track-list {
 	@apply content-bleed;
 
+	margin-bottom: calc(var(--spacing) * 5);
 	font-feature-settings: 'lnum';
 }
 
 .track-item {
 	display: block;
 	padding-inline: 5px;
-	margin: 0;
+
 	@apply content-bleed-inset;
 }
 
@@ -17,11 +19,6 @@
 
 .track-item:nth-child(even) {
 	background-color: var(--color-surface-700);
-}
-
-.track-item a {
-	text-decoration: none;
-	text-shadow: none;
 }
 
 .track-index {
@@ -44,7 +41,6 @@
 
 .track-title-line strong {
 	font-weight: var(--font-weight-bold);
-	color: inherit;
 }
 
 .track-title-line a {
@@ -83,6 +79,7 @@
 		padding-block: 5px 8px;
 		line-height: 20px;
 	}
+
 	.track-title-line {
 		margin-top: 0;
 	}

@@ -10,16 +10,15 @@ import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
 import { isIndexableUrlPath, readSitemapLastmod } from '@xsynaptic/shared/sitemap';
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
+import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
 
 import devAudio from '#dev/audio/audio-integration.ts';
 import devInventory from '#dev/inventory/inventory-integration.ts';
-import { shikiTheme } from '#lib/utils/shiki-theme.ts';
 
 // One origin for the app and the deploy scripts; a mismatch misses every lastmod lookup silently
 // `astro:env` is unavailable while the config evaluates, hence `process.env`
 const siteUrl = process.env.DEPLOY_SITE_URL ?? 'https://djbasilisk.com/';
 
-// Read on first use, so loading this config never depends on a file a content script writes
 let sitemapLastmodCache: ReturnType<typeof readSitemapLastmod> | undefined;
 
 function getSitemapLastmod() {
@@ -29,10 +28,7 @@ function getSitemapLastmod() {
 }
 
 export default defineConfig({
-	// `getViteConfig` scripts run Vite in serve mode, where Astro reads the store from `.astro`
-	// Pointing the cache here is what makes `astro sync` and `astro build` write the file those scripts read
 	cacheDir: './.astro/',
-	// It covers the bottom bar in every screenshot; re-enable by hand for an audit
 	devToolbar: { enabled: false },
 	env: {
 		schema: {
@@ -41,7 +37,6 @@ export default defineConfig({
 				context: 'server',
 				default: 'https://files.djbasilisk.com/',
 			}),
-			// Domain the Open Graph cards are served from; unset means the site's own origin
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
 			PLAYER_ENABLED: envField.boolean({ access: 'public', context: 'server', default: false }),
 			TURNSTILE_SITE_KEY: envField.string({ access: 'public', context: 'server' }),
@@ -117,10 +112,13 @@ export default defineConfig({
 				}),
 			],
 		}),
-		shikiConfig: { theme: shikiTheme },
+		shikiConfig: { theme: { ...oneDarkPro, bg: 'var(--color-surface-800)' } },
 	},
 	site: import.meta.env.PROD ? siteUrl : 'http://localhost:4321/',
 	vite: {
+		build: {
+			assetsInlineLimit: 1024,
+		},
 		plugins: [tailwindcss()],
 	},
 });

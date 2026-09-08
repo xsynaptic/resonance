@@ -135,7 +135,7 @@ const hasRows = groups.some((group) => group.rows.length > 0);
 			<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 			{groups.map((group) => (
 				<Fragment>
-					{group.title ? <h3>{group.title}</h3> : undefined}
+					{group.title ? <h3 class="track-group-title">{group.title}</h3> : undefined}
 					{group.description ? <p>{group.description}</p> : undefined}
 					{group.files ? (
 						<div class="mb-3">

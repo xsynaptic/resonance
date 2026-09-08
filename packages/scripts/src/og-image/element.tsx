@@ -13,7 +13,7 @@ const colorTitle = '#f2fcff'; // ink-50
 const colorBrand = '#83989e'; // ink-600
 const colorLabel = '#f88f3c'; // highlight-400
 const colorSeparator = '#83989e'; // ink-600
-const colorPattern = '#1b242a'; // surface-600 at 35% over the background, flattened
+const colorPattern = '#1f292f'; // surface-500 at 35% over the background, flattened
 const colorGlow = 'rgba(123, 137, 146, 0.2)'; // surface-200
 
 const cardPadding = 64;

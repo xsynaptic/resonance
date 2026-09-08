@@ -5,6 +5,10 @@
 	font-feature-settings: 'lnum';
 }
 
+.track-group-title {
+	color: var(--color-ink-100);
+}
+
 .track-item {
 	display: block;
 	padding-inline: 5px;

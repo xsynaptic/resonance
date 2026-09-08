@@ -115,8 +115,9 @@
 	.selection-thumb {
 		margin-inline-start: 20px;
 	}
+}
 
-	/* The rank hangs left of the measure into the page gutter, production's signature for this list */
+@media (width >= 80rem) {
 	.selection-rank {
 		margin-inline-start: -37.5px;
 	}

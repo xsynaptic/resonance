@@ -75,6 +75,9 @@ importers:
       '@xsynaptic/satteri-img-group':
         specifier: ^2.0.1
         version: 2.0.1(satteri@0.10.5)
+      '@xsynaptic/scripts':
+        specifier: workspace:*
+        version: link:packages/scripts
       '@xsynaptic/shared':
         specifier: workspace:*
         version: link:packages/shared

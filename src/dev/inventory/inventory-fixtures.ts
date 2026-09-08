@@ -6,11 +6,8 @@ import {
 	openGraphDefaultId,
 	openGraphHomeId,
 	openGraphImageFormat,
-	openGraphOutputPath,
 } from '@xsynaptic/shared/constants';
 import { getCollection, render } from 'astro:content';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
@@ -295,7 +292,6 @@ async function sampleMixField(
 	return undefined;
 }
 
-// Cards exist only after `pnpm og-image`, so any not yet rendered are left out rather than broken
 async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 	const [mixes, reviews, posts] = await Promise.all([
 		getCollection('mixes'),
@@ -337,11 +333,11 @@ async function sampleOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 				: candidate.entry && getOpenGraphId(candidate.entry.collection, candidate.entry.id);
 		if (id === undefined || seen.has(id)) continue;
 
-		const file = `${id}.${openGraphImageFormat}`;
-		if (!existsSync(path.resolve(openGraphOutputPath, file))) continue;
-
 		seen.add(id);
-		samples.push({ label: candidate.label, path: `/${openGraphBasePath}/${file}` });
+		samples.push({
+			label: candidate.label,
+			path: `/${openGraphBasePath}/${id}.${openGraphImageFormat}`,
+		});
 	}
 
 	return samples;

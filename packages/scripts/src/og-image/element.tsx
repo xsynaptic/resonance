@@ -12,6 +12,7 @@ const colorTitle = '#e9f2f2'; // ink-50
 const colorBrand = '#819798'; // ink-600
 const colorLabel = '#fd8a30'; // highlight-400
 const colorPattern = '#24292d'; // surface-600 at the `maze` utility's opacity, flattened
+const colorGlow = 'rgba(36, 41, 45, 0.5)';
 
 const cardPadding = 64;
 const columnGap = 48;
@@ -22,10 +23,13 @@ const patternSize = 180;
 
 export const featuredImageSize = openGraphImageHeight - cardPadding * 2 - featuredImageFrame * 2;
 
-// Where the gap before the Featured Image starts, so the art stays the brightest thing on the card
-const patternFadeEnd = openGraphImageWidth - cardPadding - featuredImageSize - columnGap;
+// Fully gone only behind the middle of the Featured Image, which covers the last of it anyway
+const patternFadeEnd = openGraphImageWidth - cardPadding - featuredImageSize / 2;
 
-// A Featured Image takes most of the width, so the title has to give some back
+// Tilt the pattern for a little dynamism
+const patternFadeAngle = 105;
+
+// The image takes most of the width, so the title has to give some back
 const titleSizeWithImage = 56;
 const titleSizeWithoutImage = 76;
 
@@ -63,7 +67,7 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 					position: 'absolute',
 					...(featuredImage
 						? {
-								maskImage: `linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) ${String(patternFadeEnd)}px)`,
+								maskImage: `linear-gradient(${String(patternFadeAngle)}deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) ${String(patternFadeEnd)}px)`,
 							}
 						: {}),
 				}}
@@ -124,6 +128,7 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 					style={{
 						backgroundColor: colorImageFrame,
 						borderRadius: '5px',
+						boxShadow: `0 0 75px 30px ${colorGlow}`,
 						display: 'flex',
 						padding: `${String(featuredImageFrame)}px`,
 					}}

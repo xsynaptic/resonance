@@ -598,7 +598,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="The 1200×630 cards behind every page's <code>og:image</code>, rendered by <code>pnpm og-image</code> into <code>.cache/og-image</code>. A build only copies them into <code>dist/og</code> during <code>deploy-site</code>, so under <code>astro dev</code> the inventory integration serves that cache at the same path, and any page's card can be opened from its head. Shown at half size; a card missing from this set has not been generated since its entry appeared."
+		note="The 1200×630 cards behind every page's <code>og:image</code>. Under <code>astro dev</code> the inventory integration draws each one per request from the current <code>element.tsx</code>, so editing the template and reloading is the iteration loop; the <code>.cache/og-image</code> output that <code>pnpm og-image</code> writes and <code>deploy-site</code> copies into <code>dist/og</code> is not consulted here. Shown at half size; any page's card can be opened from its head."
 		title="Open Graph"
 	>
 		<Specimen
@@ -625,9 +625,7 @@ const inlineSelection: SelectionValue = {
 						))}
 					</ul>
 				) : (
-					<p class="text-sm text-ink-600">
-						No cards in <code>.cache/og-image</code>; run <code>pnpm og-image</code>.
-					</p>
+					<p class="text-sm text-ink-600">No entries to sample a card from.</p>
 				)
 			}
 		</Specimen>

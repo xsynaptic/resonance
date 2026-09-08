@@ -65,7 +65,7 @@ const indexEntries: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 
 ];
 
 // Every card an entry could produce, keyed by the stem the build asks for
-async function buildCandidates(): Promise<Map<string, OpenGraphEntry>> {
+export async function buildCandidates(): Promise<Map<string, OpenGraphEntry>> {
 	const contentEntries = await withAstroContent((content) =>
 		getCollectionEntries(content, openGraphCollections),
 	);

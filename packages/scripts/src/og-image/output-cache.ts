@@ -1,10 +1,18 @@
-import { openGraphImageFormat, openGraphManifestFile } from '@xsynaptic/shared/constants';
-import { existsSync } from 'node:fs';
+import {
+	openGraphImageFormat,
+	openGraphImageHeight,
+	openGraphImageWidth,
+	openGraphManifestFile,
+} from '@xsynaptic/shared/constants';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-// Bump when element.tsx changes, to regenerate every card
-const templateVersion = '5';
+// Everything that decides a card's pixels; hashed so an edit can never be forgotten
+const templateFiles = ['element.tsx', 'generate.ts'];
+
+const templateVersion = hashTemplateFiles();
 
 /**
  * A stable `{id}.jpg` filename keeps the public URL fixed, so freshness lives in a manifest beside
@@ -61,4 +69,16 @@ export function getCacheKey({
 	imageModifiedTime: number | undefined;
 }): string {
 	return [templateVersion, digest, imageFeaturedId ?? '', imageModifiedTime ?? ''].join(':');
+}
+
+function hashTemplateFiles(): string {
+	const hash = createHash('sha256').update(
+		`${String(openGraphImageWidth)}x${String(openGraphImageHeight)}`,
+	);
+
+	for (const file of templateFiles) {
+		hash.update(readFileSync(new URL(file, import.meta.url), 'utf8'));
+	}
+
+	return hash.digest('hex').slice(0, 8);
 }

@@ -7,6 +7,9 @@
 	"imports": {
 		"#*": "./src/*"
 	},
+	"exports": {
+		"./og-image": "./src/og-image/cards.ts"
+	},
 	"scripts": {
 		"comments": "tsx ./src/comments/moderate.cli.ts",
 		"comments-backup": "tsx ./src/comments/backup.cli.ts",

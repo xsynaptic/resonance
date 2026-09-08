@@ -8,33 +8,14 @@ import { promises as fs, rmSync } from 'node:fs';
 import path from 'node:path';
 import pLimit from 'p-limit';
 
-import type { FontsourceConfig } from '#og-image/fonts.ts';
 import type { OpenGraphEntry } from '#og-image/types.ts';
 
 import { getBuiltEntries } from '#og-image/built-entries.ts';
-import { fontsourceFonts } from '#og-image/fonts.ts';
-import { createRenderer, processFeaturedImage } from '#og-image/generate.ts';
+import { createCardRenderer, resolveFeaturedImagePath } from '#og-image/generate.ts';
 import { createOutputCache, getCacheKey } from '#og-image/output-cache.ts';
-
-// Matches the Astro font config; the site pulls the same faces through fontProviders.fontsource()
-const fontConfigs: Array<FontsourceConfig> = [
-	{
-		name: 'Fira Sans',
-		package: 'fira-sans',
-		variants: [{ style: 'normal', subset: 'latin', weight: 700 }],
-	},
-	{
-		name: 'Manrope',
-		package: 'manrope',
-		variants: [{ style: 'normal', subset: 'latin', weight: 800 }],
-	},
-];
 
 // Rendering is CPU-bound and each entry decodes its own image, so one bound serves both
 const concurrency = 12;
-
-// Frontmatter Featured Image paths are relative to this, matching `src/lib/utils/media.ts`
-const mediaRoot = 'packages/content/media';
 
 interface OpenGraphOptions {
 	clearCache?: boolean;
@@ -46,7 +27,6 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	const { clearCache = false, distPath = './dist', rootPath } = options;
 
 	const outputPath = path.resolve(rootPath, openGraphOutputPath);
-	const mediaPath = path.resolve(rootPath, mediaRoot);
 
 	console.log(chalk.blue('Generating Open Graph images...'));
 
@@ -62,12 +42,10 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 
 	reportUnresolved(unresolved);
 
-	const fonts = await fontsourceFonts(fontConfigs);
-
 	await fs.mkdir(outputPath, { recursive: true });
 
 	const cache = await createOutputCache(outputPath);
-	const renderCard = createRenderer(fonts);
+	const renderCard = await createCardRenderer();
 	const limit = pLimit(concurrency);
 
 	let generatedCount = 0;
@@ -77,7 +55,7 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 
 	async function getImageModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
 		try {
-			const stats = await fs.stat(path.join(mediaPath, imageFeaturedId));
+			const stats = await fs.stat(resolveFeaturedImagePath(imageFeaturedId));
 
 			return stats.mtimeMs;
 		} catch {
@@ -105,12 +83,7 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 			missingImageCount++;
 		}
 
-		const featuredImage =
-			imageFeaturedId && imageModifiedTime !== undefined
-				? await processFeaturedImage(path.join(mediaPath, imageFeaturedId))
-				: undefined;
-
-		await cache.write(entry.outputId, key, await renderCard(entry, featuredImage));
+		await cache.write(entry.outputId, key, await renderCard(entry));
 
 		generatedCount++;
 	}

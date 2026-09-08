@@ -28,7 +28,6 @@ import { createPlayerStore } from '#store/player-store.ts';
 const testUrls: PlayerUrls = {
 	stream: (trackId) =>
 		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
-	waveform: () => Promise.resolve(undefined),
 };
 
 const labels = {

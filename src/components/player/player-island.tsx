@@ -14,7 +14,6 @@ const urls: PlayerUrls = {
 
 		return Promise.resolve({ status: 'ok', url: streamUrl });
 	},
-	waveform: () => Promise.resolve(undefined),
 };
 
 let parsedSource: string | undefined;

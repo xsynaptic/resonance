@@ -1,17 +1,14 @@
 import type { KeyboardEvent, PointerEvent } from 'react';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 
-import type { PlayerUrls, SubscribeTime } from '#types.ts';
+import type { SubscribeTime } from '#types.ts';
 import type { WaveformRendering } from '#waveform/waveform-render.ts';
 
 import { joinClassNames } from '#lib/class-names.ts';
 import { formatClock } from '#lib/format.ts';
 import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
-import { loadWaveform } from '#waveform/waveform-cache.ts';
 import { paintWaveform, prepareRendering } from '#waveform/waveform-render.ts';
-
-const targetBuckets = 400;
 
 // Coarse for a mix that runs hours, but the steps a slider is expected to answer to
 const arrowStepSeconds = 5;
@@ -26,57 +23,29 @@ const keyStepsSeconds = new Map<string, number>([
 	['PageUp', pageStepSeconds],
 ]);
 
-interface HiResPeaks {
-	peaks: ReadonlyArray<number>;
-	trackId: string;
-}
-
 interface WaveformCanvasProps {
 	className?: string | undefined;
 	durationS: number | undefined;
 	label: string;
 	onSeek: (seconds: number) => void;
 	overview: ReadonlyArray<number>;
-	resolveWaveform: PlayerUrls['waveform'];
 	subscribeTime: SubscribeTime;
-	trackId: string;
 }
 
-// Draws the inline overview until the full-resolution waveform lands
 export function WaveformCanvas({
 	className,
 	durationS,
 	label,
 	onSeek,
 	overview,
-	resolveWaveform,
 	subscribeTime,
-	trackId,
 }: WaveformCanvasProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	// The handlers seek from the position the last paint saw, which is fresher than any render
 	const currentTimeRef = useRef(0);
 
-	// Tagged with its track so a stale fetch never paints over the current one
-	const [hiRes, setHiRes] = useState<HiResPeaks | undefined>(undefined);
-
 	const themeVersion = useSyncExternalStore(subscribeTheme, getThemeVersion, zeroVersion);
-
-	useEffect(() => {
-		let isCancelled = false;
-
-		// The fetch is shared and finishes either way; a late answer for another track is dropped here
-		void loadWaveform(resolveWaveform, trackId, targetBuckets).then((loaded) => {
-			if (!isCancelled && loaded) setHiRes({ peaks: loaded, trackId });
-		});
-
-		return () => {
-			isCancelled = true;
-		};
-	}, [resolveWaveform, trackId]);
-
-	const peaks = hiRes?.trackId === trackId ? hiRes.peaks : overview;
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -91,7 +60,7 @@ export function WaveformCanvas({
 			currentTimeRef.current = currentTimeS;
 
 			if (rendering === undefined) {
-				rendering = prepareRendering(canvas, peaks);
+				rendering = prepareRendering(canvas, overview);
 				if (rendering === undefined) return;
 
 				// Assigning either resets the backing store, so it happens with the rebuild rather than per tick
@@ -130,7 +99,7 @@ export function WaveformCanvas({
 			observer.disconnect();
 			unsubscribe();
 		};
-	}, [durationS, peaks, subscribeTime, themeVersion]);
+	}, [durationS, overview, subscribeTime, themeVersion]);
 
 	function seekToPointer(event: PointerEvent<HTMLCanvasElement>): void {
 		if (durationS === undefined) return;

@@ -89,7 +89,6 @@ function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
 	store.getState().configure({
 		urls: {
 			stream,
-			waveform: () => Promise.resolve(undefined),
 		},
 	});
 
@@ -970,7 +969,6 @@ describe('configure', () => {
 		const store = createPlayerStore({ createEngine: fake.createEngine });
 		const urls: PlayerUrls = {
 			stream: () => Promise.resolve<StreamResolution>({ status: 'ok', url: 'https://api.test/a' }),
-			waveform: () => Promise.resolve(undefined),
 		};
 
 		store.getState().configure({ urls });

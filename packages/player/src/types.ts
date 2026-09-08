@@ -43,8 +43,6 @@ export interface PlayerUrls {
 	// Full-resolution `.dat`, range-requested a window at a time; `undefined` leaves the panel on its grid
 	archive?: ((trackId: string) => Promise<string | undefined>) | undefined;
 	stream: (trackId: string) => Promise<StreamResolution>;
-	// `undefined` keeps the seek bar on the inline overview
-	waveform: (trackId: string) => Promise<string | undefined>;
 }
 
 // One timestamped track in a mix, resolved at build time because the browser has no artists catalog

@@ -139,7 +139,6 @@ export function WaveformComparison({
 
 const failingUrls: PlayerUrls = {
 	stream: () => Promise.reject(new Error('Inventory specimen: no stream')),
-	waveform: () => Promise.resolve(undefined),
 };
 
 // Astro cannot serialize a function across the island boundary, so the resolvers are built from the payload here
@@ -152,7 +151,6 @@ function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
 
 			return Promise.resolve({ status: 'ok', url: item.streamUrl });
 		},
-		waveform: () => Promise.resolve(undefined),
 	};
 }
 

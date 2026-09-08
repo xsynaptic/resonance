@@ -4,21 +4,12 @@ import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
 
 // Split so each branch owns its own subscriptions: the waveform takes none for the clock, the range input does
 export function SeekBar({ className, label }: { className?: string | undefined; label: string }) {
-	const urls = usePlayer((state) => state.urls);
 	const current = usePlayer((state) =>
 		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex],
 	);
 
-	if (urls && current?.waveformOverview)
-		return (
-			<WaveformSeek
-				className={className}
-				label={label}
-				overview={current.waveformOverview}
-				resolveWaveform={urls.waveform}
-				trackId={current.trackId}
-			/>
-		);
+	if (current?.waveformOverview)
+		return <WaveformSeek className={className} label={label} overview={current.waveformOverview} />;
 
 	return <RangeSeek className={className} label={label} />;
 }
@@ -49,14 +40,10 @@ function WaveformSeek({
 	className,
 	label,
 	overview,
-	resolveWaveform,
-	trackId,
 }: {
 	className?: string | undefined;
 	label: string;
 	overview: ReadonlyArray<number>;
-	resolveWaveform: (trackId: string) => Promise<string | undefined>;
-	trackId: string;
 }) {
 	const durationS = usePlayer((state) => state.durationS);
 	const store = usePlayerStoreApi();
@@ -71,9 +58,7 @@ function WaveformSeek({
 				store.getState().seek(seconds);
 			}}
 			overview={overview}
-			resolveWaveform={resolveWaveform}
 			subscribeTime={subscribeTime}
-			trackId={trackId}
 		/>
 	);
 }

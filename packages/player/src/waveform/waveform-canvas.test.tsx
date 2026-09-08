@@ -3,8 +3,6 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
 
-const resolveNothing = () => Promise.resolve(undefined);
-
 // Vitest wants a constructible stub, and the renderer never reads back from the path it builds
 class StubPath2D {
 	closePath = vi.fn();
@@ -37,7 +35,6 @@ function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: 
 				props.seeks?.push(seconds);
 			}}
 			overview={[0.4, 0.8, 0.6, 0.2]}
-			resolveWaveform={resolveNothing}
 			subscribeTime={(onTime) => {
 				onTime(props.currentTimeS);
 				listeners.add(onTime);
@@ -46,7 +43,6 @@ function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: 
 					listeners.delete(onTime);
 				};
 			}}
-			trackId="fixture"
 		/>,
 	);
 

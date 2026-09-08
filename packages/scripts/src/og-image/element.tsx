@@ -6,15 +6,15 @@ import type { ProcessedImage } from '#og-image/generate.ts';
 import type { OpenGraphCard } from '#og-image/types.ts';
 
 // Palette tokens from src/styles/main/parts/theme.css, resolved to hex
-const colorBackground = '#1c1f21'; // surface-900
-const colorImageFrame = '#2b3136'; // surface-700
-const colorImageBorder = '#22272a'; // surface-800
-const colorTitle = '#e9f2f2'; // ink-50
-const colorBrand = '#819798'; // ink-600
-const colorLabel = '#fd8a30'; // highlight-400
-const colorSeparator = '#819798'; // ink-600
-const colorPattern = '#24292d'; // surface-600 at the `maze` utility's opacity, flattened
-const colorGlow = 'rgba(115, 139, 156, 0.2)'; // surface-200
+const colorBackground = '#141b1f'; // surface-900
+const colorImageFrame = '#212c33'; // surface-700
+const colorImageBorder = '#1a2329'; // surface-800
+const colorTitle = '#f2fcff'; // ink-50
+const colorBrand = '#83989e'; // ink-600
+const colorLabel = '#f88f3c'; // highlight-400
+const colorSeparator = '#83989e'; // ink-600
+const colorPattern = '#1b242a'; // surface-600 at 35% over the background, flattened
+const colorGlow = 'rgba(123, 137, 146, 0.2)'; // surface-200
 
 const cardPadding = 64;
 const columnGap = 48;

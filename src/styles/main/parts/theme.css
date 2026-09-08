@@ -30,70 +30,68 @@
 }
 
 @theme {
-	/* Surfaces: dark desaturated blue-grey; four steps are production anchors, the rest interpolate */
-
 	/* 500 is the content well, 700 the header band, 800 the page and inset panels, 900 the footer band */
-	--color-surface-50: hsl(205deg 28% 74%);
-	--color-surface-100: hsl(205deg 25% 63%);
-	--color-surface-200: hsl(204deg 17% 53%);
-	--color-surface-300: hsl(203deg 15% 43%);
-	--color-surface-400: hsl(203deg 14% 34%);
-	--color-surface-500: hsl(205deg 13% 28%);
-	--color-surface-600: hsl(204deg 13% 23%);
-	--color-surface-700: hsl(205deg 12% 19%);
-	--color-surface-800: hsl(203deg 10% 15%);
-	--color-surface-900: hsl(204deg 8% 12%);
-	--color-surface-950: hsl(204deg 7% 9%);
+	--color-surface-50: oklch(79.6% 0.0099 237deg);
+	--color-surface-100: oklch(71% 0.0161 237deg);
+	--color-surface-200: oklch(62.2% 0.0213 237deg);
+	--color-surface-300: oklch(53.4% 0.025 237deg);
+	--color-surface-400: oklch(44.8% 0.026 237deg);
+	--color-surface-500: oklch(37.2% 0.025 237deg);
+	--color-surface-600: oklch(32.4% 0.0229 237deg);
+	--color-surface-700: oklch(28.6% 0.0203 237deg);
+	--color-surface-800: oklch(25% 0.0169 237deg);
+	--color-surface-900: oklch(21.7% 0.013 237deg);
+	--color-surface-950: oklch(18.5% 0.0099 237deg);
 
 	/* 100 bright, 200 content links, 300 body links, 400 body text, 600 muted, 700 dim */
-	--color-ink-50: hsl(180deg 26% 93%);
-	--color-ink-100: hsl(184deg 25% 88%);
-	--color-ink-200: hsl(183deg 23% 83%);
-	--color-ink-300: hsl(185deg 24% 78%);
-	--color-ink-400: hsl(184deg 19% 72%);
-	--color-ink-500: hsl(182deg 13% 63%);
-	--color-ink-600: hsl(183deg 10% 55%);
-	--color-ink-700: hsl(183deg 8% 47%);
-	--color-ink-800: hsl(183deg 7% 38%);
-	--color-ink-900: hsl(183deg 6% 29%);
-	--color-ink-950: hsl(183deg 5% 22%);
+	--color-ink-50: oklch(98.5% 0.0111 215deg);
+	--color-ink-100: oklch(95% 0.0181 215deg);
+	--color-ink-200: oklch(90.5% 0.024 215deg);
+	--color-ink-300: oklch(85.5% 0.0281 215deg);
+	--color-ink-400: oklch(80% 0.0293 215deg);
+	--color-ink-500: oklch(73.5% 0.0281 215deg);
+	--color-ink-600: oklch(66.5% 0.0257 215deg);
+	--color-ink-700: oklch(59% 0.0228 215deg);
+	--color-ink-800: oklch(48.5% 0.019 215deg);
+	--color-ink-900: oklch(37.5% 0.0146 215deg);
+	--color-ink-950: oklch(26% 0.0111 215deg);
 
-	/* Accent: lime-green, for headings and header navigation; 400 is the production heading lime */
-	--color-accent-50: hsl(70deg 60% 93%);
-	--color-accent-100: hsl(70deg 62% 87%);
-	--color-accent-200: hsl(70deg 64% 79%);
-	--color-accent-300: hsl(70deg 68% 70%);
-	--color-accent-400: hsl(70deg 75% 61%);
-	--color-accent-500: hsl(70deg 72% 53%);
-	--color-accent-600: hsl(70deg 68% 48%);
-	--color-accent-700: hsl(70deg 66% 40%);
-	--color-accent-800: hsl(70deg 62% 31%);
-	--color-accent-900: hsl(70deg 58% 22%);
-	--color-accent-950: hsl(70deg 55% 15%);
+	/* Lime, for headings and header navigation; 400 is the production heading lime */
+	--color-accent-50: oklch(97.5% 0.0328 118deg);
+	--color-accent-100: oklch(95% 0.0635 118deg);
+	--color-accent-200: oklch(92.2% 0.1045 118deg);
+	--color-accent-300: oklch(90% 0.1476 118deg);
+	--color-accent-400: oklch(87.6% 0.1845 118deg);
+	--color-accent-500: oklch(83.8% 0.205 118deg);
+	--color-accent-600: oklch(78.6% 0.1968 118deg);
+	--color-accent-700: oklch(71.4% 0.1722 118deg);
+	--color-accent-800: oklch(61.8% 0.1394 118deg);
+	--color-accent-900: oklch(50.5% 0.1066 118deg);
+	--color-accent-950: oklch(39.2% 0.0779 118deg);
 
-	/* Highlight: orange, for meta lines, dates and taxonomy links; 500 base, 400 hover, 300 active */
-	--color-highlight-50: hsl(27deg 95% 93%);
-	--color-highlight-100: hsl(27deg 97% 86%);
-	--color-highlight-200: hsl(27deg 100% 77%);
-	--color-highlight-300: hsl(27deg 100% 68%);
-	--color-highlight-400: hsl(26.5deg 98% 59%);
-	--color-highlight-500: hsl(27deg 85% 49%);
-	--color-highlight-600: hsl(26deg 81% 43%);
-	--color-highlight-700: hsl(26deg 79% 36%);
-	--color-highlight-800: hsl(26deg 76% 28%);
-	--color-highlight-900: hsl(26deg 73% 20%);
-	--color-highlight-950: hsl(26deg 70% 13%);
+	/* Orange, for meta lines, dates and taxonomy links; 500 base, 400 hover, 300 active */
+	--color-highlight-50: oklch(95% 0.028 55deg);
+	--color-highlight-100: oklch(90.5% 0.0542 55deg);
+	--color-highlight-200: oklch(85.2% 0.0892 55deg);
+	--color-highlight-300: oklch(80% 0.126 55deg);
+	--color-highlight-400: oklch(74.8% 0.1575 55deg);
+	--color-highlight-500: oklch(68.5% 0.175 55deg);
+	--color-highlight-600: oklch(61.5% 0.168 55deg);
+	--color-highlight-700: oklch(53.5% 0.147 55deg);
+	--color-highlight-800: oklch(44.5% 0.119 55deg);
+	--color-highlight-900: oklch(35.2% 0.091 55deg);
+	--color-highlight-950: oklch(26.8% 0.0665 55deg);
 
-	/* Crimson: an optional fourth hue to play with */
-	--color-crimson-50: hsl(349deg 72% 94%);
-	--color-crimson-100: hsl(349deg 70% 88%);
-	--color-crimson-200: hsl(349deg 68% 79%);
-	--color-crimson-300: hsl(349deg 66% 69%);
-	--color-crimson-400: hsl(349deg 63% 59%);
-	--color-crimson-500: hsl(351deg 49% 49%);
-	--color-crimson-600: hsl(351deg 51% 42%);
-	--color-crimson-700: hsl(352deg 53% 35%);
-	--color-crimson-800: hsl(352deg 55% 27%);
-	--color-crimson-900: hsl(353deg 56% 20%);
-	--color-crimson-950: hsl(353deg 58% 13%);
+	/* Rose, the fifth voice; the comment error state and the Shiki modifier */
+	--color-flair-50: oklch(95% 0.0248 15deg);
+	--color-flair-100: oklch(90.5% 0.0481 15deg);
+	--color-flair-200: oklch(85.2% 0.079 15deg);
+	--color-flair-300: oklch(80% 0.1116 15deg);
+	--color-flair-400: oklch(74.8% 0.1395 15deg);
+	--color-flair-500: oklch(68.5% 0.155 15deg);
+	--color-flair-600: oklch(61.5% 0.1488 15deg);
+	--color-flair-700: oklch(53.5% 0.1302 15deg);
+	--color-flair-800: oklch(44.5% 0.1054 15deg);
+	--color-flair-900: oklch(35.2% 0.0806 15deg);
+	--color-flair-950: oklch(26.8% 0.0589 15deg);
 }

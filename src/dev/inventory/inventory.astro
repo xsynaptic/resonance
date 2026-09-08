@@ -95,7 +95,7 @@ const hasHero = !Astro.url.pathname.replace(/\/$/, '').endsWith('/no-hero');
 
 // Mirrors the ramps in styles/main/parts/theme.css, which define every step for all five
 const rampSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-const rampNames = ['surface', 'ink', 'accent', 'highlight', 'crimson'];
+const rampNames = ['surface', 'ink', 'accent', 'highlight', 'flair'];
 
 const fontFamilies = [
 	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
@@ -161,12 +161,8 @@ const inlineSelection: SelectionValue = {
 		) : undefined
 	}
 	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
-		Every component here is the real one, rendered with real props found by predicate rather than by
-		name, so editing content never stales this page. The route is injected under <code
-			>astro dev</code
-		> only; a build emits nothing for it. The header above is in its {
-			hasHero ? 'overlay' : 'normal'
-		} variant:{' '}
+		Real components on real content, injected under <code>astro dev</code> only. The header is in its
+		{hasHero ? 'overlay' : 'normal'} variant:{' '}
 		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
 			{hasHero ? 'drop the hero band' : 'restore the hero band'}
 		</Anchor> to see the other.
@@ -189,7 +185,7 @@ const inlineSelection: SelectionValue = {
 	>
 		<Specimen
 			name="Colour tokens"
-			note="Every token theme.css defines, including steps the site never uses. The stylesheet imports the theme statically so nothing gets tree-shaken out of a ramp."
+			note="Every token theme.css defines, including steps the site never uses."
 			source="src/styles/main/parts/theme.css"
 		>
 			<div class="flex flex-col gap-5">
@@ -231,7 +227,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Heading roles"
-			note="A list of roles rather than a type scale, so the sizes below are deliberately unrelated. Outside prose a level carries no styling of its own, because h2 fills four of these roles across the site; a heading takes the class for the role it plays, and each line names where that role is used. Prose is the exception, styling h1 to h4 directly, and is the next section. The sixth role, <code>heading-group</code>, belongs to a component and sits under Cards and listings."
+			note="Roles, not a type scale. Outside prose a level carries no styling of its own; a heading takes the class for the role it plays."
 			source="src/styles/main/components/headings.css"
 		>
 			<div class="space-y-3">
@@ -244,7 +240,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Link roles"
-			note="Nothing ships a bare anchor in running text, so the base is a fallback rather than a role: deliberately quiet, one step off body colour with no underline. Every context that puts a link in prose claims it first, and <code>Anchor</code> (<code>src/components/parts/anchor.astro</code>) carries two of those roles through <code>anchorColor</code>. Hover, focus and active all differ; tab through for the focus treatment."
+			note="Every context claims its links first, so the bare anchor is a fallback no page reaches for. Tab through for the focus treatment."
 			source="src/styles/main/parts/base.css"
 		>
 			<div class="space-y-2">
@@ -299,7 +295,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="ButtonSplit"
-			note="A primary action with secondary ones attached. The first child keeps full prominence; a later one dims to <code>ink-500</code> and takes a divider, sharing its neighbour's height and type size. A lone child is left rounded at both ends, so a wrapper costs nothing when the secondary is absent."
+			note="A primary action with secondary ones attached. A lone child is left rounded at both ends, so the wrapper costs nothing when the secondary is absent."
 			source="src/components/parts/button-split.astro"
 		>
 			<div class="flex flex-wrap items-center gap-4">
@@ -314,7 +310,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Icon sprite"
-			note="A symbol added to the sheet shows up here once its id is in the fixtures, and in IconId, which types every icon prop."
+			note="A symbol shows up here once its id is in the fixtures."
 			source="src/components/main/main-sprites.astro"
 		>
 			<div class="flex flex-wrap gap-4">
@@ -332,7 +328,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="DividedItem"
-			note="A glyph after every item, dropped on the last. The parent supplies the wrap and sets --divider-space for the room around the glyph; each item supplies its own separator, so one row can mix them. The as prop sets the tag. Used by the colophon, the audio counts, breadcrumbs, and both title meta rows."
+			note="A glyph after every item, dropped on the last. Each item supplies its own separator, so one row can mix them."
 			source="src/components/parts/divided-item.astro"
 		>
 			<div class="flex flex-col gap-2">
@@ -363,7 +359,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="How a resolved reference renders. A ref with no url is either free text or an id that did not resolve; both stay plain instead of failing."
+		note="A ref with no url is either free text or an id that did not resolve; both stay plain instead of failing."
 		title="References and terms"
 	>
 		<Specimen name="RefText" source="src/components/parts/ref-text.astro">
@@ -389,20 +385,20 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="TermDirectory"
-			note="The body of every Term List Page. Sorts and buckets by initial itself, so terms arrive in any order; a name starting with anything but A-Z files under <code>#</code>. Only roots are bucketed, so the threshold counts roots, not terms."
+			note="Buckets by initial itself, so terms arrive in any order. Only roots are bucketed, so the threshold counts roots, not terms."
 			source="src/components/parts/term-directory.astro"
 		>
 			<TermDirectory terms={vocabularyTerms} />
 		</Specimen>
 		<Specimen
 			name="TermDirectory"
-			note="Under twenty terms there is barely a term per initial, so the headings drop and the list flows through the same columns. Eras, Formats, Series and Themes render this way."
+			note="Under twenty terms the headings drop and the list flows through the same columns."
 		>
 			<TermDirectory terms={shortVocabularyTerms} />
 		</Specimen>
 		<Specimen
 			name="TermDirectory"
-			note="Hierarchical vocabularies nest: a child sits under its parent, not beside it under its own initial. Regions run three levels deep and are why a branch recurses; Labels, Styles and Eras stop at two."
+			note="Hierarchical vocabularies nest: a child sits under its parent, not beside it under its own initial."
 			source="src/components/parts/term-directory-branch.astro"
 		>
 			<TermDirectory terms={regionTree} />
@@ -414,7 +410,7 @@ const inlineSelection: SelectionValue = {
 	>
 		<Specimen
 			name="EntryCard"
-			note="Always square: the Blog stream is mostly Album Artwork, and a mixed-Format grid has to line up. The frame keeps its shape when the original is missing, which is routine in dev. A Review italicises the work half of its title, matching <code>SectionDetailHeader</code>."
+			note="Always square, so a mixed-Format grid lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title."
 			source="src/components/parts/entry-card.astro"
 		>
 			{
@@ -453,14 +449,14 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="ListGroupHeading"
-			note="The <code>heading-group</code> role: the rule between runs on a list page, an initial in <code>TermDirectory</code>, or a year under <code>groupByYear</code>."
+			note="The <code>heading-group</code> role: a run on a list page, an initial in TermDirectory, or a year under groupByYear."
 			source="src/components/parts/list-group-heading.astro"
 		>
 			<ListGroupHeading label={String(new Date().getFullYear())} />
 		</Specimen>
 		<Specimen
 			name="SectionPostExcerpt"
-			note="The blog list row. The body truncates at the <code>More</code> fold, and the continue link appears only if something followed it."
+			note="The body truncates at the <code>More</code> fold; the continue link appears only if something followed it."
 			source="src/components/sections/section-post-excerpt.astro"
 		>
 			{
@@ -493,14 +489,14 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="SectionRelated"
-			note="Wraps Carousel, a scroll-snap track that works unenhanced; the custom element adds the prev and next chevrons."
+			note="Wraps Carousel, a scroll-snap track that works unenhanced; the custom element adds the chevrons."
 			source="src/components/sections/section-related.astro"
 		>
 			<SectionRelated items={reviewItems.slice(0, 8)} />
 		</Specimen>
 	</Section>
 	<Section
-		note="What opens and closes a Detail Page. SectionDetailHero is at the top of this page, in MainSite's hero slot, the only place it renders at full bleed; it also flips the site header into transparent overlay mode. A prerendered page cannot read a query parameter, so seeing the page without it takes a second injected route, <code>/inventory/no-hero</code>."
+		note="SectionDetailHero is at the top of this page, in MainSite's hero slot, the only place it renders at full bleed."
 		title="Detail pages"
 	>
 		<Specimen name="Breadcrumbs" source="src/components/parts/breadcrumbs.astro">
@@ -508,7 +504,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="SectionDetailHeader"
-			note="Bare: a title and nothing else, the way a term detail page uses it."
+			note="Bare, the way a term detail page uses it."
 			source="src/components/sections/section-detail-header.astro"
 		>
 			<SectionDetailHeader title="A title on its own" />
@@ -518,7 +514,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="SectionDetailHeader"
-			note="With styles above, and a kind and date below. Five styles go in and three come out: the header takes the first three in frontmatter order and the coda carries the whole list."
+			note="Five styles go in and three come out: the header takes the first three, the coda carries the whole list."
 		>
 			<SectionDetailHeader
 				date={new Date()}
@@ -529,7 +525,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="SectionDetailHeader"
-			note="The full release header: the artist splits off the title, the work half goes italic, labels and year sit below."
+			note="The artist splits off the title and the work half goes italic."
 		>
 			{
 				release ? (
@@ -548,7 +544,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="SectionCoda"
-			note="The panel that closes a detail page. Every row inside returns undefined on an empty array, so the slot renders first and the box appears only if something came back."
+			note="Every row inside returns undefined on an empty array, so the box appears only if something came back."
 			source="src/components/sections/section-coda.astro"
 		>
 			<SectionCoda>
@@ -559,12 +555,12 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="Originals are gitignored, so every specimen here resolves against whatever is on disk and renders nothing when the file is missing, rather than failing the build."
+		note="Originals are gitignored, so a specimen renders nothing when the file is missing rather than failing the build."
 		title="Media"
 	>
 		<Specimen
 			name="MediaImage"
-			note="Resolves a frontmatter media path and never upscales: the requested width is capped at the original's, which for most source artwork is around 600px."
+			note="Never upscales: the requested width is capped at the original's, around 600px for most source artwork."
 			source="src/components/parts/media-image.astro"
 		>
 			{heroPath ? <MediaImage alt="" path={heroPath} width={400} /> : undefined}
@@ -578,7 +574,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Img"
-			note="Auto-imported into MDX bodies, and the only image tag content authors write. Its children are the caption, which wraps the image in a figure; with none it emits the image alone, as MediaImage does above."
+			note="Its children are the caption, which wraps the image in a figure; with none it emits the image alone."
 			source="src/components/mdx/img.astro"
 		>
 			<div class="prose-x">
@@ -587,7 +583,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="ImgGroup"
-			note="Grid only; the column count comes from the image count, preferring 4, then 3, then 2. In real content the satteri plugin supplies imageCount."
+			note="The column count comes from the image count, preferring 4, then 3, then 2."
 			source="src/components/mdx/img-group.astro"
 		>
 			<div class="prose-x">
@@ -598,12 +594,12 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="The 1200×630 cards behind every page's <code>og:image</code>. The inventory integration serves this sample from <code>/inventory/og/</code>, drawing each card per request from the current <code>element.tsx</code>, so editing the template and reloading is the iteration loop; the <code>.cache/og-image</code> output that <code>pnpm og-image</code> writes and <code>deploy-site</code> copies into <code>dist/og</code> is not consulted here. Shown at half size."
+		note="The 1200×630 cards behind every <code>og:image</code>, drawn per request from the current <code>element.tsx</code>, so editing the template and reloading is the iteration loop. Shown at half size."
 		title="Open Graph"
 	>
 		<Specimen
 			name="Cards"
-			note="One per layout the template has to handle: no cover, cover on the right, and the longest title in each of those, where the type drops from 76px to 56px and the three-line clamp bites."
+			note="One per layout: no cover, cover on the right, and the longest title in each, where the type drops to 56px and the clamp bites."
 			source="packages/scripts/src/og-image/element.tsx"
 		>
 			{
@@ -633,26 +629,26 @@ const inlineSelection: SelectionValue = {
 	<Section title="Audio">
 		<Specimen
 			name="AudioLinks"
-			note="External links first, then one control per downloadable file. A mix carrying timestamps gets a CUE half attached to each download, dimmer than the file it belongs to and sharing its height."
+			note="A mix carrying timestamps gets a CUE half attached to each download."
 			source="src/components/parts/audio-links.astro"
 		>
 			{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
 		</Specimen>
 		<Specimen
 			name="AudioLinks"
-			note="The same files without <code>cueSlug</code>, which is how a mix with no timestamps renders. Each download stands alone, rounded at both ends, and no cue sheet is offered."
+			note="The same files without <code>cueSlug</code>, which is how a mix with no timestamps renders."
 		>
 			{mix ? <AudioLinks files={mix.files} /> : undefined}
 		</Specimen>
 		<Specimen
 			name="AudioLinks"
-			note="Links but no files: the downloads and their CUE halves drop out, leaving the external links. Handed neither, the component renders nothing at all, which is under Empty states."
+			note="Links but no files. Handed neither, it renders nothing at all, which is under Empty states."
 		>
 			<AudioLinks links={mix?.links} />
 		</Specimen>
 		<Specimen
 			name="AudioCounts"
-			note="Coda rows, so they sit in the same rhythm as TermLinks beside them. One figure per mix, never a sum: a download, a stream and a play are three different acts. Only downloads carries data here, so the real value is first and the others are fixtures."
+			note="One figure per mix, never a sum. Only downloads carries real data here; the rest are fixtures."
 			source="src/components/parts/audio-counts.astro"
 		>
 			{
@@ -693,19 +689,19 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="The player package, rendered from its own parts: the whole bar first, then the parts it is built from, then the two states the site normally hides. Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton and nothing here hijacks it. None reaches the network or builds an audio graph, which a browser refuses outside a gesture: the stream resolver answers from the payload it was handed, and a silent engine stands at the engine seam."
+		note="Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton. None reaches the network: the resolver answers from the payload it was handed, and a silent engine stands at the engine seam."
 		title="Player"
 	>
 		<Specimen
 			name="AudioPlayer"
-			note="One composition of parts laid out by CSS grid areas: transport, the info window, seek surface, status region, signal display, volume and the queue. Unforced, as here, the bar reads its own width through a container query, so it answers to the box it is given rather than to the viewport. The info window's track is capped at 18rem and the seek surface takes whatever is left, painted from the mix's measured peaks."
+			note="Unforced, so the bar picks its layout from its own width through a container query rather than from the viewport."
 			source="packages/player/src/components/audio-player.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="The compact layout, forced through <code>variant</code>, which writes <code>data-layout</code> on the bar and takes the choice away from the container query. One row: the scope is placed and the skip buttons are hidden."
+			note="The compact layout, forced through <code>variant</code>. One row: the scope is placed and the skips are hidden."
 		>
 			<PlayerSpecimen
 				client:load
@@ -717,7 +713,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="The expanded layout, forced the same way. Two rows: the info window takes the first with volume and the queue, the waveform takes the second beside five transport buttons, and the skips seek 30 seconds through <code>seekBy</code>. The scope is not placed here. Both layouts are one DOM, so the switch remounts nothing and loses no state."
+			note="The expanded layout, forced the same way; the skips seek 30 seconds. Both layouts are one DOM, so the switch remounts nothing and loses no state."
 		>
 			<PlayerSpecimen
 				client:load
@@ -729,7 +725,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="The same bar unforced in a 32rem column, below the container query's threshold, so it picks the expanded layout on its own. Nothing here tells it the viewport width: it answers to the box."
+			note="Unforced in a 32rem column, so it picks the expanded layout on its own."
 			source="packages/player/src/player.css"
 		>
 			<div class="max-w-[32rem]">
@@ -738,28 +734,28 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="MarqueeText"
-			note="A title and an artist too long for the info window. The measurement writes <code>data-overflow</code> and the distance, and CSS does the rest: an 8s hold, travel at 40px/s, an 8s hold, travel back. The edge is a fade mask rather than an ellipsis, because an ellipsis cannot follow travelling text. Hover or focus pauses it, <code>prefers-reduced-motion</code> stops it and restores the ellipsis, and a line that fits never moves."
+			note="A title and an artist too long for the info window. Hover or focus pauses it; <code>prefers-reduced-motion</code> stops it and restores the ellipsis."
 			source="packages/player/src/components/marquee-text.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="marquee" />
 		</Specimen>
 		<Specimen
 			name="Player.Time"
-			note="The clock in remaining mode, seeded a third of the way in. It is a toggle button: clicking it flips between elapsed (<code>32:04</code>) and remaining (<code>-85:32</code>), one number either way, and the choice persists under <code>player:v1:time-mode</code>. <code>data-mode</code> is the styling hook and <code>aria-pressed</code> carries the state."
+			note="A toggle button, seeded a third of the way in: elapsed or remaining, persisted under <code>player:v1:time-mode</code>."
 			source="packages/player/src/components/time-display.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="remaining" />
 		</Specimen>
 		<Specimen
 			name="Player.Seek"
-			note="The seek surface, and what its pitch tokens do. The renderer picks its bar count from the box in whole device pixels and resamples the 400 peaks to it, so a variation is nothing but tokens on a wrapper: <code>--player-waveform-bar</code>, <code>--player-waveform-gap</code> and <code>--player-waveform-radius</code>. The default is 2px, 1px and 1px. Each is shown at the full width and again in a 24rem column, so the low-bar-count end of the resampling sits beside the high end."
+			note="The bar count comes from the box, so a variation is nothing but <code>--player-waveform-bar</code>, <code>-gap</code> and <code>-radius</code> on a wrapper. Each is shown full width and again in a 24rem column."
 			source="packages/player/src/waveform/waveform-canvas.tsx"
 		>
 			<WaveformComparison client:load items={playerItems} labels={playerLabels} />
 		</Specimen>
 		<Specimen
 			name="Player.Volume"
-			note="A 2rem button with a vertical slider above it, pinned open here. With a hover-capable pointer the button mutes and the panel opens on hover or focus; without one the button opens the panel and mute is a second button inside it, so volume is reachable on a phone. The slider is <code>writing-mode: vertical-lr</code> with <code>direction: rtl</code>, not the deprecated <code>orient</code> attribute. Escape closes it and returns focus to the button, and the icon reads the level in three states rather than two."
+			note="Pinned open here. With a hover-capable pointer the button mutes and the panel opens on hover; without one the button opens the panel and mute moves inside it."
 			source="packages/player/src/components/volume-control.tsx"
 		>
 			<div class="pt-36">
@@ -768,7 +764,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Player.Queue"
-			note="The tray open over a plain queue. Rows read as two lines, the loaded one carries <code>data-current</code> and a playing glyph, and each carries a drag handle: pointer drag reorders, and so does Alt+ArrowUp or Alt+ArrowDown with the handle focused. A move is announced through a live region inside the tray."
+			note="Pointer drag reorders, and so does Alt+ArrowUp or Alt+ArrowDown with a handle focused."
 			source="packages/player/src/components/queue-tray.tsx"
 		>
 			<div class="pt-96">
@@ -777,7 +773,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Player.Queue sectioned"
-			note="The same tray over a sectioned queue. A heading is drawn above the first item of each section, and a queue carrying any heading can neither shuffle nor reorder, so both the shuffle button and the drag handles are gone."
+			note="A queue carrying any heading can neither shuffle nor reorder, so the shuffle button and the drag handles are gone."
 			source="packages/player/src/components/queue-control.tsx"
 		>
 			<div class="pt-44">
@@ -791,7 +787,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
-			note="Nothing queued: the root carries <code>data-empty</code>, the transport is disabled, the clock reads its placeholder, the seek surface falls back to a disabled range input and the track line carries the <code>nowPlaying</code> label. The site hides this state outright, so the specimen opts back in to show it."
+			note="Nothing queued. The site hides this state outright, so the specimen opts back in to show it."
 		>
 			<div class="inventory-player-empty">
 				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="empty" />
@@ -799,19 +795,19 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Player.Status"
-			note="A stream that will not resolve. The status region is a live region and stays empty outside the transient states, so it announces nothing until one arrives. Pressing play here runs the real rejection path."
+			note="A stream that will not resolve; pressing play runs the real rejection path."
 			source="packages/player/src/components/status-region.tsx"
 		>
 			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="error" />
 		</Specimen>
 	</Section>
 	<Section
-		note="The MDX tags an author writes in a body. These render inside .prose-x in production, so they are wrapped in it here too."
+		note="The MDX tags an author writes in a body, wrapped in .prose-x as they are in production."
 		title="Content blocks"
 	>
 		<Specimen
 			name="TrackList"
-			note="The numeral and time columns appear from 40rem up. A time is a track's own <code>duration</code>; a mix's <code>timestamp</code> is Cue Sheet data and never renders, so no row here carries one."
+			note="The numeral and time columns appear from 40rem up. A time is a track's own <code>duration</code>; a mix's <code>timestamp</code> is Cue Sheet data and never renders."
 			source="src/components/mdx/track-list.astro"
 		>
 			<div class="prose-x">
@@ -820,7 +816,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="TrackList"
-			note="The grouped form, hand-built: no mix in the corpus is split across audio files. Each group takes its own heading and its own list, numbered from one, and a group naming <code>files</code> carries its download buttons above its rows rather than in the page header. The filenames are fictional, so those buttons dangle, and their <code>CUE</code> halves are absent because this page has no mix slug for the route to key on."
+			note="The grouped form, hand-built: no mix in the corpus is split across audio files. The filenames are fictional, so those download buttons dangle."
 		>
 			<div class="prose-x">
 				<TrackList tracks={groupedTracks} />
@@ -848,22 +844,19 @@ const inlineSelection: SelectionValue = {
 				<Selections items={countdownSelections} order="countdown" />
 			</div>
 		</Specimen>
-		<Specimen
-			name="Selections"
-			note="Every field written inline, no entryId behind it. With no body the row keeps the tight spacing instead of the prose variant."
-		>
+		<Specimen name="Selections" note="Every field written inline, no entryId behind it.">
 			<div class="prose-x">
 				<Selections items={[inlineSelection]} />
 			</div>
 		</Specimen>
 	</Section>
 	<Section
-		note="The dashed frame belongs to this page, not to the components inside it; without it there would be nothing to see."
+		note="The dashed frame belongs to this page, not to the components inside it."
 		title="Empty states"
 	>
 		<Specimen
 			name="Components that render nothing"
-			note="<code>TermLinks</code>, <code>SectionRelated</code>, <code>Selections</code> and <code>TrackList</code>, each handed an empty array, and <code>AudioLinks</code> handed neither links nor files. All five return <code>undefined</code>, with no placeholder and no reserved space."
+			note="TermLinks, SectionRelated, Selections and TrackList handed an empty array, AudioLinks handed neither links nor files. All five return <code>undefined</code>."
 		>
 			<div class="rounded-sm border border-dashed border-ink-700 p-4">
 				<TermLinks heading="Styles" terms={[]} />
@@ -875,12 +868,12 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="Two more are on screen rather than in a box: entry-grid lays out the EntryCard specimen above, and content-wide is the column this page sits in. The SectionCoda, MediaFeatured, EmbedFrame and TrackList specimens all bleed under sm."
+		note="Two more are on screen rather than in a box: entry-grid lays out the EntryCard specimen, and content-wide is the column this page sits in."
 		title="Utilities"
 	>
 		<Specimen
 			name="pattern-maze-*"
-			note="A masked pattern above the element's own background, below its content. The value names the colour and the modifier its opacity, defaulting to 20%; --pattern-maze-size sets the tile."
+			note="The value names the colour and the modifier its opacity, defaulting to 20%; --pattern-maze-size sets the tile."
 			source="src/styles/main/parts/utilities.css"
 		>
 			<div class="pattern-maze-surface-300/35 rounded-md bg-surface-800 p-5">
@@ -899,7 +892,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="content-bleed / content-bleed-inset"
-			note="Below <code>sm</code> the pair takes a block to the viewport edge: <code>content-bleed</code> negates the page gutter, <code>content-bleed-inset</code> puts it back as padding on whichever element carries the text. Both on one element where the block's own background bleeds (<code>SectionCoda</code>), or split across container and child where the child's background has to reach the edge (the track list's stripes). Narrow the viewport under 640px to see it."
+			note="<code>content-bleed</code> negates the page gutter and <code>content-bleed-inset</code> puts it back as padding. Narrow the viewport under 640px to see it."
 			source="src/styles/main/parts/utilities.css"
 		>
 			<div class="content-bleed bg-surface-700 content-bleed-inset py-3 sm:px-3">

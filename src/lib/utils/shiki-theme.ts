@@ -5,7 +5,7 @@ const token = {
 	base: 'var(--color-ink-500)',
 	comment: 'var(--color-ink-700)',
 	keyword: 'var(--color-accent-500)',
-	modifier: 'var(--color-crimson-300)',
+	modifier: 'var(--color-flair-300)',
 	name: 'var(--color-ink-300)',
 	plate: 'var(--color-surface-800)',
 	punctuation: 'var(--color-surface-200)',

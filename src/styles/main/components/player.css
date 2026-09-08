@@ -15,7 +15,6 @@
 	--player-surface-raised: var(--color-surface-800);
 	--player-surface-hover: var(--color-surface-600);
 	--player-border: var(--color-surface-700);
-	--player-border-strong: var(--color-surface-500);
 
 	/* Orange, so the things you press separate from the waveforms */
 	--player-control: var(--color-highlight-600);

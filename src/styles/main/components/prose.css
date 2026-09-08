@@ -1,30 +1,8 @@
 /* Prose styles for MDX content (hand-rolled, not @tailwindcss/typography) */
 
-/* :where() keeps prose element rules at (0,1,0) specificity, so they are easy to override */
-.prose-x {
-	max-width: var(--spacing-prose);
-	font-family: var(--font-body);
-	font-size: 1rem;
-	line-height: 1.75;
-	color: var(--color-ink-400);
+/* Font, size, leading and colour inherit from `body`; the measure is composed with `content-measure` */
 
-	& > :where(:first-child) {
-		margin-top: 0;
-	}
-
-	& > :where(:last-child) {
-		margin-bottom: 0;
-	}
-
-	/* Prose granting margin to a component, rather than a rule the component fights; an escaped child gives it up */
-	& > :where(img, .img-group, .embed-frame) {
-		margin-block: calc(var(--spacing) * 6);
-	}
-}
-
-/* `prose-escape` opts an element and its subtree out of the element rules below, `not-prose` semantics */
-
-/* The guard is written once here; on each rule it would be 26 copies of the same selector */
+/* `:where()` keeps these at (0,1,0) specificity, so they are easy to override */
 .prose-x :where(:not(.prose-escape, .prose-escape *)) {
 	&:where(h1, h2, h3, h4) {
 		font-family: var(--font-display);
@@ -198,4 +176,17 @@
 	&:where(hr + *) {
 		margin-top: 0;
 	}
+}
+
+.prose-x > :where(img, .img-group, .embed-frame) {
+	margin-block: calc(var(--spacing) * 6);
+}
+
+/* Must stay last: these tie with the element rules at (0,1,0) and win only by source order */
+.prose-x > :where(:first-child) {
+	margin-top: 0;
+}
+
+.prose-x > :where(:last-child) {
+	margin-bottom: 0;
 }

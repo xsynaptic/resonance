@@ -1,4 +1,3 @@
-/* Escaped from prose, so the foot of a group comes from here rather than from the prose `ol` rule */
 .track-list {
 	@apply content-bleed;
 
@@ -32,6 +31,9 @@
 }
 
 .track-title-line {
+	--anchor-color: var(--color-ink-200);
+	--anchor-hover: var(--color-ink-50);
+
 	display: block;
 	margin-top: 5px;
 	font-size: var(--text-lg);
@@ -43,8 +45,9 @@
 	font-weight: var(--font-weight-bold);
 }
 
-.track-title-line a {
-	color: var(--color-ink-200);
+.track-label-year {
+	--anchor-color: var(--color-ink-400);
+	--anchor-hover: var(--color-ink-50);
 }
 
 .track-label-year,
@@ -52,22 +55,6 @@
 	font-size: var(--text-sm);
 	line-height: 20px;
 	color: var(--color-ink-600);
-}
-
-.track-label-year a {
-	color: var(--color-ink-400);
-}
-
-.track-title-line a:focus-visible,
-.track-label-year a:focus-visible {
-	color: var(--color-ink-50);
-}
-
-@media (hover: hover) {
-	.track-title-line a:hover,
-	.track-label-year a:hover {
-		color: var(--color-ink-50);
-	}
 }
 
 .track-label-year + .track-time {

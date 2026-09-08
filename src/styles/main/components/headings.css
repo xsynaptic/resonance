@@ -10,6 +10,9 @@
 }
 
 .title-main {
+	--anchor-color: var(--color-ink-200);
+	--anchor-hover: var(--color-ink-50);
+
 	font-size: var(--text-4xl);
 	line-height: var(--text-4xl--line-height);
 	color: var(--color-ink-200);
@@ -25,20 +28,6 @@ h2.title-main {
 .title-divider {
 	font-weight: var(--font-weight-normal);
 	color: var(--color-ink-600);
-}
-
-.title-main a {
-	color: var(--color-ink-200);
-}
-
-.title-main a:focus-visible {
-	color: var(--color-ink-50);
-}
-
-@media (hover: hover) {
-	.title-main a:hover {
-		color: var(--color-ink-50);
-	}
 }
 
 /* Home bands and Related */

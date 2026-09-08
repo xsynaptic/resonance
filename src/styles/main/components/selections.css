@@ -1,6 +1,6 @@
 /* The px rhythm below is production's, read off the live theme rather than derived from the grid */
 
-/* Renders inside .prose-x, whose list rules would otherwise indent and bullet the rows */
+/* Structural, not a prose list; prose sits in a lower layer so these win */
 .selection-list {
 	padding: 0;
 	margin: 0 0 calc(var(--spacing) * 5);
@@ -21,36 +21,16 @@
 	content: '';
 }
 
-/* Only the prose keeps .prose-x link decoration; the credits and meta are too dense for it */
-.selection-artist a,
-.selection-title a,
-.selection-meta a,
-.selection-links a {
-	text-decoration: none;
-	text-shadow: none;
+.selection-artist,
+.selection-title {
+	--anchor-color: var(--color-ink-200);
+	--anchor-hover: var(--color-ink-50);
 }
 
-.selection-artist a,
-.selection-title a {
-	color: var(--color-ink-200);
-}
-
-.selection-meta a {
-	color: var(--color-ink-400);
-}
-
-.selection-title a:focus-visible,
-.selection-meta a:focus-visible,
-.selection-artist a:focus-visible {
-	color: var(--color-ink-50);
-}
-
-@media (hover: hover) {
-	.selection-title a:hover,
-	.selection-meta a:hover,
-	.selection-artist a:hover {
-		color: var(--color-ink-50);
-	}
+.selection-meta,
+.selection-links {
+	--anchor-color: var(--color-ink-400);
+	--anchor-hover: var(--color-ink-50);
 }
 
 .selection-artist {

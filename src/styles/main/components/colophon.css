@@ -15,7 +15,7 @@
 }
 
 /* Small print sits a step below the muted role the markup asks for */
-.colophon .anchor {
+.colophon .anchor-x {
 	--anchor-color: var(--color-ink-600);
 	--anchor-hover: var(--color-highlight-400);
 }

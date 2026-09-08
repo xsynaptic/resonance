@@ -1,3 +1,6 @@
+/* A component rule beats prose whatever the import order */
+@layer theme, base, prose, components, utilities;
+
 @import 'tailwindcss' source(none);
 
 @source './main/**/*.css';
@@ -31,7 +34,7 @@
 @import './main/components/not-found.css' layer(components);
 @import './main/components/pagination-select.css' layer(components);
 @import './main/components/progress-loading.css' layer(components);
-@import './main/components/prose.css' layer(components);
+@import './main/components/prose.css' layer(prose);
 @import './main/components/release-detail.css' layer(components);
 @import './main/components/search.css' layer(components);
 @import './main/components/skip-link.css' layer(components);

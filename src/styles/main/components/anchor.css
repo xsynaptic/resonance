@@ -1,21 +1,25 @@
 /* A context retunes a role by setting the two variables under its own selector */
-.anchor {
-	color: var(--anchor-color);
+
+/* Drops the underline and halo prose puts on an authored link */
+.anchor-x {
+	color: var(--anchor-color, currentColor);
+	text-decoration: none;
+	text-shadow: none;
 	transition: color 150ms ease-in;
 }
 
-.anchor:focus-visible {
+.anchor-x:focus-visible {
 	color: var(--anchor-hover);
 }
 
 @media (hover: hover) {
-	.anchor:hover {
+	.anchor-x:hover {
 		color: var(--anchor-hover);
 	}
 }
 
 /* Restates the base a:active, which this layer would otherwise override */
-.anchor:active {
+.anchor-x:active {
 	color: var(--color-highlight-400);
 }
 

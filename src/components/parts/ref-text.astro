@@ -20,7 +20,7 @@ const { anchorColor, class: className, label, url } = Astro.props;
 				{label}
 			</Anchor>
 		) : (
-			<a class={className} href={url}>
+			<a class:list={['anchor-x', className]} href={url}>
 				{label}
 			</a>
 		)

@@ -14,6 +14,9 @@
 }
 
 .title-meta {
+	--anchor-color: var(--color-ink-300);
+	--anchor-hover: var(--color-ink-50);
+
 	color: var(--color-ink-600);
 }
 
@@ -21,19 +24,4 @@
 .title-kind {
 	font-weight: var(--font-weight-bold);
 	color: var(--color-highlight-500);
-}
-
-/* Without the exclusion this lands after anchor.css at equal specificity, overriding the role colour */
-.title-meta :where(a:not(.anchor)) {
-	color: var(--color-ink-300);
-}
-
-.title-meta :where(a:not(.anchor)):focus-visible {
-	color: var(--color-ink-50);
-}
-
-@media (hover: hover) {
-	.title-meta :where(a:not(.anchor)):hover {
-		color: var(--color-ink-50);
-	}
 }

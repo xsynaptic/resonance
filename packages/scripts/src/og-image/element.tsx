@@ -8,11 +8,12 @@ import type { OpenGraphCard } from '#og-image/types.ts';
 // Palette tokens from src/styles/main/parts/theme.css, resolved to hex
 const colorBackground = '#1c1f21'; // surface-900
 const colorImageFrame = '#2b3136'; // surface-700
+const colorImageBorder = '#22272a'; // surface-800
 const colorTitle = '#e9f2f2'; // ink-50
 const colorBrand = '#819798'; // ink-600
 const colorLabel = '#fd8a30'; // highlight-400
 const colorPattern = '#24292d'; // surface-600 at the `maze` utility's opacity, flattened
-const colorGlow = 'rgba(36, 41, 45, 0.5)';
+const colorGlow = 'rgba(115, 139, 156, 0.2)'; // surface-200
 
 const cardPadding = 64;
 const columnGap = 48;
@@ -102,7 +103,7 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 							fontFamily: 'Fira Sans',
 							fontSize: `${String(featuredImage ? titleSizeWithImage : titleSizeWithoutImage)}px`,
 							fontWeight: 700,
-							lineClamp: card.label ? 3 : 4,
+							lineClamp: card.label ? 4 : 5,
 							lineHeight: 1.15,
 							textOverflow: 'ellipsis',
 						}}
@@ -127,7 +128,10 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 				<div
 					style={{
 						backgroundColor: colorImageFrame,
-						borderRadius: '5px',
+						borderColor: colorImageBorder,
+						borderRadius: '8px',
+						borderStyle: 'solid',
+						borderWidth: '4px',
 						boxShadow: `0 0 75px 30px ${colorGlow}`,
 						display: 'flex',
 						padding: `${String(featuredImageFrame)}px`,

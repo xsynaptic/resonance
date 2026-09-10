@@ -38,7 +38,7 @@
 		"@fontsource/manrope": "^5.3.0",
 		"@types/react": "^19.2.18",
 		"@xsynaptic/shared": "workspace:*",
-		"astro": "^7.3.1",
+		"astro": "^7.3.2",
 		"chalk": "^6.0.0",
 		"p-limit": "^7.3.2",
 		"react": "^19.2.8",

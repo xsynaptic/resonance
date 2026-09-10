@@ -17,7 +17,9 @@ const { label } = Astro.props;
 			data-carousel-nav="prev"
 			type="button"
 		>
-			<svg aria-hidden="true"><use href="#icon:chevron-left"></use></svg>
+			<svg aria-hidden="true">
+				<use href="#icon:chevron-left"></use>
+			</svg>
 		</button>
 		<button
 			aria-label={formatStringTemplate(t('carousel.next'), { label })}
@@ -25,7 +27,9 @@ const { label } = Astro.props;
 			data-carousel-nav="next"
 			type="button"
 		>
-			<svg aria-hidden="true"><use href="#icon:chevron-right"></use></svg>
+			<svg aria-hidden="true">
+				<use href="#icon:chevron-right"></use>
+			</svg>
 		</button>
 	</div>
 	<ul class="carousel-track" data-carousel-track>

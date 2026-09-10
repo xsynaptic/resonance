@@ -87,44 +87,40 @@ const schemas = getReviewSchemas(entry, {
 	schemas={schemas}
 	styles={styleTerms}
 	title={entry.data.title}
-	{...artist ? { artist } : {}}
-	{...imageFeaturedId ? { image: imageFeaturedId } : {}}
-	{...releaseYear ? { releaseYear } : {}}
-	{...description ? { description } : {}}
+	{...(artist ? { artist } : {})}
+	{...(imageFeaturedId ? { image: imageFeaturedId } : {})}
+	{...(releaseYear ? { releaseYear } : {})}
+	{...(description ? { description } : {})}
 >
 	<Content />
 	<Fragment slot="actions">
-		{
-			actions.length > 0 ? (
-				<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
-					{actions.map((action) => (
-						<li>
-							<ButtonLink
-								href={action.href}
-								rel="noreferrer"
-								target="_blank"
-								{...(action.icon ? { icon: action.icon } : {})}
-							>
-								{action.label}
-							</ButtonLink>
-						</li>
-					))}
-				</ul>
-			) : undefined
-		}
+		{actions.length > 0 ? (
+			<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
+				{actions.map((action) => (
+					<li>
+						<ButtonLink
+							href={action.href}
+							rel="noreferrer"
+							target="_blank"
+							{...(action.icon ? { icon: action.icon } : {})}
+						>
+							{action.label}
+						</ButtonLink>
+					</li>
+				))}
+			</ul>
+		) : undefined}
 	</Fragment>
 	<Fragment slot="sections">
 		<SectionCoda>
-			{
-				rating ? (
-					<p>
-						{t('detail.rating.label')}{' '}
-						<span class="text-ink-300">
-							{formatStringTemplate(t('detail.rating.value'), { rating })}
-						</span>
-					</p>
-				) : undefined
-			}
+			{rating ? (
+				<p>
+					{t('detail.rating.label')}{' '}
+					<span class="text-ink-300">
+						{formatStringTemplate(t('detail.rating.value'), { rating })}
+					</span>
+				</p>
+			) : undefined}
 			<TermLinks heading={t('collection.artists.title')} terms={artistTerms} />
 			<TermLinks heading={t('collection.regions.title')} terms={regionTerms} />
 			<TermLinks heading={t('collection.eras.title')} terms={eraTerms} />
@@ -133,14 +129,12 @@ const schemas = getReviewSchemas(entry, {
 		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
-	{
-		entry.data.commentsEnabled === false ? undefined : (
-			<CommentsSection
-				collection="reviews"
-				entryId={entry.id}
-				formerIds={entry.data.formerIds}
-				slot="comments"
-			/>
-		)
-	}
+	{entry.data.commentsEnabled === false ? undefined : (
+		<CommentsSection
+			collection="reviews"
+			entryId={entry.id}
+			formerIds={entry.data.formerIds}
+			slot="comments"
+		/>
+	)}
 </ReleaseDetail>

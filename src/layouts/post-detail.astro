@@ -55,9 +55,9 @@ const schemas = getPostSchemas(entry, {
 	schemas={schemas}
 	styles={styleTerms}
 	title={entry.data.title}
-	{...imageFeaturedId ? { imageFeatured: imageFeaturedId } : {}}
-	{...imageHeroId ? { imageHero: imageHeroId } : {}}
-	{...description ? { description } : {}}
+	{...(imageFeaturedId ? { imageFeatured: imageFeaturedId } : {})}
+	{...(imageHeroId ? { imageHero: imageHeroId } : {})}
+	{...(description ? { description } : {})}
 >
 	<Content />
 	<Fragment slot="sections">
@@ -68,14 +68,12 @@ const schemas = getPostSchemas(entry, {
 			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 		</SectionCoda>
 	</Fragment>
-	{
-		entry.data.commentsEnabled === false ? undefined : (
-			<CommentsSection
-				collection="posts"
-				entryId={entry.id}
-				formerIds={entry.data.formerIds}
-				slot="comments"
-			/>
-		)
-	}
+	{entry.data.commentsEnabled === false ? undefined : (
+		<CommentsSection
+			collection="posts"
+			entryId={entry.id}
+			formerIds={entry.data.formerIds}
+			slot="comments"
+		/>
+	)}
 </ContentDetail>

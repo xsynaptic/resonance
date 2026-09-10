@@ -20,25 +20,23 @@ const { class: className, ...props } = Astro.props;
 		{...props}
 	>
 		<ul class="nav-ul">
-			{
-				navigationHeaderItems.map((item) => {
-					const children = item.children ?? [];
-					const hasChildren = children.length > 0;
+			{navigationHeaderItems.map((item) => {
+				const children = item.children ?? [];
+				const hasChildren = children.length > 0;
 
-					return (
-						<li class="nav-item">
-							<NavigationHeaderTrigger hasChildren={hasChildren} item={item} />
-							{hasChildren ? (
-								<NavigationHeaderSubmenu
-									ariaLabel={getNavigationItemAriaLabel(item)}
-									depth={1}
-									navigationItems={children}
-								/>
-							) : undefined}
-						</li>
-					);
-				})
-			}
+				return (
+					<li class="nav-item">
+						<NavigationHeaderTrigger hasChildren={hasChildren} item={item} />
+						{hasChildren ? (
+							<NavigationHeaderSubmenu
+								ariaLabel={getNavigationItemAriaLabel(item)}
+								depth={1}
+								navigationItems={children}
+							/>
+						) : undefined}
+					</li>
+				);
+			})}
 		</ul>
 	</nav>
 </site-navigation>

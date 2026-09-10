@@ -20,39 +20,33 @@ const triggerType = getNavigationItemTriggerType(item);
 ---
 
 <div class="nav-sub-trigger">
-	{
-		triggerType === 'anchor' ? (
-			<a
-				aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
-				class="nav-sub-link"
-				href={item.url}
-				{...(item.rel ? { rel: item.rel } : undefined)}
-			>
-				{item.title}
-			</a>
-		) : undefined
-	}
-	{
-		triggerType === 'button' ? (
-			<button class="nav-sub-link" type="button">
-				{item.title}
-			</button>
-		) : undefined
-	}
+	{triggerType === 'anchor' ? (
+		<a
+			aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
+			class="nav-sub-link"
+			href={item.url}
+			{...(item.rel ? { rel: item.rel } : undefined)}
+		>
+			{item.title}
+		</a>
+	) : undefined}
+	{triggerType === 'button' ? (
+		<button class="nav-sub-link" type="button">
+			{item.title}
+		</button>
+	) : undefined}
 	{triggerType === 'span' ? <span class="nav-sub-link">{item.title}</span> : undefined}
-	{
-		hasChildren ? (
-			<button
-				aria-expanded="false"
-				aria-label={getNavigationItemAriaLabel(item)}
-				class="nav-sub-toggle"
-				data-nav-toggle
-				type="button"
-			>
-				<svg aria-hidden="true" class="nav-sub-icon">
-					<use href="#icon:chevron-right" />
-				</svg>
-			</button>
-		) : undefined
-	}
+	{hasChildren ? (
+		<button
+			aria-expanded="false"
+			aria-label={getNavigationItemAriaLabel(item)}
+			class="nav-sub-toggle"
+			data-nav-toggle
+			type="button"
+		>
+			<svg aria-hidden="true" class="nav-sub-icon">
+				<use href="#icon:chevron-right" />
+			</svg>
+		</button>
+	) : undefined}
 </div>

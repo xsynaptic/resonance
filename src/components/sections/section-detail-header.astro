@@ -35,63 +35,55 @@ const releaseYearText =
 ---
 
 <header>
-	{
-		breadcrumbTrail && breadcrumbTrail.length > 0 ? (
-			<Breadcrumbs trail={breadcrumbTrail} />
-		) : undefined
-	}
-	{
-		styleTerms.length > 0 ? (
-			<div class="title-eyebrow">
-				{styleTerms.map((term) => (
-					<DividedItem as="span">
-						<RefText anchorColor="highlight" label={term.label} url={term.url} />
-					</DividedItem>
-				))}
-			</div>
-		) : undefined
-	}
+	{breadcrumbTrail && breadcrumbTrail.length > 0 ? (
+		<Breadcrumbs trail={breadcrumbTrail} />
+	) : undefined}
+	{styleTerms.length > 0 ? (
+		<div class="title-eyebrow">
+			{styleTerms.map((term) => (
+				<DividedItem as="span">
+					<RefText anchorColor="highlight" label={term.label} url={term.url} />
+				</DividedItem>
+			))}
+		</div>
+	) : undefined}
 	<h1 class="title-main">
-		{
-			releaseTitle ? (
-				<Fragment>
-					{artist ? (
-						<Fragment>
-							<RefText label={artist.label} url={artist.url} />
-							<span class="title-divider"> - </span>
-						</Fragment>
-					) : undefined}
-					<span class="font-semibold italic">{releaseTitle}</span>
-				</Fragment>
-			) : (
-				title
-			)
-		}
+		{releaseTitle ? (
+			<Fragment>
+				{artist ? (
+					<Fragment>
+						<RefText label={artist.label} url={artist.url} />
+						<span class="title-divider"> - </span>
+					</Fragment>
+				) : undefined}
+				<span class="font-semibold italic">{releaseTitle}</span>
+			</Fragment>
+		) : (
+			title
+		)}
 	</h1>
-	{
-		kind || hasRelease || date ? (
-			<div class="title-meta">
-				{kind ? (
-					<DividedItem as="span" dividerContent="slash">
-						<span class="title-kind">
-							<RefText anchorColor="highlight" label={kind.label} url={kind.url} />
-						</span>
-					</DividedItem>
-				) : undefined}
-				{hasRelease ? (
-					<DividedItem as="span" dividerContent="slash">
-						{releaseLead}
-						<RefList refs={releaseLabels} />
-						{releaseYearText}
-					</DividedItem>
-				) : undefined}
-				{date ? (
-					<DividedItem as="span" dividerContent="slash">
-						{t('detail.posted')}
-						<time datetime={date.toISOString()}>{formatDate(date)}</time>
-					</DividedItem>
-				) : undefined}
-			</div>
-		) : undefined
-	}
+	{kind || hasRelease || date ? (
+		<div class="title-meta">
+			{kind ? (
+				<DividedItem as="span" dividerContent="slash">
+					<span class="title-kind">
+						<RefText anchorColor="highlight" label={kind.label} url={kind.url} />
+					</span>
+				</DividedItem>
+			) : undefined}
+			{hasRelease ? (
+				<DividedItem as="span" dividerContent="slash">
+					{releaseLead}
+					<RefList refs={releaseLabels} />
+					{releaseYearText}
+				</DividedItem>
+			) : undefined}
+			{date ? (
+				<DividedItem as="span" dividerContent="slash">
+					{t('detail.posted')}
+					<time datetime={date.toISOString()}>{formatDate(date)}</time>
+				</DividedItem>
+			) : undefined}
+		</div>
+	) : undefined}
 </header>

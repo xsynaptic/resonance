@@ -14,12 +14,10 @@ const { class: className, icon, variant = 'standard', ...props } = Astro.props;
 ---
 
 <a class:list={['button-x', 'prose-escape', `button-${variant}`, className]} {...props}>
-	{
-		icon ? (
-			<svg aria-hidden="true" class="button-icon">
-				<use href={`#icon:${icon}`} />
-			</svg>
-		) : undefined
-	}
+	{icon ? (
+		<svg aria-hidden="true" class="button-icon">
+			<use href={`#icon:${icon}`} />
+		</svg>
+	) : undefined}
 	<slot />
 </a>

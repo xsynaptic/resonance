@@ -21,23 +21,21 @@ const { ariaLabel, depth, navigationItems, ...props } = Astro.props;
 	class:list={['nav-sub', depth === 1 ? 'nav-sub-d1' : 'nav-sub-d2']}
 	{...props}
 >
-	{
-		navigationItems.map((item) => {
-			const children = depth < navigationDepthMax ? (item.children ?? []) : [];
-			const hasChildren = children.length > 0;
+	{navigationItems.map((item) => {
+		const children = depth < navigationDepthMax ? (item.children ?? []) : [];
+		const hasChildren = children.length > 0;
 
-			return (
-				<li class="nav-sub-item">
-					<NavigationHeaderSubmenuTrigger hasChildren={hasChildren} item={item} />
-					{hasChildren ? (
-						<Astro.self
-							ariaLabel={getNavigationItemAriaLabel(item)}
-							depth={depth + 1}
-							navigationItems={children}
-						/>
-					) : undefined}
-				</li>
-			);
-		})
-	}
+		return (
+			<li class="nav-sub-item">
+				<NavigationHeaderSubmenuTrigger hasChildren={hasChildren} item={item} />
+				{hasChildren ? (
+					<Astro.self
+						ariaLabel={getNavigationItemAriaLabel(item)}
+						depth={depth + 1}
+						navigationItems={children}
+					/>
+				) : undefined}
+			</li>
+		);
+	})}
 </ul>

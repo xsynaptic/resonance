@@ -26,30 +26,29 @@ const isTruncated = remainder.length > 0;
 
 <article class="mb-16">
 	<header class="mb-6">
-		<h2 class="title-main"><a href={href}>{title}</a></h2>
+		<h2 class="title-main">
+			<a href={href}>{title}</a>
+		</h2>
 		<div class="title-meta">
-			{
-				format ? (
-					<DividedItem as="span" dividerContent="slash">
-						<span class="title-kind">
-							<RefText anchorColor="highlight" label={format.label} url={format.url} />
-						</span>
-					</DividedItem>
-				) : undefined
-			}
+			{format ? (
+				<DividedItem as="span" dividerContent="slash">
+					<span class="title-kind">
+						<RefText anchorColor="highlight" label={format.label} url={format.url} />
+					</span>
+				</DividedItem>
+			) : undefined}
 			<DividedItem as="span" dividerContent="slash">
-				{t('detail.posted')}<time datetime={date.toISOString()}>{formatDate(date)}</time>
+				{t('detail.posted')}
+				<time datetime={date.toISOString()}>{formatDate(date)}</time>
 			</DividedItem>
 		</div>
 	</header>
 	<div class="prose-x content-measure">
 		<Fragment set:html={excerpt} />
 	</div>
-	{
-		isTruncated ? (
-			<p class="mt-6">
-				<Anchor href={href}>{t('detail.continueReading')}</Anchor>
-			</p>
-		) : undefined
-	}
+	{isTruncated ? (
+		<p class="mt-6">
+			<Anchor href={href}>{t('detail.continueReading')}</Anchor>
+		</p>
+	) : undefined}
 </article>

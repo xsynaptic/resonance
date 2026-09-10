@@ -18,12 +18,10 @@ const { class: className, icon, type = 'button', variant = 'standard', ...props 
 	type={type}
 	{...props}
 >
-	{
-		icon ? (
-			<svg aria-hidden="true" class="button-icon">
-				<use href={`#icon:${icon}`} />
-			</svg>
-		) : undefined
-	}
+	{icon ? (
+		<svg aria-hidden="true" class="button-icon">
+			<use href={`#icon:${icon}`} />
+		</svg>
+	) : undefined}
 	<slot />
 </button>

@@ -82,9 +82,9 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 	schemas={schemas}
 	styles={styleTerms}
 	title={entry.data.title}
-	{...alias ? { artist: alias } : {}}
-	{...imageFeaturedId ? { image: imageFeaturedId } : {}}
-	{...description ? { description } : {}}
+	{...(alias ? { artist: alias } : {})}
+	{...(imageFeaturedId ? { image: imageFeaturedId } : {})}
+	{...(description ? { description } : {})}
 >
 	<Content />
 	<Fragment slot="media">
@@ -95,8 +95,8 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 	<Fragment slot="actions">
 		<AudioLinks
 			links={entry.data.links}
-			{...hasGroupFiles ? {} : { files: entry.data.files }}
-			{...hasMixTimestamps(entry) ? { cueSlug: entry.id } : {}}
+			{...(hasGroupFiles ? {} : { files: entry.data.files })}
+			{...(hasMixTimestamps(entry) ? { cueSlug: entry.id } : {})}
 		/>
 	</Fragment>
 	<Fragment slot="sections">
@@ -111,14 +111,12 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
-	{
-		entry.data.commentsEnabled === false ? undefined : (
-			<CommentsSection
-				collection="mixes"
-				entryId={entry.id}
-				formerIds={entry.data.formerIds}
-				slot="comments"
-			/>
-		)
-	}
+	{entry.data.commentsEnabled === false ? undefined : (
+		<CommentsSection
+			collection="mixes"
+			entryId={entry.id}
+			formerIds={entry.data.formerIds}
+			slot="comments"
+		/>
+	)}
 </ReleaseDetail>

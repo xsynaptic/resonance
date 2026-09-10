@@ -45,17 +45,15 @@ const schemas =
 	title={title}
 >
 	<PageTitle title={title} />
-	{
-		posts.map(({ Content, entry, format }) => (
-			<SectionPostExcerpt
-				date={entry.data.dateCreated}
-				href={getContentPath('posts', entry.id)}
-				title={entry.data.title}
-				{...(format ? { format } : {})}
-			>
-				<Content />
-			</SectionPostExcerpt>
-		))
-	}
+	{posts.map(({ Content, entry, format }) => (
+		<SectionPostExcerpt
+			date={entry.data.dateCreated}
+			href={getContentPath('posts', entry.id)}
+			title={entry.data.title}
+			{...(format ? { format } : {})}
+		>
+			<Content />
+		</SectionPostExcerpt>
+	))}
 	<PaginationSelect class="mt-8" page={page} />
 </MainSite>

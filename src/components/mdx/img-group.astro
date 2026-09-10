@@ -26,19 +26,17 @@ function getGridColumnCount(itemCount: number): number {
 const columns = getGridColumnCount(columnsProp ? Number(columnsProp) : imageCount);
 ---
 
-{
-	slotContents && imageCount > 0 ? (
-		<div
-			class:list={[
-				'img-group',
-				columns > 1 ? 'grid grid-cols-1 gap-2 md:gap-4' : undefined,
-				columns === 2 ? 'sm:grid-cols-2' : undefined,
-				columns === 3 ? 'md:grid-cols-3' : undefined,
-				columns === 4 ? 'sm:grid-cols-2 md:grid-cols-4' : undefined,
-			]}
-			{...props}
-		>
-			<Fragment set:html={slotContents} />
-		</div>
-	) : undefined
-}
+{slotContents && imageCount > 0 ? (
+	<div
+		class:list={[
+			'img-group',
+			columns > 1 ? 'grid grid-cols-1 gap-2 md:gap-4' : undefined,
+			columns === 2 ? 'sm:grid-cols-2' : undefined,
+			columns === 3 ? 'md:grid-cols-3' : undefined,
+			columns === 4 ? 'sm:grid-cols-2 md:grid-cols-4' : undefined,
+		]}
+		{...props}
+	>
+		<Fragment set:html={slotContents} />
+	</div>
+) : undefined}

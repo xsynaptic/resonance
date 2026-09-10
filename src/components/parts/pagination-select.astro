@@ -25,83 +25,81 @@ const previousUrl = url.prev ? withTrailingSlash(url.prev) : undefined;
 const nextUrl = url.next ? withTrailingSlash(url.next) : undefined;
 ---
 
-{
-	lastPage > 1 ? (
-		<pagination-select
-			class="block"
-			data-base-path={pageBasePath}
-			data-current-page={String(currentPage)}
-			data-last-page={String(lastPage)}
-			data-nosnippet
-			data-page-label={t('pagination.pageNumber')}
-			data-pagefind-ignore
+{lastPage > 1 ? (
+	<pagination-select
+		class="block"
+		data-base-path={pageBasePath}
+		data-current-page={String(currentPage)}
+		data-last-page={String(lastPage)}
+		data-nosnippet
+		data-page-label={t('pagination.pageNumber')}
+		data-pagefind-ignore
+	>
+		<nav
+			aria-label={t('pagination.label')}
+			class:list={[
+				'flex flex-wrap items-center justify-between gap-4 text-sm font-medium tabular-nums select-none',
+				className,
+			]}
+			{...props}
 		>
-			<nav
-				aria-label={t('pagination.label')}
-				class:list={[
-					'flex flex-wrap items-center justify-between gap-4 text-sm font-medium tabular-nums select-none',
-					className,
-				]}
-				{...props}
-			>
-				<div class="flex items-center">
-					<span class="text-ink-500" data-pagination-counter>
-						{formatStringTemplate(t('pagination.counter'), {
-							current: currentPage,
-							total: lastPage,
-						})}
-					</span>
-					<form class="flex items-center gap-2" data-pagination-form hidden>
-						<span class="relative inline-flex items-center">
-							<select
-								aria-label={t('pagination.selectLabel')}
-								class="pg-control overflow-hidden rounded-sm border border-surface-700 bg-surface-600 py-1 pr-7 pl-2 text-ellipsis whitespace-nowrap text-ink-100 tabular-nums transition-colors hover:border-surface-400 focus-visible:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
-								data-pagination-control
-								name="page"
-							/>
-							<span
-								aria-hidden="true"
-								class="pg-arrow pointer-events-none absolute flex items-center text-highlight-500"
-							>
-								<svg height="12" width="12">
-									<use href="#icon:chevron-down" />
-								</svg>
-							</span>
-						</span>
-						<span class="text-ink-500">
-							{formatStringTemplate(t('pagination.selectTotal'), { total: lastPage })}
-						</span>
-						<button
-							class="pg-button cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
-							data-pagination-submit
-							type="submit"
+			<div class="flex items-center">
+				<span class="text-ink-500" data-pagination-counter>
+					{formatStringTemplate(t('pagination.counter'), {
+						current: currentPage,
+						total: lastPage,
+					})}
+				</span>
+				<form class="flex items-center gap-2" data-pagination-form hidden>
+					<span class="relative inline-flex items-center">
+						<select
+							aria-label={t('pagination.selectLabel')}
+							class="pg-control overflow-hidden rounded-sm border border-surface-700 bg-surface-600 py-1 pr-7 pl-2 text-ellipsis whitespace-nowrap text-ink-100 tabular-nums transition-colors hover:border-surface-400 focus-visible:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+							data-pagination-control
+							name="page"
+						/>
+						<span
+							aria-hidden="true"
+							class="pg-arrow pointer-events-none absolute flex items-center text-highlight-500"
 						>
-							{t('pagination.submit')}
-						</button>
-					</form>
-				</div>
-				<div class="flex items-center gap-6">
-					{previousUrl ? (
-						<span class="flex flex-wrap gap-1">
-							<span class="text-highlight-500 select-none">&lsaquo;</span>
-							<Anchor aria-label={t('pagination.previousPage')} href={previousUrl}>
-								{t('pagination.previous')}
-							</Anchor>
+							<svg height="12" width="12">
+								<use href="#icon:chevron-down" />
+							</svg>
 						</span>
-					) : undefined}
-					{nextUrl ? (
-						<span class="flex flex-wrap gap-1">
-							<Anchor aria-label={t('pagination.nextPage')} href={nextUrl}>
-								{t('pagination.next')}
-							</Anchor>
-							<span class="text-highlight-500 select-none">&rsaquo;</span>
-						</span>
-					) : undefined}
-				</div>
-			</nav>
-		</pagination-select>
-	) : undefined
-}
+					</span>
+					<span class="text-ink-500">
+						{formatStringTemplate(t('pagination.selectTotal'), { total: lastPage })}
+					</span>
+					<button
+						class="pg-button cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+						data-pagination-submit
+						type="submit"
+					>
+						{t('pagination.submit')}
+					</button>
+				</form>
+			</div>
+			<div class="flex items-center gap-6">
+				{previousUrl ? (
+					<span class="flex flex-wrap gap-1">
+						<span class="text-highlight-500 select-none">&lsaquo;</span>
+						<Anchor aria-label={t('pagination.previousPage')} href={previousUrl}>
+							{t('pagination.previous')}
+						</Anchor>
+					</span>
+				) : undefined}
+				{nextUrl ? (
+					<span class="flex flex-wrap gap-1">
+						<Anchor aria-label={t('pagination.nextPage')} href={nextUrl}>
+							{t('pagination.next')}
+						</Anchor>
+						<span class="text-highlight-500 select-none">&rsaquo;</span>
+					</span>
+				) : undefined}
+			</div>
+		</nav>
+	</pagination-select>
+) : undefined}
 
 <script>
 	import '#components/parts/pagination-select.ts';

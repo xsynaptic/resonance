@@ -12,24 +12,22 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-{
-	items.length > 0 ? (
-		<section class="mt-16" data-nosnippet data-pagefind-ignore>
-			<h2 class="heading-section mb-4">{t('section.related.heading')}</h2>
-			<Carousel label={t('section.related.carouselLabel')}>
-				{items.map((item) => (
-					<li>
-						<EntryCard
-							date={item.date}
-							href={item.url}
-							image={item.image}
-							releaseTitle={item.releaseTitle}
-							subtitle={item.subtitle}
-							title={item.title}
-						/>
-					</li>
-				))}
-			</Carousel>
-		</section>
-	) : undefined
-}
+{items.length > 0 ? (
+	<section class="mt-16" data-nosnippet data-pagefind-ignore>
+		<h2 class="heading-section mb-4">{t('section.related.heading')}</h2>
+		<Carousel label={t('section.related.carouselLabel')}>
+			{items.map((item) => (
+				<li>
+					<EntryCard
+						date={item.date}
+						href={item.url}
+						image={item.image}
+						releaseTitle={item.releaseTitle}
+						subtitle={item.subtitle}
+						title={item.title}
+					/>
+				</li>
+			))}
+		</Carousel>
+	</section>
+) : undefined}

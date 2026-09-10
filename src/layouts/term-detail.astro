@@ -91,73 +91,61 @@ const schemas =
 	openGraphId={getOpenGraphId(term.collection, term.id)}
 	schemas={schemas}
 	title={term.data.title}
-	{...description ? { description } : {}}
+	{...(description ? { description } : {})}
 >
-	{
-		imageHeroId ? (
-			<SectionDetailHero
-				breadcrumbTrail={breadcrumbTrail}
-				path={imageHeroId}
-				slot="hero"
-				title={term.data.title}
-			/>
-		) : undefined
-	}
-	<div class="mb-6" {...isSearchable ? { 'data-pagefind-body': '' } : {}}>
-		{
-			isSearchable ? (
-				<SearchThumbnail path={getImageFeaturedId(term.data.imageFeatured)} />
-			) : undefined
-		}
-		{
-			imageHeroId ? undefined : (
-				<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />
-			)
-		}
-		{
-			body === '' ? undefined : (
-				<div class="prose-x mt-2 content-measure">
-					<Content />
-				</div>
-			)
-		}
-	</div>
-	{
-		memberLinks.length > 0 || projectLinks.length > 0 || relationGroups.length > 0 ? (
-			<div class="mb-6 space-y-1">
-				<TermLinks heading={t('artist.members')} terms={memberLinks} />
-				<TermLinks heading={t('artist.projects')} terms={projectLinks} />
-				{relationGroups.map((group) => (
-					<TermLinks heading={group.heading} terms={group.terms} />
-				))}
+	{imageHeroId ? (
+		<SectionDetailHero
+			breadcrumbTrail={breadcrumbTrail}
+			path={imageHeroId}
+			slot="hero"
+			title={term.data.title}
+		/>
+	) : undefined}
+	<div class="mb-6" {...(isSearchable ? { 'data-pagefind-body': '' } : {})}>
+		{isSearchable ? (
+			<SearchThumbnail path={getImageFeaturedId(term.data.imageFeatured)} />
+		) : undefined}
+		{imageHeroId ? undefined : (
+			<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />
+		)}
+		{body === '' ? undefined : (
+			<div class="prose-x mt-2 content-measure">
+				<Content />
 			</div>
-		) : undefined
-	}
-	{
-		page.data.length > 0 ? (
-			groups.map((group, groupIndex) => (
-				<section class="mb-8">
-					{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
-					<ul class="entry-grid">
-						{group.items.map((entry, entryIndex) => (
-							<li>
-								<EntryCard
-									date={entry.date}
-									href={entry.url}
-									image={entry.image}
-									priority={groupIndex === 0 && entryIndex === 0}
-									releaseTitle={entry.releaseTitle}
-									subtitle={collectionLabels[entry.collection]}
-									title={entry.title}
-								/>
-							</li>
-						))}
-					</ul>
-				</section>
-			))
-		) : (
-			<p class="text-ink-600">{t('detail.empty')}</p>
-		)
-	}
+		)}
+	</div>
+	{memberLinks.length > 0 || projectLinks.length > 0 || relationGroups.length > 0 ? (
+		<div class="mb-6 space-y-1">
+			<TermLinks heading={t('artist.members')} terms={memberLinks} />
+			<TermLinks heading={t('artist.projects')} terms={projectLinks} />
+			{relationGroups.map((group) => (
+				<TermLinks heading={group.heading} terms={group.terms} />
+			))}
+		</div>
+	) : undefined}
+	{page.data.length > 0 ? (
+		groups.map((group, groupIndex) => (
+			<section class="mb-8">
+				{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
+				<ul class="entry-grid">
+					{group.items.map((entry, entryIndex) => (
+						<li>
+							<EntryCard
+								date={entry.date}
+								href={entry.url}
+								image={entry.image}
+								priority={groupIndex === 0 && entryIndex === 0}
+								releaseTitle={entry.releaseTitle}
+								subtitle={collectionLabels[entry.collection]}
+								title={entry.title}
+							/>
+						</li>
+					))}
+				</ul>
+			</section>
+		))
+	) : (
+		<p class="text-ink-600">{t('detail.empty')}</p>
+	)}
 	<PaginationSelect class="mt-8" page={page} />
 </MainSite>

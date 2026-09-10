@@ -111,77 +111,73 @@ const groups = await Promise.all(toTrackGroups(tracks).map(buildGroup));
 const hasRows = groups.some((group) => group.rows.length > 0);
 ---
 
-{
-	isFeed && hasRows ? (
-		<section>
-			<h2>{t('section.tracklist.heading')}</h2>
-			{groups.map((group) => (
-				<Fragment>
-					{group.title ? <h3>{group.title}</h3> : undefined}
-					{group.description ? <p>{group.description}</p> : undefined}
-					<ol>
-						{group.rows.map((row) => (
-							<li>{toFeedLine(row)}</li>
-						))}
-					</ol>
-				</Fragment>
-			))}
-		</section>
-	) : undefined
-}
-{
-	!isFeed && hasRows ? (
-		<section class="my-8">
-			<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
-			{groups.map((group) => (
-				<Fragment>
-					{group.title ? <h3 class="track-group-title">{group.title}</h3> : undefined}
-					{group.description ? <p>{group.description}</p> : undefined}
-					{group.files ? (
-						<div class="mb-3">
-							<AudioLinks
-								files={group.files}
-								{...(group.cueSlug ? { cueSlug: group.cueSlug } : {})}
-							/>
-						</div>
-					) : undefined}
-					<ol class="track-list prose-escape">
-						{group.rows.map((row) => (
-							<li class="track-item">
-								<span aria-hidden="true" class="track-index">
-									{row.position}.
-								</span>
-								<span class="track-title-line">
-									{row.artists.length > 0 ? (
-										<Fragment>
-											<strong>
-												<RefList refs={row.artists} />
-											</strong>
-											<span class="text-ink-600">{' - '}</span>
-										</Fragment>
-									) : undefined}
-									<span class="font-medium">{row.title}</span>
-									{row.remixCredit.length > 0 ? (
-										<span>
-											{' ('}
-											<RefList refs={row.remixCredit} />
-											{' remix)'}
-										</span>
-									) : undefined}
-								</span>
-								{row.hasMeta ? (
-									<span class="track-label-year">
-										<RefList refs={row.labels} />
-										{row.metaSeparator}
-										{row.year}
+{isFeed && hasRows ? (
+	<section>
+		<h2>{t('section.tracklist.heading')}</h2>
+		{groups.map((group) => (
+			<Fragment>
+				{group.title ? <h3>{group.title}</h3> : undefined}
+				{group.description ? <p>{group.description}</p> : undefined}
+				<ol>
+					{group.rows.map((row) => (
+						<li>{toFeedLine(row)}</li>
+					))}
+				</ol>
+			</Fragment>
+		))}
+	</section>
+) : undefined}
+{!isFeed && hasRows ? (
+	<section class="my-8">
+		<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
+		{groups.map((group) => (
+			<Fragment>
+				{group.title ? <h3 class="track-group-title">{group.title}</h3> : undefined}
+				{group.description ? <p>{group.description}</p> : undefined}
+				{group.files ? (
+					<div class="mb-3">
+						<AudioLinks
+							files={group.files}
+							{...(group.cueSlug ? { cueSlug: group.cueSlug } : {})}
+						/>
+					</div>
+				) : undefined}
+				<ol class="track-list prose-escape">
+					{group.rows.map((row) => (
+						<li class="track-item">
+							<span aria-hidden="true" class="track-index">
+								{row.position}.
+							</span>
+							<span class="track-title-line">
+								{row.artists.length > 0 ? (
+									<Fragment>
+										<strong>
+											<RefList refs={row.artists} />
+										</strong>
+										<span class="text-ink-600">{' - '}</span>
+									</Fragment>
+								) : undefined}
+								<span class="font-medium">{row.title}</span>
+								{row.remixCredit.length > 0 ? (
+									<span>
+										{' ('}
+										<RefList refs={row.remixCredit} />
+										{' remix)'}
 									</span>
 								) : undefined}
-								{row.time ? <span class="track-time">{row.time}</span> : undefined}
-							</li>
-						))}
-					</ol>
-				</Fragment>
-			))}
-		</section>
-	) : undefined
-}
+							</span>
+							{row.hasMeta ? (
+								<span class="track-label-year">
+									<RefList refs={row.labels} />
+									{row.metaSeparator}
+									{row.year}
+								</span>
+							) : undefined}
+							{row.time ? <span class="track-time">{row.time}</span> : undefined}
+						</li>
+					))}
+				</ol>
+			</Fragment>
+		))}
+	</section>
+) : undefined}

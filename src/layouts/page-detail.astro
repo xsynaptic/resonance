@@ -34,9 +34,9 @@ const schemas = getPageSchemas(entry, {
 	openGraphId={openGraphId}
 	schemas={schemas}
 	title={entry.data.title}
-	{...imageFeaturedId ? { imageFeatured: imageFeaturedId } : {}}
-	{...imageHeroId ? { imageHero: imageHeroId } : {}}
-	{...description ? { description } : {}}
+	{...(imageFeaturedId ? { imageFeatured: imageFeaturedId } : {})}
+	{...(imageHeroId ? { imageHero: imageHeroId } : {})}
+	{...(description ? { description } : {})}
 >
 	<Content />
 </ContentDetail>

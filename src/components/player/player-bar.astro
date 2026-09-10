@@ -35,13 +35,6 @@ const labels = {
 };
 ---
 
-{
-	isPlayerEnabled ? (
-		<PlayerIsland
-			client:idle
-			labels={labels}
-			skipSeconds={skipSeconds}
-			transition:persist="player"
-		/>
-	) : undefined
-}
+{isPlayerEnabled ? (
+	<PlayerIsland client:idle labels={labels} skipSeconds={skipSeconds} transition:persist="player" />
+) : undefined}

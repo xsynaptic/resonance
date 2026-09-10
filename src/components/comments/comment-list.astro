@@ -19,56 +19,54 @@ const { comments, nested = false } = Astro.props;
 <ol
 	class:list={['space-y-8', nested ? 'mt-8 border-l border-surface-400 pl-4 sm:pl-6' : undefined]}
 >
-	{
-		comments.map((comment) => (
-			<li>
-				<article class="flex gap-x-4" id={`comment-${comment.id}`}>
-					<div class="comment-avatar pattern-maze-surface-950/55">
-						{comment.avatar ? (
-							<img
-								alt=""
-								height="48"
-								loading="lazy"
-								src={comment.avatar.url}
-								srcset={comment.avatar.srcSet}
-								width="48"
-							/>
-						) : undefined}
-					</div>
-					<div class="min-w-0 flex-1">
-						<p class="leading-snug font-medium text-ink-100">
-							{comment.authorHref ? (
-								<Anchor anchorColor="muted" href={comment.authorHref} rel="nofollow ugc noopener">
-									{comment.author}
-								</Anchor>
-							) : (
-								comment.author
-							)}
-						</p>
-						<time class="block text-xs leading-snug" datetime={comment.date.toISOString()}>
-							<Anchor href={`#comment-${comment.id}`} rel="bookmark">
-								{formatDate(comment.date)}
+	{comments.map((comment) => (
+		<li>
+			<article class="flex gap-x-4" id={`comment-${comment.id}`}>
+				<div class="comment-avatar pattern-maze-surface-950/55">
+					{comment.avatar ? (
+						<img
+							alt=""
+							height="48"
+							loading="lazy"
+							src={comment.avatar.url}
+							srcset={comment.avatar.srcSet}
+							width="48"
+						/>
+					) : undefined}
+				</div>
+				<div class="min-w-0 flex-1">
+					<p class="leading-snug font-medium text-ink-100">
+						{comment.authorHref ? (
+							<Anchor anchorColor="muted" href={comment.authorHref} rel="nofollow ugc noopener">
+								{comment.author}
 							</Anchor>
-						</time>
-						<div class="prose-x mt-2 text-sm wrap-anywhere">
-							<Fragment set:html={comment.bodyHtml} />
-						</div>
-						<Button
-							aria-expanded="false"
-							aria-label={formatStringTemplate(t('comments.replyTo'), { author: comment.author })}
-							class="comment-reply mt-1"
-							data-reply={comment.id}
-							hidden
-							variant="small"
-						>
-							{t('comments.reply')}
-						</Button>
+						) : (
+							comment.author
+						)}
+					</p>
+					<time class="block text-xs leading-snug" datetime={comment.date.toISOString()}>
+						<Anchor href={`#comment-${comment.id}`} rel="bookmark">
+							{formatDate(comment.date)}
+						</Anchor>
+					</time>
+					<div class="prose-x mt-2 text-sm wrap-anywhere">
+						<Fragment set:html={comment.bodyHtml} />
 					</div>
-				</article>
-				{comment.replies.length > 0 ? (
-					<CommentReplies comments={comment.replies} nested={true} />
-				) : undefined}
-			</li>
-		))
-	}
+					<Button
+						aria-expanded="false"
+						aria-label={formatStringTemplate(t('comments.replyTo'), { author: comment.author })}
+						class="comment-reply mt-1"
+						data-reply={comment.id}
+						hidden
+						variant="small"
+					>
+						{t('comments.reply')}
+					</Button>
+				</div>
+			</article>
+			{comment.replies.length > 0 ? (
+				<CommentReplies comments={comment.replies} nested={true} />
+			) : undefined}
+		</li>
+	))}
 </ol>

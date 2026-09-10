@@ -20,8 +20,12 @@ const postItems = catalog.byCollection('posts').slice(0, 4);
 		<p class="mt-2 content-measure text-ink-300">{t('notFound.body')}</p>
 		<NotFoundSuggestions />
 		<div class="mt-6 flex flex-wrap items-center gap-6">
-			<Button icon="magnifying-glass" id="not-found-search">{t('notFound.search')}</Button>
-			<Anchor class="font-bold" href="/">{t('notFound.link')}</Anchor>
+			<Button icon="magnifying-glass" id="not-found-search">
+				{t('notFound.search')}
+			</Button>
+			<Anchor class="font-bold" href="/">
+				{t('notFound.link')}
+			</Anchor>
 		</div>
 	</section>
 	<HomeSection

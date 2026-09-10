@@ -12,23 +12,21 @@ interface Props {
 const { heading, terms } = Astro.props;
 ---
 
-{
-	terms.length > 0 ? (
-		<CodaRow heading={heading}>
-			{terms.map((term, index) => (
-				<span class="flex items-baseline gap-x-1.5">
-					{index > 0 ? (
-						<span aria-hidden="true" class="text-ink-600">
-							·
-						</span>
-					) : undefined}
-					{term.url ? (
-						<Anchor href={term.url}>{term.label}</Anchor>
-					) : (
-						<span class="text-ink-300">{term.label}</span>
-					)}
-				</span>
-			))}
-		</CodaRow>
-	) : undefined
-}
+{terms.length > 0 ? (
+	<CodaRow heading={heading}>
+		{terms.map((term, index) => (
+			<span class="flex items-baseline gap-x-1.5">
+				{index > 0 ? (
+					<span aria-hidden="true" class="text-ink-600">
+						·
+					</span>
+				) : undefined}
+				{term.url ? (
+					<Anchor href={term.url}>{term.label}</Anchor>
+				) : (
+					<span class="text-ink-300">{term.label}</span>
+				)}
+			</span>
+		))}
+	</CodaRow>
+) : undefined}

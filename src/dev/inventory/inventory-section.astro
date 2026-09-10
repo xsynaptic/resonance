@@ -13,10 +13,8 @@ const id = toSlug(title);
 
 <section class="mb-14 scroll-mt-8 border-t border-surface-400 pt-10" id={id}>
 	<p class="mb-1 font-mono text-xs font-bold tracking-[0.12em] text-ink-200 uppercase">{title}</p>
-	{
-		note ? (
-			<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600" set:html={note} />
-		) : undefined
-	}
+	{note ? (
+		<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600" set:html={note} />
+	) : undefined}
 	<slot />
 </section>

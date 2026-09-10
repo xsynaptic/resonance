@@ -18,23 +18,23 @@ const { heading, items, listHref, listLabel, priority = false } = Astro.props;
 <section class="mb-12">
 	<div class="mb-4 flex items-baseline justify-between">
 		<h2 class="heading-section">{heading}</h2>
-		<Anchor class="text-sm" href={listHref}>{listLabel}</Anchor>
+		<Anchor class="text-sm" href={listHref}>
+			{listLabel}
+		</Anchor>
 	</div>
 	<ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-		{
-			items.map((item, index) => (
-				<li>
-					<EntryCard
-						date={item.date}
-						href={item.url}
-						image={item.image}
-						priority={priority && index === 0}
-						releaseTitle={item.releaseTitle}
-						subtitle={item.subtitle}
-						title={item.title}
-					/>
-				</li>
-			))
-		}
+		{items.map((item, index) => (
+			<li>
+				<EntryCard
+					date={item.date}
+					href={item.url}
+					image={item.image}
+					priority={priority && index === 0}
+					releaseTitle={item.releaseTitle}
+					subtitle={item.subtitle}
+					title={item.title}
+				/>
+			</li>
+		))}
 	</ul>
 </section>

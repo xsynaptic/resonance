@@ -36,16 +36,14 @@ const heading =
 		>
 			{t('comments.notice.received')}
 		</p>
-		{
-			count > 0 ? (
-				<Fragment>
-					<h2 class="heading-section mb-6" id="comments-heading">
-						{heading}
-					</h2>
-					<CommentList comments={thread} />
-				</Fragment>
-			) : undefined
-		}
+		{count > 0 ? (
+			<Fragment>
+				<h2 class="heading-section mb-6" id="comments-heading">
+					{heading}
+				</h2>
+				<CommentList comments={thread} />
+			</Fragment>
+		) : undefined}
 		<CommentForm collection={collection} entryId={entryId} />
 	</section>
 </comments-section>

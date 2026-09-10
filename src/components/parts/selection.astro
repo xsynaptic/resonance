@@ -45,60 +45,50 @@ const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
 ---
 
 <li class:list={['selection-item', hasProse && 'selection-prose']} id={anchor}>
-	{
-		imagePath ? (
-			<figure class="selection-thumb">
-				<MediaImage
-					alt={title}
-					class="rounded-sm"
-					path={imagePath}
-					sizes="(width >= 64rem) 360px, (width >= 40rem) 40vw, 100vw"
-					width={360}
-				/>
-			</figure>
-		) : undefined
-	}
+	{imagePath ? (
+		<figure class="selection-thumb">
+			<MediaImage
+				alt={title}
+				class="rounded-sm"
+				path={imagePath}
+				sizes="(width >= 64rem) 360px, (width >= 40rem) 40vw, 100vw"
+				width={360}
+			/>
+		</figure>
+	) : undefined}
 	<Heading class="selection-header">
 		{rank ? <span class="selection-rank">{rank}</span> : undefined}
 		<span>
-			{
-				artists.length > 0 ? (
-					<Fragment>
-						<span class="selection-artist">
-							<RefList refs={artists} />
-						</span>
-						<span class="selection-divider"> - </span>
-					</Fragment>
-				) : undefined
-			}
-			<span class="selection-title">
-				{href ? <a href={href}>{title}</a> : title}
-			</span>
+			{artists.length > 0 ? (
+				<Fragment>
+					<span class="selection-artist">
+						<RefList refs={artists} />
+					</span>
+					<span class="selection-divider"> - </span>
+				</Fragment>
+			) : undefined}
+			<span class="selection-title">{href ? <a href={href}>{title}</a> : title}</span>
 		</span>
 	</Heading>
-	{
-		hasMeta ? (
-			<div class="selection-meta">
-				<RefList refs={labels} />
-				{yearText}
-			</div>
-		) : undefined
-	}
+	{hasMeta ? (
+		<div class="selection-meta">
+			<RefList refs={labels} />
+			{yearText}
+		</div>
+	) : undefined}
 	{body ? <div class="selection-description" set:html={body} /> : undefined}
-	{
-		buttons.length > 0 ? (
-			<div class="selection-links">
-				<span>{t('section.selection.links')}</span>
-				{buttons.map((button) => (
-					<ButtonLink
-						href={button.href}
-						variant="small"
-						{...(button.icon ? { icon: button.icon } : {})}
-					>
-						{button.label}
-					</ButtonLink>
-				))}
-			</div>
-		) : undefined
-	}
+	{buttons.length > 0 ? (
+		<div class="selection-links">
+			<span>{t('section.selection.links')}</span>
+			{buttons.map((button) => (
+				<ButtonLink
+					href={button.href}
+					variant="small"
+					{...(button.icon ? { icon: button.icon } : {})}
+				>
+					{button.label}
+				</ButtonLink>
+			))}
+		</div>
+	) : undefined}
 </li>

@@ -13,12 +13,10 @@ const { nested = false, terms } = Astro.props;
 ---
 
 <ul class:list={[nested ? 'border-l border-surface-400 pl-3' : undefined]}>
-	{
-		terms.map((term) => (
-			<li class:list={[!nested && term.children ? 'break-inside-avoid' : undefined]}>
-				<Anchor href={term.url}>{term.title}</Anchor>
-				{term.children ? <DirectoryBranch nested={true} terms={term.children} /> : undefined}
-			</li>
-		))
-	}
+	{terms.map((term) => (
+		<li class:list={[!nested && term.children ? 'break-inside-avoid' : undefined]}>
+			<Anchor href={term.url}>{term.title}</Anchor>
+			{term.children ? <DirectoryBranch nested={true} terms={term.children} /> : undefined}
+		</li>
+	))}
 </ul>

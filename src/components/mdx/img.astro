@@ -20,13 +20,11 @@ const imageProps = isFeed
 	: ({ layout: 'constrained', sizes: '(min-width: 48rem) 48rem, 100vw', width: 1200 } as const);
 ---
 
-{
-	caption ? (
-		<figure class="img-figure">
-			<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
-			<figcaption class="img-caption" set:html={caption} />
-		</figure>
-	) : (
+{caption ? (
+	<figure class="img-figure">
 		<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
-	)
-}
+		<figcaption class="img-caption" set:html={caption} />
+	</figure>
+) : (
+	<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
+)}

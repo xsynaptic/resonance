@@ -39,38 +39,36 @@ const hasLinks = links && links.length > 0;
 const hasFiles = files && files.length > 0;
 ---
 
-{
-	hasLinks || hasFiles ? (
-		<ul class="m-0 flex list-none flex-wrap gap-2 p-0" data-pagefind-ignore>
-			{links?.map((link) => {
-				const { icon, label } = getLinkMeta(link);
+{hasLinks || hasFiles ? (
+	<ul class="m-0 flex list-none flex-wrap gap-2 p-0" data-pagefind-ignore>
+		{links?.map((link) => {
+			const { icon, label } = getLinkMeta(link);
 
-				return (
-					<li class="m-0">
-						<ButtonLink href={link} {...(icon ? { icon } : {})}>
-							{label}
-						</ButtonLink>
-					</li>
-				);
-			})}
-			{files?.map((file) => (
+			return (
 				<li class="m-0">
-					<ButtonSplit>
-						<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
-							{getFileLabel(file)}
-						</ButtonLink>
-						{cueSlug ? (
-							<ButtonLink
-								download={true}
-								href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
-								title={formatStringTemplate(t('audio.cueTitle'), { file })}
-							>
-								{t('audio.cue')}
-							</ButtonLink>
-						) : undefined}
-					</ButtonSplit>
+					<ButtonLink href={link} {...(icon ? { icon } : {})}>
+						{label}
+					</ButtonLink>
 				</li>
-			))}
-		</ul>
-	) : undefined
-}
+			);
+		})}
+		{files?.map((file) => (
+			<li class="m-0">
+				<ButtonSplit>
+					<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
+						{getFileLabel(file)}
+					</ButtonLink>
+					{cueSlug ? (
+						<ButtonLink
+							download={true}
+							href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
+							title={formatStringTemplate(t('audio.cueTitle'), { file })}
+						>
+							{t('audio.cue')}
+						</ButtonLink>
+					) : undefined}
+				</ButtonSplit>
+			</li>
+		))}
+	</ul>
+) : undefined}

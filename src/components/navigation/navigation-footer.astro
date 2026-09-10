@@ -16,19 +16,17 @@ const { pathname } = Astro.url;
 <nav aria-label={t('nav.footer.label')} data-nosnippet {...props}>
 	<h2 class="heading-label">{t('nav.footer.label')}</h2>
 	<ul class="mt-3">
-		{
-			navigationFooterItems.map((item) => (
-				<li>
-					<Anchor
-						anchorColor="muted"
-						aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
-						class="inline-block"
-						href={item.url}
-					>
-						{item.title}
-					</Anchor>
-				</li>
-			))
-		}
+		{navigationFooterItems.map((item) => (
+			<li>
+				<Anchor
+					anchorColor="muted"
+					aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
+					class="inline-block"
+					href={item.url}
+				>
+					{item.title}
+				</Anchor>
+			</li>
+		))}
 	</ul>
 </nav>

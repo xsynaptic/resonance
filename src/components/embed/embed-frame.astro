@@ -29,20 +29,18 @@ const { isFeed } = Astro.locals;
 const style = aspectRatio ? `aspect-ratio: ${aspectRatio};` : `height: ${String(height)}px;`;
 ---
 
-{
-	isFeed ? (
-		<p>
-			<a href={feedHref}>{feedLabel}</a>
-		</p>
-	) : (
-		<div class:list={['embed-frame', className]} style={style}>
-			<iframe
-				allow="autoplay; encrypted-media; fullscreen"
-				loading="lazy"
-				src={src}
-				title={title}
-				{...props}
-			/>
-		</div>
-	)
-}
+{isFeed ? (
+	<p>
+		<a href={feedHref}>{feedLabel}</a>
+	</p>
+) : (
+	<div class:list={['embed-frame', className]} style={style}>
+		<iframe
+			allow="autoplay; encrypted-media; fullscreen"
+			loading="lazy"
+			src={src}
+			title={title}
+			{...props}
+		></iframe>
+	</div>
+)}

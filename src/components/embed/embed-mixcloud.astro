@@ -30,14 +30,12 @@ const src = params ? `https://player-widget.mixcloud.com/?${params.toString()}` 
 const height = mini ? 60 : 120;
 ---
 
-{
-	src ? (
-		<EmbedFrame
-			feedHref={url}
-			feedLabel={t('embed.mixcloud.feedLink')}
-			height={height}
-			src={src}
-			title={t('embed.mixcloud.title')}
-		/>
-	) : undefined
-}
+{src ? (
+	<EmbedFrame
+		feedHref={url}
+		feedLabel={t('embed.mixcloud.feedLink')}
+		height={height}
+		src={src}
+		title={t('embed.mixcloud.title')}
+	/>
+) : undefined}

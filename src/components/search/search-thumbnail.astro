@@ -30,13 +30,11 @@ const thumbnails = image
 	: undefined;
 ---
 
-{
-	thumbnails ? (
-		<Fragment>
-			<meta content={thumbnails[0]?.src} data-pagefind-meta="image[content]" />
-			<meta content={thumbnails[1]?.src} data-pagefind-meta="image_2x[content]" />
-		</Fragment>
-	) : (
-		<meta content="" data-pagefind-meta="image[content]" />
-	)
-}
+{thumbnails ? (
+	<Fragment>
+		<meta content={thumbnails[0]?.src} data-pagefind-meta="image[content]" />
+		<meta content={thumbnails[1]?.src} data-pagefind-meta="image_2x[content]" />
+	</Fragment>
+) : (
+	<meta content="" data-pagefind-meta="image[content]" />
+)}

@@ -12,7 +12,9 @@ const { trackId } = Astro.props;
 
 <div class="mt-4 first:mt-0" data-track-id={trackId}>
 	<ButtonSplit>
-		<Button data-play-track={trackId} icon="play">{t('player.play')}</Button>
+		<Button data-play-track={trackId} icon="play">
+			{t('player.play')}
+		</Button>
 		<Button data-queue-track={trackId}>{t('player.queue')}</Button>
 	</ButtonSplit>
 </div>

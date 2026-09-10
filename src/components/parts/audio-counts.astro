@@ -39,10 +39,8 @@ const rows = [
 ].filter((row) => row !== undefined);
 ---
 
-{
-	rows.map((row) => (
-		<CodaRow heading={row.heading}>
-			<span class="text-ink-300">{row.value}</span>
-		</CodaRow>
-	))
-}
+{rows.map((row) => (
+	<CodaRow heading={row.heading}>
+		<span class="text-ink-300">{row.value}</span>
+	</CodaRow>
+))}

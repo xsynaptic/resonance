@@ -10,11 +10,9 @@ interface Props {
 const { refs } = Astro.props;
 ---
 
-{
-	refs.map((ref, index) => (
-		<Fragment>
-			{index > 0 ? ' / ' : ''}
-			<RefText label={ref.label} url={ref.url} />
-		</Fragment>
-	))
-}
+{refs.map((ref, index) => (
+	<Fragment>
+		{index > 0 ? ' / ' : ''}
+		<RefText label={ref.label} url={ref.url} />
+	</Fragment>
+))}

@@ -51,7 +51,7 @@ const sections = await renderSlot(Astro.slots, 'sections');
 	publishedTime={date}
 	schemas={schemas}
 	title={title}
-	{...description ? { description } : {}}
+	{...(description ? { description } : {})}
 >
 	<article data-pagefind-body>
 		<SearchThumbnail path={image} />
@@ -63,46 +63,36 @@ const sections = await renderSlot(Astro.slots, 'sections');
 			releaseYear={releaseYear}
 			styles={styles}
 			title={title}
-			{...artist ? { artist } : {}}
+			{...(artist ? { artist } : {})}
 		/>
 		<div class="release-grid mt-10">
-			{
-				image ? (
-					<div class="release-cover">
-						<MediaFeatured alt={title} path={image} />
-					</div>
-				) : undefined
-			}
+			{image ? (
+				<div class="release-cover">
+					<MediaFeatured alt={title} path={image} />
+				</div>
+			) : undefined}
 			<div class="release-body">
-				{
-					media ? (
-						<div class="mb-4">
-							<Fragment set:html={media} />
-						</div>
-					) : undefined
-				}
-				{
-					body ? (
-						<div class="prose-x content-measure">
-							<Fragment set:html={body} />
-						</div>
-					) : undefined
-				}
-				{
-					actions ? (
-						<div class="mt-8">
-							<Fragment set:html={actions} />
-						</div>
-					) : undefined
-				}
-			</div>
-			{
-				sections ? (
-					<div class="release-footer">
-						<Fragment set:html={sections} />
+				{media ? (
+					<div class="mb-4">
+						<Fragment set:html={media} />
 					</div>
-				) : undefined
-			}
+				) : undefined}
+				{body ? (
+					<div class="prose-x content-measure">
+						<Fragment set:html={body} />
+					</div>
+				) : undefined}
+				{actions ? (
+					<div class="mt-8">
+						<Fragment set:html={actions} />
+					</div>
+				) : undefined}
+			</div>
+			{sections ? (
+				<div class="release-footer">
+					<Fragment set:html={sections} />
+				</div>
+			) : undefined}
 		</div>
 		<slot name="comments" />
 		<slot name="related" />

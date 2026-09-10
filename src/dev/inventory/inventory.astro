@@ -148,36 +148,34 @@ const inlineSelection: SelectionValue = {
 ---
 
 <MainSite title="Inventory">
-	{
-		heroPath && hasHero ? (
-			<SectionDetailHero
-				date={new Date()}
-				kind={{ label: 'Development' }}
-				path={heroPath}
-				slot="hero"
-				styles={styles.slice(0, 2)}
-				title="Component gallery"
-			/>
-		) : undefined
-	}
+	{heroPath && hasHero ? (
+		<SectionDetailHero
+			date={new Date()}
+			kind={{ label: 'Development' }}
+			path={heroPath}
+			slot="hero"
+			styles={styles.slice(0, 2)}
+			title="Component gallery"
+		/>
+	) : undefined}
 	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
-		Real components on real content, injected under <code>astro dev</code> only. The header is in its
+		Real components on real content, injected under <code>astro dev</code> only. The header is in
+		its
 		{hasHero ? 'overlay' : 'normal'} variant:{' '}
 		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
 			{hasHero ? 'drop the hero band' : 'restore the hero band'}
-		</Anchor> to see the other.
+		</Anchor>{' '}
+		to see the other.
 	</p>
 	<nav
 		aria-label="Gallery sections"
 		class="mb-12 flex flex-wrap gap-x-5 gap-y-2 rounded-md bg-surface-600 px-5 py-4 font-mono text-xs leading-relaxed"
 	>
-		{
-			sectionTitles.map((title) => (
-				<a class="text-ink-500" href={`#${toSlug(title)}`}>
-					{title}
-				</a>
-			))
-		}
+		{sectionTitles.map((title) => (
+			<a class="text-ink-500" href={`#${toSlug(title)}`}>
+				{title}
+			</a>
+		))}
 	</nav>
 	<Section
 		note="The header, navigation, search toggle and footer have no specimens: this page renders inside MainSite, so they are already on screen."
@@ -189,40 +187,36 @@ const inlineSelection: SelectionValue = {
 			source="src/styles/main/parts/theme.css"
 		>
 			<div class="flex flex-col gap-5">
-				{
-					rampNames.map((name) => (
-						<div>
-							<div class="font-mono text-xs text-ink-600">--color-{name}-*</div>
-							<div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1">
-								{rampSteps.map((step) => (
-									<div>
-										<div
-											class="h-12 rounded-xs border border-ink-700"
-											style={`background-color: var(--color-${name}-${String(step)})`}
-										/>
-										<div class="mt-1 font-mono text-[0.6875rem] text-ink-600">{step}</div>
-									</div>
-								))}
-							</div>
+				{rampNames.map((name) => (
+					<div>
+						<div class="font-mono text-xs text-ink-600">--color-{name}-*</div>
+						<div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1">
+							{rampSteps.map((step) => (
+								<div>
+									<div
+										class="h-12 rounded-xs border border-ink-700"
+										style={`background-color: var(--color-${name}-${String(step)})`}
+									/>
+									<div class="mt-1 font-mono text-[0.6875rem] text-ink-600">{step}</div>
+								</div>
+							))}
 						</div>
-					))
-				}
+					</div>
+				))}
 			</div>
 		</Specimen>
 		<Specimen name="Typefaces" source="src/styles/main/parts/theme.css">
 			<div class="flex flex-col gap-4">
-				{
-					fontFamilies.map((family) => (
-						<div class="border-t border-surface-400 pt-4 first:border-0 first:pt-0">
-							<div class="font-mono text-xs text-ink-700">
-								--{family.name}, {family.note}
-							</div>
-							<div class="mt-1 text-2xl" style={`font-family: var(--${family.name})`}>
-								Basilisk 0123456789 <em>italic</em> <strong>bold</strong>
-							</div>
+				{fontFamilies.map((family) => (
+					<div class="border-t border-surface-400 pt-4 first:border-0 first:pt-0">
+						<div class="font-mono text-xs text-ink-700">
+							--{family.name}, {family.note}
 						</div>
-					))
-				}
+						<div class="mt-1 text-2xl" style={`font-family: var(--${family.name})`}>
+							Basilisk 0123456789 <em>italic</em> <strong>bold</strong>
+						</div>
+					</div>
+				))}
 			</div>
 		</Specimen>
 		<Specimen
@@ -245,21 +239,28 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="space-y-2">
 				<div class="prose-x">
-					<p>Prose claims a link with <a href="/mixes/">an underline and a lift to ink-200</a>.</p>
+					<p>
+						Prose claims a link with <a href="/mixes/">an underline and a lift to ink-200</a>.
+					</p>
 				</div>
 				<p>
 					<Anchor href="/mixes/">anchorColor=&quot;highlight&quot;</Anchor>, the default, for
 					taxonomy, meta and navigation.
 				</p>
 				<p>
-					<Anchor anchorColor="muted" href="/mixes/">anchorColor=&quot;muted&quot;</Anchor>, a step
-					dimmer, for the footer.
+					<Anchor anchorColor="muted" href="/mixes/">
+						anchorColor=&quot;muted&quot;
+					</Anchor>
+					, a step dimmer, for the footer.
 				</p>
 				<p class="title-meta">
-					<span><a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.</span
-					>
+					<span>
+						<a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.
+					</span>
 				</p>
-				<p>And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.</p>
+				<p>
+					And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.
+				</p>
 			</div>
 		</Specimen>
 	</Section>
@@ -280,9 +281,15 @@ const inlineSelection: SelectionValue = {
 		<Specimen name="ButtonLink" source="src/components/parts/button-link.astro">
 			<div class="flex flex-wrap items-center gap-4">
 				<ButtonLink href="/mixes/">standard</ButtonLink>
-				<ButtonLink href="/mixes/" icon="download">standard, icon</ButtonLink>
-				<ButtonLink href="/mixes/" variant="small">small</ButtonLink>
-				<ButtonLink href="/mixes/" icon="youtube" variant="small">small, icon</ButtonLink>
+				<ButtonLink href="/mixes/" icon="download">
+					standard, icon
+				</ButtonLink>
+				<ButtonLink href="/mixes/" variant="small">
+					small
+				</ButtonLink>
+				<ButtonLink href="/mixes/" icon="youtube" variant="small">
+					small, icon
+				</ButtonLink>
 			</div>
 		</Specimen>
 		<Specimen name="Button" source="src/components/parts/button.astro">
@@ -300,11 +307,15 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="flex flex-wrap items-center gap-4">
 				<ButtonSplit>
-					<ButtonLink href="/mixes/" icon="download">FLAC</ButtonLink>
+					<ButtonLink href="/mixes/" icon="download">
+						FLAC
+					</ButtonLink>
 					<ButtonLink href="/mixes/">CUE</ButtonLink>
 				</ButtonSplit>
 				<ButtonSplit>
-					<ButtonLink href="/mixes/" icon="download">FLAC</ButtonLink>
+					<ButtonLink href="/mixes/" icon="download">
+						FLAC
+					</ButtonLink>
 				</ButtonSplit>
 			</div>
 		</Specimen>
@@ -314,16 +325,14 @@ const inlineSelection: SelectionValue = {
 			source="src/components/main/main-sprites.astro"
 		>
 			<div class="flex flex-wrap gap-4">
-				{
-					iconIds.map((id) => (
-						<span class="flex w-28 flex-col items-center gap-2 rounded-sm bg-surface-600 px-1 py-3 text-center font-mono text-[0.625rem] text-ink-600">
-							<svg aria-hidden="true" class="size-6 text-highlight-400">
-								<use href={`#icon:${id}`} />
-							</svg>
-							{id}
-						</span>
-					))
-				}
+				{iconIds.map((id) => (
+					<span class="flex w-28 flex-col items-center gap-2 rounded-sm bg-surface-600 px-1 py-3 text-center font-mono text-[0.625rem] text-ink-600">
+						<svg aria-hidden="true" class="size-6 text-highlight-400">
+							<use href={`#icon:${id}`} />
+						</svg>
+						{id}
+					</span>
+				))}
 			</div>
 		</Specimen>
 		<Specimen
@@ -338,20 +347,28 @@ const inlineSelection: SelectionValue = {
 					<DividedItem as="span">two glyphs</DividedItem>
 				</div>
 				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerContent="slash"
-						>dividerContent=&quot;slash&quot;</DividedItem
-					>
-					<DividedItem as="span" dividerContent="slash">available, unused today</DividedItem>
+					<DividedItem as="span" dividerContent="slash">
+						dividerContent=&quot;slash&quot;
+					</DividedItem>
+					<DividedItem as="span" dividerContent="slash">
+						available, unused today
+					</DividedItem>
 				</div>
 				<div class="flex flex-wrap gap-x-1">
 					<DividedItem as="span" dividerContent="chevron">
 						dividerContent=&quot;chevron&quot;
 					</DividedItem>
-					<DividedItem as="span" dividerContent="chevron">for a trail</DividedItem>
+					<DividedItem as="span" dividerContent="chevron">
+						for a trail
+					</DividedItem>
 				</div>
 				<div class="flex flex-wrap gap-x-1">
-					<DividedItem as="span" dividerColor="muted">dividerColor=&quot;muted&quot;</DividedItem>
-					<DividedItem as="span" dividerWeight="thin">dividerWeight=&quot;thin&quot;</DividedItem>
+					<DividedItem as="span" dividerColor="muted">
+						dividerColor=&quot;muted&quot;
+					</DividedItem>
+					<DividedItem as="span" dividerWeight="thin">
+						dividerWeight=&quot;thin&quot;
+					</DividedItem>
 					<DividedItem as="span">and the default, for comparison</DividedItem>
 					<DividedItem as="span">last, no glyph</DividedItem>
 				</div>
@@ -413,39 +430,37 @@ const inlineSelection: SelectionValue = {
 			note="Always square, so a mixed-Format grid lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title."
 			source="src/components/parts/entry-card.astro"
 		>
-			{
-				card ? (
-					<ul class="entry-grid">
+			{card ? (
+				<ul class="entry-grid">
+					<li>
+						<EntryCard
+							date={card.date}
+							href={card.url}
+							image={card.image}
+							subtitle={card.subtitle}
+							title={card.title}
+						/>
+					</li>
+					<li>
+						<EntryCard href={card.url} image={card.image} title="No subtitle, no date" />
+					</li>
+					<li>
+						<EntryCard date={card.date} href={card.url} subtitle="No image" title="Title only" />
+					</li>
+					{cardWork ? (
 						<li>
 							<EntryCard
-								date={card.date}
-								href={card.url}
-								image={card.image}
-								subtitle={card.subtitle}
-								title={card.title}
+								date={cardWork.date}
+								href={cardWork.url}
+								image={cardWork.image}
+								releaseTitle={cardWork.releaseTitle}
+								subtitle={cardWork.subtitle}
+								title={cardWork.title}
 							/>
 						</li>
-						<li>
-							<EntryCard href={card.url} image={card.image} title="No subtitle, no date" />
-						</li>
-						<li>
-							<EntryCard date={card.date} href={card.url} subtitle="No image" title="Title only" />
-						</li>
-						{cardWork ? (
-							<li>
-								<EntryCard
-									date={cardWork.date}
-									href={cardWork.url}
-									image={cardWork.image}
-									releaseTitle={cardWork.releaseTitle}
-									subtitle={cardWork.subtitle}
-									title={cardWork.title}
-								/>
-							</li>
-						) : undefined}
-					</ul>
-				) : undefined
-			}
+					) : undefined}
+				</ul>
+			) : undefined}
 		</Specimen>
 		<Specimen
 			name="ListGroupHeading"
@@ -459,18 +474,16 @@ const inlineSelection: SelectionValue = {
 			note="The body truncates at the <code>More</code> fold; the continue link appears only if something followed it."
 			source="src/components/sections/section-post-excerpt.astro"
 		>
-			{
-				excerpt ? (
-					<SectionPostExcerpt
-						date={excerpt.date}
-						href={excerpt.href}
-						title={excerpt.title}
-						{...(formats[0] ? { format: formats[0] } : {})}
-					>
-						<excerpt.Content />
-					</SectionPostExcerpt>
-				) : undefined
-			}
+			{excerpt ? (
+				<SectionPostExcerpt
+					date={excerpt.date}
+					href={excerpt.href}
+					title={excerpt.title}
+					{...(formats[0] ? { format: formats[0] } : {})}
+				>
+					<excerpt.Content />
+				</SectionPostExcerpt>
+			) : undefined}
 		</Specimen>
 		<Specimen
 			name="PaginationSelect"
@@ -527,20 +540,18 @@ const inlineSelection: SelectionValue = {
 			name="SectionDetailHeader"
 			note="The artist splits off the title and the work half goes italic."
 		>
-			{
-				release ? (
-					<SectionDetailHeader
-						artist={release.artist}
-						date={release.date}
-						kind={{ label: 'Reviews', url: '/reviews/' }}
-						labels={release.labels}
-						releaseTitle={release.releaseTitle}
-						releaseYear={release.releaseYear}
-						styles={styles.slice(0, 1)}
-						title={release.title}
-					/>
-				) : undefined
-			}
+			{release ? (
+				<SectionDetailHeader
+					artist={release.artist}
+					date={release.date}
+					kind={{ label: 'Reviews', url: '/reviews/' }}
+					labels={release.labels}
+					releaseTitle={release.releaseTitle}
+					releaseYear={release.releaseYear}
+					styles={styles.slice(0, 1)}
+					title={release.title}
+				/>
+			) : undefined}
 		</Specimen>
 		<Specimen
 			name="SectionCoda"
@@ -588,7 +599,9 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="prose-x">
 				<ImgGroup imageCount={imagePaths.length}>
-					{imagePaths.map((path) => <Img src={path} />)}
+					{imagePaths.map((path) => (
+						<Img src={path} />
+					))}
 				</ImgGroup>
 			</div>
 		</Specimen>
@@ -602,28 +615,26 @@ const inlineSelection: SelectionValue = {
 			note="One per layout: no cover, cover on the right, and the longest title in each, where the type drops to 56px and the clamp bites."
 			source="packages/scripts/src/og-image/element.tsx"
 		>
-			{
-				openGraphCards.length > 0 ? (
-					<ul class="grid gap-6 sm:grid-cols-2">
-						{openGraphCards.map((card) => (
-							<li>
-								<img
-									alt={card.label}
-									class="w-full rounded-sm border border-surface-700"
-									height={315}
-									loading="lazy"
-									src={`/inventory/og/${card.key}.jpg`}
-									width={600}
-								/>
-								<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
-								<div class="font-mono text-[0.6875rem] text-ink-700">{card.entry.outputId}</div>
-							</li>
-						))}
-					</ul>
-				) : (
-					<p class="text-sm text-ink-600">No entries to sample a card from.</p>
-				)
-			}
+			{openGraphCards.length > 0 ? (
+				<ul class="grid gap-6 sm:grid-cols-2">
+					{openGraphCards.map((card) => (
+						<li>
+							<img
+								alt={card.label}
+								class="w-full rounded-sm border border-surface-700"
+								height={315}
+								loading="lazy"
+								src={`/inventory/og/${card.key}.jpg`}
+								width={600}
+							/>
+							<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
+							<div class="font-mono text-[0.6875rem] text-ink-700">{card.entry.outputId}</div>
+						</li>
+					))}
+				</ul>
+			) : (
+				<p class="text-sm text-ink-600">No entries to sample a card from.</p>
+			)}
 		</Specimen>
 	</Section>
 	<Section title="Audio">
@@ -651,16 +662,14 @@ const inlineSelection: SelectionValue = {
 			note="One figure per mix, never a sum. Only downloads carries real data here; the rest are fixtures."
 			source="src/components/parts/audio-counts.astro"
 		>
-			{
-				mix ? (
-					<AudioCounts
-						downloads={mix.downloads}
-						mixcloudPlays={38_216}
-						soundcloudPlays={9412}
-						streams={1204}
-					/>
-				) : undefined
-			}
+			{mix ? (
+				<AudioCounts
+					downloads={mix.downloads}
+					mixcloudPlays={38_216}
+					soundcloudPlays={9412}
+					streams={1204}
+				/>
+			) : undefined}
 		</Specimen>
 		<Specimen name="AudioCounts" note="A single of each, to check the pluralisation.">
 			<AudioCounts downloads={1} mixcloudPlays={1} soundcloudPlays={1} streams={1} />

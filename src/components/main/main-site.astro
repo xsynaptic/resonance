@@ -91,18 +91,14 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<meta content={String(openGraphImageWidth)} property="og:image:width" />
 		<meta content={String(openGraphImageHeight)} property="og:image:height" />
 		<meta content={pageTitle} property="og:image:alt" />
-		{
-			publishedTime ? (
-				<meta content={publishedTime.toISOString()} property="article:published_time" />
-			) : undefined
-		}
+		{publishedTime ? (
+			<meta content={publishedTime.toISOString()} property="article:published_time" />
+		) : undefined}
 		<meta content="summary_large_image" name="twitter:card" />
 		<meta content="@djbasilisk" name="twitter:site" />
-		{
-			UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (
-				<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
-			) : undefined
-		}
+		{UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (
+			<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
+		) : undefined}
 		<ClientRouter />
 	</head>
 	<body class="relative flex min-h-screen flex-col">

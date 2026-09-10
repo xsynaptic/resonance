@@ -13,18 +13,16 @@ interface Props {
 const { anchorColor, class: className, label, url } = Astro.props;
 ---
 
-{
-	url ? (
-		anchorColor ? (
-			<Anchor anchorColor={anchorColor} class={className} href={url}>
-				{label}
-			</Anchor>
-		) : (
-			<a class:list={['anchor-x', className]} href={url}>
-				{label}
-			</a>
-		)
+{url ? (
+	anchorColor ? (
+		<Anchor anchorColor={anchorColor} class={className} href={url}>
+			{label}
+		</Anchor>
 	) : (
-		<span class={className}>{label}</span>
+		<a class:list={['anchor-x', className]} href={url}>
+			{label}
+		</a>
 	)
-}
+) : (
+	<span class={className}>{label}</span>
+)}

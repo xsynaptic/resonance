@@ -9,6 +9,12 @@ const marqueeHoldSeconds = 8;
 // Travel is proportional to the distance, so a long title marches rather than flying
 const tempoPixelsPerSecond = 40;
 
+interface MarqueeStyle extends CSSProperties {
+	'--player-marquee-distance': string;
+	'--player-marquee-duration': string;
+	'--player-marquee-timing': string;
+}
+
 // One line that marches only when it does not fit; the measurement is the whole mechanism, there is no timer
 export function MarqueeText({ className, text }: { className?: string | undefined; text: string }) {
 	const boxRef = useRef<HTMLSpanElement>(null);
@@ -46,7 +52,7 @@ export function MarqueeText({ className, text }: { className?: string | undefine
 }
 
 // A keyframe selector cannot read a custom property, so the two holds ride in a `linear()` easing instead
-function marqueeStyle(distance: number): CSSProperties {
+function marqueeStyle(distance: number): MarqueeStyle {
 	const travelSeconds = distance / tempoPixelsPerSecond;
 	const totalSeconds = marqueeHoldSeconds * 2 + travelSeconds * 2;
 	const holdEnd = percentOf(marqueeHoldSeconds, totalSeconds);

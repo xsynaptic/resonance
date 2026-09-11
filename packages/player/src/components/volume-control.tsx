@@ -12,6 +12,10 @@ import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 const hoverQuery = '(hover: hover)';
 const lowVolume = 0.5;
 
+interface LevelStyle extends CSSProperties {
+	'--player-volume-level': string;
+}
+
 // Drives the graph's volume gain, not `element.volume`, which is read-only on iOS
 export function VolumeControl({
 	className,
@@ -119,7 +123,7 @@ function LevelIcon({ volume }: { volume: number }) {
 	return <VolumeIcon />;
 }
 
-function levelStyle(volume: number): CSSProperties {
+function levelStyle(volume: number): LevelStyle {
 	return { '--player-volume-level': `${String(volume * 100)}%` };
 }
 

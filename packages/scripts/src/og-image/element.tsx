@@ -59,21 +59,7 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 				width: `${String(openGraphImageWidth)}px`,
 			}}
 		>
-			<div
-				style={{
-					backgroundImage: patternImage,
-					backgroundRepeat: 'repeat',
-					backgroundSize: `${String(patternSize)}px ${String(patternSize)}px`,
-					display: 'flex',
-					inset: 0,
-					position: 'absolute',
-					...(featuredImage
-						? {
-								maskImage: `linear-gradient(${String(patternFadeAngle)}deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) ${String(patternFadeEnd)}px)`,
-							}
-						: {}),
-				}}
-			/>
+			<CardPattern hasFeaturedImage={featuredImage !== undefined} />
 			<div
 				style={{
 					display: 'flex',
@@ -83,38 +69,7 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 				}}
 			>
 				<div style={{ display: 'flex', flexDirection: 'column' }}>
-					{card.label ? (
-						<div
-							style={{
-								alignItems: 'baseline',
-								color: colorLabel,
-								display: 'flex',
-								fontFamily: 'Fira Sans',
-								fontSize: '26px',
-								lineHeight: 1.2,
-								paddingBottom: '20px',
-							}}
-						>
-							<div style={{ flexShrink: 0, fontWeight: 700, letterSpacing: '3px' }}>
-								{card.label.toUpperCase()}
-							</div>
-							{card.style ? (
-								<>
-									<div style={{ color: colorSeparator, flexShrink: 0, padding: '0 12px' }}>·</div>
-									<div
-										style={{
-											fontWeight: 500,
-											lineClamp: 1,
-											minWidth: 0,
-											textOverflow: 'ellipsis',
-										}}
-									>
-										{card.style}
-									</div>
-								</>
-							) : undefined}
-						</div>
-					) : undefined}
+					{card.label ? <CardEyebrow label={card.label} style={card.style} /> : undefined}
 					<div
 						style={{
 							color: colorTitle,
@@ -142,27 +97,87 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 					{siteTitle.toUpperCase()}
 				</div>
 			</div>
-			{featuredImage ? (
-				<div
-					style={{
-						backgroundColor: colorImageFrame,
-						borderColor: colorImageBorder,
-						borderRadius: '8px',
-						borderStyle: 'solid',
-						borderWidth: '4px',
-						boxShadow: `0 0 75px 30px ${colorGlow}`,
-						display: 'flex',
-						padding: `${String(featuredImageFrame)}px`,
-					}}
-				>
-					<Bitmap
-						data={featuredImage.data}
-						height={featuredImage.height}
-						style={{ borderRadius: '4px' }}
-						width={featuredImage.width}
-					/>
-				</div>
+			{featuredImage ? <CardImageFrame image={featuredImage} /> : undefined}
+		</div>
+	);
+}
+
+// The Format, and the Style it sits in where the card has one
+function CardEyebrow({ label, style }: { label: string; style: string | undefined }) {
+	return (
+		<div
+			style={{
+				alignItems: 'baseline',
+				color: colorLabel,
+				display: 'flex',
+				fontFamily: 'Fira Sans',
+				fontSize: '26px',
+				lineHeight: 1.2,
+				paddingBottom: '20px',
+			}}
+		>
+			<div style={{ flexShrink: 0, fontWeight: 700, letterSpacing: '3px' }}>
+				{label.toUpperCase()}
+			</div>
+			{style ? (
+				<>
+					<div style={{ color: colorSeparator, flexShrink: 0, padding: '0 12px' }}>·</div>
+					<div
+						style={{
+							fontWeight: 500,
+							lineClamp: 1,
+							minWidth: 0,
+							textOverflow: 'ellipsis',
+						}}
+					>
+						{style}
+					</div>
+				</>
 			) : undefined}
 		</div>
+	);
+}
+
+function CardImageFrame({ image }: { image: ProcessedImage }) {
+	return (
+		<div
+			style={{
+				backgroundColor: colorImageFrame,
+				borderColor: colorImageBorder,
+				borderRadius: '8px',
+				borderStyle: 'solid',
+				borderWidth: '4px',
+				boxShadow: `0 0 75px 30px ${colorGlow}`,
+				display: 'flex',
+				padding: `${String(featuredImageFrame)}px`,
+			}}
+		>
+			<Bitmap
+				data={image.data}
+				height={image.height}
+				style={{ borderRadius: '4px' }}
+				width={image.width}
+			/>
+		</div>
+	);
+}
+
+function CardPattern({ hasFeaturedImage }: { hasFeaturedImage: boolean }) {
+	return (
+		<div
+			style={{
+				backgroundImage: patternImage,
+				backgroundRepeat: 'repeat',
+				backgroundSize: `${String(patternSize)}px ${String(patternSize)}px`,
+				display: 'flex',
+				inset: 0,
+				position: 'absolute',
+				...(hasFeaturedImage
+					? {
+							maskImage: `linear-gradient(${String(patternFadeAngle)}deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) ${String(patternFadeEnd)}px)`,
+						}
+					: {}),
+			}}
+		/>
 	);
 }

@@ -52,3 +52,8 @@ export function shuffledOrder(
 
 	return [currentIndex, ...rest];
 }
+
+// Durations are carried in milliseconds and read in seconds everywhere they are used
+export function toDurationSeconds(item: QueueItem | undefined): number | undefined {
+	return item?.durationMs === undefined ? undefined : item.durationMs / 1000;
+}

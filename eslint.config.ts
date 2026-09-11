@@ -23,9 +23,9 @@ export default getConfig(
 				// The expanded form reads more clearly than ??=, ||=, and &&=
 				'logical-assignment-operators': ['error', 'never'],
 				'max-depth': ['warn', 3],
-				'max-lines-per-function': ['warn', { max: 120, skipBlankLines: true, skipComments: true }],
+				'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
 				'max-params': ['warn', 3],
-				'max-statements': ['warn', 30],
+				'max-statements': ['warn', 25],
 				// Intentional compounds such as schema.org's WebSite type
 				'unicorn/consistent-compound-words': 'off',
 				// Zod schema chains legitimately reach 4; depth 5+ still flagged

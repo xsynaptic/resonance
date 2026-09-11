@@ -2,10 +2,10 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { AudioEngine, AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlaybackErrorStage } from '#types.ts';
+import type { PlaybackErrorStage, QueuedItem, StreamResolution } from '#types.ts';
 
 import { normalizationGain } from '#engine/playback-gain.ts';
-import { nextInOrder } from '#queue/queue.ts';
+import { nextInOrder, toDurationSeconds } from '#queue/queue.ts';
 
 export interface PlaybackController {
 	// At the end of the play order, stop without wrapping
@@ -79,36 +79,21 @@ export function createPlaybackController(
 		if (loading === undefined) return;
 
 		loading = undefined;
-
-		const { currentIndex, queue } = get();
-		const trackId = currentIndex === undefined ? undefined : queue[currentIndex]?.trackId;
-
-		set({
-			playbackError: trackId === undefined ? undefined : { stage, trackId },
-			status: 'error',
-		});
+		set(errorState(get(), stage));
 	}
 
+	// The synchronous half of a load: everything autoplay policy requires to happen inside the gesture
 	function loadIndex(
 		index: number,
 		shouldAutoplay: boolean,
 		{ isRetry = false, resumeAtSeconds = 0 }: LoadOptions = {},
 	): void {
-		const state = get();
-		const item = state.queue[index];
-		if (!item || state.urls === undefined) return;
+		const { isShuffling, queue, urls } = get();
+		const item = queue[index];
+		if (!item || urls === undefined) return;
 
-		set({
-			currentIndex: index,
-			currentTimeSeconds: resumeAtSeconds,
-			durationSeconds: item.durationMs === undefined ? undefined : item.durationMs / 1000,
-			playbackError: undefined,
-			status: 'loading',
-		});
+		set(loadingState(index, item, resumeAtSeconds));
 
-		const gain = normalizationGain(item, state.isShuffling);
-
-		// Before the await: autoplay policy admits the graph only while still inside the gesture
 		const activeEngine = ensureEngine();
 		if (shouldAutoplay) activeEngine.prepare();
 
@@ -117,24 +102,18 @@ export function createPlaybackController(
 		loading = attempt;
 		loadedQueueId = item.queueId;
 
-		void state.urls
-			.stream(item.trackId)
-			.then(async (resolution) => {
-				if (loading !== attempt) return;
-
-				// Not retried: a re-resolve would answer the same
-				if (resolution.status === 'capped') {
-					set({ status: 'capped' });
-					return;
-				}
-
-				await activeEngine.load({ gain, resumeAtSeconds, shouldAutoplay, src: resolution.url });
-			})
-			.catch(() => {
-				if (loading !== attempt) return;
-
+		void streamIntoEngine({
+			engine: activeEngine,
+			isCurrent: () => loading === attempt,
+			onCapped: () => {
+				set({ status: 'capped' });
+			},
+			onFail: () => {
 				fail('resolve');
-			});
+			},
+			request: { gain: normalizationGain(item, isShuffling), resumeAtSeconds, shouldAutoplay },
+			stream: () => urls.stream(item.trackId),
+		});
 	}
 
 	function advance(): void {
@@ -184,6 +163,63 @@ export function createPlaybackController(
 			loadedQueueId = undefined;
 		},
 	};
+}
+
+// Without a current track there is nothing to pin the failure to, so the status carries it alone
+function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
+	const trackId =
+		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex]?.trackId;
+
+	return {
+		playbackError: trackId === undefined ? undefined : { stage, trackId },
+		status: 'error',
+	} satisfies Partial<PlayerStore>;
+}
+
+// Positions the store on a track before anything has resolved; the duration is the queue's until metadata lands
+function loadingState(index: number, item: QueuedItem, resumeAtSeconds: number) {
+	return {
+		currentIndex: index,
+		currentTimeSeconds: resumeAtSeconds,
+		durationSeconds: toDurationSeconds(item),
+		playbackError: undefined,
+		status: 'loading',
+	} satisfies Partial<PlayerStore>;
+}
+
+// The asynchronous half of a load, which runs outside the gesture and may answer for an attempt that has since been dropped
+async function streamIntoEngine({
+	engine,
+	isCurrent,
+	onCapped,
+	onFail,
+	request,
+	stream,
+}: {
+	engine: AudioEngine;
+	isCurrent: () => boolean;
+	onCapped: () => void;
+	onFail: () => void;
+	// Everything the engine needs but the URL, which is what this resolves
+	request: { gain: number; resumeAtSeconds: number; shouldAutoplay: boolean };
+	stream: () => Promise<StreamResolution>;
+}): Promise<void> {
+	try {
+		const resolution = await stream();
+		if (!isCurrent()) return;
+
+		// Not retried: a re-resolve would answer the same
+		if (resolution.status === 'capped') {
+			onCapped();
+			return;
+		}
+
+		await engine.load({ ...request, src: resolution.url });
+	} catch {
+		if (!isCurrent()) return;
+
+		onFail();
+	}
 }
 
 // Every report but `onError` is a straight state write; the retry policy is the caller's

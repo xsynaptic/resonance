@@ -2,11 +2,11 @@ import chalk from 'chalk';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import pLimit from 'p-limit';
 import { $ } from 'zx';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
+import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
 const concurrency = 3;
@@ -119,49 +119,18 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 
 	const upToDate = await Promise.all(jobs.map((job) => isUpToDate(job, streamsPath)));
 	const pending = jobs.filter((_, index) => upToDate[index] !== true);
-	const skipped = jobs.length - pending.length;
 
-	console.log(
-		chalk.blue(
-			`Renditions: ${String(jobs.length)} total, ${String(skipped)} up to date, ${String(pending.length)} to encode`,
-		),
-	);
-
-	if (dryRun) {
-		for (const job of pending) {
-			console.log(chalk.yellow(`  DRY RUN encode: ${path.basename(job.source)} -> ${job.base}`));
-		}
-		return;
-	}
-
-	const limit = pLimit(concurrency);
-	let done = 0;
-
-	const results = await Promise.allSettled(
-		pending.map((job) =>
-			limit(async () => {
-				const output = await encode(job, streamsPath);
-				done += 1;
-				console.log(chalk.green(`  [${String(done)}/${String(pending.length)}] ${output}`));
-			}),
-		),
-	);
-
-	const failures = results.filter(
-		(result): result is PromiseRejectedResult => result.status === 'rejected',
-	);
-
-	if (failures.length > 0) {
-		for (const failure of failures)
-			console.error(chalk.red(`  encode failed: ${String(failure.reason)}`));
-		throw new Error(`${String(failures.length)} rendition(s) failed to encode`);
-	}
-
-	console.log(
-		chalk.green(
-			`Renditions complete: ${String(pending.length)} encoded, ${String(skipped)} unchanged`,
-		),
-	);
+	await runBatchStep({
+		concurrency,
+		describe: (job) => `encode: ${path.basename(job.source)} -> ${job.base}`,
+		dryRun,
+		label: 'Renditions',
+		noun: 'rendition',
+		pending,
+		run: (job) => encode(job, streamsPath),
+		skipped: jobs.length - pending.length,
+		verb: { infinitive: 'encode', past: 'encoded' },
+	});
 }
 
 // Returns the rendition's filename, which the caller cannot predict: it names the encoded bytes

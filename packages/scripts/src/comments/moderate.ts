@@ -111,45 +111,7 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 
 	printHeader(pending.length, options.isLocal);
 
-	const tally: Tally = { approved: 0, rejected: 0, skipped: 0, spam: 0 };
-
-	for (const [index, comment] of pending.entries()) {
-		const choice = await promptChoice({
-			comment,
-			isLast: index === pending.length - 1,
-			position: `${String(index + 1)}/${String(pending.length)}`,
-		});
-
-		if (!choice || choice.key === 'q') {
-			console.log(chalk.dim('\n  Stopped.'));
-			break;
-		}
-
-		if (choice.key === 'A') {
-			const remaining = pending.slice(index);
-
-			await setStatus(
-				remaining.map((row) => row.id),
-				'approved',
-				target,
-			);
-
-			tally.approved += remaining.length;
-			console.log(chalk.green(`\n  ✓ approved ${String(remaining.length)} remaining`));
-			break;
-		}
-
-		if (!('status' in choice)) {
-			tally.skipped += 1;
-			console.log(chalk.dim('\n  → skipped'));
-			continue;
-		}
-
-		await setStatus([comment.id], choice.status, target);
-
-		tally[choice.status] += 1;
-		printResult(choice.status);
-	}
+	const tally = await runQueue(pending, target);
 
 	printTally(tally);
 	await pullOnApproval(tally, options);
@@ -264,6 +226,51 @@ async function readKey(keys: ReadonlyArray<string>): Promise<string | undefined>
 		stdin.setRawMode(false);
 		stdin.pause();
 	}
+}
+
+// One pass over the pending rows, stopping early on quit or on a blanket approval
+async function runQueue(pending: Array<PendingRow>, target: D1Target): Promise<Tally> {
+	const tally: Tally = { approved: 0, rejected: 0, skipped: 0, spam: 0 };
+
+	for (const [index, comment] of pending.entries()) {
+		const choice = await promptChoice({
+			comment,
+			isLast: index === pending.length - 1,
+			position: `${String(index + 1)}/${String(pending.length)}`,
+		});
+
+		if (!choice || choice.key === 'q') {
+			console.log(chalk.dim('\n  Stopped.'));
+			break;
+		}
+
+		if (choice.key === 'A') {
+			const remaining = pending.slice(index);
+
+			await setStatus(
+				remaining.map((row) => row.id),
+				'approved',
+				target,
+			);
+
+			tally.approved += remaining.length;
+			console.log(chalk.green(`\n  ✓ approved ${String(remaining.length)} remaining`));
+			break;
+		}
+
+		if (!('status' in choice)) {
+			tally.skipped += 1;
+			console.log(chalk.dim('\n  → skipped'));
+			continue;
+		}
+
+		await setStatus([comment.id], choice.status, target);
+
+		tally[choice.status] += 1;
+		printResult(choice.status);
+	}
+
+	return tally;
 }
 
 async function setStatus(

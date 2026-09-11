@@ -17,6 +17,17 @@ import { createOutputCache, getCacheKey } from '#og-image/output-cache.ts';
 // Rendering is CPU-bound and each entry decodes its own image, so one bound serves both
 const concurrency = 12;
 
+interface CardCache {
+	isFresh: (id: string, key: string) => boolean;
+	write: (id: string, key: string, data: Uint8Array) => Promise<void>;
+}
+
+// What one card's turn through the renderer came to; tallied once the run is over
+type CardOutcome =
+	| { hasMissingImage: boolean; status: 'drawn' }
+	| { reason: string; status: 'failed' }
+	| { status: 'cached' };
+
 interface OpenGraphOptions {
 	clearCache?: boolean;
 	distPath?: string;
@@ -48,81 +59,13 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	const renderCard = await createCardRenderer();
 	const limit = pLimit(concurrency);
 
-	let generatedCount = 0;
-	let missingImageCount = 0;
-	let skippedCount = 0;
-	const errors: Array<string> = [];
-
-	async function getImageModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
-		try {
-			const stats = await fs.stat(resolveFeaturedImagePath(imageFeaturedId));
-
-			return stats.mtimeMs;
-		} catch {
-			return undefined;
-		}
-	}
-
-	async function renderEntry(entry: OpenGraphEntry): Promise<void> {
-		const { imageFeaturedId } = entry;
-
-		const imageModifiedTime = imageFeaturedId
-			? await getImageModifiedTime(imageFeaturedId)
-			: undefined;
-
-		const key = getCacheKey({
-			digest: entry.digest,
-			imageFeaturedId,
-			imageModifiedTime,
-			style: entry.style,
-		});
-
-		if (cache.isFresh(entry.outputId, key)) {
-			skippedCount++;
-			return;
-		}
-
-		// Originals are gitignored and may be absent; a card without its art still beats no card
-		if (imageFeaturedId && imageModifiedTime === undefined) {
-			console.log(chalk.yellow(`  Featured Image missing: ${imageFeaturedId} (${entry.outputId})`));
-			missingImageCount++;
-		}
-
-		await cache.write(entry.outputId, key, await renderCard(entry));
-
-		generatedCount++;
-	}
-
-	await Promise.all(
-		entries.map((entry) =>
-			limit(async () => {
-				try {
-					await renderEntry(entry);
-				} catch (error) {
-					errors.push(
-						`${entry.outputId}: ${error instanceof Error ? error.message : String(error)}`,
-					);
-				}
-			}),
-		),
+	const outcomes = await Promise.all(
+		entries.map((entry) => limit(() => renderEntry({ cache, entry, renderCard }))),
 	);
 
 	await cache.save();
 
-	console.log(
-		chalk.gray(`  ${String(generatedCount)} generated, ${String(skippedCount)} cached`) +
-			(missingImageCount > 0
-				? chalk.yellow(`, ${String(missingImageCount)} without a Featured Image`)
-				: ''),
-	);
-
-	for (const error of errors) {
-		console.log(chalk.red(`  ✗ ${error}`));
-	}
-
-	if (errors.length > 0) {
-		throw new Error(`${String(errors.length)} Open Graph image(s) failed to render`);
-	}
+	reportOutcomes(outcomes);
 
 	await publish({
 		cache,
@@ -153,6 +96,83 @@ async function publish({
 	}
 
 	console.log(chalk.gray(`  Published ${String(outputIds.length)} cards to ${publishPath}`));
+}
+
+async function readImageModifiedTime(imageFeaturedId: string): Promise<number | undefined> {
+	try {
+		const stats = await fs.stat(resolveFeaturedImagePath(imageFeaturedId));
+
+		return stats.mtimeMs;
+	} catch {
+		return undefined;
+	}
+}
+
+// One card cannot fail the whole run on its own; the tally decides whether the build stops
+async function renderEntry({
+	cache,
+	entry,
+	renderCard,
+}: {
+	cache: CardCache;
+	entry: OpenGraphEntry;
+	renderCard: (entry: OpenGraphEntry) => Promise<Uint8Array>;
+}): Promise<CardOutcome> {
+	const { imageFeaturedId } = entry;
+
+	try {
+		const imageModifiedTime = imageFeaturedId
+			? await readImageModifiedTime(imageFeaturedId)
+			: undefined;
+
+		const key = getCacheKey({
+			digest: entry.digest,
+			imageFeaturedId,
+			imageModifiedTime,
+			style: entry.style,
+		});
+
+		if (cache.isFresh(entry.outputId, key)) return { status: 'cached' };
+
+		const missingImageId =
+			imageFeaturedId && imageModifiedTime === undefined ? imageFeaturedId : undefined;
+
+		// Originals are gitignored and may be absent; a card without its art still beats no card
+		if (missingImageId !== undefined) {
+			console.log(chalk.yellow(`  Featured Image missing: ${missingImageId} (${entry.outputId})`));
+		}
+
+		await cache.write(entry.outputId, key, await renderCard(entry));
+
+		return { hasMissingImage: missingImageId !== undefined, status: 'drawn' };
+	} catch (error) {
+		return {
+			reason: `${entry.outputId}: ${error instanceof Error ? error.message : String(error)}`,
+			status: 'failed',
+		};
+	}
+}
+
+function reportOutcomes(outcomes: ReadonlyArray<CardOutcome>): void {
+	const drawn = outcomes.filter((outcome) => outcome.status === 'drawn');
+	const missingImageCount = drawn.filter((outcome) => outcome.hasMissingImage).length;
+	const skippedCount = outcomes.filter((outcome) => outcome.status === 'cached').length;
+	const failures = outcomes.filter((outcome) => outcome.status === 'failed');
+
+	console.log(
+		chalk.gray(`  ${String(drawn.length)} generated, ${String(skippedCount)} cached`) +
+			(missingImageCount > 0
+				? chalk.yellow(`, ${String(missingImageCount)} without a Featured Image`)
+				: ''),
+	);
+
+	for (const failure of failures) {
+		console.log(chalk.red(`  ✗ ${failure.reason}`));
+	}
+
+	if (failures.length > 0) {
+		throw new Error(`${String(failures.length)} Open Graph image(s) failed to render`);
+	}
 }
 
 // A page asking for a card nothing can draw would ship with a broken og:image

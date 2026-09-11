@@ -1,11 +1,10 @@
-import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import pLimit from 'p-limit';
 import { $ } from 'zx';
 
 import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
+import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
 const concurrency = 6;
@@ -147,67 +146,37 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 	const pending = jobs
 		.map((job, index) => ({ job, plan: plans[index] ?? 'analyze' }))
 		.filter((entry) => entry.plan !== 'skip');
-	const skipped = jobs.length - pending.length;
 
-	console.log(
-		chalk.blue(
-			`Waveforms: ${String(jobs.length)} total, ${String(skipped)} up to date, ${String(pending.length)} to derive`,
-		),
-	);
+	await runBatchStep({
+		concurrency,
+		describe: ({ job, plan }) => `${plan}: ${job.base}`,
+		dryRun,
+		label: 'Waveforms',
+		noun: 'waveform',
+		pending,
+		// Below the plan, so a machine with nothing to analyze never fails a deploy over a missing binary
+		prepare: async () => {
+			if (pending.every(({ plan }) => plan !== 'analyze')) return;
 
-	if (dryRun) {
-		for (const { job, plan } of pending) {
-			console.log(chalk.yellow(`  DRY RUN ${plan}: ${job.base}`));
-		}
-		return;
-	}
-
-	// Below the plan, so a machine with nothing to analyze never fails a deploy over a missing binary
-	if (pending.some(({ plan }) => plan === 'analyze')) {
-		try {
-			await $`which audiowaveform`.quiet();
-		} catch {
-			throw new Error(
-				'audiowaveform not found on PATH. Install it with: brew install audiowaveform',
-			);
-		}
-	}
-
-	const limit = pLimit(concurrency);
-	let done = 0;
-
-	const results = await Promise.allSettled(
-		pending.map(({ job, plan }) =>
-			limit(async () => {
-				const archive = plan === 'analyze' ? await analyze(job, cacheDir) : job.existing;
-				if (archive === undefined) throw new Error(`No archive on disk for "${job.base}"`);
-
-				await distill(job, path.join(cacheDir, archive));
-				done += 1;
-				console.log(
-					chalk.green(
-						`  [${String(done)}/${String(pending.length)}] ${path.basename(job.preview)}`,
-					),
+			try {
+				await $`which audiowaveform`.quiet();
+			} catch {
+				throw new Error(
+					'audiowaveform not found on PATH. Install it with: brew install audiowaveform',
 				);
-			}),
-		),
-	);
+			}
+		},
+		run: async ({ job, plan }) => {
+			const archive = plan === 'analyze' ? await analyze(job, cacheDir) : job.existing;
+			if (archive === undefined) throw new Error(`No archive on disk for "${job.base}"`);
 
-	const failures = results.filter(
-		(result): result is PromiseRejectedResult => result.status === 'rejected',
-	);
+			await distill(job, path.join(cacheDir, archive));
 
-	if (failures.length > 0) {
-		for (const failure of failures)
-			console.error(chalk.red(`  waveform failed: ${String(failure.reason)}`));
-		throw new Error(`${String(failures.length)} waveform(s) failed to derive`);
-	}
-
-	console.log(
-		chalk.green(
-			`Waveforms complete: ${String(pending.length)} derived, ${String(skipped)} unchanged`,
-		),
-	);
+			return path.basename(job.preview);
+		},
+		skipped: jobs.length - pending.length,
+		verb: { infinitive: 'derive', past: 'derived' },
+	});
 }
 
 // Header layout, little-endian: version, flags, sample_rate, samples_per_pixel, length in min/max PAIRS

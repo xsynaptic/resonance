@@ -1,5 +1,7 @@
 import type { PlaybackErrorStage } from '#types.ts';
 
+import { createAudioGraph } from '#engine/audio-graph.ts';
+
 // An element inside the graph: the element keeps progressive streaming and native seeking, the graph adds gain and the tap
 export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
@@ -41,49 +43,9 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	audio.crossOrigin = 'anonymous';
 	audio.preload = 'auto';
 
-	let context: AudioContext | undefined;
-	let normalizationNode: GainNode | undefined;
-	let volumeNode: GainNode | undefined;
-	let analyserNode: AnalyserNode | undefined;
-	let analysisDelaySeconds = 0;
+	const graph = createAudioGraph(audio);
 
-	// Applied to the live nodes once the graph exists
-	let pendingGain = 1;
-	let pendingVolume = 1;
 	let pendingResumeAtSeconds: number | undefined;
-
-	// A media element source can be created once, so the graph is built once, inside the first gesture
-	function ensureGraph(): void {
-		if (context) return;
-
-		context = new AudioContext();
-		normalizationNode = context.createGain();
-		volumeNode = context.createGain();
-		analyserNode = context.createAnalyser();
-
-		// 4096 gives the low bands the resolution this catalogue needs; 0.3 keeps attacks sharp for a visualizer
-		// Time-domain reads are unaffected by the smoothing
-		analyserNode.fftSize = 4096;
-		analyserNode.smoothingTimeConstant = 0.3;
-		normalizationNode.gain.value = pendingGain;
-		volumeNode.gain.value = pendingVolume;
-
-		// Playback waits for the analysis window rather than the display trailing the sound
-		analysisDelaySeconds = measureAnalysisDelay(analyserNode);
-
-		const delayNode = context.createDelay(1);
-
-		delayNode.delayTime.value = analysisDelaySeconds;
-
-		// The tap sits ahead of the volume stage so the display follows the track, not the volume knob
-		context
-			.createMediaElementSource(audio)
-			.connect(normalizationNode)
-			.connect(analyserNode)
-			.connect(delayNode)
-			.connect(volumeNode)
-			.connect(context.destination);
-	}
 
 	audio.addEventListener('timeupdate', () => {
 		callbacks.onTime(audio.currentTime);
@@ -113,8 +75,8 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	});
 
 	async function play(): Promise<void> {
-		ensureGraph();
-		if (context?.state === 'suspended') await context.resume();
+		graph.ensure();
+		await graph.resume();
 
 		try {
 			await audio.play();
@@ -128,12 +90,11 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	}
 
 	return {
-		analyser: () => analyserNode,
+		analyser: graph.analyser,
 		currentTime: () => audio.currentTime,
 		async load({ gain, resumeAtSeconds, shouldAutoplay, src }) {
-			pendingGain = gain;
 			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;
-			if (normalizationNode) normalizationNode.gain.value = gain;
+			graph.setGain(gain);
 
 			audio.src = src;
 			audio.load();
@@ -143,15 +104,14 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			callbacks.onStatus('loading');
 			await play();
 		},
-		outputDelay: () =>
-			context === undefined ? 0 : analysisDelaySeconds + outputLatencySeconds(context),
+		outputDelay: graph.outputDelay,
 		pause: () => {
 			audio.pause();
 		},
 		play,
 		prepare: () => {
-			ensureGraph();
-			if (context?.state === 'suspended') void context.resume();
+			graph.ensure();
+			void graph.resume();
 		},
 		reset: () => {
 			audio.pause();
@@ -163,10 +123,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			pendingResumeAtSeconds = undefined;
 			audio.currentTime = seconds;
 		},
-		setVolume: (volume) => {
-			pendingVolume = volume;
-			if (volumeNode) volumeNode.gain.value = volume;
-		},
+		setVolume: graph.setVolume,
 	};
 }
 
@@ -183,19 +140,4 @@ function errorStage(error: MediaError | null): PlaybackErrorStage {
 			return 'network';
 		}
 	}
-}
-
-// The analyser's window weights a transient fully only at its midpoint, and output latency is a credit against that lag
-// Floored at zero because a long output latency (Bluetooth) already puts the display ahead
-function measureAnalysisDelay(analyser: AnalyserNode): number {
-	const windowCentreSeconds = analyser.fftSize / 2 / analyser.context.sampleRate;
-
-	return Math.max(0, windowCentreSeconds - outputLatencySeconds(analyser.context));
-}
-
-// Only AudioContext carries outputLatency, and an analyser types its context as the base class
-function outputLatencySeconds(context: BaseAudioContext): number {
-	const latency: unknown = (context as { outputLatency?: unknown }).outputLatency;
-
-	return typeof latency === 'number' ? latency : 0;
 }

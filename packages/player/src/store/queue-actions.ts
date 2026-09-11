@@ -16,7 +16,7 @@ import {
 	shuffledQueue,
 	stampQueue,
 } from '#queue/queue-state.ts';
-import { isSectioned } from '#queue/queue.ts';
+import { isSectioned, toDurationSeconds } from '#queue/queue.ts';
 import { canMove } from '#queue/reorder.ts';
 
 type QueueActions = Pick<
@@ -32,6 +32,13 @@ type QueueActions = Pick<
 	| 'replaceAfter'
 	| 'toggleShuffle'
 >;
+
+// Positioned with nothing loaded: what a clear, a fresh queue, and dropping the current track all leave behind
+const nothingLoaded = {
+	currentTimeSeconds: 0,
+	durationSeconds: undefined,
+	status: 'idle',
+} satisfies Partial<PlayerStore>;
 
 export function createQueueActions({
 	api,
@@ -73,14 +80,7 @@ export function createQueueActions({
 	return {
 		clearQueue: () => {
 			playback.unload();
-			set({
-				currentIndex: undefined,
-				currentTimeSeconds: 0,
-				durationSeconds: undefined,
-				playOrder: [],
-				queue: [],
-				status: 'idle',
-			});
+			set({ ...nothingLoaded, currentIndex: undefined, playOrder: [], queue: [] });
 		},
 
 		hydrateQueue: () => {
@@ -95,7 +95,7 @@ export function createQueueActions({
 				set({
 					...shuffledQueue({ ...restored, currentIndex: stored.currentIndex }, stored.isShuffling),
 					currentTimeSeconds: stored.currentTimeSeconds,
-					durationSeconds: item?.durationMs === undefined ? undefined : item.durationMs / 1000,
+					durationSeconds: toDurationSeconds(item),
 					status: 'idle',
 				});
 			}
@@ -106,12 +106,7 @@ export function createQueueActions({
 		loadQueue: (items) => {
 			if (items.length === 0) return;
 
-			set({
-				...loadedQueue(queueState(), stamped(items)),
-				currentTimeSeconds: 0,
-				durationSeconds: undefined,
-				status: 'idle',
-			});
+			set({ ...loadedQueue(queueState(), stamped(items)), ...nothingLoaded });
 		},
 
 		moveItem: (from, to) => {
@@ -142,12 +137,7 @@ export function createQueueActions({
 
 			if (index === state.currentIndex) {
 				playback.unload();
-				set({
-					...removedAt(state, index),
-					currentTimeSeconds: 0,
-					durationSeconds: undefined,
-					status: 'idle',
-				});
+				set({ ...removedAt(state, index), ...nothingLoaded });
 				return;
 			}
 

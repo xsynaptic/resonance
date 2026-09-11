@@ -40,36 +40,12 @@ export function useRowDrag({
 }): RowDrag {
 	const sessionRef = useRef<DragSession | undefined>(undefined);
 
-	function contentY(list: HTMLElement, clientY: number): number {
-		return clientY - list.getBoundingClientRect().top + list.scrollTop;
-	}
-
 	function paint(): void {
 		const list = listRef.current;
 		const session = sessionRef.current;
 		if (!list || !session) return;
 
-		const y = contentY(list, session.pointerY);
-
-		session.to = dropIndex(session.midpoints, session.from, y);
-
-		for (const [index, row] of session.rows.entries()) {
-			const offset =
-				index === session.from
-					? y - session.startContentY
-					: (movedIndex(index, session.from, session.to) - index) * session.rowHeight;
-
-			row.style.transform = offset === 0 ? '' : `translateY(${String(offset)}px)`;
-		}
-	}
-
-	function scrollStep(list: HTMLElement, pointerY: number): number {
-		const rect = list.getBoundingClientRect();
-
-		if (pointerY - rect.top < autoScrollMarginPx) return -autoScrollStepPx;
-		if (rect.bottom - pointerY < autoScrollMarginPx) return autoScrollStepPx;
-
-		return 0;
+		paintSession(list, session);
 	}
 
 	function tick(): void {
@@ -80,7 +56,7 @@ export function useRowDrag({
 		const step = scrollStep(list, session.pointerY);
 		if (step !== 0) {
 			list.scrollTop += step;
-			paint();
+			paintSession(list, session);
 		}
 
 		session.frame = requestAnimationFrame(tick);
@@ -91,8 +67,7 @@ export function useRowDrag({
 		if (!session) return;
 
 		sessionRef.current = undefined;
-		session.controller.abort();
-		if (session.frame !== undefined) cancelAnimationFrame(session.frame);
+		closeSession(session);
 
 		for (const row of session.rows) row.style.transform = '';
 		session.rows[session.from]?.removeAttribute('data-dragging');
@@ -107,8 +82,7 @@ export function useRowDrag({
 			if (!session) return;
 
 			sessionRef.current = undefined;
-			session.controller.abort();
-			if (session.frame !== undefined) cancelAnimationFrame(session.frame);
+			closeSession(session);
 		};
 	}, []);
 
@@ -122,34 +96,11 @@ export function useRowDrag({
 			const list = listRef.current;
 			if (!list || sessionRef.current) return;
 
-			const rows = [...list.querySelectorAll<HTMLElement>('.player-tray-item')];
-			const row = rows[from];
-			if (!row) return;
-
-			const listTop = list.getBoundingClientRect().top;
-			const { scrollTop } = list;
-			const controller = new AbortController();
+			const session = openSession(list, event, from);
+			if (!session) return;
 
 			event.currentTarget.setPointerCapture(event.pointerId);
-			row.dataset.dragging = '';
-			list.addEventListener('scroll', paint, { signal: controller.signal });
-
-			const session: DragSession = {
-				controller,
-				frame: undefined,
-				from,
-				midpoints: rows.map((node) => {
-					const rect = node.getBoundingClientRect();
-
-					return rect.top + rect.height / 2 - listTop + scrollTop;
-				}),
-				pointerId: event.pointerId,
-				pointerY: event.clientY,
-				rowHeight: row.getBoundingClientRect().height,
-				rows,
-				startContentY: event.clientY - listTop + scrollTop,
-				to: from,
-			};
+			list.addEventListener('scroll', paint, { signal: session.controller.signal });
 
 			sessionRef.current = session;
 			session.frame = requestAnimationFrame(tick);
@@ -167,4 +118,71 @@ export function useRowDrag({
 			finish(true);
 		},
 	};
+}
+
+// Drops the scroll listener and the auto-scroll loop; the transforms are the caller's to clear
+function closeSession(session: DragSession): void {
+	session.controller.abort();
+	if (session.frame !== undefined) cancelAnimationFrame(session.frame);
+}
+
+function contentY(list: HTMLElement, clientY: number): number {
+	return clientY - list.getBoundingClientRect().top + list.scrollTop;
+}
+
+// Measures the list once: every later frame reads these rather than the layout
+function openSession(
+	list: HTMLElement,
+	event: ReactPointerEvent<HTMLElement>,
+	from: number,
+): DragSession | undefined {
+	const rows = [...list.querySelectorAll<HTMLElement>('.player-tray-item')];
+	const row = rows[from];
+	if (!row) return undefined;
+
+	const listTop = list.getBoundingClientRect().top;
+	const { scrollTop } = list;
+
+	row.dataset.dragging = '';
+
+	return {
+		controller: new AbortController(),
+		frame: undefined,
+		from,
+		midpoints: rows.map((node) => {
+			const rect = node.getBoundingClientRect();
+
+			return rect.top + rect.height / 2 - listTop + scrollTop;
+		}),
+		pointerId: event.pointerId,
+		pointerY: event.clientY,
+		rowHeight: row.getBoundingClientRect().height,
+		rows,
+		startContentY: event.clientY - listTop + scrollTop,
+		to: from,
+	};
+}
+
+function paintSession(list: HTMLElement, session: DragSession): void {
+	const y = contentY(list, session.pointerY);
+
+	session.to = dropIndex(session.midpoints, session.from, y);
+
+	for (const [index, row] of session.rows.entries()) {
+		const offset =
+			index === session.from
+				? y - session.startContentY
+				: (movedIndex(index, session.from, session.to) - index) * session.rowHeight;
+
+		row.style.transform = offset === 0 ? '' : `translateY(${String(offset)}px)`;
+	}
+}
+
+function scrollStep(list: HTMLElement, pointerY: number): number {
+	const rect = list.getBoundingClientRect();
+
+	if (pointerY - rect.top < autoScrollMarginPx) return -autoScrollStepPx;
+	if (rect.bottom - pointerY < autoScrollMarginPx) return autoScrollStepPx;
+
+	return 0;
 }

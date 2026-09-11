@@ -233,7 +233,7 @@ function toTrackCount(tracklist: Array<GroupDraft> | Array<TrackDraft>): number 
 	return items.reduce((total, item) => total + ('tracks' in item ? item.tracks.length : 1), 0);
 }
 
-// `TrackSchema.artists` is required, and Discogs credits per track on compilations only
+// Discogs credits per track on compilations only; others take the main credit for the release
 function toTrackDraft(
 	track: DiscogsTrack,
 	releaseArtists: string,

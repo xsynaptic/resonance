@@ -17,6 +17,7 @@ interface TrackGroupRows {
 	cueSlug: string | undefined;
 	description: string | undefined;
 	files: Array<string> | undefined;
+	hasMeta: boolean;
 	rows: Array<TrackRow>;
 	title: string | undefined;
 }
@@ -43,12 +44,14 @@ const { slug } = Astro.params;
 
 async function buildGroup(group: TrackGroup): Promise<TrackGroupRows> {
 	const hasTimestamp = group.tracks.some((track) => track.timestamp !== undefined);
+	const rows = await Promise.all(group.tracks.map(buildRow));
 
 	return {
 		cueSlug: hasTimestamp && group.files ? slug : undefined,
 		description: group.description,
 		files: group.files,
-		rows: await Promise.all(group.tracks.map(buildRow)),
+		hasMeta: rows.some((row) => row.hasMeta),
+		rows,
 		title: group.title,
 	};
 }
@@ -142,7 +145,7 @@ const hasRows = groups.some((group) => group.rows.length > 0);
 						/>
 					</div>
 				) : undefined}
-				<ol class="track-list prose-escape">
+				<ol class:list={['track-list prose-escape', !group.hasMeta && 'track-list-single-line']}>
 					{group.rows.map((row) => (
 						<li class="track-item">
 							<span aria-hidden="true" class="track-index">

@@ -121,3 +121,16 @@
 		margin-inline-start: 0;
 	}
 }
+
+.track-list-single-line .track-item {
+	display: grid;
+	grid-template-areas: 'index title time';
+	grid-template-columns: auto 1fr auto;
+	align-items: baseline;
+}
+
+.track-list-single-line .track-time {
+	margin-block: 0;
+	margin-inline-start: calc(var(--spacing) * 3);
+	line-height: 25px;
+}

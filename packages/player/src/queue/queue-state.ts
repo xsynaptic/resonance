@@ -12,10 +12,18 @@ export interface QueueState {
 	queue: Array<QueuedItem>;
 }
 
+interface OrderedQueue {
+	currentIndex: number | undefined;
+	isShuffling: boolean;
+	// The track a shuffled order puts first, which is not always the loaded one
+	orderAround: number | undefined;
+	queue: Array<QueuedItem>;
+}
+
+// Items arrive stamped, so identity is assigned once at the edge rather than by every transition
 export function appendedQueue(
 	state: QueueState,
-	items: ReadonlyArray<QueueItem>,
-	nextId: NextQueueId,
+	items: ReadonlyArray<QueuedItem>,
 	trackId?: string,
 ): undefined | { loadIndex: number; state: QueueState } {
 	if (items.length === 0) return undefined;
@@ -24,15 +32,20 @@ export function appendedQueue(
 		const startIndex = trackId === undefined ? 0 : indexOfTrack(items, trackId);
 		if (startIndex === undefined) return undefined;
 
-		const queue = stamped(items, nextId);
+		const queue = [...items];
 
 		return {
 			loadIndex: startIndex,
-			state: ordered(queue, state.currentIndex, canShuffle(state, queue), startIndex),
+			state: ordered({
+				currentIndex: state.currentIndex,
+				isShuffling: canShuffle(state, queue),
+				orderAround: startIndex,
+				queue,
+			}),
 		};
 	}
 
-	if (trackId === undefined) return appended(state, items, nextId);
+	if (trackId === undefined) return appended(state, items);
 
 	// Already queued is a jump, not a second copy
 	const queued = indexOfTrack(state.queue, trackId);
@@ -41,7 +54,7 @@ export function appendedQueue(
 	const found = items.find((item) => item.trackId === trackId);
 	if (!found) return undefined;
 
-	return appended(state, [found], nextId);
+	return appended(state, [found]);
 }
 
 export function createQueueIds(): NextQueueId {
@@ -54,14 +67,15 @@ export function createQueueIds(): NextQueueId {
 	};
 }
 
-export function loadedQueue(
-	state: QueueState,
-	items: ReadonlyArray<QueueItem>,
-	nextId: NextQueueId,
-): QueueState {
-	const queue = stamped(items, nextId);
+export function loadedQueue(state: QueueState, items: ReadonlyArray<QueuedItem>): QueueState {
+	const queue = [...items];
 
-	return ordered(queue, undefined, canShuffle(state, queue), undefined);
+	return ordered({
+		currentIndex: undefined,
+		isShuffling: canShuffle(state, queue),
+		orderAround: undefined,
+		queue,
+	});
 }
 
 // A shuffled play order moves with the item rather than reshuffling under the listener
@@ -81,35 +95,60 @@ export function removedAt(state: QueueState, index: number): QueueState {
 	const queue = state.queue.filter((_, position) => position !== index);
 	const currentIndex = remainingIndex(state.currentIndex, index);
 
-	return ordered(queue, currentIndex, state.isShuffling, currentIndex);
+	return ordered({
+		currentIndex,
+		isShuffling: state.isShuffling,
+		orderAround: currentIndex,
+		queue,
+	});
 }
 
 export function replacedAfter(
 	state: QueueState,
 	index: number,
-	items: ReadonlyArray<QueueItem>,
-	nextId: NextQueueId,
+	items: ReadonlyArray<QueuedItem>,
 ): QueueState {
-	const queue = [...state.queue.slice(0, index + 1), ...stamped(items, nextId)];
+	const queue = [...state.queue.slice(0, index + 1), ...items];
 
-	return ordered(queue, state.currentIndex, canShuffle(state, queue), state.currentIndex);
+	return ordered({
+		currentIndex: state.currentIndex,
+		isShuffling: canShuffle(state, queue),
+		orderAround: state.currentIndex,
+		queue,
+	});
 }
 
 export function shuffledQueue(state: QueueState, isShuffling: boolean): QueueState {
-	return ordered(state.queue, state.currentIndex, isShuffling, state.currentIndex);
+	return ordered({
+		currentIndex: state.currentIndex,
+		isShuffling,
+		orderAround: state.currentIndex,
+		queue: state.queue,
+	});
+}
+
+export function stampQueue(
+	items: ReadonlyArray<QueueItem>,
+	nextId: NextQueueId,
+): Array<QueuedItem> {
+	return items.map((item) => ({ ...item, queueId: nextId() }));
 }
 
 function appended(
 	state: QueueState,
-	items: ReadonlyArray<QueueItem>,
-	nextId: NextQueueId,
+	items: ReadonlyArray<QueuedItem>,
 ): { loadIndex: number; state: QueueState } {
 	const loadIndex = state.queue.length;
-	const queue = [...state.queue, ...stamped(items, nextId)];
+	const queue = [...state.queue, ...items];
 
 	return {
 		loadIndex,
-		state: ordered(queue, state.currentIndex, state.isShuffling, loadIndex),
+		state: ordered({
+			currentIndex: state.currentIndex,
+			isShuffling: state.isShuffling,
+			orderAround: loadIndex,
+			queue,
+		}),
 	};
 }
 
@@ -124,13 +163,7 @@ function indexOfTrack(items: ReadonlyArray<QueueItem>, trackId: string): number 
 	return index === -1 ? undefined : index;
 }
 
-// `orderAround` is the track a shuffled order puts first, which is not always the loaded one
-function ordered(
-	queue: Array<QueuedItem>,
-	currentIndex: number | undefined,
-	isShuffling: boolean,
-	orderAround: number | undefined,
-): QueueState {
+function ordered({ currentIndex, isShuffling, orderAround, queue }: OrderedQueue): QueueState {
 	return {
 		currentIndex,
 		isShuffling,
@@ -143,8 +176,4 @@ function remainingIndex(currentIndex: number | undefined, removed: number): numb
 	if (currentIndex === undefined || currentIndex === removed) return undefined;
 
 	return removed < currentIndex ? currentIndex - 1 : currentIndex;
-}
-
-function stamped(items: ReadonlyArray<QueueItem>, nextId: NextQueueId): Array<QueuedItem> {
-	return items.map((item) => ({ ...item, queueId: nextId() }));
 }

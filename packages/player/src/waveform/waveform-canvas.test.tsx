@@ -24,19 +24,23 @@ function painted(theme: keyof typeof themes) {
 	return [track, played];
 }
 
-function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: Array<number> }) {
-	const listeners = new Set<(currentTimeS: number) => void>();
+function renderCanvas(props: {
+	currentTimeSeconds: number;
+	durationSeconds: number;
+	seeks?: Array<number>;
+}) {
+	const listeners = new Set<(currentTimeSeconds: number) => void>();
 
 	render(
 		<WaveformCanvas
-			durationS={props.durationS}
+			durationSeconds={props.durationSeconds}
 			label="Seek"
 			onSeek={(seconds) => {
 				props.seeks?.push(seconds);
 			}}
 			overview={[0.4, 0.8, 0.6, 0.2]}
 			subscribeTime={(onTime) => {
-				onTime(props.currentTimeS);
+				onTime(props.currentTimeSeconds);
 				listeners.add(onTime);
 
 				return () => {
@@ -46,8 +50,8 @@ function renderCanvas(props: { currentTimeS: number; durationS: number; seeks?: 
 		/>,
 	);
 
-	return (currentTimeS: number): void => {
-		for (const listener of listeners) listener(currentTimeS);
+	return (currentTimeSeconds: number): void => {
+		for (const listener of listeners) listener(currentTimeSeconds);
 	};
 }
 
@@ -103,7 +107,7 @@ describe('WaveformCanvas', () => {
 	test('repaints in the new colours when the theme flips', async () => {
 		const { fills } = stubPainting();
 
-		renderCanvas({ currentTimeS: 50, durationS: 200 });
+		renderCanvas({ currentTimeSeconds: 50, durationSeconds: 200 });
 		expect(fills).toStrictEqual(painted('lit'));
 
 		fills.length = 0;
@@ -119,7 +123,7 @@ describe('WaveformCanvas', () => {
 
 		const seeks: Array<number> = [];
 
-		renderCanvas({ currentTimeS: 50, durationS: 200, seeks });
+		renderCanvas({ currentTimeSeconds: 50, durationSeconds: 200, seeks });
 
 		const slider = screen.getByRole('slider');
 
@@ -137,7 +141,7 @@ describe('WaveformCanvas', () => {
 
 		const seeks: Array<number> = [];
 
-		renderCanvas({ currentTimeS: 2, durationS: 30, seeks });
+		renderCanvas({ currentTimeSeconds: 2, durationSeconds: 30, seeks });
 
 		const slider = screen.getByRole('slider');
 
@@ -150,7 +154,7 @@ describe('WaveformCanvas', () => {
 	// The box is 300 device pixels over a 3000s mix, so the played edge is worth ten seconds a pixel
 	test('repaints only once the played edge reaches the next device pixel', () => {
 		const { context } = stubPainting();
-		const emit = renderCanvas({ currentTimeS: 0, durationS: 3000 });
+		const emit = renderCanvas({ currentTimeSeconds: 0, durationSeconds: 3000 });
 
 		const paints = () => context.clearRect.mock.calls.length;
 		const settled = paints();
@@ -167,7 +171,7 @@ describe('WaveformCanvas', () => {
 	test('announces the position once a second rather than on every tick', () => {
 		stubPainting();
 
-		const emit = renderCanvas({ currentTimeS: 0, durationS: 3000 });
+		const emit = renderCanvas({ currentTimeSeconds: 0, durationSeconds: 3000 });
 		const slider = screen.getByRole('slider');
 
 		emit(65.2);

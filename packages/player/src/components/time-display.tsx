@@ -16,7 +16,7 @@ export function TimeDisplay({
 	className?: string | undefined;
 	label: string;
 }) {
-	const durationS = usePlayer((state) => state.durationS);
+	const durationSeconds = usePlayer((state) => state.durationSeconds);
 	const timeMode = usePlayer((state) => state.timeMode);
 	const store = usePlayerStoreApi();
 	const subscribeTime = useSubscribeTime();
@@ -25,15 +25,15 @@ export function TimeDisplay({
 	useEffect(() => {
 		let written = '';
 
-		return subscribeTime((currentTimeS) => {
-			const text = clockText(currentTimeS, durationS, timeMode);
+		return subscribeTime((currentTimeSeconds) => {
+			const text = clockText(currentTimeSeconds, durationSeconds, timeMode);
 			if (text === written) return;
 
 			written = text;
 
 			if (textRef.current) textRef.current.textContent = text;
 		});
-	}, [durationS, subscribeTime, timeMode]);
+	}, [durationSeconds, subscribeTime, timeMode]);
 
 	return (
 		<button
@@ -52,12 +52,12 @@ export function TimeDisplay({
 }
 
 function clockText(
-	currentTimeS: number,
-	durationS: number | undefined,
+	currentTimeSeconds: number,
+	durationSeconds: number | undefined,
 	timeMode: PlayerTimeMode,
 ): string {
-	if (durationS === undefined) return emptyClock;
-	if (timeMode === 'remaining') return formatClock(currentTimeS - durationS);
+	if (durationSeconds === undefined) return emptyClock;
+	if (timeMode === 'remaining') return formatClock(currentTimeSeconds - durationSeconds);
 
-	return formatClock(currentTimeS);
+	return formatClock(currentTimeSeconds);
 }

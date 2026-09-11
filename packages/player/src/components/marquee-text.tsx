@@ -47,19 +47,19 @@ export function MarqueeText({ className, text }: { className?: string | undefine
 
 // A keyframe selector cannot read a custom property, so the two holds ride in a `linear()` easing instead
 function marqueeStyle(distance: number): CSSProperties {
-	const travelS = distance / tempoPixelsPerSecond;
-	const totalS = marqueeHoldSeconds * 2 + travelS * 2;
-	const holdEnd = percentOf(marqueeHoldSeconds, totalS);
-	const travelEnd = percentOf(marqueeHoldSeconds + travelS, totalS);
-	const holdBackEnd = percentOf(marqueeHoldSeconds * 2 + travelS, totalS);
+	const travelSeconds = distance / tempoPixelsPerSecond;
+	const totalSeconds = marqueeHoldSeconds * 2 + travelSeconds * 2;
+	const holdEnd = percentOf(marqueeHoldSeconds, totalSeconds);
+	const travelEnd = percentOf(marqueeHoldSeconds + travelSeconds, totalSeconds);
+	const holdBackEnd = percentOf(marqueeHoldSeconds * 2 + travelSeconds, totalSeconds);
 
 	return {
 		'--player-marquee-distance': `${String(distance)}px`,
-		'--player-marquee-duration': `${totalS.toFixed(2)}s`,
+		'--player-marquee-duration': `${totalSeconds.toFixed(2)}s`,
 		'--player-marquee-timing': `linear(0 0%, 0 ${holdEnd}%, 1 ${travelEnd}%, 1 ${holdBackEnd}%, 0 100%)`,
 	};
 }
 
-function percentOf(elapsedS: number, totalS: number): string {
-	return ((elapsedS / totalS) * 100).toFixed(2);
+function percentOf(elapsedSeconds: number, totalSeconds: number): string {
+	return ((elapsedSeconds / totalSeconds) * 100).toFixed(2);
 }

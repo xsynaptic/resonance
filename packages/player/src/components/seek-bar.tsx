@@ -15,23 +15,23 @@ export function SeekBar({ className, label }: { className?: string | undefined; 
 }
 
 function RangeSeek({ className, label }: { className?: string | undefined; label: string }) {
-	const currentTimeS = usePlayer((state) => state.currentTimeS);
-	const durationS = usePlayer((state) => state.durationS);
+	const currentTimeSeconds = usePlayer((state) => state.currentTimeSeconds);
+	const durationSeconds = usePlayer((state) => state.durationSeconds);
 	const store = usePlayerStoreApi();
 
 	return (
 		<input
 			aria-label={label}
 			className={joinClassNames('player-seek', className)}
-			disabled={durationS === undefined}
-			max={durationS ?? 0}
+			disabled={durationSeconds === undefined}
+			max={durationSeconds ?? 0}
 			min={0}
 			onChange={(event) => {
 				store.getState().seek(Number(event.target.value));
 			}}
 			step={0.1}
 			type="range"
-			value={durationS === undefined ? 0 : Math.min(currentTimeS, durationS)}
+			value={durationSeconds === undefined ? 0 : Math.min(currentTimeSeconds, durationSeconds)}
 		/>
 	);
 }
@@ -45,14 +45,14 @@ function WaveformSeek({
 	label: string;
 	overview: ReadonlyArray<number>;
 }) {
-	const durationS = usePlayer((state) => state.durationS);
+	const durationSeconds = usePlayer((state) => state.durationSeconds);
 	const store = usePlayerStoreApi();
 	const subscribeTime = useSubscribeTime();
 
 	return (
 		<WaveformCanvas
 			className={className}
-			durationS={durationS}
+			durationSeconds={durationSeconds}
 			label={label}
 			onSeek={(seconds) => {
 				store.getState().seek(seconds);

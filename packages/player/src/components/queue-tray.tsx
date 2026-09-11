@@ -2,7 +2,8 @@ import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 
-import type { PlayerLabels } from '#types.ts';
+import type { RowDrag } from '#queue/use-row-drag.ts';
+import type { PlayerLabels, QueuedItem } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
 import { CloseIcon, DragHandleIcon, PlayingIcon, ShuffleIcon } from '#components/icons.tsx';
@@ -18,6 +19,16 @@ interface QueueTrayProps {
 		PlayerLabels,
 		'clearQueue' | 'empty' | 'moved' | 'removeFromQueue' | 'reorder' | 'shuffle'
 	>;
+}
+
+interface QueueTrayRowProps {
+	// `undefined` where the queue is sectioned and cannot reorder
+	drag?: RowDrag;
+	index: number;
+	isCurrent: boolean;
+	item: QueuedItem;
+	labels: Pick<PlayerLabels, 'removeFromQueue' | 'reorder'>;
+	onHandleKeyDown: (event: ReactKeyboardEvent<HTMLElement>, index: number) => void;
 }
 
 // Closed renders nothing, so an idle tray costs no layout and its subscriptions no renders
@@ -108,52 +119,14 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 							{item.sectionLabel === undefined ? undefined : (
 								<li className="player-tray-section">{item.sectionLabel}</li>
 							)}
-							<li
-								className="player-tray-item"
-								data-current={index === currentIndex ? '' : undefined}
-								data-queue-id={item.queueId}
-							>
-								{canReorder ? (
-									<button
-										aria-label={labels.reorder}
-										className="player-tray-handle"
-										onKeyDown={(event) => {
-											onHandleKeyDown(event, index);
-										}}
-										onPointerCancel={drag.onPointerCancel}
-										onPointerDown={(event) => {
-											drag.onPointerDown(event, index);
-										}}
-										onPointerMove={drag.onPointerMove}
-										onPointerUp={drag.onPointerUp}
-										type="button"
-									>
-										<DragHandleIcon />
-									</button>
-								) : undefined}
-								<button
-									className="player-tray-pick"
-									onClick={() => {
-										store.getState().playAt(index);
-									}}
-									type="button"
-								>
-									<span className="player-tray-title">
-										<span className="player-tray-name">{item.title}</span>
-										{index === currentIndex ? <PlayingIcon /> : undefined}
-									</span>
-									<span className="player-tray-artist">{item.artistLine}</span>
-								</button>
-								<Button
-									aria-label={labels.removeFromQueue}
-									className="player-button-small"
-									onClick={() => {
-										store.getState().removeAt(index);
-									}}
-								>
-									<CloseIcon />
-								</Button>
-							</li>
+							<QueueTrayRow
+								index={index}
+								isCurrent={index === currentIndex}
+								item={item}
+								labels={labels}
+								onHandleKeyDown={onHandleKeyDown}
+								{...(canReorder ? { drag } : {})}
+							/>
 						</Fragment>
 					))}
 				</ul>
@@ -162,5 +135,65 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 				{announcement}
 			</p>
 		</div>
+	);
+}
+
+function QueueTrayRow({
+	drag,
+	index,
+	isCurrent,
+	item,
+	labels,
+	onHandleKeyDown,
+}: QueueTrayRowProps) {
+	const store = usePlayerStoreApi();
+
+	return (
+		<li
+			className="player-tray-item"
+			data-current={isCurrent ? '' : undefined}
+			data-queue-id={item.queueId}
+		>
+			{drag ? (
+				<button
+					aria-label={labels.reorder}
+					className="player-tray-handle"
+					onKeyDown={(event) => {
+						onHandleKeyDown(event, index);
+					}}
+					onPointerCancel={drag.onPointerCancel}
+					onPointerDown={(event) => {
+						drag.onPointerDown(event, index);
+					}}
+					onPointerMove={drag.onPointerMove}
+					onPointerUp={drag.onPointerUp}
+					type="button"
+				>
+					<DragHandleIcon />
+				</button>
+			) : undefined}
+			<button
+				className="player-tray-pick"
+				onClick={() => {
+					store.getState().playAt(index);
+				}}
+				type="button"
+			>
+				<span className="player-tray-title">
+					<span className="player-tray-name">{item.title}</span>
+					{isCurrent ? <PlayingIcon /> : undefined}
+				</span>
+				<span className="player-tray-artist">{item.artistLine}</span>
+			</button>
+			<Button
+				aria-label={labels.removeFromQueue}
+				className="player-button-small"
+				onClick={() => {
+					store.getState().removeAt(index);
+				}}
+			>
+				<CloseIcon />
+			</Button>
+		</li>
 	);
 }

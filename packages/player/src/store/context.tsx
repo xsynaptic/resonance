@@ -35,10 +35,10 @@ export function useSubscribeTime(): SubscribeTime {
 
 	return useMemo<SubscribeTime>(
 		() => (onTime) => {
-			onTime(store.getState().currentTimeS);
+			onTime(store.getState().currentTimeSeconds);
 
 			return store.subscribe((state) => {
-				onTime(state.currentTimeS);
+				onTime(state.currentTimeSeconds);
 			});
 		},
 		[store],

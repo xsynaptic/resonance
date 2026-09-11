@@ -8,6 +8,13 @@ import { dropIndex, movedIndex } from '#queue/reorder.ts';
 const autoScrollMarginPx = 32;
 const autoScrollStepPx = 10;
 
+export interface RowDrag {
+	onPointerCancel: () => void;
+	onPointerDown: (event: ReactPointerEvent<HTMLElement>, from: number) => void;
+	onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
+	onPointerUp: () => void;
+}
+
 interface DragSession {
 	// Aborting it drops the scroll listener with the drag
 	controller: AbortController;
@@ -30,7 +37,7 @@ export function useRowDrag({
 }: {
 	listRef: RefObject<HTMLElement | null>;
 	onMove: (from: number, to: number) => void;
-}) {
+}): RowDrag {
 	const sessionRef = useRef<DragSession | undefined>(undefined);
 
 	function contentY(list: HTMLElement, clientY: number): number {

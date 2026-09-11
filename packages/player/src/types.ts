@@ -49,7 +49,7 @@ export interface PlayerUrls {
 export interface QueueCuePoint {
 	// Empty where the track carries no credit
 	artistLine: string;
-	startS: number;
+	startSeconds: number;
 	title: string;
 }
 
@@ -87,4 +87,4 @@ export interface QueueLoudness {
 
 export type StreamResolution = { status: 'capped' } | { status: 'ok'; url: string };
 
-export type SubscribeTime = (onTime: (currentTimeS: number) => void) => () => void;
+export type SubscribeTime = (onTime: (currentTimeSeconds: number) => void) => () => void;

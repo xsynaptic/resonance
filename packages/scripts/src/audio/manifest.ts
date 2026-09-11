@@ -29,6 +29,14 @@ const PreviewSchema = z.object({
 	version: z.literal(previewVersion),
 });
 
+interface ManifestEntries {
+	// A source missing any one of its three outputs, named for the warning
+	incomplete: Array<string>;
+	sourceCount: number;
+	streamEntries: Array<MixStreamEntry>;
+	waveformEntries: Array<MixWaveformEntry>;
+}
+
 interface ManifestOptions {
 	dryRun?: boolean;
 	rootPath: string;
@@ -38,39 +46,15 @@ interface ManifestOptions {
 export async function generateAudioManifest(options: ManifestOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	const streamsPath = path.join(rootPath, streamsDir);
-	const cacheDir = path.join(rootPath, waveformsCacheDir);
 	const streamsOutputPath = path.resolve(rootPath, mixStreamsPath);
 	const waveformsOutputPath = path.resolve(rootPath, mixWaveformsPath);
 
-	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
-	const renditions = await collectRenditions(streamsPath);
-	const archives = await collectArchives(cacheDir);
-
-	const streamEntries: Array<MixStreamEntry> = [];
-	const waveformEntries: Array<MixWaveformEntry> = [];
-	const incomplete: Array<string> = [];
-
-	for (const source of sources) {
-		const resolved = await resolveEntries({
-			archive: archives.get(source.base),
-			cacheDir,
-			source,
-			stream: renditions.get(source.base),
-		});
-
-		if (!resolved) {
-			incomplete.push(source.base);
-			continue;
-		}
-
-		streamEntries.push(resolved.stream);
-		waveformEntries.push(resolved.waveform);
-	}
+	const { incomplete, sourceCount, streamEntries, waveformEntries } =
+		await collectManifestEntries(rootPath);
 
 	console.log(
 		chalk.blue(
-			`Manifest: ${String(streamEntries.length)} of ${String(sources.length)} mixes carry a rendition, an archive and a preview`,
+			`Manifest: ${String(streamEntries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and a preview`,
 		),
 	);
 
@@ -121,6 +105,37 @@ async function assertManifestNotEmptied(count: number, rootPath: string): Promis
 	throw new Error(
 		`Refusing to overwrite ${String(streams.length)} manifest entries with an empty manifest; no audio sources found in ${audioSourceDir}`,
 	);
+}
+
+async function collectManifestEntries(rootPath: string): Promise<ManifestEntries> {
+	const cacheDir = path.join(rootPath, waveformsCacheDir);
+
+	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
+	const renditions = await collectRenditions(path.join(rootPath, streamsDir));
+	const archives = await collectArchives(cacheDir);
+
+	const streamEntries: Array<MixStreamEntry> = [];
+	const waveformEntries: Array<MixWaveformEntry> = [];
+	const incomplete: Array<string> = [];
+
+	for (const source of sources) {
+		const resolved = await resolveEntries({
+			archive: archives.get(source.base),
+			cacheDir,
+			source,
+			stream: renditions.get(source.base),
+		});
+
+		if (!resolved) {
+			incomplete.push(source.base);
+			continue;
+		}
+
+		streamEntries.push(resolved.stream);
+		waveformEntries.push(resolved.waveform);
+	}
+
+	return { incomplete, sourceCount: sources.length, streamEntries, waveformEntries };
 }
 
 // A missing or stale-version manifest reads as no files, which both callers handle

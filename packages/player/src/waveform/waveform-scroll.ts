@@ -34,15 +34,15 @@ interface Bucketing {
 interface ScrollView {
 	cuePoints: ReadonlyArray<QueueCuePoint>;
 	// Everything outside zero to here is drawn as null rather than as silence
-	durationS: number | undefined;
+	durationSeconds: number | undefined;
 	height: number;
 	pairsPerSecond: number;
 	// Device pixels per second of audio
 	pixelsPerSecond: number;
 	// Interleaved min and max; empty until the first chunk lands
 	samples: Int8Array;
-	startS: number;
 	width: number;
+	windowStartSeconds: number;
 }
 
 // Holds the scratch buffers and paint styles, which cost more to rebuild each frame than to keep
@@ -72,7 +72,10 @@ export function createScrollPainter(
 		return gradient;
 	}
 
-	function measureBuckets(samples: Int8Array, first: number, pairs: number, count: number): void {
+	function measureBuckets(
+		samples: Int8Array,
+		{ count, first, pairs }: { count: number; first: number; pairs: number },
+	): void {
 		if (minima.length < count) {
 			minima = new Float32Array(count);
 			maxima = new Float32Array(count);
@@ -112,17 +115,17 @@ export function createScrollPainter(
 
 	// The line only; the label rides its boundary in the DOM, where it can carry type and a fade
 	function paintBoundaries(view: ScrollView, ratio: number): void {
-		const { cuePoints, height, pixelsPerSecond, startS, width } = view;
+		const { cuePoints, height, pixelsPerSecond, width, windowStartSeconds } = view;
 		if (cuePoints.length === 0) return;
 
-		const endS = startS + width / pixelsPerSecond;
+		const windowEndSeconds = windowStartSeconds + width / pixelsPerSecond;
 
 		context.fillStyle = theme.boundaryStyle;
 
 		for (const cue of cuePoints) {
-			if (cue.startS > endS) break;
+			if (cue.startSeconds > windowEndSeconds) break;
 
-			const openingX = (cue.startS - startS) * pixelsPerSecond;
+			const openingX = (cue.startSeconds - windowStartSeconds) * pixelsPerSecond;
 			if (openingX < 0) continue;
 
 			// Fractional x; a boundary rounded to whole pixels judders the way the envelope would
@@ -140,7 +143,7 @@ export function createScrollPainter(
 		const bucketX = (bucket: number): number =>
 			((first + bucket) * pairs - openingPair) * pxPerPair;
 
-		measureBuckets(view.samples, first, pairs, count);
+		measureBuckets(view.samples, { count, first, pairs });
 
 		context.fillStyle = envelopeFill(view.height);
 		context.beginPath();
@@ -159,13 +162,13 @@ export function createScrollPainter(
 	}
 
 	function paintEdges(view: ScrollView, ratio: number): void {
-		const { durationS, height, pixelsPerSecond, startS, width } = view;
-		if (durationS === undefined) return;
+		const { durationSeconds, height, pixelsPerSecond, width, windowStartSeconds } = view;
+		if (durationSeconds === undefined) return;
 
 		context.fillStyle = theme.edgeStyle;
 
-		for (const seconds of [0, durationS]) {
-			const x = (seconds - startS) * pixelsPerSecond;
+		for (const seconds of [0, durationSeconds]) {
+			const x = (seconds - windowStartSeconds) * pixelsPerSecond;
 			if (x < 0 || x > width) continue;
 
 			context.fillRect(x - ratio / 2, 0, ratio, height);
@@ -180,14 +183,14 @@ export function createScrollPainter(
 
 	// Outside the mix there is no audio at all, and flat silence would misreport that
 	function paintNull(view: ScrollView, ratio: number): void {
-		const { durationS, height, pixelsPerSecond, startS, width } = view;
-		if (durationS === undefined) return;
+		const { durationSeconds, height, pixelsPerSecond, width, windowStartSeconds } = view;
+		if (durationSeconds === undefined) return;
 
 		const pattern = nullHatch(ratio);
 		if (!pattern) return;
 
-		const openingX = -startS * pixelsPerSecond;
-		const closingX = (durationS - startS) * pixelsPerSecond;
+		const openingX = -windowStartSeconds * pixelsPerSecond;
+		const closingX = (durationSeconds - windowStartSeconds) * pixelsPerSecond;
 
 		context.fillStyle = pattern;
 		if (openingX > 0) context.fillRect(0, 0, Math.min(openingX, width), height);
@@ -207,10 +210,10 @@ export function createScrollPainter(
 }
 
 // A bucket is about one device pixel wide, in whole sample pairs, so its span never shifts between frames
-function bucketing({ pairsPerSecond, pixelsPerSecond, startS }: ScrollView): Bucketing {
+function bucketing({ pairsPerSecond, pixelsPerSecond, windowStartSeconds }: ScrollView): Bucketing {
 	const pxPerPair = pixelsPerSecond / pairsPerSecond;
 	const pairs = Math.max(1, Math.round(1 / pxPerPair));
-	const openingPair = startS * pairsPerSecond;
+	const openingPair = windowStartSeconds * pairsPerSecond;
 
 	return { first: Math.floor(openingPair / pairs) - 1, openingPair, pairs, pxPerPair };
 }

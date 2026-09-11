@@ -109,7 +109,12 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('button', { name: labels.play })).toBeEnabled();
 
 		await waitFor(() => {
-			expect(engineMock.load).toHaveBeenCalledWith('https://api.test/tracks/a/stream', 1, true, 0);
+			expect(engineMock.load).toHaveBeenCalledWith({
+				gain: 1,
+				resumeAtSeconds: 0,
+				shouldAutoplay: true,
+				src: 'https://api.test/tracks/a/stream',
+			});
 		});
 	});
 
@@ -227,7 +232,7 @@ describe('AudioPlayer', () => {
 
 		act(() => {
 			store.getState().playTrack(release, 'a');
-			store.setState({ currentTimeS: 100 });
+			store.setState({ currentTimeSeconds: 100 });
 		});
 		fireEvent.click(screen.getByRole('button', { name: labels.skipForward }));
 
@@ -288,7 +293,7 @@ describe('AudioPlayer', () => {
 
 		act(() => {
 			store.getState().playTrack(release, 'a');
-			store.setState({ currentTimeS: 64 });
+			store.setState({ currentTimeSeconds: 64 });
 		});
 
 		const clock = screen.getByRole('button', { name: labels.toggleTimeMode });

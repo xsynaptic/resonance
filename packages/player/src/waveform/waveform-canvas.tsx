@@ -25,7 +25,7 @@ const keyStepsSeconds = new Map<string, number>([
 
 interface WaveformCanvasProps {
 	className?: string | undefined;
-	durationS: number | undefined;
+	durationSeconds: number | undefined;
 	label: string;
 	onSeek: (seconds: number) => void;
 	overview: ReadonlyArray<number>;
@@ -34,7 +34,7 @@ interface WaveformCanvasProps {
 
 export function WaveformCanvas({
 	className,
-	durationS,
+	durationSeconds,
 	label,
 	onSeek,
 	overview,
@@ -56,8 +56,8 @@ export function WaveformCanvas({
 		let paintedPx = -1;
 		let announced = '';
 
-		const paint = (currentTimeS: number): void => {
-			currentTimeRef.current = currentTimeS;
+		const paint = (currentTimeSeconds: number): void => {
+			currentTimeRef.current = currentTimeSeconds;
 
 			if (rendering === undefined) {
 				rendering = prepareRendering(canvas, overview);
@@ -69,7 +69,10 @@ export function WaveformCanvas({
 				paintedPx = -1;
 			}
 
-			const progress = durationS && durationS > 0 ? Math.min(1, currentTimeS / durationS) : 0;
+			const progress =
+				durationSeconds && durationSeconds > 0
+					? Math.min(1, currentTimeSeconds / durationSeconds)
+					: 0;
 			const playedPx = Math.round(progress * rendering.width);
 
 			// On an hour-long mix a tick moves the edge a fraction of a device pixel, and repainting draws the same image
@@ -78,11 +81,11 @@ export function WaveformCanvas({
 				paintWaveform(context, rendering, playedPx);
 			}
 
-			const clock = formatClock(currentTimeS);
+			const clock = formatClock(currentTimeSeconds);
 			if (clock === announced) return;
 
 			announced = clock;
-			canvas.setAttribute('aria-valuenow', String(Math.floor(currentTimeS)));
+			canvas.setAttribute('aria-valuenow', String(Math.floor(currentTimeSeconds)));
 			canvas.setAttribute('aria-valuetext', clock);
 		};
 
@@ -99,31 +102,31 @@ export function WaveformCanvas({
 			observer.disconnect();
 			unsubscribe();
 		};
-	}, [durationS, overview, subscribeTime, themeVersion]);
+	}, [durationSeconds, overview, subscribeTime, themeVersion]);
 
 	function seekToPointer(event: PointerEvent<HTMLCanvasElement>): void {
-		if (durationS === undefined) return;
+		if (durationSeconds === undefined) return;
 
 		const rect = event.currentTarget.getBoundingClientRect();
 		const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
 
-		onSeek(ratio * durationS);
+		onSeek(ratio * durationSeconds);
 	}
 
 	function seekToKey(event: KeyboardEvent<HTMLCanvasElement>): void {
-		if (durationS === undefined) return;
+		if (durationSeconds === undefined) return;
 
-		const target = keyTarget(event.key, currentTimeRef.current, durationS);
+		const target = keyTarget(event.key, currentTimeRef.current, durationSeconds);
 		if (target === undefined) return;
 
 		event.preventDefault();
-		onSeek(Math.min(durationS, Math.max(0, target)));
+		onSeek(Math.min(durationSeconds, Math.max(0, target)));
 	}
 
 	return (
 		<canvas
 			aria-label={label}
-			aria-valuemax={durationS ?? 0}
+			aria-valuemax={durationSeconds ?? 0}
 			aria-valuemin={0}
 			className={joinClassNames('player-waveform', className)}
 			onKeyDown={seekToKey}
@@ -142,13 +145,17 @@ export function WaveformCanvas({
 }
 
 // The keys `role="slider"` contracts for; anything else falls through to the page
-function keyTarget(key: string, currentTimeS: number, durationS: number): number | undefined {
+function keyTarget(
+	key: string,
+	currentTimeSeconds: number,
+	durationSeconds: number,
+): number | undefined {
 	if (key === 'Home') return 0;
-	if (key === 'End') return durationS;
+	if (key === 'End') return durationSeconds;
 
 	const step = keyStepsSeconds.get(key);
 
-	return step === undefined ? undefined : currentTimeS + step;
+	return step === undefined ? undefined : currentTimeSeconds + step;
 }
 
 function zeroVersion(): number {

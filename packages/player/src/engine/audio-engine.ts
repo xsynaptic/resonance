@@ -4,8 +4,7 @@ import type { PlaybackErrorStage } from '#types.ts';
 export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
 	currentTime(): number;
-	// `startS` resumes a restored queue where it left off; the element takes it only once metadata has landed
-	load(src: string, gain: number, shouldAutoplay: boolean, startS: number): Promise<void>;
+	load(request: AudioLoadRequest): Promise<void>;
 	// How far the element's clock runs ahead of the sound: the graph's delay plus the device's
 	outputDelay(): number;
 	pause(): void;
@@ -18,14 +17,22 @@ export interface AudioEngine {
 }
 
 export interface AudioEngineCallbacks {
-	onDuration: (durationS: number | undefined) => void;
+	onDuration: (durationSeconds: number | undefined) => void;
 	onEnded: () => void;
 	onError: (stage: PlaybackErrorStage) => void;
 	onStatus: (status: 'loading' | 'paused' | 'playing') => void;
-	onTime: (currentTimeS: number) => void;
+	onTime: (currentTimeSeconds: number) => void;
 }
 
 export type CreateAudioEngine = (callbacks: AudioEngineCallbacks) => AudioEngine;
+
+interface AudioLoadRequest {
+	gain: number;
+	// Resumes a restored queue where it left off; the element takes it only once metadata has landed
+	resumeAtSeconds: number;
+	shouldAutoplay: boolean;
+	src: string;
+}
 
 export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine {
 	const audio = new Audio();
@@ -38,12 +45,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	let normalizationNode: GainNode | undefined;
 	let volumeNode: GainNode | undefined;
 	let analyserNode: AnalyserNode | undefined;
-	let analysisDelayS = 0;
+	let analysisDelaySeconds = 0;
 
 	// Applied to the live nodes once the graph exists
 	let pendingGain = 1;
 	let pendingVolume = 1;
-	let pendingStartS: number | undefined;
+	let pendingResumeAtSeconds: number | undefined;
 
 	// A media element source can be created once, so the graph is built once, inside the first gesture
 	function ensureGraph(): void {
@@ -62,11 +69,11 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		volumeNode.gain.value = pendingVolume;
 
 		// Playback waits for the analysis window rather than the display trailing the sound
-		analysisDelayS = analysisDelaySeconds(analyserNode);
+		analysisDelaySeconds = measureAnalysisDelay(analyserNode);
 
 		const delayNode = context.createDelay(1);
 
-		delayNode.delayTime.value = analysisDelayS;
+		delayNode.delayTime.value = analysisDelaySeconds;
 
 		// The tap sits ahead of the volume stage so the display follows the track, not the volume knob
 		context
@@ -84,10 +91,10 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	audio.addEventListener('loadedmetadata', () => {
 		callbacks.onDuration(Number.isFinite(audio.duration) ? audio.duration : undefined);
 
-		if (pendingStartS === undefined) return;
+		if (pendingResumeAtSeconds === undefined) return;
 
-		audio.currentTime = pendingStartS;
-		pendingStartS = undefined;
+		audio.currentTime = pendingResumeAtSeconds;
+		pendingResumeAtSeconds = undefined;
 	});
 	audio.addEventListener('ended', () => {
 		callbacks.onEnded();
@@ -123,9 +130,9 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	return {
 		analyser: () => analyserNode,
 		currentTime: () => audio.currentTime,
-		async load(src, gain, shouldAutoplay, startS) {
+		async load({ gain, resumeAtSeconds, shouldAutoplay, src }) {
 			pendingGain = gain;
-			pendingStartS = startS > 0 ? startS : undefined;
+			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;
 			if (normalizationNode) normalizationNode.gain.value = gain;
 
 			audio.src = src;
@@ -136,7 +143,8 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			callbacks.onStatus('loading');
 			await play();
 		},
-		outputDelay: () => (context === undefined ? 0 : analysisDelayS + outputLatencyS(context)),
+		outputDelay: () =>
+			context === undefined ? 0 : analysisDelaySeconds + outputLatencySeconds(context),
 		pause: () => {
 			audio.pause();
 		},
@@ -147,12 +155,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		},
 		reset: () => {
 			audio.pause();
-			pendingStartS = undefined;
+			pendingResumeAtSeconds = undefined;
 			audio.currentTime = 0;
 		},
 		// A seek during the load wins over the offset the load was given
 		seek: (seconds) => {
-			pendingStartS = undefined;
+			pendingResumeAtSeconds = undefined;
 			audio.currentTime = seconds;
 		},
 		setVolume: (volume) => {
@@ -160,14 +168,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			if (volumeNode) volumeNode.gain.value = volume;
 		},
 	};
-}
-
-// The analyser's window weights a transient fully only at its midpoint, and output latency is a credit against that lag
-// Floored at zero because a long output latency (Bluetooth) already puts the display ahead
-function analysisDelaySeconds(analyser: AnalyserNode): number {
-	const windowCentreS = analyser.fftSize / 2 / analyser.context.sampleRate;
-
-	return Math.max(0, windowCentreS - outputLatencyS(analyser.context));
 }
 
 // Chrome answers MEDIA_ERR_SRC_NOT_SUPPORTED for a missing object as well as an unplayable codec
@@ -185,8 +185,16 @@ function errorStage(error: MediaError | null): PlaybackErrorStage {
 	}
 }
 
+// The analyser's window weights a transient fully only at its midpoint, and output latency is a credit against that lag
+// Floored at zero because a long output latency (Bluetooth) already puts the display ahead
+function measureAnalysisDelay(analyser: AnalyserNode): number {
+	const windowCentreSeconds = analyser.fftSize / 2 / analyser.context.sampleRate;
+
+	return Math.max(0, windowCentreSeconds - outputLatencySeconds(analyser.context));
+}
+
 // Only AudioContext carries outputLatency, and an analyser types its context as the base class
-function outputLatencyS(context: BaseAudioContext): number {
+function outputLatencySeconds(context: BaseAudioContext): number {
 	const latency: unknown = (context as { outputLatency?: unknown }).outputLatency;
 
 	return typeof latency === 'number' ? latency : 0;

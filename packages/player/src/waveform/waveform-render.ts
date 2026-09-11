@@ -48,14 +48,15 @@ export function prepareRendering(
 	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
 
 	const styles = getComputedStyle(canvas);
-	const bar = Math.max(1, readDevicePixels(styles, '--player-waveform-bar', ratio, 2));
-	const gap = readDevicePixels(styles, '--player-waveform-gap', ratio, 1);
+	const readDevicePixels = createDevicePixelReader(styles, ratio);
+	const bar = Math.max(1, readDevicePixels('--player-waveform-bar', 2));
+	const gap = readDevicePixels('--player-waveform-gap', 1);
 	const pitch = bar + gap;
 	const layout = {
 		bar,
 		height,
 		pitch,
-		radius: readDevicePixels(styles, '--player-waveform-radius', ratio, 0),
+		radius: readDevicePixels('--player-waveform-radius', 0),
 	} satisfies BarLayout;
 
 	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
@@ -86,14 +87,11 @@ function barsPath(bars: ReadonlyArray<number>, { bar, height, pitch, radius }: B
 }
 
 // The token has to be a px length; converting any other unit needs a probe element
-function readDevicePixels(
-	styles: CSSStyleDeclaration,
-	property: string,
-	ratio: number,
-	fallback: number,
-): number {
-	// eslint-disable-next-line unicorn/prefer-number-coercion -- `Number('2px')` is NaN; the token carries its unit
-	const parsed = Number.parseFloat(styles.getPropertyValue(property));
+function createDevicePixelReader(styles: CSSStyleDeclaration, ratio: number) {
+	return (property: string, fallback: number): number => {
+		// eslint-disable-next-line unicorn/prefer-number-coercion -- `Number('2px')` is NaN; the token carries its unit
+		const parsed = Number.parseFloat(styles.getPropertyValue(property));
 
-	return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : fallback) * ratio));
+		return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : fallback) * ratio));
+	};
 }

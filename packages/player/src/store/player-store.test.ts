@@ -64,7 +64,7 @@ const release = [makeItem('a'), makeItem('b'), makeItem('c')];
 
 interface StoredQueueRecord {
 	currentIndex: number | undefined;
-	currentTimeS: number;
+	currentTimeSeconds: number;
 	queue: Array<{ trackId: string }>;
 }
 
@@ -111,7 +111,12 @@ describe('playTrack', () => {
 		expect(state.currentIndex).toBe(1);
 
 		await vi.waitFor(() => {
-			expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/tracks/b/stream', 1, true, 0);
+			expect(fake.engine.load).toHaveBeenCalledWith({
+				gain: 1,
+				resumeAtSeconds: 0,
+				shouldAutoplay: true,
+				src: 'https://api.test/tracks/b/stream',
+			});
 		});
 	});
 
@@ -559,47 +564,47 @@ describe('transport', () => {
 		store.getState().seek(42);
 
 		expect(fake.engine.seek).toHaveBeenCalledWith(42);
-		expect(store.getState().currentTimeS).toBe(42);
+		expect(store.getState().currentTimeSeconds).toBe(42);
 	});
 
 	test('seeks by a delta, clamped into the loaded track', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ currentTimeS: 100 });
+		store.setState({ currentTimeSeconds: 100 });
 		store.getState().seekBy(30);
 
-		expect(store.getState().currentTimeS).toBe(130);
+		expect(store.getState().currentTimeSeconds).toBe(130);
 
 		store.getState().seekBy(120);
 
-		expect(store.getState().currentTimeS).toBe(180);
+		expect(store.getState().currentTimeSeconds).toBe(180);
 
 		store.getState().seekBy(-500);
 
-		expect(store.getState().currentTimeS).toBe(0);
+		expect(store.getState().currentTimeSeconds).toBe(0);
 	});
 
 	test('ignores a delta while no duration is known', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ currentTimeS: 10, durationS: undefined });
+		store.setState({ currentTimeSeconds: 10, durationSeconds: undefined });
 		store.getState().seekBy(30);
 
-		expect(store.getState().currentTimeS).toBe(10);
+		expect(store.getState().currentTimeSeconds).toBe(10);
 	});
 
 	test('stops playback and resets the engine', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ currentTimeS: 30, status: 'playing' });
+		store.setState({ currentTimeSeconds: 30, status: 'playing' });
 		store.getState().stop();
 
 		expect(fake.engine.reset).toHaveBeenCalled();
 		expect(store.getState().status).toBe('idle');
-		expect(store.getState().currentTimeS).toBe(0);
+		expect(store.getState().currentTimeSeconds).toBe(0);
 	});
 
 	test('toggles the tray open and closed', () => {
@@ -676,7 +681,12 @@ describe('engine errors', () => {
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		});
-		expect(fake.engine.load).toHaveBeenCalledWith('https://api.test/b', 1, true, 0);
+		expect(fake.engine.load).toHaveBeenCalledWith({
+			gain: 1,
+			resumeAtSeconds: 0,
+			shouldAutoplay: true,
+			src: 'https://api.test/b',
+		});
 	});
 
 	test('enters the error state when the resolve itself never answers', async () => {
@@ -821,7 +831,7 @@ describe('queue persistence', () => {
 
 		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
 		expect(state.currentIndex).toBe(1);
-		expect(state.currentTimeS).toBe(42);
+		expect(state.currentTimeSeconds).toBe(42);
 		expect(state.status).toBe('idle');
 		expect(fake.engine.load).not.toHaveBeenCalled();
 
@@ -844,12 +854,12 @@ describe('queue persistence', () => {
 		second.getState().togglePlay();
 
 		await vi.waitFor(() => {
-			expect(fake.engine.load).toHaveBeenCalledWith(
-				'https://api.test/tracks/b/stream',
-				1,
-				true,
-				42,
-			);
+			expect(fake.engine.load).toHaveBeenCalledWith({
+				gain: 1,
+				resumeAtSeconds: 42,
+				shouldAutoplay: true,
+				src: 'https://api.test/tracks/b/stream',
+			});
 		});
 
 		localStorage.removeItem('player:v1:queue');
@@ -878,7 +888,12 @@ describe('queue persistence', () => {
 	test('ignores a stored entry whose index falls outside the queue', () => {
 		localStorage.setItem(
 			'player:v1:queue',
-			JSON.stringify({ currentIndex: 9, currentTimeS: 42, isShuffling: false, queue: release }),
+			JSON.stringify({
+				currentIndex: 9,
+				currentTimeSeconds: 42,
+				isShuffling: false,
+				queue: release,
+			}),
 		);
 
 		const store = configured();
@@ -887,7 +902,7 @@ describe('queue persistence', () => {
 
 		expect(store.getState().queue).toHaveLength(3);
 		expect(store.getState().currentIndex).toBeUndefined();
-		expect(store.getState().currentTimeS).toBe(0);
+		expect(store.getState().currentTimeSeconds).toBe(0);
 
 		localStorage.removeItem('player:v1:queue');
 	});

@@ -11,6 +11,7 @@ import {
 	removedAt,
 	replacedAfter,
 	shuffledQueue,
+	stampQueue,
 } from '#queue/queue-state.ts';
 
 function makeItem(trackId: string, sectionLabel?: string): QueueItem {
@@ -33,12 +34,16 @@ function emptyState(): QueueState {
 	return { currentIndex: undefined, isShuffling: false, playOrder: [], queue: [] };
 }
 
+function stamp(items: ReadonlyArray<QueueItem>): Array<QueuedItem> {
+	return stampQueue(items, nextId);
+}
+
 function trackIds(queue: ReadonlyArray<QueuedItem>): Array<string> {
 	return queue.map((item) => item.trackId);
 }
 
 function withQueue(items: ReadonlyArray<QueueItem>, currentIndex: number | undefined): QueueState {
-	const loaded = loadedQueue(emptyState(), items, nextId);
+	const loaded = loadedQueue(emptyState(), stamp(items));
 
 	return { ...loaded, currentIndex };
 }
@@ -46,7 +51,7 @@ function withQueue(items: ReadonlyArray<QueueItem>, currentIndex: number | undef
 describe('createQueueIds', () => {
 	test('stamps an id that is unique within the queue', () => {
 		const ids = createQueueIds();
-		const queue = loadedQueue(emptyState(), release, ids).queue;
+		const queue = loadedQueue(emptyState(), stampQueue(release, ids)).queue;
 
 		expect(new Set(queue.map((item) => item.queueId)).size).toBe(3);
 	});
@@ -54,7 +59,7 @@ describe('createQueueIds', () => {
 
 describe('loadedQueue', () => {
 	test('replaces the queue and loads nothing out of it', () => {
-		const state = loadedQueue(emptyState(), release, nextId);
+		const state = loadedQueue(emptyState(), stamp(release));
 
 		expect(trackIds(state.queue)).toStrictEqual(['a', 'b', 'c']);
 		expect(state.playOrder).toStrictEqual([0, 1, 2]);
@@ -65,32 +70,32 @@ describe('loadedQueue', () => {
 		const shuffling = { ...emptyState(), isShuffling: true };
 		const sectioned = [makeItem('a', 'Side one'), makeItem('b')];
 
-		expect(loadedQueue(shuffling, sectioned, nextId).isShuffling).toBe(false);
-		expect(loadedQueue(shuffling, release, nextId).isShuffling).toBe(true);
+		expect(loadedQueue(shuffling, stamp(sectioned)).isShuffling).toBe(false);
+		expect(loadedQueue(shuffling, stamp(release)).isShuffling).toBe(true);
 	});
 });
 
 describe('appendedQueue', () => {
 	test('fills an empty queue and loads its head when no track is named', () => {
-		const appended = appendedQueue(emptyState(), release, nextId);
+		const appended = appendedQueue(emptyState(), stamp(release));
 
 		expect(appended?.loadIndex).toBe(0);
 		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c']);
 	});
 
 	test('fills an empty queue and loads the named track', () => {
-		const appended = appendedQueue(emptyState(), release, nextId, 'b');
+		const appended = appendedQueue(emptyState(), stamp(release), 'b');
 
 		expect(appended?.loadIndex).toBe(1);
 		expect(appended?.state.queue).toHaveLength(3);
 	});
 
 	test('refuses a named track the release does not carry', () => {
-		expect(appendedQueue(emptyState(), release, nextId, 'z')).toBeUndefined();
+		expect(appendedQueue(emptyState(), stamp(release), 'z')).toBeUndefined();
 	});
 
 	test('appends every track to a running queue and loads the first appended', () => {
-		const appended = appendedQueue(withQueue([makeItem('x')], 0), release, nextId);
+		const appended = appendedQueue(withQueue([makeItem('x')], 0), stamp(release));
 
 		expect(appended?.loadIndex).toBe(1);
 		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'a', 'b', 'c']);
@@ -98,25 +103,25 @@ describe('appendedQueue', () => {
 
 	test('jumps to a track already queued rather than appending a second copy', () => {
 		const running = withQueue(release, 0);
-		const appended = appendedQueue(running, release, nextId, 'c');
+		const appended = appendedQueue(running, stamp(release), 'c');
 
 		expect(appended?.loadIndex).toBe(2);
 		expect(appended?.state).toBe(running);
 	});
 
 	test('appends only the named track when a queue is running', () => {
-		const appended = appendedQueue(withQueue([makeItem('x')], 0), release, nextId, 'c');
+		const appended = appendedQueue(withQueue([makeItem('x')], 0), stamp(release), 'c');
 
 		expect(appended?.loadIndex).toBe(1);
 		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'c']);
 	});
 
 	test('refuses an empty release', () => {
-		expect(appendedQueue(emptyState(), [], nextId)).toBeUndefined();
+		expect(appendedQueue(emptyState(), stamp([]))).toBeUndefined();
 	});
 
 	test('leaves the loaded index alone, since loading it is the caller step', () => {
-		const appended = appendedQueue(withQueue(release, 1), [makeItem('d')], nextId);
+		const appended = appendedQueue(withQueue(release, 1), stamp([makeItem('d')]));
 
 		expect(appended?.state.currentIndex).toBe(1);
 		expect(appended?.loadIndex).toBe(3);
@@ -142,7 +147,7 @@ describe('removedAt', () => {
 
 describe('replacedAfter', () => {
 	test('keeps the loaded track and everything before it', () => {
-		const state = replacedAfter(withQueue(release, 1), 1, [makeItem('d')], nextId);
+		const state = replacedAfter(withQueue(release, 1), 1, stamp([makeItem('d')]));
 
 		expect(trackIds(state.queue)).toStrictEqual(['a', 'b', 'd']);
 		expect(state.currentIndex).toBe(1);
@@ -150,7 +155,7 @@ describe('replacedAfter', () => {
 
 	test('drops shuffle when the replacement is sectioned', () => {
 		const shuffling = { ...withQueue(release, 0), isShuffling: true };
-		const state = replacedAfter(shuffling, 0, [makeItem('d', 'Side two')], nextId);
+		const state = replacedAfter(shuffling, 0, stamp([makeItem('d', 'Side two')]));
 
 		expect(state.isShuffling).toBe(false);
 	});

@@ -17,6 +17,7 @@ type ExecFileCallback = (error: unknown, output: { stdout: string }) => void;
 
 function answerWith(payload: unknown): void {
 	execFile.mockImplementation(
+		// eslint-disable-next-line max-params -- mirrors node:child_process `execFile`
 		(_file: string, _args: Array<string>, _options: unknown, callback: ExecFileCallback) => {
 			callback(undefined, { stdout: JSON.stringify(payload) });
 		},

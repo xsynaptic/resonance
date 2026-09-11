@@ -15,6 +15,7 @@ const allowedProtocols = new Set(['http:', 'https:']);
 // The parser allows protocol-relative and mailto: through, which are outside the stated syntax
 commentParser.validateLink = isSafeUrl;
 
+// eslint-disable-next-line max-params -- markdown-it fixes the renderer rule signature
 commentParser.renderer.rules.link_open = function linkOpen(tokens, index, options, _env, renderer) {
 	tokens[index]?.attrSet('rel', 'nofollow ugc noopener');
 

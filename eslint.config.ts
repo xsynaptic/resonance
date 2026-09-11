@@ -23,12 +23,23 @@ export default getConfig(
 				// The expanded form reads more clearly than ??=, ||=, and &&=
 				'logical-assignment-operators': ['error', 'never'],
 				'max-depth': ['warn', 3],
+				'max-lines-per-function': ['warn', { max: 120, skipBlankLines: true, skipComments: true }],
+				'max-params': ['warn', 3],
+				'max-statements': ['warn', 30],
 				// Intentional compounds such as schema.org's WebSite type
 				'unicorn/consistent-compound-words': 'off',
 				// Zod schema chains legitimately reach 4; depth 5+ still flagged
 				'unicorn/max-nested-calls': ['error', { max: 4 }],
 				// Conflicts with Remeda's sort function
 				'unicorn/no-array-sort': 'off',
+			},
+		},
+		{
+			// A describe block's length is not a complexity signal
+			files: ['**/*.test.{ts,tsx}'],
+			rules: {
+				'max-lines-per-function': 'off',
+				'max-statements': 'off',
 			},
 		},
 		{
@@ -45,7 +56,7 @@ export default getConfig(
 			},
 		},
 		{
-			files: ['**/*.tsx'],
+			files: ['**/*.ts', '**/*.tsx'],
 			plugins: {
 				'react-hooks': reactHooksPlugin as unknown as ESLint.Plugin,
 			},

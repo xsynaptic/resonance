@@ -103,7 +103,7 @@ export function toTracklist(
 	const drafts: Array<TrackDraft> = [];
 
 	for (const track of tracks) {
-		const draft = toTrackDraft(track, releaseArtists, location, problems);
+		const draft = toTrackDraft(track, releaseArtists, { location, problems });
 
 		if (!draft) return undefined;
 
@@ -237,8 +237,7 @@ function toTrackCount(tracklist: Array<GroupDraft> | Array<TrackDraft>): number 
 function toTrackDraft(
 	track: DiscogsTrack,
 	releaseArtists: string,
-	location: string,
-	problems: Array<string>,
+	{ location, problems }: { location: string; problems: Array<string> },
 ): TrackDraft | undefined {
 	if (!track.title) {
 		problems.push(`${location}: a track at position "${track.position}" has no title`);

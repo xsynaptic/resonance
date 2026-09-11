@@ -38,13 +38,18 @@ export function validatePlatformLinks(
 			...[...soundcloudKeys.difference(backlinkKeys)].map((key) => ({
 				message: `${location}: \`soundcloudLink\` has ${key}, missing from \`links\``,
 			})),
-			...collectUnresolved(
+			...collectUnresolved({
+				field: 'mixcloudLink',
+				keys: keys.mixcloud,
 				location,
-				'mixcloudLink',
-				toUrls(entry.data.mixcloudLink),
-				keys.mixcloud,
-			),
-			...collectUnresolved(location, 'soundcloudLink', soundcloudUrls, keys.soundcloud),
+				urls: toUrls(entry.data.mixcloudLink),
+			}),
+			...collectUnresolved({
+				field: 'soundcloudLink',
+				keys: keys.soundcloud,
+				location,
+				urls: soundcloudUrls,
+			}),
 		);
 	}
 
@@ -57,12 +62,17 @@ export function validatePlatformLinks(
 	return notes.length > 0 ? { ...result, notes } : result;
 }
 
-function collectUnresolved(
-	location: string,
-	field: string,
-	urls: Array<string>,
-	keys: Set<string> | undefined,
-): Array<ValidationIssue> {
+function collectUnresolved({
+	field,
+	keys,
+	location,
+	urls,
+}: {
+	field: string;
+	keys: Set<string> | undefined;
+	location: string;
+	urls: Array<string>;
+}): Array<ValidationIssue> {
 	if (!keys) return [];
 
 	return urls

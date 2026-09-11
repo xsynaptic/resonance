@@ -28,77 +28,26 @@ export interface HierarchyNode {
 
 const byId = (idA: string, idB: string): number => idA.localeCompare(idB);
 
+interface HierarchyEdges {
+	childrenByParent: Map<string, Array<string>>;
+	idSet: Set<string>;
+	parentById: Map<string, string>;
+	roots: Array<string>;
+}
+
+interface HierarchyIndex {
+	depthById: Map<string, number>;
+	descendantsById: Map<string, Array<string>>;
+	intervalById: Map<string, [number, number]>;
+	ordinalById: Map<string, number>;
+}
+
 export function createHierarchy(nodes: Array<HierarchyNode>): Hierarchy {
-	const idSet = new Set(nodes.map((node) => node.id));
-
-	// Only edges whose parent exists in the set; a missing, dangling, or self parent makes a root
-	const parentById = new Map<string, string>();
-	const childrenByParent = new Map<string, Array<string>>();
-	const roots: Array<string> = [];
-
-	for (const node of nodes) {
-		const hasParent =
-			node.parentId !== undefined && node.parentId !== node.id && idSet.has(node.parentId);
-
-		if (!hasParent) {
-			roots.push(node.id);
-			continue;
-		}
-
-		parentById.set(node.id, node.parentId!);
-
-		const siblings = childrenByParent.get(node.parentId!);
-		if (siblings) {
-			siblings.push(node.id);
-		} else {
-			childrenByParent.set(node.parentId!, [node.id]);
-		}
-	}
-
-	roots.sort(byId);
-
-	for (const siblings of childrenByParent.values()) {
-		siblings.sort(byId);
-	}
-
-	const ordinalById = new Map<string, number>();
-	const intervalById = new Map<string, [number, number]>();
-	const depthById = new Map<string, number>();
-	const descendantsById = new Map<string, Array<string>>();
-	const visited = new Set<string>();
-
-	let counter = 1;
-
-	function visit(id: string, depth: number): Array<string> {
-		if (visited.has(id)) return []; // Defensive against malformed cycles
-
-		visited.add(id);
-
-		const left = counter;
-
-		counter += 1;
-		ordinalById.set(id, left);
-		depthById.set(id, depth);
-
-		const descendants: Array<string> = [];
-		const children = childrenByParent.get(id) ?? [];
-
-		for (const childId of children) {
-			descendants.push(childId, ...visit(childId, depth + 1));
-		}
-		descendantsById.set(id, descendants);
-
-		const right = counter;
-
-		counter += 1;
-		intervalById.set(id, [left, right]);
-
-		return descendants;
-	}
-
-	for (const rootId of roots) {
-		visit(rootId, 0);
-	}
+	const { childrenByParent, idSet, parentById, roots } = buildEdges(nodes);
+	const { depthById, descendantsById, intervalById, ordinalById } = indexTree({
+		childrenByParent,
+		roots,
+	});
 
 	function ancestorsOf(id: string): Array<string> {
 		const ancestors: Array<string> = [];
@@ -160,4 +109,82 @@ export function createHierarchy(nodes: Array<HierarchyNode>): Hierarchy {
 		roots,
 		siblingsOf,
 	};
+}
+
+// A missing, dangling, or self parent makes a root
+function buildEdges(nodes: Array<HierarchyNode>): HierarchyEdges {
+	const idSet = new Set(nodes.map((node) => node.id));
+	const parentById = new Map<string, string>();
+	const childrenByParent = new Map<string, Array<string>>();
+	const roots: Array<string> = [];
+
+	for (const node of nodes) {
+		const { id, parentId } = node;
+
+		if (parentId === undefined || parentId === id || !idSet.has(parentId)) {
+			roots.push(id);
+			continue;
+		}
+
+		parentById.set(id, parentId);
+
+		const siblings = childrenByParent.get(parentId);
+		if (siblings) {
+			siblings.push(id);
+		} else {
+			childrenByParent.set(parentId, [id]);
+		}
+	}
+
+	roots.sort(byId);
+
+	for (const siblings of childrenByParent.values()) {
+		siblings.sort(byId);
+	}
+
+	return { childrenByParent, idSet, parentById, roots };
+}
+
+// Preorder walk assigning each node a nested-set interval, so subtree tests are two comparisons
+function indexTree(edges: Pick<HierarchyEdges, 'childrenByParent' | 'roots'>): HierarchyIndex {
+	const ordinalById = new Map<string, number>();
+	const intervalById = new Map<string, [number, number]>();
+	const depthById = new Map<string, number>();
+	const descendantsById = new Map<string, Array<string>>();
+	const visited = new Set<string>();
+
+	let counter = 1;
+
+	function visit(id: string, depth: number): Array<string> {
+		if (visited.has(id)) return []; // Defensive against malformed cycles
+
+		visited.add(id);
+
+		const left = counter;
+
+		counter += 1;
+		ordinalById.set(id, left);
+		depthById.set(id, depth);
+
+		const descendants: Array<string> = [];
+		const children = edges.childrenByParent.get(id) ?? [];
+
+		for (const childId of children) {
+			descendants.push(childId, ...visit(childId, depth + 1));
+		}
+		descendantsById.set(id, descendants);
+
+		const right = counter;
+
+		counter += 1;
+		intervalById.set(id, [left, right]);
+
+		return descendants;
+	}
+
+	for (const rootId of edges.roots) {
+		visit(rootId, 0);
+	}
+
+	return { depthById, descendantsById, intervalById, ordinalById };
 }

@@ -11,11 +11,11 @@ const silentAnalyser: AnalyserNode | undefined = undefined;
 
 // A browser refuses an audio graph outside a gesture, so the specimens stand at the engine seam instead
 const createSilentEngine: CreateAudioEngine = (callbacks) => {
-	let currentTimeS = 0;
+	let currentTimeSeconds = 0;
 
 	return {
 		analyser: () => silentAnalyser,
-		currentTime: () => currentTimeS,
+		currentTime: () => currentTimeSeconds,
 		// A specimen lands loaded and paused, where a real engine would go on to play
 		load: () => {
 			callbacks.onStatus('paused');
@@ -32,10 +32,10 @@ const createSilentEngine: CreateAudioEngine = (callbacks) => {
 			// No graph to build
 		},
 		reset: () => {
-			currentTimeS = 0;
+			currentTimeSeconds = 0;
 		},
 		seek: (seconds) => {
-			currentTimeS = seconds;
+			currentTimeSeconds = seconds;
 		},
 		setVolume: () => {
 			// No gain stage to drive
@@ -112,7 +112,7 @@ export function WaveformComparison({
 	useEffect(() => {
 		store.getState().loadQueue(items);
 		store.getState().playAt(0);
-		store.getState().seek((store.getState().durationS ?? 0) / 3);
+		store.getState().seek((store.getState().durationSeconds ?? 0) / 3);
 	}, [items, store]);
 
 	return (
@@ -218,7 +218,7 @@ function seed(
 
 	// A third of the way in, so the remaining clock reads a figure rather than the whole duration
 	if (specimen === 'remaining') {
-		store.getState().seek((store.getState().durationS ?? 0) / 3);
+		store.getState().seek((store.getState().durationSeconds ?? 0) / 3);
 		store.setState({ timeMode: 'remaining' });
 	}
 }

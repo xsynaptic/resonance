@@ -114,15 +114,11 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 	const tally: Tally = { approved: 0, rejected: 0, skipped: 0, spam: 0 };
 
 	for (const [index, comment] of pending.entries()) {
-		// `A` decides the same row as `a` once this is the last one left
-		const available =
-			index < pending.length - 1 ? choices : choices.filter((choice) => choice.key !== 'A');
-
-		printComment(comment, chalk.dim(`${String(index + 1)}/${String(pending.length)}`));
-		printLegend(available);
-
-		const key = await readKey(available.map((choice) => choice.key));
-		const choice = available.find((candidate) => candidate.key === key);
+		const choice = await promptChoice({
+			comment,
+			isLast: index === pending.length - 1,
+			position: `${String(index + 1)}/${String(pending.length)}`,
+		});
 
 		if (!choice || choice.key === 'q') {
 			console.log(chalk.dim('\n  Stopped.'));
@@ -218,6 +214,26 @@ function printTally(tally: Tally): void {
 	];
 
 	console.log(`\n  ${chalk.bold('Done')} ${chalk.dim('·')} ${parts.join(chalk.dim(' · '))}\n`);
+}
+
+// `A` decides the same row as `a` once this is the last one left
+async function promptChoice({
+	comment,
+	isLast,
+	position,
+}: {
+	comment: PendingRow;
+	isLast: boolean;
+	position: string;
+}): Promise<Choice | undefined> {
+	const available = isLast ? choices.filter((choice) => choice.key !== 'A') : choices;
+
+	printComment(comment, chalk.dim(position));
+	printLegend(available);
+
+	const key = await readKey(available.map((choice) => choice.key));
+
+	return available.find((candidate) => candidate.key === key);
 }
 
 // The site reads a snapshot, so an approval only reaches it after a pull

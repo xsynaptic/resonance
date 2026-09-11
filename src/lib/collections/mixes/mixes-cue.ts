@@ -21,13 +21,13 @@ export async function getMixCuePoints(
 		scoped
 			.flatMap((group) => group.tracks)
 			.map(async (track) => {
-				const startS =
+				const startSeconds =
 					track.timestamp === undefined ? undefined : parseTimestampSeconds(track.timestamp);
-				if (startS === undefined) return;
+				if (startSeconds === undefined) return;
 
 				return {
 					artistLine: (await joinArtists(toRefArray(track.artists))) ?? '',
-					startS,
+					startSeconds,
 					title: track.title,
 				} satisfies QueueCuePoint;
 			}),

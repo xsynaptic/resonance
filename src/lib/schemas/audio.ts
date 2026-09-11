@@ -48,13 +48,9 @@ const TracklistSchema = z.union([TrackSchema.array(), TrackGroupSchema.array()])
 export type TrackGroupValue = z.infer<typeof TrackGroupSchema>;
 export type TracklistValue = z.infer<typeof TracklistSchema>;
 
-// One unified `releaseType` enum spans both (mix-live/mix-studio vs standard/compilation/album/remixes)
 // Series membership lives on the series entry
 const audioFields = {
 	links: z.string().array().optional(),
-	releaseType: z
-		.enum(['standard', 'mix-live', 'mix-studio', 'compilation', 'album', 'remixes'])
-		.optional(),
 	tracks: TracklistSchema.optional(),
 };
 
@@ -88,7 +84,6 @@ export const reviewSchema = z
 		// releaseTitle is the album title without the "Artist - " prefix, so `title` can't yield it
 		releaseTitle: z.string().optional(),
 		releaseYear: z.string().optional(),
-		reviewAttributes: z.enum(['recommended', 'dj_fodder', 'youtube_link']).array().optional(),
 		youtubeSearch: z.boolean().optional(),
 	})
 	.strict();

@@ -135,7 +135,7 @@ const strings = {
 	'player.pause': 'Pause',
 	'player.play': 'Play',
 	'player.previous': 'Previous',
-	'player.queue': 'Playlist',
+	'player.queue': 'Add to Playlist',
 	'player.removeFromQueue': 'Remove from the playlist',
 	'player.reorder': 'Reorder in the playlist',
 	'player.seek': 'Seek',

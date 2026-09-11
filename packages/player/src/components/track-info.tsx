@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { MarqueeText } from '#components/marquee-text.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer } from '#store/context.tsx';
+import { displayedItem, isLoaded } from '#store/selectors.ts';
 
 export function TrackInfo({
 	children,
@@ -14,9 +15,8 @@ export function TrackInfo({
 	className?: string | undefined;
 	emptyLabel: string;
 }) {
-	const item = usePlayer((state) =>
-		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex],
-	);
+	const item = usePlayer(displayedItem);
+	const isTrackLoaded = usePlayer(isLoaded);
 
 	if (!item)
 		return (
@@ -27,7 +27,10 @@ export function TrackInfo({
 		);
 
 	return (
-		<div className={joinClassNames('player-track', className)}>
+		<div
+			className={joinClassNames('player-track', className)}
+			data-idle={isTrackLoaded ? undefined : ''}
+		>
 			{item.releaseHref === undefined ? (
 				<span className="player-track-title">
 					<MarqueeText text={item.title} />

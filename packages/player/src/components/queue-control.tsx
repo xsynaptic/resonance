@@ -19,7 +19,6 @@ export function QueueControl({
 	labels: PlayerLabels;
 }) {
 	const isTrayOpen = usePlayer((state) => state.isTrayOpen);
-	const count = usePlayer((state) => state.queue.length);
 	const store = usePlayerStoreApi();
 
 	return (
@@ -38,7 +37,6 @@ export function QueueControl({
 			>
 				<QueueIcon />
 			</Button>
-			{count > 0 ? <span className="player-queue-badge">{count}</span> : undefined}
 		</div>
 	);
 }

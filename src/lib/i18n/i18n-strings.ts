@@ -124,7 +124,7 @@ const strings = {
 	'pagination.selectTotal': 'of {total}',
 	'pagination.submit': 'Go',
 	'player.capped': 'Streaming is unavailable',
-	'player.clearQueue': 'Clear the playlist',
+	'player.clearQueue': 'Clear',
 	'player.empty': 'Nothing in the playlist',
 	'player.error': 'Playback failed',
 	'player.loading': 'Loading',

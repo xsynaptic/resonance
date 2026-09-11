@@ -1,17 +1,21 @@
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer, usePlayerStoreApi, useSubscribeTime } from '#store/context.tsx';
+import { displayedItem, isLoaded } from '#store/selectors.ts';
 import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
+import { WaveformPreview } from '#waveform/waveform-preview.tsx';
 
 // Split so each branch owns its own subscriptions: the waveform takes none for the clock, the range input does
 export function SeekBar({ className, label }: { className?: string | undefined; label: string }) {
-	const current = usePlayer((state) =>
-		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex],
-	);
+	const item = usePlayer(displayedItem);
+	const isTrackLoaded = usePlayer(isLoaded);
 
-	if (current?.waveformOverview)
-		return <WaveformSeek className={className} label={label} overview={current.waveformOverview} />;
+	if (item?.waveformOverview === undefined)
+		return <RangeSeek className={className} label={label} />;
 
-	return <RangeSeek className={className} label={label} />;
+	if (!isTrackLoaded)
+		return <WaveformPreview className={className} overview={item.waveformOverview} />;
+
+	return <WaveformSeek className={className} label={label} overview={item.waveformOverview} />;
 }
 
 function RangeSeek({ className, label }: { className?: string | undefined; label: string }) {

@@ -36,6 +36,7 @@
 	--player-gap-tight: 0.5rem;
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
+	--player-padding-block-start: var(--player-padding-block);
 	--player-info-width: 14.4rem;
 	--player-clock-width: 3.75rem;
 	--player-panel-height: 7.5rem;
@@ -201,8 +202,13 @@
 	font-size: var(--player-font-size);
 	font-weight: 500;
 	line-height: 1.25rem;
-	color: var(--player-text-strong);
+	color: var(--player-track-title-color, var(--player-text-strong));
 	text-decoration: none;
+}
+
+/* A knob rather than a rule of its own, so hover and focus still outrank the idle tone */
+.player-track[data-idle] {
+	--player-track-title-color: var(--player-text-muted);
 }
 
 @media (hover: hover) {
@@ -293,7 +299,7 @@
 }
 
 @media (hover: hover) {
-	.player-time:hover {
+	.player-time:enabled:hover {
 		color: var(--player-text-mid);
 	}
 }
@@ -302,6 +308,11 @@
 	color: var(--player-text-mid);
 	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 2px;
+}
+
+.player-time:disabled {
+	cursor: default;
+	opacity: 0.4;
 }
 
 .player-volume {
@@ -458,6 +469,11 @@
 	cursor: pointer;
 }
 
+.player-waveform-inert {
+	touch-action: auto;
+	cursor: default;
+}
+
 .player-waveform:focus-visible {
 	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 2px;
@@ -474,19 +490,6 @@
 .player-queue {
 	position: relative;
 	flex-shrink: 0;
-}
-
-.player-queue-badge {
-	position: absolute;
-	top: -0.25rem;
-	right: -0.25rem;
-	padding-inline: 0.25rem;
-	font-size: 10px;
-	font-weight: 500;
-	color: var(--player-surface);
-	pointer-events: none;
-	background-color: var(--player-accent);
-	border-radius: 9999px;
 }
 
 .player-tray {
@@ -513,7 +516,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 0.5rem 0.75rem;
+	padding: 0.25rem 0.5rem;
 	border-bottom: 1px solid var(--player-border);
 }
 
@@ -521,7 +524,7 @@
 	display: inline-flex;
 	gap: 0.375rem;
 	align-items: center;
-	padding: 0.25rem 0.5rem;
+	padding-block: 0.25rem;
 	font-size: var(--player-font-size-small);
 	line-height: 1rem;
 	color: var(--player-text-muted);
@@ -595,6 +598,11 @@
 	.player-tray-handle:hover {
 		color: var(--player-text-mid);
 	}
+}
+
+.player-tray-handle:disabled {
+	pointer-events: none;
+	opacity: 0.4;
 }
 
 .player-tray-handle:focus-visible {
@@ -677,7 +685,7 @@
 .player-panel {
 	position: relative;
 	height: var(--player-panel-height);
-	margin: calc(-1 * var(--player-padding-block)) calc(-1 * var(--player-padding-inline))
+	margin: calc(-1 * var(--player-padding-block-start)) calc(-1 * var(--player-padding-inline))
 		var(--player-padding-block);
 	overflow: hidden;
 	touch-action: pan-y;
@@ -792,9 +800,13 @@
 	color: var(--player-accent-bright);
 }
 
+/* The top border sits outside the padding box, so the grid's inset owes it back a pixel */
 .player-bar {
+	--player-padding-block-start: calc(var(--player-padding-block) - 1px);
+
 	position: relative;
-	padding: var(--player-padding-block) var(--player-padding-inline);
+	padding: var(--player-padding-block-start) var(--player-padding-inline)
+		var(--player-padding-block);
 	container-type: inline-size;
 	background-color: color-mix(in oklab, var(--player-surface) 95%, transparent);
 	border-top: 1px solid var(--player-border);
@@ -843,6 +855,7 @@
 
 .player-bar-grid .player-bar-seek {
 	grid-area: seek;
+	min-block-size: var(--player-waveform-height);
 }
 
 .player-bar-grid .player-scope {

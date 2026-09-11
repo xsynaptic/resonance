@@ -45,6 +45,12 @@ export function WaveformCanvas({
 	// The handlers seek from the position the last paint saw, which is fresher than any render
 	const currentTimeRef = useRef(0);
 
+	// Where the pointer is holding the scrub; the release is what commits it, the way the panel's drag does
+	const scrubSecondsRef = useRef<number | undefined>(undefined);
+
+	// The paint closes over the effect's rendering, so a scrub reaches it through here rather than by re-rendering
+	const repaintRef = useRef<(() => void) | undefined>(undefined);
+
 	const themeVersion = useSyncExternalStore(subscribeTheme, getThemeVersion, zeroVersion);
 
 	useEffect(() => {
@@ -69,10 +75,9 @@ export function WaveformCanvas({
 				paintedPx = -1;
 			}
 
+			const shownSeconds = scrubSecondsRef.current ?? currentTimeSeconds;
 			const progress =
-				durationSeconds && durationSeconds > 0
-					? Math.min(1, currentTimeSeconds / durationSeconds)
-					: 0;
+				durationSeconds && durationSeconds > 0 ? Math.min(1, shownSeconds / durationSeconds) : 0;
 			const playedPx = Math.round(progress * rendering.width);
 
 			// On an hour-long mix a tick moves the edge a fraction of a device pixel, and repainting draws the same image
@@ -81,12 +86,16 @@ export function WaveformCanvas({
 				paintWaveform(context, rendering, playedPx);
 			}
 
-			const clock = formatClock(currentTimeSeconds);
+			const clock = formatClock(shownSeconds);
 			if (clock === announced) return;
 
 			announced = clock;
-			canvas.setAttribute('aria-valuenow', String(Math.floor(currentTimeSeconds)));
+			canvas.setAttribute('aria-valuenow', String(Math.floor(shownSeconds)));
 			canvas.setAttribute('aria-valuetext', clock);
+		};
+
+		repaintRef.current = () => {
+			paint(currentTimeRef.current);
 		};
 
 		const observer = new ResizeObserver(() => {
@@ -99,18 +108,29 @@ export function WaveformCanvas({
 		const unsubscribe = subscribeTime(paint);
 
 		return () => {
+			repaintRef.current = undefined;
 			observer.disconnect();
 			unsubscribe();
 		};
 	}, [durationSeconds, overview, subscribeTime, themeVersion]);
 
-	function seekToPointer(event: PointerEvent<HTMLCanvasElement>): void {
+	function scrubToPointer(event: PointerEvent<HTMLCanvasElement>): void {
 		if (durationSeconds === undefined) return;
 
 		const rect = event.currentTarget.getBoundingClientRect();
 		const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
 
-		onSeek(ratio * durationSeconds);
+		scrubSecondsRef.current = ratio * durationSeconds;
+		repaintRef.current?.();
+	}
+
+	// A cancelled scrub commits too: the edge already moved, and snapping back reads as a dropped gesture
+	function commitScrub(): void {
+		const seconds = scrubSecondsRef.current;
+		if (seconds === undefined) return;
+
+		scrubSecondsRef.current = undefined;
+		onSeek(seconds);
 	}
 
 	function seekToKey(event: KeyboardEvent<HTMLCanvasElement>): void {
@@ -130,13 +150,15 @@ export function WaveformCanvas({
 			aria-valuemin={0}
 			className={joinClassNames('player-waveform', className)}
 			onKeyDown={seekToKey}
+			onPointerCancel={commitScrub}
 			onPointerDown={(event) => {
 				event.currentTarget.setPointerCapture(event.pointerId);
-				seekToPointer(event);
+				scrubToPointer(event);
 			}}
 			onPointerMove={(event) => {
-				if (event.buttons === 1) seekToPointer(event);
+				if (event.buttons === 1) scrubToPointer(event);
 			}}
+			onPointerUp={commitScrub}
 			ref={canvasRef}
 			role="slider"
 			tabIndex={0}

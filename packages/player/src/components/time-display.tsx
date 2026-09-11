@@ -41,6 +41,7 @@ export function TimeDisplay({
 			aria-pressed={timeMode === 'remaining'}
 			className={joinClassNames('player-time', className)}
 			data-mode={timeMode}
+			disabled={durationSeconds === undefined}
 			onClick={() => {
 				store.getState().toggleTimeMode();
 			}}

@@ -11,6 +11,7 @@ import {
 } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
+import { isLoaded } from '#store/selectors.ts';
 
 export function TransportControls({
 	className,
@@ -24,6 +25,7 @@ export function TransportControls({
 }) {
 	const isPlaying = usePlayer((state) => state.status === 'playing');
 	const hasQueue = usePlayer((state) => state.queue.length > 0);
+	const isTrackLoaded = usePlayer(isLoaded);
 	const store = usePlayerStoreApi();
 
 	return (
@@ -31,7 +33,7 @@ export function TransportControls({
 			<Button
 				aria-label={labels.previous}
 				className="player-button-icon"
-				disabled={!hasQueue}
+				disabled={!isTrackLoaded}
 				onClick={() => {
 					store.getState().previous();
 				}}
@@ -42,7 +44,7 @@ export function TransportControls({
 				<Button
 					aria-label={labels.skipBack}
 					className="player-button-icon player-skip"
-					disabled={!hasQueue}
+					disabled={!isTrackLoaded}
 					onClick={() => {
 						store.getState().seekBy(-skipSeconds);
 					}}
@@ -65,7 +67,7 @@ export function TransportControls({
 				<Button
 					aria-label={labels.skipForward}
 					className="player-button-icon player-skip"
-					disabled={!hasQueue}
+					disabled={!isTrackLoaded}
 					onClick={() => {
 						store.getState().seekBy(skipSeconds);
 					}}
@@ -76,7 +78,7 @@ export function TransportControls({
 			<Button
 				aria-label={labels.next}
 				className="player-button-icon"
-				disabled={!hasQueue}
+				disabled={!isTrackLoaded}
 				onClick={() => {
 					store.getState().next();
 				}}

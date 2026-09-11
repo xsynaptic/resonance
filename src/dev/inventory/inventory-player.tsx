@@ -46,7 +46,8 @@ const createSilentEngine: CreateAudioEngine = (callbacks) => {
 interface PlayerSpecimenProps {
 	items: Array<PlayerPayloadItem>;
 	labels: PlayerLabels;
-	specimen: 'default' | 'empty' | 'error' | 'marquee' | 'remaining' | 'tray' | 'tray-sectioned';
+	specimen:
+		'default' | 'empty' | 'error' | 'idle' | 'marquee' | 'remaining' | 'tray' | 'tray-sectioned';
 	variant?: 'compact' | 'expanded';
 }
 
@@ -207,6 +208,9 @@ function seed(
 	if (specimen === 'empty') return;
 
 	store.getState().loadQueue(queueFor(specimen, items));
+
+	// Queued with nothing loaded, which is where Add to Playlist leaves the bar
+	if (specimen === 'idle') return;
 
 	// The error specimen's resolver rejects, so its state comes from the failure rather than being written
 	store.getState().playAt(0);

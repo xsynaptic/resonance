@@ -6,7 +6,7 @@ import type { RowDrag } from '#queue/use-row-drag.ts';
 import type { PlayerLabels, QueuedItem } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
-import { CloseIcon, DragHandleIcon, PlayingIcon, ShuffleIcon } from '#components/icons.tsx';
+import { CloseIcon, DragHandleIcon, PlayingIcon } from '#components/icons.tsx';
 import { formatTemplate } from '#lib/format.ts';
 import { isSectioned } from '#queue/queue.ts';
 import { canMove } from '#queue/reorder.ts';
@@ -26,6 +26,7 @@ interface QueueTrayRowProps {
 	drag?: RowDrag;
 	index: number;
 	isCurrent: boolean;
+	isMovable: boolean;
 	item: QueuedItem;
 	labels: Pick<PlayerLabels, 'removeFromQueue' | 'reorder'>;
 	onHandleKeyDown: (event: ReactKeyboardEvent<HTMLElement>, index: number) => void;
@@ -95,7 +96,6 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 						}}
 						type="button"
 					>
-						<ShuffleIcon />
 						{labels.shuffle}
 					</button>
 				) : undefined}
@@ -122,6 +122,7 @@ function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 							<QueueTrayRow
 								index={index}
 								isCurrent={index === currentIndex}
+								isMovable={queue.length > 1}
 								item={item}
 								labels={labels}
 								onHandleKeyDown={onHandleKeyDown}
@@ -142,6 +143,7 @@ function QueueTrayRow({
 	drag,
 	index,
 	isCurrent,
+	isMovable,
 	item,
 	labels,
 	onHandleKeyDown,
@@ -158,6 +160,7 @@ function QueueTrayRow({
 				<button
 					aria-label={labels.reorder}
 					className="player-tray-handle"
+					disabled={!isMovable}
 					onKeyDown={(event) => {
 						onHandleKeyDown(event, index);
 					}}

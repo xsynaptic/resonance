@@ -796,6 +796,13 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
+			note="Queued with nothing loaded, where Add to Playlist leaves the bar. The waveform is the track Play would start, drawn inert; only Play is live."
+			source="packages/player/src/store/selectors.ts"
+		>
+			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="idle" />
+		</Specimen>
+		<Specimen
+			name="AudioPlayer"
 			note="Nothing queued. The site hides this state outright, so the specimen opts back in to show it."
 		>
 			<div class="inventory-player-empty">

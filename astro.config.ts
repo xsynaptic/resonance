@@ -67,6 +67,10 @@ export default defineConfig({
 		breakpoints: [450, 600, 900, 1200, 1800],
 		layout: 'constrained',
 		responsiveStyles: true,
+		service: {
+			config: { webp: { effort: 6, quality: 82 } },
+			entrypoint: 'astro/assets/services/sharp',
+		},
 	},
 	integrations: [
 		react(),

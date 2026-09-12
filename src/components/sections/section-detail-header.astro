@@ -1,24 +1,24 @@
 ---
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import DividedItem from '#components/parts/divided-item.astro';
-import RefList from '#components/parts/ref-list.astro';
-import RefText from '#components/parts/ref-text.astro';
+import LinkedNameList from '#components/parts/linked-name-list.astro';
+import LinkedNameText from '#components/parts/linked-name-text.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatDate } from '#lib/utils/date.ts';
 
 const headerStyleLimit = 3;
 
 interface Props {
-	artist?: ResolvedRef | undefined;
-	breadcrumbTrail?: Array<ResolvedRef> | undefined;
+	artist?: LinkedName | undefined;
+	breadcrumbTrail?: Array<LinkedName> | undefined;
 	date?: Date | undefined;
-	kind?: ResolvedRef | undefined;
-	labels?: Array<ResolvedRef> | undefined;
+	kind?: LinkedName | undefined;
+	labels?: Array<LinkedName> | undefined;
 	releaseTitle?: string | undefined;
 	releaseYear?: string | undefined;
-	styles?: Array<ResolvedRef> | undefined;
+	styles?: Array<LinkedName> | undefined;
 	title: string;
 }
 
@@ -42,7 +42,7 @@ const releaseYearText =
 		<div class="title-eyebrow">
 			{styleTerms.map((term) => (
 				<DividedItem as="span">
-					<RefText anchorColor="highlight" label={term.label} url={term.url} />
+					<LinkedNameText anchorColor="highlight" name={term.name} url={term.url} />
 				</DividedItem>
 			))}
 		</div>
@@ -52,7 +52,7 @@ const releaseYearText =
 			<Fragment>
 				{artist ? (
 					<Fragment>
-						<RefText label={artist.label} url={artist.url} />
+						<LinkedNameText name={artist.name} url={artist.url} />
 						<span class="title-divider"> - </span>
 					</Fragment>
 				) : undefined}
@@ -67,14 +67,14 @@ const releaseYearText =
 			{kind ? (
 				<DividedItem as="span" dividerContent="slash">
 					<span class="title-kind">
-						<RefText anchorColor="highlight" label={kind.label} url={kind.url} />
+						<LinkedNameText anchorColor="highlight" name={kind.name} url={kind.url} />
 					</span>
 				</DividedItem>
 			) : undefined}
 			{hasRelease ? (
 				<DividedItem as="span" dividerContent="slash">
 					{releaseLead}
-					<RefList refs={releaseLabels} />
+					<LinkedNameList names={releaseLabels} />
 					{releaseYearText}
 				</DividedItem>
 			) : undefined}

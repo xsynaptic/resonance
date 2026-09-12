@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 
 import type { ContentCatalogItem, TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
-import type { RefValue } from '#lib/schemas/refs.ts';
+import type { CreditValue } from '#lib/schemas/credits.ts';
 
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { descendantsOf } from '#lib/collections/terms/hierarchy.ts';
@@ -21,15 +21,15 @@ interface Member {
 
 type MemberEntry = CollectionEntry<(typeof memberCollections)[number]>;
 
-type TermRefs = (entry: MemberEntry) => Array<{ id: string }> | undefined;
+type TermReferences = (entry: MemberEntry) => Array<{ id: string }> | undefined;
 
 let membersPromise: Promise<Array<Member>> | undefined;
 
 // A mix reaches its artist's page through the alias it was published as, not through `artists`
-function artistRefs(entry: MemberEntry): Array<{ id: string }> {
+function artistReferences(entry: MemberEntry): Array<{ id: string }> {
 	if (entry.collection === 'mixes') return entry.data.alias ? [entry.data.alias] : [];
 
-	return toIdRefs(entry.data.artists);
+	return toIdReferences(entry.data.artists);
 }
 
 async function buildMembers(): Promise<Array<Member>> {
@@ -54,20 +54,20 @@ async function buildMembers(): Promise<Array<Member>> {
 }
 
 async function buildTermIndex(
-	getRefs: TermRefs,
+	getReferences: TermReferences,
 	finalize: (index: TermIndex) => Promise<TermIndex> | TermIndex,
 ): Promise<TermIndex> {
 	const members = await getMembers();
 	const index: TermIndex = new Map();
 
 	for (const { entry, item } of members) {
-		const refs = getRefs(entry) ?? [];
+		const references = getReferences(entry) ?? [];
 
-		for (const ref of refs) {
-			const list = index.get(ref.id) ?? [];
+		for (const reference of references) {
+			const list = index.get(reference.id) ?? [];
 
 			list.push(item);
-			index.set(ref.id, list);
+			index.set(reference.id, list);
 		}
 	}
 
@@ -89,7 +89,7 @@ function dedupeById(items: Array<ContentCatalogItem>): Array<ContentCatalogItem>
 }
 
 // Formats are a post-only vocabulary; a post carries at most one format
-function formatRefs(entry: MemberEntry): Array<{ id: string }> {
+function formatReferences(entry: MemberEntry): Array<{ id: string }> {
 	if (entry.collection !== 'posts' || !entry.data.format) return [];
 
 	return [entry.data.format];
@@ -104,13 +104,13 @@ function getMembers(): Promise<Array<Member>> {
 
 // Flat term collections date-sort (the default); hierarchical ones pass `rollUp`
 function makeTermIndex(
-	getRefs: TermRefs,
+	getReferences: TermReferences,
 	finalize: (index: TermIndex) => Promise<TermIndex> | TermIndex = sortIndex,
 ): () => Promise<TermIndex> {
 	let cached: Promise<TermIndex> | undefined;
 
 	return () => {
-		if (!cached) cached = buildTermIndex(getRefs, finalize);
+		if (!cached) cached = buildTermIndex(getReferences, finalize);
 
 		return cached;
 	};
@@ -146,24 +146,24 @@ function sortIndex(index: TermIndex): TermIndex {
 	return index;
 }
 
-// Keeps only the linked (object) refs; free text carries no id to index by
-function toIdRefs(refs: Array<RefValue> | undefined): Array<{ id: string }> {
-	if (!refs) return [];
+// Keeps only the linked (object) credits; free text carries no id to index by
+function toIdReferences(credits: Array<CreditValue> | undefined): Array<{ id: string }> {
+	if (!credits) return [];
 
-	const idRefs: Array<{ id: string }> = [];
+	const references: Array<{ id: string }> = [];
 
-	for (const ref of refs) {
-		if (typeof ref !== 'string') idRefs.push({ id: ref.id });
+	for (const credit of credits) {
+		if (typeof credit !== 'string') references.push({ id: credit.id });
 	}
 
-	return idRefs;
+	return references;
 }
 
-export const getArtistsIndex = makeTermIndex(artistRefs);
+export const getArtistsIndex = makeTermIndex(artistReferences);
 
 export const getErasIndex = makeTermIndex((entry) => entry.data.eras, rollUp('eras'));
 
-export const getFormatsIndex = makeTermIndex(formatRefs);
+export const getFormatsIndex = makeTermIndex(formatReferences);
 
 export const getLabelsIndex = makeTermIndex(
 	(entry) => labelIds(entry.data.labels).map((id) => ({ id })),

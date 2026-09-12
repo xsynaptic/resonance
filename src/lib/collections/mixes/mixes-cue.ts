@@ -1,10 +1,10 @@
 import type { QueueCuePoint } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
-import type { RefValue } from '#lib/schemas/refs.ts';
+import type { CreditValue } from '#lib/schemas/credits.ts';
 
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
-import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
+import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
 import { toFlatTracks, toTrackGroups } from '#lib/utils/track-groups.ts';
 
 // The player's index into a mix, resolved at build time because the browser has no artists catalog
@@ -26,7 +26,7 @@ export async function getMixCuePoints(
 				if (startSeconds === undefined) return;
 
 				return {
-					artistLine: (await joinArtists(toRefArray(track.artists))) ?? '',
+					artistLine: (await joinArtists(toCreditArray(track.artists))) ?? '',
 					startSeconds,
 					title: track.title,
 				} satisfies QueueCuePoint;
@@ -52,7 +52,7 @@ export async function getMixCueSheets(
 
 			const tracks = await Promise.all(
 				group.tracks.map(async (track) => ({
-					performer: await joinArtists(toRefArray(track.artists)),
+					performer: await joinArtists(toCreditArray(track.artists)),
 					timestamp: track.timestamp,
 					title: track.title,
 				})),
@@ -81,12 +81,12 @@ export function hasMixTimestamps(entry: CollectionEntry<'mixes'>): boolean {
 	return toFlatTracks(entry.data.tracks).some((track) => track.timestamp !== undefined);
 }
 
-// Catalog refs and free text both collapse to a display name; a cue sheet has nowhere to put a link
-async function joinArtists(refs: Array<RefValue> | undefined): Promise<string | undefined> {
-	const resolved = await resolveRefs('artists', refs);
+// Catalog credits and free text both collapse to a display name; a cue sheet has nowhere to put a link
+async function joinArtists(credits: Array<CreditValue> | undefined): Promise<string | undefined> {
+	const resolved = await resolveCredits('artists', credits);
 	if (resolved.length === 0) return undefined;
 
-	return resolved.map((ref) => ref.label).join(', ');
+	return resolved.map((artist) => artist.name).join(', ');
 }
 
 // The fractional part is hundredths of a second, matching the schema's `HH:MM:SS.dd`

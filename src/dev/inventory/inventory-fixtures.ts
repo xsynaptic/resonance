@@ -1,4 +1,3 @@
-import type { PlayerLabels } from '@xsynaptic/player';
 import type { OpenGraphEntry } from '@xsynaptic/scripts/og-image';
 import type { CollectionEntry } from 'astro:content';
 
@@ -15,22 +14,20 @@ import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 import type { TracklistValue } from '#lib/schemas/audio.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
-import type { ResolvedRef, TitledCollectionKey } from '#lib/utils/terms.ts';
+import type { LinkedName, TitledCollectionKey } from '#lib/utils/terms.ts';
 
-import { skipSeconds } from '#dev/inventory/inventory-player.tsx';
+import { getPlayerLabels } from '#components/player/player-labels.ts';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
-import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { site } from '#lib/site.ts';
 import { matchReleaseTitle, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
-import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
-import { formatStringTemplate } from '#lib/utils/text.ts';
+import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 
 // The inventory's one seam onto real content, so the page itself is only imports and prop-passing
 // Everything is found by predicate rather than named by slug, so editing content cannot break a specimen
@@ -62,10 +59,10 @@ interface OpenGraphSample {
 }
 
 interface ReleaseSample {
-	artist?: ResolvedRef | undefined;
+	artist?: LinkedName | undefined;
 	date: Date;
 	image?: string | undefined;
-	labels: Array<ResolvedRef>;
+	labels: Array<LinkedName>;
 	releaseTitle: string;
 	releaseYear?: string | undefined;
 	title: string;
@@ -121,35 +118,6 @@ const groupedTracks: TracklistValue = [
 	},
 ];
 
-const playerLabels: PlayerLabels = {
-	capped: t('player.capped'),
-	clearQueue: t('player.clearQueue'),
-	empty: t('player.empty'),
-	error: t('player.error'),
-	loading: t('player.loading'),
-	moved: t('player.moved'),
-	mute: t('player.mute'),
-	next: t('player.next'),
-	nowPlaying: t('player.nowPlaying'),
-	pause: t('player.pause'),
-	play: t('player.play'),
-	previous: t('player.previous'),
-	queue: t('player.queue'),
-	removeFromQueue: t('player.removeFromQueue'),
-	reorder: t('player.reorder'),
-	seek: t('player.seek'),
-	shuffle: t('player.shuffle'),
-	skipBack: formatStringTemplate(t('player.skipBack'), { seconds: skipSeconds }),
-	skipForward: formatStringTemplate(t('player.skipForward'), { seconds: skipSeconds }),
-	timestampsPartial: t('player.timestampsPartial'),
-	toggleTimeMode: t('player.toggleTimeMode'),
-	unmute: t('player.unmute'),
-	volume: t('player.volume'),
-	waveformPanel: t('player.waveformPanel'),
-	zoomIn: t('player.zoomIn'),
-	zoomOut: t('player.zoomOut'),
-};
-
 export async function getInventoryFixtures() {
 	const catalog = await getCatalog();
 
@@ -182,7 +150,7 @@ export async function getInventoryFixtures() {
 		mixItems,
 		openGraphCards: await getSampleOpenGraphCards(),
 		playerItems: [...(mix?.queueItem ? [mix.queueItem] : []), itemWithoutPeaks],
-		playerLabels,
+		playerLabels: getPlayerLabels(),
 		regionTree: await getDirectoryTerms('regions'),
 		release: await sampleRelease(),
 		reviewItems,
@@ -395,7 +363,7 @@ async function sampleQueueItem(
 		entry.data.alias ? [entry.data.alias] : undefined,
 	);
 
-	return getMixQueueItem(entry, alias?.label ?? site.title);
+	return getMixQueueItem(entry, alias?.name ?? site.title);
 }
 
 // A review carries the fullest detail header there is: split title, artist, labels, year and rating
@@ -414,14 +382,14 @@ async function sampleRelease(): Promise<ReleaseSample | undefined> {
 		}) ?? reviews.at(0);
 	if (!entry) return undefined;
 
-	const artists = await resolveRefs('artists', entry.data.artists);
+	const artists = await resolveCredits('artists', entry.data.artists);
 	const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.releaseTitle, artists);
 
 	return {
 		artist,
 		date: entry.data.dateCreated,
 		image: getImageFeaturedId(entry.data.imageFeatured),
-		labels: await resolveRefs('labels', entry.data.labels),
+		labels: await resolveCredits('labels', entry.data.labels),
 		releaseTitle: title,
 		releaseYear: entry.data.releaseYear,
 		title: entry.data.title,
@@ -442,11 +410,11 @@ async function sampleSelections(count: number): Promise<Array<SelectionValue>> {
 async function sampleTerms(
 	collection: TitledCollectionKey,
 	limit?: number,
-): Promise<Array<ResolvedRef>> {
+): Promise<Array<LinkedName>> {
 	const entries = await getCollection(collection);
 	const terms = entries
-		.map((entry) => ({ label: entry.data.title, url: getContentPath(collection, entry.id) }))
-		.sort((first, second) => first.label.localeCompare(second.label));
+		.map((entry) => ({ name: entry.data.title, url: getContentPath(collection, entry.id) }))
+		.sort((first, second) => first.name.localeCompare(second.name));
 
 	return limit === undefined ? terms : terms.slice(0, limit);
 }

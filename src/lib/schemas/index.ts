@@ -2,7 +2,7 @@ import { ImageFeaturedSchema } from '@xsynaptic/shared/schemas';
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
-import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
+import { CreditSchema, LabelCreditSchema } from '#lib/schemas/credits.ts';
 
 // Titles can be long (e.g. "Album Artwork: The Beginning Is at the End"), no upper bound
 export const TitleSchema = z.string().min(1);
@@ -35,7 +35,7 @@ export const contentBaseSchema = {
 // `artists` is split out because a mix carries an `alias` (the persona it was published as) instead
 export const termFieldsShared = {
 	eras: reference('eras').array().optional(),
-	labels: LabelRefSchema.array().optional(),
+	labels: LabelCreditSchema.array().optional(),
 	regions: reference('regions').array().optional(),
 	styles: reference('styles').array().optional(),
 	themes: reference('themes').array().optional(),
@@ -43,5 +43,5 @@ export const termFieldsShared = {
 
 export const termFields = {
 	...termFieldsShared,
-	artists: RefSchema.array().optional(),
+	artists: CreditSchema.array().optional(),
 };

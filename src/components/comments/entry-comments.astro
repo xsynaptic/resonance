@@ -1,0 +1,19 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import CommentsSection from '#components/comments/comments-section.astro';
+
+interface Props {
+	entry: CollectionEntry<'mixes'> | CollectionEntry<'posts'> | CollectionEntry<'reviews'>;
+}
+
+const { entry } = Astro.props;
+---
+
+{entry.data.commentsEnabled === false ? undefined : (
+	<CommentsSection
+		collection={entry.collection}
+		entryId={entry.id}
+		formerIds={entry.data.formerIds}
+	/>
+)}

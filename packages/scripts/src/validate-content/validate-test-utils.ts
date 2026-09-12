@@ -7,6 +7,6 @@ export function makeEntry(
 }
 
 // Astro `reference()` fields serialize as `{ id, collection }`
-export function makeRefs(collection: string, ids: Array<string>) {
+export function makeReferences(collection: string, ids: Array<string>) {
 	return ids.map((id) => ({ collection, id }));
 }

@@ -30,7 +30,7 @@ describe('toReferenceIds', () => {
 		expect(toReferenceIds(references)).toEqual(['shpongle', 'simon-posford']);
 	});
 
-	test('reads a scalar ref, which is how a track writes a single artist', () => {
+	test('reads a scalar credit, which is how a track writes a single artist', () => {
 		expect(toReferenceIds({ collection: 'artists', id: 'shpongle' })).toEqual(['shpongle']);
 	});
 

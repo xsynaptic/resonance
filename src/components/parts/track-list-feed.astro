@@ -1,0 +1,27 @@
+---
+import type { TrackGroupRows } from '#lib/utils/track-rows.ts';
+
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { toFeedLine } from '#lib/utils/track-rows.ts';
+
+interface Props {
+	groups: Array<TrackGroupRows>;
+}
+
+const { groups } = Astro.props;
+---
+
+<section>
+	<h2>{t('section.tracklist.heading')}</h2>
+	{groups.map((group) => (
+		<Fragment>
+			{group.title ? <h3>{group.title}</h3> : undefined}
+			{group.description ? <p>{group.description}</p> : undefined}
+			<ol>
+				{group.rows.map((row) => (
+					<li>{toFeedLine(row)}</li>
+				))}
+			</ol>
+		</Fragment>
+	))}
+</section>

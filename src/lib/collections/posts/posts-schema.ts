@@ -1,7 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 
 import type { Thing } from '#lib/utils/seo-structured-data.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { buildArticleSchema, buildEntryGraph } from '#lib/utils/seo-structured-data.ts';
 
@@ -10,7 +10,7 @@ export function getPostSchemas(
 	props: {
 		description: string | undefined;
 		imageUrl: string;
-		kind: ResolvedRef;
+		kind: LinkedName;
 		url: string;
 	},
 ): Array<Thing> {

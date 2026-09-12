@@ -1,15 +1,15 @@
 ---
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import MediaImage from '#components/parts/media-image.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 
 interface Props {
-	breadcrumbTrail?: Array<ResolvedRef> | undefined;
+	breadcrumbTrail?: Array<LinkedName> | undefined;
 	date?: Date | undefined;
-	kind?: ResolvedRef | undefined;
+	kind?: LinkedName | undefined;
 	path: string;
-	styles?: Array<ResolvedRef> | undefined;
+	styles?: Array<LinkedName> | undefined;
 	title: string;
 }
 

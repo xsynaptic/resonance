@@ -5,7 +5,7 @@ import type { CollectionEntry, CollectionKey } from 'astro:content';
 import { render } from 'astro:content';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
@@ -23,7 +23,7 @@ import { getEntryDescription } from '#lib/utils/description.ts';
 import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
-import { resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
+import { resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
@@ -45,9 +45,9 @@ const isSearchable = page.currentPage === 1;
 
 // Artists carry relationships (a group's members, a person's projects); other terms do not
 const memberLinks =
-	term.collection === 'artists' ? await resolveRefs('artists', term.data.members) : [];
+	term.collection === 'artists' ? await resolveCredits('artists', term.data.members) : [];
 const projectLinks =
-	term.collection === 'artists' ? await resolveRefs('artists', term.data.projects) : [];
+	term.collection === 'artists' ? await resolveCredits('artists', term.data.projects) : [];
 
 const relationGroups =
 	page.currentPage === 1 ? await getTermRelations(term.collection, term.id) : [];
@@ -66,9 +66,9 @@ const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = group
 	? getYearGroups(page.data)
 	: [{ items: page.data }];
 
-const breadcrumbTrail: Array<ResolvedRef> = [
+const breadcrumbTrail: Array<LinkedName> = [
 	{
-		label: t(`collection.${term.collection}.title`),
+		name: t(`collection.${term.collection}.title`),
 		url: getCollectionPath(term.collection),
 	},
 	...(isHierarchical(term.collection) ? await resolveAncestors(term.collection, term.id) : []),

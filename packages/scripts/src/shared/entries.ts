@@ -26,7 +26,7 @@ export function toFormerIds(entry: { data: Record<string, unknown> }): Array<str
 	);
 }
 
-// Free text in the polymorphic artist and label refs is a bare string, carrying no id to collect
+// Free text in the polymorphic artist and label credits is a bare string, carrying no id to collect
 // A scalar is accepted alongside an array because a track's `artists` is written either way
 export function toReferenceIds(value: unknown): Array<string> {
 	const values: Array<unknown> = Array.isArray(value) ? (value as Array<unknown>) : [value];

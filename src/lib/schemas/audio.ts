@@ -1,8 +1,8 @@
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
+import { CreditSchema, LabelCreditSchema } from '#lib/schemas/credits.ts';
 import { contentBaseSchema, termFields, termFieldsShared } from '#lib/schemas/index.ts';
-import { LabelRefSchema, RefSchema } from '#lib/schemas/refs.ts';
 
 // Timestamps drive cue sheet generation, so the shape is enforced rather than warned about
 // Minutes and seconds must be in range; hours carry the overflow
@@ -13,10 +13,10 @@ const TimestampSchema = z.string().regex(/^\d{2}:[0-5]\d:[0-5]\d(\.\d{1,2})?$/, 
 
 const TrackSchema = z
 	.object({
-		artists: z.union([RefSchema, RefSchema.array()]).optional(),
+		artists: z.union([CreditSchema, CreditSchema.array()]).optional(),
 		duration: z.string().optional(),
-		labels: LabelRefSchema.array().optional(),
-		mixArtists: z.union([RefSchema, RefSchema.array()]).optional(),
+		labels: LabelCreditSchema.array().optional(),
+		mixArtists: z.union([CreditSchema, CreditSchema.array()]).optional(),
 		position: z.string().optional(),
 		timestamp: TimestampSchema.optional(),
 		title: z.string(),

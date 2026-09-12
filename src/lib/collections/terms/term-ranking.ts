@@ -2,18 +2,18 @@ import type { ReferenceDataEntry } from 'astro:content';
 
 import { getEntries } from 'astro:content';
 
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { getStylesIndex } from '#lib/collections/terms/term-index.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
 
 // The header leads with frontmatter order; the coda leads with whichever styles carry the most content
 export async function resolveStylesRanked(
-	refs: Array<ReferenceDataEntry<'styles'>> | undefined,
-): Promise<Array<ResolvedRef>> {
-	if (!refs || refs.length === 0) return [];
+	references: Array<ReferenceDataEntry<'styles'>> | undefined,
+): Promise<Array<LinkedName>> {
+	if (!references || references.length === 0) return [];
 
-	const [entries, index] = await Promise.all([getEntries(refs), getStylesIndex()]);
+	const [entries, index] = await Promise.all([getEntries(references), getStylesIndex()]);
 
 	function countOf(id: string) {
 		return index.get(id)?.length ?? 0;
@@ -22,5 +22,5 @@ export async function resolveStylesRanked(
 	// A tie keeps frontmatter order; `sort` is stable
 	return [...entries]
 		.sort((first, second) => countOf(second.id) - countOf(first.id))
-		.map((entry) => ({ label: entry.data.title, url: getContentPath('styles', entry.id) }));
+		.map((entry) => ({ name: entry.data.title, url: getContentPath('styles', entry.id) }));
 }

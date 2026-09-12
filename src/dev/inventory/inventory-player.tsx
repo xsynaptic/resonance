@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
-export const skipSeconds = 30;
+import { skipSeconds } from '#components/player/player-labels.ts';
 
 const silentAnalyser: AnalyserNode | undefined = undefined;
 

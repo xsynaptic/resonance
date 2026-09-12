@@ -1,21 +1,29 @@
 ---
-import type { HTMLAttributes } from 'astro/types';
+import type { HTMLTag, Polymorphic } from 'astro/types';
 
 import type { IconId } from '#lib/utils/icon-types.ts';
 
-type ButtonVariant = 'small' | 'standard';
+// Literal rather than interpolated, so the class family stays greppable
+const variantClasses = {
+	small: 'button-small',
+	standard: 'button-standard',
+} as const;
 
-interface Props extends HTMLAttributes<'button'> {
+type Props<Tag extends Extract<HTMLTag, 'a' | 'button'> = 'button'> = Polymorphic<{
+	as: Tag;
 	icon?: IconId | undefined;
-	variant?: ButtonVariant | undefined;
-}
+	variant?: keyof typeof variantClasses | undefined;
+}>;
 
-const { class: className, icon, type = 'button', variant = 'standard', ...props } = Astro.props;
+const { as: Tag = 'button', class: className, icon, variant = 'standard', ...props } = Astro.props;
+
+// A `<button>` submits by default, which no caller wants; an `<a>` has no such attribute
+const typeAttributes = Tag === 'button' ? ({ type: 'button' } as const) : {};
 ---
 
-<button
-	class:list={['button-x', 'prose-escape', `button-${variant}`, className]}
-	type={type}
+<Tag
+	class:list={['button-x', 'prose-escape', variantClasses[variant], className]}
+	{...typeAttributes}
 	{...props}
 >
 	{icon ? (
@@ -24,4 +32,4 @@ const { class: className, icon, type = 'button', variant = 'standard', ...props 
 		</svg>
 	) : undefined}
 	<slot />
-</button>
+</Tag>

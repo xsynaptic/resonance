@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { collectReferenceIssues } from '#validate-content/references.ts';
-import { makeEntry, makeRefs } from '#validate-content/validate-test-utils.ts';
+import { makeEntry, makeReferences } from '#validate-content/validate-test-utils.ts';
 
 // The checked set is whichever collections the passed entries belong to
 function makeEntries(mixes: Array<ReturnType<typeof makeEntry>>) {
@@ -17,8 +17,8 @@ describe('collectReferenceIssues', () => {
 		const entries = makeEntries([
 			makeEntry({
 				data: {
-					eras: makeRefs('eras', ['early-2000s']),
-					styles: makeRefs('styles', ['goa-trance']),
+					eras: makeReferences('eras', ['early-2000s']),
+					styles: makeReferences('styles', ['goa-trance']),
 				},
 				id: 'a-mix',
 			}),
@@ -30,7 +30,7 @@ describe('collectReferenceIssues', () => {
 	test('flags a reference to a missing entry and reports its field path', () => {
 		const entries = makeEntries([
 			makeEntry({
-				data: { styles: makeRefs('styles', ['goa-trance', 'vaporwave']) },
+				data: { styles: makeReferences('styles', ['goa-trance', 'vaporwave']) },
 				filePath: 'collections/mixes/2011/a-mix.mdx',
 				id: 'a-mix',
 			}),
@@ -48,7 +48,7 @@ describe('collectReferenceIssues', () => {
 
 	test('flags a reference whose target exists in a different collection', () => {
 		const entries = makeEntries([
-			makeEntry({ data: { styles: makeRefs('styles', ['early-2000s']) }, id: 'a-mix' }),
+			makeEntry({ data: { styles: makeReferences('styles', ['early-2000s']) }, id: 'a-mix' }),
 		]);
 
 		expect(collectReferenceIssues(entries)).toEqual([
@@ -58,7 +58,7 @@ describe('collectReferenceIssues', () => {
 
 	test('ignores references into collections outside the checked set', () => {
 		const entries = makeEntries([
-			makeEntry({ data: { downloads: makeRefs('downloads', ['missing']) }, id: 'a-mix' }),
+			makeEntry({ data: { downloads: makeReferences('downloads', ['missing']) }, id: 'a-mix' }),
 		]);
 
 		expect(collectReferenceIssues(entries)).toEqual([]);

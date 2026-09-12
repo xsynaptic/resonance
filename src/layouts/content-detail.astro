@@ -1,6 +1,6 @@
 ---
 import type { Thing } from '#lib/utils/seo-structured-data.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import SearchThumbnail from '#components/search/search-thumbnail.astro';
@@ -12,10 +12,10 @@ interface Props {
 	description?: string | undefined;
 	imageFeatured?: string | undefined;
 	imageHero?: string | undefined;
-	kind?: ResolvedRef | undefined;
+	kind?: LinkedName | undefined;
 	openGraphId: string;
 	schemas?: Array<Thing> | undefined;
-	styles?: Array<ResolvedRef> | undefined;
+	styles?: Array<LinkedName> | undefined;
 	title: string;
 }
 

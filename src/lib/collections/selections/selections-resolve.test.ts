@@ -53,12 +53,12 @@ describe('resolveSelections', () => {
 	test('fills every unset field from the entry the row names', async () => {
 		expect(await resolveOne({ entryId: 'ott-skylon' })).toEqual({
 			anchor: 'ott-skylon',
-			artists: [{ label: 'Ott', url: '/artists/ott/' }],
+			artists: [{ name: 'Ott', url: '/artists/ott/' }],
 			Content: 'body:ott-skylon',
 			discogsUrl: 'https://www.discogs.com/release/1',
 			href: '/reviews/ott-skylon/',
 			imagePath: 'skylon-cover',
-			labels: [{ label: 'Twisted Records', url: '/labels/twisted-records/' }],
+			labels: [{ name: 'Twisted Records', url: '/labels/twisted-records/' }],
 			links: ['https://example.test/skylon'],
 			linkYoutube: 'https://www.youtube.com/results?search_query=Ott%20Skylon',
 			title: 'Skylon',
@@ -85,15 +85,15 @@ describe('resolveSelections', () => {
 		expect(resolved?.discogsUrl).toBe('https://www.discogs.com/release/1');
 	});
 
-	test('inline artists replace the derived credit and resolve as polymorphic refs', async () => {
+	test('inline artists replace the derived credit and resolve as polymorphic credits', async () => {
 		const resolved = await resolveOne({
 			artists: ['ott', 'Some Guest'],
 			entryId: 'ott-skylon',
 		});
 
 		expect(resolved?.artists).toEqual([
-			{ label: 'ott', url: '/artists/ott/' },
-			{ label: 'Some Guest' },
+			{ name: 'ott', url: '/artists/ott/' },
+			{ name: 'Some Guest' },
 		]);
 	});
 

@@ -107,7 +107,7 @@ async function labelsByHeading(collection: TermCollectionKey, id: string) {
 	const groups = await getRelations(collection, id);
 
 	return Object.fromEntries(
-		groups.map((group) => [group.heading, group.terms.map((term) => term.label)]),
+		groups.map((group) => [group.heading, group.terms.map((term) => term.name)]),
 	);
 }
 
@@ -156,8 +156,8 @@ describe('getTermRelations', () => {
 		const [group] = await getRelations('regions', 'europe');
 
 		expect(group?.terms).toEqual([
-			{ label: 'Sweden', url: '/regions/sweden/' },
-			{ label: 'The Netherlands', url: '/regions/netherlands/' },
+			{ name: 'Sweden', url: '/regions/sweden/' },
+			{ name: 'The Netherlands', url: '/regions/netherlands/' },
 		]);
 	});
 });

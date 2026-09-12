@@ -5,18 +5,13 @@ import { getCollection } from 'astro:content';
 import type { Hierarchy } from '#lib/utils/hierarchy.ts';
 
 import { createHierarchy } from '#lib/utils/hierarchy.ts';
+import { memoizeByKey } from '#lib/utils/memoize.ts';
 
 // Term collections whose terms nest via a `parent` reference
 // Flat ones (artists, formats, themes, series) are absent
 export type HierarchicalCollection = 'eras' | 'labels' | 'regions' | 'styles';
 
 const hierarchicalCollections = new Set<CollectionKey>(['eras', 'labels', 'regions', 'styles']);
-
-export function isHierarchical(collection: CollectionKey): collection is HierarchicalCollection {
-	return hierarchicalCollections.has(collection);
-}
-
-const hierarchies = new Map<HierarchicalCollection, Promise<Hierarchy>>();
 
 // Root-first, unlike the substrate's nearest-first, because every caller here is building a trail
 export async function ancestorsOf(
@@ -35,14 +30,11 @@ export async function descendantsOf(
 	return [...hierarchy.descendantsOf(id)];
 }
 
-export function getTermHierarchy(collection: HierarchicalCollection): Promise<Hierarchy> {
-	let promise = hierarchies.get(collection);
-	if (promise === undefined) {
-		promise = buildHierarchy(collection);
-		hierarchies.set(collection, promise);
-	}
-	return promise;
+export function isHierarchical(collection: CollectionKey): collection is HierarchicalCollection {
+	return hierarchicalCollections.has(collection);
 }
+
+export const getTermHierarchy = memoizeByKey(buildHierarchy);
 
 async function buildHierarchy(collection: HierarchicalCollection): Promise<Hierarchy> {
 	const entries = await getCollection(collection);

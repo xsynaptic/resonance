@@ -1,17 +1,8 @@
 import type { ContentEntry } from '#shared/astro-content.ts';
+import type { EntryReference, ReferenceIssue } from '#validate-content/validation-result.ts';
 
 import { getIdsByCollection } from '#shared/entries.ts';
-import { toValidationResult } from '#validate-content/validation-result.ts';
-
-interface EntryReference {
-	collection: string;
-	field: string;
-	id: string;
-}
-
-interface ReferenceIssue extends EntryReference {
-	location: string;
-}
+import { toReferenceValidationResult } from '#validate-content/validation-result.ts';
 
 // Astro checks references itself but only logs, leaving a broken reference to ship
 // The declared collection matters; a `reference('regions')` naming an era passes a flat lookup
@@ -24,19 +15,14 @@ export function collectReferenceIssues(entries: Array<ContentEntry>) {
 export function validateReferences(entries: Array<ContentEntry>) {
 	const issues = collectReferenceIssues(entries);
 
-	return toValidationResult(
-		issues.map(({ collection, field, id, location }) => ({
-			message: `${location}: ${field} references "${id}", missing from "${collection}"`,
-		})),
-		{
-			fail: `Found ${issues.length.toString()} broken reference(s)`,
-			pass: 'Entry references valid',
-		},
-	);
+	return toReferenceValidationResult(issues, {
+		fail: `Found ${issues.length.toString()} broken reference(s)`,
+		pass: 'Entry references valid',
+	});
 }
 
 // Walking for the `{ id, collection }` shape avoids a hand-maintained list of reference fields
-// The polymorphic artist and label refs carry no `collection`, so they fall through to `refs.ts`
+// The polymorphic artist and label credits carry no `collection`, so they fall through to `credits.ts`
 function collectEntryReferences(value: unknown, field: string, references: Array<EntryReference>) {
 	if (value === null || typeof value !== 'object') return;
 

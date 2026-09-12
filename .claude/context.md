@@ -20,7 +20,7 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Tracklist**: The ordered sequence of Tracks in a Mix. Its timestamps, where available, are load-bearing: they drive Cue Sheet generation. _Avoid_: playlist, setlist.
 
-**Track**: One piece of music inside a Tracklist, credited to its own Artists and Labels. A Track is never an Entry of its own. _Avoid_: song, tune, cut.
+**Track**: One piece of music inside a Tracklist, carrying its own Credits to Artists and Labels. A Track is never an Entry of its own. _Avoid_: song, tune, cut.
 
 **Cue Sheet**: A downloadable index of a Mix's Tracklist, generated from its timestamps so a player can seek between Tracks. _Avoid_: chapters, markers, index.
 
@@ -56,9 +56,11 @@ Terms come in two idioms whose reference syntax is inverted, each written for it
 
 **Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A reference is written as the name itself, and links when that name matches a cataloged Term. Name the Term outright when the bare name would miss it, or find the wrong one. _Avoid_: taxonomy, freeform, loose reference.
 
+**Credit**: A single Artist or Label as named on an Entry or a Track. The unit an Open Vocabulary reference is written in, so it links only where the name is cataloged. _Avoid_: ref, loose reference, freeform.
+
 **Artist**: A person or act that made music, a Mix, or a visual work. An Open Vocabulary Term. _Avoid_: act, performer, musician, project.
 
-**Project**: In this project's prose, a musical act or side project ("his side project Segment", Kaya Project). It means nothing else and names nothing in the model. _Avoid_: using it for anything you made or oversaw.
+**Project**: A musical act or side project ("his side project Segment", Kaya Project). An Artist's `projects` are the acts it belongs to, the inverse of its `members`. _Avoid_: using it for anything you made or oversaw.
 
 **Label**: A record label that put out a Release or a Mix. An Open Vocabulary Term, hierarchical, so a sub-label nests under its parent. _Avoid_: imprint, publisher.
 

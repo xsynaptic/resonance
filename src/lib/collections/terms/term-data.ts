@@ -5,24 +5,14 @@ import { getCollection } from 'astro:content';
 import type { TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 
 import { termIndexes } from '#lib/collections/terms/term-index.ts';
+import { memoizeByKey } from '#lib/utils/memoize.ts';
 
 export interface TermCollection {
 	entries: Array<CollectionEntry<TermCollectionKey>>;
 	entriesMap: Map<string, CollectionEntry<TermCollectionKey>>;
 }
 
-const termCollections = new Map<TermCollectionKey, Promise<TermCollection>>();
-
-export function getTermCollection(collection: TermCollectionKey): Promise<TermCollection> {
-	let promise = termCollections.get(collection);
-
-	if (promise === undefined) {
-		promise = buildTermCollection(collection);
-		termCollections.set(collection, promise);
-	}
-
-	return promise;
-}
+export const getTermCollection = memoizeByKey(buildTermCollection);
 
 async function buildTermCollection(collection: TermCollectionKey): Promise<TermCollection> {
 	const [entries, index] = await Promise.all([

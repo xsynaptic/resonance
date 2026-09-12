@@ -1,4 +1,4 @@
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { site } from '#lib/site.ts';
 import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
@@ -164,7 +164,7 @@ export function buildAuthorSchema(options?: { sameAs?: ReadonlyArray<string> }):
 export function buildCollectionGraph(props: {
 	description: string | undefined;
 	title: string;
-	trail?: ReadonlyArray<ResolvedRef> | undefined;
+	trail?: ReadonlyArray<LinkedName> | undefined;
 	url: string;
 }): Array<Thing> {
 	return [
@@ -172,9 +172,9 @@ export function buildCollectionGraph(props: {
 		buildBreadcrumbSchema(
 			[
 				{ name: site.title, url: siteUrl },
-				...(props.trail ?? []).map((ref) => ({
-					name: ref.label,
-					...(ref.url ? { url: getAbsoluteUrl(ref.url) } : {}),
+				...(props.trail ?? []).map((crumb) => ({
+					name: crumb.name,
+					...(crumb.url ? { url: getAbsoluteUrl(crumb.url) } : {}),
 				})),
 				{ name: props.title },
 			],
@@ -185,7 +185,7 @@ export function buildCollectionGraph(props: {
 
 export function buildEntryGraph(props: {
 	entities: ReadonlyArray<Thing>;
-	kind: ResolvedRef;
+	kind: LinkedName;
 	title: string;
 	url: string;
 }): Array<Thing> {
@@ -196,7 +196,7 @@ export function buildEntryGraph(props: {
 			[
 				{ name: site.title, url: siteUrl },
 				{
-					name: props.kind.label,
+					name: props.kind.name,
 					...(props.kind.url ? { url: getAbsoluteUrl(props.kind.url) } : {}),
 				},
 				{ name: props.title },

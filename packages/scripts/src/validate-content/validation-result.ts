@@ -1,5 +1,15 @@
 import chalk from 'chalk';
 
+export interface EntryReference {
+	collection: string;
+	field: string;
+	id: string;
+}
+
+export interface ReferenceIssue extends EntryReference {
+	location: string;
+}
+
 export interface ValidationIssue {
 	details?: Array<string>;
 	message: string;
@@ -35,6 +45,18 @@ export function reportValidationResult({
 	for (const note of notes) {
 		console.log(chalk.dim(note));
 	}
+}
+
+export function toReferenceValidationResult(
+	issues: Array<ReferenceIssue>,
+	summaries: { fail: string; pass: string },
+) {
+	return toValidationResult(
+		issues.map(({ collection, field, id, location }) => ({
+			message: `${location}: ${field} references "${id}", missing from "${collection}"`,
+		})),
+		summaries,
+	);
 }
 
 export function toValidationResult(

@@ -4,6 +4,7 @@ import { $ } from 'zx';
 
 import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
+import { collectHashedOutputs } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
@@ -50,34 +51,7 @@ interface WaveformsOptions {
 
 // Exported for the manifest step, which has to name the file the panel will range-request
 export async function collectArchives(cacheDir: string): Promise<Map<string, string>> {
-	let entries: Array<string>;
-
-	try {
-		entries = await fs.readdir(cacheDir);
-	} catch {
-		return new Map();
-	}
-
-	const archives = new Map<string, string>();
-
-	for (const entry of entries) {
-		const base = archivePattern.exec(entry)?.groups?.base;
-
-		if (base === undefined) continue;
-
-		const existing = archives.get(base);
-
-		// An interrupted analysis leaves both hashed files; keeping either one silently ships a stale name
-		if (existing !== undefined) {
-			throw new Error(
-				`Two archives for "${base}": ${existing} and ${entry}. Delete the stale one and re-run.`,
-			);
-		}
-
-		archives.set(base, entry);
-	}
-
-	return archives;
+	return collectHashedOutputs(cacheDir, archivePattern, 'archives');
 }
 
 // Reduces the archive to at most 400 buckets of 0..1, ready to inline

@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import type { TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { StringKey } from '#lib/i18n/i18n-strings.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { getTermHierarchy, isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { getTermCollection } from '#lib/collections/terms/term-data.ts';
@@ -12,7 +12,7 @@ import { getContentPath } from '#lib/utils/routing.ts';
 
 export interface TermRelationGroup {
 	heading: string;
-	terms: Array<ResolvedRef>;
+	terms: Array<LinkedName>;
 }
 
 interface RelationConfig {
@@ -48,7 +48,7 @@ export async function getTermRelations(
 			.filter((entry) => (entry.data._entryCount ?? 0) > 0)
 			.sort(byEntryCount)
 			.map((entry) => ({
-				label: entry.data.title,
+				name: entry.data.title,
 				url: getContentPath(collection, entry.id),
 			}));
 

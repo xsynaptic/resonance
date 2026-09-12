@@ -3,6 +3,7 @@ import type { Page } from 'astro';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import EmbedFrame from '#components/embed/embed-frame.astro';
 import EmbedMixcloud from '#components/embed/embed-mixcloud.astro';
@@ -16,17 +17,16 @@ import Anchor from '#components/parts/anchor.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
-import ButtonLink from '#components/parts/button-link.astro';
 import ButtonSplit from '#components/parts/button-split.astro';
 import Button from '#components/parts/button.astro';
 import DividedItem from '#components/parts/divided-item.astro';
 import EntryCard from '#components/parts/entry-card.astro';
+import LinkedNameList from '#components/parts/linked-name-list.astro';
+import LinkedNameText from '#components/parts/linked-name-text.astro';
 import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
 import MediaImage from '#components/parts/media-image.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
-import RefList from '#components/parts/ref-list.astro';
-import RefText from '#components/parts/ref-text.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
@@ -79,7 +79,7 @@ const sectionTitles = [
 	'Foundations',
 	'Prose',
 	'Buttons, icons and dividers',
-	'References and terms',
+	'Credits and terms',
 	'Cards and listings',
 	'Detail pages',
 	'Media',
@@ -103,16 +103,18 @@ const fontFamilies = [
 	{ name: 'font-mono', note: "System mono, for this page's own labels" },
 ];
 
-function toDirectoryTerms(refs: Array<{ label: string; url?: string | undefined }>) {
-	return refs.flatMap((ref) => (ref.url === undefined ? [] : [{ title: ref.label, url: ref.url }]));
+function toDirectoryTerms(terms: Array<LinkedName>) {
+	return terms.flatMap((term) =>
+		term.url === undefined ? [] : [{ title: term.name, url: term.url }],
+	);
 }
 
 const vocabularyTerms = toDirectoryTerms(vocabulary);
 const shortVocabularyTerms = toDirectoryTerms([...styles, ...themes, ...labels]);
 
-const mixedRefs = [...artists.slice(0, 2), { label: 'An Uncatalogued Artist' }];
+const mixedCredits = [...artists.slice(0, 2), { name: 'An Uncatalogued Artist' }];
 
-const breadcrumbTrail = [{ label: 'Styles', url: '/styles/' }, ...styles.slice(0, 2)];
+const breadcrumbTrail = [{ name: 'Styles', url: '/styles/' }, ...styles.slice(0, 2)];
 
 // Astro's own Page interface type-checks this, so a new required field surfaces here as a tsc error
 const paginationPage: Page<ContentCatalogItem> = {
@@ -151,7 +153,7 @@ const inlineSelection: SelectionValue = {
 	{heroPath && hasHero ? (
 		<SectionDetailHero
 			date={new Date()}
-			kind={{ label: 'Development' }}
+			kind={{ name: 'Development' }}
 			path={heroPath}
 			slot="hero"
 			styles={styles.slice(0, 2)}
@@ -275,25 +277,29 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="Both button components render the same <code>.button-x</code> classes; the tag is the only difference."
+		note="One component renders both tags; the <code>as</code> prop is the only difference."
 		title="Buttons, icons and dividers"
 	>
-		<Specimen name="ButtonLink" source="src/components/parts/button-link.astro">
+		<Specimen
+			name="Button"
+			note="The first row passes <code>as</code>, the second takes the default tag."
+			source="src/components/parts/button.astro"
+		>
 			<div class="flex flex-wrap items-center gap-4">
-				<ButtonLink href="/mixes/">standard</ButtonLink>
-				<ButtonLink href="/mixes/" icon="download">
+				<Button as="a" href="/mixes/">
+					standard
+				</Button>
+				<Button as="a" href="/mixes/" icon="download">
 					standard, icon
-				</ButtonLink>
-				<ButtonLink href="/mixes/" variant="small">
+				</Button>
+				<Button as="a" href="/mixes/" variant="small">
 					small
-				</ButtonLink>
-				<ButtonLink href="/mixes/" icon="youtube" variant="small">
+				</Button>
+				<Button as="a" href="/mixes/" icon="youtube" variant="small">
 					small, icon
-				</ButtonLink>
+				</Button>
 			</div>
-		</Specimen>
-		<Specimen name="Button" source="src/components/parts/button.astro">
-			<div class="flex flex-wrap items-center gap-4">
+			<div class="mt-4 flex flex-wrap items-center gap-4">
 				<Button>standard</Button>
 				<Button icon="download">standard, icon</Button>
 				<Button variant="small">small</Button>
@@ -307,15 +313,17 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="flex flex-wrap items-center gap-4">
 				<ButtonSplit>
-					<ButtonLink href="/mixes/" icon="download">
+					<Button as="a" href="/mixes/" icon="download">
 						FLAC
-					</ButtonLink>
-					<ButtonLink href="/mixes/">CUE</ButtonLink>
+					</Button>
+					<Button as="a" href="/mixes/">
+						CUE
+					</Button>
 				</ButtonSplit>
 				<ButtonSplit>
-					<ButtonLink href="/mixes/" icon="download">
+					<Button as="a" href="/mixes/" icon="download">
 						FLAC
-					</ButtonLink>
+					</Button>
 				</ButtonSplit>
 			</div>
 		</Specimen>
@@ -376,28 +384,28 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 	</Section>
 	<Section
-		note="A ref with no url is either free text or an id that did not resolve; both stay plain instead of failing."
-		title="References and terms"
+		note="A credit with no url is either free text or an id that did not resolve; both stay plain instead of failing."
+		title="Credits and terms"
 	>
-		<Specimen name="RefText" source="src/components/parts/ref-text.astro">
+		<Specimen name="LinkedNameText" source="src/components/parts/linked-name-text.astro">
 			<div class="flex flex-wrap items-center gap-4">
-				<RefText label={mixedRefs[0]?.label ?? 'Linked'} url={mixedRefs[0]?.url} />
-				<RefText anchorColor="highlight" label='anchorColor="highlight"' url="/styles/" />
-				<RefText label="Unlinked, no url" />
+				<LinkedNameText name={mixedCredits[0]?.name ?? 'Linked'} url={mixedCredits[0]?.url} />
+				<LinkedNameText anchorColor="highlight" name='anchorColor="highlight"' url="/styles/" />
+				<LinkedNameText name="Unlinked, no url" />
 			</div>
 		</Specimen>
 		<Specimen
-			name="RefList"
+			name="LinkedNameList"
 			note="Slash-separated, for label and artist credits in dense rows."
-			source="src/components/parts/ref-list.astro"
+			source="src/components/parts/linked-name-list.astro"
 		>
-			<RefList refs={mixedRefs} />
+			<LinkedNameList names={mixedCredits} />
 		</Specimen>
 		<Specimen name="TermLinks" source="src/components/parts/term-links.astro">
 			<div class="flex flex-col items-start gap-4">
 				<TermLinks heading="Styles" terms={styles} />
 				<TermLinks heading="Themes" terms={themes} />
-				<TermLinks heading="Artists" terms={mixedRefs} />
+				<TermLinks heading="Artists" terms={mixedCredits} />
 			</div>
 		</Specimen>
 		<Specimen
@@ -531,7 +539,7 @@ const inlineSelection: SelectionValue = {
 		>
 			<SectionDetailHeader
 				date={new Date()}
-				kind={{ label: 'Mixes', url: '/mixes/' }}
+				kind={{ name: 'Mixes', url: '/mixes/' }}
 				styles={styles}
 				title="A mix, without the release split"
 			/>
@@ -544,7 +552,7 @@ const inlineSelection: SelectionValue = {
 				<SectionDetailHeader
 					artist={release.artist}
 					date={release.date}
-					kind={{ label: 'Reviews', url: '/reviews/' }}
+					kind={{ name: 'Reviews', url: '/reviews/' }}
 					labels={release.labels}
 					releaseTitle={release.releaseTitle}
 					releaseYear={release.releaseYear}

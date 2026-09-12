@@ -11,6 +11,7 @@
 		"./comments": "./src/comments/index.ts",
 		"./constants": "./src/constants.ts",
 		"./open-graph": "./src/open-graph.ts",
+		"./platform-stats": "./src/platform-stats.ts",
 		"./routing": "./src/routing.ts",
 		"./schemas": "./src/schemas/index.ts",
 		"./sitemap": "./src/sitemap.ts"

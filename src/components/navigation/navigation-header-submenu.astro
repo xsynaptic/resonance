@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'astro/types';
 
 import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
-import NavigationHeaderSubmenuTrigger from '#components/navigation/navigation-header-submenu-trigger.astro';
+import NavigationTrigger from '#components/navigation/navigation-trigger.astro';
 import { navigationDepthMax } from '#components/navigation/navigation-types.ts';
 import { getNavigationItemAriaLabel } from '#components/navigation/navigation-utils.ts';
 
@@ -27,7 +27,7 @@ const { ariaLabel, depth, navigationItems, ...props } = Astro.props;
 
 		return (
 			<li class="nav-sub-item">
-				<NavigationHeaderSubmenuTrigger hasChildren={hasChildren} item={item} />
+				<NavigationTrigger hasChildren={hasChildren} item={item} variant="submenu" />
 				{hasChildren ? (
 					<Astro.self
 						ariaLabel={getNavigationItemAriaLabel(item)}

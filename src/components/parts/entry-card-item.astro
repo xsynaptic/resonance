@@ -1,0 +1,24 @@
+---
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+
+import EntryCard from '#components/parts/entry-card.astro';
+
+interface Props {
+	item: ContentCatalogItem;
+	priority?: boolean | undefined;
+}
+
+const { item, priority = false } = Astro.props;
+---
+
+<li>
+	<EntryCard
+		date={item.date}
+		href={item.url}
+		image={item.image}
+		priority={priority}
+		releaseTitle={item.releaseTitle}
+		subtitle={item.subtitle}
+		title={item.title}
+	/>
+</li>

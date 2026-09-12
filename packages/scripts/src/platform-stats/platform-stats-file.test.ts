@@ -3,11 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import {
-	appendGeneration,
-	readLastGeneration,
-	toStatsKey,
-} from '#platform-stats/platform-stats-file.ts';
+import { appendGeneration, readLastGeneration } from '#platform-stats/platform-stats-file.ts';
 
 async function writeLog(lines: string): Promise<string> {
 	const directory = await mkdtemp(path.join(os.tmpdir(), 'platform-stats-'));
@@ -17,22 +13,6 @@ async function writeLog(lines: string): Promise<string> {
 
 	return filePath;
 }
-
-describe('toStatsKey', () => {
-	// Mixcloud's API returns the bare path and the frontmatter carries the full URL, for one cast
-	test('folds a `key` and an embed URL for the same cast onto one key', () => {
-		expect(toStatsKey('/Basilisk/Crystalline-Expanse/')).toBe('/basilisk/crystalline-expanse');
-		expect(toStatsKey('https://www.mixcloud.com/Basilisk/Crystalline-Expanse/')).toBe(
-			'/basilisk/crystalline-expanse',
-		);
-	});
-
-	test('strips the UTM query SoundCloud appends to every permalink', () => {
-		expect(toStatsKey('https://soundcloud.com/djbasilisk/in-exile?utm_source=id_1')).toBe(
-			'/djbasilisk/in-exile',
-		);
-	});
-});
 
 describe('readLastGeneration', () => {
 	test('recovers from a torn final line by falling back to the one before it', async () => {

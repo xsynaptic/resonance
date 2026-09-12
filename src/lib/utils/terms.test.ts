@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { setCollections } from '#lib/collections/astro-content-stub.ts';
-import { labelIds, resolveAncestors, resolveRefs } from '#lib/utils/terms.ts';
+import { labelIds, resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
 
 setCollections({
 	artists: [
@@ -18,39 +18,39 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-describe('resolveRefs', () => {
-	test('links an object ref through its id', async () => {
-		await expect(resolveRefs('artists', [{ id: 'dj-basilisk' }])).resolves.toEqual([
-			{ label: 'DJ Basilisk', url: '/artists/dj-basilisk/' },
+describe('resolveCredits', () => {
+	test('links an object credit through its id', async () => {
+		await expect(resolveCredits('artists', [{ id: 'dj-basilisk' }])).resolves.toEqual([
+			{ name: 'DJ Basilisk', url: '/artists/dj-basilisk/' },
 		]);
 	});
 
-	test('lets an object ref override the catalog title', async () => {
+	test('lets an object credit override the catalog title', async () => {
 		await expect(
-			resolveRefs('artists', [{ id: 'dj-basilisk', name: 'Basilisk (live)' }]),
-		).resolves.toEqual([{ label: 'Basilisk (live)', url: '/artists/dj-basilisk/' }]);
+			resolveCredits('artists', [{ id: 'dj-basilisk', name: 'Basilisk (live)' }]),
+		).resolves.toEqual([{ name: 'Basilisk (live)', url: '/artists/dj-basilisk/' }]);
 	});
 
-	test('warns and renders plain when an object ref names nothing', async () => {
+	test('warns and renders plain when an object credit names nothing', async () => {
 		const warned = vi.spyOn(console, 'warn').mockImplementation(vi.fn());
 
-		await expect(resolveRefs('artists', [{ id: 'no-such-artist' }])).resolves.toEqual([
-			{ label: 'no-such-artist' },
+		await expect(resolveCredits('artists', [{ id: 'no-such-artist' }])).resolves.toEqual([
+			{ name: 'no-such-artist' },
 		]);
 		expect(warned).toHaveBeenCalledOnce();
 	});
 
 	test('links free text opportunistically, keeping the written spelling', async () => {
-		await expect(resolveRefs('artists', ['dj basilisk'])).resolves.toEqual([
-			{ label: 'dj basilisk', url: '/artists/dj-basilisk/' },
+		await expect(resolveCredits('artists', ['dj basilisk'])).resolves.toEqual([
+			{ name: 'dj basilisk', url: '/artists/dj-basilisk/' },
 		]);
 	});
 
 	test('leaves free text that names no term unlinked, and does not warn', async () => {
 		const warned = vi.spyOn(console, 'warn').mockImplementation(vi.fn());
 
-		await expect(resolveRefs('artists', ['Some Guest'])).resolves.toEqual([
-			{ label: 'Some Guest' },
+		await expect(resolveCredits('artists', ['Some Guest'])).resolves.toEqual([
+			{ name: 'Some Guest' },
 		]);
 		expect(warned).not.toHaveBeenCalled();
 	});
@@ -59,7 +59,7 @@ describe('resolveRefs', () => {
 describe('resolveAncestors', () => {
 	test('trails a hierarchical term root first', async () => {
 		await expect(resolveAncestors('labels', 'twisted-sub')).resolves.toEqual([
-			{ label: 'Twisted Records', url: '/labels/twisted-records/' },
+			{ name: 'Twisted Records', url: '/labels/twisted-records/' },
 		]);
 	});
 
@@ -69,7 +69,7 @@ describe('resolveAncestors', () => {
 });
 
 describe('labelIds', () => {
-	test('keeps the linked refs and drops the free text', () => {
+	test('keeps the linked credits and drops the free text', () => {
 		expect(
 			labelIds(['Some Label', { id: 'twisted-records' }, { code: 'TW', id: 'other' }]),
 		).toEqual(['twisted-records', 'other']);

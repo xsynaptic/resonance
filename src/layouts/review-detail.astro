@@ -5,8 +5,8 @@ import { render } from 'astro:content';
 
 import type { IconId } from '#lib/utils/icon-types.ts';
 
-import CommentsSection from '#components/comments/comments-section.astro';
-import ButtonLink from '#components/parts/button-link.astro';
+import EntryComments from '#components/comments/entry-comments.astro';
+import Button from '#components/parts/button.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
@@ -21,7 +21,7 @@ import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getLinkSourceLabel } from '#lib/utils/links.ts';
 import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
-import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 
@@ -39,13 +39,13 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const artistTerms = await resolveRefs('artists', entry.data.artists);
+const artistTerms = await resolveCredits('artists', entry.data.artists);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const regionTerms = await resolveTermLinks('regions', entry.data.regions);
 const eraTerms = await resolveTermLinks('eras', entry.data.eras);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
-const labelTerms = await resolveRefs('labels', entry.data.labels);
+const labelTerms = await resolveCredits('labels', entry.data.labels);
 const relatedItems = await getRelatedItems(entry);
 const description = await getEntryDescription(entry);
 
@@ -67,7 +67,7 @@ if (discogsUrl) actions.push({ href: discogsUrl, label: t('detail.discogs') });
 if (youtubeUrl) actions.push({ href: youtubeUrl, icon: 'youtube', label: t('detail.youtube') });
 
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
-const kind = { label: t('collection.reviews.title'), url: getCollectionPath('reviews') };
+const kind = { name: t('collection.reviews.title'), url: getCollectionPath('reviews') };
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = getReviewSchemas(entry, {
 	artists: artistTerms,
@@ -98,14 +98,15 @@ const schemas = getReviewSchemas(entry, {
 			<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
 				{actions.map((action) => (
 					<li>
-						<ButtonLink
+						<Button
+							as="a"
 							href={action.href}
 							rel="noreferrer"
 							target="_blank"
 							{...(action.icon ? { icon: action.icon } : {})}
 						>
 							{action.label}
-						</ButtonLink>
+						</Button>
 					</li>
 				))}
 			</ul>
@@ -129,12 +130,5 @@ const schemas = getReviewSchemas(entry, {
 		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
-	{entry.data.commentsEnabled === false ? undefined : (
-		<CommentsSection
-			collection="reviews"
-			entryId={entry.id}
-			formerIds={entry.data.formerIds}
-			slot="comments"
-		/>
-	)}
+	<EntryComments entry={entry} slot="comments" />
 </ReleaseDetail>

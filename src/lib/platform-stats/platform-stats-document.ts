@@ -34,15 +34,6 @@ export function getPlayCounts(statsPath: string): Promise<Map<string, number>> {
 	return counts;
 }
 
-// Mirrors `toStatsKey` in packages/scripts; frontmatter is hand-written, so the two must agree
-export function toStatsKey(url: string): string {
-	return url
-		.replace(/^https?:\/\/[^/]+/, '')
-		.replace(/[#?].*$/, '')
-		.replace(/\/+$/, '')
-		.toLowerCase();
-}
-
 async function buildPlayCounts(statsPath: string): Promise<Map<string, number>> {
 	const filePath = path.resolve(statsPath);
 

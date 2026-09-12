@@ -2,8 +2,8 @@ import { ImageFeaturedSchema } from '@xsynaptic/shared/schemas';
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
+import { CreditSchema } from '#lib/schemas/credits.ts';
 import { TitleSchema } from '#lib/schemas/index.ts';
-import { RefSchema } from '#lib/schemas/refs.ts';
 
 // Shared term fields; `description` lives in the body, not frontmatter
 const termBaseSchema = {
@@ -19,8 +19,8 @@ const termBaseSchema = {
 export const artistSchema = z
 	.object({
 		...termBaseSchema,
-		members: RefSchema.array().optional(),
-		projects: RefSchema.array().optional(),
+		members: CreditSchema.array().optional(),
+		projects: CreditSchema.array().optional(),
 	})
 	.strict();
 

@@ -1,4 +1,3 @@
-/* Shared by button.astro and button-link.astro, so the two stay one visual thing */
 .button-x {
 	--button-sheen: color-mix(in srgb, var(--color-surface-300) 50%, transparent);
 

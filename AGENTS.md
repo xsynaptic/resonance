@@ -53,7 +53,7 @@ The extractor that generated the collections is archived in `backups/wp-extract-
 
 **Selections** (the curated-roundup Format) are a `selections` array in a Post's or Page's frontmatter, rendered by the `<Selections>` MDX tag: data in frontmatter, presentation on the tag. A selection's `entryId` names a mix, review, or post by bare slug and fills in every field the selection leaves unset, the review's body included, so a complete row can be one line and inline fields always win. See `src/lib/collections/selections/selections-resolve.ts`.
 
-**Artists and labels use a polymorphic ref** (`src/lib/schemas/refs.ts`), inverting the usual convention: `{ id, name? }` links and the id must resolve, while a bare `string` is free text that `resolveRefs()` links opportunistically when its slugified name matches a cataloged term. Styles, regions, eras, formats and themes stay strict Astro `reference()`. Unresolved ids only `console.warn`, so they fail quietly.
+**Artists and labels are Credits** (`src/lib/schemas/credits.ts`), inverting the usual convention: a bare `string` is free text that links only when its slugified name matches a cataloged term, while `{ id, name? }` must resolve and only `console.warn`s when it does not. Every other vocabulary uses Astro `reference()`.
 
 ## Build
 

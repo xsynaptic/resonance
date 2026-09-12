@@ -1,27 +1,27 @@
 import { render } from 'astro:content';
 
-import type { LabelRefValue } from '#lib/schemas/refs.ts';
+import type { LabelCreditValue } from '#lib/schemas/credits.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { LinkableEntry } from '#lib/utils/entries.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryBySlug, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
-import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
+import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
 import { toSlug } from '#lib/utils/text.ts';
 import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 
 export interface ResolvedSelection {
 	anchor: string;
-	artists: Array<ResolvedRef>;
+	artists: Array<LinkedName>;
 	Content?: ContentComponent | undefined;
 	descriptionHtml?: string | undefined;
 	discogsUrl?: string | undefined;
 	href?: string | undefined;
 	imagePath?: string | undefined;
-	labels: Array<ResolvedRef>;
+	labels: Array<LinkedName>;
 	links: Array<string>;
 	linkYoutube?: string | undefined;
 	title: string;
@@ -30,13 +30,13 @@ export interface ResolvedSelection {
 
 type ContentComponent = Awaited<ReturnType<typeof render>>['Content'];
 
-// The entry's own facts, already resolved where the selection would carry unresolved refs
+// The entry's own facts, already resolved where the selection would carry unresolved credits
 interface DerivedSelection {
-	artists?: Array<ResolvedRef> | undefined;
+	artists?: Array<LinkedName> | undefined;
 	discogsUrl?: string | undefined;
 	href?: string | undefined;
 	imageFeatured?: string | undefined;
-	labels?: Array<LabelRefValue> | undefined;
+	labels?: Array<LabelCreditValue> | undefined;
 	links?: Array<string> | undefined;
 	title?: string | undefined;
 	year?: string | undefined;
@@ -62,7 +62,7 @@ async function deriveFromEntry(entry: LinkableEntry): Promise<DerivedSelection> 
 		return { href, imageFeatured, title: entry.data.title };
 	}
 
-	const artistTerms = await resolveRefs('artists', entry.data.artists);
+	const artistTerms = await resolveCredits('artists', entry.data.artists);
 	const { artist, title } = splitReleaseTitle(
 		entry.data.title,
 		entry.data.releaseTitle,
@@ -108,9 +108,9 @@ async function resolveSelection(selection: SelectionValue): Promise<ResolvedSele
 	const [artists, body, labels] = await Promise.all([
 		ownArtists === undefined
 			? Promise.resolve(derivedArtists ?? [])
-			: resolveRefs('artists', toRefArray(ownArtists)),
+			: resolveCredits('artists', toCreditArray(ownArtists)),
 		resolveBody(selection.description, entry),
-		resolveRefs('labels', facts.labels),
+		resolveCredits('labels', facts.labels),
 	]);
 	const title = facts.title ?? '';
 
@@ -130,8 +130,8 @@ async function resolveSelection(selection: SelectionValue): Promise<ResolvedSele
 	};
 }
 
-function toAnchor(entryId: string | undefined, artists: Array<ResolvedRef>, title: string): string {
+function toAnchor(entryId: string | undefined, artists: Array<LinkedName>, title: string): string {
 	if (entryId !== undefined) return entryId;
 
-	return toSlug([...artists.map((artist) => artist.label), title].filter(Boolean).join(' '));
+	return toSlug([...artists.map((artist) => artist.name), title].filter(Boolean).join(' '));
 }

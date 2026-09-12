@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
-import CommentsSection from '#components/comments/comments-section.astro';
+import EntryComments from '#components/comments/entry-comments.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import ContentDetail from '#layouts/content-detail.astro';
@@ -14,7 +14,7 @@ import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
-import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	entry: CollectionEntry<'posts'>;
@@ -31,14 +31,14 @@ const formatTerms = await resolveTermLinks(
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
-const labelTerms = await resolveRefs('labels', entry.data.labels);
+const labelTerms = await resolveCredits('labels', entry.data.labels);
 const description = await getEntryDescription(entry);
 
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
-const kind = { label: t('collection.posts.title'), url: getCollectionPath('posts') };
+const kind = { name: t('collection.posts.title'), url: getCollectionPath('posts') };
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = getPostSchemas(entry, {
 	description,
@@ -68,12 +68,5 @@ const schemas = getPostSchemas(entry, {
 			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 		</SectionCoda>
 	</Fragment>
-	{entry.data.commentsEnabled === false ? undefined : (
-		<CommentsSection
-			collection="posts"
-			entryId={entry.id}
-			formerIds={entry.data.formerIds}
-			slot="comments"
-		/>
-	)}
+	<EntryComments entry={entry} slot="comments" />
 </ContentDetail>

@@ -2,7 +2,7 @@
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import Carousel from '#components/parts/carousel.astro';
-import EntryCard from '#components/parts/entry-card.astro';
+import EntryCardItem from '#components/parts/entry-card-item.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
@@ -17,16 +17,7 @@ const { items } = Astro.props;
 		<h2 class="heading-section mb-4">{t('section.related.heading')}</h2>
 		<Carousel label={t('section.related.carouselLabel')}>
 			{items.map((item) => (
-				<li>
-					<EntryCard
-						date={item.date}
-						href={item.url}
-						image={item.image}
-						releaseTitle={item.releaseTitle}
-						subtitle={item.subtitle}
-						title={item.title}
-					/>
-				</li>
+				<EntryCardItem item={item} />
 			))}
 		</Carousel>
 	</section>

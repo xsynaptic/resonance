@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { collectRefIssues } from '#validate-content/refs.ts';
+import { collectCreditIssues } from '#validate-content/credits.ts';
 import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 const catalog = [
@@ -9,14 +9,14 @@ const catalog = [
 	makeEntry({ collection: 'labels', id: 'twisted' }),
 ];
 
-describe('collectRefIssues', () => {
-	test('ignores free text, which is the whole point of the polymorphic ref', () => {
+describe('collectCreditIssues', () => {
+	test('ignores free text, which is the whole point of the polymorphic credit', () => {
 		const entries = [makeEntry({ data: { artists: ['Some Unknown Act'] }, id: 'a-review' })];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([]);
+		expect(collectCreditIssues(entries, catalog)).toEqual([]);
 	});
 
-	test('accepts an object ref whose id resolves', () => {
+	test('accepts an object credit whose id resolves', () => {
 		const entries = [
 			makeEntry({
 				data: { artists: [{ id: 'shpongle' }], labels: [{ id: 'twisted' }] },
@@ -24,10 +24,10 @@ describe('collectRefIssues', () => {
 			}),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([]);
+		expect(collectCreditIssues(entries, catalog)).toEqual([]);
 	});
 
-	test('flags an object ref whose id resolves to nothing', () => {
+	test('flags an object credit whose id resolves to nothing', () => {
 		const entries = [
 			makeEntry({
 				data: { artists: [{ id: 'shpongle' }, { id: 'nobody' }] },
@@ -36,7 +36,7 @@ describe('collectRefIssues', () => {
 			}),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([
+		expect(collectCreditIssues(entries, catalog)).toEqual([
 			{
 				collection: 'artists',
 				field: 'artists',
@@ -54,7 +54,7 @@ describe('collectRefIssues', () => {
 			}),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([
+		expect(collectCreditIssues(entries, catalog)).toEqual([
 			{ collection: 'artists', field: 'projects', id: 'nobody', location: 'shpongle' },
 		]);
 	});
@@ -72,7 +72,7 @@ describe('collectRefIssues', () => {
 			}),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([
+		expect(collectCreditIssues(entries, catalog)).toEqual([
 			{ collection: 'labels', field: 'tracks[1].labels', id: 'nowhere', location: 'a-mix' },
 			{ collection: 'artists', field: 'tracks[1].mixArtists', id: 'nobody', location: 'a-mix' },
 		]);
@@ -97,7 +97,7 @@ describe('collectRefIssues', () => {
 			}),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([
+		expect(collectCreditIssues(entries, catalog)).toEqual([
 			{
 				collection: 'labels',
 				field: 'tracks[1].tracks[1].labels',
@@ -115,17 +115,17 @@ describe('collectRefIssues', () => {
 			}),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([
+		expect(collectCreditIssues(entries, catalog)).toEqual([
 			{ collection: 'labels', field: 'selections[0].labels', id: 'nowhere', location: 'a-post' },
 		]);
 	});
 
-	test('flags a scalar ref that resolves to nothing', () => {
+	test('flags a scalar credit that resolves to nothing', () => {
 		const entries = [
 			makeEntry({ data: { tracks: [{ artists: { id: 'nobody' }, title: 'X' }] }, id: 'a-mix' }),
 		];
 
-		expect(collectRefIssues(entries, catalog)).toEqual([
+		expect(collectCreditIssues(entries, catalog)).toEqual([
 			{ collection: 'artists', field: 'tracks[0].artists', id: 'nobody', location: 'a-mix' },
 		]);
 	});

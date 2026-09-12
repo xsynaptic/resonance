@@ -6,6 +6,7 @@ import { $ } from 'zx';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
+import { collectHashedOutputs } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
@@ -58,34 +59,7 @@ interface RenditionsOptions {
 
 // Exported for the manifest step, which has to name the file the player will request
 export async function collectRenditions(streamsPath: string): Promise<Map<string, string>> {
-	let entries: Array<string>;
-
-	try {
-		entries = await fs.readdir(streamsPath);
-	} catch {
-		return new Map();
-	}
-
-	const renditions = new Map<string, string>();
-
-	for (const entry of entries) {
-		const base = renditionPattern.exec(entry)?.groups?.base;
-
-		if (base === undefined) continue;
-
-		const existing = renditions.get(base);
-
-		// An interrupted encode leaves both hashed files; keeping either one silently ships a stale stream name
-		if (existing !== undefined) {
-			throw new Error(
-				`Two renditions for "${base}": ${existing} and ${entry}. Delete the stale one and re-run.`,
-			);
-		}
-
-		renditions.set(base, entry);
-	}
-
-	return renditions;
+	return collectHashedOutputs(streamsPath, renditionPattern, 'renditions');
 }
 
 // 128kbps Opus .webm streaming renditions per source (FLAC preferred, MP3 fallback)

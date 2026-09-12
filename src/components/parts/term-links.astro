@@ -1,12 +1,12 @@
 ---
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import Anchor from '#components/parts/anchor.astro';
 import CodaRow from '#components/parts/coda-row.astro';
 
 interface Props {
 	heading: string;
-	terms: Array<ResolvedRef>;
+	terms: Array<LinkedName>;
 }
 
 const { heading, terms } = Astro.props;
@@ -22,9 +22,9 @@ const { heading, terms } = Astro.props;
 					</span>
 				) : undefined}
 				{term.url ? (
-					<Anchor href={term.url}>{term.label}</Anchor>
+					<Anchor href={term.url}>{term.name}</Anchor>
 				) : (
-					<span class="text-ink-100">{term.label}</span>
+					<span class="text-ink-100">{term.name}</span>
 				)}
 			</span>
 		))}

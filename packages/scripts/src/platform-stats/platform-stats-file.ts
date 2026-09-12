@@ -75,15 +75,6 @@ export async function readLastGeneration(filePath: string): Promise<StatsGenerat
 	return undefined;
 }
 
-// SoundCloud appends UTM parameters to every `permalink_url`, so the query has to go or nothing joins
-export function toStatsKey(url: string): string {
-	return url
-		.replace(/^https?:\/\/[^/]+/, '')
-		.replace(/[#?].*$/, '')
-		.replace(/\/+$/, '')
-		.toLowerCase();
-}
-
 function toGeneration(line: string | undefined): StatsGeneration | undefined {
 	if (!line || line.trim() === '') return undefined;
 

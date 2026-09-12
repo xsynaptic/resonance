@@ -13,9 +13,11 @@ export function getCollection(collection: string): Promise<Array<StubEntry>> {
 }
 
 export async function getEntries(
-	refs: Array<{ collection: string; id: string }>,
+	references: Array<{ collection: string; id: string }>,
 ): Promise<Array<StubEntry>> {
-	const entries = await Promise.all(refs.map((ref) => getEntry(ref.collection, ref.id)));
+	const entries = await Promise.all(
+		references.map((reference) => getEntry(reference.collection, reference.id)),
+	);
 
 	return entries.filter((entry) => entry !== undefined);
 }

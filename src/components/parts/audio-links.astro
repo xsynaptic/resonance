@@ -1,8 +1,8 @@
 ---
 import type { IconId } from '#lib/utils/icon-types.ts';
 
-import ButtonLink from '#components/parts/button-link.astro';
 import ButtonSplit from '#components/parts/button-split.astro';
+import Button from '#components/parts/button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { downloadBaseUrl } from '#lib/site.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
@@ -46,26 +46,27 @@ const hasFiles = files && files.length > 0;
 
 			return (
 				<li class="m-0">
-					<ButtonLink href={link} {...(icon ? { icon } : {})}>
+					<Button as="a" href={link} {...(icon ? { icon } : {})}>
 						{label}
-					</ButtonLink>
+					</Button>
 				</li>
 			);
 		})}
 		{files?.map((file) => (
 			<li class="m-0">
 				<ButtonSplit>
-					<ButtonLink href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
+					<Button as="a" href={`${downloadBaseUrl}${encodeURIComponent(file)}`} icon="download">
 						{getFileLabel(file)}
-					</ButtonLink>
+					</Button>
 					{cueSlug ? (
-						<ButtonLink
+						<Button
+							as="a"
 							download={true}
 							href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
 							title={formatStringTemplate(t('audio.cueTitle'), { file })}
 						>
 							{t('audio.cue')}
-						</ButtonLink>
+						</Button>
 					) : undefined}
 				</ButtonSplit>
 			</li>

@@ -4,7 +4,7 @@ import type { Page } from 'astro';
 import type { ContentCatalogItem, ContentCollectionKey } from '#lib/catalog/catalog-types.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import EntryCard from '#components/parts/entry-card.astro';
+import EntryCardItem from '#components/parts/entry-card-item.astro';
 import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
@@ -50,17 +50,7 @@ const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = group
 			{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
 			<ul class="entry-grid">
 				{group.items.map((item, itemIndex) => (
-					<li>
-						<EntryCard
-							date={item.date}
-							href={item.url}
-							image={item.image}
-							priority={groupIndex === 0 && itemIndex === 0}
-							releaseTitle={item.releaseTitle}
-							subtitle={item.subtitle}
-							title={item.title}
-						/>
-					</li>
+					<EntryCardItem item={item} priority={groupIndex === 0 && itemIndex === 0} />
 				))}
 			</ul>
 		</section>

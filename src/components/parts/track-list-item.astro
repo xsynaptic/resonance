@@ -1,0 +1,43 @@
+---
+import type { TrackRow } from '#lib/utils/track-rows.ts';
+
+import LinkedNameList from '#components/parts/linked-name-list.astro';
+
+interface Props {
+	row: TrackRow;
+}
+
+const { row } = Astro.props;
+---
+
+<li class="track-item">
+	<span aria-hidden="true" class="track-index">
+		{row.position}.
+	</span>
+	<span class="track-title-line">
+		{row.artists.length > 0 ? (
+			<Fragment>
+				<strong>
+					<LinkedNameList names={row.artists} />
+				</strong>
+				<span class="text-ink-600">{' - '}</span>
+			</Fragment>
+		) : undefined}
+		<span class="font-medium">{row.title}</span>
+		{row.remixCredit.length > 0 ? (
+			<span>
+				{' ('}
+				<LinkedNameList names={row.remixCredit} />
+				{' remix)'}
+			</span>
+		) : undefined}
+	</span>
+	{row.hasMeta ? (
+		<span class="track-label-year">
+			<LinkedNameList names={row.labels} />
+			{row.metaSeparator}
+			{row.year}
+		</span>
+	) : undefined}
+	{row.time ? <span class="track-time">{row.time}</span> : undefined}
+</li>

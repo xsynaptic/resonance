@@ -1,3 +1,4 @@
+import { toStatsKey } from '@xsynaptic/shared/platform-stats';
 import chalk from 'chalk';
 import path from 'node:path';
 
@@ -8,7 +9,6 @@ import {
 	appendGeneration,
 	isFresh,
 	readLastGeneration,
-	toStatsKey,
 } from '#platform-stats/platform-stats-file.ts';
 
 // Mixcloud's public REST API: no key, no auth, no registration

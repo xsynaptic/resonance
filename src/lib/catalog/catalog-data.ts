@@ -11,12 +11,12 @@ import type {
 	TermCatalogItem,
 	TermCollectionKey,
 } from '#lib/catalog/catalog-types.ts';
-import type { LabelRefValue } from '#lib/schemas/refs.ts';
+import type { LabelCreditValue } from '#lib/schemas/credits.ts';
 
 import { createCatalog } from '#lib/catalog/catalog-factory.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
-import { resolveRefs } from '#lib/utils/terms.ts';
+import { resolveCredits } from '#lib/utils/terms.ts';
 
 const contentCollections = [
 	'mixes',
@@ -43,7 +43,7 @@ interface ContentEntry {
 	data: {
 		dateCreated: Date;
 		imageFeatured?: ImageFeatured | undefined;
-		labels?: Array<LabelRefValue> | undefined;
+		labels?: Array<LabelCreditValue> | undefined;
 		releaseTitle?: string | undefined;
 		releaseYear?: string | undefined;
 		title: string;
@@ -122,8 +122,8 @@ async function metaLine(
 	collection: ContentCollectionKey,
 	entry: ContentEntry,
 ): Promise<string | undefined> {
-	const refs = await resolveRefs('labels', entry.data.labels);
-	const labels = refs.map((ref) => ref.label).join(' / ');
+	const credits = await resolveCredits('labels', entry.data.labels);
+	const labels = credits.map((credit) => credit.name).join(' / ');
 	const year = releaseYear(collection, entry);
 
 	if (labels === '') return year;

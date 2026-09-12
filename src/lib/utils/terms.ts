@@ -3,29 +3,24 @@ import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 import { getCollection, getEntries } from 'astro:content';
 
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
-import type { LabelRefValue, RefValue } from '#lib/schemas/refs.ts';
+import type { CreditValue, LabelCreditValue } from '#lib/schemas/credits.ts';
 
 import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
+import { memoizeByKey } from '#lib/utils/memoize.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
 import { toSlug } from '#lib/utils/text.ts';
 
-// url is set only when the ref links to a catalog entry; free-text and unresolved ids render plain
-export interface ResolvedRef {
-	label: string;
+// url is set only when the name matches a catalog entry; free text and unresolved ids render plain
+export interface LinkedName {
+	name: string;
 	url?: string;
 }
 
 // Every collection with a `title` field. excluding those that are data-only
 export type TitledCollectionKey = Exclude<CollectionKey, 'downloads'>;
 
-// Cache id->title per collection so ref resolution is one build-time scan per collection
-const titleMaps = new Map<TitledCollectionKey, Promise<Map<string, string>>>();
-
-// Cache slugified-title->id per collection, so a free-text ref can find the term it names
-const slugMaps = new Map<TitledCollectionKey, Promise<Map<string, string>>>();
-
 // Ids from a labels array that link to a term (bare strings are free text; objects carry the id)
-export function labelIds(labels: Array<LabelRefValue> | undefined): Array<string> {
+export function labelIds(labels: Array<LabelCreditValue> | undefined): Array<string> {
 	if (!labels) return [];
 	const ids: Array<string> = [];
 	for (const label of labels) {
@@ -37,64 +32,66 @@ export function labelIds(labels: Array<LabelRefValue> | undefined): Array<string
 export async function resolveAncestors(
 	collection: HierarchicalCollection,
 	id: string,
-): Promise<Array<ResolvedRef>> {
+): Promise<Array<LinkedName>> {
 	const ids = await ancestorsOf(collection, id);
 	if (ids.length === 0) return [];
 
 	const titles = await getTitles(collection);
 
 	return ids.map((ancestorId) => ({
-		label: titles.get(ancestorId) ?? ancestorId,
+		name: titles.get(ancestorId) ?? ancestorId,
 		url: getContentPath(collection, ancestorId),
 	}));
 }
 
-// Resolve polymorphic refs: an object links via id, a bare string links only if it names a term
+// Resolve polymorphic credits: an object links via id, a bare string links only if it names a term
 // `name` overrides the derived title
-export async function resolveRefs(
+export async function resolveCredits(
 	collection: TitledCollectionKey,
-	refs: Array<RefValue> | undefined,
-): Promise<Array<ResolvedRef>> {
-	if (!refs || refs.length === 0) return [];
+	credits: Array<CreditValue> | undefined,
+): Promise<Array<LinkedName>> {
+	if (!credits || credits.length === 0) return [];
 
 	const [titles, slugs] = await Promise.all([getTitles(collection), getSlugs(collection)]);
 
-	return refs.map((ref) => {
-		if (typeof ref === 'string') {
-			const id = slugs.get(toSlug(ref));
+	return credits.map((credit) => {
+		if (typeof credit === 'string') {
+			const id = slugs.get(toSlug(credit));
 			// Keep the written spelling; only the link comes from the catalog
 			return id === undefined
-				? { label: ref }
-				: { label: ref, url: getContentPath(collection, id) };
+				? { name: credit }
+				: { name: credit, url: getContentPath(collection, id) };
 		}
 
-		const title = titles.get(ref.id);
+		const title = titles.get(credit.id);
 		if (title === undefined) {
-			console.warn(`[refs] no ${collection} entry for id "${ref.id}"`);
-			return { label: ref.name ?? ref.id };
+			console.warn(`[credits] no ${collection} entry for id "${credit.id}"`);
+			return { name: credit.name ?? credit.id };
 		}
 
-		return { label: ref.name ?? title, url: getContentPath(collection, ref.id) };
+		return { name: credit.name ?? title, url: getContentPath(collection, credit.id) };
 	});
 }
 
 // Resolve a strict reference array (styles, regions, eras, formats, themes) into linkable pairs
 export async function resolveTermLinks(
 	collection: TitledCollectionKey,
-	refs: Array<ReferenceDataEntry<TitledCollectionKey>> | undefined,
-): Promise<Array<ResolvedRef>> {
-	if (!refs || refs.length === 0) return [];
+	references: Array<ReferenceDataEntry<TitledCollectionKey>> | undefined,
+): Promise<Array<LinkedName>> {
+	if (!references || references.length === 0) return [];
 
-	const entries = await getEntries(refs);
+	const entries = await getEntries(references);
 
 	return entries.map((entry) => ({
-		label: entry.data.title,
+		name: entry.data.title,
 		url: getContentPath(collection, entry.id),
 	}));
 }
 
-// A track's artists may be a single ref or an array of them; resolution takes an array either way
-export function toRefArray(value: Array<RefValue> | RefValue | undefined): Array<RefValue> {
+// A track's artists may be a single credit or an array of them; resolution takes an array either way
+export function toCreditArray(
+	value: Array<CreditValue> | CreditValue | undefined,
+): Array<CreditValue> {
 	if (value === undefined) return [];
 	return Array.isArray(value) ? value : [value];
 }
@@ -115,20 +112,8 @@ async function buildTitles(collection: TitledCollectionKey): Promise<Map<string,
 	return new Map(entries.map((entry) => [entry.id, entry.data.title]));
 }
 
-function getSlugs(collection: TitledCollectionKey): Promise<Map<string, string>> {
-	let promise = slugMaps.get(collection);
-	if (promise === undefined) {
-		promise = buildSlugs(collection);
-		slugMaps.set(collection, promise);
-	}
-	return promise;
-}
+// Cached slugified-title->id per collection, so a free-text credit can find the term it names
+const getSlugs = memoizeByKey(buildSlugs);
 
-function getTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {
-	let promise = titleMaps.get(collection);
-	if (promise === undefined) {
-		promise = buildTitles(collection);
-		titleMaps.set(collection, promise);
-	}
-	return promise;
-}
+// Cached id->title per collection, so credit resolution is one build-time scan per collection
+const getTitles = memoizeByKey(buildTitles);

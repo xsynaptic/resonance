@@ -10,6 +10,7 @@ import { soundcloudStatsPath } from '#platform-stats/soundcloud-stats.ts';
 import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 import { validateBodyMarkers } from '#validate-content/body-markers.ts';
+import { validateCredits } from '#validate-content/credits.ts';
 import { validateDownloadsLegacy } from '#validate-content/downloads-legacy.ts';
 import { validateEntryIds } from '#validate-content/entry-ids.ts';
 import { validateImages } from '#validate-content/images.ts';
@@ -17,7 +18,6 @@ import { validateLinkIds } from '#validate-content/link-ids.ts';
 import { validateMdxComponents } from '#validate-content/mdx.ts';
 import { validatePlatformLinks } from '#validate-content/platform-links.ts';
 import { validateReferences } from '#validate-content/references.ts';
-import { validateRefs } from '#validate-content/refs.ts';
 import { validateReviewFolders } from '#validate-content/review-folders.ts';
 import { validateSeriesItems } from '#validate-content/series-items.ts';
 import { validateTrackGroups } from '#validate-content/track-groups.ts';
@@ -71,6 +71,7 @@ const platformKeys = {
 // Keys double as the CLI subcommand names
 const validations = {
 	'body-markers': () => validateBodyMarkers(entriesFrom(...markerCollections)),
+	credits: () => validateCredits(allEntries, entriesFrom('artists', 'labels')),
 	'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
 	'entry-ids': () => validateEntryIds(allEntries),
 	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
@@ -78,7 +79,6 @@ const validations = {
 	mdx: () => validateMdxComponents(allEntries, rootPath),
 	'platform-links': () => validatePlatformLinks(entriesFrom('mixes'), platformKeys),
 	references: () => validateReferences(allEntries),
-	refs: () => validateRefs(allEntries, entriesFrom('artists', 'labels')),
 	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
 	'series-items': () =>
 		validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),

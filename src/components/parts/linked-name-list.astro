@@ -1,0 +1,18 @@
+---
+import type { LinkedName } from '#lib/utils/terms.ts';
+
+import LinkedNameText from '#components/parts/linked-name-text.astro';
+
+interface Props {
+	names: Array<LinkedName>;
+}
+
+const { names } = Astro.props;
+---
+
+{names.map((linkedName, index) => (
+	<Fragment>
+		{index > 0 ? ' / ' : ''}
+		<LinkedNameText name={linkedName.name} url={linkedName.url} />
+	</Fragment>
+))}

@@ -6,23 +6,23 @@ import Anchor from '#components/parts/anchor.astro';
 interface Props {
 	anchorColor?: ComponentProps<typeof Anchor>['anchorColor'];
 	class?: string | undefined;
-	label: string;
+	name: string;
 	url?: string | undefined;
 }
 
-const { anchorColor, class: className, label, url } = Astro.props;
+const { anchorColor, class: className, name, url } = Astro.props;
 ---
 
 {url ? (
 	anchorColor ? (
 		<Anchor anchorColor={anchorColor} class={className} href={url}>
-			{label}
+			{name}
 		</Anchor>
 	) : (
 		<a class:list={['anchor-x', className]} href={url}>
-			{label}
+			{name}
 		</a>
 	)
 ) : (
-	<span class={className}>{label}</span>
+	<span class={className}>{name}</span>
 )}

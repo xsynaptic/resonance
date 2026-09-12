@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
-import CommentsSection from '#components/comments/comments-section.astro';
+import EntryComments from '#components/comments/entry-comments.astro';
 import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
@@ -27,7 +27,7 @@ import { isPlayerEnabled, site } from '#lib/site.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
-import { resolveRefs, resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
 
 interface Props {
@@ -45,7 +45,7 @@ const aliasTerms = await resolveTermLinks(
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
-const labelTerms = await resolveRefs('labels', entry.data.labels);
+const labelTerms = await resolveCredits('labels', entry.data.labels);
 const downloads = await getDownloadCount(entry.data);
 const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudLink);
 const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudLink);
@@ -56,7 +56,7 @@ const [alias] = aliasTerms;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
-const kind = { label: t('collection.mixes.title'), url: getCollectionPath('mixes') };
+const kind = { name: t('collection.mixes.title'), url: getCollectionPath('mixes') };
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = getMixSchemas(entry, {
 	description,
@@ -66,7 +66,7 @@ const schemas = getMixSchemas(entry, {
 });
 
 const queueItem = isPlayerEnabled
-	? await getMixQueueItem(entry, alias?.label ?? site.title)
+	? await getMixQueueItem(entry, alias?.name ?? site.title)
 	: undefined;
 
 // A group naming its own files renders those downloads inline, so the header would otherwise offer them twice
@@ -111,12 +111,5 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 		</SectionCoda>
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
-	{entry.data.commentsEnabled === false ? undefined : (
-		<CommentsSection
-			collection="mixes"
-			entryId={entry.id}
-			formerIds={entry.data.formerIds}
-			slot="comments"
-		/>
-	)}
+	<EntryComments entry={entry} slot="comments" />
 </ReleaseDetail>

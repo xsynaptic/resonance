@@ -1,6 +1,6 @@
 ---
 import type { Thing } from '#lib/utils/seo-structured-data.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import MediaFeatured from '#components/parts/media-featured.astro';
@@ -9,18 +9,18 @@ import SectionDetailHeader from '#components/sections/section-detail-header.astr
 import { renderSlot } from '#lib/utils/astro.ts';
 
 interface Props {
-	artist?: ResolvedRef | undefined;
+	artist?: LinkedName | undefined;
 	date?: Date | undefined;
 	description?: string | undefined;
 	image?: string | undefined;
-	kind: ResolvedRef;
-	labels?: Array<ResolvedRef> | undefined;
+	kind: LinkedName;
+	labels?: Array<LinkedName> | undefined;
 	openGraphId: string;
 	// The title half of the split heading; equals `title` when there is no artist prefix to split off
 	releaseTitle: string;
 	releaseYear?: string | undefined;
 	schemas?: Array<Thing> | undefined;
-	styles?: Array<ResolvedRef> | undefined;
+	styles?: Array<LinkedName> | undefined;
 	title: string;
 }
 

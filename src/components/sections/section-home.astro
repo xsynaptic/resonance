@@ -2,7 +2,7 @@
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import Anchor from '#components/parts/anchor.astro';
-import EntryCard from '#components/parts/entry-card.astro';
+import EntryCardItem from '#components/parts/entry-card-item.astro';
 
 interface Props {
 	heading: string;
@@ -24,17 +24,7 @@ const { heading, items, listHref, listLabel, priority = false } = Astro.props;
 	</div>
 	<ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 		{items.map((item, index) => (
-			<li>
-				<EntryCard
-					date={item.date}
-					href={item.url}
-					image={item.image}
-					priority={priority && index === 0}
-					releaseTitle={item.releaseTitle}
-					subtitle={item.subtitle}
-					title={item.title}
-				/>
-			</li>
+			<EntryCardItem item={item} priority={priority && index === 0} />
 		))}
 	</ul>
 </section>

@@ -1,37 +1,15 @@
 ---
-import type { TracklistValue, TrackValue } from '#lib/schemas/audio.ts';
-import type { ResolvedRef } from '#lib/utils/terms.ts';
-import type { TrackGroup } from '#lib/utils/track-groups.ts';
+import type { TracklistValue } from '#lib/schemas/audio.ts';
 
 import AudioLinks from '#components/parts/audio-links.astro';
-import RefList from '#components/parts/ref-list.astro';
+import TrackListFeed from '#components/parts/track-list-feed.astro';
+import TrackListItem from '#components/parts/track-list-item.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { resolveRefs, toRefArray } from '#lib/utils/terms.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
+import { buildTrackGroupRows } from '#lib/utils/track-rows.ts';
 
 interface Props {
 	tracks?: TracklistValue | undefined;
-}
-
-interface TrackGroupRows {
-	cueSlug: string | undefined;
-	description: string | undefined;
-	files: Array<string> | undefined;
-	hasMeta: boolean;
-	rows: Array<TrackRow>;
-	title: string | undefined;
-}
-
-interface TrackRow {
-	artists: Array<ResolvedRef>;
-	hasMeta: boolean;
-	labels: Array<ResolvedRef>;
-	metaSeparator: string;
-	position: string;
-	remixCredit: Array<ResolvedRef>;
-	time: string | undefined;
-	title: string;
-	year: string | undefined;
 }
 
 const { tracks } = Astro.props;
@@ -42,94 +20,14 @@ const { isFeed } = Astro.locals;
 // Off a mix detail page (feed, inventory) there is no slug and the cue half of a download drops out
 const { slug } = Astro.params;
 
-async function buildGroup(group: TrackGroup): Promise<TrackGroupRows> {
-	const hasTimestamp = group.tracks.some((track) => track.timestamp !== undefined);
-	const rows = await Promise.all(group.tracks.map(buildRow));
-
-	return {
-		cueSlug: hasTimestamp && group.files ? slug : undefined,
-		description: group.description,
-		files: group.files,
-		hasMeta: rows.some((row) => row.hasMeta),
-		rows,
-		title: group.title,
-	};
-}
-
-async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
-	const [artists, labels, mixArtists] = await Promise.all([
-		resolveRefs('artists', toRefArray(track.artists)),
-		resolveRefs('labels', track.labels),
-		resolveRefs('artists', toRefArray(track.mixArtists)),
-	]);
-
-	return {
-		artists,
-		hasMeta: labels.length > 0 || Boolean(track.year),
-		labels,
-		metaSeparator: labels.length > 0 && track.year ? ', ' : '',
-		// A release track carries its own position ("A1"); a mix track falls back to the ordinal
-		position: padOrdinal(track.position ?? String(index + 1)),
-		remixCredit: visibleMixArtists(track.title, mixArtists),
-		time: track.duration,
-		title: track.title,
-		year: track.year,
-	};
-}
-
-// A leading zero keeps the numeral column a rectangle; a vinyl position ("A1") is left alone
-function padOrdinal(position: string): string {
-	return /^\d$/.test(position) ? `0${position}` : position;
-}
-
-// Every separator in the styled markup comes from CSS, so a feed gets one text line per track
-function toFeedLine(row: TrackRow): string {
-	const artists = row.artists.map((ref) => ref.label).join(' / ');
-	const remix =
-		row.remixCredit.length > 0
-			? ` (${row.remixCredit.map((ref) => ref.label).join(' / ')} remix)`
-			: '';
-	const labels = row.labels.map((ref) => ref.label).join(' / ');
-	const meta = row.hasMeta ? ` (${labels}${row.metaSeparator}${row.year ?? ''})` : '';
-	const time = row.time ? ` [${row.time}]` : '';
-	// The list numbers itself, so only a vinyl side ("A1") is worth spelling out
-	const position = /^\d+$/.test(row.position) ? '' : `${row.position}. `;
-
-	return `${position}${artists === '' ? '' : `${artists} - `}${row.title}${remix}${meta}${time}`;
-}
-
-// Some extracted titles already carry the remix inline (e.g. "The 5th World (Ken Zo Remix)")
-// Suppress the credit only when every named artist appears, so a partial group still renders
-function visibleMixArtists(title: string, mixArtists: Array<ResolvedRef>): Array<ResolvedRef> {
-	if (mixArtists.length === 0) return [];
-
-	const lowerTitle = title.toLowerCase();
-	const allNamed = mixArtists.every((ref) => lowerTitle.includes(ref.label.toLowerCase()));
-
-	return allNamed ? [] : mixArtists;
-}
-
-const groups = await Promise.all(toTrackGroups(tracks).map(buildGroup));
+const groups = await Promise.all(
+	toTrackGroups(tracks).map((group) => buildTrackGroupRows(group, slug)),
+);
 
 const hasRows = groups.some((group) => group.rows.length > 0);
 ---
 
-{isFeed && hasRows ? (
-	<section>
-		<h2>{t('section.tracklist.heading')}</h2>
-		{groups.map((group) => (
-			<Fragment>
-				{group.title ? <h3>{group.title}</h3> : undefined}
-				{group.description ? <p>{group.description}</p> : undefined}
-				<ol>
-					{group.rows.map((row) => (
-						<li>{toFeedLine(row)}</li>
-					))}
-				</ol>
-			</Fragment>
-		))}
-	</section>
-) : undefined}
+{isFeed && hasRows ? <TrackListFeed groups={groups} /> : undefined}
 {!isFeed && hasRows ? (
 	<section class="my-8">
 		<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
@@ -147,37 +45,7 @@ const hasRows = groups.some((group) => group.rows.length > 0);
 				) : undefined}
 				<ol class:list={['track-list prose-escape', !group.hasMeta && 'track-list-single-line']}>
 					{group.rows.map((row) => (
-						<li class="track-item">
-							<span aria-hidden="true" class="track-index">
-								{row.position}.
-							</span>
-							<span class="track-title-line">
-								{row.artists.length > 0 ? (
-									<Fragment>
-										<strong>
-											<RefList refs={row.artists} />
-										</strong>
-										<span class="text-ink-600">{' - '}</span>
-									</Fragment>
-								) : undefined}
-								<span class="font-medium">{row.title}</span>
-								{row.remixCredit.length > 0 ? (
-									<span>
-										{' ('}
-										<RefList refs={row.remixCredit} />
-										{' remix)'}
-									</span>
-								) : undefined}
-							</span>
-							{row.hasMeta ? (
-								<span class="track-label-year">
-									<RefList refs={row.labels} />
-									{row.metaSeparator}
-									{row.year}
-								</span>
-							) : undefined}
-							{row.time ? <span class="track-time">{row.time}</span> : undefined}
-						</li>
+						<TrackListItem row={row} />
 					))}
 				</ol>
 			</Fragment>

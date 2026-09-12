@@ -1,5 +1,7 @@
+import { toStatsKey } from '@xsynaptic/shared/platform-stats';
+
 import { soundcloudStatsPath } from '#constants.ts';
-import { getPlayCounts, toStatsKey } from '#lib/platform-stats/platform-stats-document.ts';
+import { getPlayCounts } from '#lib/platform-stats/platform-stats-document.ts';
 
 // A mix published as two tracks sums its parts, so the figure appears on neither SoundCloud page
 export async function getSoundcloudPlayCount(

@@ -1,0 +1,75 @@
+---
+import type { NavigationItem } from '#components/navigation/navigation-types.ts';
+
+import {
+	getNavigationItemAriaLabel,
+	getNavigationItemTriggerType,
+	isActiveNavigationItem,
+	isCurrentNavigationPath,
+} from '#components/navigation/navigation-utils.ts';
+
+// Literal rather than interpolated, so each class family's root name stays greppable
+const variantParts = {
+	header: {
+		chevron: 'chevron-down',
+		icon: 'nav-icon',
+		link: 'nav-link',
+		toggle: 'nav-toggle',
+		trigger: 'nav-trigger',
+	},
+	submenu: {
+		chevron: 'chevron-right',
+		icon: 'nav-sub-icon',
+		link: 'nav-sub-link',
+		toggle: 'nav-sub-toggle',
+		trigger: 'nav-sub-trigger',
+	},
+} as const;
+
+interface Props {
+	hasChildren: boolean;
+	item: NavigationItem;
+	variant: keyof typeof variantParts;
+}
+
+const { hasChildren, item, variant } = Astro.props;
+
+const { pathname } = Astro.url;
+
+const parts = variantParts[variant];
+const triggerType = getNavigationItemTriggerType(item);
+
+const isActive = variant === 'header' && isActiveNavigationItem(item, pathname);
+---
+
+<div class:list={[parts.trigger, isActive ? 'nav-current' : undefined]}>
+	{triggerType === 'anchor' ? (
+		<a
+			aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}
+			class={parts.link}
+			href={item.url}
+			{...(item.rel ? { rel: item.rel } : undefined)}
+		>
+			{item.title}
+		</a>
+	) : undefined}
+	{triggerType === 'button' ? (
+		<button class={parts.link} type="button">
+			{item.title}
+		</button>
+	) : undefined}
+	{triggerType === 'span' ? <span class={parts.link}>{item.title}</span> : undefined}
+	{hasChildren ? (
+		<button
+			aria-expanded="false"
+			aria-label={getNavigationItemAriaLabel(item)}
+			class={parts.toggle}
+			data-nav-toggle
+			type="button"
+		>
+			<svg aria-hidden="true" class={parts.icon}>
+				<use href={`#icon:${parts.chevron}`} />
+			</svg>
+		</button>
+	) : undefined}
+</div>

@@ -9,13 +9,15 @@ interface Props {
 const { alt, path } = Astro.props;
 ---
 
-<figure class="content-bleed bg-surface-800 sm:w-fit sm:max-w-xl sm:rounded-md sm:p-2.5">
-	<MediaImage
-		alt={alt}
-		class="block w-full sm:w-auto sm:rounded-sm"
-		path={path}
-		priority={true}
-		sizes="(min-width: 64rem) 35rem, (min-width: 40rem) 32rem, 100vw"
-		width={560}
-	/>
+<figure class="content-bleed bg-surface-600 sm:w-fit sm:max-w-xl sm:rounded-md sm:p-2.5">
+	<div class="media-frame block w-full overflow-hidden sm:w-auto sm:rounded-sm">
+		<MediaImage
+			alt={alt}
+			class="block w-full"
+			path={path}
+			priority={true}
+			sizes="(min-width: 64rem) 35rem, (min-width: 40rem) 32rem, 100vw"
+			width={560}
+		/>
+	</div>
 </figure>

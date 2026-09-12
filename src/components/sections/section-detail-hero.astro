@@ -17,7 +17,9 @@ const { breadcrumbTrail, date, kind, path, styles, title } = Astro.props;
 ---
 
 <div class="hero">
-	<MediaImage alt={title} layout="full-width" path={path} priority width={1600} />
+	<div class="hero-media media-frame">
+		<MediaImage alt={title} layout="full-width" path={path} priority width={1600} />
+	</div>
 	<div class="hero-overlay">
 		<div class="content-wide">
 			<SectionDetailHeader

@@ -74,9 +74,26 @@
 		inset: 0;
 		z-index: -1;
 		content: '';
-		background-color: --alpha(--value(--color-*) / calc(--modifier(integer, --default(20)) * 1%));
+		background-color: --value(--color-*);
+		border-radius: inherit;
+		opacity: var(--pattern-maze-opacity, 0.2);
 		mask: url('/patterns/maze.svg') 0 0 / var(--pattern-maze-size, 60px 60px) repeat;
 	}
+}
+
+/* Drops the tile where chrome floats over an image and the pattern would read as noise */
+@utility pattern-maze-clear {
+	&::before {
+		content: none;
+	}
+}
+
+/* The placeholder behind a media image; whatever bounds the image carries it */
+@utility media-frame {
+	@apply pattern-maze-surface-300;
+
+	--pattern-maze-opacity: 0.35;
+	--pattern-maze-size: 40px 40px;
 }
 
 @utility entry-grid {

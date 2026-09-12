@@ -46,10 +46,9 @@ const yearText = year && labels.length > 0 ? `, ${year}` : (year ?? '');
 
 <li class:list={['selection-item', hasProse && 'selection-prose']} id={anchor}>
 	{imagePath ? (
-		<figure class="selection-thumb">
+		<figure class="selection-thumb media-frame">
 			<MediaImage
 				alt={title}
-				class="rounded-sm"
 				path={imagePath}
 				sizes="(width >= 64rem) 360px, (width >= 40rem) 40vw, 100vw"
 				width={360}

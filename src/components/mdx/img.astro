@@ -28,9 +28,13 @@ const imageProps = isFeed
 
 {caption ? (
 	<figure class="img-figure">
-		<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
+		<div class="media-frame overflow-hidden rounded">
+			<MediaImage alt={alt} class="block" path={src} {...imageProps} />
+		</div>
 		<figcaption class="img-caption" set:html={caption} />
 	</figure>
 ) : (
-	<MediaImage alt={alt} class="block rounded" path={src} {...imageProps} />
+	<div class="media-frame overflow-hidden rounded">
+		<MediaImage alt={alt} class="block" path={src} {...imageProps} />
+	</div>
 )}

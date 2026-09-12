@@ -185,7 +185,7 @@
 	}
 }
 
-.prose-x > :where(img, .img-figure, .img-group, .embed-frame) {
+.prose-x > :where(img, .media-frame, .img-figure, .img-group, .embed-frame) {
 	margin-block: var(--prose-gap);
 }
 

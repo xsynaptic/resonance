@@ -156,6 +156,7 @@ const strings = {
 	'section.related.carouselLabel': 'related releases',
 	'section.related.heading': 'Related',
 	'section.selection.links': 'Links:',
+	'section.series.carouselLabel': 'series entries',
 	'section.tracklist.heading': 'Tracklist',
 	'site.pageTitle': '{title} · {siteTitle}',
 	'site.skipLink': 'Skip to content',

@@ -10,6 +10,7 @@ import Button from '#components/parts/button.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionRelated from '#components/sections/section-related.astro';
+import SectionSeries from '#components/sections/section-series.astro';
 import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getReviewSchemas } from '#lib/collections/reviews/reviews-schema.ts';
@@ -128,6 +129,7 @@ const schemas = getReviewSchemas(entry, {
 			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 		</SectionCoda>
+		<SectionSeries id={entry.id} />
 	</Fragment>
 	<SectionRelated items={relatedItems} slot="related" />
 	<EntryComments entry={entry} slot="comments" />

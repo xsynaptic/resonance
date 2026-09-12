@@ -6,6 +6,7 @@ import { render } from 'astro:content';
 import EntryComments from '#components/comments/entry-comments.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
+import SectionSeries from '#components/sections/section-series.astro';
 import ContentDetail from '#layouts/content-detail.astro';
 import { getPostSchemas } from '#lib/collections/posts/posts-schema.ts';
 import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
@@ -67,6 +68,7 @@ const schemas = getPostSchemas(entry, {
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 		</SectionCoda>
+		<SectionSeries id={entry.id} />
 	</Fragment>
 	<EntryComments entry={entry} slot="comments" />
 </ContentDetail>

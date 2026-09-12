@@ -1,0 +1,47 @@
+---
+import { render } from 'astro:content';
+
+import Anchor from '#components/parts/anchor.astro';
+import Carousel from '#components/parts/carousel.astro';
+import EntryCardItem from '#components/parts/entry-card-item.astro';
+import { getSeriesMembership } from '#lib/collections/terms/series-membership.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { getContentPath } from '#lib/utils/routing.ts';
+
+interface Props {
+	id: string;
+}
+
+const { id } = Astro.props;
+
+const seriesMembership = await getSeriesMembership(id);
+
+const seriesItems = seriesMembership
+	.map(({ items, term }) => ({ items: items.filter((item) => item.id !== id), term }))
+	.filter(({ items }) => items.length > 0);
+---
+
+{seriesItems.map(async ({ items, term }) => {
+	const { Content } = await render(term);
+
+	return (
+		<section class="mt-16" data-nosnippet data-pagefind-ignore>
+			<h2 class="heading-section mb-4">
+				<span class="font-semibold text-accent-700">{t('collection.series.title')}:</span>{' '}
+				<Anchor anchorColor="accent" href={getContentPath('series', term.id)}>
+					{term.data.title}
+				</Anchor>
+			</h2>
+			{term.body?.trim() ? (
+				<div class="prose-x mb-4 content-measure">
+					<Content />
+				</div>
+			) : undefined}
+			<Carousel label={t('section.series.carouselLabel')}>
+				{items.map((item) => (
+					<EntryCardItem item={item} />
+				))}
+			</Carousel>
+		</section>
+	);
+})}

@@ -29,6 +29,12 @@
 	--anchor-hover: var(--color-highlight-400);
 }
 
+/* A link inside a heading, which carries the heading's own lime */
+.anchor-accent {
+	--anchor-color: var(--color-accent-400);
+	--anchor-hover: var(--color-accent-300);
+}
+
 /* Footer links, a step dimmer than body links */
 .anchor-muted {
 	--anchor-color: var(--color-ink-400);

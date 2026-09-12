@@ -1,17 +1,18 @@
-/* An <Img> with a caption; the bare form stays a lone image and takes none of this */
 .img-figure {
-	margin: 0;
+	margin-inline: 0;
+}
+
+.img-group .img-figure {
+	margin-block: 0;
 }
 
 .img-caption {
-	margin-top: calc(var(--spacing) * 1.5);
 	font-size: var(--text-sm);
 	font-style: italic;
-	line-height: 1.5;
+	line-height: calc(var(--spacing) * 7);
 	color: var(--color-ink-600);
 }
 
-/* The caption is a single line of prose; its own paragraph must not add to the figure's foot */
 .img-caption > :last-child {
 	margin-bottom: 0;
 }

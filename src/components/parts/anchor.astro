@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'astro/types';
 
 import { renderSlot } from '#lib/utils/astro.ts';
 
-type AnchorColor = 'highlight' | 'muted';
+type AnchorColor = 'accent' | 'highlight' | 'muted';
 
 interface Props extends HTMLAttributes<'a'> {
 	anchorColor?: AnchorColor | undefined;

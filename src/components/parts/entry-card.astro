@@ -39,9 +39,9 @@ const work = matchReleaseTitle(title, releaseTitle);
 			<MediaImage
 				alt=""
 				class="h-full w-full object-cover"
-				layout="none"
 				path={image}
-				width={640}
+				sizes="auto, (min-width: 80rem) 288px, (min-width: 40rem) 50vw, 100vw"
+				width={300}
 				{...(priority ? { priority: true } : {})}
 			/>
 		</a>

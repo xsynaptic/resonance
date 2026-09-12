@@ -1,5 +1,5 @@
 /* A component rule beats prose whatever the import order */
-@layer theme, base, prose, components, utilities;
+@layer astro.images, theme, base, prose, components, utilities;
 
 @import 'tailwindcss' source(none);
 

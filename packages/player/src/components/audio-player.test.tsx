@@ -55,6 +55,8 @@ const labels = {
 	unmute: 'Unmute',
 	volume: 'Volume',
 	waveformPanel: 'Waveform detail',
+	zoomIn: 'Zoom in',
+	zoomOut: 'Zoom out',
 };
 
 function makeItem(id: string, extra: Partial<QueueItem> = {}): QueueItem {

@@ -53,6 +53,7 @@ export interface PlayerActions {
 	toggleShuffle: () => void;
 	toggleTimeMode: () => void;
 	toggleTray: () => void;
+	zoomPanel: (steps: number) => void;
 }
 
 export interface PlayerState {
@@ -63,6 +64,8 @@ export interface PlayerState {
 	isPanelOpen: boolean;
 	isShuffling: boolean;
 	isTrayOpen: boolean;
+	// How many CSS pixels of the panel one second of audio takes
+	panelPxPerSecond: number;
 	// The last terminal failure, cleared as a new load starts
 	playbackError: PlaybackError | undefined;
 	// A permutation of queue indices; reshuffled when shuffle toggles or items are appended

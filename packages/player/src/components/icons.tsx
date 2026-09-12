@@ -129,6 +129,22 @@ export function WaveformIcon() {
 	);
 }
 
+export function ZoomInIcon() {
+	return (
+		<Icon height="16" width="16">
+			<path d="M12 6v12M6 12h12" />
+		</Icon>
+	);
+}
+
+export function ZoomOutIcon() {
+	return (
+		<Icon height="16" width="16">
+			<path d="M6 12h12" />
+		</Icon>
+	);
+}
+
 function Icon({ children, ...props }: SVGProps<SVGSVGElement>) {
 	return (
 		<svg

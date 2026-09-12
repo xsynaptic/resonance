@@ -146,6 +146,8 @@ const playerLabels: PlayerLabels = {
 	unmute: t('player.unmute'),
 	volume: t('player.volume'),
 	waveformPanel: t('player.waveformPanel'),
+	zoomIn: t('player.zoomIn'),
+	zoomOut: t('player.zoomOut'),
 };
 
 export async function getInventoryFixtures() {

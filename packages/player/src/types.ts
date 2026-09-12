@@ -31,6 +31,8 @@ export interface PlayerLabels {
 	unmute: string;
 	volume: string;
 	waveformPanel: string;
+	zoomIn: string;
+	zoomOut: string;
 }
 
 // `capped` is terminal like `error`, but nothing failed: the host's resolver declined to serve the track

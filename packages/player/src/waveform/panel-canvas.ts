@@ -4,9 +4,6 @@ import type { ScrollTheme } from '#waveform/waveform-scroll.ts';
 
 import { createScrollPainter } from '#waveform/waveform-scroll.ts';
 
-// A fixed density rather than a fixed span: below about 70 CSS px per second the envelope collapses into a band
-export const cssPerSecond = 70;
-
 // How much of the panel the arriving boundary must still cross before the parked label starts to go
 const cueFadeStart = 0.25;
 
@@ -24,6 +21,7 @@ interface PanelCanvasOptions {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
 	cuePoints: ReadonlyArray<QueueCuePoint>;
+	pxPerSecond: number;
 	// The archive lands after the first frames, so the painter reads it rather than holding it
 	readArchive: () => undefined | WaveformArchive;
 }
@@ -33,6 +31,7 @@ export function createPanelCanvas({
 	canvas,
 	context,
 	cuePoints,
+	pxPerSecond,
 	readArchive,
 }: PanelCanvasOptions): PanelCanvas {
 	const painter = createScrollPainter(context, readScrollTheme(canvas));
@@ -61,7 +60,7 @@ export function createPanelCanvas({
 
 			const cssWidth = Math.max(1, canvas.clientWidth);
 
-			windowSeconds = cssWidth / cssPerSecond;
+			windowSeconds = cssWidth / pxPerSecond;
 			pixelsPerSecond = width / windowSeconds;
 			fadeFromPx = cssWidth * cueFadeStart;
 			paintedWindowStartSeconds = NaN;

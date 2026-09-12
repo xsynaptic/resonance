@@ -8,7 +8,8 @@ import type { WaveformArchive } from '#waveform/waveform-archive.ts';
 
 import { usePlayer, usePlayerStoreApi, useSubscribeTime } from '#store/context.tsx';
 import { createCueRider, toCueSlot } from '#waveform/cue-rider.ts';
-import { createPanelCanvas, cssPerSecond } from '#waveform/panel-canvas.ts';
+import { createGhostMarker } from '#waveform/ghost-marker.ts';
+import { createPanelCanvas } from '#waveform/panel-canvas.ts';
 import { createPanelDrag } from '#waveform/panel-drag.ts';
 import { createScrollClock } from '#waveform/scroll-clock.ts';
 import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
@@ -27,6 +28,7 @@ interface PanelParts {
 	arriving: CueSlot;
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
+	ghost: HTMLElement;
 	panel: HTMLElement;
 	parked: CueSlot;
 }
@@ -39,6 +41,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 	const current = usePlayer((state) =>
 		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex],
 	);
+	const pxPerSecond = usePlayer((state) => state.panelPxPerSecond);
 	const resolveArchive = usePlayer((state) => state.urls?.archive);
 	const store = usePlayerStoreApi();
 	const subscribeTime = useSubscribeTime();
@@ -57,7 +60,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 		});
 		if (!parts) return;
 
-		const { arriving, canvas, context, panel, parked } = parts;
+		const { arriving, canvas, context, ghost, panel, parked } = parts;
 
 		let archive: undefined | WaveformArchive;
 		let isCancelled = false;
@@ -72,14 +75,16 @@ export function useScrollPanel(refs: PanelRefs): void {
 			canvas,
 			context,
 			cuePoints,
+			pxPerSecond,
 			readArchive: () => archive,
 		});
 		const clock = createScrollClock(subscribeTime, store.getState().getCurrentTime);
+		const marker = createGhostMarker(ghost, pxPerSecond);
 		const rider = createCueRider({
 			arriving,
 			cuePoints,
 			parked,
-			pxPerSecond: cssPerSecond,
+			pxPerSecond,
 			trackCount,
 		});
 		const drag = createPanelDrag({
@@ -91,7 +96,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 				state.seek(seconds + state.getOutputDelay());
 			},
 			panel,
-			pxPerSecond: cssPerSecond,
+			pxPerSecond,
 		});
 
 		let frame = 0;
@@ -107,11 +112,13 @@ export function useScrollPanel(refs: PanelRefs): void {
 				0,
 				clock.read(frameMs, state.status === 'playing') - state.getOutputDelay(),
 			);
-			const currentTimeSeconds = drag.targetSeconds() ?? clockSeconds;
+			const targetSeconds = drag.targetSeconds();
+			const currentTimeSeconds = targetSeconds ?? clockSeconds;
 			const durationSeconds = state.durationSeconds ?? archiveDurationSeconds(archive);
 			const windowStartSeconds = currentTimeSeconds - surface.windowSeconds() / 2;
 
 			drag.showing(currentTimeSeconds, durationSeconds);
+			marker.place(targetSeconds === undefined ? undefined : clockSeconds - targetSeconds);
 
 			surface.scroll(windowStartSeconds, durationSeconds);
 			rider.travel(windowStartSeconds, surface.fadeFromPx());
@@ -139,6 +146,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 		cuePoints,
 		panelRef,
 		parkedRef,
+		pxPerSecond,
 		resolveArchive,
 		store,
 		subscribeTime,
@@ -155,16 +163,19 @@ function archiveDurationSeconds(archive: undefined | WaveformArchive): number | 
 	return archive.pairsTotal / archive.pairsPerSecond;
 }
 
-// One guard, so the effect does not open on five null checks
+// One guard, so the effect does not open on a column of null checks
 function toPanelParts(refs: PanelRefs): PanelParts | undefined {
 	const canvas = refs.canvas.current;
-	const context = canvas?.getContext('2d');
 	const panel = refs.panel.current;
+	if (!canvas || !panel) return undefined;
+
+	const context = canvas.getContext('2d');
+	const ghost = panel.querySelector<HTMLElement>('.player-panel-ghost');
 	const parked = toCueSlot(refs.parked.current);
 	const arriving = toCueSlot(refs.arriving.current);
-	if (!canvas || !context || !panel || !parked || !arriving) return undefined;
+	if (!context || !ghost || !parked || !arriving) return undefined;
 
-	return { arriving, canvas, context, panel, parked };
+	return { arriving, canvas, context, ghost, panel, parked };
 }
 
 function zeroVersion(): number {

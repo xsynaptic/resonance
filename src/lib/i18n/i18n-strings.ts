@@ -147,6 +147,8 @@ const strings = {
 	'player.unmute': 'Unmute',
 	'player.volume': 'Volume',
 	'player.waveformPanel': 'Waveform detail',
+	'player.zoomIn': 'Zoom in',
+	'player.zoomOut': 'Zoom out',
 	'search.input.placeholder': 'Search the site…',
 	'search.shortcut.description': 'open search',
 	'search.toggle.label': 'Search',

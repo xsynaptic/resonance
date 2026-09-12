@@ -10,6 +10,7 @@ import { createPlayerPersistence } from '#store/player-persistence.ts';
 import { createPreferenceActions } from '#store/preference-actions.ts';
 import { createQueueActions } from '#store/queue-actions.ts';
 import { createTransportActions } from '#store/transport-actions.ts';
+import { panelZoomDefault } from '#waveform/panel-zoom.ts';
 
 export type { PlayerStore, PlayerStoreOptions } from '#store/player-types.ts';
 
@@ -20,6 +21,7 @@ const initialPlayerState: PlayerState = {
 	isPanelOpen: false,
 	isShuffling: false,
 	isTrayOpen: false,
+	panelPxPerSecond: panelZoomDefault,
 	playbackError: undefined,
 	playOrder: [],
 	queue: [],

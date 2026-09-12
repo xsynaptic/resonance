@@ -32,6 +32,7 @@ export function createPanelDrag({
 
 	function onPointerDown(event: PointerEvent): void {
 		if (event.button !== 0 || !canDrag()) return;
+		if (event.target instanceof Element && event.target.closest('[data-panel-control]')) return;
 
 		pointerId = event.pointerId;
 		dragFromX = event.clientX;

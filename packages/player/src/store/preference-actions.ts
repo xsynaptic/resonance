@@ -4,6 +4,8 @@ import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerPersistence } from '#store/player-persistence.ts';
 import type { PlayerActions, PlayerStore } from '#store/player-types.ts';
 
+import { stepPanelZoom } from '#waveform/panel-zoom.ts';
+
 type PreferenceActions = Pick<
 	PlayerActions,
 	| 'configure'
@@ -13,6 +15,7 @@ type PreferenceActions = Pick<
 	| 'togglePanel'
 	| 'toggleTimeMode'
 	| 'toggleTray'
+	| 'zoomPanel'
 >;
 
 export function createPreferenceActions({
@@ -80,6 +83,10 @@ export function createPreferenceActions({
 
 		toggleTray: () => {
 			set((state) => ({ isTrayOpen: !state.isTrayOpen }));
+		},
+
+		zoomPanel: (steps) => {
+			set((state) => ({ panelPxPerSecond: stepPanelZoom(state.panelPxPerSecond, steps) }));
 		},
 	};
 }

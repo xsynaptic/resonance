@@ -720,6 +720,29 @@
 	translate: -50%;
 }
 
+.player-panel-ghost {
+	position: absolute;
+	inset-block: 0;
+	left: 50%;
+	width: 1px;
+	margin-left: -0.5px;
+	background-color: var(--player-panel-now-soft);
+}
+
+.player-panel-ghost[hidden] {
+	display: none;
+}
+
+.player-panel-zoom {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	gap: 0.125rem;
+	padding: 0.25rem;
+	cursor: default;
+}
+
 .player-panel-readout {
 	position: absolute;
 	right: 0;

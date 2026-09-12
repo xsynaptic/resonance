@@ -182,8 +182,12 @@
 	}
 }
 
-.prose-x > :where(img, .img-group, .embed-frame) {
+.prose-x > :where(img, .img-figure, .img-group, .embed-frame) {
 	margin-block: calc(var(--spacing) * 6);
+}
+
+.prose-x > :where(.img-figure) {
+	margin-bottom: calc(var(--spacing) * 8);
 }
 
 /* Must stay last: these tie with the element rules at (0,1,0) and win only by source order */

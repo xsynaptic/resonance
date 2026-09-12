@@ -64,6 +64,7 @@ export default defineConfig({
 		},
 	],
 	image: {
+		breakpoints: [450, 600, 900, 1200, 1800],
 		layout: 'constrained',
 		responsiveStyles: true,
 	},

@@ -1,6 +1,6 @@
 @theme {
 	--spacing-content-wide: 80rem;
-	--spacing-prose: 50rem;
+	--spacing-prose: 56.25rem;
 }
 
 /* Stacking order; the hero band sits under the header so the chrome can overlap the image */

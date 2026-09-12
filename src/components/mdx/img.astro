@@ -17,7 +17,13 @@ const caption = await renderSlot(Astro.slots);
 // `none` emits a plain img with width and height, which is all a reader can lay out
 const imageProps = isFeed
 	? ({ layout: 'none', width: 900 } as const)
-	: ({ layout: 'constrained', sizes: '(min-width: 48rem) 48rem, 100vw', width: 1200 } as const);
+	: ({
+			layout: 'constrained',
+			// The column is min(900px, 100vw - 2 * gutter); the gutter steps at 30rem and 40rem
+			sizes:
+				'(min-width: 61.25rem) 900px, (min-width: 40rem) calc(100vw - 5rem), (min-width: 30rem) calc(100vw - 3rem), calc(100vw - 2rem)',
+			width: 900,
+		} as const);
 ---
 
 {caption ? (

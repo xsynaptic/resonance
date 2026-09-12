@@ -61,4 +61,4 @@ The extractor that generated the collections is archived in `backups/wp-extract-
 
 ## Quality gate
 
-`pnpm check` and `pnpm fix` are the gate; `package.json` lists what each one runs. `check` is green end to end; anything it reports is yours. `pnpm install` syncs the lefthook `pre-push` hook, which runs `pnpm check` before every push.
+`pnpm check` and `pnpm fix` are the gate; both call into `lefthook.yml`, which lists what each one runs and in what order. `check` is green end to end; anything it reports is yours. `pnpm install` syncs the lefthook `pre-push` hook, which runs the same `check` group before every push.

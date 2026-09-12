@@ -26,8 +26,8 @@
 		"stats-pull": "pnpm -F @xsynaptic/scripts stats-pull",
 		"stats-test": "python3 deploy/stats/test-download-stats.py",
 		"lqip": "pnpm -F @xsynaptic/scripts lqip",
-		"check": "stylelint \"{src,packages/player}/**/*.{css,astro}\" --cache --cache-location node_modules/.cache/stylelint/ && prettier --check . --cache --log-level warn && eslint --cache --cache-location node_modules/.cache/eslint/ && astro check && wrangler types --check && tsc --noEmit -p worker && vitest run && knip",
-		"fix": "stylelint \"{src,packages/player}/**/*.{css,astro}\" --fix --cache --cache-location node_modules/.cache/stylelint/ && prettier --write . --cache --list-different && eslint --fix --cache --cache-location node_modules/.cache/eslint/ && astro check && wrangler types && tsc --noEmit -p worker && knip",
+		"check": "lefthook run check",
+		"fix": "lefthook run fix",
 		"content-schemas": "astro sync && pnpm -F @xsynaptic/scripts content-schemas",
 		"generate-redirects": "astro sync && pnpm -F @xsynaptic/scripts generate-redirects",
 		"og-image": "pnpm -F @xsynaptic/scripts og-image",
@@ -76,7 +76,7 @@
 		"happy-dom": "^20.14.3",
 		"knip": "^6.35.1",
 		"lefthook": "^2.1.12",
-		"markdown-it": "^15.0.1",
+		"markdown-it": "^15.0.2",
 		"prettier": "^3.9.6",
 		"prettier-plugin-astro": "^1.0.0",
 		"prettier-plugin-tailwindcss": "^0.8.1",
@@ -89,9 +89,9 @@
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.11",
 		"wrangler": "^4.131.0",
-		"zod": "^4.6.1"
+		"zod": "^4.6.2"
 	},
-	"packageManager": "pnpm@11.25.0",
+	"packageManager": "pnpm@12.3.4",
 	"engines": {
 		"node": "^24.19.0"
 	}

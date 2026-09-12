@@ -1,5 +1,59 @@
 # Git hooks; `pnpm install` syncs them into .git/hooks via lefthook's postinstall
 pre-push:
-  commands:
-    quality-gate:
-      run: pnpm check
+  jobs:
+    - name: quality-gate
+      run: lefthook run check
+
+check:
+  piped: true
+  jobs:
+    - name: astro
+      run: astro check
+    - name: verify
+      group:
+        parallel: true
+        jobs:
+          - name: css
+            run: stylelint "{src,packages/player}/**/*.{css,astro}" --cache --cache-location node_modules/.cache/stylelint/
+          - name: format
+            run: prettier --check . --cache --log-level warn
+          - name: js
+            run: eslint --cache --cache-location node_modules/.cache/eslint/
+          - name: worker
+            group:
+              piped: true
+              jobs:
+                - name: types
+                  run: wrangler types --check
+                - name: tsc
+                  run: tsc --noEmit -p worker
+          - name: unused
+            run: knip
+          - name: test
+            run: vitest run
+
+fix:
+  piped: true
+  jobs:
+    - name: autofix
+      group:
+        piped: true
+        jobs:
+          - name: css
+            run: stylelint "{src,packages/player}/**/*.{css,astro}" --fix --cache --cache-location node_modules/.cache/stylelint/
+          - name: format
+            run: prettier --write . --cache --list-different
+          - name: js
+            run: eslint --fix --cache --cache-location node_modules/.cache/eslint/
+    - name: astro
+      run: astro check
+    - name: worker
+      group:
+        piped: true
+        jobs:
+          - name: types
+            run: wrangler types
+          - name: tsc
+            run: tsc --noEmit -p worker
+    - name: unused
+      run: knip

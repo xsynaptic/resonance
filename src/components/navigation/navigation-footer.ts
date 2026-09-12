@@ -9,6 +9,5 @@ export const navigationFooterItems = [
 	{ title: 'Labels', url: getCollectionPath('labels') },
 	{ title: 'Series', url: getCollectionPath('series') },
 	{ title: 'Eras', url: getCollectionPath('eras') },
-	{ title: 'Formats', url: getCollectionPath('formats') },
 	{ title: 'Themes', url: getCollectionPath('themes') },
 ] satisfies Array<NavigationItem>;

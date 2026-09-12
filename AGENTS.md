@@ -51,7 +51,7 @@ The extractor that generated the collections is archived in `backups/wp-extract-
 - Schemas import `z` from `'zod'`, **not** `'astro:content'` (deprecated in Astro 7).
 - Adding a component to `autoImport()` in the Astro config means adding its props to `MDXProvidedComponents` in `packages/content/global.d.ts` too.
 
-**Selections** (the curated-roundup Format) are a `selections` array in a Post's or Page's frontmatter, rendered by the `<Selections>` MDX tag: data in frontmatter, presentation on the tag. A selection's `entryId` names a mix, review, or post by bare slug and fills in every field the selection leaves unset, the review's body included, so a complete row can be one line and inline fields always win. See `src/lib/collections/selections/selections-resolve.ts`.
+**Selections** (a curated, ranked roundup) are a `selections` array in a Post's or Page's frontmatter, rendered by the `<Selections>` MDX tag: data in frontmatter, presentation on the tag. A selection's `entryId` names a mix, review, or post by bare slug and fills in every field the selection leaves unset, the review's body included, so a complete row can be one line and inline fields always win. See `src/lib/collections/selections/selections-resolve.ts`.
 
 **Artists and labels are Credits** (`src/lib/schemas/credits.ts`), inverting the usual convention: a bare `string` is free text that links only when its slugified name matches a cataloged term, while `{ id, name? }` must resolve and only `console.warn`s when it does not. Every other vocabulary uses Astro `reference()`.
 

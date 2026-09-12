@@ -28,7 +28,6 @@ import { reportValidationResult } from '#validate-content/validation-result.ts';
 const contentCollections = [
 	'artists',
 	'eras',
-	'formats',
 	'labels',
 	'mixes',
 	'pages',

@@ -3,7 +3,6 @@ const rootCollections = new Set(['pages', 'posts']);
 export type IndexedCollection =
 	| 'artists'
 	| 'eras'
-	| 'formats'
 	| 'labels'
 	| 'mixes'
 	| 'posts'
@@ -13,11 +12,8 @@ export type IndexedCollection =
 	| 'styles'
 	| 'themes';
 
-// Posts render at the root, so their index cannot sit at /posts/
-const collectionIndexPaths: Partial<Record<IndexedCollection, string>> = { posts: 'blog' };
-
 export function getCollectionPath(collection: IndexedCollection): string {
-	return `/${collectionIndexPaths[collection] ?? collection}/`;
+	return `/${collection}/`;
 }
 
 export function getContentPath(collection: string, slug: string): string {

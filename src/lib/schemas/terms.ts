@@ -32,8 +32,6 @@ export const labelSchema = z
 	.object({ ...termBaseSchema, parent: reference('labels').optional() })
 	.strict();
 
-export const formatSchema = z.object({ ...termBaseSchema }).strict();
-
 export const themeSchema = z.object({ ...termBaseSchema }).strict();
 
 export const regionSchema = z

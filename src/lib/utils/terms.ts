@@ -73,7 +73,7 @@ export async function resolveCredits(
 	});
 }
 
-// Resolve a strict reference array (styles, regions, eras, formats, themes) into linkable pairs
+// Resolve a strict reference array (styles, regions, eras, themes) into linkable pairs
 export async function resolveTermLinks(
 	collection: TitledCollectionKey,
 	references: Array<ReferenceDataEntry<TitledCollectionKey>> | undefined,

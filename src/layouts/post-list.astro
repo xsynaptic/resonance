@@ -11,7 +11,6 @@ import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro'
 import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
-import { resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	page: Page<CollectionEntry<'posts'>>;
@@ -22,12 +21,9 @@ const { page, title } = Astro.props;
 
 const posts = await Promise.all(
 	page.data.map(async (entry) => {
-		const [{ Content }, formats] = await Promise.all([
-			render(entry),
-			resolveTermLinks('formats', entry.data.format ? [entry.data.format] : undefined),
-		]);
+		const { Content } = await render(entry);
 
-		return { Content, entry, format: formats.at(0) };
+		return { Content, entry };
 	}),
 );
 
@@ -45,12 +41,11 @@ const schemas =
 	title={title}
 >
 	<PageTitle title={title} />
-	{posts.map(({ Content, entry, format }) => (
+	{posts.map(({ Content, entry }) => (
 		<SectionPostExcerpt
 			date={entry.data.dateCreated}
 			href={getContentPath('posts', entry.id)}
 			title={entry.data.title}
-			{...(format ? { format } : {})}
 		>
 			<Content />
 		</SectionPostExcerpt>

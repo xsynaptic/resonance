@@ -4,13 +4,13 @@ import { isIndexableUrlPath } from '#sitemap.ts';
 
 describe('isIndexableUrlPath', () => {
 	test('indexes detail and list pages', () => {
-		for (const pathname of ['/', '/mixes/', '/blog/', '/artists/dj-basilisk/', '/a-post/']) {
+		for (const pathname of ['/', '/mixes/', '/posts/', '/artists/dj-basilisk/', '/a-post/']) {
 			expect(isIndexableUrlPath(pathname)).toBe(true);
 		}
 	});
 
 	test('drops paginated routes, with or without a trailing slash', () => {
-		for (const pathname of ['/blog/7/', '/blog/7', '/artists/dj-basilisk/2/', '/mixes/12/']) {
+		for (const pathname of ['/posts/7/', '/posts/7', '/artists/dj-basilisk/2/', '/mixes/12/']) {
 			expect(isIndexableUrlPath(pathname)).toBe(false);
 		}
 	});

@@ -126,9 +126,8 @@ export async function getInventoryFixtures() {
 
 	const mix = await sampleMix();
 
-	const [vocabulary, formats, labels, styles, themes] = await Promise.all([
+	const [vocabulary, labels, styles, themes] = await Promise.all([
 		sampleTerms('artists'),
-		sampleTerms('formats', 1),
 		sampleTerms('labels', 4),
 		sampleTerms('styles', 5),
 		sampleTerms('themes', 4),
@@ -139,7 +138,6 @@ export async function getInventoryFixtures() {
 		card: cardItem([...mixItems, ...reviewItems]),
 		cardWork: cardWorkItem(reviewItems),
 		excerpt: await sampleExcerpt(),
-		formats,
 		groupedTracks,
 		heroPath: await sampleHeroPath(),
 		iconIds,

@@ -4,11 +4,10 @@
 const collectionLabels = {
 	artists: 'Artist',
 	eras: 'Era',
-	formats: 'Format',
 	labels: 'Label',
 	mixes: 'Mix',
 	pages: undefined,
-	posts: 'Blog',
+	posts: 'Posts',
 	regions: 'Region',
 	reviews: 'Review',
 	series: 'Series',

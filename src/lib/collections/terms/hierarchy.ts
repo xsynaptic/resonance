@@ -8,7 +8,7 @@ import { createHierarchy } from '#lib/utils/hierarchy.ts';
 import { memoizeByKey } from '#lib/utils/memoize.ts';
 
 // Term collections whose terms nest via a `parent` reference
-// Flat ones (artists, formats, themes, series) are absent
+// Flat ones (artists, themes, series) are absent
 export type HierarchicalCollection = 'eras' | 'labels' | 'regions' | 'styles';
 
 const hierarchicalCollections = new Set<CollectionKey>(['eras', 'labels', 'regions', 'styles']);

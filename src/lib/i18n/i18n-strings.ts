@@ -15,14 +15,12 @@ const strings = {
 	'carousel.previous': 'Previous {label}',
 	'collection.artists.title': 'Artists',
 	'collection.eras.title': 'Eras',
-	'collection.formats.label': 'Format',
-	'collection.formats.title': 'Formats',
 	'collection.labels.title': 'Labels',
 	'collection.mixes.description':
 		'Studio mixes and live recordings under various aliases, primarily DJ Basilisk (psytrance, techno, progressive house, downtempo, and more) and Synaptic FX (more contemporary house, nu-disco, and a little trance).',
 	'collection.mixes.label': 'Mix',
 	'collection.mixes.title': 'Mixes',
-	'collection.posts.title': 'Blog',
+	'collection.posts.title': 'Posts',
 	'collection.regions.title': 'Regions',
 	'collection.reviews.description':
 		'Reviews authored as long ago as the early 2000s, with many more published from 2019 onward. My original style was to unpack a release in great detail; more recently I am mainly interested in introducing the releases and tracks that are most worth your time, so the format has become far more focused and precise. Browse around, or dive into individual artists, labels, and styles, where you will also find connections to the many mixes hosted on this site.',

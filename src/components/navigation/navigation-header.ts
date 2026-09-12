@@ -5,18 +5,7 @@ import { getCollectionPath, getContentPath } from '#lib/utils/routing.ts';
 export const navigationHeaderItems = [
 	{ title: 'Mixes', url: getCollectionPath('mixes') },
 	{ title: 'Reviews', url: getCollectionPath('reviews') },
-	{
-		children: [
-			{ title: 'Selections', url: getContentPath('formats', 'selections') },
-			{ title: 'Album Artwork', url: getContentPath('formats', 'album-artwork') },
-			{ title: 'Notes', url: getContentPath('formats', 'notes') },
-			{ title: 'Quotations', url: getContentPath('formats', 'quotations') },
-			{ title: 'Tracks', url: getContentPath('formats', 'tracks') },
-			{ title: 'Articles', url: getContentPath('formats', 'articles') },
-		],
-		title: 'Blog',
-		url: getCollectionPath('posts'),
-	},
+	{ title: 'Posts', url: getCollectionPath('posts') },
 	{
 		children: [
 			{ rel: 'me', title: 'Facebook', url: 'https://www.facebook.com/dj.basilisk' },

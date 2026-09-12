@@ -1,4 +1,4 @@
-export const blogPageSize = 10;
+export const postPageSize = 10;
 
 export const contentCollectionsPath = './packages/content/collections';
 

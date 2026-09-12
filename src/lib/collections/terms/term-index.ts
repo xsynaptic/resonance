@@ -88,13 +88,6 @@ function dedupeById(items: Array<ContentCatalogItem>): Array<ContentCatalogItem>
 	return deduped;
 }
 
-// Formats are a post-only vocabulary; a post carries at most one format
-function formatReferences(entry: MemberEntry): Array<{ id: string }> {
-	if (entry.collection !== 'posts' || !entry.data.format) return [];
-
-	return [entry.data.format];
-}
-
 // One pass shared by every index, so an entry is paired with its catalog item once per build
 function getMembers(): Promise<Array<Member>> {
 	if (!membersPromise) membersPromise = buildMembers();
@@ -163,8 +156,6 @@ export const getArtistsIndex = makeTermIndex(artistReferences);
 
 export const getErasIndex = makeTermIndex((entry) => entry.data.eras, rollUp('eras'));
 
-export const getFormatsIndex = makeTermIndex(formatReferences);
-
 export const getLabelsIndex = makeTermIndex(
 	(entry) => labelIds(entry.data.labels).map((id) => ({ id })),
 	rollUp('labels'),
@@ -180,7 +171,6 @@ export const getThemesIndex = makeTermIndex((entry) => entry.data.themes);
 export const termIndexes = {
 	artists: getArtistsIndex,
 	eras: getErasIndex,
-	formats: getFormatsIndex,
 	labels: getLabelsIndex,
 	regions: getRegionsIndex,
 	series: getSeriesIndex,

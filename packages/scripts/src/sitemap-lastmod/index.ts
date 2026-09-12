@@ -11,7 +11,6 @@ import { getGitFileDates } from '#sitemap-lastmod/git-file-dates.ts';
 const datedCollections = [
 	'artists',
 	'eras',
-	'formats',
 	'labels',
 	'mixes',
 	'pages',

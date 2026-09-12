@@ -52,7 +52,6 @@ const {
 	card,
 	cardWork,
 	excerpt,
-	formats,
 	groupedTracks,
 	heroPath,
 	iconIds,
@@ -435,7 +434,7 @@ const inlineSelection: SelectionValue = {
 	>
 		<Specimen
 			name="EntryCard"
-			note="Always square, so a mixed-Format grid lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title."
+			note="Always square, so a grid mixing collections lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title."
 			source="src/components/parts/entry-card.astro"
 		>
 			{card ? (
@@ -483,12 +482,7 @@ const inlineSelection: SelectionValue = {
 			source="src/components/sections/section-post-excerpt.astro"
 		>
 			{excerpt ? (
-				<SectionPostExcerpt
-					date={excerpt.date}
-					href={excerpt.href}
-					title={excerpt.title}
-					{...(formats[0] ? { format: formats[0] } : {})}
-				>
+				<SectionPostExcerpt date={excerpt.date} href={excerpt.href} title={excerpt.title}>
 					<excerpt.Content />
 				</SectionPostExcerpt>
 			) : undefined}
@@ -567,7 +561,6 @@ const inlineSelection: SelectionValue = {
 			source="src/components/sections/section-coda.astro"
 		>
 			<SectionCoda>
-				<TermLinks heading="Format" terms={formats} />
 				<TermLinks heading="Themes" terms={themes} />
 				<TermLinks heading="Labels" terms={labels} />
 			</SectionCoda>
@@ -583,6 +576,13 @@ const inlineSelection: SelectionValue = {
 			source="src/components/parts/media-image.astro"
 		>
 			{heroPath ? <MediaImage alt="" path={heroPath} width={400} /> : undefined}
+		</Specimen>
+		<Specimen
+			name="media-frame"
+			note="The placeholder every framed image sits on, shown empty; in use the LQIP covers it until the image decodes."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<div class="media-frame aspect-square w-40 rounded-xs bg-surface-900"></div>
 		</Specimen>
 		<Specimen
 			name="MediaFeatured"
@@ -897,10 +897,10 @@ const inlineSelection: SelectionValue = {
 	>
 		<Specimen
 			name="pattern-maze-*"
-			note="The value names the colour and the modifier its opacity, defaulting to 20%; --pattern-maze-size sets the tile."
+			note="The value names the colour; --pattern-maze-opacity and --pattern-maze-size are the knobs, defaulting to 0.2 and 60px."
 			source="src/styles/main/parts/utilities.css"
 		>
-			<div class="pattern-maze-surface-300/35 rounded-md bg-surface-800 p-5">
+			<div class="pattern-maze-surface-300 rounded-md bg-surface-800 p-5">
 				The header and footer bands both sit on this.
 			</div>
 		</Specimen>

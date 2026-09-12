@@ -23,7 +23,7 @@ export interface TermCatalogItem extends CatalogItemShared {
 
 export type TermCollectionKey = Extract<
 	CollectionKey,
-	'artists' | 'eras' | 'formats' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'
+	'artists' | 'eras' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'
 >;
 
 interface CatalogItemShared {

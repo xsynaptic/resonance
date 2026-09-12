@@ -29,9 +29,7 @@ import { getYearGroups } from '#lib/utils/year-groups.ts';
 interface Props {
 	groupByYear?: boolean | undefined;
 	page: Page<ContentCatalogItem>;
-	term: CollectionEntry<
-		'artists' | 'eras' | 'formats' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'
-	>;
+	term: CollectionEntry<'artists' | 'eras' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'>;
 }
 
 const { groupByYear = false, page, term } = Astro.props;

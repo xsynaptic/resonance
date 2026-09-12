@@ -2,7 +2,7 @@ import type { GetStaticPaths } from 'astro';
 
 import type { ContentCollectionKey } from '#lib/catalog/catalog-types.ts';
 
-import { blogPageSize, listPageSize } from '#constants.ts';
+import { listPageSize, postPageSize } from '#constants.ts';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 
@@ -18,5 +18,5 @@ export function createEntryListPaths(collection: ContentCollectionKey) {
 export const createPostListPaths = (async ({ paginate }) => {
 	const posts = await getPublishedPosts();
 
-	return paginate(posts, { pageSize: blogPageSize });
+	return paginate(posts, { pageSize: postPageSize });
 }) satisfies GetStaticPaths;

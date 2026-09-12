@@ -28,7 +28,6 @@ const contentCollections = [
 const termCollections = [
 	'artists',
 	'eras',
-	'formats',
 	'labels',
 	'regions',
 	'series',

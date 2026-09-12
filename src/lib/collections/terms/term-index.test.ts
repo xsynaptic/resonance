@@ -12,7 +12,6 @@ const fixtures: Fixtures = {
 		{ data: { title: 'Synaptic FX' }, id: 'synaptic-fx' },
 		{ data: { title: 'Ott' }, id: 'ott' },
 	],
-	formats: [{ data: { title: 'Roundup' }, id: 'roundup' }],
 	labels: [
 		{ data: { title: 'Twisted Records' }, id: 'twisted-records' },
 		{ data: { parent: { id: 'twisted-records' }, title: 'Twisted Sub' }, id: 'twisted-sub' },
@@ -32,7 +31,6 @@ const fixtures: Fixtures = {
 			data: {
 				alias: { id: 'dj-basilisk' },
 				dateCreated: new Date('2024-05-01'),
-				format: { id: 'roundup' },
 				regions: [{ id: 'asia' }],
 				title: 'Voyager',
 			},
@@ -44,7 +42,6 @@ const fixtures: Fixtures = {
 			data: {
 				artists: ['Some Guest', { id: 'ott' }],
 				dateCreated: new Date('2025-01-01'),
-				format: { id: 'roundup' },
 				title: 'A Post',
 			},
 			id: 'a-post',
@@ -101,12 +98,6 @@ describe('getArtistsIndex', () => {
 			ott: ['a-post', 'ott-skylon'],
 			'synaptic-fx': ['esoteric'],
 		});
-	});
-});
-
-describe('getFormatsIndex', () => {
-	test('indexes formats from posts alone, ignoring the field on any other collection', async () => {
-		expect(await idsByTerm('getFormatsIndex')).toEqual({ roundup: ['a-post'] });
 	});
 });
 

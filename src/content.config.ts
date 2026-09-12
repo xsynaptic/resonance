@@ -9,7 +9,6 @@ import { downloadStatsSchema } from '#lib/schemas/downloads.ts';
 import {
 	artistSchema,
 	eraSchema,
-	formatSchema,
 	labelSchema,
 	regionSchema,
 	seriesSchema,
@@ -29,7 +28,6 @@ export const collections = {
 	artists: defineCollection({ loader: collectionLoader('artists'), schema: artistSchema }),
 	downloads: defineCollection({ loader: downloadsLoader(), schema: downloadStatsSchema }),
 	eras: defineCollection({ loader: collectionLoader('eras'), schema: eraSchema }),
-	formats: defineCollection({ loader: collectionLoader('formats'), schema: formatSchema }),
 	labels: defineCollection({ loader: collectionLoader('labels'), schema: labelSchema }),
 	mixes: defineCollection({ loader: collectionLoader('mixes'), schema: mixSchema }),
 	pages: defineCollection({ loader: collectionLoader('pages'), schema: pageSchema }),

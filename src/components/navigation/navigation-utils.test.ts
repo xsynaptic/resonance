@@ -11,11 +11,11 @@ describe('isActiveNavigationPath', () => {
 	});
 
 	test('matches a parent term index against a term below it', () => {
-		expect(isActiveNavigationPath('/formats/', '/formats/selections/')).toBe(true);
+		expect(isActiveNavigationPath('/themes/', '/themes/charts/')).toBe(true);
 	});
 
 	test('matches a collection index against its paginated pages', () => {
-		expect(isActiveNavigationPath('/blog/', '/blog/2/')).toBe(true);
+		expect(isActiveNavigationPath('/posts/', '/posts/2/')).toBe(true);
 	});
 
 	test('does not match across a segment boundary', () => {
@@ -41,11 +41,11 @@ describe('isCurrentNavigationPath', () => {
 	});
 
 	test('does not match a parent term index against a term below it', () => {
-		expect(isCurrentNavigationPath('/formats/', '/formats/selections/')).toBe(false);
+		expect(isCurrentNavigationPath('/themes/', '/themes/charts/')).toBe(false);
 	});
 
 	test('does not match a collection index against its paginated pages', () => {
-		expect(isCurrentNavigationPath('/blog/', '/blog/2/')).toBe(false);
+		expect(isCurrentNavigationPath('/posts/', '/posts/2/')).toBe(false);
 	});
 
 	test('normalizes a pathname arriving without its trailing slash', () => {

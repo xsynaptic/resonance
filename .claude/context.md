@@ -12,7 +12,7 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Entry**: A single piece of authored content in a collection, sourced from one MDX file. _Avoid_: document, record, node, item (reserve "item" for catalog rows).
 
-**Collection**: A named set of Entries sharing one schema. A difference of length, tone, or subject is a Format, not a Collection. _Avoid_: content type, post type, model.
+**Collection**: A named set of Entries sharing one schema. A difference of length, tone, or subject is a Theme at most, and usually nothing at all. _Avoid_: content type, post type, model.
 
 **Draft**: An Entry withheld from the site. Drafts here are complete pieces awaiting review, not stubs. _Avoid_: unpublished, hidden, private.
 
@@ -28,19 +28,19 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Review**: An Entry appraising one Release. The Review is the writing and the Release is its subject; the two carry separate dates because a Release can predate its Review by years. _Avoid_: critique, writeup.
 
-**Post**: An Entry in the editorial stream, of any Format. Everything written that is not a Mix, Review, or Page is a Post. _Avoid_: article, blog post, note.
+**Post**: An Entry in the editorial stream. Everything written that is not a Mix, Review, or Page is a Post, whatever its shape: a quotation, a chart, a gallery of cover art, an essay. Shape lives in the body, in which MDX components the Entry reaches for, and carries no metadata. _Avoid_: article, blog post, note.
 
 **Page**: A standalone Entry outside the editorial stream (about, colophon). Unlike other collections its URL mirrors its position in the file system. _Avoid_: static page.
 
-**Format**: What shape a Post takes: a quotation, an interview, a set of album artwork, a gallery of flyers. Format answers "what kind of thing is this", never "what is it about". A Format graduates to a Collection when it needs fields, not when it needs styling. _Avoid_: category, type, kind, tag.
+**Theme**: What an Entry is about. Any Entry in the editorial stream may carry Themes, and a Theme is the only vocabulary that answers this question. There was once a parallel Format vocabulary for what shape an Entry took, removed on 2026-09-13 because its schema was identical to a Theme's and shape turned out to need no metadata at all. Do not reintroduce it: a shape that needs fields is a Collection, and a shape that needs none needs nothing. _Avoid_: tag, category, subject, topic.
 
-**Theme**: What an Entry is about, as opposed to what shape it takes. Any Entry in the editorial stream may carry Themes; a Post also carries one Format, and the two vocabularies never overlap. _Avoid_: tag, category, subject, topic.
+**Graphic Design**: The Theme for visual work made rather than written about: cover art for a Release, layout, and whatever else comes. Named wider than the cover art that fills it today, so photo galleries and other design work join it without a rename. It was a Collection, then the `album-artwork` Format, before landing here. _Avoid_: album artwork, design, artwork, cover, sleeve.
 
-**Album Artwork**: The Format for cover art made for a Release, presented with commentary. It was a Collection until it turned out to carry no fields of its own. _Avoid_: design, artwork, cover, sleeve.
+**Selections**: A curated, ranked roundup of Releases or Tracks, held as a `selections` array in frontmatter and rendered by the `<Selections>` MDX tag. A Post may also hold its roundup as prose. Selections is a field and a tag, never a vocabulary: it was a Collection, then a Format, and is now neither. _Avoid_: list, roundup.
 
-**Selections**: The Format for a curated, ranked roundup of Releases or Tracks, whether a monthly chart or an annual best-of. It was a Collection until it turned out to carry one optional field that most entries never used. A Selections Post may hold its roundup as prose. _Avoid_: list, roundup.
+**Charts**: The Theme for the periodic rankings posted to forums and blogs through the late 2000s, a snapshot of a moment. The annual retrospectives are not Charts; the Essential Selections Series gathers those, because what separates them is standing rather than subject.
 
-**Ephemera**: Printed material documented rather than authored (a scanned flyer, a postcard, a ticket). A Format today. What separates it from Album Artwork is provenance, not medium: someone else made it, and where the copy came from is part of the record. Provenance fields would graduate it to a Collection. _Avoid_: scans, memorabilia, artifacts.
+**Ephemera**: Printed material documented rather than authored (a scanned flyer, a postcard, a ticket). Nothing today. What separates it from Graphic Design is provenance, not medium: someone else made it, and where the copy came from is part of the record. Those provenance fields are what would make it a Collection; short of them it is a Post like any other. _Avoid_: scans, memorabilia, artifacts.
 
 **Featured Image**: The single image representing an Entry in listings, page headers, and social previews. _Avoid_: hero, cover, thumbnail.
 
@@ -48,11 +48,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 ### Vocabulary and reference
 
-**Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Format, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
+**Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
 
 Terms come in two idioms whose reference syntax is inverted, each written for its common case: a Controlled Vocabulary reference is a slug, because the list is short and known; an Open Vocabulary reference is a name, because most names will never be cataloged.
 
-**Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Formats, Themes. _Avoid_: taxonomy, enum, closed list.
+**Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Themes. _Avoid_: taxonomy, enum, closed list.
 
 **Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A reference is written as the name itself, and links when that name matches a cataloged Term. Name the Term outright when the bare name would miss it, or find the wrong one. _Avoid_: taxonomy, freeform, loose reference.
 

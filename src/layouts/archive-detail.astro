@@ -8,12 +8,12 @@ import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
-import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import {
 	getArchivePath,
 	getArchiveYearPagination,
 	getArchiveYears,
-} from '#lib/collections/archive/archive-data.ts';
+} from '#lib/archive/archive-data.ts';
+import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getPagination } from '#lib/utils/pagination.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';

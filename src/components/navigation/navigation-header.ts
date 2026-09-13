@@ -2,7 +2,7 @@ import { getCollectionPath, getContentPath } from '@xsynaptic/shared/routing';
 
 import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
-import { getPathWithTrailingSlash } from '#lib/utils/routing.ts';
+import { getArchivePath } from '#lib/archive/archive-data.ts';
 
 export const navigationHeaderItems = [
 	{ title: 'Mixes', url: getCollectionPath('mixes') },
@@ -11,7 +11,7 @@ export const navigationHeaderItems = [
 		children: [
 			{
 				title: 'Archive',
-				url: getPathWithTrailingSlash('archive'),
+				url: getArchivePath(),
 			},
 		],
 		title: 'Posts',

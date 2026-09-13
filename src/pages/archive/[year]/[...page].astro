@@ -2,7 +2,7 @@
 import type { InferGetStaticPropsType } from 'astro';
 
 import ArchiveDetail from '#layouts/archive-detail.astro';
-import { createArchiveYearPaths } from '#lib/collections/archive/archive-routes.ts';
+import { createArchiveYearPaths } from '#lib/archive/archive-routes.ts';
 
 export const getStaticPaths = createArchiveYearPaths;
 

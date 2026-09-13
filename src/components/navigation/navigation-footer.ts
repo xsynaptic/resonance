@@ -2,7 +2,7 @@ import { getCollectionPath } from '@xsynaptic/shared/routing';
 
 import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
-import { getArchivePath } from '#lib/collections/archive/archive-data.ts';
+import { getArchivePath } from '#lib/archive/archive-data.ts';
 
 // Term list pages not in the header, plus the year archive beside the era axis
 export const navigationFooterItems = [

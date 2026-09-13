@@ -1,7 +1,7 @@
 import type { GetStaticPaths } from 'astro';
 
 import { listPageSize } from '#constants.ts';
-import { getArchiveYears } from '#lib/collections/archive/archive-data.ts';
+import { getArchiveYears } from '#lib/archive/archive-data.ts';
 
 // Paginated static paths for every year: page 1 bare, pages 2+ at /archive/<year>/<n>/
 export const createArchiveYearPaths = (async ({ paginate }) => {

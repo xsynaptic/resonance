@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { getArchiveYearPagination } from '#lib/collections/archive/archive-data.ts';
+import { getArchiveYearPagination } from '#lib/archive/archive-data.ts';
 
 describe('getArchiveYearPagination', () => {
 	const years = ['2013', '2011', '2009'];

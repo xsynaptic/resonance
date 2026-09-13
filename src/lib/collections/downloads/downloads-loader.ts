@@ -13,7 +13,7 @@ const downloadsDocumentSchema = z.object({
 	version: z.literal(1),
 });
 
-// Keyed on the bare filename, matching mix frontmatter `files[]` 1:1
+// Keyed on the full object key, `artifacts/` and `stream/` rows alike
 type LiveStats = Map<string, Record<string, unknown>>;
 
 export function downloadsLoader(): Loader {
@@ -47,12 +47,7 @@ async function readLiveStats(logger: AstroIntegrationLogger): Promise<LiveStats>
 		const raw: unknown = JSON.parse(await readFile(filePath, 'utf8'));
 
 		for (const file of downloadsDocumentSchema.parse(raw).files) {
-			const key = String(file.key);
-
-			// A download total that summed the `stream/` rows would count a listen as a download
-			if (!key.startsWith('artifacts/')) continue;
-
-			stats.set(key.replace(/^artifacts\//, ''), file);
+			stats.set(String(file.key), file);
 		}
 	} catch (error) {
 		logger.warn(`Ignoring downloads.json; building without live counts (${String(error)})`);

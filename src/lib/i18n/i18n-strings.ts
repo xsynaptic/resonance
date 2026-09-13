@@ -17,6 +17,8 @@ const strings = {
 	'audio.plays.one': '1 play',
 	'audio.plays.other': '{count} plays',
 	'audio.soundcloud': 'SoundCloud',
+	'audio.streams.one': '1 stream',
+	'audio.streams.other': '{count} streams',
 	'audio.streamsLabel': 'Streams',
 	'carousel.next': 'Next {label}',
 	'carousel.previous': 'Previous {label}',

@@ -1,5 +1,8 @@
 import { getCollection } from 'astro:content';
 
+const downloadPrefix = 'artifacts/';
+const streamPrefix = 'stream/';
+
 // Scan the collection once per build, not once per mix page
 let countsPromise: Promise<Map<string, number>> | undefined;
 
@@ -38,10 +41,30 @@ export async function getDownloadTotal(): Promise<number> {
 	return total;
 }
 
-async function buildCounts(): Promise<Map<string, number>> {
+export async function getInHouseStreamTotal(): Promise<number> {
 	const entries = await getCollection('downloads');
 
-	return new Map(entries.map((entry) => [entry.id, entry.data.completions]));
+	let total = 0;
+
+	for (const entry of entries) {
+		if (entry.id.startsWith(streamPrefix)) total += entry.data.completions;
+	}
+
+	return total;
+}
+
+// A download total that summed the `stream/` rows would count a listen as a download
+async function buildCounts(): Promise<Map<string, number>> {
+	const entries = await getCollection('downloads');
+	const counts = new Map<string, number>();
+
+	for (const entry of entries) {
+		if (!entry.id.startsWith(downloadPrefix)) continue;
+
+		counts.set(entry.id.slice(downloadPrefix.length), entry.data.completions);
+	}
+
+	return counts;
 }
 
 // Keyed on filename, matching mix frontmatter `files[]`

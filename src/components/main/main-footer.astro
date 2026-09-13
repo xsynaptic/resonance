@@ -6,11 +6,13 @@ import Anchor from '#components/parts/anchor.astro';
 import DividedItem from '#components/parts/divided-item.astro';
 import { getDownloadTotal } from '#lib/collections/downloads/downloads-data.ts';
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
+import { getStreamTotal } from '#lib/collections/mixes/mixes-streams.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
 import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
 
 const downloadTotal = await getDownloadTotal();
+const streamTotal = await getStreamTotal();
 const publishedMixes = await getPublishedMixes();
 const recentMixes = publishedMixes.slice(0, 8);
 const year = new Date().getFullYear();
@@ -63,6 +65,13 @@ const year = new Date().getFullYear();
 					t(downloadTotal === 1 ? 'audio.downloads.one' : 'audio.downloads.other'),
 					{ count: formatNumber({ number: downloadTotal }) },
 				)}
+			</DividedItem>
+		) : undefined}
+		{streamTotal > 0 ? (
+			<DividedItem as="li" dividerColor="muted">
+				{formatStringTemplate(t(streamTotal === 1 ? 'audio.streams.one' : 'audio.streams.other'), {
+					count: formatNumber({ number: streamTotal }),
+				})}
 			</DividedItem>
 		) : undefined}
 		<DividedItem as="li" dividerColor="muted">

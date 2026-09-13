@@ -16,3 +16,17 @@
 .img-caption > :last-child {
 	margin-bottom: 0;
 }
+
+@media (width >= 40rem) {
+	.img-align-left {
+		float: left;
+		width: min(var(--img-width), 50%);
+		margin-inline-end: calc(var(--spacing) * 6);
+	}
+
+	.img-align-right {
+		float: right;
+		width: min(var(--img-width), 50%);
+		margin-inline-start: calc(var(--spacing) * 6);
+	}
+}

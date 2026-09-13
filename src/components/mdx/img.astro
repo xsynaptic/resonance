@@ -1,40 +1,64 @@
 ---
 import MediaImage from '#components/parts/media-image.astro';
 import { renderSlot } from '#lib/utils/astro.ts';
+import { getMediaImage } from '#lib/utils/media.ts';
 
 interface Props {
+	align?: 'left' | 'right' | undefined;
 	alt?: string | undefined;
+	size?: 'medium' | 'small' | undefined;
 	src: string;
 }
 
-const { alt = '', src } = Astro.props;
+const imageSizes = { medium: 450, small: 300 } as const;
+
+const { align, alt = '', size = align ? 'medium' : undefined, src } = Astro.props;
 
 const { isFeed } = Astro.locals;
 
 // A caption is the slot content; WP recorded one on 23 attachments and nothing else
 const caption = await renderSlot(Astro.slots);
 
+const sizedWidth = size ? imageSizes[size] : undefined;
+const width = sizedWidth ?? 900;
+
+// Capped at the source too, so a small source leaves no maze beside it
+const frameWidth = sizedWidth
+	? Math.min(sizedWidth, getMediaImage(src)?.width ?? sizedWidth)
+	: undefined;
+
+const frameClass = [
+	frameWidth ? 'max-w-(--img-width)' : undefined,
+	align ? `img-align-${align}` : undefined,
+];
+const frameStyle = frameWidth ? `--img-width: ${frameWidth}px` : undefined;
+
 // `none` emits a plain img with width and height, which is all a reader can lay out
 const imageProps = isFeed
-	? ({ layout: 'none', width: 900 } as const)
+	? ({ layout: 'none', width } as const)
 	: ({
 			layout: 'constrained',
+			// A sized image can shrink to half the column once floated, which only `auto` sees
 			// The column is min(900px, 100vw - 2 * gutter); the gutter steps at 30rem and 40rem
-			sizes:
-				'(min-width: 61.25rem) 900px, (min-width: 40rem) calc(100vw - 5rem), (min-width: 30rem) calc(100vw - 3rem), calc(100vw - 2rem)',
-			width: 900,
+			sizes: sizedWidth
+				? `auto, ${sizedWidth}px`
+				: '(min-width: 61.25rem) 900px, (min-width: 40rem) calc(100vw - 5rem), (min-width: 30rem) calc(100vw - 3rem), calc(100vw - 2rem)',
+			width,
 		} as const);
 ---
 
 {caption ? (
-	<figure class="img-figure">
+	<figure class:list={['img-figure prose-block', frameClass]} style={frameStyle}>
 		<div class="media-frame overflow-hidden rounded">
 			<MediaImage alt={alt} class="block" path={src} {...imageProps} />
 		</div>
 		<figcaption class="img-caption" set:html={caption} />
 	</figure>
 ) : (
-	<div class="media-frame overflow-hidden rounded">
+	<div
+		class:list={['media-frame prose-block overflow-hidden rounded', frameClass]}
+		style={frameStyle}
+	>
 		<MediaImage alt={alt} class="block" path={src} {...imageProps} />
 	</div>
 )}

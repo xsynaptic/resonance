@@ -1,8 +1,14 @@
 {
 	"languages": {
-		"Astro": { "language_servers": ["...", "eslint"] },
+		"Astro": {
+			"language_servers": ["...", "eslint"],
+			"formatter": [{ "code_action": "source.fixAll.eslint" }, "prettier"]
+		},
 		"CSS": {
 			"language_servers": ["tailwindcss-intellisense-css", "!vscode-css-language-server", "..."]
-		}
+		},
+		"JavaScript": { "formatter": [{ "code_action": "source.fixAll.eslint" }, "prettier"] },
+		"TypeScript": { "formatter": [{ "code_action": "source.fixAll.eslint" }, "prettier"] },
+		"TSX": { "formatter": [{ "code_action": "source.fixAll.eslint" }, "prettier"] }
 	}
 }

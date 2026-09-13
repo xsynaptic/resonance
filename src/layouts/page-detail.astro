@@ -3,7 +3,10 @@ import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
 
-import ContentDetail from '#layouts/content-detail.astro';
+import MainSite from '#components/main/main-site.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import { getPageSchemas } from '#lib/collections/pages/pages-schema.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
@@ -30,13 +33,25 @@ const schemas = getPageSchemas(entry, {
 });
 ---
 
-<ContentDetail
+<MainSite
 	openGraphId={openGraphId}
+	openGraphType="article"
 	schemas={schemas}
 	title={entry.data.title}
-	{...(imageFeaturedId ? { imageFeatured: imageFeaturedId } : {})}
-	{...(imageHeroId ? { imageHero: imageHeroId } : {})}
 	{...(description ? { description } : {})}
 >
-	<Content />
-</ContentDetail>
+	{imageHeroId ? (
+		<SectionDetailHero path={imageHeroId} slot="hero" title={entry.data.title} />
+	) : undefined}
+	<article data-pagefind-body>
+		<SearchThumbnail path={imageFeaturedId} />
+		{imageHeroId ? undefined : (
+			<div class="mb-4 content-measure">
+				<SectionDetailHeader title={entry.data.title} />
+			</div>
+		)}
+		<div class="prose-x content-measure">
+			<Content />
+		</div>
+	</article>
+</MainSite>

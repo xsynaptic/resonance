@@ -1,7 +1,7 @@
 ---
 import MainSite from '#components/main/main-site.astro';
 import Anchor from '#components/parts/anchor.astro';
-import PageTitle from '#components/parts/page-title.astro';
+import ListPageTitle from '#components/parts/list-page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import {
 	getArchivePath,
@@ -33,7 +33,7 @@ const schemas = buildCollectionGraph({
 	schemas={schemas}
 	title={title}
 >
-	<PageTitle description={description} title={title} />
+	<ListPageTitle description={description} title={title} />
 	<PaginationSelect
 		class="mb-8"
 		pagination={getArchiveYearPagination(years.map((group) => String(group.year)))}

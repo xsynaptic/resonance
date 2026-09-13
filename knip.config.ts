@@ -10,7 +10,6 @@ export default {
 			entry: [
 				// MDX auto-import components; referenced via satteri-auto-import, not static imports
 				'src/components/mdx/**/*.astro',
-				'src/components/embed/embed-youtube.astro',
 				// The inventory and the dev audio routes; injected by entrypoint string, not imported
 				'src/dev/inventory/inventory.astro',
 				'src/dev/inventory/inventory-og-image.ts',

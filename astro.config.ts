@@ -100,7 +100,7 @@ export default defineConfig({
 						{
 							'./src/components/embed/embed-mixcloud.astro': [['default', 'Mixcloud']],
 							'./src/components/embed/embed-soundcloud.astro': [['default', 'Soundcloud']],
-							'./src/components/embed/embed-youtube.astro': [['default', 'YouTube']],
+							'./src/components/mdx/embed-youtube.astro': [['default', 'YouTube']],
 							'./src/components/mdx/img-group.astro': [['default', 'ImgGroup']],
 							'./src/components/mdx/img.astro': [['default', 'Img']],
 							'./src/components/mdx/link.astro': [['default', 'Link']],

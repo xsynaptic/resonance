@@ -23,6 +23,7 @@
 @import './main/components/detail-hero.css' layer(components);
 @import './main/components/divided-item.css' layer(components);
 @import './main/components/embed-frame.css' layer(components);
+@import './main/components/featured-grid.css' layer(components);
 @import './main/components/headings.css' layer(components);
 @import './main/components/img-figure.css' layer(components);
 @import './main/components/navigation.css' layer(components);
@@ -31,7 +32,6 @@
 @import './main/components/progress-loading.css' layer(components);
 @import './main/components/prose.css' layer(prose);
 @import './main/components/quotation.css' layer(components);
-@import './main/components/release-detail.css' layer(components);
 @import './main/components/search.css' layer(components);
 @import './main/components/skip-link.css' layer(components);
 @import './main/components/title-block.css' layer(components);

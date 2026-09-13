@@ -6,12 +6,15 @@ import { render } from 'astro:content';
 import type { IconId } from '#lib/utils/icon-types.ts';
 
 import EntryComments from '#components/comments/entry-comments.astro';
+import MainSite from '#components/main/main-site.astro';
 import Button from '#components/parts/button.astro';
+import FeaturedGrid from '#components/parts/featured-grid.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import SectionSeries from '#components/sections/section-series.astro';
-import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getReviewSchemas } from '#lib/collections/reviews/reviews-schema.ts';
 import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
@@ -79,58 +82,67 @@ const schemas = getReviewSchemas(entry, {
 });
 ---
 
-<ReleaseDetail
-	date={entry.data.dateCreated}
-	kind={kind}
-	labels={labelTerms}
+<MainSite
 	openGraphId={openGraphId}
-	releaseTitle={title}
+	openGraphType="article"
+	publishedTime={entry.data.dateCreated}
 	schemas={schemas}
-	styles={styleTerms}
 	title={entry.data.title}
-	{...(artist ? { artist } : {})}
-	{...(imageFeaturedId ? { image: imageFeaturedId } : {})}
-	{...(releaseYear ? { releaseYear } : {})}
 	{...(description ? { description } : {})}
 >
-	<Content />
-	<Fragment slot="actions">
-		{actions.length > 0 ? (
-			<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
-				{actions.map((action) => (
-					<li>
-						<Button
-							as="a"
-							href={action.href}
-							rel="noreferrer"
-							target="_blank"
-							{...(action.icon ? { icon: action.icon } : {})}
-						>
-							{action.label}
-						</Button>
-					</li>
-				))}
-			</ul>
-		) : undefined}
-	</Fragment>
-	<Fragment slot="sections">
-		<SectionCoda>
-			{rating ? (
-				<p>
-					{t('detail.rating.label')}{' '}
-					<span class="text-ink-300">
-						{formatStringTemplate(t('detail.rating.value'), { rating })}
-					</span>
-				</p>
-			) : undefined}
-			<TermLinks heading={t('collection.artists.title')} terms={artistTerms} />
-			<TermLinks heading={t('collection.regions.title')} terms={regionTerms} />
-			<TermLinks heading={t('collection.eras.title')} terms={eraTerms} />
-			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
-		</SectionCoda>
-		<SectionSeries id={entry.id} />
-	</Fragment>
-	<SectionRelated items={relatedItems} slot="related" />
-	<EntryComments entry={entry} slot="comments" />
-</ReleaseDetail>
+	<article data-pagefind-body>
+		<SearchThumbnail path={imageFeaturedId} />
+		<SectionDetailHeader
+			artist={artist}
+			date={entry.data.dateCreated}
+			kind={kind}
+			labels={labelTerms}
+			releaseTitle={title}
+			releaseYear={releaseYear}
+			styles={styleTerms}
+			title={entry.data.title}
+		/>
+		<FeaturedGrid alt={entry.data.title} path={imageFeaturedId}>
+			<Content />
+			<Fragment slot="actions">
+				{actions.length > 0 ? (
+					<ul class="flex flex-wrap gap-2" data-pagefind-ignore>
+						{actions.map((action) => (
+							<li>
+								<Button
+									as="a"
+									href={action.href}
+									rel="noreferrer"
+									target="_blank"
+									{...(action.icon ? { icon: action.icon } : {})}
+								>
+									{action.label}
+								</Button>
+							</li>
+						))}
+					</ul>
+				) : undefined}
+			</Fragment>
+			<Fragment slot="footer">
+				<SectionCoda>
+					{rating ? (
+						<p>
+							{t('detail.rating.label')}{' '}
+							<span class="text-ink-300">
+								{formatStringTemplate(t('detail.rating.value'), { rating })}
+							</span>
+						</p>
+					) : undefined}
+					<TermLinks heading={t('collection.artists.title')} terms={artistTerms} />
+					<TermLinks heading={t('collection.regions.title')} terms={regionTerms} />
+					<TermLinks heading={t('collection.eras.title')} terms={eraTerms} />
+					<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
+					<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+				</SectionCoda>
+				<SectionSeries id={entry.id} />
+			</Fragment>
+		</FeaturedGrid>
+		<EntryComments entry={entry} />
+		<SectionRelated items={relatedItems} />
+	</article>
+</MainSite>

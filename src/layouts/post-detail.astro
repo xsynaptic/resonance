@@ -4,10 +4,13 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 
 import EntryComments from '#components/comments/entry-comments.astro';
+import MainSite from '#components/main/main-site.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import SectionSeries from '#components/sections/section-series.astro';
-import ContentDetail from '#layouts/content-detail.astro';
 import { getPostSchemas } from '#lib/collections/posts/posts-schema.ts';
 import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -45,25 +48,45 @@ const schemas = getPostSchemas(entry, {
 });
 ---
 
-<ContentDetail
-	date={entry.data.dateCreated}
-	kind={kind}
+<MainSite
 	openGraphId={openGraphId}
+	openGraphType="article"
+	publishedTime={entry.data.dateCreated}
 	schemas={schemas}
-	styles={styleTerms}
 	title={entry.data.title}
-	{...(imageFeaturedId ? { imageFeatured: imageFeaturedId } : {})}
-	{...(imageHeroId ? { imageHero: imageHeroId } : {})}
 	{...(description ? { description } : {})}
 >
-	<Content />
-	<Fragment slot="sections">
+	{imageHeroId ? (
+		<SectionDetailHero
+			date={entry.data.dateCreated}
+			kind={kind}
+			path={imageHeroId}
+			slot="hero"
+			styles={styleTerms}
+			title={entry.data.title}
+		/>
+	) : undefined}
+	<article data-pagefind-body>
+		<SearchThumbnail path={imageFeaturedId} />
+		{imageHeroId ? undefined : (
+			<div class="mb-4 content-measure">
+				<SectionDetailHeader
+					date={entry.data.dateCreated}
+					kind={kind}
+					styles={styleTerms}
+					title={entry.data.title}
+				/>
+			</div>
+		)}
+		<div class="prose-x content-measure">
+			<Content />
+		</div>
 		<SectionCoda class="mt-10 content-measure">
 			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
 			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
 			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 		</SectionCoda>
 		<SectionSeries id={entry.id} />
-	</Fragment>
-	<EntryComments entry={entry} slot="comments" />
-</ContentDetail>
+		<EntryComments entry={entry} />
+	</article>
+</MainSite>

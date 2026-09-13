@@ -2,7 +2,7 @@
 import type { TitledCollectionKey } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import PageTitle from '#components/parts/page-title.astro';
+import ListPageTitle from '#components/parts/list-page-title.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
@@ -23,6 +23,6 @@ const schemas = buildCollectionGraph({ description: undefined, title, url: pageU
 ---
 
 <MainSite openGraphId={getOpenGraphId('index', collection)} schemas={schemas} title={title}>
-	<PageTitle title={title} />
+	<ListPageTitle title={title} />
 	<TermDirectory terms={terms} />
 </MainSite>

@@ -5,7 +5,7 @@ import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 
 import MainSite from '#components/main/main-site.astro';
-import PageTitle from '#components/parts/page-title.astro';
+import ListPageTitle from '#components/parts/list-page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import { getPagination } from '#lib/utils/pagination.ts';
@@ -41,7 +41,7 @@ const schemas =
 	schemas={schemas}
 	title={title}
 >
-	<PageTitle title={title} />
+	<ListPageTitle title={title} />
 	{posts.map(({ Content, entry }) => (
 		<SectionPostExcerpt
 			date={entry.data.dateCreated}

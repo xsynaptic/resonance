@@ -1,7 +1,7 @@
 ---
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 
-import Selection from '#components/parts/selection.astro';
+import SelectionItem from '#components/mdx/selection-item.astro';
 import { resolveSelections } from '#lib/collections/selections/selections-resolve.ts';
 
 interface Props {
@@ -35,10 +35,10 @@ const rows = ordered.map((selection, index) => ({
 {rows.length > 0 ? (
 	<Tag class="selection-list" {...(order === 'countdown' ? { reversed: true } : {})}>
 		{rows.map(({ Body, rank, selection }) => (
-			<Selection rank={rank} selection={selection}>
+			<SelectionItem rank={rank} selection={selection}>
 				{selection.descriptionHtml ? <Fragment set:html={selection.descriptionHtml} /> : undefined}
 				{Body ? <Body /> : undefined}
-			</Selection>
+			</SelectionItem>
 		))}
 	</Tag>
 ) : undefined}

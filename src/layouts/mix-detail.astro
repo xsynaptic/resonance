@@ -5,15 +5,18 @@ import { render } from 'astro:content';
 
 import EntryComments from '#components/comments/entry-comments.astro';
 import EmbedAudio from '#components/embed/embed-audio.astro';
+import MainSite from '#components/main/main-site.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
+import FeaturedGrid from '#components/parts/featured-grid.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import PlayerControls from '#components/player/player-controls.astro';
 import PlayerPayload from '#components/player/player-payload.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import SectionSeries from '#components/sections/section-series.astro';
-import ReleaseDetail from '#layouts/release-detail.astro';
 import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
@@ -74,44 +77,56 @@ const queueItem = isPlayerEnabled
 const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.files !== undefined);
 ---
 
-<ReleaseDetail
-	date={entry.data.dateCreated}
-	kind={kind}
-	labels={labelTerms}
+<MainSite
 	openGraphId={openGraphId}
-	releaseTitle={entry.data.title}
+	openGraphType="article"
+	publishedTime={entry.data.dateCreated}
 	schemas={schemas}
-	styles={styleTerms}
 	title={entry.data.title}
-	{...(alias ? { artist: alias } : {})}
-	{...(imageFeaturedId ? { image: imageFeaturedId } : {})}
 	{...(description ? { description } : {})}
 >
-	<Content />
-	<Fragment slot="media">
-		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
-		{queueItem ? <PlayerControls trackId={entry.id} /> : undefined}
-		<PlayerPayload items={queueItem ? [queueItem] : []} />
-	</Fragment>
-	<Fragment slot="actions">
-		<AudioLinks
-			links={entry.data.links}
-			{...(hasGroupFiles ? {} : { files: entry.data.files })}
-			{...(hasMixTimestamps(entry) ? { cueSlug: entry.id } : {})}
+	<article data-pagefind-body>
+		<SearchThumbnail path={imageFeaturedId} />
+		<SectionDetailHeader
+			artist={alias}
+			date={entry.data.dateCreated}
+			kind={kind}
+			labels={labelTerms}
+			releaseTitle={entry.data.title}
+			styles={styleTerms}
+			title={entry.data.title}
 		/>
-	</Fragment>
-	<Fragment slot="sections">
-		<SectionCoda>
-			<AudioCounts
-				downloads={downloads}
-				mixcloudPlays={mixcloudPlays}
-				soundcloudPlays={soundcloudPlays}
-			/>
-			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
-		</SectionCoda>
-		<SectionSeries id={entry.id} />
-	</Fragment>
-	<SectionRelated items={relatedItems} slot="related" />
-	<EntryComments entry={entry} slot="comments" />
-</ReleaseDetail>
+		<FeaturedGrid alt={entry.data.title} path={imageFeaturedId}>
+			<Content />
+			<Fragment slot="media">
+				<EmbedAudio
+					mixcloudLink={entry.data.mixcloudLink}
+					soundcloudLink={entry.data.soundcloudLink}
+				/>
+				{queueItem ? <PlayerControls trackId={entry.id} /> : undefined}
+				<PlayerPayload items={queueItem ? [queueItem] : []} />
+			</Fragment>
+			<Fragment slot="actions">
+				<AudioLinks
+					links={entry.data.links}
+					{...(hasGroupFiles ? {} : { files: entry.data.files })}
+					{...(hasMixTimestamps(entry) ? { cueSlug: entry.id } : {})}
+				/>
+			</Fragment>
+			<Fragment slot="footer">
+				<SectionCoda>
+					<AudioCounts
+						downloads={downloads}
+						mixcloudPlays={mixcloudPlays}
+						soundcloudPlays={soundcloudPlays}
+					/>
+					<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
+					<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+				</SectionCoda>
+				<SectionSeries id={entry.id} />
+			</Fragment>
+		</FeaturedGrid>
+		<EntryComments entry={entry} />
+		<SectionRelated items={relatedItems} />
+	</article>
+</MainSite>

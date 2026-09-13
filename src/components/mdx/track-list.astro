@@ -1,9 +1,9 @@
 ---
 import type { TracklistValue } from '#lib/schemas/audio.ts';
 
+import TrackListFeed from '#components/mdx/track-list-feed.astro';
+import TrackListItem from '#components/mdx/track-list-item.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
-import TrackListFeed from '#components/parts/track-list-feed.astro';
-import TrackListItem from '#components/parts/track-list-item.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
 import { buildTrackGroupRows } from '#lib/utils/track-rows.ts';

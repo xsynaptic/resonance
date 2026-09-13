@@ -16,7 +16,7 @@ export interface PlayerPayloadItem extends QueueItem {
 	streamUrl: string;
 }
 
-// A mix is its own release, so the lock screen's album is the mix title
+// A mix has no album above it, so the lock screen's album line repeats the mix title
 export async function getMixQueueItem(
 	entry: CollectionEntry<'mixes'>,
 	artistLine: string,

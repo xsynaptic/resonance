@@ -21,12 +21,12 @@ import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
-import { splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getLinkSourceLabel } from '#lib/utils/links.ts';
 import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
+import { getWorkTitle } from '#lib/utils/work-title.ts';
 import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 
 interface Props {
@@ -56,10 +56,13 @@ const description = await getEntryDescription(entry);
 const { discogsUrl, rating, releaseYear } = entry.data;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 
-// Contributors beyond the matched artist stay in the term links below, not in the heading
-const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.releaseTitle, artistTerms);
+const work = await getWorkTitle(entry);
 
-const youtubeUrl = getYoutubeSearchUrl(entry.data.youtubeSearch, artist ? [artist] : [], title);
+const youtubeUrl = getYoutubeSearchUrl(
+	entry.data.youtubeSearch,
+	work.credit ? [work.credit] : [],
+	work.title,
+);
 
 // Every outbound link is a place to hear or buy the release, so all of them read as one row
 const actions: Array<ReviewAction> = (entry.data.links ?? []).map((url) => ({
@@ -77,7 +80,7 @@ const schemas = getReviewSchemas(entry, {
 	artists: artistTerms,
 	kind,
 	labels: labelTerms,
-	releaseTitle: title,
+	releaseTitle: work.title,
 	url: pageUrl,
 });
 ---
@@ -93,14 +96,12 @@ const schemas = getReviewSchemas(entry, {
 	<article data-pagefind-body>
 		<SearchThumbnail path={imageFeaturedId} />
 		<SectionDetailHeader
-			artist={artist}
 			date={entry.data.dateCreated}
 			kind={kind}
 			labels={labelTerms}
-			releaseTitle={title}
 			releaseYear={releaseYear}
 			styles={styleTerms}
-			title={entry.data.title}
+			title={work}
 		/>
 		<FeaturedGrid alt={entry.data.title} path={imageFeaturedId}>
 			<Content />
@@ -143,6 +144,6 @@ const schemas = getReviewSchemas(entry, {
 			</Fragment>
 		</FeaturedGrid>
 		<EntryComments entry={entry} />
-		<SectionRelated items={relatedItems} />
+		<SectionRelated collection={entry.collection} items={relatedItems} />
 	</article>
 </MainSite>

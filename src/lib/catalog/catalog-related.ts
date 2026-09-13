@@ -1,18 +1,15 @@
-import type { CollectionEntry } from 'astro:content';
-
 import { getCollection } from 'astro:content';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+import type { WorkEntry } from '#lib/utils/work-title.ts';
 
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 
 // Three screens of a 4-up carousel; enough to scroll before the scoring is worth refining
 const relatedLimit = 12;
 
-type ReleaseEntry = CollectionEntry<'mixes' | 'reviews'>;
-
 // Entries with no overlap are dropped rather than padded with recency, so "Related" stays honest
-export async function getRelatedItems(entry: ReleaseEntry): Promise<Array<ContentCatalogItem>> {
+export async function getRelatedItems(entry: WorkEntry): Promise<Array<ContentCatalogItem>> {
 	const styleIds = new Set((entry.data.styles ?? []).map((style) => style.id));
 
 	if (styleIds.size === 0) return [];

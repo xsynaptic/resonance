@@ -6,11 +6,12 @@ import type { LinkableEntry } from '#lib/utils/entries.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { getEntryBySlug, splitReleaseTitle } from '#lib/utils/entries.ts';
+import { getEntryBySlug } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
 import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
 import { toSlug } from '#lib/utils/text.ts';
+import { getWorkTitle } from '#lib/utils/work-title.ts';
 import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 
 export interface ResolvedSelection {
@@ -62,16 +63,11 @@ async function deriveFromEntry(entry: LinkableEntry): Promise<DerivedSelection> 
 		return { href, imageFeatured, title: entry.data.title };
 	}
 
-	const artistTerms = await resolveCredits('artists', entry.data.artists);
-	const { artist, title } = splitReleaseTitle(
-		entry.data.title,
-		entry.data.releaseTitle,
-		artistTerms,
-	);
+	const { credit, title } = await getWorkTitle(entry);
 
 	return {
 		// Only the artist half of a split title; an unsplit title already carries the credit
-		artists: artist ? [artist] : [],
+		artists: credit ? [credit] : [],
 		discogsUrl: entry.data.discogsUrl,
 		href,
 		imageFeatured,

@@ -1,4 +1,5 @@
 import type { ImageFeatured } from '@xsynaptic/shared/schemas';
+import type { CollectionEntry } from 'astro:content';
 
 import { getCollection } from 'astro:content';
 
@@ -12,11 +13,13 @@ import type {
 	TermCollectionKey,
 } from '#lib/catalog/catalog-types.ts';
 import type { LabelCreditValue } from '#lib/schemas/credits.ts';
+import type { WorkTitle } from '#lib/utils/work-title.ts';
 
 import { createCatalog } from '#lib/catalog/catalog-factory.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
 import { resolveCredits } from '#lib/utils/terms.ts';
+import { getWorkTitle, isWorkEntry } from '#lib/utils/work-title.ts';
 
 const contentCollections = [
 	'mixes',
@@ -35,15 +38,11 @@ const termCollections = [
 	'themes',
 ] as const satisfies ReadonlyArray<TermCollectionKey>;
 
-// Only releases show a year subtitle; other collections already sit under a year heading when listed
-const releaseCollections = new Set<ContentCollectionKey>(['mixes', 'reviews']);
-
 interface ContentEntry {
 	data: {
 		dateCreated: Date;
 		imageFeatured?: ImageFeatured | undefined;
 		labels?: Array<LabelCreditValue> | undefined;
-		releaseTitle?: string | undefined;
 		releaseYear?: string | undefined;
 		title: string;
 	};
@@ -108,7 +107,7 @@ async function buildContentItems(
 ): Promise<Array<ContentCatalogItem>> {
 	const entries = await getCollection(collection);
 
-	return Promise.all(entries.map((entry) => toContentItem(collection, entry)));
+	return Promise.all(entries.map((entry) => toContentItem(entry)));
 }
 
 async function buildTermItems(collection: TermCollectionKey): Promise<Array<TermCatalogItem>> {
@@ -118,38 +117,33 @@ async function buildTermItems(collection: TermCollectionKey): Promise<Array<Term
 }
 
 async function metaLine(
-	collection: ContentCollectionKey,
 	entry: ContentEntry,
+	work: undefined | WorkTitle,
 ): Promise<string | undefined> {
 	const credits = await resolveCredits('labels', entry.data.labels);
 	const labels = credits.map((credit) => credit.name).join(' / ');
-	const year = releaseYear(collection, entry);
+	const year = workYear(entry, work);
 
 	if (labels === '') return year;
 
 	return year === undefined ? labels : `${labels}, ${year}`;
 }
 
-// Only reviews carry releaseYear, since a release can predate its review by years
-function releaseYear(collection: ContentCollectionKey, entry: ContentEntry): string | undefined {
-	if (!releaseCollections.has(collection)) return undefined;
-
-	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
-}
-
 async function toContentItem(
-	collection: ContentCollectionKey,
-	entry: ContentEntry,
+	entry: CollectionEntry<ContentCollectionKey>,
 ): Promise<ContentCatalogItem> {
+	const { collection } = entry;
+	const work = isWorkEntry(entry) ? await getWorkTitle(entry) : undefined;
+
 	return {
 		collection,
 		date: entry.data.dateCreated,
 		id: entry.id,
 		image: getImageFeaturedId(entry.data.imageFeatured),
-		releaseTitle: entry.data.releaseTitle,
-		subtitle: await metaLine(collection, entry),
+		subtitle: await metaLine(entry, work),
 		title: entry.data.title,
 		url: getContentPath(collection, entry.id),
+		work,
 	};
 }
 
@@ -161,4 +155,11 @@ function toTermItem(collection: TermCollectionKey, entry: TermEntry): TermCatalo
 		title: entry.data.title,
 		url: getContentPath(collection, entry.id),
 	};
+}
+
+// A review's Work can predate the review by years; a mix's Work is the mix, posted when made
+function workYear(entry: ContentEntry, work: undefined | WorkTitle): string | undefined {
+	if (!work) return undefined;
+
+	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
 }

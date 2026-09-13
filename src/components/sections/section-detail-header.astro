@@ -1,37 +1,36 @@
 ---
 import type { LinkedName } from '#lib/utils/terms.ts';
+import type { WorkTitle } from '#lib/utils/work-title.ts';
 
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import DividedItem from '#components/parts/divided-item.astro';
 import LinkedNameList from '#components/parts/linked-name-list.astro';
 import LinkedNameText from '#components/parts/linked-name-text.astro';
+import WorkTitleText from '#components/parts/work-title-text.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatDate } from '#lib/utils/date.ts';
 
 const headerStyleLimit = 3;
 
 interface Props {
-	artist?: LinkedName | undefined;
 	breadcrumbTrail?: Array<LinkedName> | undefined;
 	date?: Date | undefined;
 	kind?: LinkedName | undefined;
 	labels?: Array<LinkedName> | undefined;
-	releaseTitle?: string | undefined;
 	releaseYear?: string | undefined;
 	styles?: Array<LinkedName> | undefined;
-	title: string;
+	title: string | WorkTitle;
 }
 
-const { artist, breadcrumbTrail, date, kind, labels, releaseTitle, releaseYear, styles, title } =
-	Astro.props;
+const { breadcrumbTrail, date, kind, labels, releaseYear, styles, title } = Astro.props;
 
 // Frontmatter order is the author's own ranking; the coda carries the rest, sorted by content count
 const styleTerms = (styles ?? []).slice(0, headerStyleLimit);
-const releaseLabels = labels ?? [];
-const hasRelease = Boolean(releaseYear) || releaseLabels.length > 0;
-const releaseLead = t(releaseLabels.length > 0 ? 'detail.releasedBy' : 'detail.released');
-const releaseYearText =
-	releaseYear && releaseLabels.length > 0 ? `, ${releaseYear}` : (releaseYear ?? '');
+const labelTerms = labels ?? [];
+const hasReleasedLine = Boolean(releaseYear) || labelTerms.length > 0;
+const releasedLead = t(labelTerms.length > 0 ? 'detail.releasedBy' : 'detail.released');
+const releasedYearText =
+	releaseYear && labelTerms.length > 0 ? `, ${releaseYear}` : (releaseYear ?? '');
 ---
 
 <header>
@@ -47,22 +46,8 @@ const releaseYearText =
 			))}
 		</div>
 	) : undefined}
-	<h1 class="title-main">
-		{releaseTitle ? (
-			<Fragment>
-				{artist ? (
-					<Fragment>
-						<LinkedNameText name={artist.name} url={artist.url} />
-						<span class="title-divider"> - </span>
-					</Fragment>
-				) : undefined}
-				<span class="font-semibold italic">{releaseTitle}</span>
-			</Fragment>
-		) : (
-			title
-		)}
-	</h1>
-	{kind || hasRelease || date ? (
+	<h1 class="title-main">{typeof title === 'string' ? title : <WorkTitleText work={title} />}</h1>
+	{kind || hasReleasedLine || date ? (
 		<div class="title-meta">
 			{kind ? (
 				<DividedItem as="span" dividerContent="slash">
@@ -71,11 +56,11 @@ const releaseYearText =
 					</span>
 				</DividedItem>
 			) : undefined}
-			{hasRelease ? (
+			{hasReleasedLine ? (
 				<DividedItem as="span" dividerContent="slash">
-					{releaseLead}
-					<LinkedNameList names={releaseLabels} />
-					{releaseYearText}
+					{releasedLead}
+					<LinkedNameList names={labelTerms} />
+					{releasedYearText}
 				</DividedItem>
 			) : undefined}
 			{date ? (

@@ -24,9 +24,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Cue Sheet**: A downloadable index of a Mix's Tracklist, generated from its timestamps so a player can seek between Tracks. _Avoid_: chapters, markers, index.
 
-**Release**: A published audio work by someone else (an album, EP, or compilation). A Release is what a Review is about, described by fields on the Review, and is never an Entry in its own right. _Avoid_: record, album, product.
+**Release**: A published audio work by someone else (an album, EP, or compilation). A Release is what a Review is about, described by fields on the Review, and is never an Entry in its own right. A Mix is never a Release, though both are Works. _Avoid_: record, album, product.
 
 **Review**: An Entry appraising one Release. The Review is the writing and the Release is its subject; the two carry separate dates because a Release can predate its Review by years. _Avoid_: critique, writeup.
+
+**Work**: The role a Mix or a Release plays wherever the site presents music rather than writing about it: a title set as a cited work, a Credit before it, Labels and a year beneath, a Related carousel after. A role rather than a Collection: a Mix plays it as an Entry, a Release plays it as fields on a Review, and nothing else does. _Avoid_: release (for the pair), record, album, product.
 
 **Post**: An Entry in the editorial stream. Everything written that is not a Mix, Review, or Page is a Post, whatever its shape: a quotation, a chart, a gallery of cover art, an essay. Shape lives in the body, in which MDX components the Entry reaches for, and carries no metadata. _Avoid_: article, blog post, note.
 

@@ -6,10 +6,12 @@ import type { StubEntry } from '#lib/collections/astro-content-stub.ts';
 type Fixtures = Record<string, Array<Pick<StubEntry, 'data' | 'id'>>>;
 
 const fixtures: Fixtures = {
+	artists: [{ data: { title: 'DJ Basilisk' }, id: 'dj-basilisk' }],
 	labels: [{ data: { title: 'Twisted Records' }, id: 'twisted-records' }],
 	mixes: [
 		{
 			data: {
+				alias: { collection: 'artists', id: 'dj-basilisk' },
 				dateCreated: new Date('2024-05-01'),
 				imageFeatured: 'voyager-cover',
 				labels: [{ id: 'twisted-records' }],
@@ -62,6 +64,7 @@ describe('getCatalog', () => {
 			'ott-skylon',
 			'esoteric',
 			'profile',
+			'dj-basilisk',
 			'twisted-records',
 		]);
 	});
@@ -77,6 +80,10 @@ describe('getCatalog', () => {
 			subtitle: 'Twisted Records, 2024',
 			title: 'Voyager',
 			url: '/mixes/voyager/',
+			work: {
+				credit: { name: 'DJ Basilisk', url: '/artists/dj-basilisk/' },
+				title: 'Voyager',
+			},
 		});
 	});
 
@@ -95,13 +102,13 @@ describe('getCatalog', () => {
 		);
 	});
 
-	test('falls back to the entry year when a release carries none', async () => {
+	test('falls back to the entry year on a mix', async () => {
 		const catalog = await buildCatalog();
 
 		expect(contentItem(catalog, 'esoteric')?.subtitle).toBe('2022');
 	});
 
-	test('subtitles nothing on a collection that is not a release', async () => {
+	test('subtitles nothing on a collection that is not a Work', async () => {
 		const catalog = await buildCatalog();
 
 		expect(contentItem(catalog, 'a-post')?.subtitle).toBeUndefined();

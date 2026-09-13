@@ -24,7 +24,7 @@ h2.title-main {
 	line-height: var(--text-3xl--line-height);
 }
 
-/* Only ever inside the title, separating a linked artist from the work half */
+/* Separates a Credit from a cited title wherever a Work is named */
 .title-divider {
 	font-weight: var(--font-weight-normal);
 	color: var(--color-ink-600);

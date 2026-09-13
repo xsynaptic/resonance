@@ -68,7 +68,7 @@ const {
 	playerItems,
 	playerLabels,
 	regionTree,
-	release,
+	review,
 	reviewItems,
 	selections,
 	soundcloudUrl,
@@ -519,9 +519,9 @@ const inlineSelection: SelectionValue = {
 								date={cardWork.date}
 								href={cardWork.url}
 								image={cardWork.image}
-								releaseTitle={cardWork.releaseTitle}
 								subtitle={cardWork.subtitle}
 								title={cardWork.title}
+								work={cardWork.work}
 							/>
 						</li>
 					) : undefined}
@@ -570,7 +570,7 @@ const inlineSelection: SelectionValue = {
 			note="Wraps Carousel, a scroll-snap track that works unenhanced; the custom element adds the chevrons."
 			source="src/components/sections/section-related.astro"
 		>
-			<SectionRelated items={reviewItems.slice(0, 8)} />
+			<SectionRelated collection="reviews" items={reviewItems.slice(0, 8)} />
 		</Specimen>
 	</Section>
 	<Section
@@ -598,23 +598,21 @@ const inlineSelection: SelectionValue = {
 				date={new Date()}
 				kind={{ name: 'Mixes', url: '/mixes/' }}
 				styles={styles}
-				title="A mix, without the release split"
+				title={{ credit: { name: 'An Alias' }, title: 'A Mix' }}
 			/>
 		</Specimen>
 		<Specimen
 			name="SectionDetailHeader"
-			note="The artist splits off the title and the work half goes italic."
+			note="The Credit splits off the title and the Release title is set as a cited work."
 		>
-			{release ? (
+			{review ? (
 				<SectionDetailHeader
-					artist={release.artist}
-					date={release.date}
+					date={review.date}
 					kind={{ name: 'Reviews', url: '/reviews/' }}
-					labels={release.labels}
-					releaseTitle={release.releaseTitle}
-					releaseYear={release.releaseYear}
+					labels={review.labels}
+					releaseYear={review.releaseYear}
 					styles={styles.slice(0, 1)}
-					title={release.title}
+					title={review.work}
 				/>
 			) : undefined}
 		</Specimen>
@@ -649,10 +647,10 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="MediaFeatured"
-			note="The mounted plate a release cover sits on."
+			note="The mounted plate a Featured Image sits on."
 			source="src/components/parts/media-featured.astro"
 		>
-			{release?.image ? <MediaFeatured alt={release.title} path={release.image} /> : undefined}
+			{review?.image ? <MediaFeatured alt={review.title} path={review.image} /> : undefined}
 		</Specimen>
 		<Specimen
 			name="Img"
@@ -1021,7 +1019,7 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="rounded-sm border border-dashed border-ink-700 p-4">
 				<TermLinks heading="Styles" terms={[]} />
-				<SectionRelated items={[]} />
+				<SectionRelated collection="reviews" items={[]} />
 				<Selections items={[]} />
 				<TrackList tracks={[]} />
 				<AudioLinks />

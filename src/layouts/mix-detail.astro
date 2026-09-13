@@ -33,6 +33,7 @@ import { getAbsoluteUrl, getCollectionPath } from '#lib/utils/routing.ts';
 import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
+import { getWorkTitle } from '#lib/utils/work-title.ts';
 
 interface Props {
 	entry: CollectionEntry<'mixes'>;
@@ -42,10 +43,7 @@ const { entry } = Astro.props;
 
 const { Content } = await render(entry);
 
-const aliasTerms = await resolveTermLinks(
-	'artists',
-	entry.data.alias ? [entry.data.alias] : undefined,
-);
+const work = await getWorkTitle(entry);
 const styleTerms = await resolveTermLinks('styles', entry.data.styles);
 const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
 const themeTerms = await resolveTermLinks('themes', entry.data.themes);
@@ -56,7 +54,6 @@ const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudLink);
 const relatedItems = await getRelatedItems(entry);
 const description = await getEntryDescription(entry);
 
-const [alias] = aliasTerms;
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
@@ -70,7 +67,7 @@ const schemas = getMixSchemas(entry, {
 });
 
 const queueItem = isPlayerEnabled
-	? await getMixQueueItem(entry, alias?.name ?? site.title)
+	? await getMixQueueItem(entry, work.credit?.name ?? site.title)
 	: undefined;
 
 // A group naming its own files renders those downloads inline, so the header would otherwise offer them twice
@@ -88,13 +85,11 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 	<article data-pagefind-body>
 		<SearchThumbnail path={imageFeaturedId} />
 		<SectionDetailHeader
-			artist={alias}
 			date={entry.data.dateCreated}
 			kind={kind}
 			labels={labelTerms}
-			releaseTitle={entry.data.title}
 			styles={styleTerms}
-			title={entry.data.title}
+			title={work}
 		/>
 		<FeaturedGrid alt={entry.data.title} path={imageFeaturedId}>
 			<Content />
@@ -127,6 +122,6 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 			</Fragment>
 		</FeaturedGrid>
 		<EntryComments entry={entry} />
-		<SectionRelated items={relatedItems} />
+		<SectionRelated collection={entry.collection} items={relatedItems} />
 	</article>
 </MainSite>

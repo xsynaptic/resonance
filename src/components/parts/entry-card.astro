@@ -1,7 +1,9 @@
 ---
+import type { WorkTitle } from '#lib/utils/work-title.ts';
+
 import MediaImage from '#components/parts/media-image.astro';
+import WorkTitleText from '#components/parts/work-title-text.astro';
 import { formatDate } from '#lib/utils/date.ts';
-import { matchReleaseTitle } from '#lib/utils/entries.ts';
 
 interface Props {
 	class?: string | undefined;
@@ -9,23 +11,15 @@ interface Props {
 	href: string;
 	image?: string | undefined;
 	priority?: boolean | undefined;
-	releaseTitle?: string | undefined;
 	subtitle?: string | undefined;
 	title: string;
+	work?: undefined | WorkTitle;
 }
 
-const {
-	class: className,
-	date,
-	href,
-	image,
-	priority,
-	releaseTitle,
-	subtitle,
-	title,
-} = Astro.props;
+const { class: className, date, href, image, priority, subtitle, title, work } = Astro.props;
 
-const work = matchReleaseTitle(title, releaseTitle);
+// The whole title is already a link and anchors cannot nest, so the Credit renders unlinked
+const cardWork = work?.credit ? { credit: { name: work.credit.name }, title: work.title } : work;
 ---
 
 <div class:list={['h-full rounded-lg border border-surface-700 bg-surface-600 p-2', className]}>
@@ -50,14 +44,7 @@ const work = matchReleaseTitle(title, releaseTitle);
 		class="block font-display text-xl font-bold text-ink-100 transition hover:text-ink-50 focus-visible:text-ink-50"
 		href={href}
 	>
-		{work ? (
-			<Fragment>
-				{title.slice(0, -work.length)}
-				<span class="font-semibold italic">{work}</span>
-			</Fragment>
-		) : (
-			title
-		)}
+		{cardWork ? <WorkTitleText work={cardWork} /> : title}
 	</a>
 	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}
 	{date ? (

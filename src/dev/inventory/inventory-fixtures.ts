@@ -15,6 +15,7 @@ import type { TracklistValue } from '#lib/schemas/audio.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
 import type { LinkedName, TitledCollectionKey } from '#lib/utils/terms.ts';
+import type { WorkTitle } from '#lib/utils/work-title.ts';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
@@ -24,10 +25,10 @@ import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { site } from '#lib/site.ts';
-import { matchReleaseTitle, splitReleaseTitle } from '#lib/utils/entries.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { getContentPath } from '#lib/utils/routing.ts';
-import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
+import { resolveCredits } from '#lib/utils/terms.ts';
+import { getWorkTitle } from '#lib/utils/work-title.ts';
 
 // The inventory's one seam onto real content, so the page itself is only imports and prop-passing
 // Everything is found by predicate rather than named by slug, so editing content cannot break a specimen
@@ -58,14 +59,13 @@ interface OpenGraphSample {
 	label: string;
 }
 
-interface ReleaseSample {
-	artist?: LinkedName | undefined;
+interface ReviewSample {
 	date: Date;
 	image?: string | undefined;
 	labels: Array<LinkedName>;
-	releaseTitle: string;
 	releaseYear?: string | undefined;
 	title: string;
+	work: WorkTitle;
 }
 
 // Hand-kept mirror of the symbols in components/main/main-sprites.astro, which nothing else needs to enumerate
@@ -150,7 +150,7 @@ export async function getInventoryFixtures() {
 		playerItems: [...(mix?.queueItem ? [mix.queueItem] : []), itemWithoutPeaks],
 		playerLabels: getPlayerLabels(),
 		regionTree: await getDirectoryTerms('regions'),
-		release: await sampleRelease(),
+		review: await sampleReview(),
 		reviewItems,
 		selections: await sampleSelections(9),
 		soundcloudUrl: await sampleMixField('soundcloudLink'),
@@ -166,7 +166,7 @@ function cardItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefi
 }
 
 function cardWorkItem(items: Array<ContentCatalogItem>): ContentCatalogItem | undefined {
-	return items.find((item) => matchReleaseTitle(item.title, item.releaseTitle) !== undefined);
+	return items.find((item) => item.work?.credit !== undefined);
 }
 
 async function createOpenGraphCards(): Promise<Array<OpenGraphSample>> {
@@ -356,41 +356,39 @@ async function sampleMixField(
 async function sampleQueueItem(
 	entry: CollectionEntry<'mixes'>,
 ): Promise<PlayerPayloadItem | undefined> {
-	const [alias] = await resolveTermLinks(
-		'artists',
-		entry.data.alias ? [entry.data.alias] : undefined,
-	);
+	const work = await getWorkTitle(entry);
 
-	return getMixQueueItem(entry, alias?.name ?? site.title);
+	return getMixQueueItem(entry, work.credit?.name ?? site.title);
 }
 
-// A review carries the fullest detail header there is: split title, artist, labels, year and rating
-async function sampleRelease(): Promise<ReleaseSample | undefined> {
+// A review carries the fullest detail header there is: linked Credit, cited title, labels and year
+async function sampleReview(): Promise<ReviewSample | undefined> {
 	const reviews = await getCollection('reviews');
-	const entry =
-		reviews.find((review) => {
-			const path = getImageFeaturedId(review.data.imageFeatured);
+	const samples = await Promise.all(
+		reviews.map(async (entry) => ({ entry, work: await getWorkTitle(entry) })),
+	);
+	const sample =
+		samples.find(({ entry, work }) => {
+			const path = getImageFeaturedId(entry.data.imageFeatured);
 
 			return (
-				review.data.releaseTitle !== undefined &&
-				(review.data.labels?.length ?? 0) > 0 &&
+				work.credit?.url !== undefined &&
+				(entry.data.labels?.length ?? 0) > 0 &&
 				path !== undefined &&
 				getMediaImage(path) !== undefined
 			);
-		}) ?? reviews.at(0);
-	if (!entry) return undefined;
+		}) ?? samples.at(0);
+	if (!sample) return undefined;
 
-	const artists = await resolveCredits('artists', entry.data.artists);
-	const { artist, title } = splitReleaseTitle(entry.data.title, entry.data.releaseTitle, artists);
+	const { entry, work } = sample;
 
 	return {
-		artist,
 		date: entry.data.dateCreated,
 		image: getImageFeaturedId(entry.data.imageFeatured),
 		labels: await resolveCredits('labels', entry.data.labels),
-		releaseTitle: title,
 		releaseYear: entry.data.releaseYear,
 		title: entry.data.title,
+		work,
 	};
 }
 

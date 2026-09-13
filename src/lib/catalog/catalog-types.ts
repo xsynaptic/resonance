@@ -1,5 +1,7 @@
 import type { CollectionKey } from 'astro:content';
 
+import type { WorkTitle } from '#lib/utils/work-title.ts';
+
 export type CatalogCollectionKey = ContentCollectionKey | TermCollectionKey;
 
 export type CatalogItem = ContentCatalogItem | TermCatalogItem;
@@ -10,8 +12,8 @@ export type CatalogItemOf<Collection extends CatalogCollectionKey> =
 export interface ContentCatalogItem extends CatalogItemShared {
 	collection: ContentCollectionKey;
 	date: Date;
-	releaseTitle?: string | undefined;
 	subtitle?: string | undefined;
+	work?: undefined | WorkTitle;
 }
 
 export type ContentCollectionKey = Extract<CollectionKey, 'mixes' | 'pages' | 'posts' | 'reviews'>;

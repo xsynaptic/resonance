@@ -1,0 +1,19 @@
+---
+import type { WorkTitle } from '#lib/utils/work-title.ts';
+
+import LinkedNameText from '#components/parts/linked-name-text.astro';
+
+interface Props {
+	work: WorkTitle;
+}
+
+const { work } = Astro.props;
+---
+
+{work.credit ? (
+	<Fragment>
+		<LinkedNameText name={work.credit.name} url={work.credit.url} />
+		<span class="title-divider"> - </span>
+	</Fragment>
+) : undefined}
+<cite class="font-semibold">{work.title}</cite>

@@ -1,10 +1,14 @@
+/* Without a non-visible root, body's overflow propagates to the viewport, which a mobile browser widens rather than clips */
 html {
+	overflow-x: hidden;
 	scrollbar-gutter: stable;
 	scrollbar-color: color-mix(in srgb, var(--color-surface-300) 70%, transparent) transparent;
 	scrollbar-width: thin;
 }
 
+/* `clip`, not `hidden`, so body never becomes a scroll container and the sticky player dock stays pinned */
 body {
+	overflow-x: clip;
 	font-family: var(--font-body);
 	font-size: 1rem;
 	line-height: 1.75;

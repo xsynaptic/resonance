@@ -276,6 +276,59 @@ const inlineSelection: SelectionValue = {
 				<ProseSample />
 			</div>
 		</Specimen>
+		<Specimen
+			name="Img"
+			note="<code>align='right' size='small'</code> beside a quotation, the shape a short quoted Post takes. The quotation sits beside the float; the paragraph after it wraps beneath. Below 40rem the image stacks at its own size."
+			source="src/components/mdx/img.astro"
+		>
+			<div class="prose-x content-measure">
+				{imagePaths[0] ? <Img align="right" size="small" src={imagePaths[0]} /> : undefined}
+				<Quotation author="Erik Davis" title="Hedonic Tantra" year="2004">
+					Whether or not Goa is the core source of rave spirituality, the freak colony has grown
+					into a spiritual origin, a source. But this does not make it simply another myth.
+				</Quotation>
+				<p>
+					A paragraph after the quotation runs beside the image until it clears the bottom edge,
+					then takes the full measure again. It needs to be long enough to wrap beneath the float,
+					which is the case a single quotation never shows: body copy continuing past a small
+					illustration rather than ending beside it. The float is capped at half the column and at
+					the width of its source, so a narrow original never stretches to fill its size. Past the
+					bottom edge the lines lengthen back to the full column, which is the point of a float: the
+					image illustrates a passage without claiming a whole row of the page. Two full lines down
+					here are what show the measure returning, because a single short line below the float
+					could as easily be the paragraph ending where the image happens to end.
+				</p>
+			</div>
+		</Specimen>
+		<Specimen
+			name="Img"
+			note="<code>align='left' size='medium'</code> with a caption. The quotation beside it is a formatting context of its own, so its rule sits clear of the image rather than running behind it."
+			source="src/components/mdx/img.astro"
+		>
+			<div class="prose-x content-measure">
+				{imagePaths[1] ? (
+					<Img align="left" size="medium" src={imagePaths[1]}>
+						A caption wraps to the width of the image it sits under.
+					</Img>
+				) : undefined}
+				<Quotation author="Goa Gil">
+					We're delving to the same place and trying to bring the same thing forth, but with the
+					technology of the 21st century.
+				</Quotation>
+				<p>
+					On the left the float pushes body copy toward the right edge, and the gap sits on its
+					inline end instead. A caption travels with the frame, so it takes the same width as the
+					image above it. Once the text passes the bottom of the figure it returns to the full
+					measure, and the entry contains the float however short the copy beside it runs. The
+					caption counts toward the height the copy has to clear, so a captioned float holds a
+					narrow column of text beside it for longer than a bare image of the same size. Short copy
+					beside a tall figure is the common case in older Posts, where one paragraph introduces a
+					record sleeve and the next begins below it, so the specimen runs long enough to show both.
+					Below the figure these last lines run the full column again. A float with nothing after it
+					would leave that case untested, which is why the paragraph keeps going past the caption.
+				</p>
+			</div>
+		</Specimen>
 	</Section>
 	<Section
 		note="One component renders both tags; the <code>as</code> prop is the only difference."

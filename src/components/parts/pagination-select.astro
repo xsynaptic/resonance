@@ -38,7 +38,7 @@ const nextUrl = url.next ? withTrailingSlash(url.next) : undefined;
 		<nav
 			aria-label={t('pagination.label')}
 			class:list={[
-				'flex flex-wrap items-center justify-between gap-4 text-sm font-medium tabular-nums select-none',
+				'flex flex-wrap items-center justify-between gap-4 text-base font-medium tabular-nums select-none md:text-sm',
 				className,
 			]}
 			{...props}
@@ -54,7 +54,7 @@ const nextUrl = url.next ? withTrailingSlash(url.next) : undefined;
 					<span class="relative inline-flex items-center">
 						<select
 							aria-label={t('pagination.selectLabel')}
-							class="pg-control overflow-hidden rounded-sm border border-surface-700 bg-surface-600 py-1 pr-7 pl-2 text-ellipsis whitespace-nowrap text-ink-100 tabular-nums transition-colors hover:border-surface-400 focus-visible:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+							class="pg-control overflow-hidden rounded-sm border border-surface-700 bg-surface-600 py-2 pr-7 pl-2 text-ellipsis whitespace-nowrap text-ink-100 tabular-nums transition-colors hover:border-surface-400 focus-visible:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500 md:py-1"
 							data-pagination-control
 							name="page"
 						/>
@@ -71,7 +71,7 @@ const nextUrl = url.next ? withTrailingSlash(url.next) : undefined;
 						{formatStringTemplate(t('pagination.selectTotal'), { total: lastPage })}
 					</span>
 					<button
-						class="pg-button cursor-pointer rounded px-2 py-1 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+						class="pg-button cursor-pointer rounded px-2 py-2 font-medium text-highlight-500 hover:text-highlight-400 focus-visible:text-highlight-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500 md:py-1"
 						data-pagination-submit
 						type="submit"
 					>

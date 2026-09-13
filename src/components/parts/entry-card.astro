@@ -29,13 +29,13 @@ const work = matchReleaseTitle(title, releaseTitle);
 ---
 
 <div class:list={['h-full rounded-lg border border-surface-700 bg-surface-600 p-2', className]}>
-	{image ? (
-		<a
-			aria-hidden="true"
-			class="media-frame mb-2.5 block aspect-square w-full overflow-hidden rounded-xs bg-surface-900 transition-opacity hover:opacity-85"
-			href={href}
-			tabindex="-1"
-		>
+	<a
+		aria-hidden="true"
+		class="media-frame mb-2.5 block aspect-square w-full overflow-hidden rounded-xs bg-surface-900 transition-opacity hover:opacity-85"
+		href={href}
+		tabindex="-1"
+	>
+		{image ? (
 			<MediaImage
 				alt=""
 				class="h-full w-full object-cover"
@@ -44,8 +44,8 @@ const work = matchReleaseTitle(title, releaseTitle);
 				width={300}
 				{...(priority ? { priority: true } : {})}
 			/>
-		</a>
-	) : undefined}
+		) : undefined}
+	</a>
 	<a
 		class="block font-display text-xl font-bold text-ink-100 transition hover:text-ink-50 focus-visible:text-ink-50"
 		href={href}

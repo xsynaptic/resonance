@@ -14,14 +14,14 @@ interface Props {
 
 const { id } = Astro.props;
 
-const seriesMembership = await getSeriesMembership(id);
+const seriesMembershipAll = await getSeriesMembership(id);
 
-const seriesItems = seriesMembership
+const seriesMembership = seriesMembershipAll
 	.map(({ items, term }) => ({ items: items.filter((item) => item.id !== id), term }))
 	.filter(({ items }) => items.length > 0);
 ---
 
-{seriesItems.map(async ({ items, term }) => {
+{seriesMembership.map(async ({ items, term }) => {
 	const { Content } = await render(term);
 
 	return (

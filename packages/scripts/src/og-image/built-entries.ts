@@ -60,6 +60,7 @@ const indexCards: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 't
 	{ imageFeaturedId: undefined, outputId: 'index-eras', title: 'Eras' },
 	{ imageFeaturedId: undefined, outputId: 'index-themes', title: 'Themes' },
 	{ imageFeaturedId: undefined, outputId: 'index-series', title: 'Series' },
+	{ imageFeaturedId: undefined, outputId: 'index-archive', title: 'Archive' },
 	{ imageFeaturedId: undefined, outputId: openGraphDefaultId, title: siteTitle },
 ];
 

@@ -9,7 +9,7 @@ export interface YearGroup {
 export function getYearGroups(items: Array<ContentCatalogItem>): Array<YearGroup> {
 	const groups: Array<YearGroup> = [];
 	for (const item of items) {
-		const year = item.date.getFullYear();
+		const year = item.date.getUTCFullYear();
 		const current = groups.at(-1);
 		if (current?.year === year) {
 			current.items.push(item);

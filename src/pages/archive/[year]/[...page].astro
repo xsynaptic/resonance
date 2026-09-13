@@ -1,0 +1,12 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+
+import ArchiveYear from '#layouts/archive-year.astro';
+import { createArchiveYearPaths } from '#lib/collections/archive/archive-routes.ts';
+
+export const getStaticPaths = createArchiveYearPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+---
+
+<ArchiveYear {...Astro.props} />

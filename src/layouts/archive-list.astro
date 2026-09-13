@@ -1,0 +1,48 @@
+---
+import MainSite from '#components/main/main-site.astro';
+import Anchor from '#components/parts/anchor.astro';
+import PageTitle from '#components/parts/page-title.astro';
+import {
+	getArchivePath,
+	getArchiveYearPath,
+	getArchiveYears,
+} from '#lib/collections/archive/archive-data.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { getAbsoluteUrl } from '#lib/utils/routing.ts';
+import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
+import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
+
+const years = await getArchiveYears();
+
+const title = t('collection.archive.title');
+const description = t('collection.archive.description');
+
+const schemas = buildCollectionGraph({
+	description,
+	title,
+	url: getAbsoluteUrl(getArchivePath()),
+});
+---
+
+<MainSite
+	description={description}
+	openGraphId={getOpenGraphId('index', 'archive')}
+	schemas={schemas}
+	title={title}
+>
+	<PageTitle description={description} title={title} />
+	<ul class="columns-2 gap-x-10 leading-8 sm:columns-3 lg:columns-4">
+		{years.map((group) => (
+			<li class="flex items-baseline gap-x-2 tabular-nums">
+				<Anchor href={getArchiveYearPath(group.year)}>{group.year}</Anchor>
+				<span class="text-sm text-ink-600">
+					{formatStringTemplate(
+						t(group.items.length === 1 ? 'archive.entries.one' : 'archive.entries.other'),
+						{ count: formatNumber({ number: group.items.length }) },
+					)}
+				</span>
+			</li>
+		))}
+	</ul>
+</MainSite>

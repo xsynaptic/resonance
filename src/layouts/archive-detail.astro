@@ -8,7 +8,7 @@ import MainSite from '#components/main/main-site.astro';
 import EntryCard from '#components/parts/entry-card.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
-import { collectionLabels } from '#lib/catalog/catalog-labels.ts';
+import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import {
 	getArchivePath,
 	getArchiveYearPagination,
@@ -63,8 +63,8 @@ const schemas =
 					date={item.date}
 					href={item.url}
 					image={item.image}
+					kind={collectionKinds[item.collection]}
 					priority={index === 0}
-					subtitle={collectionLabels[item.collection]}
 					title={item.title}
 					work={item.work}
 				/>

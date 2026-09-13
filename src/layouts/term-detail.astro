@@ -16,7 +16,7 @@ import TermLinks from '#components/parts/term-links.astro';
 import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
-import { collectionLabels } from '#lib/catalog/catalog-labels.ts';
+import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { getTermRelations } from '#lib/collections/terms/term-relations.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -129,8 +129,8 @@ const schemas =
 								date={entry.date}
 								href={entry.url}
 								image={entry.image}
+								kind={collectionKinds[entry.collection]}
 								priority={groupIndex === 0 && entryIndex === 0}
-								subtitle={collectionLabels[entry.collection]}
 								title={entry.title}
 								work={entry.work}
 							/>

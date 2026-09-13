@@ -1,6 +1,8 @@
 ---
+import type { LinkedName } from '#lib/utils/terms.ts';
 import type { WorkTitle } from '#lib/utils/work-title.ts';
 
+import LinkedNameText from '#components/parts/linked-name-text.astro';
 import MediaImage from '#components/parts/media-image.astro';
 import WorkTitleText from '#components/parts/work-title-text.astro';
 import { formatDate } from '#lib/utils/date.ts';
@@ -10,13 +12,14 @@ interface Props {
 	date?: Date | undefined;
 	href: string;
 	image?: string | undefined;
+	kind?: LinkedName | undefined;
 	priority?: boolean | undefined;
 	subtitle?: string | undefined;
 	title: string;
 	work?: undefined | WorkTitle;
 }
 
-const { class: className, date, href, image, priority, subtitle, title, work } = Astro.props;
+const { class: className, date, href, image, kind, priority, subtitle, title, work } = Astro.props;
 
 // The whole title is already a link and anchors cannot nest, so the Credit renders unlinked
 const cardWork = work?.credit ? { credit: { name: work.credit.name }, title: work.title } : work;
@@ -46,6 +49,11 @@ const cardWork = work?.credit ? { credit: { name: work.credit.name }, title: wor
 	>
 		{cardWork ? <WorkTitleText work={cardWork} /> : title}
 	</a>
+	{kind ? (
+		<span class="mt-1 block text-sm font-bold text-highlight-500">
+			<LinkedNameText anchorColor="highlight" name={kind.name} url={kind.url} />
+		</span>
+	) : undefined}
 	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}
 	{date ? (
 		<time class="mt-1 block text-xs text-ink-700" datetime={date.toISOString()}>

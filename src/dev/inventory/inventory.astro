@@ -46,6 +46,7 @@ import {
 import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
 import Section from '#dev/inventory/inventory-section.astro';
 import Specimen from '#dev/inventory/inventory-specimen.astro';
+import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import { getArchiveYearPagination } from '#lib/collections/archive/archive-data.ts';
 import { getPagination } from '#lib/utils/pagination.ts';
 import { toSlug } from '#lib/utils/text.ts';
@@ -493,7 +494,7 @@ const inlineSelection: SelectionValue = {
 	>
 		<Specimen
 			name="EntryCard"
-			note="Always square, so a grid mixing collections lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title."
+			note="Always square, so a grid mixing collections lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title, and a Term or Archive page names the collection in place of the subtitle."
 			source="src/components/parts/entry-card.astro"
 		>
 			{card ? (
@@ -509,6 +510,15 @@ const inlineSelection: SelectionValue = {
 					</li>
 					<li>
 						<EntryCard href={card.url} image={card.image} title="No subtitle, no date" />
+					</li>
+					<li>
+						<EntryCard
+							date={card.date}
+							href={card.url}
+							image={card.image}
+							kind={collectionKinds[card.collection]}
+							title={card.title}
+						/>
 					</li>
 					<li>
 						<EntryCard date={card.date} href={card.url} subtitle="No image" title="Title only" />

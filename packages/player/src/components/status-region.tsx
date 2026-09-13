@@ -6,14 +6,14 @@ import { SkullIcon } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer } from '#store/context.tsx';
 
-type ReportedStatus = 'capped' | 'error' | 'loading';
+type ReportedStatus = 'capped' | 'error' | 'loading' | 'unplayable';
 
 export function StatusRegion({
 	className,
 	labels,
 }: {
 	className?: string | undefined;
-	labels: Pick<PlayerLabels, 'capped' | 'error' | 'loading'>;
+	labels: Pick<PlayerLabels, 'capped' | 'error' | 'loading' | 'unplayable'>;
 }) {
 	const status = usePlayer((state) => state.status);
 	const reported = reportedStatus(status);
@@ -39,6 +39,7 @@ function reportedStatus(status: PlayerStatus): ReportedStatus | undefined {
 	if (status === 'capped') return 'capped';
 	if (status === 'error') return 'error';
 	if (status === 'loading') return 'loading';
+	if (status === 'unplayable') return 'unplayable';
 
 	return undefined;
 }

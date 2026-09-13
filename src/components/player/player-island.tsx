@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
+const streamType = 'audio/webm; codecs="opus"';
+
 // Both URLs come from the payload, so neither resolver touches the network
 const urls: PlayerUrls = {
 	archive: (trackId) => Promise.resolve(resolve(trackId, 'archiveUrl')),
@@ -12,7 +14,7 @@ const urls: PlayerUrls = {
 		const streamUrl = resolve(trackId, 'streamUrl');
 		if (streamUrl === undefined) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
-		return Promise.resolve({ status: 'ok', url: streamUrl });
+		return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
 	},
 };
 

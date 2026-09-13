@@ -5,6 +5,7 @@ import { createAudioGraph } from '#engine/audio-graph.ts';
 // An element inside the graph: the element keeps progressive streaming and native seeking, the graph adds gain and the tap
 export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
+	canPlay(type: string): boolean;
 	currentTime(): number;
 	load(request: AudioLoadRequest): Promise<void>;
 	// How far the element's clock runs ahead of the sound: the graph's delay plus the device's
@@ -91,6 +92,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 
 	return {
 		analyser: graph.analyser,
+		canPlay: (type) => audio.canPlayType(type) !== '',
 		currentTime: () => audio.currentTime,
 		async load({ gain, resumeAtSeconds, shouldAutoplay, src }) {
 			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;

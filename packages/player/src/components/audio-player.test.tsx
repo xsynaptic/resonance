@@ -6,6 +6,7 @@ import type { PlayerUrls, QueueItem } from '#types.ts';
 
 const engineMock = vi.hoisted(() => ({
 	analyser: vi.fn(),
+	canPlay: vi.fn(() => true),
 	currentTime: vi.fn(() => 0),
 	load: vi.fn(() => Promise.resolve()),
 	outputDelay: vi.fn(() => 0),
@@ -53,6 +54,7 @@ const labels = {
 	timestampsPartial: 'Timestamps end here',
 	toggleTimeMode: 'Toggle elapsed and remaining',
 	unmute: 'Unmute',
+	unplayable: 'This browser cannot play the stream',
 	volume: 'Volume',
 	waveformPanel: 'Waveform detail',
 	zoomIn: 'Zoom in',

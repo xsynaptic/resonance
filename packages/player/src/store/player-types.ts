@@ -45,7 +45,7 @@ export interface PlayerActions {
 	seekBy: (deltaSeconds: number) => void;
 	setVolume: (volume: number) => void;
 	stop: () => void;
-	// Drops to silence and back to the level held when muting; a manual drag to zero unmutes to full
+	// Drops to silence and back to the level held at the last mute, or to full before any mute
 	toggleMute: () => void;
 	// The scrolling detail panel above the bar; session state, not a persisted preference
 	togglePanel: () => void;

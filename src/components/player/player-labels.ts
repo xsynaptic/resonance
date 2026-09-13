@@ -30,6 +30,7 @@ export function getPlayerLabels(): PlayerLabels {
 		timestampsPartial: t('player.timestampsPartial'),
 		toggleTimeMode: t('player.toggleTimeMode'),
 		unmute: t('player.unmute'),
+		unplayable: t('player.unplayable'),
 		volume: t('player.volume'),
 		waveformPanel: t('player.waveformPanel'),
 		zoomIn: t('player.zoomIn'),

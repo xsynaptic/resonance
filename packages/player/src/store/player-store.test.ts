@@ -13,6 +13,7 @@ function createFakeEngine() {
 	const callbacks: { current: AudioEngineCallbacks | undefined } = { current: undefined };
 	const engine = {
 		analyser: vi.fn(),
+		canPlay: vi.fn(() => true),
 		currentTime: vi.fn(() => time),
 		load: vi.fn(() => Promise.resolve()),
 		outputDelay: vi.fn(() => 0),
@@ -658,6 +659,28 @@ describe('engine errors', () => {
 			expect(store.getState().status).toBe('capped');
 		});
 
+		expect(fake.engine.load).not.toHaveBeenCalled();
+		expect(resolved).toStrictEqual(['a']);
+	});
+
+	test('stops at a format the browser cannot play without loading or re-resolving', async () => {
+		const resolved: Array<string> = [];
+		const store = withResolver((trackId) => {
+			resolved.push(trackId);
+			return Promise.resolve({
+				status: 'ok',
+				type: 'audio/webm; codecs="opus"',
+				url: `https://api.test/tracks/${trackId}/stream`,
+			});
+		});
+		fake.engine.canPlay.mockReturnValue(false);
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(store.getState().status).toBe('unplayable');
+		});
+
+		expect(fake.engine.canPlay).toHaveBeenCalledWith('audio/webm; codecs="opus"');
 		expect(fake.engine.load).not.toHaveBeenCalled();
 		expect(resolved).toStrictEqual(['a']);
 	});

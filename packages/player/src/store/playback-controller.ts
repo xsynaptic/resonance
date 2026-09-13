@@ -111,6 +111,9 @@ export function createPlaybackController(
 			onFail: () => {
 				fail('resolve');
 			},
+			onUnplayable: () => {
+				set({ status: 'unplayable' });
+			},
 			request: { gain: normalizationGain(item, isShuffling), resumeAtSeconds, shouldAutoplay },
 			stream: () => urls.stream(item.trackId),
 		});
@@ -193,6 +196,7 @@ async function streamIntoEngine({
 	isCurrent,
 	onCapped,
 	onFail,
+	onUnplayable,
 	request,
 	stream,
 }: {
@@ -200,6 +204,7 @@ async function streamIntoEngine({
 	isCurrent: () => boolean;
 	onCapped: () => void;
 	onFail: () => void;
+	onUnplayable: () => void;
 	// Everything the engine needs but the URL, which is what this resolves
 	request: { gain: number; resumeAtSeconds: number; shouldAutoplay: boolean };
 	stream: () => Promise<StreamResolution>;
@@ -211,6 +216,12 @@ async function streamIntoEngine({
 		// Not retried: a re-resolve would answer the same
 		if (resolution.status === 'capped') {
 			onCapped();
+			return;
+		}
+
+		// Not retried either: the browser answers the same for the same format
+		if (resolution.type !== undefined && !engine.canPlay(resolution.type)) {
+			onUnplayable();
 			return;
 		}
 

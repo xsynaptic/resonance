@@ -151,6 +151,7 @@ const strings = {
 	'player.timestampsPartial': 'Timestamps end here',
 	'player.toggleTimeMode': 'Toggle elapsed and remaining',
 	'player.unmute': 'Unmute',
+	'player.unplayable': 'This browser cannot play the stream',
 	'player.volume': 'Volume',
 	'player.waveformPanel': 'Waveform detail',
 	'player.zoomIn': 'Zoom in',

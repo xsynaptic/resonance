@@ -13,6 +13,7 @@ const createSilentEngine: CreateAudioEngine = (callbacks) => {
 
 	return {
 		analyser: () => silentAnalyser,
+		canPlay: () => true,
 		currentTime: () => currentTimeSeconds,
 		// A specimen lands loaded and paused, where a real engine would go on to play
 		load: () => {

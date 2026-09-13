@@ -52,6 +52,7 @@ function loadedStore() {
 	const store = createPlayerStore({
 		createEngine: () => ({
 			analyser: vi.fn(),
+			canPlay: vi.fn(() => true),
 			currentTime: vi.fn(() => 0),
 			load: vi.fn(() => Promise.resolve()),
 			outputDelay: vi.fn(() => 0),

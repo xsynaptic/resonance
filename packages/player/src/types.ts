@@ -29,6 +29,7 @@ export interface PlayerLabels {
 	timestampsPartial: string;
 	toggleTimeMode: string;
 	unmute: string;
+	unplayable: string;
 	volume: string;
 	waveformPanel: string;
 	zoomIn: string;
@@ -36,7 +37,9 @@ export interface PlayerLabels {
 }
 
 // `capped` is terminal like `error`, but nothing failed: the host's resolver declined to serve the track
-export type PlayerStatus = 'capped' | 'error' | 'idle' | 'loading' | 'paused' | 'playing';
+// `unplayable` is terminal the same way: the browser declined the format the host resolved
+export type PlayerStatus =
+	'capped' | 'error' | 'idle' | 'loading' | 'paused' | 'playing' | 'unplayable';
 
 export type PlayerTimeMode = 'elapsed' | 'remaining';
 
@@ -87,6 +90,7 @@ export interface QueueLoudness {
 	truePeakDbtp?: number;
 }
 
-export type StreamResolution = { status: 'capped' } | { status: 'ok'; url: string };
+// `type` is a MIME type with codecs, probed before loading; absent skips the probe
+export type StreamResolution = { status: 'capped' } | { status: 'ok'; type?: string; url: string };
 
 export type SubscribeTime = (onTime: (currentTimeSeconds: number) => void) => () => void;

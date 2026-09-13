@@ -1,4 +1,4 @@
-import { toExcerpt } from '#lib/utils/text.ts';
+import { toExcerpt } from '#lib/utils/markdown.ts';
 
 // Terms carry no description field at all, hence the index signature
 interface DescribableEntry {

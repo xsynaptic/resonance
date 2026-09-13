@@ -8,10 +8,10 @@ import EntryCardItem from '#components/parts/entry-card-item.astro';
 import ListGroupHeading from '#components/parts/list-group-heading.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
+import { toExcerpt } from '#lib/utils/markdown.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
-import { toExcerpt } from '#lib/utils/text.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {

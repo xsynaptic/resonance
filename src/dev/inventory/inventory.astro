@@ -11,6 +11,7 @@ import EmbedSoundcloud from '#components/embed/embed-soundcloud.astro';
 import MainSite from '#components/main/main-site.astro';
 import ImgGroup from '#components/mdx/img-group.astro';
 import Img from '#components/mdx/img.astro';
+import Quotation from '#components/mdx/quotation.astro';
 import Selections from '#components/mdx/selections.astro';
 import TrackList from '#components/mdx/track-list.astro';
 import Anchor from '#components/parts/anchor.astro';
@@ -598,6 +599,29 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="prose-x">
 				{heroPath ? <Img src={heroPath}>A caption, written as the tag's children.</Img> : undefined}
+			</div>
+		</Specimen>
+		<Specimen
+			name="Quotation"
+			note="A standalone quotation with its attribution as markup rather than a second blockquote paragraph. Only <code>author</code> is required; <code>url</code> links the title and sets <code>cite</code> on the blockquote."
+			source="src/components/mdx/quotation.astro"
+		>
+			<div class="prose-x">
+				<Quotation author="Erik Davis" title="Hedonic Tantra" year="2004">
+					Whether or not Goa is the core source of rave spirituality, the freak colony has grown
+					into a spiritual origin, a source. But this does not make it simply another myth.
+				</Quotation>
+			</div>
+		</Specimen>
+		<Specimen
+			name="Quotation"
+			note="Author alone, which is what an uncited interview line carries."
+		>
+			<div class="prose-x">
+				<Quotation author="Goa Gil">
+					We're delving to the same place and trying to bring the same thing forth, but with the
+					technology of the 21st century.
+				</Quotation>
 			</div>
 		</Specimen>
 		<Specimen

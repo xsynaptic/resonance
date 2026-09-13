@@ -9,7 +9,7 @@ import {
 import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // A required prop missing here throws while the component renders, naming only the page path
-const requiredProps: Record<string, string> = { Img: 'src', Link: 'id' };
+const requiredProps: Record<string, string> = { Img: 'src', Link: 'id', Quotation: 'author' };
 
 const componentNames = Object.keys(requiredProps);
 

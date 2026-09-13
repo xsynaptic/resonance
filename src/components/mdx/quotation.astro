@@ -1,0 +1,28 @@
+---
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
+
+interface Props {
+	author: string;
+	title?: string | undefined;
+	url?: string | undefined;
+	year?: string | undefined;
+}
+
+const { author, title, url, year } = Astro.props;
+---
+
+<figure class="quotation">
+	<blockquote cite={url}>
+		<slot />
+	</blockquote>
+	<figcaption>
+		{[
+			author ? formatStringTemplate(t('quotation.author'), { author }) : undefined,
+			title ? <cite>{url ? <a href={url}>{title}</a> : title}</cite> : undefined,
+			year,
+		]
+			.filter(Boolean)
+			.flatMap((part, index) => (index === 0 ? [part] : [', ', part]))}
+	</figcaption>
+</figure>

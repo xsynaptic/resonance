@@ -105,6 +105,7 @@ export default defineConfig({
 							'./src/components/mdx/img.astro': [['default', 'Img']],
 							'./src/components/mdx/link.astro': [['default', 'Link']],
 							'./src/components/mdx/more.astro': [['default', 'More']],
+							'./src/components/mdx/quotation.astro': [['default', 'Quotation']],
 							'./src/components/mdx/selections.astro': [['default', 'Selections']],
 							'./src/components/mdx/track-list.astro': [['default', 'TrackList']],
 						},

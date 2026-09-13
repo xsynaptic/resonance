@@ -11,6 +11,7 @@ describe('collectComponentIssues', () => {
 			'Released on <Link id="techgnosis-records">Techgnosis</Link>.',
 			'<Img src="covers/artwork.jpg">A caption</Img>',
 			'<Link id="dj-basilisk" />',
+			'<Quotation author="Erik Davis" title="Hedonic Tantra" year="2004">',
 		].join('\n');
 
 		expect(collectComponentIssues(body)).toEqual([]);
@@ -45,6 +46,13 @@ describe('collectComponentIssues', () => {
 
 		expect(issues).toHaveLength(1);
 		expect(issues[0]?.message).toBe('Img component missing src prop');
+	});
+
+	test('flags a Quotation carrying a title but no author', () => {
+		const issues = collectComponentIssues('<Quotation title="Neuromancer" year="1982">');
+
+		expect(issues).toHaveLength(1);
+		expect(issues[0]?.message).toBe('Quotation component missing author prop');
 	});
 
 	test('reports the line the component sits on', () => {

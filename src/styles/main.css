@@ -30,6 +30,7 @@
 @import './main/components/pagination-select.css' layer(components);
 @import './main/components/progress-loading.css' layer(components);
 @import './main/components/prose.css' layer(prose);
+@import './main/components/quotation.css' layer(components);
 @import './main/components/release-detail.css' layer(components);
 @import './main/components/search.css' layer(components);
 @import './main/components/skip-link.css' layer(components);

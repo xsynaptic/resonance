@@ -2,8 +2,10 @@
 import MainSite from '#components/main/main-site.astro';
 import Anchor from '#components/parts/anchor.astro';
 import PageTitle from '#components/parts/page-title.astro';
+import PaginationSelect from '#components/parts/pagination-select.astro';
 import {
 	getArchivePath,
+	getArchiveYearPagination,
 	getArchiveYearPath,
 	getArchiveYears,
 } from '#lib/collections/archive/archive-data.ts';
@@ -32,10 +34,14 @@ const schemas = buildCollectionGraph({
 	title={title}
 >
 	<PageTitle description={description} title={title} />
+	<PaginationSelect
+		class="mb-8"
+		pagination={getArchiveYearPagination(years.map((group) => String(group.year)))}
+	/>
 	<ul class="columns-2 gap-x-10 leading-8 sm:columns-3 lg:columns-4">
 		{years.map((group) => (
 			<li class="flex items-baseline gap-x-2 tabular-nums">
-				<Anchor href={getArchiveYearPath(group.year)}>{group.year}</Anchor>
+				<Anchor href={getArchiveYearPath(String(group.year))}>{group.year}</Anchor>
 				<span class="text-sm text-ink-600">
 					{formatStringTemplate(
 						t(group.items.length === 1 ? 'archive.entries.one' : 'archive.entries.other'),

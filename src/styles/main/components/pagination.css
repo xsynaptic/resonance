@@ -1,15 +1,15 @@
 /* Chromium can style <select>, most other browsers can't, so this is progressive enhancement */
-.pg-control {
+.pagination-control {
 	appearance: none;
 }
 
-.pg-arrow {
+.pagination-arrow {
 	inset-block: 0;
 	right: calc(var(--spacing) * 1.5);
 }
 
 /* In flow so its box stays reserved; revealing it shifts nothing */
-.pg-button {
+.pagination-button {
 	visibility: hidden;
 	opacity: 0;
 	transition:
@@ -24,41 +24,41 @@
 }
 
 @supports (appearance: base-select) {
-	.pg-control,
-	.pg-control::picker(select) {
+	.pagination-control,
+	.pagination-control::picker(select) {
 		appearance: base-select;
 	}
 
 	/* Hide the base-appearance picker icon; we render our own chevron */
-	.pg-control::picker-icon {
+	.pagination-control::picker-icon {
 		display: none;
 	}
 
-	.pg-control option::checkmark {
+	.pagination-control option::checkmark {
 		display: none;
 	}
 
-	.pg-control option[data-current-page]::after {
+	.pagination-control option[data-current]::after {
 		order: 1;
 		margin-inline-start: calc(var(--spacing) * 2);
 		color: var(--color-accent-400);
 		content: var(--content-bullet);
 	}
 
-	.pg-control:open {
+	.pagination-control:open {
 		border-color: var(--color-accent-500);
 	}
 
-	.pg-arrow {
+	.pagination-arrow {
 		transition: transform 100ms var(--default-transition-timing-function);
 		transition-behavior: allow-discrete;
 	}
 
-	.pg-control:open ~ .pg-arrow {
+	.pagination-control:open ~ .pagination-arrow {
 		transform: translateY(-1px) scaleY(-1);
 	}
 
-	.pg-control::picker(select) {
+	.pagination-control::picker(select) {
 		min-inline-size: anchor-size(width);
 		max-height: 240px;
 		overflow-y: auto;
@@ -75,7 +75,7 @@
 		}
 	}
 
-	.pg-control option {
+	.pagination-control option {
 		display: flex;
 		align-items: center;
 		height: 30px;
@@ -86,19 +86,19 @@
 		cursor: pointer;
 	}
 
-	.pg-control option:focus {
+	.pagination-control option:focus {
 		color: var(--color-accent-300);
 		background-color: var(--color-surface-500);
 	}
 
 	@media (hover: hover) {
-		.pg-control option:hover {
+		.pagination-control option:hover {
 			color: var(--color-accent-300);
 			background-color: var(--color-surface-500);
 		}
 	}
 
-	.pg-control option:checked {
+	.pagination-control option:checked {
 		font-weight: 600;
 		color: var(--color-accent-400);
 	}

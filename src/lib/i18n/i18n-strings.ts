@@ -3,6 +3,8 @@ const strings = {
 	'archive.entries.other': '{count} entries',
 	'archive.newerYear': 'Newer: {year}',
 	'archive.olderYear': 'Older: {year}',
+	'archive.selectLabel': 'Go to year',
+	'archive.selectPlaceholder': 'Year',
 	'archive.yearsLabel': 'Years',
 	'artist.members': 'Members',
 	'artist.projects': 'Projects',

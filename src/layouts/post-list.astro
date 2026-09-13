@@ -8,6 +8,7 @@ import MainSite from '#components/main/main-site.astro';
 import PageTitle from '#components/parts/page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
+import { getPagination } from '#lib/utils/pagination.ts';
 import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
@@ -50,5 +51,5 @@ const schemas =
 			<Content />
 		</SectionPostExcerpt>
 	))}
-	<PaginationSelect class="mt-8" page={page} />
+	<PaginationSelect class="mt-8" pagination={getPagination(page)} />
 </MainSite>

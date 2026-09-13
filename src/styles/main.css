@@ -27,7 +27,7 @@
 @import './main/components/img-figure.css' layer(components);
 @import './main/components/navigation.css' layer(components);
 @import './main/components/not-found.css' layer(components);
-@import './main/components/pagination-select.css' layer(components);
+@import './main/components/pagination.css' layer(components);
 @import './main/components/progress-loading.css' layer(components);
 @import './main/components/prose.css' layer(prose);
 @import './main/components/quotation.css' layer(components);

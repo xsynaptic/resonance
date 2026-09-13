@@ -46,6 +46,8 @@ import {
 import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
 import Section from '#dev/inventory/inventory-section.astro';
 import Specimen from '#dev/inventory/inventory-specimen.astro';
+import { getArchiveYearPagination } from '#lib/collections/archive/archive-data.ts';
+import { getPagination } from '#lib/utils/pagination.ts';
 import { toSlug } from '#lib/utils/text.ts';
 import '#dev/inventory/inventory.css';
 
@@ -134,6 +136,8 @@ const paginationPage: Page<ContentCatalogItem> = {
 		prev: '/reviews/2',
 	},
 };
+
+const paginationYears = ['2013', '2011', '2009'];
 
 // A selection's anchor id comes from its entry, so each order variant takes its own rows
 const unorderedSelections = selections.slice(0, 3);
@@ -544,10 +548,14 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="PaginationSelect"
-			note="The counter becomes a page select once the custom element upgrades."
+			note="Page 3 of 8, then years without and with a current year. The counter becomes a select once the custom element upgrades; with no counter and no links, nothing shows until then."
 			source="src/components/parts/pagination-select.astro"
 		>
-			<PaginationSelect page={paginationPage} />
+			<div class="flex flex-col gap-4">
+				<PaginationSelect pagination={getPagination(paginationPage)} />
+				<PaginationSelect pagination={getArchiveYearPagination(paginationYears)} />
+				<PaginationSelect pagination={getArchiveYearPagination(paginationYears, '2011')} />
+			</div>
 		</Specimen>
 		<Specimen name="SectionHome" source="src/components/sections/section-home.astro">
 			<SectionHome

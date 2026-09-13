@@ -29,7 +29,7 @@ const columns = getGridColumnCount(columnsProp ? Number(columnsProp) : imageCoun
 {slotContents && imageCount > 0 ? (
 	<div
 		class:list={[
-			'img-group',
+			'img-group prose-block',
 			columns > 1 ? 'grid grid-cols-1 gap-2 md:gap-4' : undefined,
 			columns === 2 ? 'sm:grid-cols-2' : undefined,
 			columns === 3 ? 'md:grid-cols-3' : undefined,

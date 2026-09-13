@@ -34,7 +34,7 @@ const style = aspectRatio ? `aspect-ratio: ${aspectRatio};` : `height: ${String(
 		<a href={feedHref}>{feedLabel}</a>
 	</p>
 ) : (
-	<div class:list={['embed-frame', className]} style={style}>
+	<div class:list={['embed-frame prose-block', className]} style={style}>
 		<iframe
 			allow="autoplay; encrypted-media; fullscreen"
 			loading="lazy"

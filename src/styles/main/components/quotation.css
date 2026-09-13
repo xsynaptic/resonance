@@ -1,5 +1,5 @@
-/* The figure carries the gap, so the caption stays with the quote it attributes */
 .quotation {
+	display: flow-root;
 	margin-inline: 0;
 }
 

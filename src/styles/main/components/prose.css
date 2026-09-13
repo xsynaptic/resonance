@@ -2,6 +2,8 @@
 
 /* Font, size, leading and colour inherit from `body`; the measure is composed with `content-measure` */
 .prose-x {
+	display: flow-root;
+
 	--prose-gap: calc(var(--spacing) * 4);
 }
 
@@ -185,7 +187,7 @@
 	}
 }
 
-.prose-x > :where(img, .media-frame, .img-figure, .img-group, .embed-frame, .quotation) {
+.prose-x > :where(img, .prose-block) {
 	margin-block: var(--prose-gap);
 }
 

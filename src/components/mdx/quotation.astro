@@ -12,7 +12,7 @@ interface Props {
 const { author, title, url, year } = Astro.props;
 ---
 
-<figure class="quotation">
+<figure class="quotation prose-block">
 	<blockquote cite={url}>
 		<slot />
 	</blockquote>

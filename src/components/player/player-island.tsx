@@ -24,6 +24,11 @@ let parsedItems: Array<PlayerPayloadItem> | undefined;
 // Kept across soft navigations: a queue outlives the page it was built from, and the next page's payload need not carry it
 const payloadItems = new Map<string, PlayerPayloadItem>();
 
+interface RowState {
+	isPlaying: boolean;
+	trackId: string | undefined;
+}
+
 export function PlayerIsland({
 	labels,
 	skipSeconds,
@@ -46,21 +51,21 @@ export function PlayerIsland({
 		};
 	}, []);
 
-	// Guarded on track change so the clock's updates do not rescan the DOM; re-marked after each soft navigation
+	// Guarded on track and transport change so the clock's updates do not rescan the DOM; re-marked after each soft navigation
 	useEffect(() => {
-		let applied = currentTrackId();
+		let applied = currentRowState();
 
 		markRows(applied);
 
 		const unsubscribe = playerStore.subscribe(() => {
-			const trackId = currentTrackId();
-			if (trackId === applied) return;
+			const rowState = currentRowState();
+			if (rowState.trackId === applied.trackId && rowState.isPlaying === applied.isPlaying) return;
 
-			applied = trackId;
-			markRows(trackId);
+			applied = rowState;
+			markRows(rowState);
 		});
 		const onPageLoad = (): void => {
-			markRows(currentTrackId());
+			markRows(currentRowState());
 		};
 
 		document.addEventListener('astro:page-load', onPageLoad);
@@ -74,11 +79,11 @@ export function PlayerIsland({
 	return <AudioPlayer labels={labels} skipSeconds={skipSeconds} urls={urls} />;
 }
 
-function currentTrackId(): string | undefined {
-	const { currentIndex, queue } = playerStore.getState();
-	if (currentIndex === undefined) return undefined;
+function currentRowState(): RowState {
+	const { currentIndex, queue, status } = playerStore.getState();
+	const trackId = currentIndex === undefined ? undefined : queue[currentIndex]?.trackId;
 
-	return queue[currentIndex]?.trackId;
+	return { isPlaying: status === 'playing', trackId };
 }
 
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
@@ -107,9 +112,12 @@ function dispatchControl(target: Element | undefined): void {
 	if (playRelease !== undefined) store.playRelease(items);
 }
 
-function markRows(trackId: string | undefined): void {
+function markRows({ isPlaying, trackId }: RowState): void {
 	for (const row of document.querySelectorAll<HTMLElement>('[data-track-id]')) {
-		row.toggleAttribute('data-playing', trackId !== undefined && row.dataset.trackId === trackId);
+		const isLoaded = trackId !== undefined && row.dataset.trackId === trackId;
+
+		row.toggleAttribute('data-loaded', isLoaded);
+		row.toggleAttribute('data-playing', isLoaded && isPlaying);
 	}
 }
 

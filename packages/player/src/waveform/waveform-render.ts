@@ -1,5 +1,13 @@
 import { resamplePeaks } from '#waveform/resample.ts';
 
+export interface BarGrid {
+	bar: number;
+	count: number;
+	pitch: number;
+	ratio: number;
+	width: number;
+}
+
 export interface WaveformRendering {
 	height: number;
 	path: Path2D;
@@ -13,6 +21,22 @@ interface BarLayout {
 	height: number;
 	pitch: number;
 	radius: number;
+}
+
+// The columns the bars land on, in device pixels; anything laid over the waveform reads the same grid
+export function measureBarGrid(
+	element: HTMLElement,
+	styles: CSSStyleDeclaration = getComputedStyle(element),
+): BarGrid {
+	const ratio = window.devicePixelRatio || 1;
+	const width = Math.max(1, Math.round(element.clientWidth * ratio));
+	const readDevicePixels = createDevicePixelReader(styles, ratio);
+	const bar = Math.max(1, readDevicePixels('--player-waveform-bar', 2));
+	const gap = readDevicePixels('--player-waveform-gap', 1);
+	const pitch = bar + gap;
+
+	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
+	return { bar, count: Math.max(1, Math.floor((width + gap) / pitch)), pitch, ratio, width };
 }
 
 export function paintWaveform(
@@ -43,28 +67,19 @@ export function prepareRendering(
 ): undefined | WaveformRendering {
 	if (peaks.length === 0) return undefined;
 
-	const ratio = window.devicePixelRatio || 1;
-	const width = Math.max(1, Math.round(canvas.clientWidth * ratio));
-	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
-
 	const styles = getComputedStyle(canvas);
-	const readDevicePixels = createDevicePixelReader(styles, ratio);
-	const bar = Math.max(1, readDevicePixels('--player-waveform-bar', 2));
-	const gap = readDevicePixels('--player-waveform-gap', 1);
-	const pitch = bar + gap;
+	const { bar, count, pitch, ratio, width } = measureBarGrid(canvas, styles);
+	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
 	const layout = {
 		bar,
 		height,
 		pitch,
-		radius: readDevicePixels('--player-waveform-radius', 0),
+		radius: createDevicePixelReader(styles, ratio)('--player-waveform-radius', 0),
 	} satisfies BarLayout;
-
-	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
-	const bars = resamplePeaks(peaks, Math.max(1, Math.floor((width + gap) / pitch)));
 
 	return {
 		height,
-		path: barsPath(bars, layout),
+		path: barsPath(resamplePeaks(peaks, count), layout),
 		playedStyle: styles.getPropertyValue('--player-waveform-played'),
 		trackStyle: styles.getPropertyValue('--player-waveform-track'),
 		width,

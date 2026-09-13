@@ -62,7 +62,17 @@
 	display: none;
 }
 
-/* The island marks the row whose mix is loaded */
-[data-track-id][data-playing] .button-icon {
+/* The island marks the row whose mix is loaded, and whether it is playing */
+[data-track-id][data-loaded] .button-icon {
 	color: var(--color-accent-400);
+}
+
+.player-controls-play,
+.player-controls-pause {
+	display: contents;
+}
+
+[data-track-id][data-playing] .player-controls-play,
+[data-track-id]:not([data-playing]) .player-controls-pause {
+	display: none;
 }

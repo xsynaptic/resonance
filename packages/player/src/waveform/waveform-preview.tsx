@@ -1,16 +1,9 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 
-import { joinClassNames } from '#lib/class-names.ts';
 import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
 import { paintWaveform, prepareRendering } from '#waveform/waveform-render.ts';
 
-export function WaveformPreview({
-	className,
-	overview,
-}: {
-	className?: string | undefined;
-	overview: ReadonlyArray<number>;
-}) {
+export function WaveformPreview({ overview }: { overview: ReadonlyArray<number> }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	const themeVersion = useSyncExternalStore(subscribeTheme, getThemeVersion, zeroVersion);
@@ -41,11 +34,7 @@ export function WaveformPreview({
 	}, [overview, themeVersion]);
 
 	return (
-		<canvas
-			aria-hidden="true"
-			className={joinClassNames('player-waveform player-waveform-inert', className)}
-			ref={canvasRef}
-		/>
+		<canvas aria-hidden="true" className="player-waveform player-waveform-inert" ref={canvasRef} />
 	);
 }
 

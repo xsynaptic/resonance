@@ -5,7 +5,6 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { SubscribeTime } from '#types.ts';
 import type { WaveformRendering } from '#waveform/waveform-render.ts';
 
-import { joinClassNames } from '#lib/class-names.ts';
 import { formatClock } from '#lib/format.ts';
 import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
 import { paintWaveform, prepareRendering } from '#waveform/waveform-render.ts';
@@ -24,7 +23,6 @@ const keyStepsSeconds = new Map<string, number>([
 ]);
 
 interface WaveformCanvasProps {
-	className?: string | undefined;
 	durationSeconds: number | undefined;
 	label: string;
 	onSeek: (seconds: number) => void;
@@ -33,7 +31,6 @@ interface WaveformCanvasProps {
 }
 
 export function WaveformCanvas({
-	className,
 	durationSeconds,
 	label,
 	onSeek,
@@ -148,7 +145,7 @@ export function WaveformCanvas({
 			aria-label={label}
 			aria-valuemax={durationSeconds ?? 0}
 			aria-valuemin={0}
-			className={joinClassNames('player-waveform', className)}
+			className="player-waveform"
 			onKeyDown={seekToKey}
 			onPointerCancel={commitScrub}
 			onPointerDown={(event) => {

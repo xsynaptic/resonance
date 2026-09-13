@@ -8,12 +8,25 @@ interface Props {
 }
 
 const { trackId } = Astro.props;
+
+// One button carries both verbs, so focus survives the swap; the island's row state picks which shows
 ---
 
 <div class="mt-4 first:mt-0" data-track-id={trackId}>
 	<ButtonSplit>
-		<Button data-play-track={trackId} icon="play">
-			{t('player.play')}
+		<Button data-play-track={trackId}>
+			<span class="player-controls-play">
+				<svg aria-hidden="true" class="button-icon">
+					<use href="#icon:play"></use>
+				</svg>
+				{t('player.play')}
+			</span>
+			<span class="player-controls-pause">
+				<svg aria-hidden="true" class="button-icon">
+					<use href="#icon:pause"></use>
+				</svg>
+				{t('player.pause')}
+			</span>
 		</Button>
 		<Button data-queue-track={trackId}>{t('player.queue')}</Button>
 	</ButtonSplit>

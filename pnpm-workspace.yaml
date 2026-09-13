@@ -1,8 +1,8 @@
 packages:
   - packages/**
 
-# Mitigate supply-chain attacks by requiring packages to be at least 24h old
-minimumReleaseAge: 1440
+# Mitigate supply-chain attacks by requiring packages to be at least 48h old
+minimumReleaseAge: 2880
 verifyDepsBeforeRun: error
 strictDepBuilds: true
 

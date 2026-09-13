@@ -21,7 +21,7 @@ const isTruncated = remainder.length > 0;
 ---
 
 <article class="mb-16">
-	<header class="mb-6">
+	<header class="mb-4">
 		<h2 class="title-main">
 			<a href={href}>{title}</a>
 		</h2>
@@ -36,8 +36,11 @@ const isTruncated = remainder.length > 0;
 		<Fragment set:html={excerpt} />
 	</div>
 	{isTruncated ? (
-		<p class="mt-6">
-			<Anchor href={href}>{t('detail.continueReading')}</Anchor>
+		<p class="mt-6 italic text-right content-measure">
+			<Anchor class="font-semibold" href={href}>
+				{t('detail.continueReading')}
+			</Anchor>{' '}
+			<span class="text-highlight-600">›</span>
 		</p>
 	) : undefined}
 </article>

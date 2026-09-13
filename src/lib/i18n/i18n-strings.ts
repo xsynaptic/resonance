@@ -73,7 +73,7 @@ const strings = {
 	'comments.regionLabel': 'Comments',
 	'comments.reply': 'Reply',
 	'comments.replyTo': 'Reply to {author}',
-	'detail.continueReading': 'Continue reading ›',
+	'detail.continueReading': 'Continue reading',
 	'detail.discogs': 'Discogs',
 	'detail.empty': 'Nothing here yet.',
 	'detail.posted': 'Posted: ',

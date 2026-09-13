@@ -1,5 +1,6 @@
 ---
 import MediaImage from '#components/parts/media-image.astro';
+import { getMediaImage } from '#lib/utils/media.ts';
 
 interface Props {
 	alt: string;
@@ -7,10 +8,17 @@ interface Props {
 }
 
 const { alt, path } = Astro.props;
+
+// A failed image sizes to its alt text inside the fitted figure, so the frame holds the width
+// 556px is 36rem less the mat; the figure itself only caps at its column
+const frameWidth = Math.min(556, getMediaImage(path)?.width ?? 556);
 ---
 
-<figure class="content-bleed bg-surface-600 sm:w-fit sm:max-w-xl sm:rounded-md sm:p-2.5">
-	<div class="media-frame block w-full overflow-hidden sm:w-auto sm:rounded-sm">
+<figure class="content-bleed bg-surface-600 sm:w-fit sm:max-w-full sm:rounded-md sm:p-2.5">
+	<div
+		class="media-frame block w-full max-w-full overflow-hidden sm:w-(--media-featured-width) sm:rounded-sm"
+		style={`--media-featured-width: ${frameWidth}px`}
+	>
 		<MediaImage
 			alt={alt}
 			class="block w-full"

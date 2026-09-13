@@ -1,6 +1,7 @@
 import type { ImageFeatured } from '@xsynaptic/shared/schemas';
 import type { CollectionEntry } from 'astro:content';
 
+import { getContentPath } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
 
 import type { Catalog } from '#lib/catalog/catalog-factory.ts';
@@ -17,7 +18,6 @@ import type { WorkTitle } from '#lib/utils/work-title.ts';
 
 import { createCatalog } from '#lib/catalog/catalog-factory.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { getContentPath } from '#lib/utils/routing.ts';
 import { resolveCredits } from '#lib/utils/terms.ts';
 import { getWorkTitle, isWorkEntry } from '#lib/utils/work-title.ts';
 

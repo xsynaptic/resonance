@@ -1,11 +1,22 @@
+import { getCollectionPath, getContentPath } from '@xsynaptic/shared/routing';
+
 import type { NavigationItem } from '#components/navigation/navigation-types.ts';
 
-import { getCollectionPath, getContentPath } from '#lib/utils/routing.ts';
+import { getPathWithTrailingSlash } from '#lib/utils/routing.ts';
 
 export const navigationHeaderItems = [
 	{ title: 'Mixes', url: getCollectionPath('mixes') },
 	{ title: 'Reviews', url: getCollectionPath('reviews') },
-	{ title: 'Posts', url: getCollectionPath('posts') },
+	{
+		children: [
+			{
+				title: 'Archive',
+				url: getPathWithTrailingSlash('archive'),
+			},
+		],
+		title: 'Posts',
+		url: getCollectionPath('posts'),
+	},
 	{
 		children: [
 			{ rel: 'me', title: 'Facebook', url: 'https://www.facebook.com/dj.basilisk' },

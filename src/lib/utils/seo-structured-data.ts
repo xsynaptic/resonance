@@ -1,7 +1,9 @@
+import { getContentPath } from '@xsynaptic/shared/routing';
+
 import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { site } from '#lib/site.ts';
-import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 
 export type Thing =
 	Article | BreadcrumbList | CollectionPage | MusicPlaylist | Person | Review | WebPage | WebSite;

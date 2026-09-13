@@ -2,6 +2,7 @@
 import type { Page } from 'astro';
 import type { CollectionEntry } from 'astro:content';
 
+import { getContentPath } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
 import MainSite from '#components/main/main-site.astro';
@@ -9,7 +10,7 @@ import ListPageTitle from '#components/parts/list-page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import { getPagination } from '#lib/utils/pagination.ts';
-import { getAbsoluteUrl, getContentPath } from '#lib/utils/routing.ts';
+import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 

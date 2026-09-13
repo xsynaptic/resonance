@@ -1,13 +1,13 @@
 import type { QueueItem } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
+import { getContentPath } from '@xsynaptic/shared/routing';
 import { getImage } from 'astro:assets';
 
 import { getMixAudio } from '#lib/collections/mixes/mixes-audio.ts';
 import { getMixCuePoints } from '#lib/collections/mixes/mixes-cue.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
-import { getContentPath } from '#lib/utils/routing.ts';
 import { toFlatTracks } from '#lib/utils/track-groups.ts';
 
 // Both files are resolved at build time, so the island's resolvers read them off the queue

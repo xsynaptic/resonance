@@ -1,12 +1,12 @@
 ---
 import { openGraphHomeId } from '@xsynaptic/shared/constants';
+import { getCollectionPath } from '@xsynaptic/shared/routing';
 
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
-import { getCollectionPath } from '#lib/utils/routing.ts';
 import { buildAuthorSchema, buildWebSiteSchema } from '#lib/utils/seo-structured-data.ts';
 
 const catalog = await getCatalog();

@@ -1,4 +1,6 @@
 ---
+import { getContentPath } from '@xsynaptic/shared/routing';
+
 import NavigationFooter from '#components/navigation/navigation-footer.astro';
 import Anchor from '#components/parts/anchor.astro';
 import DividedItem from '#components/parts/divided-item.astro';
@@ -6,7 +8,6 @@ import { getDownloadTotal } from '#lib/collections/downloads/downloads-data.ts';
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { site } from '#lib/site.ts';
-import { getContentPath } from '#lib/utils/routing.ts';
 import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
 
 const downloadTotal = await getDownloadTotal();

@@ -7,6 +7,7 @@ import {
 	toOpenGraphEntry,
 } from '@xsynaptic/scripts/og-image';
 import { openGraphDefaultId, openGraphHomeId } from '@xsynaptic/shared/constants';
+import { getContentPath } from '@xsynaptic/shared/routing';
 import { getCollection, render } from 'astro:content';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
@@ -26,7 +27,6 @@ import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { site } from '#lib/site.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
-import { getContentPath } from '#lib/utils/routing.ts';
 import { resolveCredits } from '#lib/utils/terms.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 

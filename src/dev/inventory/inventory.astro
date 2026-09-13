@@ -30,6 +30,7 @@ import MediaImage from '#components/parts/media-image.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import { skipSeconds } from '#components/player/player-labels.ts';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
@@ -738,7 +739,13 @@ const inlineSelection: SelectionValue = {
 			note="Unforced, so the bar picks its layout from its own width through a container query rather than from the viewport."
 			source="packages/player/src/components/audio-player.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				skipSeconds={skipSeconds}
+				specimen="default"
+			/>
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
@@ -748,6 +755,7 @@ const inlineSelection: SelectionValue = {
 				client:load
 				items={playerItems}
 				labels={playerLabels}
+				skipSeconds={skipSeconds}
 				specimen="default"
 				variant="compact"
 			/>
@@ -760,6 +768,7 @@ const inlineSelection: SelectionValue = {
 				client:load
 				items={playerItems}
 				labels={playerLabels}
+				skipSeconds={skipSeconds}
 				specimen="default"
 				variant="expanded"
 			/>
@@ -770,7 +779,13 @@ const inlineSelection: SelectionValue = {
 			source="packages/player/src/player.css"
 		>
 			<div class="max-w-[32rem]">
-				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="default" />
+				<PlayerSpecimen
+					client:load
+					items={playerItems}
+					labels={playerLabels}
+					skipSeconds={skipSeconds}
+					specimen="default"
+				/>
 			</div>
 		</Specimen>
 		<Specimen
@@ -778,14 +793,26 @@ const inlineSelection: SelectionValue = {
 			note="A title and an artist too long for the info window. Hover or focus pauses it; <code>prefers-reduced-motion</code> stops it and restores the ellipsis."
 			source="packages/player/src/components/marquee-text.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="marquee" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				skipSeconds={skipSeconds}
+				specimen="marquee"
+			/>
 		</Specimen>
 		<Specimen
 			name="Player.Time"
 			note="A toggle button, seeded a third of the way in: elapsed or remaining, persisted under <code>player:v1:time-mode</code>."
 			source="packages/player/src/components/time-display.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="remaining" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				skipSeconds={skipSeconds}
+				specimen="remaining"
+			/>
 		</Specimen>
 		<Specimen
 			name="Player.Seek"
@@ -809,7 +836,13 @@ const inlineSelection: SelectionValue = {
 			source="packages/player/src/components/queue-tray.tsx"
 		>
 			<div class="pt-96">
-				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="tray" />
+				<PlayerSpecimen
+					client:load
+					items={playerItems}
+					labels={playerLabels}
+					skipSeconds={skipSeconds}
+					specimen="tray"
+				/>
 			</div>
 		</Specimen>
 		<Specimen
@@ -822,6 +855,7 @@ const inlineSelection: SelectionValue = {
 					client:load
 					items={playerItems}
 					labels={playerLabels}
+					skipSeconds={skipSeconds}
 					specimen="tray-sectioned"
 				/>
 			</div>
@@ -831,14 +865,26 @@ const inlineSelection: SelectionValue = {
 			note="Queued with nothing loaded, where Add to Playlist leaves the bar. The waveform is the track Play would start, drawn inert; only Play is live."
 			source="packages/player/src/store/selectors.ts"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="idle" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				skipSeconds={skipSeconds}
+				specimen="idle"
+			/>
 		</Specimen>
 		<Specimen
 			name="AudioPlayer"
 			note="Nothing queued. The site hides this state outright, so the specimen opts back in to show it."
 		>
 			<div class="inventory-player-empty">
-				<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="empty" />
+				<PlayerSpecimen
+					client:load
+					items={playerItems}
+					labels={playerLabels}
+					skipSeconds={skipSeconds}
+					specimen="empty"
+				/>
 			</div>
 		</Specimen>
 		<Specimen
@@ -846,7 +892,13 @@ const inlineSelection: SelectionValue = {
 			note="A stream that will not resolve; pressing play runs the real rejection path."
 			source="packages/player/src/components/status-region.tsx"
 		>
-			<PlayerSpecimen client:load items={playerItems} labels={playerLabels} specimen="error" />
+			<PlayerSpecimen
+				client:load
+				items={playerItems}
+				labels={playerLabels}
+				skipSeconds={skipSeconds}
+				specimen="error"
+			/>
 		</Specimen>
 	</Section>
 	<Section

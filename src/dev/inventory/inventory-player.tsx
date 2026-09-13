@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
-import { skipSeconds } from '#components/player/player-labels.ts';
-
 const silentAnalyser: AnalyserNode | undefined = undefined;
 
 // A browser refuses an audio graph outside a gesture, so the specimens stand at the engine seam instead
@@ -46,6 +44,7 @@ const createSilentEngine: CreateAudioEngine = (callbacks) => {
 interface PlayerSpecimenProps {
 	items: Array<PlayerPayloadItem>;
 	labels: PlayerLabels;
+	skipSeconds: number;
 	specimen:
 		'default' | 'empty' | 'error' | 'idle' | 'marquee' | 'remaining' | 'tray' | 'tray-sectioned';
 	variant?: 'compact' | 'expanded';
@@ -54,7 +53,13 @@ interface PlayerSpecimenProps {
 type SpecimenStore = ReturnType<typeof createSpecimenStore>;
 
 // Each specimen holds its own store, so the live bar keeps the singleton and playing here never hijacks it
-export function PlayerSpecimen({ items, labels, specimen, variant }: PlayerSpecimenProps) {
+export function PlayerSpecimen({
+	items,
+	labels,
+	skipSeconds,
+	specimen,
+	variant,
+}: PlayerSpecimenProps) {
 	const [store] = useState(createSpecimenStore);
 	const [urls] = useState(() => (specimen === 'error' ? failingUrls : queuedUrls(items)));
 

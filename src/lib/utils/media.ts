@@ -22,7 +22,7 @@ export function getMediaImage(mediaPath: string): ImageMetadata | undefined {
 	const image = mediaImages[`${mediaRoot}/${mediaPath}`];
 	if (!image) {
 		if (import.meta.env.DEV) {
-			console.warn(`[media] no original for path "${mediaPath}"`);
+			console.warn(`[Media] Image missing: "${mediaPath}"`);
 		}
 		return undefined;
 	}

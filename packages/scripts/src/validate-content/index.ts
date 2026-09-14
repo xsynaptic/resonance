@@ -20,7 +20,6 @@ import { validatePlatformLinks } from '#validate-content/platform-links.ts';
 import { validateReferences } from '#validate-content/references.ts';
 import { validateReviewFolders } from '#validate-content/review-folders.ts';
 import { validateSeriesItems } from '#validate-content/series-items.ts';
-import { validateStationItems } from '#validate-content/station-items.ts';
 import { validateTrackGroups } from '#validate-content/track-groups.ts';
 import { validateTrackTimestamps } from '#validate-content/track-timestamps.ts';
 import { reportValidationResult } from '#validate-content/validation-result.ts';
@@ -54,10 +53,9 @@ const mediaPath = 'packages/content/media';
 
 const rootPath = findWorkspaceRoot();
 
-const { allEntries, stations } = await withAstroContent(async (content) => ({
-	allEntries: await getCollectionEntries(content, [...contentCollections]),
-	stations: await content.getCollection('stations'),
-}));
+const allEntries = await withAstroContent((content) =>
+	getCollectionEntries(content, [...contentCollections]),
+);
 
 function entriesFrom(...collections: Array<string>) {
 	return allEntries.filter((entry) => collections.includes(entry.collection));
@@ -77,7 +75,7 @@ const validations = [
 	{ name: 'entry-ids', run: () => validateEntryIds(allEntries) },
 	{
 		name: 'images',
-		run: () => validateImages([...allEntries, ...stations], path.resolve(rootPath, mediaPath)),
+		run: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
 	},
 	{ name: 'link-ids', run: () => validateLinkIds(allEntries, allEntries, rootPath) },
 	{ name: 'mdx', run: () => validateMdxComponents(allEntries, rootPath) },
@@ -88,7 +86,6 @@ const validations = [
 		name: 'series-items',
 		run: () => validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
 	},
-	{ name: 'station-items', run: () => validateStationItems(stations, entriesFrom('mixes')) },
 	{ name: 'track-groups', run: () => validateTrackGroups(entriesFrom('mixes')) },
 	{
 		name: 'track-timestamps',

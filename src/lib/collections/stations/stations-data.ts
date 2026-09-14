@@ -1,46 +1,56 @@
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { parse } from 'yaml';
+import { z } from 'zod';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
+import { stationsDataPath } from '#constants.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
+import { TitleSchema } from '#lib/schemas/index.ts';
 import { site } from '#lib/site.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 
+const stationsSchema = z
+	.object({
+		imageFeatured: z.string().optional(),
+		stationItems: z.string().array().min(1),
+		title: TitleSchema,
+	})
+	.strict()
+	.array();
+
 export interface Station {
-	id: string;
 	image?: string | undefined;
 	items: Array<PlayerPayloadItem>;
 	title: string;
 }
 
-// An item with no playable Mix behind it is dropped here and reported by `pnpm validate station-items`
+// Read on every call rather than cached, so an edit shows on the next dev refresh
 export async function getStations(): Promise<Array<Station>> {
-	const collection = await getCollection('stations');
-	const entries = collection.toSorted(
-		(first, second) => first.data.position - second.data.position,
-	);
+	const text = await readFile(path.resolve(stationsDataPath), 'utf8');
 
 	const stations = await Promise.all(
-		entries.map(async ({ data, id }) => {
-			const items = await Promise.all(data.stationItems.map((mixId) => getStationItem(mixId)));
+		stationsSchema.parse(parse(text)).map(async ({ imageFeatured, stationItems, title }) => {
+			const items = await Promise.all(stationItems.map((mixId) => getStationItem(mixId, title)));
 
-			return {
-				id,
-				image: data.imageFeatured,
-				items: items.filter((item) => item !== undefined),
-				title: data.title,
-			};
+			return { image: imageFeatured, items: items.filter((item) => item !== undefined), title };
 		}),
 	);
 
 	return stations.filter((station) => station.items.length > 0);
 }
 
-async function getStationItem(mixId: string): Promise<PlayerPayloadItem | undefined> {
+async function getStationItem(
+	mixId: string,
+	stationTitle: string,
+): Promise<PlayerPayloadItem | undefined> {
 	const entry = await getEntry('mixes', mixId);
-	if (!entry) return undefined;
+	const work = entry ? await getWorkTitle(entry) : undefined;
+	const item = entry ? await getMixQueueItem(entry, work?.credit?.name ?? site.title) : undefined;
 
-	const work = await getWorkTitle(entry);
+	if (!item) console.warn(`[stations] "${stationTitle}" has no playable mix "${mixId}"`);
 
-	return getMixQueueItem(entry, work.credit?.name ?? site.title);
+	return item;
 }

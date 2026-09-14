@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
@@ -27,27 +27,7 @@ export function VolumeControl({
 	const volume = usePlayer((state) => state.volume);
 	const store = usePlayerStoreApi();
 	const isHoverCapable = useIsHoverCapable();
-	const [isOpen, setIsOpen] = useState(false);
-	const controlRef = useRef<HTMLDivElement>(null);
-	const triggerRef = useRef<HTMLButtonElement>(null);
-
-	// Only the touch branch opens the panel, so this listener is mounted only where a tap can leave it open
-	useEffect(() => {
-		if (!isOpen) return;
-
-		const onPointerDown = (event: PointerEvent): void => {
-			if (event.target instanceof Node && controlRef.current?.contains(event.target)) return;
-
-			setIsOpen(false);
-		};
-
-		// Nothing here calls `preventDefault`, so the browser need not wait on it to start a scroll
-		document.addEventListener('pointerdown', onPointerDown, { passive: true });
-
-		return () => {
-			document.removeEventListener('pointerdown', onPointerDown);
-		};
-	}, [isOpen]);
+	const { controlRef, isOpen, onKeyDown, setIsOpen, triggerRef } = useDismissablePanel();
 
 	const isMuted = volume === 0;
 	const muteLabel = isMuted ? labels.unmute : labels.mute;
@@ -56,12 +36,7 @@ export function VolumeControl({
 		<div
 			className={joinClassNames('player-volume', className)}
 			data-open={isOpen ? '' : undefined}
-			onKeyDown={(event) => {
-				if (event.key !== 'Escape') return;
-
-				setIsOpen(false);
-				triggerRef.current?.focus();
-			}}
+			onKeyDown={onKeyDown}
 			ref={controlRef}
 		>
 			<Button
@@ -135,6 +110,39 @@ function subscribeHover(onChange: () => void): () => void {
 	return () => {
 		query.removeEventListener('change', onChange);
 	};
+}
+
+function useDismissablePanel() {
+	const [isOpen, setIsOpen] = useState(false);
+	const controlRef = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
+
+	// Only the touch branch opens the panel, so this listener is mounted only where a tap can leave it open
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const onPointerDown = (event: PointerEvent): void => {
+			if (event.target instanceof Node && controlRef.current?.contains(event.target)) return;
+
+			setIsOpen(false);
+		};
+
+		// Nothing here calls `preventDefault`, so the browser need not wait on it to start a scroll
+		document.addEventListener('pointerdown', onPointerDown, { passive: true });
+
+		return () => {
+			document.removeEventListener('pointerdown', onPointerDown);
+		};
+	}, [isOpen]);
+
+	function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+		if (event.key !== 'Escape') return;
+
+		setIsOpen(false);
+		triggerRef.current?.focus();
+	}
+
+	return { controlRef, isOpen, onKeyDown, setIsOpen, triggerRef };
 }
 
 // Decides what the trigger's click does: mute where the panel already opens on hover, open it where it cannot

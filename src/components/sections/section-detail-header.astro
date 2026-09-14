@@ -29,14 +29,14 @@ const styleTerms = (styles ?? []).slice(0, headerStyleLimit);
 const labelTerms = labels ?? [];
 const hasReleasedLine = Boolean(releaseYear) || labelTerms.length > 0;
 const releasedLead = t(labelTerms.length > 0 ? 'detail.releasedBy' : 'detail.released');
+const hasBreadcrumbs = breadcrumbTrail !== undefined && breadcrumbTrail.length > 0;
+const hasMeta = Boolean(kind) || hasReleasedLine || Boolean(date);
 const releasedYearText =
 	releaseYear && labelTerms.length > 0 ? `, ${releaseYear}` : (releaseYear ?? '');
 ---
 
 <header>
-	{breadcrumbTrail && breadcrumbTrail.length > 0 ? (
-		<Breadcrumbs trail={breadcrumbTrail} />
-	) : undefined}
+	{hasBreadcrumbs ? <Breadcrumbs trail={breadcrumbTrail} /> : undefined}
 	{styleTerms.length > 0 ? (
 		<div class="title-eyebrow">
 			{styleTerms.map((term) => (
@@ -47,7 +47,7 @@ const releasedYearText =
 		</div>
 	) : undefined}
 	<h1 class="title-main">{typeof title === 'string' ? title : <WorkTitleText work={title} />}</h1>
-	{kind || hasReleasedLine || date ? (
+	{hasMeta ? (
 		<div class="title-meta">
 			{kind ? (
 				<DividedItem as="span" dividerContent="slash">

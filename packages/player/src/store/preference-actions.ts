@@ -10,8 +10,10 @@ type PreferenceActions = Pick<
 	PlayerActions,
 	| 'configure'
 	| 'hydratePreferences'
+	| 'setOverlayOpen'
 	| 'setVolume'
 	| 'toggleMute'
+	| 'toggleOverlay'
 	| 'togglePanel'
 	| 'toggleTimeMode'
 	| 'toggleTray'
@@ -55,6 +57,12 @@ export function createPreferenceActions({
 			set({ volume: playback.setVolume(volume) });
 		},
 
+		setOverlayOpen: (isOpen) => {
+			if (get().isOverlayOpen === isOpen) return;
+
+			set({ isOverlayOpen: isOpen });
+		},
+
 		setVolume: (volume) => {
 			applyVolume(volume);
 		},
@@ -68,6 +76,10 @@ export function createPreferenceActions({
 			}
 
 			applyVolume(volumeBeforeMute ?? 1);
+		},
+
+		toggleOverlay: () => {
+			set((state) => ({ isOverlayOpen: !state.isOverlayOpen }));
 		},
 
 		togglePanel: () => {

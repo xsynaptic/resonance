@@ -19,6 +19,8 @@
 	--player-play-fill-hover: #34d399;
 	--player-play-glyph: #0a0a0a;
 	--player-play-glyph-hover: #0a0a0a;
+	--player-loader: #ecfdf5;
+	--player-loader-track: #047857;
 	--player-current: #34d399;
 	--player-focus-ring: #10b981;
 	--player-waveform-base: #525252;
@@ -33,6 +35,7 @@
 	--player-panel-grid: #262626;
 	--player-panel-ends: #525252;
 	--player-panel-cue: #fafafa;
+	--player-panel-placeholder: #404040;
 	--player-playhead: #fafafa;
 	--player-cue-dot: #fafafa;
 	--player-cue-artist: #fafafa;
@@ -48,13 +51,15 @@
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
 	--player-padding-block-start: var(--player-padding-block);
-	--player-info-width: 14.4rem;
+	--player-artwork-size: 8.75rem;
+	--player-artwork-size-compact: 7.5rem;
 	--player-clock-width: 3.75rem;
 	--player-panel-height: 7.5rem;
 	--player-waveform-height: 3rem;
-	--player-waveform-height-expanded: 3.5rem;
+	--player-waveform-height-compact: 3.5rem;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
+	--player-font-size-large: 1.25rem;
 	--player-font-family: inherit;
 	--player-font-mono: ui-monospace, menlo, consolas, monospace;
 	--player-radius: 0.25rem;
@@ -93,8 +98,9 @@
 	opacity: 1;
 }
 
+/* The play button's ring shows loading; the region stays in the accessibility tree to announce it */
 .player-status[data-visible][data-status='loading'] {
-	transition-delay: 400ms;
+	opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -150,6 +156,7 @@
 }
 
 .player-button-primary {
+	position: relative;
 	width: 2.25rem;
 	height: 2.25rem;
 	color: var(--player-play-glyph);
@@ -169,9 +176,54 @@
 	background-color: var(--player-play-fill-hover);
 }
 
+/* On the rim, clear of the focus outline and of `::before`, which is the hit area under a coarse pointer */
+.player-button-primary[data-loading]::after {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	content: '';
+	border: 2px solid var(--player-loader-track);
+	border-top-color: var(--player-loader);
+	border-radius: inherit;
+	animation:
+		player-loader-appear 150ms 400ms both,
+		player-loader-spin 900ms linear infinite;
+}
+
+/* A still arc reads as focus or selection, so it fades rather than stopping */
+@media (prefers-reduced-motion: reduce) {
+	.player-button-primary[data-loading]::after {
+		animation:
+			player-loader-appear 150ms 400ms both,
+			player-loader-fade 1.6s ease-in-out 400ms infinite alternate;
+	}
+}
+
+@keyframes player-loader-appear {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes player-loader-spin {
+	to {
+		rotate: 1turn;
+	}
+}
+
+@keyframes player-loader-fade {
+	from {
+		border-top-color: var(--player-loader-track);
+	}
+
+	to {
+		border-top-color: var(--player-loader);
+	}
+}
+
 /* The triangle's mass sits left of its box, so it reads off centre until nudged */
 .player-button-primary[data-state='paused'] svg {
-	translate: 12%;
+	translate: 8%;
 }
 
 .player-skip {
@@ -623,6 +675,7 @@
 .player-tray-list {
 	max-height: 20rem;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 }
 
 .player-tray-header {
@@ -797,8 +850,6 @@
 .player-panel {
 	position: relative;
 	height: var(--player-panel-height);
-	margin: calc(-1 * var(--player-padding-block-start)) calc(-1 * var(--player-padding-inline))
-		var(--player-padding-block);
 	overflow: hidden;
 	touch-action: pan-y;
 	cursor: grab;
@@ -959,9 +1010,14 @@
 .player-bar {
 	--player-padding-block-start: calc(var(--player-padding-block) - 1px);
 
+	/* Clear of a notch and the home indicator under `viewport-fit=cover` */
+	--player-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
+	--player-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
+	--player-inset-bottom: env(safe-area-inset-bottom);
+
 	position: relative;
-	padding: var(--player-padding-block-start) var(--player-padding-inline)
-		var(--player-padding-block);
+	padding: var(--player-padding-block-start) var(--player-inset-right)
+		calc(var(--player-padding-block) + var(--player-inset-bottom)) var(--player-inset-left);
 	container-type: inline-size;
 	background-color: color-mix(in oklab, var(--player-surface) 95%, transparent);
 	border-top: 1px solid var(--player-border);
@@ -972,36 +1028,86 @@
 	border-top-color: transparent;
 }
 
-.player-bar-grid {
-	--player-layout-areas: 'transport info seek scope panel volume queue';
-	--player-layout-columns: auto minmax(0, var(--player-info-width)) minmax(0, 1fr) auto auto auto
-		auto;
-	--player-layout-scope: block;
-	--player-layout-skip: none;
+/* Full-bleed under a landscape notch, so the zoom buttons and the parked label take the inset back */
+.player-bar > .player-panel {
+	--player-panel-inset-left: env(safe-area-inset-left);
 
-	display: grid;
-	grid-template-areas: var(--player-layout-areas);
-	grid-template-columns: var(--player-layout-columns);
-	gap: var(--player-gap);
-	align-items: center;
+	margin: calc(-1 * var(--player-padding-block-start)) calc(-1 * var(--player-inset-right))
+		var(--player-padding-block) calc(-1 * var(--player-inset-left));
 }
 
-@container (width < 52rem) {
-	.player-bar:not([data-layout]) .player-bar-grid {
-		--player-layout-areas: 'transport info panel volume queue' 'seek seek seek seek seek';
-		--player-layout-columns: auto minmax(0, 1fr) auto auto auto;
-		--player-layout-scope: none;
-		--player-layout-skip: inline-flex;
-		--player-waveform-height: var(--player-waveform-height-expanded);
+/* Full: transport and toggles, the title line, the waveform; a fixed height, so no item shifts the bar */
+.player-bar > .player-panel .player-panel-zoom {
+	right: env(safe-area-inset-right);
+}
+
+.player-bar-grid {
+	--player-layout: 'transport . scope panel volume queue expand' auto
+		'info info info info info info info' auto 'seek seek seek seek seek seek seek' minmax(0, 1fr) /
+		auto minmax(0, 1fr) auto auto auto auto auto;
+	--player-layout-artwork: var(--player-artwork-size);
+
+	display: grid;
+	grid-template: var(--player-layout);
+	gap: var(--player-gap-tight) var(--player-gap);
+	align-items: center;
+	block-size: calc(
+		var(--player-layout-artwork) + 2px - var(--player-padding-block-start) -
+			var(--player-padding-block)
+	);
+}
+
+@container (width >= 52rem) {
+	.player-bar-grid .player-track {
+		display: flex;
+		gap: var(--player-gap-tight);
+		align-items: baseline;
+	}
+
+	.player-bar-grid .player-track-title {
+		flex: 0 1 auto;
+		min-width: 0;
+	}
+
+	.player-bar-grid .player-track-meta {
+		flex: 1 1 0%;
+		min-width: 0;
 	}
 }
 
-.player-bar[data-layout='expanded'] .player-bar-grid {
-	--player-layout-areas: 'info info panel volume queue' 'transport seek seek seek seek';
-	--player-layout-columns: auto minmax(0, 1fr) auto auto auto;
-	--player-layout-scope: none;
-	--player-layout-skip: inline-flex;
-	--player-waveform-height: var(--player-waveform-height-expanded);
+@container (width < 52rem) {
+	.player-bar-grid {
+		--player-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
+			minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto;
+		--player-layout-artwork: var(--player-artwork-size-compact);
+		--player-waveform-height: var(--player-waveform-height-compact);
+	}
+
+	.player-bar-grid .player-scope {
+		display: none;
+	}
+}
+
+.player-artwork {
+	object-fit: cover;
+	border: 1px solid var(--player-border);
+}
+
+/* Full-bleed from under the bar's top border to its foot, beside the grid rows and never the panel */
+.player-bar-grid > .player-artwork {
+	position: absolute;
+	bottom: var(--player-inset-bottom);
+	left: env(safe-area-inset-left);
+	box-sizing: content-box;
+	inline-size: var(--player-layout-artwork);
+	block-size: var(--player-layout-artwork);
+}
+
+.player-bar-grid:has(> .player-artwork) {
+	padding-left: calc(
+		env(safe-area-inset-left) + var(--player-layout-artwork) + 2px + var(--player-gap) -
+			var(--player-inset-left)
+	);
 }
 
 .player-bar-grid .player-transport {
@@ -1018,7 +1124,6 @@
 }
 
 .player-bar-grid .player-scope {
-	display: var(--player-layout-scope);
 	grid-area: scope;
 }
 
@@ -1034,27 +1139,303 @@
 	grid-area: queue;
 }
 
-.player-bar-grid .player-skip {
-	display: var(--player-layout-skip);
+.player-bar-grid .player-overlay-toggle {
+	grid-area: expand;
 }
 
+/* Mini: play, the title and expand; scoped to the grid and the bar's own panel, since the overlay's dialog sits in this container too */
 @container (width < 40rem) {
-	.player-bar:not([data-layout]) .player-bar-grid {
-		--player-layout-areas: 'transport info panel queue' 'seek seek seek seek';
-		--player-layout-columns: auto minmax(0, 1fr) auto auto;
+	.player-bar-grid {
+		--player-layout: 'transport info expand' auto / auto minmax(0, 1fr) auto;
+
+		block-size: auto;
 	}
 
-	.player-bar .player-cues,
-	.player-bar .player-volume {
+	.player-bar-grid:has(> .player-artwork) {
+		padding-left: 0;
+	}
+
+	/* A host without the overlay keeps the Playlist here, its tray spanning the bar */
+	.player-bar-grid:not(:has(> .player-overlay-toggle)) {
+		--player-layout: 'transport info queue' auto / auto minmax(0, 1fr) auto;
+	}
+
+	.player-bar-grid:not(:has(> .player-overlay-toggle)) .player-queue {
+		position: static;
+	}
+
+	.player-bar-grid:not(:has(> .player-overlay-toggle)) .player-tray {
+		left: 0;
+		width: auto;
+	}
+
+	.player-bar > .player-panel,
+	.player-bar-grid > .player-artwork,
+	.player-bar-grid .player-bar-seek,
+	.player-bar-grid .player-panel-toggle,
+	.player-bar-grid:has(> .player-overlay-toggle) .player-queue,
+	.player-bar-grid .player-skip,
+	.player-bar-grid .player-step,
+	.player-bar-grid .player-time,
+	.player-bar-grid .player-volume {
 		display: none;
 	}
 
-	.player-bar .player-track-meta {
+	.player-bar-grid .player-track-meta {
 		--player-clock-width: 0;
 	}
+}
 
-	.player-bar .player-time {
+/* The UA sizes a modal short of the viewport and centres it; this one fills it */
+.player-overlay {
+	width: 100%;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+	color: var(--player-title);
+	background-color: var(--player-surface);
+	border: 0;
+}
+
+/* A modal makes the page inert but leaves it scrollable underneath */
+:root:has(.player-overlay:modal) {
+	overflow: hidden;
+}
+
+/* A size container, so the artwork is capped by the overlay's height as well as its width */
+.player-overlay-body {
+	box-sizing: border-box;
+	block-size: 100%;
+	padding: max(var(--player-gap-tight), env(safe-area-inset-top))
+		max(var(--player-padding-inline), env(safe-area-inset-right))
+		max(1.5rem, env(safe-area-inset-bottom))
+		max(var(--player-padding-inline), env(safe-area-inset-left));
+	container-type: size;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	background-color: var(--player-surface);
+}
+
+.player-overlay-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--player-gap);
+	max-inline-size: 40rem;
+	margin-inline: auto;
+}
+
+.player-overlay-close {
+	justify-self: start;
+}
+
+.player-overlay-artwork {
+	justify-self: center;
+	inline-size: min(100%, 900px, 55cqb);
+	block-size: auto;
+	aspect-ratio: 1;
+}
+
+.player-overlay-deck {
+	display: grid;
+	gap: var(--player-gap);
+	align-content: start;
+	min-inline-size: 0;
+}
+
+.player-overlay-track {
+	--player-clock-width: 0;
+}
+
+.player-overlay-track .player-track-title {
+	font-size: var(--player-font-size-large);
+	line-height: 1.75rem;
+}
+
+.player-overlay-track .player-track-artist {
+	font-size: var(--player-font-size);
+	line-height: 1.25rem;
+}
+
+.player-overlay-scrub {
+	position: relative;
+}
+
+.player-overlay-meter {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-block-size: 2rem;
+}
+
+.player-overlay-meter .player-time {
+	position: static;
+	width: auto;
+	font-size: var(--player-font-size);
+	line-height: 1.25rem;
+	text-align: start;
+}
+
+/* A phone has hardware buttons for this */
+@media not (pointer: fine) {
+	.player-overlay-meter .player-volume {
 		display: none;
+	}
+}
+
+.player-overlay-deck .player-transport {
+	gap: 1rem;
+	justify-content: center;
+}
+
+.player-overlay-deck .player-button-primary {
+	width: 3.5rem;
+	height: 3.5rem;
+}
+
+.player-overlay-deck .player-transport .player-button-primary svg {
+	inline-size: auto;
+	block-size: 1.5rem;
+}
+
+.player-overlay-tablist {
+	display: flex;
+	gap: var(--player-gap);
+	border-bottom: 1px solid var(--player-border);
+}
+
+.player-overlay-tab {
+	padding-block: 0.5rem;
+	margin-bottom: -1px;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-meta);
+	border-bottom: 2px solid transparent;
+}
+
+@media (hover: hover) {
+	.player-overlay-tab:hover {
+		color: var(--player-title);
+	}
+}
+
+.player-overlay-tab:focus-visible {
+	color: var(--player-title);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: 0;
+}
+
+.player-overlay-tab[aria-selected='true'] {
+	color: var(--player-title);
+	border-bottom-color: var(--player-control-active);
+}
+
+.player-overlay-tabs .player-tray {
+	position: static;
+	width: auto;
+	margin: 0;
+	overflow: visible;
+	background-color: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.player-overlay-tabs .player-tray-list {
+	max-height: none;
+}
+
+.player-overlay-tracklist {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.player-overlay-cue {
+	display: grid;
+	grid-template:
+		'time artist' auto
+		'time title' auto / var(--player-clock-width) minmax(0, 1fr);
+	column-gap: var(--player-gap-tight);
+	width: 100%;
+	padding: 0.5rem;
+	text-align: left;
+	border-radius: var(--player-radius);
+}
+
+@media (hover: hover) {
+	.player-overlay-cue:enabled:hover {
+		background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+	}
+}
+
+.player-overlay-cue:focus-visible {
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: -2px;
+	background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+}
+
+.player-overlay-cue-time {
+	grid-area: time;
+	font-family: var(--player-font-mono);
+	font-size: var(--player-font-size-small);
+	font-variant-numeric: tabular-nums;
+	line-height: 1.25rem;
+	color: var(--player-clock);
+}
+
+.player-overlay-cue-artist {
+	grid-area: artist;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-title);
+}
+
+.player-overlay-cue-title {
+	grid-area: title;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-meta);
+}
+
+.player-overlay-cue[aria-current='true']
+	:is(.player-overlay-cue-artist, .player-overlay-cue-title) {
+	color: var(--player-current);
+}
+
+/* A container query rather than the viewport's, so a specimen frame can render either layout */
+@container (width >= 64rem) {
+	.player-overlay-layout {
+		grid-template:
+			'close close' auto
+			'artwork deck' auto / minmax(0, 900px) minmax(20rem, 32rem);
+		column-gap: 3rem;
+		align-items: start;
+		justify-content: center;
+		max-inline-size: none;
+	}
+
+	.player-overlay-layout:not(:has(> .player-overlay-artwork)) {
+		grid-template: 'close' auto 'deck' auto / minmax(0, 32rem);
+	}
+
+	.player-overlay-close {
+		grid-area: close;
+	}
+
+	.player-overlay-artwork {
+		position: sticky;
+		top: 0;
+		grid-area: artwork;
+		inline-size: min(100%, 900px, 100cqb - 3.5rem);
+	}
+
+	.player-overlay-deck {
+		grid-area: deck;
 	}
 }
 
@@ -1073,5 +1454,42 @@
 		position: absolute;
 		inset: calc((2.75rem - 100%) / -2);
 		content: '';
+	}
+
+	/* A 2rem button's 44px target spills 6px each side, so a narrower gap overlaps its neighbour's */
+	.player-transport {
+		gap: 0.75rem;
+	}
+
+	.player-tray-header {
+		padding-block: 0;
+	}
+
+	.player-tray-action {
+		justify-content: center;
+		min-inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+	}
+
+	.player-overlay-tab {
+		min-block-size: 2.75rem;
+	}
+
+	.player-track-title {
+		position: relative;
+	}
+
+	.player-track-title::before {
+		position: absolute;
+		inset-block: calc((2.75rem - 100%) / -2);
+		inset-inline: 0;
+		content: '';
+	}
+
+	/* The full spill crosses the row gap and covers the foot of Play */
+	@container (width >= 40rem) {
+		.player-bar-grid .player-track-title::before {
+			inset-block: calc(var(--player-gap-tight) / -2);
+		}
 	}
 }

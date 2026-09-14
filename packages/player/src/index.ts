@@ -9,6 +9,7 @@ export type {
 	PlaybackError,
 	PlayerLabels,
 	PlayerUrls,
+	QueueArtwork,
 	QueueCuePoint,
 	QueueItem,
 	StreamResolution,

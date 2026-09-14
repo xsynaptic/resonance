@@ -6,7 +6,7 @@ import type { PlayerState, PlayerStore, PlayerStoreOptions } from '#store/player
 
 import { createAudioEngine } from '#engine/audio-engine.ts';
 import { createPlaybackController } from '#store/playback-controller.ts';
-import { createPlayerPersistence } from '#store/player-persistence.ts';
+import { createPlayerPersistence, inertPersistence } from '#store/player-persistence.ts';
 import { createPreferenceActions } from '#store/preference-actions.ts';
 import { createQueueActions } from '#store/queue-actions.ts';
 import { createTransportActions } from '#store/transport-actions.ts';
@@ -18,7 +18,9 @@ const initialPlayerState: PlayerState = {
 	currentIndex: undefined,
 	currentTimeSeconds: 0,
 	durationSeconds: undefined,
+	isOverlayOpen: false,
 	isPanelOpen: false,
+	isPlayIntended: false,
 	isShuffling: false,
 	isTrayOpen: false,
 	panelPxPerSecond: panelZoomDefault,
@@ -36,7 +38,8 @@ export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<Player
 	const createEngine = options?.createEngine ?? createAudioEngine;
 
 	return createStore<PlayerStore>()((_set, _get, api) => {
-		const persistence = createPlayerPersistence(api);
+		const persistence =
+			options?.isPersistent === false ? inertPersistence : createPlayerPersistence(api);
 		const playback = createPlaybackController(api, createEngine);
 
 		return {

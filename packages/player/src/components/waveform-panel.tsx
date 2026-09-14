@@ -14,11 +14,38 @@ type PanelLabels = Pick<PlayerLabels, 'timestampsPartial' | 'waveformPanel' | 'z
 
 // Closed renders nothing: a shut panel costs no canvas, no subscription and no requests
 export function WaveformPanel({ labels }: { labels: PanelLabels }) {
-	const isOpen = usePlayer((state) => state.isPanelOpen);
+	const isOpen = usePlayer((state) => state.isPanelOpen && !state.isOverlayOpen);
 
 	if (!isOpen) return;
 
 	return <WaveformPanelSurface labels={labels} />;
+}
+
+export function WaveformPanelSurface({ labels }: { labels: PanelLabels }) {
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const panelRef = useRef<HTMLDivElement>(null);
+	const parkedRef = useRef<HTMLParagraphElement>(null);
+	const arrivingRef = useRef<HTMLParagraphElement>(null);
+
+	useScrollPanel({
+		arriving: arrivingRef,
+		canvas: canvasRef,
+		panel: panelRef,
+		parked: parkedRef,
+	});
+
+	return (
+		<div aria-label={labels.waveformPanel} className="player-panel" ref={panelRef} role="group">
+			<canvas aria-hidden="true" className="player-panel-canvas" ref={canvasRef} />
+			<div aria-hidden="true" className="player-panel-playhead" />
+			<div aria-hidden="true" className="player-panel-ghost" hidden={true} />
+			<PanelZoom labels={labels} />
+			<div className="player-panel-readout">
+				<CueReadout isAhead={false} note={labels.timestampsPartial} ref={parkedRef} />
+				<CueReadout isAhead={true} note={labels.timestampsPartial} ref={arrivingRef} />
+			</div>
+		</div>
+	);
 }
 
 // The arriving label is hidden from assistive tech: it names a track that is not playing yet
@@ -71,33 +98,6 @@ function PanelZoom({ labels }: { labels: Pick<PanelLabels, 'zoomIn' | 'zoomOut'>
 			>
 				<ZoomInIcon />
 			</Button>
-		</div>
-	);
-}
-
-function WaveformPanelSurface({ labels }: { labels: PanelLabels }) {
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const panelRef = useRef<HTMLDivElement>(null);
-	const parkedRef = useRef<HTMLParagraphElement>(null);
-	const arrivingRef = useRef<HTMLParagraphElement>(null);
-
-	useScrollPanel({
-		arriving: arrivingRef,
-		canvas: canvasRef,
-		panel: panelRef,
-		parked: parkedRef,
-	});
-
-	return (
-		<div aria-label={labels.waveformPanel} className="player-panel" ref={panelRef} role="group">
-			<canvas aria-hidden="true" className="player-panel-canvas" ref={canvasRef} />
-			<div aria-hidden="true" className="player-panel-playhead" />
-			<div aria-hidden="true" className="player-panel-ghost" hidden={true} />
-			<PanelZoom labels={labels} />
-			<div className="player-panel-readout">
-				<CueReadout isAhead={false} note={labels.timestampsPartial} ref={parkedRef} />
-				<CueReadout isAhead={true} note={labels.timestampsPartial} ref={arrivingRef} />
-			</div>
 		</div>
 	);
 }

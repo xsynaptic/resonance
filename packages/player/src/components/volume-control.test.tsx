@@ -95,6 +95,19 @@ describe('VolumeControl', () => {
 		expect(trigger).toHaveFocus();
 	});
 
+	test('closes on a click outside the control and not on one inside it', () => {
+		renderControl('none');
+
+		fireEvent.click(screen.getByRole('button', { name: labels.volume }));
+		fireEvent.click(screen.getByRole('slider', { name: labels.volume }));
+
+		expect(control()).toHaveAttribute('data-open', '');
+
+		fireEvent.click(document.body);
+
+		expect(control()).not.toHaveAttribute('data-open');
+	});
+
 	test('reports a drag to the store', () => {
 		const store = renderControl('hover');
 

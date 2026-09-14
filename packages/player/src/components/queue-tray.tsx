@@ -41,7 +41,7 @@ export function QueueTray({ actions, labels }: QueueTrayProps) {
 	return <QueueTrayPanel actions={actions} labels={labels} />;
 }
 
-function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
+export function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 	const queue = usePlayer((state) => state.queue);
 	const currentIndex = usePlayer((state) => state.currentIndex);
 	const isShuffling = usePlayer((state) => state.isShuffling);

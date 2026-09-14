@@ -27,6 +27,14 @@ interface StoredQueue {
 	queue: Array<QueuedItem>;
 }
 
+export const inertPersistence: PlayerPersistence = {
+	bindQueue: touchNothing,
+	persistTimeMode: touchNothing,
+	persistVolume: touchNothing,
+	readPreferences: () => ({ timeMode: undefined, volume: undefined }),
+	readQueue: touchNothing,
+};
+
 // Per store rather than per module, so a second store never inherits a pending write
 export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersistence {
 	let isFlushBound = false;
@@ -173,6 +181,10 @@ function storedQueueIndex(currentIndex: number | undefined, length: number): num
 
 function storedTimeSeconds(currentTimeSeconds: number): number {
 	return Number.isFinite(currentTimeSeconds) ? Math.max(0, currentTimeSeconds) : 0;
+}
+
+function touchNothing(): undefined {
+	// A secondary mount leaves the listener's storage alone
 }
 
 function writeStored(key: string, value: string): void {

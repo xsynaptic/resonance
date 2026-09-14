@@ -4,6 +4,7 @@ import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerStatus, QueuedItem } from '#types.ts';
 
 const defaultSeekOffsetSeconds = 10;
+const mediaSessionArtworkMaxWidth = 512;
 
 export function bindMediaSession(store: StoreApi<PlayerStore>): () => void {
 	if (!('mediaSession' in navigator))
@@ -53,7 +54,7 @@ function bindActions(store: StoreApi<PlayerStore>): Array<MediaSessionAction> {
 		[
 			'play',
 			() => {
-				store.getState().togglePlay();
+				store.getState().play();
 			},
 		],
 		[
@@ -133,7 +134,14 @@ function setMetadata(item: QueuedItem | undefined): void {
 	navigator.mediaSession.metadata = new MediaMetadata({
 		album: item.releaseTitle,
 		artist: item.artistLine,
-		artwork: item.artworkUrl ? [{ src: item.artworkUrl }] : [],
+		// WebKit has been reported to take the first entry
+		artwork: (item.artwork ?? [])
+			.filter(({ width }) => width <= mediaSessionArtworkMaxWidth)
+			.toReversed()
+			.map(({ src, width }) => ({
+				sizes: `${String(width)}x${String(width)}`,
+				src,
+			})),
 		title: item.title,
 	});
 }

@@ -29,6 +29,8 @@ export interface PlayerActions {
 	moveItem: (from: number, to: number) => void;
 	next: () => void;
 	pause: () => void;
+	// Never pauses, for a remote that sends play and pause as separate actions
+	play: () => void;
 	playAt: (index: number) => void;
 	// Replaces the queue with these items and plays from the top
 	playQueue: (items: ReadonlyArray<QueueItem>) => void;
@@ -49,10 +51,12 @@ export interface PlayerActions {
 	seek: (seconds: number) => void;
 	// Clamped into the loaded track, so the skip buttons and the lock screen cannot run past either end
 	seekBy: (deltaSeconds: number) => void;
+	setOverlayOpen: (isOpen: boolean) => void;
 	setVolume: (volume: number) => void;
 	stop: () => void;
 	// Drops to silence and back to the level held at the last mute, or to full before any mute
 	toggleMute: () => void;
+	toggleOverlay: () => void;
 	// The scrolling detail panel above the bar; session state, not a persisted preference
 	togglePanel: () => void;
 	togglePlay: () => void;
@@ -67,7 +71,9 @@ export interface PlayerState {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
 	durationSeconds: number | undefined;
+	isOverlayOpen: boolean;
 	isPanelOpen: boolean;
+	isPlayIntended: boolean;
 	isShuffling: boolean;
 	isTrayOpen: boolean;
 	// How many CSS pixels of the panel one second of audio takes
@@ -89,4 +95,6 @@ export type PlayerStore = PlayerActions & PlayerState;
 
 export interface PlayerStoreOptions {
 	createEngine?: CreateAudioEngine | undefined;
+	// Off for a secondary mount, which must neither show the listener's saved queue and volume nor write over them
+	isPersistent?: boolean | undefined;
 }

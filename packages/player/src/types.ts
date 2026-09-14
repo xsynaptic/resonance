@@ -8,8 +8,10 @@ export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported
 export interface PlayerLabels {
 	capped: string;
 	clearQueue: string;
+	collapse: string;
 	empty: string;
 	error: string;
+	expand: string;
 	loading: string;
 	// Carries `{position}` and `{total}`, filled in as a row lands
 	moved: string;
@@ -18,6 +20,7 @@ export interface PlayerLabels {
 	nowPlaying: string;
 	pause: string;
 	play: string;
+	playlist: string;
 	previous: string;
 	queue: string;
 	removeFromQueue: string;
@@ -28,6 +31,7 @@ export interface PlayerLabels {
 	skipForward: string;
 	timestampsPartial: string;
 	toggleTimeMode: string;
+	tracklist: string;
 	unmute: string;
 	unplayable: string;
 	volume: string;
@@ -50,6 +54,12 @@ export interface PlayerUrls {
 	stream: (trackId: string) => Promise<StreamResolution>;
 }
 
+// One square rendition, `width` its size in pixels; the host builds the URL, the player only lists it
+export interface QueueArtwork {
+	src: string;
+	width: number;
+}
+
 // One timestamped track in a mix, resolved at build time because the browser has no artists catalog
 export interface QueueCuePoint {
 	// Empty where the track carries no credit
@@ -66,7 +76,8 @@ export interface QueuedItem extends QueueItem {
 export interface QueueItem {
 	albumLoudness: QueueLoudness;
 	artistLine: string;
-	artworkUrl?: string;
+	// Ascending by width
+	artwork?: ReadonlyArray<QueueArtwork>;
 	// Timestamped tracks in order; the panel draws a boundary at each one
 	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	durationMs?: number;

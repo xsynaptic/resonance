@@ -1,11 +1,17 @@
 ---
 import { PlayerIsland } from '#components/player/player-island.tsx';
 import { getPlayerLabels, skipSeconds } from '#components/player/player-labels.ts';
-import { isPlayerEnabled } from '#lib/site.ts';
+import { isPlayerEnabled, isPlayerOverlayEnabled } from '#lib/site.ts';
 
 const labels = getPlayerLabels();
 ---
 
 {isPlayerEnabled ? (
-	<PlayerIsland client:idle labels={labels} skipSeconds={skipSeconds} transition:persist="player" />
+	<PlayerIsland
+		client:idle
+		isOverlayEnabled={isPlayerOverlayEnabled}
+		labels={labels}
+		skipSeconds={skipSeconds}
+		transition:persist="player"
+	/>
 ) : undefined}

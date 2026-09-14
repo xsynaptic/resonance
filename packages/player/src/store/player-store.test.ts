@@ -80,6 +80,23 @@ function leavePage(): void {
 	window.dispatchEvent(new Event('pagehide'));
 }
 
+function pendingResolver() {
+	const pending = new Map<string, (resolution: StreamResolution) => void>();
+	const store = withResolver(
+		(trackId) =>
+			new Promise<StreamResolution>((resolve) => {
+				pending.set(trackId, resolve);
+			}),
+	);
+
+	return {
+		answer: (trackId: string) => {
+			pending.get(trackId)?.({ status: 'ok', url: `https://api.test/${trackId}` });
+		},
+		store,
+	};
+}
+
 function storedQueue(): null | StoredQueueRecord {
 	return JSON.parse(localStorage.getItem('player:v1:queue') ?? 'null') as null | StoredQueueRecord;
 }
@@ -115,7 +132,6 @@ describe('playTrack', () => {
 			expect(fake.engine.load).toHaveBeenCalledWith({
 				gain: 1,
 				resumeAtSeconds: 0,
-				shouldAutoplay: true,
 				src: 'https://api.test/tracks/b/stream',
 			});
 		});
@@ -540,11 +556,11 @@ describe('moveItem', () => {
 });
 
 describe('transport', () => {
-	test('pauses the engine when toggled while playing', () => {
+	test('pauses the engine when toggled while playback is intended', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ status: 'playing' });
+		store.setState({ isPlayIntended: true, status: 'playing' });
 		store.getState().togglePlay();
 
 		expect(fake.engine.pause).toHaveBeenCalled();
@@ -555,7 +571,7 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'b');
-		store.setState({ status: 'playing' });
+		store.setState({ isPlayIntended: true, status: 'playing' });
 		store.getState().removeAt(0);
 		store.getState().togglePlay();
 
@@ -566,7 +582,7 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ status: 'paused' });
+		store.setState({ isPlayIntended: false, status: 'paused' });
 		store.getState().togglePlay();
 
 		expect(fake.engine.play).toHaveBeenCalled();
@@ -631,6 +647,36 @@ describe('transport', () => {
 		expect(fake.engine.reset).toHaveBeenCalled();
 		expect(store.getState().status).toBe('idle');
 		expect(store.getState().currentTimeSeconds).toBe(0);
+	});
+
+	test.each([
+		[
+			'a stop',
+			(store: StoreApi<PlayerStore>) => {
+				store.getState().stop();
+			},
+		],
+		[
+			'clearing the queue',
+			(store: StoreApi<PlayerStore>) => {
+				store.getState().clearQueue();
+			},
+		],
+		[
+			'removing the loaded track',
+			(store: StoreApi<PlayerStore>) => {
+				store.getState().removeAt(0);
+			},
+		],
+	])('%s stays idle when the element reports its pause late', (_label, drop) => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		fake.callbacks.current?.onStatus('playing');
+		drop(store);
+		fake.callbacks.current?.onStatus('paused');
+
+		expect(store.getState().status).toBe('idle');
 	});
 
 	test('toggles the tray open and closed', () => {
@@ -732,7 +778,6 @@ describe('engine errors', () => {
 		expect(fake.engine.load).toHaveBeenCalledWith({
 			gain: 1,
 			resumeAtSeconds: 0,
-			shouldAutoplay: true,
 			src: 'https://api.test/b',
 		});
 	});
@@ -758,7 +803,7 @@ describe('engine errors', () => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(3);
 		});
 		expect(fake.engine.load).toHaveBeenLastCalledWith(
-			expect.objectContaining({ resumeAtSeconds: 42, shouldAutoplay: true }),
+			expect.objectContaining({ resumeAtSeconds: 42 }),
 		);
 		expect(fake.engine.play).not.toHaveBeenCalled();
 	});
@@ -773,6 +818,184 @@ describe('engine errors', () => {
 
 		expect(fake.engine.load).not.toHaveBeenCalled();
 	});
+});
+
+describe('play intent', () => {
+	test('a pause while the stream resolves hands the engine its source without playing it', async () => {
+		const { answer, store } = pendingResolver();
+
+		store.getState().playTrack(release, 'a');
+		expect(store.getState().isPlayIntended).toBe(true);
+
+		store.getState().pause();
+		answer('a');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledWith(
+				expect.objectContaining({ src: 'https://api.test/a' }),
+			);
+		});
+		expect(fake.engine.play).not.toHaveBeenCalled();
+		expect(store.getState().status).toBe('paused');
+		expect(store.getState().isPlayIntended).toBe(false);
+	});
+
+	test('a press during a load cancels it, and a second press plays once the source lands', async () => {
+		const { answer, store } = pendingResolver();
+
+		store.getState().playTrack(release, 'a');
+		store.getState().togglePlay();
+
+		expect(fake.engine.pause).toHaveBeenCalledOnce();
+		expect(store.getState().isPlayIntended).toBe(false);
+
+		store.getState().togglePlay();
+		answer('a');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledOnce();
+		});
+		expect(store.getState().isPlayIntended).toBe(true);
+	});
+
+	test('a seek while the stream resolves carries into the load', async () => {
+		const { answer, store } = pendingResolver();
+
+		store.getState().loadQueue(release);
+		store.setState({ currentIndex: 1, currentTimeSeconds: 600 });
+		store.getState().togglePlay();
+		store.getState().seek(100);
+		answer('b');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledWith(
+				expect.objectContaining({ resumeAtSeconds: 100 }),
+			);
+		});
+	});
+
+	test('switching tracks silences the old one before the next resolves', async () => {
+		const { answer, store } = pendingResolver();
+
+		store.getState().playTrack(release, 'a');
+		answer('a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+		fake.callbacks.current?.onStatus('playing');
+
+		store.getState().playTrack(release, 'b');
+
+		expect(fake.engine.reset).toHaveBeenCalledOnce();
+		expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		expect(store.getState().status).toBe('loading');
+	});
+
+	test('a pause from outside during a stall lets the lock screen resume in one press', async () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledOnce();
+		});
+		fake.callbacks.current?.onStatus('playing');
+		fake.callbacks.current?.onStatus('loading');
+		fake.callbacks.current?.onStatus('paused');
+
+		expect(store.getState().status).toBe('paused');
+		expect(store.getState().isPlayIntended).toBe(false);
+
+		store.getState().play();
+
+		expect(fake.engine.play).toHaveBeenCalledOnce();
+		expect(store.getState().isPlayIntended).toBe(true);
+	});
+
+	test('play never pauses a load already on its way', () => {
+		const { store } = pendingResolver();
+
+		store.getState().playTrack(release, 'a');
+		store.getState().play();
+
+		expect(fake.engine.pause).not.toHaveBeenCalled();
+		expect(store.getState().isPlayIntended).toBe(true);
+	});
+
+	test('a pause from outside the player during playback drops the intent', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		fake.callbacks.current?.onStatus('playing');
+		fake.callbacks.current?.onStatus('paused');
+
+		expect(store.getState().status).toBe('paused');
+		expect(store.getState().isPlayIntended).toBe(false);
+	});
+
+	test('a failure long into playback retries where playback stood', async () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+		fake.callbacks.current?.onStatus('playing');
+		fake.callbacks.current?.onTime(600);
+		fake.callbacks.current?.onError('network');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
+		});
+		expect(fake.engine.load).toHaveBeenLastCalledWith(
+			expect.objectContaining({ resumeAtSeconds: 600 }),
+		);
+	});
+
+	test('a failure while paused retries without starting playback', async () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+		fake.callbacks.current?.onStatus('playing');
+		store.getState().pause();
+		fake.callbacks.current?.onError('network');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
+		});
+		expect(store.getState().isPlayIntended).toBe(false);
+		expect(store.getState().status).toBe('paused');
+	});
+
+	test.each([
+		['capped', { status: 'capped' }],
+		['unplayable', { status: 'ok', type: 'audio/x-unplayable', url: 'https://api.test/a' }],
+	] as const)(
+		'a press on a %s track re-resolves rather than playing what the engine holds',
+		async (status, resolution) => {
+			const resolved: Array<string> = [];
+			const store = withResolver((trackId) => {
+				resolved.push(trackId);
+				return Promise.resolve(resolution);
+			});
+			fake.engine.canPlay.mockReturnValue(false);
+
+			store.getState().playTrack(release, 'a');
+			await vi.waitFor(() => {
+				expect(store.getState().status).toBe(status);
+			});
+			expect(store.getState().isPlayIntended).toBe(false);
+
+			store.getState().togglePlay();
+
+			await vi.waitFor(() => {
+				expect(resolved).toHaveLength(2);
+			});
+			expect(fake.engine.play).not.toHaveBeenCalled();
+		},
+	);
 });
 
 describe('volume', () => {
@@ -931,7 +1154,6 @@ describe('queue persistence', () => {
 			expect(fake.engine.load).toHaveBeenCalledWith({
 				gain: 1,
 				resumeAtSeconds: 42,
-				shouldAutoplay: true,
 				src: 'https://api.test/tracks/b/stream',
 			});
 		});
@@ -1026,6 +1248,43 @@ describe('storage', () => {
 			expect(store.getState().volume).toBe(0.3);
 		} finally {
 			if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor);
+		}
+	});
+
+	test('a store that does not persist neither reads nor writes storage', () => {
+		vi.useFakeTimers();
+		localStorage.setItem('player:v1:volume', '0.4');
+		localStorage.setItem(
+			'player:v1:queue',
+			JSON.stringify({
+				currentIndex: 0,
+				currentTimeSeconds: 42,
+				isShuffling: false,
+				queue: release,
+			}),
+		);
+
+		const setItem = vi.spyOn(localStorage, 'setItem');
+
+		try {
+			const store = createPlayerStore({ createEngine: fake.createEngine, isPersistent: false });
+
+			store.getState().hydratePreferences();
+			store.getState().hydrateQueue();
+
+			expect(store.getState().volume).toBe(1);
+			expect(store.getState().queue).toHaveLength(0);
+
+			store.getState().setVolume(0.7);
+			store.getState().loadQueue([makeItem('x')]);
+			vi.runAllTimers();
+
+			expect(setItem).not.toHaveBeenCalled();
+		} finally {
+			setItem.mockRestore();
+			vi.useRealTimers();
+			localStorage.removeItem('player:v1:volume');
+			localStorage.removeItem('player:v1:queue');
 		}
 	});
 

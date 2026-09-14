@@ -132,6 +132,36 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toBe(null);
 	});
 
+	test('hands over renditions up to 512px, largest first', () => {
+		const store = loadedStore();
+		const [first] = store.getState().queue;
+		if (!first) throw new Error('The queue loaded nothing');
+
+		bindMediaSession(store);
+		store.setState({
+			currentIndex: 0,
+			queue: [
+				{
+					...first,
+					artwork: [120, 240, 512, 900, 1800].map((width) => ({
+						src: `/artwork-${String(width)}.webp`,
+						width,
+					})),
+				},
+			],
+		});
+
+		expect(mediaSession.metadata).toMatchObject({
+			init: {
+				artwork: [
+					{ sizes: '512x512', src: '/artwork-512.webp' },
+					{ sizes: '240x240', src: '/artwork-240.webp' },
+					{ sizes: '120x120', src: '/artwork-120.webp' },
+				],
+			},
+		});
+	});
+
 	test('maps every terminal status onto a playback state', () => {
 		const store = loadedStore();
 

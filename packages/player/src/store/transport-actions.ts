@@ -2,9 +2,13 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerActions, PlayerStore } from '#store/player-types.ts';
+import type { PlayerStatus } from '#types.ts';
 
 import { previousInOrder } from '#queue/queue.ts';
 import { restartThresholdSeconds } from '#store/selectors.ts';
+
+// Nothing worth resuming stays in the engine after any of these
+const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
 
 type TransportActions = Pick<
 	PlayerActions,
@@ -13,6 +17,7 @@ type TransportActions = Pick<
 	| 'getOutputDelay'
 	| 'next'
 	| 'pause'
+	| 'play'
 	| 'playAt'
 	| 'previous'
 	| 'seek'
@@ -36,6 +41,30 @@ export function createTransportActions({
 		getOutputDelay: playback.outputDelay,
 		next: playback.advance,
 		pause: playback.pause,
+
+		play: () => {
+			const state = get();
+			if (state.currentIndex === undefined) {
+				const first = state.playOrder[0];
+				if (first === undefined) return;
+
+				playback.loadIndex(first, true);
+				return;
+			}
+
+			if (state.isPlayIntended && state.status === 'loading') return;
+
+			// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
+			if (
+				terminalStatuses.has(state.status) ||
+				!playback.holdsTrack(state.queue[state.currentIndex]?.queueId)
+			) {
+				playback.loadIndex(state.currentIndex, true, { resumeAtSeconds: state.currentTimeSeconds });
+				return;
+			}
+
+			playback.play();
+		},
 
 		playAt: (index) => {
 			if (index < 0 || index >= get().queue.length) return;
@@ -75,32 +104,12 @@ export function createTransportActions({
 		},
 
 		togglePlay: () => {
-			const state = get();
-			if (state.currentIndex === undefined) {
-				const first = state.playOrder[0];
-				if (first === undefined) return;
-
-				playback.loadIndex(first, true);
-				return;
-			}
-
-			if (state.status === 'error') {
-				playback.loadIndex(state.currentIndex, true, { resumeAtSeconds: state.currentTimeSeconds });
-				return;
-			}
-
-			// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
-			if (!playback.holdsTrack(state.queue[state.currentIndex]?.queueId)) {
-				playback.loadIndex(state.currentIndex, true, { resumeAtSeconds: state.currentTimeSeconds });
-				return;
-			}
-
-			if (state.status === 'playing') {
+			if (get().isPlayIntended) {
 				playback.pause();
 				return;
 			}
 
-			playback.play();
+			get().play();
 		},
 	};
 }

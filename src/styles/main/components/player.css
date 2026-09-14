@@ -5,7 +5,7 @@
 :root {
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
 	--player-surface: var(--color-surface-800);
-	--player-panel-well: var(--color-surface-950);
+	--player-panel-well: var(--color-surface-700);
 	--player-popover: var(--color-surface-600);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
@@ -25,6 +25,8 @@
 	--player-play-fill-hover: var(--color-highlight-400);
 	--player-play-glyph: var(--color-highlight-200);
 	--player-play-glyph-hover: var(--color-highlight-100);
+	--player-loader: var(--color-highlight-200);
+	--player-loader-track: var(--color-highlight-700);
 	--player-drag-handle: var(--color-surface-400);
 	--player-current: var(--color-highlight-400);
 	--player-focus-ring: var(--color-highlight-500);
@@ -37,6 +39,7 @@
 	--player-panel-grid: var(--color-surface-600);
 	--player-panel-ends: var(--color-surface-300);
 	--player-panel-cue: var(--color-ink-100);
+	--player-panel-placeholder: var(--color-ink-700);
 	--player-playhead: var(--color-highlight-400);
 	--player-cue-dot: var(--color-accent-400);
 	--player-cue-artist: var(--color-highlight-400);

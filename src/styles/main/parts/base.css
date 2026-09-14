@@ -40,10 +40,11 @@ a:active {
 	background-color: var(--color-ink-100);
 }
 
+/* The player's loader fades instead of spinning; frozen, it reads as a focus ring */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
-	*::after {
+	*:not(.player-button-primary[data-loading])::after {
 		scroll-behavior: auto !important;
 		transition-duration: 0.01ms !important;
 		animation-duration: 0.01ms !important;

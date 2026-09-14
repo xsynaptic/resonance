@@ -34,8 +34,10 @@ const testUrls: PlayerUrls = {
 const labels = {
 	capped: 'Daily limit reached',
 	clearQueue: 'Clear',
+	collapse: 'Collapse',
 	empty: 'Queue is empty',
 	error: 'Playback error',
+	expand: 'Expand',
 	loading: 'Loading',
 	moved: 'Moved to position {position} of {total}',
 	mute: 'Mute',
@@ -43,6 +45,7 @@ const labels = {
 	nowPlaying: 'Nothing playing',
 	pause: 'Pause',
 	play: 'Play',
+	playlist: 'Playlist',
 	previous: 'Previous',
 	queue: 'Queue',
 	removeFromQueue: 'Remove',
@@ -53,6 +56,7 @@ const labels = {
 	skipForward: 'Forward 30 seconds',
 	timestampsPartial: 'Timestamps end here',
 	toggleTimeMode: 'Toggle elapsed and remaining',
+	tracklist: 'Tracklist',
 	unmute: 'Unmute',
 	unplayable: 'This browser cannot play the stream',
 	volume: 'Volume',
@@ -77,10 +81,19 @@ function makeItem(id: string, extra: Partial<QueueItem> = {}): QueueItem {
 const releaseHref = '/releases/cosmic-drift';
 const release = [makeItem('a', { releaseHref }), makeItem('b', { releaseHref })];
 
-function renderPlayer(variant?: 'compact' | 'expanded') {
+const artwork = [
+	{ src: '/artwork-120.webp', width: 120 },
+	{ src: '/artwork-240.webp', width: 240 },
+];
+
+function preventNavigation(event: MouseEvent): void {
+	event.preventDefault();
+}
+
+function renderPlayer() {
 	const store = createPlayerStore();
 
-	render(<AudioPlayer labels={labels} store={store} urls={testUrls} variant={variant} />);
+	render(<AudioPlayer labels={labels} store={store} urls={testUrls} />);
 
 	return store;
 }
@@ -110,13 +123,12 @@ describe('AudioPlayer', () => {
 		});
 
 		expect(screen.getByRole('link', { name: 'Track a' })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: labels.play })).toBeEnabled();
+		expect(screen.getByRole('button', { name: labels.pause })).toBeEnabled();
 
 		await waitFor(() => {
 			expect(engineMock.load).toHaveBeenCalledWith({
 				gain: 1,
 				resumeAtSeconds: 0,
-				shouldAutoplay: true,
 				src: 'https://api.test/tracks/a/stream',
 			});
 		});
@@ -140,6 +152,30 @@ describe('AudioPlayer', () => {
 		expect(engineMock.pause).toHaveBeenCalled();
 	});
 
+	test('the play button follows intent and marks a load toward playback', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+		});
+
+		const button = screen.getByRole('button', { name: labels.pause });
+
+		expect(button).toHaveAttribute('data-loading');
+
+		act(() => {
+			store.getState().pause();
+		});
+
+		expect(screen.getByRole('button', { name: labels.play })).not.toHaveAttribute('data-loading');
+
+		act(() => {
+			store.setState({ status: 'loading' });
+		});
+
+		expect(screen.getByRole('button', { name: labels.play })).not.toHaveAttribute('data-loading');
+	});
+
 	test('opens the queue tray and jumps to a track', () => {
 		const store = renderPlayer();
 
@@ -150,6 +186,31 @@ describe('AudioPlayer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /Track b/ }));
 
 		expect(store.getState().currentIndex).toBe(1);
+	});
+
+	test('closes the queue tray on a click outside it and on Escape', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().loadQueue(release);
+		});
+
+		const trigger = screen.getByRole('button', { name: labels.queue });
+
+		fireEvent.click(trigger);
+		fireEvent.pointerDown(document.body);
+
+		expect(store.getState().isTrayOpen).toBe(true);
+
+		fireEvent.click(document.body);
+
+		expect(store.getState().isTrayOpen).toBe(false);
+
+		fireEvent.click(trigger);
+		fireEvent.keyDown(screen.getByRole('button', { name: /Track b/ }), { key: 'Escape' });
+
+		expect(store.getState().isTrayOpen).toBe(false);
+		expect(trigger).toHaveFocus();
 	});
 
 	test('draws a heading over each section of the queue and drops shuffle', () => {
@@ -198,29 +259,32 @@ describe('AudioPlayer', () => {
 		expect(screen.getByText('Track a')).toBeVisible();
 	});
 
-	test('leaves the layout to the container query until a variant forces one', () => {
-		const { container } = render(
-			<AudioPlayer labels={labels} store={createPlayerStore()} urls={testUrls} />,
-		);
+	test('lists the artwork renditions and collapses the image once it fails to load', () => {
+		const store = renderPlayer();
 
-		expect(container.querySelector('.player-bar')).not.toHaveAttribute('data-layout');
+		act(() => {
+			store.getState().loadQueue([makeItem('a', { artwork })]);
+		});
+
+		const image = document.querySelector('.player-artwork');
+		if (!image) throw new Error('The bar rendered no artwork');
+
+		expect(image).toHaveAttribute('srcset', '/artwork-120.webp 120w, /artwork-240.webp 240w');
+
+		fireEvent.error(image);
+
+		expect(document.querySelector('.player-artwork')).not.toBeInTheDocument();
 	});
 
-	test('writes the forced layout onto the bar', () => {
-		renderPlayer('expanded');
+	test('renders no artwork where the host switches it off', () => {
+		const store = createPlayerStore();
 
-		expect(screen.getByRole('region', { name: labels.nowPlaying })).toHaveAttribute(
-			'data-layout',
-			'expanded',
-		);
+		render(<AudioPlayer isArtworkEnabled={false} labels={labels} store={store} urls={testUrls} />);
+		act(() => {
+			store.getState().loadQueue([makeItem('a', { artwork })]);
+		});
 
-		cleanup();
-		renderPlayer('compact');
-
-		expect(screen.getByRole('region', { name: labels.nowPlaying })).toHaveAttribute(
-			'data-layout',
-			'compact',
-		);
+		expect(document.querySelector('.player-artwork')).not.toBeInTheDocument();
 	});
 
 	test('renders the skip buttons only when the host names a skip', () => {
@@ -328,6 +392,140 @@ describe('AudioPlayer', () => {
 		expect(screen.getByText('Nebula Drift').closest('.player-track-meta')).toHaveTextContent(
 			'Composed in',
 		);
+	});
+
+	test('expands into the overlay and closes it from the chevron and from the dialog', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().loadQueue(release);
+		});
+		fireEvent.click(screen.getByRole('button', { name: labels.expand }));
+
+		const dialog = screen.getByRole('dialog', { hidden: true });
+
+		expect(dialog).toHaveAttribute('open');
+
+		fireEvent.click(screen.getByRole('button', { name: labels.collapse }));
+
+		expect(store.getState().isOverlayOpen).toBe(false);
+		expect(dialog).not.toHaveAttribute('open');
+
+		fireEvent.click(screen.getByRole('button', { name: labels.expand }));
+		act(() => {
+			(dialog as HTMLDialogElement).close();
+		});
+
+		expect(store.getState().isOverlayOpen).toBe(false);
+	});
+
+	test('closes the overlay once the queue empties', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().loadQueue(release);
+			store.getState().toggleOverlay();
+		});
+		fireEvent.click(screen.getByRole('button', { name: labels.clearQueue }));
+
+		expect(store.getState().isOverlayOpen).toBe(false);
+		expect(screen.getByRole('dialog', { hidden: true })).not.toHaveAttribute('open');
+	});
+
+	test('draws one waveform panel while the overlay is open', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+			store.getState().togglePanel();
+			store.getState().toggleOverlay();
+		});
+
+		expect(screen.getAllByRole('group', { name: labels.waveformPanel })).toHaveLength(1);
+	});
+
+	test('closes the overlay for a plain link click and stays open for a modified one', () => {
+		const store = renderPlayer();
+
+		document.addEventListener('click', preventNavigation);
+		act(() => {
+			store.getState().loadQueue(release);
+			store.getState().toggleOverlay();
+		});
+
+		const link = screen.getByRole('dialog', { hidden: true }).querySelector('a[href]');
+		if (!link) throw new Error('The overlay rendered no link');
+
+		fireEvent.click(link, { metaKey: true });
+		fireEvent.click(link, { button: 1 });
+
+		expect(store.getState().isOverlayOpen).toBe(true);
+
+		fireEvent.click(link);
+
+		expect(store.getState().isOverlayOpen).toBe(false);
+
+		document.removeEventListener('click', preventNavigation);
+	});
+
+	test('focuses collapse on open and keeps focus on the tabs when the Tracklist goes', () => {
+		const store = renderPlayer();
+		const cuePoints = [
+			{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
+			{ artistLine: '', startSeconds: 60, title: 'Middle' },
+		];
+
+		act(() => {
+			store.getState().playTrack([makeItem('a', { cuePoints }), makeItem('b')], 'a');
+			store.getState().toggleOverlay();
+		});
+
+		expect(screen.getByRole('button', { name: labels.collapse })).toHaveFocus();
+
+		act(() => {
+			screen.getByRole('button', { name: /Middle/ }).focus();
+		});
+		act(() => {
+			store.getState().next();
+		});
+
+		expect(screen.getByRole('tab', { name: labels.playlist })).toHaveFocus();
+	});
+
+	test('seeks from a cue in the Tracklist and marks the current one', () => {
+		const store = renderPlayer();
+		const cuePoints = [
+			{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
+			{ artistLine: '', startSeconds: 60, title: 'Middle' },
+		];
+
+		act(() => {
+			store.getState().playTrack([makeItem('a', { cuePoints })], 'a');
+			store.getState().toggleOverlay();
+		});
+
+		expect(screen.getByRole('tab', { name: labels.tracklist })).toHaveAttribute(
+			'aria-selected',
+			'true',
+		);
+
+		fireEvent.click(screen.getByRole('button', { name: /Middle/ }));
+
+		expect(engineMock.seek).toHaveBeenCalledWith(60);
+		expect(screen.getByRole('button', { name: /Middle/ })).toHaveAttribute('aria-current', 'true');
+		expect(screen.getByRole('button', { name: /Opening/ })).not.toHaveAttribute('aria-current');
+	});
+
+	test('offers only the Playlist for an item without cue points', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+			store.getState().toggleOverlay();
+		});
+
+		expect(screen.getAllByRole('tab')).toHaveLength(1);
+		expect(screen.getByRole('button', { name: /Track b/ })).toBeInTheDocument();
 	});
 
 	test('renders a host composition of the parts through Player.Root', () => {

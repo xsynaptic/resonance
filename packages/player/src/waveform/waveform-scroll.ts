@@ -7,6 +7,10 @@ import { createEnvelopePainter } from '#waveform/waveform-envelope.ts';
 
 const hatchTilePx = 8;
 
+// In CSS pixels, and as a share of half the panel's height
+const placeholderWavelengthPx = 48;
+const placeholderAmplitude = 0.2;
+
 export interface ScrollPainter {
 	paint: (view: ScrollView, ratio: number) => void;
 }
@@ -15,12 +19,28 @@ export interface ScrollTheme extends EnvelopeTheme {
 	cueStyle: string;
 	edgeStyle: string;
 	gridStyle: string;
+	placeholderStyle: string;
+}
+
+export interface SecondsSpan {
+	fromSeconds: number;
+	toSeconds: number;
+}
+
+interface PlaceholderGeometry {
+	durationSeconds: number | undefined;
+	pixelsPerSecond: number;
+	width: number;
+	windowStartSeconds: number;
 }
 
 interface ScrollView extends EnvelopeView {
 	cuePoints: ReadonlyArray<QueueCuePoint>;
 	// Everything outside zero to here is drawn as null rather than as silence
 	durationSeconds: number | undefined;
+	// In wavelengths travelled
+	placeholderPhase: number;
+	placeholders: ReadonlyArray<SecondsSpan>;
 }
 
 // Holds the hatch pattern and the envelope painter, which cost more to rebuild each frame than to keep
@@ -108,16 +128,42 @@ export function createScrollPainter(
 		if (closingX < width) context.fillRect(closingX, 0, width - closingX, height);
 	}
 
+	function paintPlaceholders(view: ScrollView, ratio: number): void {
+		if (view.placeholders.length === 0) return;
+
+		context.strokeStyle = theme.placeholderStyle;
+		context.lineWidth = ratio;
+		tracePlaceholders(context, view, ratio);
+		context.stroke();
+	}
+
 	return {
 		paint: (view, ratio) => {
 			context.clearRect(0, 0, view.width, view.height);
 			paintNull(view, ratio);
 			paintGrid(view);
+			paintPlaceholders(view, ratio);
 			envelope.paint(view);
 			paintEdges(view, ratio);
 			paintBoundaries(view, ratio);
 		},
 	};
+}
+
+export function placeholderRange(
+	{ durationSeconds, pixelsPerSecond, width, windowStartSeconds }: PlaceholderGeometry,
+	span: SecondsSpan,
+): undefined | { closingX: number; openingX: number } {
+	const windowStartX = windowStartSeconds * pixelsPerSecond;
+	const openingX = Math.max(0, -windowStartX, span.fromSeconds * pixelsPerSecond - windowStartX);
+	const closingX = Math.min(
+		width,
+		(durationSeconds ?? Infinity) * pixelsPerSecond - windowStartX,
+		span.toSeconds * pixelsPerSecond - windowStartX,
+	);
+	if (closingX <= openingX) return undefined;
+
+	return { closingX, openingX };
 }
 
 // The corner strokes are what keep the 45-degree diagonal unbroken where the tiles meet
@@ -143,4 +189,35 @@ function createHatch(style: string, ratio: number): CanvasPattern | undefined {
 	tileContext.stroke();
 
 	return tileContext.createPattern(tile, 'repeat') ?? undefined;
+}
+
+// Anchored to the timeline rather than the canvas, so it scrolls with the audio it stands in for
+function tracePlaceholders(
+	context: CanvasRenderingContext2D,
+	view: ScrollView,
+	ratio: number,
+): void {
+	const { height, pixelsPerSecond, placeholderPhase, windowStartSeconds } = view;
+	const wavelength = placeholderWavelengthPx * ratio;
+	const centreY = height / 2;
+	const amplitude = centreY * placeholderAmplitude;
+	const windowStartX = windowStartSeconds * pixelsPerSecond;
+	const waveY = (x: number): number =>
+		centreY -
+		Math.sin(((x + windowStartX) / wavelength + placeholderPhase) * 2 * Math.PI) * amplitude;
+
+	context.beginPath();
+
+	for (const span of view.placeholders) {
+		const range = placeholderRange(view, span);
+		if (!range) continue;
+
+		context.moveTo(range.openingX, waveY(range.openingX));
+
+		for (let x = range.openingX + ratio; x < range.closingX; x += ratio) {
+			context.lineTo(x, waveY(x));
+		}
+
+		context.lineTo(range.closingX, waveY(range.closingX));
+	}
 }

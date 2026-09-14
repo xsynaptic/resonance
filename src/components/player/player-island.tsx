@@ -31,13 +31,28 @@ interface RowState {
 }
 
 export function PlayerIsland({
+	isOverlayEnabled,
 	labels,
 	skipSeconds,
 }: {
+	isOverlayEnabled: boolean;
 	labels: PlayerLabels;
 	skipSeconds: number;
 }) {
 	useEffect(() => bindMediaSession(playerStore), []);
+
+	// Without `moveBefore` the router moves the persisted island out and back, which drops the dialog's modal state
+	useEffect(() => {
+		const onBeforePreparation = (): void => {
+			playerStore.getState().setOverlayOpen(false);
+		};
+
+		document.addEventListener('astro:before-preparation', onBeforePreparation);
+
+		return () => {
+			document.removeEventListener('astro:before-preparation', onBeforePreparation);
+		};
+	}, []);
 
 	// One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
 	useEffect(() => {
@@ -78,11 +93,18 @@ export function PlayerIsland({
 		};
 	}, []);
 
-	return <AudioPlayer labels={labels} skipSeconds={skipSeconds} urls={urls} />;
+	return (
+		<AudioPlayer
+			isOverlayEnabled={isOverlayEnabled}
+			labels={labels}
+			skipSeconds={skipSeconds}
+			urls={urls}
+		/>
+	);
 }
 
 function currentRowState(): RowState {
-	const { currentIndex, currentTimeSeconds, queue, status } = playerStore.getState();
+	const { currentIndex, currentTimeSeconds, isPlayIntended, queue } = playerStore.getState();
 	const item = currentIndex === undefined ? undefined : queue[currentIndex];
 	const cuePoints = item?.cuePoints ?? [];
 	let cueStartSeconds: number | undefined;
@@ -93,7 +115,8 @@ function currentRowState(): RowState {
 		cueStartSeconds = cue.startSeconds;
 	}
 
-	return { cueStartSeconds, isPlaying: status === 'playing', trackId: item?.trackId };
+	// Intent rather than sound, matching the bar's play button
+	return { cueStartSeconds, isPlaying: isPlayIntended, trackId: item?.trackId };
 }
 
 // The nearest verb wins, so a track's own control beats a play-all wrapping it

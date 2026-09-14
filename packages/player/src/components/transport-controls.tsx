@@ -11,7 +11,7 @@ import {
 } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
-import { canStepBack, canStepForward, isLoaded } from '#store/selectors.ts';
+import { canStepBack, canStepForward, isAwaitingPlayback, isLoaded } from '#store/selectors.ts';
 
 export function TransportControls({
 	className,
@@ -23,8 +23,6 @@ export function TransportControls({
 	// Unset renders no skip buttons
 	skipSeconds?: number | undefined;
 }) {
-	const isPlaying = usePlayer((state) => state.status === 'playing');
-	const hasQueue = usePlayer((state) => state.queue.length > 0);
 	const isTrackLoaded = usePlayer(isLoaded);
 	const isBackEnabled = usePlayer(canStepBack);
 	const isForwardEnabled = usePlayer(canStepForward);
@@ -54,17 +52,7 @@ export function TransportControls({
 					<SkipBackIcon seconds={skipSeconds} />
 				</Button>
 			)}
-			<Button
-				aria-label={isPlaying ? labels.pause : labels.play}
-				className="player-button-primary"
-				data-state={isPlaying ? 'playing' : 'paused'}
-				disabled={!hasQueue}
-				onClick={() => {
-					store.getState().togglePlay();
-				}}
-			>
-				{isPlaying ? <PauseIcon /> : <PlayIcon />}
-			</Button>
+			<PlayButton labels={labels} />
 			{skipSeconds === undefined ? undefined : (
 				<Button
 					aria-label={labels.skipForward}
@@ -88,5 +76,27 @@ export function TransportControls({
 				<NextIcon />
 			</Button>
 		</div>
+	);
+}
+
+function PlayButton({ labels }: { labels: Pick<PlayerLabels, 'pause' | 'play'> }) {
+	const isPlayIntended = usePlayer((state) => state.isPlayIntended);
+	const isAwaiting = usePlayer(isAwaitingPlayback);
+	const hasQueue = usePlayer((state) => state.queue.length > 0);
+	const store = usePlayerStoreApi();
+
+	return (
+		<Button
+			aria-label={isPlayIntended ? labels.pause : labels.play}
+			className="player-button-primary"
+			data-loading={isAwaiting ? '' : undefined}
+			data-state={isPlayIntended ? 'playing' : 'paused'}
+			disabled={!hasQueue}
+			onClick={() => {
+				store.getState().togglePlay();
+			}}
+		>
+			{isPlayIntended ? <PauseIcon /> : <PlayIcon />}
+		</Button>
 	);
 }

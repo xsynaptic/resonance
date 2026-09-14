@@ -1,6 +1,8 @@
 ---
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
+import { audioOrigin } from '#lib/site.ts';
+
 interface Props {
 	items: Array<PlayerPayloadItem>;
 }
@@ -8,6 +10,12 @@ interface Props {
 const { items } = Astro.props;
 
 // An attribute, not a script body; the parser decodes entities here, so Astro's own escaping suffices
+// The preconnect rides beside the payload because the head renders before the section that knows it has one
 ---
 
-{items.length > 0 ? <div data-player-payload={JSON.stringify(items)} hidden /> : undefined}
+{items.length > 0 ? (
+	<>
+		{audioOrigin ? <link crossorigin="anonymous" href={audioOrigin} rel="preconnect" /> : undefined}
+		<div data-player-payload={JSON.stringify(items)} hidden />
+	</>
+) : undefined}

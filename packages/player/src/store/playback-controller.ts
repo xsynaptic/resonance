@@ -2,7 +2,7 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { AudioEngine, AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlaybackErrorStage, QueuedItem, StreamResolution } from '#types.ts';
+import type { PlaybackErrorStage, PlayerStatus, QueuedItem, StreamResolution } from '#types.ts';
 
 import { normalizationGain } from '#engine/playback-gain.ts';
 import { nextInOrder, toDurationSeconds } from '#queue/queue.ts';
@@ -16,6 +16,7 @@ export interface PlaybackController {
 	holdsTrack: (queueId: string | undefined) => boolean;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
 	outputDelay: () => number;
+	// Clears the intent, which stops a load short of playing wherever it has got to
 	pause: () => void;
 	play: () => void;
 	seek: (seconds: number) => void;
@@ -27,10 +28,7 @@ export interface PlaybackController {
 
 // One trip through resolve-then-load, so a late answer can be recognized as stale
 interface LoadAttempt {
-	autoplay: boolean;
-	index: number;
 	isRetry: boolean;
-	resumeAtSeconds: number;
 }
 
 interface LoadOptions {
@@ -55,18 +53,20 @@ export function createPlaybackController(
 	function ensureEngine(): AudioEngine {
 		if (engine) return engine;
 
-		engine = createEngine(toEngineCallbacks({ advance, onError: onEngineError, set }));
+		engine = createEngine(toEngineCallbacks({ advance, api, onError: onEngineError }));
 		engine.setVolume(get().volume);
 
 		return engine;
 	}
 
-	// A resolved URL can go stale while the page sits open, so one failure earns one re-resolve
+	// A resolved URL can go stale while the page sits open, so one failure earns one re-resolve from where playback stood
 	function onEngineError(stage: PlaybackErrorStage): void {
-		if (loading && !loading.isRetry) {
-			loadIndex(loading.index, loading.autoplay, {
+		const { currentIndex, currentTimeSeconds, isPlayIntended } = get();
+
+		if (currentIndex !== undefined && loading && !loading.isRetry) {
+			loadIndex(currentIndex, isPlayIntended, {
 				isRetry: true,
-				resumeAtSeconds: loading.resumeAtSeconds,
+				resumeAtSeconds: currentTimeSeconds,
 			});
 			return;
 		}
@@ -92,29 +92,30 @@ export function createPlaybackController(
 		const item = queue[index];
 		if (!item || urls === undefined) return;
 
-		set(loadingState(index, item, resumeAtSeconds));
+		set(loadingState({ index, item, resumeAtSeconds, shouldAutoplay }));
 
 		const activeEngine = ensureEngine();
+
+		// Silenced before the next track resolves, so nothing on screen disagrees with what is heard
+		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.reset();
 		if (shouldAutoplay) activeEngine.prepare();
 
-		const attempt: LoadAttempt = { autoplay: shouldAutoplay, index, isRetry, resumeAtSeconds };
+		const attempt: LoadAttempt = { isRetry };
 
 		loading = attempt;
 		loadedQueueId = item.queueId;
 
 		void streamIntoEngine({
 			engine: activeEngine,
+			gain: normalizationGain(item, isShuffling),
 			isCurrent: () => loading === attempt,
-			onCapped: () => {
-				set({ status: 'capped' });
+			onDeclined: (status) => {
+				set({ isPlayIntended: false, status });
 			},
 			onFail: () => {
 				fail('resolve');
 			},
-			onUnplayable: () => {
-				set({ status: 'unplayable' });
-			},
-			request: { gain: normalizationGain(item, isShuffling), resumeAtSeconds, shouldAutoplay },
+			readPosition: () => get().currentTimeSeconds,
 			stream: () => urls.stream(item.trackId),
 		});
 	}
@@ -141,10 +142,12 @@ export function createPlaybackController(
 		outputDelay: () => engine?.outputDelay() ?? 0,
 
 		pause: () => {
+			set(pausedState(get().status));
 			engine?.pause();
 		},
 
 		play: () => {
+			set({ isPlayIntended: true });
 			void ensureEngine().play();
 		},
 
@@ -164,6 +167,7 @@ export function createPlaybackController(
 			engine?.reset();
 			loading = undefined;
 			loadedQueueId = undefined;
+			set({ isPlayIntended: false });
 		},
 	};
 }
@@ -174,58 +178,81 @@ function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
 		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex]?.trackId;
 
 	return {
+		isPlayIntended: false,
 		playbackError: trackId === undefined ? undefined : { stage, trackId },
 		status: 'error',
 	} satisfies Partial<PlayerStore>;
 }
 
+function isSwitch(loadedQueueId: string | undefined, queueId: string): boolean {
+	return loadedQueueId !== undefined && loadedQueueId !== queueId;
+}
+
 // Positions the store on a track before anything has resolved; the duration is the queue's until metadata lands
-function loadingState(index: number, item: QueuedItem, resumeAtSeconds: number) {
+function loadingState({
+	index,
+	item,
+	resumeAtSeconds,
+	shouldAutoplay,
+}: {
+	index: number;
+	item: QueuedItem;
+	resumeAtSeconds: number;
+	shouldAutoplay: boolean;
+}) {
 	return {
 		currentIndex: index,
 		currentTimeSeconds: resumeAtSeconds,
 		durationSeconds: toDurationSeconds(item),
+		isPlayIntended: shouldAutoplay,
 		playbackError: undefined,
-		status: 'loading',
+		status: shouldAutoplay ? 'loading' : 'paused',
+	} satisfies Partial<PlayerStore>;
+}
+
+// A load stopped before the element holds anything reports no pause of its own
+function pausedState(status: PlayerStatus) {
+	return {
+		isPlayIntended: false,
+		status: status === 'loading' ? 'paused' : status,
 	} satisfies Partial<PlayerStore>;
 }
 
 // The asynchronous half of a load, which runs outside the gesture and may answer for an attempt that has since been dropped
 async function streamIntoEngine({
 	engine,
+	gain,
 	isCurrent,
-	onCapped,
+	onDeclined,
 	onFail,
-	onUnplayable,
-	request,
+	readPosition,
 	stream,
 }: {
 	engine: AudioEngine;
+	gain: number;
 	isCurrent: () => boolean;
-	onCapped: () => void;
+	// Neither is retried: a re-resolve answers the same, and so does the browser for the same format
+	onDeclined: (status: 'capped' | 'unplayable') => void;
 	onFail: () => void;
-	onUnplayable: () => void;
-	// Everything the engine needs but the URL, which is what this resolves
-	request: { gain: number; resumeAtSeconds: number; shouldAutoplay: boolean };
+	// Read once the stream resolves, since a seek while it resolved moved the store and not the element
+	readPosition: () => number;
 	stream: () => Promise<StreamResolution>;
 }): Promise<void> {
 	try {
 		const resolution = await stream();
 		if (!isCurrent()) return;
 
-		// Not retried: a re-resolve would answer the same
 		if (resolution.status === 'capped') {
-			onCapped();
+			onDeclined('capped');
 			return;
 		}
 
-		// Not retried either: the browser answers the same for the same format
 		if (resolution.type !== undefined && !engine.canPlay(resolution.type)) {
-			onUnplayable();
+			onDeclined('unplayable');
 			return;
 		}
 
-		await engine.load({ ...request, src: resolution.url });
+		await engine.load({ gain, resumeAtSeconds: readPosition(), src: resolution.url });
 	} catch {
 		if (!isCurrent()) return;
 
@@ -233,24 +260,36 @@ async function streamIntoEngine({
 	}
 }
 
-// Every report but `onError` is a straight state write; the retry policy is the caller's
+// Every report but `onError` is a state write; the retry policy is the caller's
 function toEngineCallbacks({
 	advance,
+	api,
 	onError,
-	set,
 }: {
 	advance: () => void;
+	api: StoreApi<PlayerStore>;
 	onError: (stage: PlaybackErrorStage) => void;
-	set: StoreApi<PlayerStore>['setState'];
 }): AudioEngineCallbacks {
+	const { getState: get, setState: set } = api;
+
 	return {
+		isPlayIntended: () => get().isPlayIntended,
 		onDuration: (durationSeconds) => {
 			set({ durationSeconds });
 		},
 		onEnded: advance,
 		onError,
 		onStatus: (status) => {
-			set({ status });
+			if (status === 'loading') {
+				set({ status });
+				return;
+			}
+
+			// A stop, a clear or a removal has already left nothing loaded
+			if (status === 'paused' && get().status === 'idle') return;
+
+			// The intent follows the element, so a pause from the system or a headset reads as one
+			set({ isPlayIntended: status === 'playing', status });
 		},
 		onTime: (currentTimeSeconds) => {
 			set({ currentTimeSeconds });

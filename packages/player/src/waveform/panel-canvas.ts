@@ -2,7 +2,8 @@ import type { QueueCuePoint } from '#types.ts';
 import type { WaveformArchive } from '#waveform/waveform-archive.ts';
 import type { ScrollTheme } from '#waveform/waveform-scroll.ts';
 
-import { createScrollPainter } from '#waveform/waveform-scroll.ts';
+import { createPanelPlaceholder } from '#waveform/panel-placeholder.ts';
+import { createScrollPainter, placeholderRange } from '#waveform/waveform-scroll.ts';
 
 // How much of the panel the arriving boundary must still cross before the parked label starts to go
 const cueFadeStart = 0.25;
@@ -12,7 +13,7 @@ const noSamples = new Int8Array(0);
 export interface PanelCanvas {
 	fadeFromPx(): number;
 	resize(): void;
-	scroll(windowStartSeconds: number, durationSeconds: number | undefined): void;
+	scroll(windowStartSeconds: number, durationSeconds: number | undefined, frameMs: number): void;
 	// The span the panel shows at its current width, which the playhead sits in the middle of
 	windowSeconds(): number;
 }
@@ -21,6 +22,7 @@ interface PanelCanvasOptions {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
 	cuePoints: ReadonlyArray<QueueCuePoint>;
+	isArchiveOpening: () => boolean;
 	pxPerSecond: number;
 	// The archive lands after the first frames, so the painter reads it rather than holding it
 	readArchive: () => undefined | WaveformArchive;
@@ -31,10 +33,12 @@ export function createPanelCanvas({
 	canvas,
 	context,
 	cuePoints,
+	isArchiveOpening,
 	pxPerSecond,
 	readArchive,
 }: PanelCanvasOptions): PanelCanvas {
 	const painter = createScrollPainter(context, readScrollTheme(canvas));
+	const placeholder = createPanelPlaceholder();
 
 	// Measured on resize; reading these per frame would force a layout every frame
 	let ratio = 1;
@@ -46,6 +50,7 @@ export function createPanelCanvas({
 
 	let paintedWindowStartSeconds = NaN;
 	let paintedChunks = -1;
+	let paintedPlaceholders = '';
 
 	return {
 		fadeFromPx: () => fadeFromPx,
@@ -66,21 +71,37 @@ export function createPanelCanvas({
 			paintedWindowStartSeconds = NaN;
 		},
 
-		scroll(windowStartSeconds, durationSeconds) {
+		scroll(windowStartSeconds, durationSeconds, frameMs) {
 			const loaded = readArchive();
 			const pairsPerSecond = loaded?.pairsPerSecond ?? 0;
-			const landedChunks = requestSpan(
-				loaded,
-				Math.floor(windowStartSeconds * pairsPerSecond),
-				Math.ceil((windowStartSeconds + windowSeconds) * pairsPerSecond),
-			);
+			const fromPair = Math.floor(windowStartSeconds * pairsPerSecond);
+			const toPair = Math.ceil((windowStartSeconds + windowSeconds) * pairsPerSecond);
+			const landedChunks = requestSpan(loaded, fromPair, toPair);
+			const geometry = { durationSeconds, pixelsPerSecond, width, windowStartSeconds };
+			const pending = placeholder.frame({
+				archive: loaded,
+				frameMs,
+				fromPair,
+				isArchiveOpening: isArchiveOpening(),
+				isDrawn: (span) => placeholderRange(geometry, span) !== undefined,
+				toPair,
+				windowSpan: {
+					fromSeconds: windowStartSeconds,
+					toSeconds: windowStartSeconds + windowSeconds,
+				},
+			});
 
-			// Sub-pixel geometry, so the only frame worth skipping is one where nothing moved and nothing landed
-			if (windowStartSeconds === paintedWindowStartSeconds && landedChunks === paintedChunks)
+			// Sub-pixel geometry, so the only frame worth skipping is one where nothing moved, landed or travelled
+			if (
+				windowStartSeconds === paintedWindowStartSeconds &&
+				landedChunks === paintedChunks &&
+				pending.repaintKey === paintedPlaceholders
+			)
 				return;
 
 			paintedWindowStartSeconds = windowStartSeconds;
 			paintedChunks = landedChunks;
+			paintedPlaceholders = pending.repaintKey;
 
 			painter.paint(
 				{
@@ -89,6 +110,8 @@ export function createPanelCanvas({
 					height,
 					pairsPerSecond,
 					pixelsPerSecond,
+					placeholderPhase: pending.phase,
+					placeholders: pending.spans,
 					samples: loaded?.samples ?? noSamples,
 					width,
 					windowStartSeconds,
@@ -109,6 +132,7 @@ function readScrollTheme(canvas: HTMLCanvasElement): ScrollTheme {
 		cueStyle: styles.getPropertyValue('--player-panel-cue'),
 		edgeStyle: styles.getPropertyValue('--player-panel-ends'),
 		gridStyle: styles.getPropertyValue('--player-panel-grid'),
+		placeholderStyle: styles.getPropertyValue('--player-panel-placeholder'),
 		waveCoreStyle: styles.getPropertyValue('--player-panel-wave'),
 		waveEdgeStyle: styles.getPropertyValue('--player-panel-wave-peak'),
 	};

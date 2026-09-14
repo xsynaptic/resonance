@@ -29,6 +29,11 @@ export function displayedItem(state: PlayerStore): QueuedItem | undefined {
 	return first === undefined ? undefined : state.queue[first];
 }
 
+// Loading while paused has nobody waiting on it
+export function isAwaitingPlayback(state: PlayerStore): boolean {
+	return state.isPlayIntended && state.status === 'loading';
+}
+
 export function isLoaded(state: PlayerStore): boolean {
 	return state.currentIndex !== undefined;
 }

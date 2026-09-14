@@ -13,17 +13,35 @@ const chunkPairs = 8192;
 // A mix is 1.8 MB of pairs; four covers any plausible working set
 const cacheLimit = 4;
 
+// `want` runs every frame, so without a wait an offline panel asks for a failed chunk sixty times a second
+const retryBaseMs = 2000;
+const retryCapMs = 30_000;
+
 const cache = new Map<string, Promise<undefined | WaveformArchive>>();
 
 export interface WaveformArchive {
 	// Rises as each chunk lands; a caller watches it to know a repaint is owed
 	landedChunks: () => number;
+	missing: (fromPair: number, toPair: number) => Array<MissingChunk>;
 	pairsPerSecond: number;
 	pairsTotal: number;
 	// Interleaved 8-bit min and max, silent where a chunk has not landed
 	samples: Int8Array;
-	// Requests whatever the span is missing; a chunk in flight or already landed is not asked for again
+	// Requests whatever the span is missing; a chunk in flight, landed or waiting out a failure is not asked for again
 	want: (fromPair: number, toPair: number) => void;
+}
+
+interface ChunkRequest {
+	askedMs: number;
+	failures: number;
+	retryAtMs: number;
+}
+
+interface MissingChunk {
+	askedMs: number | undefined;
+	chunk: number;
+	fromPair: number;
+	toPair: number;
 }
 
 // `undefined` on any failure leaves the panel on its grid
@@ -46,11 +64,21 @@ export function openArchive(
 	return request;
 }
 
-function createArchive(url: string, pairsPerSecond: number, pairsTotal: number): WaveformArchive {
+function createArchive({
+	openedMs,
+	pairsPerSecond,
+	pairsTotal,
+	url,
+}: {
+	openedMs: number;
+	pairsPerSecond: number;
+	pairsTotal: number;
+	url: string;
+}): WaveformArchive {
 	const samples = new Int8Array(pairsTotal * 2);
 	const chunkCount = Math.ceil(pairsTotal / chunkPairs);
 	const landed = new Set<number>();
-	const asked = new Set<number>();
+	const requests = new Map<number, ChunkRequest>();
 
 	function lastChunk(toPair: number): number {
 		return Math.min(chunkCount - 1, Math.floor(Math.max(0, toPair) / chunkPairs));
@@ -60,7 +88,7 @@ function createArchive(url: string, pairsPerSecond: number, pairsTotal: number):
 		return Math.max(0, Math.floor(Math.max(0, fromPair) / chunkPairs));
 	}
 
-	async function load(chunk: number): Promise<void> {
+	async function didFetchChunk(chunk: number): Promise<boolean> {
 		const start = headerBytes + chunk * chunkPairs * 2;
 		const end = Math.min(headerBytes + pairsTotal * 2, start + chunkPairs * 2) - 1;
 
@@ -69,30 +97,64 @@ function createArchive(url: string, pairsPerSecond: number, pairsTotal: number):
 				headers: { Range: `bytes=${String(start)}-${String(end)}` },
 			});
 
-			// A 200 means the range was ignored and the whole file came back, which would land at the wrong offset
-			if (response.status !== 206) return;
+			// A 200 means the range was ignored and the whole file is on its way, which would land at the wrong offset
+			if (response.status !== 206) {
+				await response.body?.cancel();
+				return false;
+			}
 
 			samples.set(new Int8Array(await response.arrayBuffer()), chunk * chunkPairs * 2);
-			landed.add(chunk);
+
+			return true;
 		} catch {
-			return;
-		} finally {
-			// One transient failure would otherwise flatten that span of the mix for good
-			if (!landed.has(chunk)) asked.delete(chunk);
+			return false;
 		}
+	}
+
+	async function load(chunk: number, request: ChunkRequest): Promise<void> {
+		if (await didFetchChunk(chunk)) {
+			landed.add(chunk);
+			return;
+		}
+
+		request.failures += 1;
+		request.retryAtMs =
+			performance.now() + Math.min(retryCapMs, retryBaseMs * 2 ** (request.failures - 1));
 	}
 
 	return {
 		landedChunks: () => landed.size,
+		missing: (fromPair, toPair) => {
+			const chunks: Array<MissingChunk> = [];
+
+			for (let chunk = firstChunk(fromPair); chunk <= lastChunk(toPair); chunk += 1) {
+				if (landed.has(chunk)) continue;
+
+				chunks.push({
+					askedMs: requests.get(chunk)?.askedMs,
+					chunk,
+					fromPair: chunk * chunkPairs,
+					toPair: Math.min(pairsTotal, (chunk + 1) * chunkPairs),
+				});
+			}
+
+			return chunks;
+		},
 		pairsPerSecond,
 		pairsTotal,
 		samples,
 		want: (fromPair, toPair) => {
-			for (let chunk = firstChunk(fromPair); chunk <= lastChunk(toPair); chunk += 1) {
-				if (asked.has(chunk)) continue;
+			const nowMs = performance.now();
+			// Chunks in view as the header lands have already waited as long as the header did
+			const askedMs = requests.size === 0 ? openedMs : nowMs;
 
-				asked.add(chunk);
-				void load(chunk);
+			for (let chunk = firstChunk(fromPair); chunk <= lastChunk(toPair); chunk += 1) {
+				const request = requests.get(chunk) ?? { askedMs, failures: 0, retryAtMs: 0 };
+				if (nowMs < request.retryAtMs) continue;
+
+				request.retryAtMs = Infinity;
+				requests.set(chunk, request);
+				void load(chunk, request);
 			}
 		},
 	};
@@ -102,6 +164,8 @@ async function fetchArchive(
 	resolveArchive: NonNullable<PlayerUrls['archive']>,
 	trackId: string,
 ): Promise<undefined | WaveformArchive> {
+	const openedMs = performance.now();
+
 	try {
 		const url = await resolveArchive(trackId);
 		if (url === undefined) return undefined;
@@ -113,14 +177,22 @@ async function fetchArchive(
 		// A 200 means the range was ignored, so this is the whole archive rather than its header
 		if (response.status !== 206) return undefined;
 
-		return readHeader(url, await response.arrayBuffer());
+		return readHeader({ buffer: await response.arrayBuffer(), openedMs, url });
 	} catch {
 		return undefined;
 	}
 }
 
 // Version 2 only appears with `--split-channels` and would silently halve every offset
-function readHeader(url: string, buffer: ArrayBuffer): undefined | WaveformArchive {
+function readHeader({
+	buffer,
+	openedMs,
+	url,
+}: {
+	buffer: ArrayBuffer;
+	openedMs: number;
+	url: string;
+}): undefined | WaveformArchive {
 	if (buffer.byteLength < headerBytes) return undefined;
 
 	const header = new DataView(buffer);
@@ -132,7 +204,7 @@ function readHeader(url: string, buffer: ArrayBuffer): undefined | WaveformArchi
 	const pairsTotal = header.getUint32(16, true);
 	if (sampleRate <= 0 || samplesPerPixel <= 0 || pairsTotal <= 0) return undefined;
 
-	return createArchive(url, sampleRate / samplesPerPixel, pairsTotal);
+	return createArchive({ openedMs, pairsPerSecond: sampleRate / samplesPerPixel, pairsTotal, url });
 }
 
 function remember(trackId: string, archive: Promise<undefined | WaveformArchive>): void {

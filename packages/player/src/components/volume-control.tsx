@@ -1,12 +1,13 @@
-import type { CSSProperties, KeyboardEvent } from 'react';
+import type { CSSProperties } from 'react';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 
 import type { PlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
 import { VolumeIcon, VolumeLowIcon, VolumeMutedIcon } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
+import { useDismiss } from '#lib/use-dismiss.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 const hoverQuery = '(hover: hover)';
@@ -117,30 +118,15 @@ function useDismissablePanel() {
 	const controlRef = useRef<HTMLDivElement>(null);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 
-	// Only the touch branch opens the panel, so this listener is mounted only where a tap can leave it open
-	useEffect(() => {
-		if (!isOpen) return;
-
-		const onPointerDown = (event: PointerEvent): void => {
-			if (event.target instanceof Node && controlRef.current?.contains(event.target)) return;
-
+	// Only the touch branch opens the panel, so the outside press listener mounts only where a tap can leave it open
+	const onKeyDown = useDismiss({
+		containerRef: controlRef,
+		isOpen,
+		onDismiss: () => {
 			setIsOpen(false);
-		};
-
-		// Nothing here calls `preventDefault`, so the browser need not wait on it to start a scroll
-		document.addEventListener('pointerdown', onPointerDown, { passive: true });
-
-		return () => {
-			document.removeEventListener('pointerdown', onPointerDown);
-		};
-	}, [isOpen]);
-
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-		if (event.key !== 'Escape') return;
-
-		setIsOpen(false);
-		triggerRef.current?.focus();
-	}
+		},
+		triggerRef,
+	});
 
 	return { controlRef, isOpen, onKeyDown, setIsOpen, triggerRef };
 }

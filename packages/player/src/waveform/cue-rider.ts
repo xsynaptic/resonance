@@ -5,8 +5,8 @@ const cueRestPx = 16;
 const cueGapPx = 8;
 
 export interface CueRider {
-	// `fadeFromPx` follows the panel's width, so it arrives per frame rather than at construction
-	travel(windowStartSeconds: number, fadeFromPx: number): void;
+	// `fadeFromPx` and `insetPx` follow the panel's box, so they arrive per frame rather than at construction
+	travel(windowStartSeconds: number, fadeFromPx: number, insetPx: number): void;
 }
 
 // The last written values ride along, so a frame that moved nothing writes nothing to the DOM
@@ -94,24 +94,25 @@ export function createCueRider({
 	}
 
 	return {
-		travel(windowStartSeconds, fadeFromPx) {
+		travel(windowStartSeconds, fadeFromPx, insetPx) {
+			const restPx = cueRestPx + insetPx;
 			const parkedIndex = cueIndexAt(
 				cuePoints,
-				windowStartSeconds + (cueRestPx - cueGapPx) / pxPerSecond,
+				windowStartSeconds + (restPx - cueGapPx) / pxPerSecond,
 			);
 			const arrivingX = boundaryX(windowStartSeconds, parkedIndex + 1);
 
 			place(parked, {
 				index: parkedIndex,
-				opacity: fadeOut(arrivingX, fadeFromPx),
+				opacity: fadeOut({ arrivingX, fadeFromPx, restPx }),
 				windowStartSeconds,
-				x: Math.max(cueRestPx, boundaryX(windowStartSeconds, parkedIndex)),
+				x: Math.max(restPx, boundaryX(windowStartSeconds, parkedIndex)),
 			});
 			place(arriving, {
 				index: parkedIndex + 1,
 				opacity: 1,
 				windowStartSeconds,
-				x: Math.max(cueRestPx, arrivingX),
+				x: Math.max(restPx, arrivingX),
 			});
 		},
 	};
@@ -138,9 +139,17 @@ function cueIndexAt(cuePoints: ReadonlyArray<QueueCuePoint>, currentTimeSeconds:
 	return found;
 }
 
-function fadeOut(arrivingX: number, fadeFromPx: number): number {
+function fadeOut({
+	arrivingX,
+	fadeFromPx,
+	restPx,
+}: {
+	arrivingX: number;
+	fadeFromPx: number;
+	restPx: number;
+}): number {
 	if (arrivingX >= fadeFromPx) return 1;
-	if (arrivingX <= cueRestPx) return 0;
+	if (arrivingX <= restPx) return 0;
 
-	return (arrivingX - cueRestPx) / (fadeFromPx - cueRestPx);
+	return (arrivingX - restPx) / (fadeFromPx - restPx);
 }

@@ -1,6 +1,6 @@
 .skip-link {
-	inset-block-start: 0;
-	inset-inline-start: 0;
+	inset-block-start: env(safe-area-inset-top);
+	inset-inline-start: env(safe-area-inset-left);
 	translate: 0 -100vh;
 	transition: translate 200ms ease-out;
 }

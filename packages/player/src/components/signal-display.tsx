@@ -6,7 +6,7 @@ import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 // An oscilloscope trace of the analyser's time-domain data; the loop runs only while playing and visible
 export function SignalDisplay({ className }: { className?: string | undefined }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const isPlaying = usePlayer((state) => state.status === 'playing');
+	const isPlaying = usePlayer((state) => state.status === 'playing' && !state.isOverlayOpen);
 	const store = usePlayerStoreApi();
 
 	useEffect(() => {

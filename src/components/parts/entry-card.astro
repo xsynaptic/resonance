@@ -49,12 +49,21 @@ const cardWork = work?.credit ? { credit: { name: work.credit.name }, title: wor
 	>
 		{cardWork ? <WorkTitleText work={cardWork} /> : title}
 	</a>
-	{kind ? (
-		<span class="mt-1 block text-sm font-bold text-highlight-500">
-			<LinkedNameText anchorColor="highlight" name={kind.name} url={kind.url} />
+	{kind || subtitle ? (
+		<span class="mt-1 block text-sm text-ink-600">
+			{kind ? (
+				<span class="font-bold text-highlight-500">
+					<LinkedNameText anchorColor="highlight" name={kind.name} url={kind.url} />
+				</span>
+			) : undefined}
+			{kind && subtitle ? (
+				<span aria-hidden="true" class="mx-1">
+					·
+				</span>
+			) : undefined}
+			{subtitle}
 		</span>
 	) : undefined}
-	{subtitle ? <span class="mt-1 block text-sm text-ink-600">{subtitle}</span> : undefined}
 	{date ? (
 		<time class="mt-1 block text-xs text-ink-700" datetime={date.toISOString()}>
 			{formatDate(date)}

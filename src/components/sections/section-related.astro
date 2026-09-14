@@ -6,19 +6,18 @@ import EntryCardItem from '#components/parts/entry-card-item.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
-	collection: 'mixes' | 'reviews';
 	items: Array<ContentCatalogItem>;
 }
 
-const { collection, items } = Astro.props;
+const { items } = Astro.props;
 ---
 
 {items.length > 0 ? (
 	<section class="mt-16" data-nosnippet data-pagefind-ignore>
 		<h2 class="heading-section mb-4">{t('section.related.heading')}</h2>
-		<Carousel label={t(`section.related.carouselLabel.${collection}`)}>
+		<Carousel label={t('section.related.carouselLabel')}>
 			{items.map((item) => (
-				<EntryCardItem item={item} />
+				<EntryCardItem item={item} meta={['kind', 'subtitle']} />
 			))}
 		</Carousel>
 	</section>

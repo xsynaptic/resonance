@@ -113,7 +113,7 @@ async function buildTitles(collection: TitledCollectionKey): Promise<Map<string,
 }
 
 // Cached slugified-title->id per collection, so a free-text credit can find the term it names
-const getSlugs = memoizeByKey(buildSlugs);
+export const getSlugs = memoizeByKey(buildSlugs);
 
 // Cached id->title per collection, so credit resolution is one build-time scan per collection
 const getTitles = memoizeByKey(buildTitles);

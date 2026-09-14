@@ -1,6 +1,7 @@
 // Stands in for `astro:content`, which has no module outside the Astro build; wired in by the vitest alias
 
 export interface StubEntry {
+	body?: string;
 	collection: string;
 	data: Record<string, unknown>;
 	id: string;
@@ -33,9 +34,7 @@ export function render(entry: StubEntry): Promise<{ Content: string }> {
 	return Promise.resolve({ Content: `body:${entry.id}` });
 }
 
-export function setCollections(
-	next: Record<string, Array<{ data: Record<string, unknown>; id: string }>>,
-): void {
+export function setCollections(next: Record<string, Array<Omit<StubEntry, 'collection'>>>): void {
 	collections.clear();
 
 	for (const [collection, entries] of Object.entries(next)) {

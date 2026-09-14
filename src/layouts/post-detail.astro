@@ -7,8 +7,10 @@ import EntryComments from '#components/comments/entry-comments.astro';
 import EntryTermLinks from '#components/parts/entry-term-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
+import SectionRelated from '#components/sections/section-related.astro';
 import SectionSeries from '#components/sections/section-series.astro';
 import ProseDetail from '#layouts/prose-detail.astro';
+import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
 import { getPostSchemas } from '#lib/collections/posts/posts-schema.ts';
 import { resolveEntryTerms } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -26,6 +28,7 @@ const { labelTerms, styleTerms, styleTermsRanked, themeTerms } = await resolveEn
 	entry.data,
 );
 const description = await getEntryDescription(entry);
+const relatedItems = await getRelatedItems(entry.id);
 
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
@@ -53,4 +56,5 @@ const schemas = getPostSchemas(entry, {
 	</SectionCoda>
 	<SectionSeries id={entry.id} />
 	<EntryComments entry={entry} />
+	<SectionRelated items={relatedItems} />
 </ProseDetail>

@@ -122,6 +122,7 @@ export async function getInventoryFixtures() {
 	const catalog = await getCatalog();
 
 	const mixItems = catalog.byCollection('mixes');
+	const postItems = catalog.byCollection('posts');
 	const reviewItems = catalog.byCollection('reviews');
 
 	const mix = await sampleMix();
@@ -150,8 +151,8 @@ export async function getInventoryFixtures() {
 		playerItems: [...(mix?.queueItem ? [mix.queueItem] : []), itemWithoutPeaks],
 		playerLabels: getPlayerLabels(),
 		regionTree: await getDirectoryTerms('regions'),
+		relatedItems: [...mixItems.slice(0, 3), ...reviewItems.slice(0, 3), ...postItems.slice(0, 2)],
 		review: await sampleReview(),
-		reviewItems,
 		selections: await sampleSelections(9),
 		soundcloudUrl: await sampleMixField('soundcloudLink'),
 		styles,

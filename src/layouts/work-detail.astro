@@ -30,7 +30,7 @@ const { description, entry, kind, labels, releaseYear, schemas, styles, work } =
 
 const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
-const relatedItems = await getRelatedItems(entry);
+const relatedItems = await getRelatedItems(entry.id);
 ---
 
 <MainSite
@@ -63,6 +63,6 @@ const relatedItems = await getRelatedItems(entry);
 			</Fragment>
 		</FeaturedGrid>
 		<EntryComments entry={entry} />
-		<SectionRelated collection={entry.collection} items={relatedItems} />
+		<SectionRelated items={relatedItems} />
 	</article>
 </MainSite>

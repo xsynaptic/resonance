@@ -112,7 +112,7 @@ const schemas =
 		</div>
 	) : undefined}
 	{page.data.length > 0 ? (
-		<EntryCardGroups groupByYear={groupByYear} items={page.data} meta="kind" />
+		<EntryCardGroups groupByYear={groupByYear} items={page.data} meta={['kind']} />
 	) : (
 		<p class="text-ink-600">{t('detail.empty')}</p>
 	)}

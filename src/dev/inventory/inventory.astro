@@ -69,8 +69,8 @@ const {
 	playerItems,
 	playerLabels,
 	regionTree,
+	relatedItems,
 	review,
-	reviewItems,
 	selections,
 	soundcloudUrl,
 	styles,
@@ -494,7 +494,7 @@ const inlineSelection: SelectionValue = {
 	>
 		<Specimen
 			name="EntryCard"
-			note="Always square, so a grid mixing collections lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title, and a Term or Archive page names the collection in place of the subtitle."
+			note="Always square, so a grid mixing collections lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title, and a Term or Archive page names the collection in place of the subtitle, and a Related carousel names it before the subtitle."
 			source="src/components/parts/entry-card.astro"
 		>
 			{card ? (
@@ -517,6 +517,16 @@ const inlineSelection: SelectionValue = {
 							href={card.url}
 							image={card.image}
 							kind={collectionKinds[card.collection]}
+							title={card.title}
+						/>
+					</li>
+					<li>
+						<EntryCard
+							date={card.date}
+							href={card.url}
+							image={card.image}
+							kind={collectionKinds[card.collection]}
+							subtitle={card.subtitle}
 							title={card.title}
 						/>
 					</li>
@@ -575,7 +585,7 @@ const inlineSelection: SelectionValue = {
 			note="Wraps Carousel, a scroll-snap track that works unenhanced; the custom element adds the chevrons."
 			source="src/components/sections/section-related.astro"
 		>
-			<SectionRelated collection="reviews" items={reviewItems.slice(0, 8)} />
+			<SectionRelated items={relatedItems} />
 		</Specimen>
 	</Section>
 	<Section
@@ -1024,7 +1034,7 @@ const inlineSelection: SelectionValue = {
 		>
 			<div class="rounded-sm border border-dashed border-ink-700 p-4">
 				<TermLinks heading="Styles" terms={[]} />
-				<SectionRelated collection="reviews" items={[]} />
+				<SectionRelated items={[]} />
 				<Selections items={[]} />
 				<TrackList tracks={[]} />
 				<AudioLinks />

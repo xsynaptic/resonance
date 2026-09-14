@@ -40,6 +40,6 @@ const schemas =
 	{...(metaDescription ? { description: metaDescription } : {})}
 >
 	<ListPageTitle title={title} {...(description ? { description } : {})} />
-	<EntryCardGroups groupByYear={groupByYear} items={page.data} meta="subtitle" />
+	<EntryCardGroups groupByYear={groupByYear} items={page.data} meta={['subtitle']} />
 	<PaginationSelect class="mt-8" pagination={getPagination(page)} />
 </MainSite>

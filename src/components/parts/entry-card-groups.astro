@@ -8,7 +8,7 @@ import { getYearGroups } from '#lib/utils/year-groups.ts';
 interface Props {
 	groupByYear: boolean;
 	items: Array<ContentCatalogItem>;
-	meta: 'kind' | 'subtitle';
+	meta: Array<'kind' | 'subtitle'>;
 }
 
 const { groupByYear, items, meta } = Astro.props;

@@ -6,11 +6,11 @@ import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 
 interface Props {
 	item: ContentCatalogItem;
-	meta?: 'kind' | 'subtitle' | undefined;
+	meta?: Array<'kind' | 'subtitle'> | undefined;
 	priority?: boolean | undefined;
 }
 
-const { item, meta = 'subtitle', priority = false } = Astro.props;
+const { item, meta = ['subtitle'], priority = false } = Astro.props;
 ---
 
 <li>
@@ -18,9 +18,9 @@ const { item, meta = 'subtitle', priority = false } = Astro.props;
 		date={item.date}
 		href={item.url}
 		image={item.image}
-		kind={meta === 'kind' ? collectionKinds[item.collection] : undefined}
+		kind={meta.includes('kind') ? collectionKinds[item.collection] : undefined}
 		priority={priority}
-		subtitle={meta === 'subtitle' ? item.subtitle : undefined}
+		subtitle={meta.includes('subtitle') ? item.subtitle : undefined}
 		title={item.title}
 		work={item.work}
 	/>

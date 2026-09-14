@@ -15,7 +15,7 @@ import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getMixSchemas } from '#lib/collections/mixes/mixes-schema.ts';
-import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
+import { resolveEntryTerms } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
 import { getSoundcloudPlayCount } from '#lib/platform-stats/soundcloud-stats.ts';
@@ -23,7 +23,6 @@ import { isPlayerEnabled, site } from '#lib/site.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
-import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 
@@ -36,10 +35,9 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 
 const work = await getWorkTitle(entry);
-const styleTerms = await resolveTermLinks('styles', entry.data.styles);
-const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
-const themeTerms = await resolveTermLinks('themes', entry.data.themes);
-const labelTerms = await resolveCredits('labels', entry.data.labels);
+const { labelTerms, styleTerms, styleTermsRanked, themeTerms } = await resolveEntryTerms(
+	entry.data,
+);
 const downloads = await getDownloadCount(entry.data);
 const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudLink);
 const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudLink);

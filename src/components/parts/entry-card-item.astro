@@ -2,13 +2,15 @@
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import EntryCard from '#components/parts/entry-card.astro';
+import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 
 interface Props {
 	item: ContentCatalogItem;
+	meta?: 'kind' | 'subtitle' | undefined;
 	priority?: boolean | undefined;
 }
 
-const { item, priority = false } = Astro.props;
+const { item, meta = 'subtitle', priority = false } = Astro.props;
 ---
 
 <li>
@@ -16,8 +18,9 @@ const { item, priority = false } = Astro.props;
 		date={item.date}
 		href={item.url}
 		image={item.image}
+		kind={meta === 'kind' ? collectionKinds[item.collection] : undefined}
 		priority={priority}
-		subtitle={item.subtitle}
+		subtitle={meta === 'subtitle' ? item.subtitle : undefined}
 		title={item.title}
 		work={item.work}
 	/>

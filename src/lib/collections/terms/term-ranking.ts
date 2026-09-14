@@ -1,4 +1,4 @@
-import type { ReferenceDataEntry } from 'astro:content';
+import type { CollectionEntry, ReferenceDataEntry } from 'astro:content';
 
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { getEntries } from 'astro:content';
@@ -6,9 +6,26 @@ import { getEntries } from 'astro:content';
 import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { getStylesIndex } from '#lib/collections/terms/term-index.ts';
+import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
+
+export async function resolveEntryTerms(
+	data: Pick<
+		CollectionEntry<'mixes' | 'posts' | 'reviews'>['data'],
+		'labels' | 'styles' | 'themes'
+	>,
+) {
+	const [labelTerms, styleTerms, styleTermsRanked, themeTerms] = await Promise.all([
+		resolveCredits('labels', data.labels),
+		resolveTermLinks('styles', data.styles),
+		resolveStylesRanked(data.styles),
+		resolveTermLinks('themes', data.themes),
+	]);
+
+	return { labelTerms, styleTerms, styleTermsRanked, themeTerms };
+}
 
 // The header leads with frontmatter order; the coda leads with whichever styles carry the most content
-export async function resolveStylesRanked(
+async function resolveStylesRanked(
 	references: Array<ReferenceDataEntry<'styles'>> | undefined,
 ): Promise<Array<LinkedName>> {
 	if (!references || references.length === 0) return [];

@@ -4,8 +4,7 @@ import type { Page } from 'astro';
 import type { ContentCatalogItem, ContentCollectionKey } from '#lib/catalog/catalog-types.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import EntryCardItem from '#components/parts/entry-card-item.astro';
-import ListGroupHeading from '#components/parts/list-group-heading.astro';
+import EntryCardGroups from '#components/parts/entry-card-groups.astro';
 import ListPageTitle from '#components/parts/list-page-title.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import { toExcerpt } from '#lib/utils/markdown.ts';
@@ -13,7 +12,6 @@ import { getPagination } from '#lib/utils/pagination.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
-import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
 	collection: ContentCollectionKey;
@@ -32,10 +30,6 @@ const schemas =
 	page.currentPage === 1
 		? buildCollectionGraph({ description: metaDescription, title, url: pageUrl })
 		: undefined;
-
-const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = groupByYear
-	? getYearGroups(page.data)
-	: [{ items: page.data }];
 ---
 
 <MainSite
@@ -46,15 +40,6 @@ const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = group
 	{...(metaDescription ? { description: metaDescription } : {})}
 >
 	<ListPageTitle title={title} {...(description ? { description } : {})} />
-	{groups.map((group, groupIndex) => (
-		<section class="mb-8">
-			{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
-			<ul class="entry-grid">
-				{group.items.map((item, itemIndex) => (
-					<EntryCardItem item={item} priority={groupIndex === 0 && itemIndex === 0} />
-				))}
-			</ul>
-		</section>
-	))}
+	<EntryCardGroups groupByYear={groupByYear} items={page.data} meta="subtitle" />
 	<PaginationSelect class="mt-8" pagination={getPagination(page)} />
 </MainSite>

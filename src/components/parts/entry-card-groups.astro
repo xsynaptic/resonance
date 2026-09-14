@@ -1,0 +1,30 @@
+---
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+
+import EntryCardItem from '#components/parts/entry-card-item.astro';
+import ListGroupHeading from '#components/parts/list-group-heading.astro';
+import { getYearGroups } from '#lib/utils/year-groups.ts';
+
+interface Props {
+	groupByYear: boolean;
+	items: Array<ContentCatalogItem>;
+	meta: 'kind' | 'subtitle';
+}
+
+const { groupByYear, items, meta } = Astro.props;
+
+const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = groupByYear
+	? getYearGroups(items)
+	: [{ items }];
+---
+
+{groups.map((group, groupIndex) => (
+	<section class="mb-8">
+		{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
+		<ul class="entry-grid">
+			{group.items.map((item, itemIndex) => (
+				<EntryCardItem item={item} meta={meta} priority={groupIndex === 0 && itemIndex === 0} />
+			))}
+		</ul>
+	</section>
+))}

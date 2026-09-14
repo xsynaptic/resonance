@@ -9,14 +9,12 @@ import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import EntryCard from '#components/parts/entry-card.astro';
-import ListGroupHeading from '#components/parts/list-group-heading.astro';
+import EntryCardGroups from '#components/parts/entry-card-groups.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
-import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { getTermRelations } from '#lib/collections/terms/term-relations.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -27,7 +25,6 @@ import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
-import { getYearGroups } from '#lib/utils/year-groups.ts';
 
 interface Props {
 	groupByYear?: boolean | undefined;
@@ -56,10 +53,6 @@ const relationGroups =
 // A term's description is its body, so the page head derives from it too
 const body = term.body?.trim() ?? '';
 const description = await getEntryDescription(term);
-
-const groups: Array<{ items: Array<ContentCatalogItem>; year?: number }> = groupByYear
-	? getYearGroups(page.data)
-	: [{ items: page.data }];
 
 const breadcrumbTrail: Array<LinkedName> = [
 	{
@@ -119,26 +112,7 @@ const schemas =
 		</div>
 	) : undefined}
 	{page.data.length > 0 ? (
-		groups.map((group, groupIndex) => (
-			<section class="mb-8">
-				{group.year === undefined ? undefined : <ListGroupHeading label={String(group.year)} />}
-				<ul class="entry-grid">
-					{group.items.map((entry, entryIndex) => (
-						<li>
-							<EntryCard
-								date={entry.date}
-								href={entry.url}
-								image={entry.image}
-								kind={collectionKinds[entry.collection]}
-								priority={groupIndex === 0 && entryIndex === 0}
-								title={entry.title}
-								work={entry.work}
-							/>
-						</li>
-					))}
-				</ul>
-			</section>
-		))
+		<EntryCardGroups groupByYear={groupByYear} items={page.data} meta="kind" />
 	) : (
 		<p class="text-ink-600">{t('detail.empty')}</p>
 	)}

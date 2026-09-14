@@ -2,24 +2,18 @@
 import type { CollectionEntry } from 'astro:content';
 
 import { getCollectionPath } from '@xsynaptic/shared/routing';
-import { render } from 'astro:content';
 
 import EntryComments from '#components/comments/entry-comments.astro';
-import MainSite from '#components/main/main-site.astro';
 import TermLinks from '#components/parts/term-links.astro';
-import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
-import SectionDetailHeader from '#components/sections/section-detail-header.astro';
-import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import SectionSeries from '#components/sections/section-series.astro';
+import ProseDetail from '#layouts/prose-detail.astro';
 import { getPostSchemas } from '#lib/collections/posts/posts-schema.ts';
-import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
+import { resolveEntryTerms } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
-import { resolveCredits, resolveTermLinks } from '#lib/utils/terms.ts';
 
 interface Props {
 	entry: CollectionEntry<'posts'>;
@@ -27,16 +21,11 @@ interface Props {
 
 const { entry } = Astro.props;
 
-const { Content } = await render(entry);
-
-const styleTerms = await resolveTermLinks('styles', entry.data.styles);
-const styleTermsRanked = await resolveStylesRanked(entry.data.styles);
-const themeTerms = await resolveTermLinks('themes', entry.data.themes);
-const labelTerms = await resolveCredits('labels', entry.data.labels);
+const { labelTerms, styleTerms, styleTermsRanked, themeTerms } = await resolveEntryTerms(
+	entry.data,
+);
 const description = await getEntryDescription(entry);
 
-const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
-const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
 const kind = { name: t('collection.posts.title'), url: getCollectionPath('posts') };
@@ -49,45 +38,19 @@ const schemas = getPostSchemas(entry, {
 });
 ---
 
-<MainSite
-	openGraphId={openGraphId}
-	openGraphType="article"
-	publishedTime={entry.data.dateCreated}
+<ProseDetail
+	date={entry.data.dateCreated}
+	description={description}
+	entry={entry}
+	kind={kind}
 	schemas={schemas}
-	title={entry.data.title}
-	{...(description ? { description } : {})}
+	styles={styleTerms}
 >
-	{imageHeroId ? (
-		<SectionDetailHero
-			date={entry.data.dateCreated}
-			kind={kind}
-			path={imageHeroId}
-			slot="hero"
-			styles={styleTerms}
-			title={entry.data.title}
-		/>
-	) : undefined}
-	<article data-pagefind-body>
-		<SearchThumbnail path={imageFeaturedId} />
-		{imageHeroId ? undefined : (
-			<div class="mb-4 content-measure">
-				<SectionDetailHeader
-					date={entry.data.dateCreated}
-					kind={kind}
-					styles={styleTerms}
-					title={entry.data.title}
-				/>
-			</div>
-		)}
-		<div class="prose-x content-measure">
-			<Content />
-		</div>
-		<SectionCoda class="mt-10 content-measure">
-			<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-			<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
-			<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
-		</SectionCoda>
-		<SectionSeries id={entry.id} />
-		<EntryComments entry={entry} />
-	</article>
-</MainSite>
+	<SectionCoda class="mt-10 content-measure">
+		<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
+		<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+		<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
+	</SectionCoda>
+	<SectionSeries id={entry.id} />
+	<EntryComments entry={entry} />
+</ProseDetail>

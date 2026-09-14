@@ -19,11 +19,18 @@
 	"ignoreDependencyOverrides": [
 		{ "package": "fallow-type-aware", "source": "pnpm-workspace.yaml" },
 	],
-	"rules": { "dev-dependencies-in-production": "off" },
+	"rules": {
+		"dev-dependencies-in-production": "off",
+		"css-token-drift": "error",
+		"css-duplicate-block": "error",
+		"css-broken-reference": "error",
+	},
 	"health": {
 		// Zero disables CRAP, which fallow otherwise estimates without coverage data
 		"maxCrap": 0,
 		"maxCognitive": 12,
+		// Inventory specimens take one-off sizes with no scale step
+		"ignore": ["src/dev/**"],
 		"thresholdOverrides": [
 			{
 				"files": ["src/components/parts/pagination-select.astro"],

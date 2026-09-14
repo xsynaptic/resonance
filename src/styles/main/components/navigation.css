@@ -205,6 +205,7 @@ site-navigation {
 	height: 10px;
 }
 
+/* fallow-ignore-next-line css-duplicate-block -- the hover twin has to stay under @media (hover: hover) */
 .nav-item[data-open] > .nav-sub-d1,
 .nav-sub-item[data-open] > .nav-sub-d2 {
 	visibility: visible;
@@ -220,7 +221,7 @@ site-navigation {
 }
 
 /* Flipping in place reads as a hinge; the 1px lift keeps the glyph optically centred */
-.nav-item[data-open] > .nav-trigger > .nav-toggle > .nav-icon {
+.nav-item[data-open] > .nav-trigger .nav-icon {
 	transform: translateY(-1px) scaleY(-1);
 }
 
@@ -239,7 +240,7 @@ site-navigation {
 		border-bottom-left-radius: 0;
 	}
 
-	.nav-item[data-has-submenu]:hover > .nav-trigger > .nav-toggle > .nav-icon {
+	.nav-item:hover > .nav-trigger .nav-icon {
 		transform: translateY(-1px) scaleY(-1);
 	}
 }

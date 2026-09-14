@@ -58,7 +58,7 @@ const signalWeights = {
 
 const ancestorShare = 0.4;
 const referenceWeight = 20;
-const sameCollectionMultiplier = 1.5;
+const sameCollectionMultiplier = 2;
 
 // One shared common Era or Region scores under this, so "Related" never rests on it alone
 const relatedThreshold = 3;

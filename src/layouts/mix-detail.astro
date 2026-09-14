@@ -7,7 +7,7 @@ import { render } from 'astro:content';
 import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
-import TermLinks from '#components/parts/term-links.astro';
+import EntryTermLinks from '#components/parts/entry-term-links.astro';
 import PlayerControls from '#components/player/player-controls.astro';
 import PlayerPayload from '#components/player/player-payload.astro';
 import WorkDetail from '#layouts/work-detail.astro';
@@ -90,7 +90,6 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 			mixcloudPlays={mixcloudPlays}
 			soundcloudPlays={soundcloudPlays}
 		/>
-		<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-		<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+		<EntryTermLinks styles={styleTermsRanked} themes={themeTerms} />
 	</Fragment>
 </WorkDetail>

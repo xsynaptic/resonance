@@ -6,6 +6,11 @@ export interface EntryReference {
 	id: string;
 }
 
+export interface LocatedIssue {
+	detail: string;
+	location: string;
+}
+
 export interface ReferenceIssue extends EntryReference {
 	location: string;
 }
@@ -45,6 +50,16 @@ export function reportValidationResult({
 	for (const note of notes) {
 		console.log(chalk.dim(note));
 	}
+}
+
+export function toLocatedValidationResult(
+	issues: Array<LocatedIssue>,
+	summaries: { fail: string; pass: string },
+) {
+	return toValidationResult(
+		issues.map(({ detail, location }) => ({ message: `${location}: ${detail}` })),
+		summaries,
+	);
 }
 
 export function toReferenceValidationResult(

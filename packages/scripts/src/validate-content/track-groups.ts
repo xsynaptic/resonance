@@ -1,11 +1,8 @@
 import type { ContentEntry } from '#shared/astro-content.ts';
+import type { LocatedIssue } from '#validate-content/validation-result.ts';
 
-import { toValidationResult } from '#validate-content/validation-result.ts';
-
-interface GroupIssue {
-	detail: string;
-	location: string;
-}
+import { isGroupedTracklist } from '#shared/entries.ts';
+import { toLocatedValidationResult } from '#validate-content/validation-result.ts';
 
 interface TrackGroup {
 	files: Array<string>;
@@ -18,16 +15,13 @@ interface TrackGroup {
 export function validateTrackGroups(entries: Array<ContentEntry>) {
 	const issues = entries.flatMap((entry) => collectEntryGroupIssues(entry));
 
-	return toValidationResult(
-		issues.map(({ detail, location }) => ({ message: `${location}: ${detail}` })),
-		{
-			fail: `Found ${issues.length.toString()} track group file problem(s)`,
-			pass: 'Track group files valid',
-		},
-	);
+	return toLocatedValidationResult(issues, {
+		fail: `Found ${issues.length.toString()} track group file problem(s)`,
+		pass: 'Track group files valid',
+	});
 }
 
-function collectEntryGroupIssues(entry: ContentEntry): Array<GroupIssue> {
+function collectEntryGroupIssues(entry: ContentEntry): Array<LocatedIssue> {
 	const groups = toGroups(entry.data.tracks);
 
 	if (groups.length === 0) return [];
@@ -102,14 +96,9 @@ function hasTimestamp(track: unknown): boolean {
 
 // Only a grouped tracklist has anything to check; a flat one names no files of its own
 function toGroups(tracks: unknown): Array<TrackGroup> {
-	if (!Array.isArray(tracks)) return [];
+	if (!Array.isArray(tracks) || !isGroupedTracklist(tracks)) return [];
 
-	const values = tracks as Array<unknown>;
-	const [first] = values;
-
-	if (first === null || typeof first !== 'object' || !('tracks' in first)) return [];
-
-	return values.map((value) => {
+	return (tracks as Array<unknown>).map((value) => {
 		const group = (value ?? {}) as { files?: unknown; title?: unknown; tracks?: unknown };
 		const nested = Array.isArray(group.tracks) ? (group.tracks as Array<unknown>) : [];
 

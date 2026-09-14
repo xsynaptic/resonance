@@ -1,5 +1,6 @@
 import type { ContentEntry } from '#shared/astro-content.ts';
 
+import { isGroupedTracklist } from '#shared/entries.ts';
 import { toValidationResult } from '#validate-content/validation-result.ts';
 
 const timestampRegex = /^(\d{2}):([0-5]\d):([0-5]\d)(?:\.(\d{1,2}))?$/;
@@ -110,9 +111,8 @@ function toTrackGroups(entry: ContentEntry): Array<Array<unknown>> {
 	if (!Array.isArray(tracks)) return [];
 
 	const values = tracks as Array<unknown>;
-	const [first] = values;
 
-	if (first === null || typeof first !== 'object' || !('tracks' in first)) return [values];
+	if (!isGroupedTracklist(values)) return [values];
 
 	return values.map((group) => {
 		const nested = (group as { tracks?: unknown }).tracks;

@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollectionPath } from '@xsynaptic/shared/routing';
 
 import EntryComments from '#components/comments/entry-comments.astro';
+import EntryTermLinks from '#components/parts/entry-term-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionSeries from '#components/sections/section-series.astro';
@@ -47,8 +48,7 @@ const schemas = getPostSchemas(entry, {
 	styles={styleTerms}
 >
 	<SectionCoda class="mt-10 content-measure">
-		<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-		<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+		<EntryTermLinks styles={styleTermsRanked} themes={themeTerms} />
 		<TermLinks heading={t('collection.labels.title')} terms={labelTerms} />
 	</SectionCoda>
 	<SectionSeries id={entry.id} />

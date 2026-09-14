@@ -52,8 +52,7 @@ export function WaveformCanvas({
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		const context = canvas?.getContext('2d');
-		if (!canvas || !context) return;
+		if (!canvas) return;
 
 		let rendering: undefined | WaveformRendering;
 		let paintedPx = -1;
@@ -80,7 +79,7 @@ export function WaveformCanvas({
 			// On an hour-long mix a tick moves the edge a fraction of a device pixel, and repainting draws the same image
 			if (playedPx !== paintedPx) {
 				paintedPx = playedPx;
-				paintWaveform(context, rendering, playedPx);
+				paintWaveform(rendering, playedPx);
 			}
 
 			const clock = formatClock(shownSeconds);

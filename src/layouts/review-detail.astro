@@ -7,6 +7,7 @@ import { render } from 'astro:content';
 import type { IconId } from '#lib/utils/icon-types.ts';
 
 import Button from '#components/parts/button.astro';
+import EntryTermLinks from '#components/parts/entry-term-links.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import WorkDetail from '#layouts/work-detail.astro';
 import { getReviewSchemas } from '#lib/collections/reviews/reviews-schema.ts';
@@ -114,7 +115,6 @@ const schemas = getReviewSchemas(entry, {
 		<TermLinks heading={t('collection.artists.title')} terms={artistTerms} />
 		<TermLinks heading={t('collection.regions.title')} terms={regionTerms} />
 		<TermLinks heading={t('collection.eras.title')} terms={eraTerms} />
-		<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-		<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+		<EntryTermLinks styles={styleTermsRanked} themes={themeTerms} />
 	</Fragment>
 </WorkDetail>

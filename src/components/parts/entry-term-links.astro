@@ -1,0 +1,16 @@
+---
+import type { LinkedName } from '#lib/utils/terms.ts';
+
+import TermLinks from '#components/parts/term-links.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	styles: Array<LinkedName>;
+	themes: Array<LinkedName>;
+}
+
+const { styles, themes } = Astro.props;
+---
+
+<TermLinks heading={t('collection.styles.title')} terms={styles} />
+<TermLinks heading={t('collection.themes.title')} terms={themes} />

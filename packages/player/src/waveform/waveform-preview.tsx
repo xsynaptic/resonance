@@ -10,8 +10,7 @@ export function WaveformPreview({ overview }: { overview: ReadonlyArray<number> 
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		const context = canvas?.getContext('2d');
-		if (!canvas || !context) return;
+		if (!canvas) return;
 
 		const paint = (): void => {
 			const rendering = prepareRendering(canvas, overview);
@@ -20,7 +19,7 @@ export function WaveformPreview({ overview }: { overview: ReadonlyArray<number> 
 			canvas.width = rendering.width;
 			canvas.height = rendering.height;
 
-			paintWaveform(context, rendering, 0);
+			paintWaveform(rendering, 0);
 		};
 
 		// Observing paints once on its own, which is the first paint

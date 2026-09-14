@@ -66,7 +66,8 @@ site-navigation {
 }
 
 /* 24px square is the WCAG target minimum; the icon inside stays 12px */
-.nav-toggle {
+.nav-toggle,
+.nav-sub-toggle {
 	display: flex;
 	flex: none;
 	align-items: center;
@@ -78,7 +79,8 @@ site-navigation {
 	border-radius: var(--radius-sm);
 }
 
-.nav-toggle:focus-visible {
+.nav-toggle:focus-visible,
+.nav-sub-toggle:focus-visible {
 	color: var(--color-highlight-400);
 }
 
@@ -190,22 +192,6 @@ site-navigation {
 	.nav-sub-d2 .nav-sub-link:hover {
 		background-color: var(--color-surface-400);
 	}
-}
-
-.nav-sub-toggle {
-	display: flex;
-	flex: none;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	height: 24px;
-	color: var(--color-highlight-500);
-	cursor: pointer;
-	border-radius: var(--radius-sm);
-}
-
-.nav-sub-toggle:focus-visible {
-	color: var(--color-highlight-400);
 }
 
 @media (hover: hover) {

@@ -1,6 +1,7 @@
 import type { ContentEntry } from '#shared/astro-content.ts';
+import type { LocatedIssue } from '#validate-content/validation-result.ts';
 
-import { toValidationResult } from '#validate-content/validation-result.ts';
+import { toLocatedValidationResult } from '#validate-content/validation-result.ts';
 
 // `<TrackList tracks={frontmatter.tracks} />` and `<Selections items={frontmatter.selections} />`
 // are the only things that render those fields, and the layouts do not
@@ -10,26 +11,18 @@ const markers = [
 	{ field: 'tracks', tag: '<TrackList' },
 ] as const;
 
-interface MarkerIssue {
-	detail: string;
-	location: string;
-}
-
 export function validateBodyMarkers(entries: Array<ContentEntry>) {
 	const issues = entries.flatMap((entry) => collectEntryMarkerIssues(entry));
 
-	return toValidationResult(
-		issues.map(({ detail, location }) => ({ message: `${location}: ${detail}` })),
-		{
-			fail: `Found ${issues.length.toString()} entry body marker mismatch(es)`,
-			pass: 'Body markers match their frontmatter',
-		},
-	);
+	return toLocatedValidationResult(issues, {
+		fail: `Found ${issues.length.toString()} entry body marker mismatch(es)`,
+		pass: 'Body markers match their frontmatter',
+	});
 }
 
-function collectEntryMarkerIssues(entry: ContentEntry): Array<MarkerIssue> {
+function collectEntryMarkerIssues(entry: ContentEntry): Array<LocatedIssue> {
 	const body = entry.body ?? '';
-	const issues: Array<MarkerIssue> = [];
+	const issues: Array<LocatedIssue> = [];
 
 	for (const { field, tag } of markers) {
 		const value = entry.data[field];

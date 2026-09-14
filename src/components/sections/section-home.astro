@@ -1,25 +1,26 @@
 ---
+import { getCollectionPath } from '@xsynaptic/shared/routing';
+
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import Anchor from '#components/parts/anchor.astro';
 import EntryCardItem from '#components/parts/entry-card-item.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
-	heading: string;
+	collection: 'mixes' | 'posts' | 'reviews';
 	items: Array<ContentCatalogItem>;
-	listHref: string;
-	listLabel: string;
 	priority?: boolean | undefined;
 }
 
-const { heading, items, listHref, listLabel, priority = false } = Astro.props;
+const { collection, items, priority = false } = Astro.props;
 ---
 
 <section class="mb-12">
 	<div class="mb-4 flex items-baseline justify-between">
-		<h2 class="heading-section">{heading}</h2>
-		<Anchor class="text-sm" href={listHref}>
-			{listLabel}
+		<h2 class="heading-section">{t(`home.${collection}.heading`)}</h2>
+		<Anchor class="text-sm" href={getCollectionPath(collection)}>
+			{t(`home.${collection}.link`)}
 		</Anchor>
 	</div>
 	<ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

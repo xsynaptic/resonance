@@ -9,6 +9,7 @@ export interface BarGrid {
 }
 
 export interface WaveformRendering {
+	context: CanvasRenderingContext2D;
 	height: number;
 	path: Path2D;
 	playedStyle: string;
@@ -40,8 +41,7 @@ export function measureBarGrid(
 }
 
 export function paintWaveform(
-	context: CanvasRenderingContext2D,
-	{ height, path, playedStyle, trackStyle, width }: WaveformRendering,
+	{ context, height, path, playedStyle, trackStyle, width }: WaveformRendering,
 	playedPx: number,
 ): void {
 	context.clearRect(0, 0, width, height);
@@ -67,6 +67,10 @@ export function prepareRendering(
 ): undefined | WaveformRendering {
 	if (peaks.length === 0) return undefined;
 
+	const context = canvas.getContext('2d');
+
+	if (!context) return undefined;
+
 	const styles = getComputedStyle(canvas);
 	const { bar, count, pitch, ratio, width } = measureBarGrid(canvas, styles);
 	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
@@ -78,6 +82,7 @@ export function prepareRendering(
 	} satisfies BarLayout;
 
 	return {
+		context,
 		height,
 		path: barsPath(resamplePeaks(peaks, count), layout),
 		playedStyle: styles.getPropertyValue('--player-waveform-played'),

@@ -1,6 +1,4 @@
 ---
-import { getCollectionPath } from '@xsynaptic/shared/routing';
-
 import MainSite from '#components/main/main-site.astro';
 import NotFoundSuggestions from '#components/not-found/not-found-suggestions.astro';
 import Anchor from '#components/parts/anchor.astro';
@@ -29,18 +27,8 @@ const postItems = catalog.byCollection('posts').slice(0, 4);
 			</Anchor>
 		</div>
 	</section>
-	<HomeSection
-		heading={t('home.mixes.heading')}
-		items={mixItems}
-		listHref={getCollectionPath('mixes')}
-		listLabel={t('home.mixes.link')}
-	/>
-	<HomeSection
-		heading={t('home.posts.heading')}
-		items={postItems}
-		listHref={getCollectionPath('posts')}
-		listLabel={t('home.posts.link')}
-	/>
+	<HomeSection collection="mixes" items={mixItems} />
+	<HomeSection collection="posts" items={postItems} />
 </MainSite>
 
 <script>

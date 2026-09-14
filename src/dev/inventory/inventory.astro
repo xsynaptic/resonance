@@ -568,12 +568,7 @@ const inlineSelection: SelectionValue = {
 			</div>
 		</Specimen>
 		<Specimen name="SectionHome" source="src/components/sections/section-home.astro">
-			<SectionHome
-				heading="Latest Mixes"
-				items={mixItems.slice(0, 4)}
-				listHref="/mixes"
-				listLabel="All mixes"
-			/>
+			<SectionHome collection="mixes" items={mixItems.slice(0, 4)} />
 		</Specimen>
 		<Specimen
 			name="SectionRelated"

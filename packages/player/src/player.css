@@ -366,6 +366,13 @@
 }
 
 .player-volume-slider {
+	--player-fader-cap-shade: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--player-fader-cap) 60%, #fff),
+		var(--player-fader-cap) 45%,
+		color-mix(in oklab, var(--player-fader-cap) 65%, #000)
+	);
+
 	width: 1.5rem;
 	height: 6rem;
 	appearance: none;
@@ -400,12 +407,7 @@
 			color-mix(in oklab, var(--player-fader-cap) 70%, #fff) 50% calc(50% + 1px),
 			transparent calc(50% + 1px)
 		),
-		linear-gradient(
-			to bottom,
-			color-mix(in oklab, var(--player-fader-cap) 60%, #fff),
-			var(--player-fader-cap) 45%,
-			color-mix(in oklab, var(--player-fader-cap) 65%, #000)
-		);
+		var(--player-fader-cap-shade);
 	background-repeat: no-repeat;
 	border-radius: 2px;
 	box-shadow:
@@ -429,12 +431,7 @@
 .player-volume-slider::-moz-range-thumb {
 	width: 1.25rem;
 	height: 0.625rem;
-	background-image: linear-gradient(
-		to bottom,
-		color-mix(in oklab, var(--player-fader-cap) 60%, #fff),
-		var(--player-fader-cap) 45%,
-		color-mix(in oklab, var(--player-fader-cap) 65%, #000)
-	);
+	background-image: var(--player-fader-cap-shade);
 	background-repeat: no-repeat;
 	border: 1px solid color-mix(in oklab, var(--player-fader-cap) 55%, #000);
 	border-radius: 2px;

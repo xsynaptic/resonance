@@ -4,7 +4,7 @@ import path from 'node:path';
 import type { DeployConfig } from '#deploy/deploy-config.ts';
 
 import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
-import { rsync } from '#deploy/rsync-exec.ts';
+import { rsyncTo } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
 // The one place the server layout is named; stats-pull derives its own path from this
@@ -96,10 +96,10 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 	console.log(
 		chalk.gray(`  Originals: ${sourceDir}/ -> ${config.remoteHost}:${remoteRoot}/artifacts/`),
 	);
-	const artifactsOutput = await rsync(
+	const artifactsOutput = await rsyncTo(
 		`${sourceDir}/`,
 		`${config.remoteHost}:${remoteRoot}/artifacts/`,
-		{ dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
+		{ archive: 'av', config, dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
 	);
 
 	// One leg at a time, because the box serves other traffic
@@ -123,10 +123,10 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 			),
 		);
 
-		const output = await rsync(
+		const output = await rsyncTo(
 			`${localPath}/`,
 			`${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
-			{ dryRun, excludes: leg.excludes, extraFlags: rsyncFlags },
+			{ archive: 'av', config, dryRun, excludes: leg.excludes, extraFlags: rsyncFlags },
 		);
 
 		derived[leg.key] = parseTransferred(output, leg.transferred);
@@ -157,10 +157,16 @@ export async function reapDerivedAudio(options: DeployAudioOptions): Promise<voi
 		console.log(chalk.blue(`Reaping superseded ${leg.label.toLowerCase()}...`));
 		if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
-		const output = await rsync(
+		const output = await rsyncTo(
 			`${localPath}/`,
 			`${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
-			{ dryRun, excludes: leg.excludes, extraFlags: [...rsyncFlags, '--delete'] },
+			{
+				archive: 'av',
+				config,
+				dryRun,
+				excludes: leg.excludes,
+				extraFlags: [...rsyncFlags, '--delete'],
+			},
 		);
 
 		console.log(

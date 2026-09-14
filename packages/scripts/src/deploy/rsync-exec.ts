@@ -2,24 +2,45 @@ import chalk from 'chalk';
 import { $ } from 'zx';
 
 interface RsyncOptions {
+	archive?: 'av' | 'avz';
+	config: SshTarget;
 	dryRun?: boolean;
 	excludes?: Array<string>;
 	extraFlags?: Array<string>;
 	quiet?: boolean;
 }
 
-export async function rsync(
+interface SshTarget {
+	remoteHost: string;
+	sshKeyPath?: string;
+}
+
+export function buildRsyncArgs(
 	source: Array<string> | string,
 	destination: string,
-	options: RsyncOptions = {},
-): Promise<string> {
-	const args = [
-		...buildFlags(options),
+	options: RsyncOptions,
+): Array<string> {
+	const { config, dryRun = false, excludes = [], extraFlags = [] } = options;
+
+	return [
+		...getArchiveFlags(options),
+		...(config.sshKeyPath ? ['-e', `ssh -i ${config.sshKeyPath}`] : []),
+		...excludes.map((pattern) => `--exclude=${pattern}`),
+		...extraFlags,
+		...(dryRun ? ['--dry-run'] : []),
 		...(Array.isArray(source) ? source : [source]),
 		destination,
 	];
+}
 
-	const command = $({ stdio: ['inherit', 'pipe', 'inherit'] })`rsync ${args}`;
+export async function rsyncTo(
+	source: Array<string> | string,
+	destination: string,
+	options: RsyncOptions,
+): Promise<string> {
+	const command = $({
+		stdio: ['inherit', 'pipe', 'inherit'],
+	})`rsync ${buildRsyncArgs(source, destination, options)}`;
 
 	command.pipe(process.stdout);
 
@@ -28,9 +49,9 @@ export async function rsync(
 	return result.stdout;
 }
 
-// Under dry-run, print the command instead of running it so a deploy preview shows remote actions
+// For dry-run, print the command instead of running it so a deploy preview shows remote actions
 export async function sshExec(
-	remoteHost: string,
+	config: SshTarget,
 	command: string,
 	{ dryRun = false }: { dryRun?: boolean } = {},
 ): Promise<void> {
@@ -39,20 +60,12 @@ export async function sshExec(
 		return;
 	}
 
-	await $({ stdio: 'inherit' })`ssh ${remoteHost} ${command}`;
+	const sshArgs = [...(config.sshKeyPath ? ['-i', config.sshKeyPath] : []), config.remoteHost];
+
+	await $({ stdio: 'inherit' })`ssh ${sshArgs} ${command}`;
 }
 
 // Callers that parse the returned file list need `-v`; a quiet pull prints nothing on success
-function buildFlags({
-	dryRun = false,
-	excludes = [],
-	extraFlags = [],
-	quiet = false,
-}: RsyncOptions): Array<string> {
-	return [
-		...(quiet ? ['-a'] : ['-av', '--progress']),
-		...excludes.map((pattern) => `--exclude=${pattern}`),
-		...extraFlags,
-		...(dryRun ? ['--dry-run'] : []),
-	];
+function getArchiveFlags({ archive = 'avz', quiet = false }: RsyncOptions) {
+	return quiet ? [`-${archive.replace('v', '')}`] : [`-${archive}`, '--progress'];
 }

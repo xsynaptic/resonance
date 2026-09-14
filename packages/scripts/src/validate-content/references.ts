@@ -4,16 +4,24 @@ import type { EntryReference, ReferenceIssue } from '#validate-content/validatio
 import { getIdsByCollection } from '#shared/entries.ts';
 import { toReferenceValidationResult } from '#validate-content/validation-result.ts';
 
-// Astro checks references itself but only logs, leaving a broken reference to ship
-// The declared collection matters; a `reference('regions')` naming an era passes a flat lookup
-export function collectReferenceIssues(entries: Array<ContentEntry>) {
-	const idsByCollection = getIdsByCollection(entries);
-
-	return entries.flatMap((entry) => getEntryReferenceIssues(entry, idsByCollection));
+interface ReferenceOptions {
+	skipCollections?: Array<string>;
 }
 
-export function validateReferences(entries: Array<ContentEntry>) {
-	const issues = collectReferenceIssues(entries);
+// Astro checks references itself but only logs, leaving a broken reference to ship
+// The declared collection matters; a `reference('regions')` naming an era passes a flat lookup
+export function collectReferenceIssues(
+	entries: Array<ContentEntry>,
+	{ skipCollections = [] }: ReferenceOptions = {},
+) {
+	const idsByCollection = getIdsByCollection(entries);
+	const skipped = new Set(skipCollections);
+
+	return entries.flatMap((entry) => getEntryReferenceIssues(entry, idsByCollection, skipped));
+}
+
+export function validateReferences(entries: Array<ContentEntry>, options: ReferenceOptions = {}) {
+	const issues = collectReferenceIssues(entries, options);
 
 	return toReferenceValidationResult(issues, {
 		fail: `Found ${issues.length.toString()} broken reference(s)`,
@@ -46,7 +54,11 @@ function collectEntryReferences(value: unknown, field: string, references: Array
 	}
 }
 
-function getEntryReferenceIssues(entry: ContentEntry, idsByCollection: Map<string, Set<string>>) {
+function getEntryReferenceIssues(
+	entry: ContentEntry,
+	idsByCollection: Map<string, Set<string>>,
+	skipCollections: Set<string>,
+) {
 	const references: Array<EntryReference> = [];
 
 	collectEntryReferences(entry.data, '', references);
@@ -54,10 +66,8 @@ function getEntryReferenceIssues(entry: ContentEntry, idsByCollection: Map<strin
 	const issues: Array<ReferenceIssue> = [];
 
 	for (const reference of references) {
-		const ids = idsByCollection.get(reference.collection);
-
-		// References into collections outside this check's scope are left alone
-		if (!ids || ids.has(reference.id)) continue;
+		if (skipCollections.has(reference.collection)) continue;
+		if (idsByCollection.get(reference.collection)?.has(reference.id)) continue;
 
 		issues.push({ location: entry.filePath ?? entry.id, ...reference });
 	}

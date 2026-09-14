@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { rsync, sshExec } from '#deploy/rsync-exec.ts';
+import { rsyncTo, sshExec } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain } from '#shared/utils.ts';
 
 // Remote server layout; the vhost beside this already names that box's IP and paths
@@ -38,22 +38,30 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 
 	const start = Date.now();
 
-	await rsync(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
+	await rsyncTo(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
+		archive: 'av',
+		config,
 		dryRun,
 		extraFlags: ['--delete'],
 	});
-	await rsync(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
+	await rsyncTo(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
+		archive: 'av',
+		config,
 		dryRun,
 		excludes: ['fixtures', 'test-*.py', '__pycache__'],
 	});
-	await rsync(`${deployDir}/systemd/`, `${remoteHost}:${stagingPath}/systemd/`, { dryRun });
+	await rsyncTo(`${deployDir}/systemd/`, `${remoteHost}:${stagingPath}/systemd/`, {
+		archive: 'av',
+		config,
+		dryRun,
+	});
 
-	await sshExec(remoteHost, applyNginxSites(), { dryRun });
+	await sshExec(config, applyNginxSites(), { dryRun });
 
 	// Separate from nginx so a failure in one does not strand the other half-applied
 	// `daemon-reload` picks up unit edits; the timer is enabled once by hand on first provision
 	await sshExec(
-		remoteHost,
+		config,
 		[
 			`sudo rsync -av --chown=root:root ${stagingPath}/stats/download-stats.py /usr/local/bin/download-stats.py`,
 			`sudo rsync -av --chown=root:root ${stagingPath}/systemd/ /etc/systemd/system/`,

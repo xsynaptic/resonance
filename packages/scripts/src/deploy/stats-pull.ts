@@ -6,7 +6,7 @@ import type { DeployConfig } from '#deploy/deploy-config.ts';
 import type { StepStatus } from '#shared/step-status.ts';
 
 import { remoteRoot } from '#deploy/deploy-audio.ts';
-import { rsync } from '#deploy/rsync-exec.ts';
+import { rsyncTo } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
 // Matches STATE_DIR in deploy/stats/download-stats.py
@@ -44,10 +44,10 @@ export async function pullStats(options: StatsPullOptions): Promise<StepStatus> 
 		await mkdir(jsonDir, { recursive: true });
 
 		// Landing on stable names gives the next pull a basis file to delta against
-		await rsync(
+		await rsyncTo(
 			statsFiles.map((file) => `${config.remoteHost}:${remoteStatsDir}/${file}`),
 			`${backupDir}/`,
-			{ dryRun, quiet: true },
+			{ archive: 'av', config, dryRun, quiet: true },
 		);
 
 		if (dryRun) return 'skipped';

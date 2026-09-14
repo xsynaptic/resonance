@@ -56,12 +56,22 @@ describe('collectReferenceIssues', () => {
 		]);
 	});
 
-	test('ignores references into collections outside the checked set', () => {
+	test('flags a reference into a collection outside the checked set', () => {
 		const entries = makeEntries([
 			makeEntry({ data: { downloads: makeReferences('downloads', ['missing']) }, id: 'a-mix' }),
 		]);
 
-		expect(collectReferenceIssues(entries)).toEqual([]);
+		expect(collectReferenceIssues(entries)).toEqual([
+			{ collection: 'downloads', field: 'downloads[0]', id: 'missing', location: 'a-mix' },
+		]);
+	});
+
+	test('ignores references into a skipped collection', () => {
+		const entries = makeEntries([
+			makeEntry({ data: { downloads: makeReferences('downloads', ['missing']) }, id: 'a-mix' }),
+		]);
+
+		expect(collectReferenceIssues(entries, { skipCollections: ['downloads'] })).toEqual([]);
 	});
 
 	test('ignores a polymorphic ref, which carries an id but no collection', () => {

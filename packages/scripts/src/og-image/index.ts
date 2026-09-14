@@ -63,7 +63,13 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 		entries.map((entry) => limit(() => renderEntry({ cache, entry, renderCard }))),
 	);
 
+	const prunedCount = await cache.prune(new Set(entries.map((entry) => entry.outputId)));
+
 	await cache.save();
+
+	if (prunedCount > 0) {
+		console.log(chalk.yellow(`  Pruned ${String(prunedCount)} orphaned card(s)`));
+	}
 
 	reportOutcomes(outcomes);
 
@@ -74,7 +80,7 @@ export async function generateOpenGraphImages(options: OpenGraphOptions): Promis
 	});
 }
 
-// Orphans stay in the cache unpublished; a renamed entry's old URL is carried by a redirect rule
+// Only cards the build asks for publish; a renamed entry's old card URL is carried by a redirect rule
 async function publish({
 	cache,
 	distPath,

@@ -69,41 +69,47 @@ const platformKeys = {
 	soundcloud: await readGenerationKeys(path.resolve(rootPath, soundcloudStatsPath)),
 };
 
-// Keys double as the CLI subcommand names
-const validations = {
-	'body-markers': () => validateBodyMarkers(entriesFrom(...markerCollections)),
-	credits: () => validateCredits(allEntries, entriesFrom('artists', 'labels')),
-	'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
-	'entry-ids': () => validateEntryIds(allEntries),
-	images: () => validateImages([...allEntries, ...stations], path.resolve(rootPath, mediaPath)),
-	'link-ids': () => validateLinkIds(allEntries, allEntries, rootPath),
-	mdx: () => validateMdxComponents(allEntries, rootPath),
-	'platform-links': () => validatePlatformLinks(entriesFrom('mixes'), platformKeys),
-	references: () => validateReferences(allEntries),
-	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
-	'series-items': () =>
-		validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
-	'station-items': () => validateStationItems(stations, entriesFrom('mixes')),
-	'track-groups': () => validateTrackGroups(entriesFrom('mixes')),
-	'track-timestamps': () => validateTrackTimestamps(entriesFrom(...audioCollections)),
-} satisfies Record<string, () => ValidationResult>;
+// Names are the CLI subcommands; a full run reports in this order
+const validations = [
+	{ name: 'body-markers', run: () => validateBodyMarkers(entriesFrom(...markerCollections)) },
+	{ name: 'credits', run: () => validateCredits(allEntries, entriesFrom('artists', 'labels')) },
+	{ name: 'downloads-legacy', run: () => validateDownloadsLegacy(entriesFrom('mixes')) },
+	{ name: 'entry-ids', run: () => validateEntryIds(allEntries) },
+	{
+		name: 'images',
+		run: () => validateImages([...allEntries, ...stations], path.resolve(rootPath, mediaPath)),
+	},
+	{ name: 'link-ids', run: () => validateLinkIds(allEntries, allEntries, rootPath) },
+	{ name: 'mdx', run: () => validateMdxComponents(allEntries, rootPath) },
+	{ name: 'platform-links', run: () => validatePlatformLinks(entriesFrom('mixes'), platformKeys) },
+	{ name: 'references', run: () => validateReferences(allEntries) },
+	{ name: 'review-folders', run: () => validateReviewFolders(entriesFrom('reviews')) },
+	{
+		name: 'series-items',
+		run: () => validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
+	},
+	{ name: 'station-items', run: () => validateStationItems(stations, entriesFrom('mixes')) },
+	{ name: 'track-groups', run: () => validateTrackGroups(entriesFrom('mixes')) },
+	{
+		name: 'track-timestamps',
+		run: () => validateTrackTimestamps(entriesFrom(...audioCollections)),
+	},
+] satisfies Array<{ name: string; run: () => ValidationResult }>;
 
 const command = process.argv[2];
 
-const selected = command
-	? Object.entries(validations).filter(([name]) => name === command)
-	: Object.entries(validations);
+const selected = command ? validations.filter(({ name }) => name === command) : validations;
 
 if (command && selected.length === 0) {
 	console.log(chalk.red(`Unknown command: ${command}`));
-	console.log(chalk.dim(`Available: ${Object.keys(validations).join(', ')}`));
+	console.log(chalk.dim(`Available: ${validations.map(({ name }) => name).join(', ')}`));
 	process.exit(1);
 }
 
 let hasFailure = false;
 
-for (const [, validate] of selected) {
-	const result = validate();
+for (const { run } of selected) {
+	const result = run();
 
 	reportValidationResult(result);
 

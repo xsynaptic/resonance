@@ -34,6 +34,8 @@ check:
             run: fallow dupes --quiet
           - name: complexity
             run: fallow health --complexity --quiet
+          - name: boundaries
+            run: fallow dead-code --boundary-violations --quiet
           - name: test
             run: vitest run
 
@@ -67,3 +69,5 @@ fix:
       run: fallow dupes --quiet
     - name: complexity
       run: fallow health --complexity --quiet
+    - name: boundaries
+      run: fallow dead-code --boundary-violations --quiet

@@ -1,6 +1,58 @@
 {
-	// Zero disables CRAP, which fallow otherwise estimates without coverage data
-	"health": { "maxCrap": 0 },
-	// A threshold of zero means no limit; this fails on any clone group
-	"duplicates": { "minTokens": 70, "threshold": 0.01 },
+	// Mirrors the entries and ignores in knip.config.ts, which carries the reasons
+	"entry": [
+		"src/dev/inventory/inventory.astro",
+		"src/dev/inventory/inventory-og-image.ts",
+		"src/dev/audio/stream-rendition.ts",
+		"src/dev/audio/waveform-archive.ts",
+	],
+	"dynamicallyLoaded": ["src/components/mdx/**/*.astro"],
+	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],
+	"ignoreDependencies": [
+		"@fontsource/fira-sans",
+		"@fontsource/manrope",
+		"@xsynaptic/stylelint-config",
+		"eslint-plugin-jsx-a11y",
+		"mdxlint",
+		"react",
+	],
+	"ignoreDependencyOverrides": [
+		{ "package": "fallow-type-aware", "source": "pnpm-workspace.yaml" },
+	],
+	"rules": { "dev-dependencies-in-production": "off" },
+	"health": {
+		// Zero disables CRAP, which fallow otherwise estimates without coverage data
+		"maxCrap": 0,
+		"maxCognitive": 12,
+		"thresholdOverrides": [
+			{
+				"files": ["src/components/parts/pagination-select.astro"],
+				"functions": ["<template>"],
+				"maxCognitive": 15,
+				"reason": "Optional controls nested under a render guard",
+			},
+		],
+	},
+	"duplicates": {
+		"minTokens": 50,
+		// A threshold of zero means no limit; this fails on any clone group
+		"threshold": 0.01,
+		// The Inventory renders the same Specimens repeatedly on purpose
+		"ignore": ["src/dev/**"],
+	},
+	"boundaries": {
+		"zones": [
+			{ "name": "packages", "patterns": ["packages/**"] },
+			{ "name": "lib", "patterns": ["src/lib/**"] },
+			{ "name": "components", "patterns": ["src/components/**", "src/layouts/**", "src/pages/**"] },
+			{ "name": "worker", "patterns": ["worker/**"] },
+		],
+		"rules": [
+			// Vite/Rolldown build breaks when packages import the app at runtime
+			{ "from": "packages", "allow": ["packages"], "allowTypeOnly": ["lib"] },
+			{ "from": "lib", "allow": ["lib", "packages"] },
+			{ "from": "components", "allow": ["components", "lib", "packages"] },
+			{ "from": "worker", "allow": ["worker", "lib"] },
+		],
+	},
 }

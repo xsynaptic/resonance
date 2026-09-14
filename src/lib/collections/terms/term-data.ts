@@ -7,7 +7,7 @@ import type { TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 import { termIndexes } from '#lib/collections/terms/term-index.ts';
 import { memoizeByKey } from '#lib/utils/memoize.ts';
 
-export interface TermCollection {
+interface TermCollection {
 	entries: Array<CollectionEntry<TermCollectionKey>>;
 	entriesMap: Map<string, CollectionEntry<TermCollectionKey>>;
 }

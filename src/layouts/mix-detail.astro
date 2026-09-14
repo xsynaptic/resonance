@@ -4,28 +4,19 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollectionPath } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
-import EntryComments from '#components/comments/entry-comments.astro';
 import EmbedAudio from '#components/embed/embed-audio.astro';
-import MainSite from '#components/main/main-site.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
-import FeaturedGrid from '#components/parts/featured-grid.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import PlayerControls from '#components/player/player-controls.astro';
 import PlayerPayload from '#components/player/player-payload.astro';
-import SearchThumbnail from '#components/search/search-thumbnail.astro';
-import SectionCoda from '#components/sections/section-coda.astro';
-import SectionDetailHeader from '#components/sections/section-detail-header.astro';
-import SectionRelated from '#components/sections/section-related.astro';
-import SectionSeries from '#components/sections/section-series.astro';
-import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
+import WorkDetail from '#layouts/work-detail.astro';
 import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getMixSchemas } from '#lib/collections/mixes/mixes-schema.ts';
 import { resolveStylesRanked } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
 import { getSoundcloudPlayCount } from '#lib/platform-stats/soundcloud-stats.ts';
 import { isPlayerEnabled, site } from '#lib/site.ts';
@@ -52,10 +43,8 @@ const labelTerms = await resolveCredits('labels', entry.data.labels);
 const downloads = await getDownloadCount(entry.data);
 const mixcloudPlays = await getMixcloudPlayCount(entry.data.mixcloudLink);
 const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudLink);
-const relatedItems = await getRelatedItems(entry);
 const description = await getEntryDescription(entry);
 
-const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
 const openGraphId = getOpenGraphId(entry.collection, entry.id);
 
 const kind = { name: t('collection.mixes.title'), url: getCollectionPath('mixes') };
@@ -75,54 +64,35 @@ const queueItem = isPlayerEnabled
 const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.files !== undefined);
 ---
 
-<MainSite
-	openGraphId={openGraphId}
-	openGraphType="article"
-	publishedTime={entry.data.dateCreated}
+<WorkDetail
+	description={description}
+	entry={entry}
+	kind={kind}
+	labels={labelTerms}
 	schemas={schemas}
-	title={entry.data.title}
-	{...(description ? { description } : {})}
+	styles={styleTerms}
+	work={work}
 >
-	<article data-pagefind-body>
-		<SearchThumbnail path={imageFeaturedId} />
-		<SectionDetailHeader
-			date={entry.data.dateCreated}
-			kind={kind}
-			labels={labelTerms}
-			styles={styleTerms}
-			title={work}
+	<Content />
+	<Fragment slot="media">
+		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
+		{queueItem ? <PlayerControls trackId={entry.id} /> : undefined}
+		<PlayerPayload items={queueItem ? [queueItem] : []} />
+	</Fragment>
+	<Fragment slot="actions">
+		<AudioLinks
+			links={entry.data.links}
+			{...(hasGroupFiles ? {} : { files: entry.data.files })}
+			{...(hasMixTimestamps(entry) ? { cueSlug: entry.id } : {})}
 		/>
-		<FeaturedGrid alt={entry.data.title} path={imageFeaturedId}>
-			<Content />
-			<Fragment slot="media">
-				<EmbedAudio
-					mixcloudLink={entry.data.mixcloudLink}
-					soundcloudLink={entry.data.soundcloudLink}
-				/>
-				{queueItem ? <PlayerControls trackId={entry.id} /> : undefined}
-				<PlayerPayload items={queueItem ? [queueItem] : []} />
-			</Fragment>
-			<Fragment slot="actions">
-				<AudioLinks
-					links={entry.data.links}
-					{...(hasGroupFiles ? {} : { files: entry.data.files })}
-					{...(hasMixTimestamps(entry) ? { cueSlug: entry.id } : {})}
-				/>
-			</Fragment>
-			<Fragment slot="footer">
-				<SectionCoda>
-					<AudioCounts
-						downloads={downloads}
-						mixcloudPlays={mixcloudPlays}
-						soundcloudPlays={soundcloudPlays}
-					/>
-					<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
-					<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
-				</SectionCoda>
-				<SectionSeries id={entry.id} />
-			</Fragment>
-		</FeaturedGrid>
-		<EntryComments entry={entry} />
-		<SectionRelated collection={entry.collection} items={relatedItems} />
-	</article>
-</MainSite>
+	</Fragment>
+	<Fragment slot="coda">
+		<AudioCounts
+			downloads={downloads}
+			mixcloudPlays={mixcloudPlays}
+			soundcloudPlays={soundcloudPlays}
+		/>
+		<TermLinks heading={t('collection.styles.title')} terms={styleTermsRanked} />
+		<TermLinks heading={t('collection.themes.title')} terms={themeTerms} />
+	</Fragment>
+</WorkDetail>

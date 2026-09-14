@@ -2,8 +2,7 @@
 import type { TracklistValue } from '#lib/schemas/audio.ts';
 
 import TrackListFeed from '#components/mdx/track-list-feed.astro';
-import TrackListItem from '#components/mdx/track-list-item.astro';
-import AudioLinks from '#components/parts/audio-links.astro';
+import TrackListGroup from '#components/mdx/track-list-group.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
 import { buildTrackGroupRows } from '#lib/utils/track-rows.ts';
@@ -32,23 +31,7 @@ const hasRows = groups.some((group) => group.rows.length > 0);
 	<section class="my-8">
 		<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 		{groups.map((group) => (
-			<Fragment>
-				{group.title ? <h3 class="track-group-title">{group.title}</h3> : undefined}
-				{group.description ? <p>{group.description}</p> : undefined}
-				{group.files ? (
-					<div class="mb-3">
-						<AudioLinks
-							files={group.files}
-							{...(group.cueSlug ? { cueSlug: group.cueSlug } : {})}
-						/>
-					</div>
-				) : undefined}
-				<ol class:list={['track-list prose-escape', !group.hasMeta && 'track-list-single-line']}>
-					{group.rows.map((row) => (
-						<TrackListItem row={row} />
-					))}
-				</ol>
-			</Fragment>
+			<TrackListGroup group={group} />
 		))}
 	</section>
 ) : undefined}

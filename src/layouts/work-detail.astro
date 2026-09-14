@@ -1,0 +1,68 @@
+---
+import type { Thing } from '#lib/utils/seo-structured-data.ts';
+import type { LinkedName } from '#lib/utils/terms.ts';
+import type { WorkEntry, WorkTitle } from '#lib/utils/work-title.ts';
+
+import EntryComments from '#components/comments/entry-comments.astro';
+import MainSite from '#components/main/main-site.astro';
+import FeaturedGrid from '#components/parts/featured-grid.astro';
+import SearchThumbnail from '#components/search/search-thumbnail.astro';
+import SectionCoda from '#components/sections/section-coda.astro';
+import SectionDetailHeader from '#components/sections/section-detail-header.astro';
+import SectionRelated from '#components/sections/section-related.astro';
+import SectionSeries from '#components/sections/section-series.astro';
+import { getRelatedItems } from '#lib/catalog/catalog-related.ts';
+import { getImageFeaturedId } from '#lib/image/image-featured.ts';
+import { getOpenGraphId } from '#lib/utils/seo.ts';
+
+interface Props {
+	description: string | undefined;
+	entry: WorkEntry;
+	kind: LinkedName;
+	labels: Array<LinkedName>;
+	releaseYear?: string | undefined;
+	schemas: Array<Thing>;
+	styles: Array<LinkedName>;
+	work: WorkTitle;
+}
+
+const { description, entry, kind, labels, releaseYear, schemas, styles, work } = Astro.props;
+
+const imageFeaturedId = getImageFeaturedId(entry.data.imageFeatured);
+const openGraphId = getOpenGraphId(entry.collection, entry.id);
+const relatedItems = await getRelatedItems(entry);
+---
+
+<MainSite
+	openGraphId={openGraphId}
+	openGraphType="article"
+	publishedTime={entry.data.dateCreated}
+	schemas={schemas}
+	title={entry.data.title}
+	{...(description ? { description } : {})}
+>
+	<article data-pagefind-body>
+		<SearchThumbnail path={imageFeaturedId} />
+		<SectionDetailHeader
+			date={entry.data.dateCreated}
+			kind={kind}
+			labels={labels}
+			releaseYear={releaseYear}
+			styles={styles}
+			title={work}
+		/>
+		<FeaturedGrid alt={entry.data.title} path={imageFeaturedId}>
+			<slot />
+			<slot name="media" slot="media" />
+			<slot name="actions" slot="actions" />
+			<Fragment slot="footer">
+				<SectionCoda>
+					<slot name="coda" />
+				</SectionCoda>
+				<SectionSeries id={entry.id} />
+			</Fragment>
+		</FeaturedGrid>
+		<EntryComments entry={entry} />
+		<SectionRelated collection={entry.collection} items={relatedItems} />
+	</article>
+</MainSite>

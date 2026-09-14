@@ -92,6 +92,8 @@
 @utility media-frame {
 	@apply pattern-maze-surface-300;
 
+	background-color: var(--color-surface-900);
+
 	--pattern-maze-opacity: 0.35;
 	--pattern-maze-size: 40px 40px;
 

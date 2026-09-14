@@ -22,16 +22,11 @@ const caption = await renderSlot(Astro.slots);
 const sizedWidth = size ? imageSizes[size] : undefined;
 const width = sizedWidth ?? 900;
 
-// Capped at the source too, so a small source leaves no maze beside it
-const frameWidth = sizedWidth
-	? Math.min(sizedWidth, getMediaImage(src)?.width ?? sizedWidth)
-	: undefined;
+// Capped at the source too, so a source narrower than the column leaves no maze beside it
+const frameWidth = Math.min(width, getMediaImage(src)?.width ?? width);
 
-const frameClass = [
-	frameWidth ? 'max-w-(--img-width)' : undefined,
-	align ? `img-align-${align}` : undefined,
-];
-const frameStyle = frameWidth ? `--img-width: ${frameWidth}px` : undefined;
+const frameClass = ['max-w-(--img-width)', align ? `img-align-${align}` : undefined];
+const frameStyle = `--img-width: ${frameWidth}px`;
 
 // `none` emits a plain img with width and height, which is all a reader can lay out
 const imageProps = isFeed

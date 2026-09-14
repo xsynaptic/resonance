@@ -1,0 +1,25 @@
+---
+import type { TrackGroupRows } from '#lib/utils/track-rows.ts';
+
+import TrackListItem from '#components/mdx/track-list-item.astro';
+import AudioLinks from '#components/parts/audio-links.astro';
+
+interface Props {
+	group: TrackGroupRows;
+}
+
+const { group } = Astro.props;
+---
+
+{group.title ? <h3 class="track-group-title">{group.title}</h3> : undefined}
+{group.description ? <p>{group.description}</p> : undefined}
+{group.files ? (
+	<div class="mb-3">
+		<AudioLinks files={group.files} {...(group.cueSlug ? { cueSlug: group.cueSlug } : {})} />
+	</div>
+) : undefined}
+<ol class:list={['track-list prose-escape', !group.hasMeta && 'track-list-single-line']}>
+	{group.rows.map((row) => (
+		<TrackListItem row={row} />
+	))}
+</ol>

@@ -106,12 +106,11 @@ function readScrollTheme(canvas: HTMLCanvasElement): ScrollTheme {
 	const styles = getComputedStyle(canvas);
 
 	return {
-		boundaryStyle: styles.getPropertyValue('--player-text-bright'),
-		edgeStyle: styles.getPropertyValue('--player-panel-edge'),
-		gridStyle: styles.getPropertyValue('--player-border'),
-		voidStyle: styles.getPropertyValue('--player-panel-void'),
+		cueStyle: styles.getPropertyValue('--player-panel-cue'),
+		edgeStyle: styles.getPropertyValue('--player-panel-ends'),
+		gridStyle: styles.getPropertyValue('--player-panel-grid'),
 		waveCoreStyle: styles.getPropertyValue('--player-panel-wave'),
-		waveEdgeStyle: styles.getPropertyValue('--player-panel-wave-edge'),
+		waveEdgeStyle: styles.getPropertyValue('--player-panel-wave-peak'),
 	};
 }
 

@@ -4,9 +4,7 @@ import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerActions, PlayerStore } from '#store/player-types.ts';
 
 import { previousInOrder } from '#queue/queue.ts';
-
-// Past this many seconds into a track, previous restarts it instead of stepping back
-const restartThresholdSeconds = 3;
+import { restartThresholdSeconds } from '#store/selectors.ts';
 
 type TransportActions = Pick<
 	PlayerActions,

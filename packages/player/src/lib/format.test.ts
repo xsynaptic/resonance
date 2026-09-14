@@ -9,12 +9,14 @@ describe('formatClock', () => {
 		expect(formatClock(1924)).toBe('32:04');
 	});
 
-	test('counts minutes past the hour rather than rolling over', () => {
-		expect(formatClock(7056)).toBe('117:36');
+	test('rolls minutes over into hours at the hour', () => {
+		expect(formatClock(3599)).toBe('59:59');
+		expect(formatClock(3600)).toBe('1:00:00');
+		expect(formatClock(7612)).toBe('2:06:52');
 	});
 
 	test('carries a leading sign for a remaining time', () => {
-		expect(formatClock(-5132)).toBe('-85:32');
+		expect(formatClock(-5132)).toBe('-1:25:32');
 		expect(formatClock(-0.4)).toBe('-0:00');
 	});
 

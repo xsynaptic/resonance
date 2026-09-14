@@ -9,11 +9,12 @@ export interface BarGrid {
 }
 
 export interface WaveformRendering {
+	baseStyle: string;
 	context: CanvasRenderingContext2D;
 	height: number;
 	path: Path2D;
 	playedStyle: string;
-	trackStyle: string;
+	scrubStyle: string;
 	width: number;
 }
 
@@ -41,23 +42,24 @@ export function measureBarGrid(
 }
 
 export function paintWaveform(
-	{ context, height, path, playedStyle, trackStyle, width }: WaveformRendering,
+	rendering: WaveformRendering,
 	playedPx: number,
+	scrubPx?: number,
 ): void {
+	const { baseStyle, context, height, path, playedStyle, scrubStyle, width } = rendering;
+
 	context.clearRect(0, 0, width, height);
-	context.fillStyle = trackStyle;
+	context.fillStyle = baseStyle;
 	context.fill(path);
 
-	if (playedPx <= 0) return;
+	if (playedPx > 0) fillSpan(rendering, { fromPx: 0, style: playedStyle, toPx: playedPx });
+	if (scrubPx === undefined || scrubPx === playedPx) return;
 
-	// Clipped rather than coloured per bar, so the played edge can land mid-bar
-	context.save();
-	context.beginPath();
-	context.rect(0, 0, playedPx, height);
-	context.clip();
-	context.fillStyle = playedStyle;
-	context.fill(path);
-	context.restore();
+	fillSpan(rendering, {
+		fromPx: Math.min(playedPx, scrubPx),
+		style: scrubStyle,
+		toPx: Math.max(playedPx, scrubPx),
+	});
 }
 
 // Every length is in device pixels; a fractional bar pitch aliases each bar differently
@@ -82,11 +84,12 @@ export function prepareRendering(
 	} satisfies BarLayout;
 
 	return {
+		baseStyle: styles.getPropertyValue('--player-waveform-base'),
 		context,
 		height,
 		path: barsPath(resamplePeaks(peaks, count), layout),
 		playedStyle: styles.getPropertyValue('--player-waveform-played'),
-		trackStyle: styles.getPropertyValue('--player-waveform-track'),
+		scrubStyle: styles.getPropertyValue('--player-waveform-scrub'),
 		width,
 	};
 }
@@ -114,4 +117,18 @@ function createDevicePixelReader(styles: CSSStyleDeclaration, ratio: number) {
 
 		return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : fallback) * ratio));
 	};
+}
+
+// Clipped rather than coloured per bar, so an edge can land mid-bar
+function fillSpan(
+	{ context, height, path }: WaveformRendering,
+	{ fromPx, style, toPx }: { fromPx: number; style: string; toPx: number },
+): void {
+	context.save();
+	context.beginPath();
+	context.rect(fromPx, 0, toPx - fromPx, height);
+	context.clip();
+	context.fillStyle = style;
+	context.fill(path);
+	context.restore();
 }

@@ -12,10 +12,9 @@ export interface ScrollPainter {
 }
 
 export interface ScrollTheme extends EnvelopeTheme {
-	boundaryStyle: string;
+	cueStyle: string;
 	edgeStyle: string;
 	gridStyle: string;
-	voidStyle: string;
 }
 
 interface ScrollView extends EnvelopeView {
@@ -37,7 +36,7 @@ export function createScrollPainter(
 	function nullHatch(ratio: number): CanvasPattern | undefined {
 		if (hatch && hatchRatio === ratio) return hatch;
 
-		hatch = createHatch(theme.voidStyle, ratio);
+		hatch = createHatch(theme.gridStyle, ratio);
 		hatchRatio = ratio;
 
 		return hatch;
@@ -50,7 +49,7 @@ export function createScrollPainter(
 
 		const windowEndSeconds = windowStartSeconds + width / pixelsPerSecond;
 
-		context.fillStyle = theme.boundaryStyle;
+		context.fillStyle = theme.cueStyle;
 
 		for (const cue of cuePoints) {
 			if (cue.startSeconds > windowEndSeconds) break;

@@ -20,7 +20,7 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 		const samples = new Uint8Array(analyser.fftSize);
 
 		// Read once: getPropertyValue forces a style recalc, and this loop runs at the display's refresh rate
-		const accent = getComputedStyle(canvas).getPropertyValue('--player-accent');
+		const traceStyle = getComputedStyle(canvas).getPropertyValue('--player-waveform-played');
 
 		// Measured on resize rather than per frame, where reading either would force a layout 60 times a second
 		let ratio = 1;
@@ -59,7 +59,7 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 
 			context.clearRect(0, 0, width, height);
 			context.lineWidth = thickness;
-			context.strokeStyle = accent;
+			context.strokeStyle = traceStyle;
 			context.beginPath();
 
 			for (let column = 0; column < columns; column += 1) {

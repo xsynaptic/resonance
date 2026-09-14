@@ -13,15 +13,15 @@ class StubPath2D {
 }
 
 const themes = {
-	dim: { '--player-waveform-played': '#1c7a55', '--player-waveform-track': '#333333' },
-	lit: { '--player-waveform-played': '#10b981', '--player-waveform-track': '#cccccc' },
+	dim: { '--player-waveform-base': '#333333', '--player-waveform-played': '#1c7a55' },
+	lit: { '--player-waveform-base': '#cccccc', '--player-waveform-played': '#10b981' },
 };
 
-// The whole waveform is laid down in the track colour and the played part clipped over it
+// The whole waveform is laid down in the base colour and the played part clipped over it
 function painted(theme: keyof typeof themes) {
-	const { '--player-waveform-played': played, '--player-waveform-track': track } = themes[theme];
+	const { '--player-waveform-base': base, '--player-waveform-played': played } = themes[theme];
 
-	return [track, played];
+	return [base, played];
 }
 
 function renderCanvas(props: {

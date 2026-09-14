@@ -11,7 +11,7 @@ import {
 } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
-import { isLoaded } from '#store/selectors.ts';
+import { canStepBack, canStepForward, isLoaded } from '#store/selectors.ts';
 
 export function TransportControls({
 	className,
@@ -26,6 +26,8 @@ export function TransportControls({
 	const isPlaying = usePlayer((state) => state.status === 'playing');
 	const hasQueue = usePlayer((state) => state.queue.length > 0);
 	const isTrackLoaded = usePlayer(isLoaded);
+	const isBackEnabled = usePlayer(canStepBack);
+	const isForwardEnabled = usePlayer(canStepForward);
 	const store = usePlayerStoreApi();
 
 	return (
@@ -33,7 +35,7 @@ export function TransportControls({
 			<Button
 				aria-label={labels.previous}
 				className="player-button-icon player-step"
-				disabled={!isTrackLoaded}
+				disabled={!isBackEnabled}
 				onClick={() => {
 					store.getState().previous();
 				}}
@@ -78,7 +80,7 @@ export function TransportControls({
 			<Button
 				aria-label={labels.next}
 				className="player-button-icon player-step"
-				disabled={!isTrackLoaded}
+				disabled={!isForwardEnabled}
 				onClick={() => {
 					store.getState().next();
 				}}

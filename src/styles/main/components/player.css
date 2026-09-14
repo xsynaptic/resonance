@@ -1,60 +1,52 @@
 /* The package sheet declares no layer; main.css imports this file into layer(components) for both */
 @import '@xsynaptic/player/player.css';
 
-/* The package's tokens default to its own palette; this maps them onto the theme */
+/* The package's tokens default to its own palette; this maps every one onto the theme, so none falls through */
 :root {
-	--player-text-bright: var(--color-ink-100);
-	--player-text-strong: var(--color-ink-200);
-	--player-text-mid: var(--color-ink-300);
-	--player-text: var(--color-ink-400);
-	--player-text-muted: var(--color-ink-600);
-	--player-text-dim: var(--color-ink-700);
-
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
-	--player-surface: var(--color-surface-900);
-	--player-surface-raised: var(--color-surface-800);
-	--player-surface-hover: var(--color-surface-600);
+	--player-surface: var(--color-surface-800);
+	--player-panel-well: var(--color-surface-950);
+	--player-popover: var(--color-surface-600);
+	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
+	--player-title: var(--color-ink-200);
+	--player-meta: var(--color-ink-600);
+	--player-hint: var(--color-ink-700);
+	--player-clock: var(--color-accent-500);
+	--player-clock-hover: var(--color-accent-400);
 
 	/* Orange, so the things you press separate from the waveforms */
 	--player-control: var(--color-highlight-600);
-	--player-control-bright: var(--color-highlight-400);
-	--player-control-strong: var(--color-highlight-400);
-
-	/* Lime marks what is loaded and what is open; it never carries a waveform */
-	--player-accent: var(--color-accent-500);
-	--player-accent-bright: var(--color-accent-400);
-
-	/* Both waveforms ride the ink ramp: played and unplayed separate by lightness on the site's cyan */
-	--player-waveform-played: var(--color-ink-300);
-	--player-waveform-track: var(--color-ink-800);
-	--player-panel-wave: var(--color-ink-200);
-	--player-panel-wave-edge: var(--color-ink-900);
-	--player-panel-void: var(--color-surface-600);
-	--player-panel-edge: var(--color-surface-300);
-	--player-panel-surface: var(--color-surface-800);
-	--player-panel-surface-deep: var(--color-surface-950);
-
-	/* The readout, in two tones of the one orange the transport already uses */
-	--player-panel-now: var(--color-highlight-400);
-	--player-panel-now-soft: var(--color-highlight-600);
+	--player-control-hover: var(--color-highlight-400);
+	--player-control-active: var(--color-highlight-400);
+	--player-control-active-hover: var(--color-highlight-300);
+	--player-control-inert: var(--color-ink-900);
+	--player-play-fill: var(--color-highlight-500);
+	--player-play-fill-hover: var(--color-highlight-400);
+	--player-play-glyph: var(--color-highlight-200);
+	--player-play-glyph-hover: var(--color-highlight-100);
+	--player-drag-handle: var(--color-surface-400);
+	--player-current: var(--color-highlight-400);
+	--player-focus-ring: var(--color-highlight-500);
+	--player-waveform-base: var(--color-ink-700);
+	--player-waveform-played: var(--color-ink-100);
+	--player-waveform-scrub: var(--color-ink-400);
+	--player-panel-wave: var(--color-ink-100);
+	--player-panel-wave-peak: var(--color-ink-900);
+	--player-panel-ghost: var(--color-ink-400);
+	--player-panel-grid: var(--color-surface-600);
+	--player-panel-ends: var(--color-surface-300);
+	--player-panel-cue: var(--color-ink-100);
+	--player-playhead: var(--color-highlight-400);
+	--player-cue-dot: var(--color-accent-400);
+	--player-cue-artist: var(--color-highlight-400);
+	--player-cue-title: var(--color-highlight-600);
 
 	/* The fader's slot and its cap, off the surface ramp so they read as hardware rather than as control */
-	--player-volume-track: var(--color-surface-600);
-	--player-volume-track-bright: var(--color-surface-400);
+	--player-fader-slot: var(--color-surface-700);
 	--player-fader-cap: var(--color-surface-300);
+	--player-fader-cap-hover: var(--color-surface-200);
 	--player-font-mono: var(--font-mono);
-}
-
-/* The filled control rests where the icon buttons hover, so its own hover has to go a step past that */
-@media (hover: hover) {
-	.player-button-primary:hover {
-		background-color: var(--color-highlight-300);
-	}
-}
-
-.player-button-primary:focus-visible {
-	background-color: var(--color-highlight-300);
 }
 
 /* Nothing queued means no bar; the sticky dock collapses to where `MainTopButton` sits with the flag off */

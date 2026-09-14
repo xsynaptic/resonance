@@ -65,15 +65,16 @@ export function PlayerIsland({
 			applied = rowState;
 			markRows(rowState);
 		});
-		const onPageLoad = (): void => {
+		// Page load fires after the transition animates in, so marking there flashes the stale state
+		const onAfterSwap = (): void => {
 			markRows(currentRowState());
 		};
 
-		document.addEventListener('astro:page-load', onPageLoad);
+		document.addEventListener('astro:after-swap', onAfterSwap);
 
 		return () => {
 			unsubscribe();
-			document.removeEventListener('astro:page-load', onPageLoad);
+			document.removeEventListener('astro:after-swap', onAfterSwap);
 		};
 	}, []);
 

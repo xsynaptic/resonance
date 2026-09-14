@@ -137,5 +137,6 @@
 
 /* The row the playhead is in, marked by the player island */
 .track-item[data-cue-current] {
-	box-shadow: inset 3px 0 0 var(--color-highlight-600);
+	background-image: linear-gradient(to right, var(--player-playhead) 3px, transparent 3px);
+	background-repeat: no-repeat;
 }

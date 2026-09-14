@@ -86,6 +86,11 @@ export function createTransportActions({
 				return;
 			}
 
+			if (state.status === 'error') {
+				playback.loadIndex(state.currentIndex, true, { resumeAtSeconds: state.currentTimeSeconds });
+				return;
+			}
+
 			// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
 			if (!playback.holdsTrack(state.queue[state.currentIndex]?.queueId)) {
 				playback.loadIndex(state.currentIndex, true, { resumeAtSeconds: state.currentTimeSeconds });

@@ -3,9 +3,11 @@ import { defineCollection } from 'astro:content';
 
 import { contentCollectionsPath } from '#constants.ts';
 import { downloadsLoader } from '#lib/collections/downloads/downloads-loader.ts';
+import { stationsLoader } from '#lib/collections/stations/stations-loader.ts';
 import { mixSchema, reviewSchema } from '#lib/schemas/audio.ts';
 import { pageSchema, postSchema } from '#lib/schemas/documents.ts';
 import { downloadStatsSchema } from '#lib/schemas/downloads.ts';
+import { stationSchema } from '#lib/schemas/stations.ts';
 import {
 	artistSchema,
 	eraSchema,
@@ -35,6 +37,7 @@ export const collections = {
 	regions: defineCollection({ loader: collectionLoader('regions'), schema: regionSchema }),
 	reviews: defineCollection({ loader: collectionLoader('reviews'), schema: reviewSchema }),
 	series: defineCollection({ loader: collectionLoader('series'), schema: seriesSchema }),
+	stations: defineCollection({ loader: stationsLoader(), schema: stationSchema }),
 	styles: defineCollection({ loader: collectionLoader('styles'), schema: styleSchema }),
 	themes: defineCollection({ loader: collectionLoader('themes'), schema: themeSchema }),
 };

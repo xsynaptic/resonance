@@ -182,6 +182,31 @@ describe('playRelease', () => {
 	});
 });
 
+describe('playQueue', () => {
+	test('replaces a running queue and plays the new one from the top', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'b');
+		store.getState().playQueue([makeItem('x'), makeItem('y')]);
+
+		const state = store.getState();
+
+		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['x', 'y']);
+		expect(state.currentIndex).toBe(0);
+		expect(fake.engine.reset).toHaveBeenCalledOnce();
+	});
+
+	test('ignores an empty list rather than clearing what is loaded', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'b');
+		store.getState().playQueue([]);
+
+		expect(store.getState().queue).toHaveLength(3);
+		expect(store.getState().currentIndex).toBe(1);
+	});
+});
+
 describe('queueTrack', () => {
 	test('appends the clicked track without loading or playing it', () => {
 		const store = configured();
@@ -710,6 +735,32 @@ describe('engine errors', () => {
 			shouldAutoplay: true,
 			src: 'https://api.test/b',
 		});
+	});
+
+	test('reloads a failed track where it stood when play is pressed again', async () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+
+		fake.callbacks.current?.onError('network');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
+		});
+		fake.callbacks.current?.onTime(42);
+		fake.callbacks.current?.onError('network');
+		expect(store.getState().status).toBe('error');
+
+		store.getState().togglePlay();
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(3);
+		});
+		expect(fake.engine.load).toHaveBeenLastCalledWith(
+			expect.objectContaining({ resumeAtSeconds: 42, shouldAutoplay: true }),
+		);
+		expect(fake.engine.play).not.toHaveBeenCalled();
 	});
 
 	test('enters the error state when the resolve itself never answers', async () => {

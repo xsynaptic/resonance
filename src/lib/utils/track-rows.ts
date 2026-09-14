@@ -2,6 +2,7 @@ import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
 import type { TrackGroup } from '#lib/utils/track-groups.ts';
 
+import { parseTimestampSeconds } from '#lib/collections/mixes/mixes-cue.ts';
 import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
 
 export interface TrackGroupRows {
@@ -20,6 +21,7 @@ export interface TrackRow {
 	metaSeparator: string;
 	position: string;
 	remixCredit: Array<LinkedName>;
+	startSeconds: number | undefined;
 	time: string | undefined;
 	title: string;
 	year: string | undefined;
@@ -73,6 +75,8 @@ async function buildRow(track: TrackValue, index: number): Promise<TrackRow> {
 		// A release track carries its own position ("A1"); a mix track falls back to the ordinal
 		position: padOrdinal(track.position ?? String(index + 1)),
 		remixCredit: visibleMixArtists(track.title, mixArtists),
+		startSeconds:
+			track.timestamp === undefined ? undefined : parseTimestampSeconds(track.timestamp),
 		time: track.duration,
 		title: track.title,
 		year: track.year,

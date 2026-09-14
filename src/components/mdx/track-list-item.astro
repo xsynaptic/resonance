@@ -10,7 +10,7 @@ interface Props {
 const { row } = Astro.props;
 ---
 
-<li class="track-item">
+<li class="track-item" data-cue-seconds={row.startSeconds}>
 	<span aria-hidden="true" class="track-index">
 		{row.position}.
 	</span>

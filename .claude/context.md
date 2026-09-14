@@ -48,6 +48,8 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Series**: An ordered, hand-curated sequence of Entries that may span Collections. Unlike a Term it is a reading order rather than a classification, and the Series owns its membership instead of being discovered from its members. _Avoid_: collection, playlist, set.
 
+**Station**: A hand-picked, ordered set of Mixes offered on the homepage as a play button in a carousel, which fills the Playlist and starts playing when pressed. Content, held in the content repository's `data/stations.yaml`: a title, an optional Featured Image, and the Mixes by id as `stationItems`. Not an Entry, so its id sits outside the flat Entry ids. Decided 2026-09-14. _Avoid_: playlist (that is the queue), channel, series, mixtape.
+
 ### Vocabulary and reference
 
 **Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.

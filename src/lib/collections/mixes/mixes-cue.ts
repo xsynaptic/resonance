@@ -81,16 +81,8 @@ export function hasMixTimestamps(entry: CollectionEntry<'mixes'>): boolean {
 	return toFlatTracks(entry.data.tracks).some((track) => track.timestamp !== undefined);
 }
 
-// Catalog credits and free text both collapse to a display name; a cue sheet has nowhere to put a link
-async function joinArtists(credits: Array<CreditValue> | undefined): Promise<string | undefined> {
-	const resolved = await resolveCredits('artists', credits);
-	if (resolved.length === 0) return undefined;
-
-	return resolved.map((artist) => artist.name).join(', ');
-}
-
 // The fractional part is hundredths of a second, matching the schema's `HH:MM:SS.dd`
-function parseTimestampSeconds(timestamp: string): number | undefined {
+export function parseTimestampSeconds(timestamp: string): number | undefined {
 	const match = /^(\d+):(\d+):(\d+)(?:\.(\d{1,2}))?$/.exec(timestamp);
 	if (!match) return undefined;
 
@@ -98,4 +90,11 @@ function parseTimestampSeconds(timestamp: string): number | undefined {
 	const hundredths = fraction === undefined ? 0 : Number(fraction.padEnd(2, '0'));
 
 	return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds) + hundredths / 100;
+}
+
+async function joinArtists(credits: Array<CreditValue> | undefined): Promise<string | undefined> {
+	const resolved = await resolveCredits('artists', credits);
+	if (resolved.length === 0) return undefined;
+
+	return resolved.map((artist) => artist.name).join(', ');
 }

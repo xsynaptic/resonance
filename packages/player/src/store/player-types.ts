@@ -30,10 +30,16 @@ export interface PlayerActions {
 	next: () => void;
 	pause: () => void;
 	playAt: (index: number) => void;
+	// Replaces the queue with these items and plays from the top
+	playQueue: (items: ReadonlyArray<QueueItem>) => void;
 	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
 	playRelease: (releaseItems: ReadonlyArray<QueueItem>) => void;
 	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
-	playTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
+	playTrack: (
+		releaseItems: ReadonlyArray<QueueItem>,
+		trackId: string,
+		startSeconds?: number,
+	) => void;
 	previous: () => void;
 	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
 	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;

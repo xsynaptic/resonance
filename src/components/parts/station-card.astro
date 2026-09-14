@@ -1,0 +1,43 @@
+---
+import type { Station } from '#lib/collections/stations/stations-data.ts';
+
+import MediaImage from '#components/parts/media-image.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+import { formatStringTemplate } from '#lib/utils/text.ts';
+
+interface Props {
+	priority?: boolean | undefined;
+	station: Station;
+}
+
+const { priority = false, station } = Astro.props;
+---
+
+<button
+	aria-label={formatStringTemplate(t('home.stations.play'), { title: station.title })}
+	class="group relative block aspect-square w-full cursor-pointer overflow-hidden rounded-lg bg-surface-700 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+	data-play-queue={station.items.map((item) => item.trackId).join(' ')}
+	type="button"
+>
+	{station.image ? (
+		<MediaImage
+			alt=""
+			class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 group-focus-visible:scale-105"
+			path={station.image}
+			sizes="auto, (min-width: 80rem) 288px, (min-width: 40rem) 50vw, 100vw"
+			width={300}
+			{...(priority ? { priority: true } : {})}
+		/>
+	) : undefined}
+	<span class="absolute inset-0 bg-linear-to-t from-surface-950/90 via-surface-950/40 to-surface-950/10"></span>
+	<span class="absolute inset-0 flex items-center justify-center">
+		<span class="flex size-16 items-center justify-center rounded-full bg-highlight-400 text-surface-800 shadow-lg transition group-hover:scale-110 group-hover:bg-highlight-300 group-focus-visible:scale-110 group-focus-visible:bg-highlight-300">
+			<svg aria-hidden="true" class="ml-1 size-7 fill-current">
+				<use href="#icon:play"></use>
+			</svg>
+		</span>
+	</span>
+	<span class="absolute inset-x-0 bottom-0 p-4 font-display text-xl font-bold text-ink-50">
+		{station.title}
+	</span>
+</button>

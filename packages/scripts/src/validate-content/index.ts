@@ -20,6 +20,7 @@ import { validatePlatformLinks } from '#validate-content/platform-links.ts';
 import { validateReferences } from '#validate-content/references.ts';
 import { validateReviewFolders } from '#validate-content/review-folders.ts';
 import { validateSeriesItems } from '#validate-content/series-items.ts';
+import { validateStationItems } from '#validate-content/station-items.ts';
 import { validateTrackGroups } from '#validate-content/track-groups.ts';
 import { validateTrackTimestamps } from '#validate-content/track-timestamps.ts';
 import { reportValidationResult } from '#validate-content/validation-result.ts';
@@ -53,9 +54,10 @@ const mediaPath = 'packages/content/media';
 
 const rootPath = findWorkspaceRoot();
 
-const allEntries = await withAstroContent((content) =>
-	getCollectionEntries(content, [...contentCollections]),
-);
+const { allEntries, stations } = await withAstroContent(async (content) => ({
+	allEntries: await getCollectionEntries(content, [...contentCollections]),
+	stations: await content.getCollection('stations'),
+}));
 
 function entriesFrom(...collections: Array<string>) {
 	return allEntries.filter((entry) => collections.includes(entry.collection));
@@ -73,7 +75,7 @@ const validations = {
 	credits: () => validateCredits(allEntries, entriesFrom('artists', 'labels')),
 	'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
 	'entry-ids': () => validateEntryIds(allEntries),
-	images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
+	images: () => validateImages([...allEntries, ...stations], path.resolve(rootPath, mediaPath)),
 	'link-ids': () => validateLinkIds(allEntries, allEntries, rootPath),
 	mdx: () => validateMdxComponents(allEntries, rootPath),
 	'platform-links': () => validatePlatformLinks(entriesFrom('mixes'), platformKeys),
@@ -81,6 +83,7 @@ const validations = {
 	'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
 	'series-items': () =>
 		validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
+	'station-items': () => validateStationItems(stations, entriesFrom('mixes')),
 	'track-groups': () => validateTrackGroups(entriesFrom('mixes')),
 	'track-timestamps': () => validateTrackTimestamps(entriesFrom(...audioCollections)),
 } satisfies Record<string, () => ValidationResult>;

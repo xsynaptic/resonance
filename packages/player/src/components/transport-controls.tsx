@@ -32,7 +32,7 @@ export function TransportControls({
 		<div className={joinClassNames('player-transport', className)}>
 			<Button
 				aria-label={labels.previous}
-				className="player-button-icon"
+				className="player-button-icon player-step"
 				disabled={!isTrackLoaded}
 				onClick={() => {
 					store.getState().previous();
@@ -77,7 +77,7 @@ export function TransportControls({
 			)}
 			<Button
 				aria-label={labels.next}
-				className="player-button-icon"
+				className="player-button-icon player-step"
 				disabled={!isTrackLoaded}
 				onClick={() => {
 					store.getState().next();

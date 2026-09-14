@@ -1,0 +1,41 @@
+---
+import { getCollectionPath } from '@xsynaptic/shared/routing';
+
+import type { Station } from '#lib/collections/stations/stations-data.ts';
+
+import Anchor from '#components/parts/anchor.astro';
+import Carousel from '#components/parts/carousel.astro';
+import StationCard from '#components/parts/station-card.astro';
+import PlayerPayload from '#components/player/player-payload.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	stations: Array<Station>;
+}
+
+const { stations } = Astro.props;
+
+const items = [
+	...new Map(
+		stations.flatMap((station) => station.items).map((item) => [item.trackId, item]),
+	).values(),
+];
+---
+
+<section class="mb-12">
+	<div class="mb-4 flex items-baseline justify-between">
+		<h2 class="heading-section">{t('home.stations.heading')}</h2>
+		<Anchor class="text-sm" href={getCollectionPath('mixes')}>
+			{t('home.mixes.link')}
+		</Anchor>
+	</div>
+	<p class="mb-4 text-ink-300">{t('home.stations.lead')}</p>
+	<Carousel label={t('home.stations.carouselLabel')}>
+		{stations.map((station, index) => (
+			<li>
+				<StationCard priority={index === 0} station={station} />
+			</li>
+		))}
+	</Carousel>
+	<PlayerPayload items={items} />
+</section>

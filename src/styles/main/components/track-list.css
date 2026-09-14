@@ -134,3 +134,8 @@
 	margin-inline-start: calc(var(--spacing) * 3);
 	line-height: 25px;
 }
+
+/* The row the playhead is in, marked by the player island */
+.track-item[data-cue-current] {
+	box-shadow: inset 3px 0 0 var(--color-highlight-600);
+}

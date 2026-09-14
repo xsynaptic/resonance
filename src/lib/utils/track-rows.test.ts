@@ -19,6 +19,7 @@ function rowOf(overrides: Partial<Parameters<typeof toFeedLine>[0]>) {
 		metaSeparator: '',
 		position: '01',
 		remixCredit: [],
+		startSeconds: undefined,
 		time: undefined,
 		title: 'A Track',
 		year: undefined,

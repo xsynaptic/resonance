@@ -935,7 +935,7 @@
 
 @container (width < 52rem) {
 	.player-bar:not([data-layout]) .player-bar-grid {
-		--player-layout-areas: 'info info panel volume queue' 'transport seek seek seek seek';
+		--player-layout-areas: 'transport info panel volume queue' 'seek seek seek seek seek';
 		--player-layout-columns: auto minmax(0, 1fr) auto auto auto;
 		--player-layout-scope: none;
 		--player-layout-skip: inline-flex;
@@ -985,13 +985,41 @@
 	display: var(--player-layout-skip);
 }
 
-/* `40rem` is Tailwind's `sm` */
 @container (width < 40rem) {
+	.player-bar:not([data-layout]) .player-bar-grid {
+		--player-layout-areas: 'transport info panel queue' 'seek seek seek seek';
+		--player-layout-columns: auto minmax(0, 1fr) auto auto;
+	}
+
+	.player-bar .player-step,
+	.player-bar .player-cues,
+	.player-bar .player-volume {
+		display: none;
+	}
+
 	.player-bar .player-track-meta {
 		--player-clock-width: 0;
 	}
 
 	.player-bar .player-time {
 		display: none;
+	}
+}
+
+@media (pointer: coarse) {
+	.player-button-icon,
+	.player-button-primary,
+	.player-button-small,
+	.player-tray-handle {
+		position: relative;
+	}
+
+	.player-button-icon::before,
+	.player-button-primary::before,
+	.player-button-small::before,
+	.player-tray-handle::before {
+		position: absolute;
+		inset: calc((2.75rem - 100%) / -2);
+		content: '';
 	}
 }

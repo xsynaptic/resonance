@@ -45,7 +45,8 @@
 		"@xsynaptic/player": "workspace:*",
 		"astro": "^7.3.2",
 		"react": "^19.3.0",
-		"react-dom": "^19.3.0"
+		"react-dom": "^19.3.0",
+		"yaml": "^2.9.0"
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",

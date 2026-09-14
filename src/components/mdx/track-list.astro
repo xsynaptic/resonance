@@ -13,7 +13,7 @@ interface Props {
 
 const { tracks } = Astro.props;
 
-const { isFeed } = Astro.locals;
+const { isFeed, playerMixId } = Astro.locals;
 
 // The tag is auto-imported into MDX bodies and has no props naming its entry, so the route supplies it
 // Off a mix detail page (feed, inventory) there is no slug and the cue half of a download drops out
@@ -28,7 +28,7 @@ const hasRows = groups.some((group) => group.rows.length > 0);
 
 {isFeed && hasRows ? <TrackListFeed groups={groups} /> : undefined}
 {!isFeed && hasRows ? (
-	<section class="my-8">
+	<section class="my-8" data-cue-mix={playerMixId}>
 		<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 		{groups.map((group) => (
 			<TrackListGroup group={group} />

@@ -25,6 +25,7 @@ let parsedItems: Array<PlayerPayloadItem> | undefined;
 const payloadItems = new Map<string, PlayerPayloadItem>();
 
 interface RowState {
+	cueStartSeconds: number | undefined;
 	isPlaying: boolean;
 	trackId: string | undefined;
 }
@@ -59,7 +60,7 @@ export function PlayerIsland({
 
 		const unsubscribe = playerStore.subscribe(() => {
 			const rowState = currentRowState();
-			if (rowState.trackId === applied.trackId && rowState.isPlaying === applied.isPlaying) return;
+			if (isSameRowState(rowState, applied)) return;
 
 			applied = rowState;
 			markRows(rowState);
@@ -80,16 +81,24 @@ export function PlayerIsland({
 }
 
 function currentRowState(): RowState {
-	const { currentIndex, queue, status } = playerStore.getState();
-	const trackId = currentIndex === undefined ? undefined : queue[currentIndex]?.trackId;
+	const { currentIndex, currentTimeSeconds, queue, status } = playerStore.getState();
+	const item = currentIndex === undefined ? undefined : queue[currentIndex];
+	const cuePoints = item?.cuePoints ?? [];
+	let cueStartSeconds: number | undefined;
 
-	return { isPlaying: status === 'playing', trackId };
+	for (const cue of cuePoints) {
+		if (cue.startSeconds > currentTimeSeconds) break;
+
+		cueStartSeconds = cue.startSeconds;
+	}
+
+	return { cueStartSeconds, isPlaying: status === 'playing', trackId: item?.trackId };
 }
 
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
 function dispatchControl(target: Element | undefined): void {
 	const control = target?.closest<HTMLElement>(
-		'[data-queue-track],[data-play-track],[data-play-release]',
+		'[data-queue-track],[data-play-track],[data-play-release],[data-play-queue]',
 	);
 	if (!control) return;
 
@@ -97,7 +106,12 @@ function dispatchControl(target: Element | undefined): void {
 	if (!items) return;
 
 	const store = playerStore.getState();
-	const { playRelease, playTrack, queueTrack } = control.dataset;
+	const { playQueue, playRelease, playTrack, queueTrack } = control.dataset;
+
+	if (playQueue !== undefined) {
+		store.playQueue(stationItems(playQueue));
+		return;
+	}
 
 	if (queueTrack) {
 		store.queueTrack(items, queueTrack);
@@ -112,12 +126,31 @@ function dispatchControl(target: Element | undefined): void {
 	if (playRelease !== undefined) store.playRelease(items);
 }
 
-function markRows({ isPlaying, trackId }: RowState): void {
+function isSameRowState(first: RowState, second: RowState): boolean {
+	return (
+		first.trackId === second.trackId &&
+		first.isPlaying === second.isPlaying &&
+		first.cueStartSeconds === second.cueStartSeconds
+	);
+}
+
+function markRows({ cueStartSeconds, isPlaying, trackId }: RowState): void {
 	for (const row of document.querySelectorAll<HTMLElement>('[data-track-id]')) {
 		const isLoaded = trackId !== undefined && row.dataset.trackId === trackId;
 
 		row.toggleAttribute('data-loaded', isLoaded);
 		row.toggleAttribute('data-playing', isLoaded && isPlaying);
+	}
+
+	for (const list of document.querySelectorAll<HTMLElement>('[data-cue-mix]')) {
+		const isLoaded = trackId !== undefined && list.dataset.cueMix === trackId;
+
+		for (const row of list.querySelectorAll<HTMLElement>('[data-cue-seconds]')) {
+			row.toggleAttribute(
+				'data-cue-current',
+				isLoaded && Number(row.dataset.cueSeconds) === cueStartSeconds,
+			);
+		}
 	}
 }
 
@@ -149,4 +182,11 @@ function resolve(trackId: string, field: 'archiveUrl' | 'streamUrl'): string | u
 			Partial<PlayerPayloadItem> | undefined);
 
 	return item?.[field];
+}
+
+function stationItems(ids: string): Array<PlayerPayloadItem> {
+	return ids
+		.split(' ')
+		.map((trackId) => payloadItems.get(trackId))
+		.filter((item) => item !== undefined);
 }

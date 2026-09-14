@@ -25,6 +25,7 @@ type QueueActions = Pick<
 	| 'hydrateQueue'
 	| 'loadQueue'
 	| 'moveItem'
+	| 'playQueue'
 	| 'playRelease'
 	| 'playTrack'
 	| 'queueTrack'
@@ -114,6 +115,13 @@ export function createQueueActions({
 			if (isSectioned(state.queue) || !canMove(state.queue.length, from, to)) return;
 
 			set(movedItem(state, from, to));
+		},
+
+		playQueue: (items) => {
+			if (items.length === 0) return;
+
+			get().clearQueue();
+			enqueue(items);
 		},
 
 		playRelease: (releaseItems) => {

@@ -58,6 +58,8 @@ const queueItem = isPlayerEnabled
 	? await getMixQueueItem(entry, work.credit?.name ?? site.title)
 	: undefined;
 
+if (queueItem) Astro.locals.playerMixId = entry.id;
+
 // A group naming its own files renders those downloads inline, so the header would otherwise offer them twice
 const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.files !== undefined);
 ---

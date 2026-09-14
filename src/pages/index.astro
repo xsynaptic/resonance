@@ -3,9 +3,11 @@ import { openGraphHomeId } from '@xsynaptic/shared/constants';
 
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
+import StationsSection from '#components/sections/section-stations.astro';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
+import { getStations } from '#lib/collections/stations/stations-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { site } from '#lib/site.ts';
+import { isPlayerEnabled, site } from '#lib/site.ts';
 import { buildAuthorSchema, buildWebSiteSchema } from '#lib/utils/seo-structured-data.ts';
 
 const catalog = await getCatalog();
@@ -13,6 +15,7 @@ const catalog = await getCatalog();
 const mixItems = catalog.byCollection('mixes').slice(0, 4);
 const reviewItems = catalog.byCollection('reviews').slice(0, 4);
 const postItems = catalog.byCollection('posts').slice(0, 4);
+const stations = isPlayerEnabled ? await getStations() : [];
 ---
 
 <MainSite openGraphId={openGraphHomeId} schemas={[buildWebSiteSchema(), buildAuthorSchema()]}>
@@ -20,6 +23,7 @@ const postItems = catalog.byCollection('posts').slice(0, 4);
 		<h1 class="title-main">{site.title}</h1>
 		<p class="mt-2 content-measure text-ink-300">{t('home.intro')}</p>
 	</section>
+	{stations.length > 0 ? <StationsSection stations={stations} /> : undefined}
 	<HomeSection collection="mixes" items={mixItems} priority={true} />
 	<HomeSection collection="reviews" items={reviewItems} />
 	<HomeSection collection="posts" items={postItems} />

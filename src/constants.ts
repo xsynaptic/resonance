@@ -18,3 +18,6 @@ export const mixcloudStatsPath = './packages/content/data/mixcloud-stats.jsonl';
 
 // Pulled via `pnpm soundcloud-stats` and committed, so a build never reaches SoundCloud
 export const soundcloudStatsPath = './packages/content/data/soundcloud-stats.jsonl';
+
+// Hand-edited, unlike the generated files beside it
+export const stationsDataPath = './packages/content/data/stations.yaml';

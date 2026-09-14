@@ -1,0 +1,6 @@
+{
+	// Zero disables CRAP, which fallow otherwise estimates without coverage data
+	"health": { "maxCrap": 0 },
+	// A threshold of zero means no limit; this fails on any clone group
+	"duplicates": { "minTokens": 70, "threshold": 0.01 },
+}

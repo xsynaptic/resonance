@@ -29,6 +29,11 @@ check:
                   run: tsc --noEmit -p worker
           - name: unused
             run: knip
+          # Dead code stays with knip, which already encodes fallow's false positives
+          - name: dupes
+            run: fallow dupes --quiet
+          - name: complexity
+            run: fallow health --complexity --quiet
           - name: test
             run: vitest run
 
@@ -57,3 +62,8 @@ fix:
             run: tsc --noEmit -p worker
     - name: unused
       run: knip
+    # Dead code stays with knip, which already encodes fallow's false positives
+    - name: dupes
+      run: fallow dupes --quiet
+    - name: complexity
+      run: fallow health --complexity --quiet

@@ -1,5 +1,5 @@
 packages:
-  - packages/**
+  - packages/*
 
 # Mitigate supply-chain attacks by requiring packages to be at least 48h old
 minimumReleaseAge: 2880
@@ -10,6 +10,11 @@ minimumReleaseAgeExclude:
   - astro
   - '@astrojs/*'
   - '@xsynaptic/*'
+
+# TypeScript 7 native binaries for fallow's type-aware mode, which this project does not use
+# Removal override because pnpm 12.3.4 still installs packages listed in ignoredOptionalDependencies
+overrides:
+  fallow-type-aware: '-'
 
 peerDependencyRules:
   allowedVersions:

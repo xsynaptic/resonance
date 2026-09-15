@@ -34,7 +34,7 @@ class DownloadStatsTest(unittest.TestCase):
         (self.media_root / "stream").mkdir(parents=True)
         (self.media_root / "artifacts" / "Test Mix.mp3").write_bytes(b"x" * 1000)
         (self.media_root / "artifacts" / "Quiet Mix.flac").write_bytes(b"x" * 2000)
-        (self.media_root / "stream" / "Test Mix.a1b2c3d4e5f6.webm").write_bytes(b"x" * 800)
+        (self.media_root / "stream" / "Test Mix.a1b2c3d4e5f6.mp4").write_bytes(b"x" * 800)
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
@@ -60,7 +60,7 @@ class DownloadStatsTest(unittest.TestCase):
         # Both prefixes, zero-download files included, and the rendition's hash stripped off its key
         self.assertEqual(
             keys,
-            ["artifacts/Quiet Mix.flac", "artifacts/Test Mix.mp3", "stream/Test Mix.webm"],
+            ["artifacts/Quiet Mix.flac", "artifacts/Test Mix.mp3", "stream/Test Mix.mp4"],
         )
 
         test_mix = doc["files"][1]
@@ -83,17 +83,17 @@ class DownloadStatsTest(unittest.TestCase):
 
         db = sqlite3.connect(self.state_dir / "stats.sqlite")
         stream_bytes = db.execute(
-            "SELECT bytes_sent FROM daily_rollup WHERE file_key = 'stream/Test Mix.webm'"
+            "SELECT bytes_sent FROM daily_rollup WHERE file_key = 'stream/Test Mix.mp4'"
         ).fetchone()
         db.close()
         self.assertEqual(stream_bytes, (500,))
 
     def test_untracked_extensions_are_ignored(self):
-        # .m4a is the abandoned AAC rendition format; a webm under /artifacts/ is equally out of place
+        # .webm and .m4a are abandoned rendition formats; a webm under /artifacts/ is equally out of place
         template = "2026-01-10T10:00:00+00:00\t{uri}\t200\t800\tOK\t-\t1.000\t203.0.113.70\tMozilla/5.0 (Macintosh)\t-\n"
         self.write_log(
             "downloads-2026-01-10.log",
-            template.format(uri="/stream/Test%20Mix.m4a") + template.format(uri="/artifacts/Test%20Mix.webm"),
+            template.format(uri="/stream/Test%20Mix.a1b2c3d4e5f6.webm") + template.format(uri="/stream/Test%20Mix.m4a") + template.format(uri="/artifacts/Test%20Mix.webm"),
         )
         self.run_script()
 
@@ -197,7 +197,7 @@ class DownloadStatsTest(unittest.TestCase):
 
     def test_a_partial_listen_counts_as_a_stream_but_not_as_a_download(self):
         # The same fraction of a file, judged by the two thresholds: 0.375 is a listen, not a download
-        listen = "2026-01-10T10:00:00+00:00\t/stream/Test%20Mix.a1b2c3d4e5f6.webm\t206\t300\tOK\tbytes=0-299\t1.000\t203.0.113.81\tMozilla/5.0 (Macintosh)\t-\n"
+        listen = "2026-01-10T10:00:00+00:00\t/stream/Test%20Mix.a1b2c3d4e5f6.mp4\t206\t300\tOK\tbytes=0-299\t1.000\t203.0.113.81\tMozilla/5.0 (Macintosh)\t-\n"
         self.write_log(
             "downloads-2026-01-10.log",
             listen
@@ -206,7 +206,7 @@ class DownloadStatsTest(unittest.TestCase):
         self.run_script()
 
         counts = {entry["key"]: entry["completions"] for entry in self.read_json()["files"]}
-        self.assertEqual(counts["stream/Test Mix.webm"], 1)
+        self.assertEqual(counts["stream/Test Mix.mp4"], 1)
         self.assertEqual(counts["artifacts/Test Mix.mp3"], 0)
 
     def test_a_re_encode_does_not_reset_a_listener(self):
@@ -215,20 +215,20 @@ class DownloadStatsTest(unittest.TestCase):
         stream_line = "{ts}\t/stream/{name}\t206\t500\tOK\tbytes=0-499\t1.000\t203.0.113.80\tMozilla/5.0 (Macintosh)\t-\n"
         self.write_log(
             "downloads-2026-01-09.log",
-            stream_line.format(ts="2026-01-09T10:00:00+00:00", name="Test%20Mix.a1b2c3d4e5f6.webm"),
+            stream_line.format(ts="2026-01-09T10:00:00+00:00", name="Test%20Mix.a1b2c3d4e5f6.mp4"),
         )
         self.run_script()
 
-        (self.media_root / "stream" / "Test Mix.a1b2c3d4e5f6.webm").unlink()
-        (self.media_root / "stream" / "Test Mix.9f8e7d6c5b4a.webm").write_bytes(b"x" * 800)
+        (self.media_root / "stream" / "Test Mix.a1b2c3d4e5f6.mp4").unlink()
+        (self.media_root / "stream" / "Test Mix.9f8e7d6c5b4a.mp4").write_bytes(b"x" * 800)
         self.write_log(
             "downloads-2026-01-10.log",
-            stream_line.format(ts="2026-01-10T10:00:00+00:00", name="Test%20Mix.9f8e7d6c5b4a.webm"),
+            stream_line.format(ts="2026-01-10T10:00:00+00:00", name="Test%20Mix.9f8e7d6c5b4a.mp4"),
         )
         self.run_script()
 
         streams = [entry for entry in self.read_json()["files"] if entry["key"].startswith("stream/")]
-        self.assertEqual([entry["key"] for entry in streams], ["stream/Test Mix.webm"])
+        self.assertEqual([entry["key"] for entry in streams], ["stream/Test Mix.mp4"])
         self.assertEqual(streams[0]["completions"], 1)
 
     def test_missing_log_dir_is_harmless(self):

@@ -42,11 +42,11 @@ UA_BLOCKLIST = (
     "resonance-deploy-probe",
 )
 
-MEDIA_SUFFIXES = {"artifacts": (".mp3", ".flac"), "stream": (".webm",)}
+MEDIA_SUFFIXES = {"artifacts": (".mp3", ".flac"), "stream": (".mp4",)}
 LOG_DATE_RE = re.compile(r"-(\d{4}-\d{2}-\d{2})\.log$")
-FILE_KEY_RE = re.compile(r"^/artifacts/[^/]+\.(mp3|flac)$|^/stream/[^/]+\.webm$")
+FILE_KEY_RE = re.compile(r"^/artifacts/[^/]+\.(mp3|flac)$|^/stream/[^/]+\.mp4$")
 # Stripped to one stable key per mix, or a re-encode would reset every listener's credit
-STREAM_HASH_RE = re.compile(r"\.[0-9a-f]{12}(\.webm)$")
+STREAM_HASH_RE = re.compile(r"\.[0-9a-f]{12}(\.mp4)$")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS files (

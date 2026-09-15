@@ -18,4 +18,5 @@ export type {
 	MixStreamsDocument,
 	MixWaveformEntry,
 	MixWaveformsDocument,
+	StreamLoudness,
 } from '#schemas/mix-audio.ts';

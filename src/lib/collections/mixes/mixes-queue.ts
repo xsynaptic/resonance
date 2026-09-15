@@ -32,11 +32,11 @@ export async function getMixQueueItem(
 	const cuePoints = await getMixCuePoints(entry);
 
 	return {
-		albumLoudness: {},
+		albumLoudness: audio.loudness,
 		archiveUrl: audio.archiveUrl,
 		artistLine,
 		durationMs: audio.seconds * 1000,
-		loudness: {},
+		loudness: audio.loudness,
 		releaseHref: getContentPath('mixes', entry.id),
 		releaseTitle: entry.data.title,
 		streamUrl: audio.streamUrl,

@@ -1,3 +1,4 @@
+import type { StreamLoudness } from '@xsynaptic/shared/schemas';
 import type { z } from 'zod';
 
 import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
@@ -10,6 +11,7 @@ import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
 	archiveUrl: string;
+	loudness: StreamLoudness;
 	peaks: Array<number>;
 	seconds: number;
 	streamUrl: string;
@@ -61,7 +63,7 @@ async function buildIndex(): Promise<MixAudioIndex> {
 
 	if (!streams || !waveforms) return index;
 
-	const streamsByBase = new Map(streams.mixes.map((mix) => [mix.base, mix.stream]));
+	const streamsByBase = new Map(streams.mixes.map((mix) => [mix.base, mix]));
 
 	for (const waveform of waveforms.mixes) {
 		const stream = streamsByBase.get(waveform.base);
@@ -70,13 +72,14 @@ async function buildIndex(): Promise<MixAudioIndex> {
 
 		const audio = {
 			archiveUrl: `${waveformBaseUrl}${encodeURIComponent(waveform.archive)}`,
+			loudness: stream.loudness,
 			peaks: waveform.peaks,
 			seconds: waveform.seconds,
-			streamUrl: `${streamBaseUrl}${encodeURIComponent(stream)}`,
+			streamUrl: `${streamBaseUrl}${encodeURIComponent(stream.stream)}`,
 		};
 
 		index.archives.add(waveform.archive);
-		index.streams.add(stream);
+		index.streams.add(stream.stream);
 
 		for (const source of waveform.sources) index.byFile.set(source, audio);
 	}

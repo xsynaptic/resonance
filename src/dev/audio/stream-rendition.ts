@@ -6,7 +6,7 @@ import { getIndex } from '#lib/collections/mixes/mixes-audio.ts';
 export const prerender = false;
 
 export const GET = createLocalFileRoute({
-	contentType: 'audio/webm; codecs="opus"',
+	contentType: 'audio/mp4; codecs="opus"',
 	directory: './packages/content/streams',
 	names: async () => {
 		const index = await getIndex();

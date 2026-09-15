@@ -9,7 +9,6 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./artwork": "./src/lib/artwork.ts",
-		"./audio-graph": "./src/engine/audio-graph.ts",
 		"./player.css": "./src/player.css",
 		"./queue-storage-key": "./src/store/queue-storage-key.ts"
 	},

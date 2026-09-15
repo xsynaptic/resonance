@@ -42,7 +42,7 @@ export async function getMixQueueItem(
 		streamUrl: audio.streamUrl,
 		title: entry.data.title,
 		trackId: entry.id,
-		waveformOverview: audio.peaks,
+		waveformOverview: audio.peaks.map((peak) => Math.round(peak * 100) / 100),
 		...(artwork ? { artwork } : {}),
 		// Only alongside the cue points it qualifies; on its own the count tells the panel nothing
 		...(cuePoints.length > 0

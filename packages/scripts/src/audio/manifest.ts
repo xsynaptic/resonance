@@ -1,4 +1,4 @@
-import type { MixStreamEntry, MixWaveformEntry } from '@xsynaptic/shared/schemas';
+import type { MixStreamEntry, MixWaveformEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
 
 import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
 import {
@@ -16,7 +16,7 @@ import type { AudioSource } from '#audio/audio-sources.ts';
 
 import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { collectRenditions } from '#audio/renditions.ts';
+import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
 import { collectArchives, previewVersion } from '#audio/waveforms.ts';
 
 const previewExtension = '.json';
@@ -119,11 +119,16 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	const incomplete: Array<string> = [];
 
 	for (const source of sources) {
+		const stream = renditions.get(source.base);
 		const resolved = await resolveEntries({
 			archive: archives.get(source.base),
 			cacheDir,
+			loudness:
+				stream === undefined
+					? undefined
+					: await readRenditionLoudness(path.join(rootPath, streamsDir, stream)),
 			source,
-			stream: renditions.get(source.base),
+			stream,
 		});
 
 		if (!resolved) {
@@ -165,25 +170,27 @@ async function readPreview(file: string) {
 	}
 }
 
-// A mix missing its rendition, archive or preview is left out rather than half-published
+// A mix missing its rendition, loudness tags, preview is left out rather than half-published
 async function resolveEntries({
 	archive,
 	cacheDir,
+	loudness,
 	source,
 	stream,
 }: {
 	archive: string | undefined;
 	cacheDir: string;
+	loudness: StreamLoudness | undefined;
 	source: AudioSource;
 	stream: string | undefined;
 }): Promise<undefined | { stream: MixStreamEntry; waveform: MixWaveformEntry }> {
-	if (archive === undefined || stream === undefined) return undefined;
+	if (archive === undefined || loudness === undefined || stream === undefined) return undefined;
 
 	const preview = await readPreview(path.join(cacheDir, `${source.base}${previewExtension}`));
 	if (preview === undefined) return undefined;
 
 	return {
-		stream: { base: source.base, stream },
+		stream: { base: source.base, loudness, stream },
 		waveform: {
 			archive,
 			base: source.base,

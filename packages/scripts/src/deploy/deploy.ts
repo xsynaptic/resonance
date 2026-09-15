@@ -149,7 +149,7 @@ async function healthCheck({ archives, originals, renditions }: HealthCheckFiles
 
 	// Each is served from its own location block, so probing one proves nothing about the others
 	await probeAll({
-		contentTypePrefix: 'audio/webm',
+		contentTypePrefix: 'audio/mp4',
 		names: renditions,
 		pathPrefix: 'stream/',
 	});

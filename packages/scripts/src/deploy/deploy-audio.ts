@@ -27,7 +27,7 @@ const rsyncFlags = [
 ];
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
-const transferredRendition = /\.webm$/i;
+const transferredRendition = /\.mp4$/i;
 const transferredArchive = /\.dat$/i;
 
 export interface DeployedAudio {
@@ -170,18 +170,17 @@ export async function reapDerivedAudio(options: DeployAudioOptions): Promise<voi
 		);
 
 		console.log(
-			chalk.green(
-				`Reaped ${String(countDeleted(output, leg.transferred))} superseded ${leg.label.toLowerCase()}`,
-			),
+			chalk.green(`Reaped ${String(countDeleted(output))} superseded ${leg.label.toLowerCase()}`),
 		);
 	}
 }
 
-function countDeleted(output: string, pattern: RegExp): number {
+// Any extension counts, so a superseded format (the .webm renditions) is reported as it goes
+function countDeleted(output: string): number {
 	return output
 		.split('\n')
 		.map((line) => line.trim())
-		.filter((line) => line.startsWith('deleting ') && pattern.test(line)).length;
+		.filter((line) => line.startsWith('deleting ') && !line.endsWith('/')).length;
 }
 
 // --progress writes its own lines into the same stream, so match on the extension rather than shape

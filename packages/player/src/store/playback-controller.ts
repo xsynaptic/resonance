@@ -5,15 +5,15 @@ import type { PlayerStore } from '#store/player-types.ts';
 import type { PlaybackErrorStage, PlayerStatus, QueuedItem, StreamResolution } from '#types.ts';
 
 import { normalizationGain } from '#engine/playback-gain.ts';
-import { nextInOrder, toDurationSeconds } from '#queue/queue.ts';
+import { toDurationSeconds } from '#queue/queue.ts';
+import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
+
+// Nothing worth resuming stays in the engine after any of these
+const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
 
 export interface PlaybackController {
-	// At the end of the play order, stop without wrapping
-	advance: () => void;
 	analyser: () => AnalyserNode | undefined;
 	currentTime: () => number | undefined;
-	// Whether the engine holds this exact queued track; a restored or stopped queue is positioned with nothing in it
-	holdsTrack: (queueId: string | undefined) => boolean;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
 	outputDelay: () => number;
 	// Clears the intent, which stops a load short of playing wherever it has got to
@@ -36,6 +36,8 @@ interface LoadOptions {
 	resumeAtSeconds?: number;
 }
 
+type PressOutcome = 'ignore' | 'resume' | { index: number; resumeAtSeconds: number };
+
 // Owns the engine and the load state machine; every action that reaches audio comes through here
 export function createPlaybackController(
 	api: StoreApi<PlayerStore>,
@@ -53,7 +55,7 @@ export function createPlaybackController(
 	function ensureEngine(): AudioEngine {
 		if (engine) return engine;
 
-		engine = createEngine(toEngineCallbacks({ advance, api, onError: onEngineError }));
+		engine = createEngine(toEngineCallbacks({ api, onError: onEngineError }));
 		engine.setVolume(get().volume);
 
 		return engine;
@@ -116,28 +118,26 @@ export function createPlaybackController(
 				fail('resolve');
 			},
 			readPosition: () => get().currentTimeSeconds,
-			stream: () => urls.stream(item.trackId),
+			stream: () => urls.stream(item),
 		});
 	}
 
-	function advance(): void {
-		const { currentIndex, playOrder } = get();
-		if (currentIndex === undefined) return;
+	function play(): void {
+		const press = pressOutcome(get(), loadedQueueId);
+		if (press === 'ignore') return;
 
-		const upcoming = nextInOrder(playOrder, currentIndex);
-		if (upcoming === undefined) {
-			get().stop();
+		if (press === 'resume') {
+			set({ isPlayIntended: true });
+			void ensureEngine().play();
 			return;
 		}
 
-		loadIndex(upcoming, true);
+		loadIndex(press.index, true, { resumeAtSeconds: press.resumeAtSeconds });
 	}
 
 	return {
-		advance,
 		analyser: () => engine?.analyser(),
 		currentTime: () => engine?.currentTime(),
-		holdsTrack: (queueId) => loadedQueueId === queueId,
 		loadIndex,
 		outputDelay: () => engine?.outputDelay() ?? 0,
 
@@ -146,10 +146,7 @@ export function createPlaybackController(
 			engine?.pause();
 		},
 
-		play: () => {
-			set({ isPlayIntended: true });
-			void ensureEngine().play();
-		},
+		play,
 
 		seek: (seconds) => {
 			ensureEngine().seek(seconds);
@@ -167,15 +164,14 @@ export function createPlaybackController(
 			engine?.reset();
 			loading = undefined;
 			loadedQueueId = undefined;
-			set({ isPlayIntended: false });
+			set({ currentTimeSeconds: 0, isPlayIntended: false, status: 'idle' });
 		},
 	};
 }
 
 // Without a current track there is nothing to pin the failure to, so the status carries it alone
 function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
-	const trackId =
-		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex]?.trackId;
+	const trackId = loadedItem(state)?.trackId;
 
 	return {
 		isPlayIntended: false,
@@ -216,6 +212,23 @@ function pausedState(status: PlayerStatus) {
 		isPlayIntended: false,
 		status: status === 'loading' ? 'paused' : status,
 	} satisfies Partial<PlayerStore>;
+}
+
+function pressOutcome(state: PlayerStore, loadedQueueId: string | undefined): PressOutcome {
+	if (state.currentIndex === undefined) {
+		const first = state.playOrder[0];
+
+		return first === undefined ? 'ignore' : { index: first, resumeAtSeconds: 0 };
+	}
+
+	if (isAwaitingPlayback(state)) return 'ignore';
+
+	// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
+	if (terminalStatuses.has(state.status) || loadedItem(state)?.queueId !== loadedQueueId) {
+		return { index: state.currentIndex, resumeAtSeconds: state.currentTimeSeconds };
+	}
+
+	return 'resume';
 }
 
 // The asynchronous half of a load, which runs outside the gesture and may answer for an attempt that has since been dropped
@@ -262,11 +275,9 @@ async function streamIntoEngine({
 
 // Every report but `onError` is a state write; the retry policy is the caller's
 function toEngineCallbacks({
-	advance,
 	api,
 	onError,
 }: {
-	advance: () => void;
 	api: StoreApi<PlayerStore>;
 	onError: (stage: PlaybackErrorStage) => void;
 }): AudioEngineCallbacks {
@@ -277,7 +288,9 @@ function toEngineCallbacks({
 		onDuration: (durationSeconds) => {
 			set({ durationSeconds });
 		},
-		onEnded: advance,
+		onEnded: () => {
+			get().next();
+		},
 		onError,
 		onStatus: (status) => {
 			if (status === 'loading') {
@@ -285,7 +298,7 @@ function toEngineCallbacks({
 				return;
 			}
 
-			// A stop, a clear or a removal has already left nothing loaded
+			// An unload has already left nothing loaded
 			if (status === 'paused' && get().status === 'idle') return;
 
 			// The intent follows the element, so a pause from the system or a headset reads as one

@@ -2,14 +2,12 @@ import type { FocusEvent, KeyboardEvent, ReactNode } from 'react';
 
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 
+import type { OverlayList } from '#components/overlay-lists.tsx';
 import type { PlayerLabels } from '#types.ts';
 
-import { OverlayTracklist } from '#components/overlay-tracklist.tsx';
-import { QueueTrayPanel } from '#components/queue-tray.tsx';
+import { OverlayListContent, useOverlayLists } from '#components/overlay-lists.tsx';
 import { usePlayer } from '#store/context.tsx';
 import { displayedItem } from '#store/selectors.ts';
-
-type OverlayTab = 'playlist' | 'tracklist';
 
 export function OverlayTabs({
 	actions,
@@ -28,16 +26,14 @@ export function OverlayTabs({
 		| 'tracklist'
 	>;
 }) {
-	const hasCuePoints = usePlayer((state) => (displayedItem(state)?.cuePoints?.length ?? 0) > 0);
 	const itemId = usePlayer((state) => displayedItem(state)?.queueId);
-	const [chosenTab, setChosenTab] = useState<OverlayTab>('tracklist');
+	const lists = useOverlayLists();
+	const [chosenTab, setChosenTab] = useState<OverlayList>('tracklist');
 	const id = useId();
 	const rootRef = useRef<HTMLDivElement>(null);
 	const focusWithinRef = useRef(false);
 
-	const tabs: ReadonlyArray<OverlayTab> = hasCuePoints ? ['tracklist', 'playlist'] : ['playlist'];
-	const shownTab = tabs.includes(chosenTab) ? chosenTab : 'playlist';
-	const tabLabels = { playlist: labels.playlist, tracklist: labels.tracklist };
+	const shownTab = lists.includes(chosenTab) ? chosenTab : 'playlist';
 
 	// A focused tab or cue unmounts with the Tracklist it belonged to, which drops focus to the page
 	useLayoutEffect(() => {
@@ -57,8 +53,8 @@ export function OverlayTabs({
 	}
 
 	function onKeyDown(event: KeyboardEvent<HTMLButtonElement>): void {
-		const nextIndex = nextTabIndex(event.key, tabs.indexOf(shownTab), tabs.length);
-		const next = nextIndex === undefined ? undefined : tabs[nextIndex];
+		const nextIndex = nextTabIndex(event.key, lists.indexOf(shownTab), lists.length);
+		const next = nextIndex === undefined ? undefined : lists[nextIndex];
 		if (next === undefined) return;
 
 		event.preventDefault();
@@ -78,7 +74,7 @@ export function OverlayTabs({
 			ref={rootRef}
 		>
 			<div className="player-overlay-tablist" role="tablist">
-				{tabs.map((tab) => (
+				{lists.map((tab) => (
 					<button
 						aria-controls={`${id}-panel`}
 						aria-selected={tab === shownTab}
@@ -93,7 +89,7 @@ export function OverlayTabs({
 						tabIndex={tab === shownTab ? 0 : -1}
 						type="button"
 					>
-						{tabLabels[tab]}
+						{labels[tab]}
 					</button>
 				))}
 			</div>
@@ -103,11 +99,7 @@ export function OverlayTabs({
 				id={`${id}-panel`}
 				role="tabpanel"
 			>
-				{shownTab === 'tracklist' ? (
-					<OverlayTracklist />
-				) : (
-					<QueueTrayPanel actions={actions} labels={labels} />
-				)}
+				<OverlayListContent actions={actions} labels={labels} list={shownTab} />
 			</div>
 		</div>
 	);

@@ -2,48 +2,11 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import type { AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
 
+import { createFakeEngine } from '#engine/fake-engine.ts';
 import { createPlayerStore } from '#store/player-store.ts';
-
-function createFakeEngine() {
-	let time = 0;
-	const callbacks: { current: AudioEngineCallbacks | undefined } = { current: undefined };
-	const engine = {
-		analyser: vi.fn(),
-		canPlay: vi.fn(() => true),
-		currentTime: vi.fn(() => time),
-		load: vi.fn(() => Promise.resolve()),
-		outputDelay: vi.fn(() => 0),
-		pause: vi.fn(),
-		play: vi.fn(() => Promise.resolve()),
-		prepare: vi.fn(),
-		reset: vi.fn(() => {
-			time = 0;
-		}),
-		seek: vi.fn((seconds: number) => {
-			time = seconds;
-		}),
-		setVolume: vi.fn(),
-	};
-
-	const createEngine: CreateAudioEngine = (given) => {
-		callbacks.current = given;
-
-		return engine;
-	};
-
-	return {
-		callbacks,
-		createEngine,
-		engine,
-		setTime: (seconds: number) => {
-			time = seconds;
-		},
-	};
-}
 
 // Replaced per test, so nothing a store did survives into the next one
 let fake = createFakeEngine();
@@ -70,7 +33,7 @@ interface StoredQueueRecord {
 }
 
 function configured(): StoreApi<PlayerStore> {
-	return withResolver((trackId) =>
+	return withResolver(({ trackId }) =>
 		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
 	);
 }
@@ -83,7 +46,7 @@ function leavePage(): void {
 function pendingResolver() {
 	const pending = new Map<string, (resolution: StreamResolution) => void>();
 	const store = withResolver(
-		(trackId) =>
+		({ trackId }) =>
 			new Promise<StreamResolution>((resolve) => {
 				pending.set(trackId, resolve);
 			}),
@@ -166,7 +129,7 @@ describe('playTrack', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ status: 'playing' });
+		fake.callbacks.current?.onStatus('playing');
 		store.getState().playTrack(release, 'a');
 
 		expect(store.getState().queue).toHaveLength(3);
@@ -560,7 +523,7 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ isPlayIntended: true, status: 'playing' });
+		fake.callbacks.current?.onStatus('playing');
 		store.getState().togglePlay();
 
 		expect(fake.engine.pause).toHaveBeenCalled();
@@ -571,7 +534,7 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'b');
-		store.setState({ isPlayIntended: true, status: 'playing' });
+		fake.callbacks.current?.onStatus('playing');
 		store.getState().removeAt(0);
 		store.getState().togglePlay();
 
@@ -582,7 +545,7 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ isPlayIntended: false, status: 'paused' });
+		fake.callbacks.current?.onStatus('paused');
 		store.getState().togglePlay();
 
 		expect(fake.engine.play).toHaveBeenCalled();
@@ -613,7 +576,7 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ currentTimeSeconds: 100 });
+		fake.callbacks.current?.onTime(100);
 		store.getState().seekBy(30);
 
 		expect(store.getState().currentTimeSeconds).toBe(130);
@@ -631,7 +594,8 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ currentTimeSeconds: 10, durationSeconds: undefined });
+		fake.callbacks.current?.onTime(10);
+		fake.callbacks.current?.onDuration(undefined);
 		store.getState().seekBy(30);
 
 		expect(store.getState().currentTimeSeconds).toBe(10);
@@ -641,7 +605,8 @@ describe('transport', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
-		store.setState({ currentTimeSeconds: 30, status: 'playing' });
+		fake.callbacks.current?.onStatus('playing');
+		fake.callbacks.current?.onTime(30);
 		store.getState().stop();
 
 		expect(fake.engine.reset).toHaveBeenCalled();
@@ -693,7 +658,7 @@ describe('transport', () => {
 describe('engine errors', () => {
 	test('re-resolves once on a failure, then reports the second as an error', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver((trackId) => {
+		const store = withResolver(({ trackId }) => {
 			resolved.push(trackId);
 			return Promise.resolve({
 				status: 'ok',
@@ -720,7 +685,7 @@ describe('engine errors', () => {
 
 	test('stops at a capped resolve without loading or re-resolving', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver((trackId) => {
+		const store = withResolver(({ trackId }) => {
 			resolved.push(trackId);
 			return Promise.resolve({ status: 'capped' });
 		});
@@ -736,7 +701,7 @@ describe('engine errors', () => {
 
 	test('stops at a format the browser cannot play without loading or re-resolving', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver((trackId) => {
+		const store = withResolver(({ trackId }) => {
 			resolved.push(trackId);
 			return Promise.resolve({
 				status: 'ok',
@@ -759,7 +724,7 @@ describe('engine errors', () => {
 	test('drops a resolve that lands after the listener moved on', async () => {
 		const pending = new Map<string, (resolution: StreamResolution) => void>();
 		const store = withResolver(
-			(trackId) =>
+			({ trackId }) =>
 				new Promise<StreamResolution>((resolve) => {
 					pending.set(trackId, resolve);
 				}),
@@ -976,7 +941,7 @@ describe('play intent', () => {
 		'a press on a %s track re-resolves rather than playing what the engine holds',
 		async (status, resolution) => {
 			const resolved: Array<string> = [];
-			const store = withResolver((trackId) => {
+			const store = withResolver(({ trackId }) => {
 				resolved.push(trackId);
 				return Promise.resolve(resolution);
 			});

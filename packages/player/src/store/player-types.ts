@@ -17,7 +17,7 @@ export interface PlayerActions {
 	getAnalyser: () => AnalyserNode | undefined;
 	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; also rAF-only
 	getCurrentTime: () => number | undefined;
-	// Seconds the element's clock runs ahead of the sound; a display reading that clock owes this back
+	// Seconds the element's clock runs ahead of the sound
 	getOutputDelay: () => number;
 	// Reads the listener's persisted preferences; separate from `configure` so a re-render cannot re-run it
 	hydratePreferences: () => void;
@@ -45,6 +45,8 @@ export interface PlayerActions {
 	previous: () => void;
 	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
 	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
+	// Swaps in the page's copy of every queued item it carries, so a queue restored from an older build picks up new fields
+	refreshQueue: (items: ReadonlyArray<QueueItem>) => void;
 	removeAt: (index: number) => void;
 	// Swaps out everything after `index`, leaving the loaded track and what came before it alone
 	replaceAfter: (index: number, items: ReadonlyArray<QueueItem>) => void;
@@ -52,6 +54,8 @@ export interface PlayerActions {
 	// Clamped into the loaded track, so the skip buttons and the lock screen cannot run past either end
 	seekBy: (deltaSeconds: number) => void;
 	setOverlayOpen: (isOpen: boolean) => void;
+	setPanelOpen: (isOpen: boolean) => void;
+	setTrayOpen: (isOpen: boolean) => void;
 	setVolume: (volume: number) => void;
 	stop: () => void;
 	// Drops to silence and back to the level held at the last mute, or to full before any mute

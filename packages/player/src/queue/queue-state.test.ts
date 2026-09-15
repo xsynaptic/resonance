@@ -8,6 +8,7 @@ import {
 	createQueueIds,
 	loadedQueue,
 	movedItem,
+	refreshedQueue,
 	removedAt,
 	replacedAfter,
 	shuffledQueue,
@@ -125,6 +126,28 @@ describe('appendedQueue', () => {
 
 		expect(appended?.state.currentIndex).toBe(1);
 		expect(appended?.loadIndex).toBe(3);
+	});
+});
+
+describe('refreshedQueue', () => {
+	test('gives a stored item from an older build the page fields, keeping its queue id and place', () => {
+		const legacy = { ...makeItem('b'), artworkUrl: '/b-512.webp' };
+		const queue = stamp([makeItem('a'), legacy, makeItem('c')]);
+		const fresh = { ...makeItem('b'), artwork: [{ src: '/b-120.webp', width: 120 }] };
+
+		const refreshed = refreshedQueue(queue, [fresh]);
+
+		expect(refreshed?.[1]).toStrictEqual({ ...fresh, queueId: queue[1]?.queueId });
+		expect(refreshed?.[0]).toBe(queue[0]);
+		expect(refreshed?.[2]).toBe(queue[2]);
+	});
+
+	test('answers nothing when the page carries the same fields', () => {
+		expect(refreshedQueue(stamp(release), release)).toBeUndefined();
+	});
+
+	test('answers nothing when the page carries none of the queued tracks', () => {
+		expect(refreshedQueue(stamp(release), [makeItem('z')])).toBeUndefined();
 	});
 });
 

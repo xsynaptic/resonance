@@ -3,6 +3,8 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerStatus, QueuedItem } from '#types.ts';
 
+import { loadedItem } from '#store/selectors.ts';
+
 const defaultSkipSeconds = 10;
 const mediaSessionArtworkMaxWidth = 512;
 
@@ -22,7 +24,7 @@ export function bindMediaSession(
 	let boundPositionKey: string | undefined;
 
 	const project = (state: PlayerStore): void => {
-		const item = state.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
+		const item = loadedItem(state);
 
 		if (item?.queueId !== boundQueueId) {
 			boundQueueId = item?.queueId;

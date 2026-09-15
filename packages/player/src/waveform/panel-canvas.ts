@@ -8,6 +8,9 @@ import { createScrollPainter, placeholderRange } from '#waveform/waveform-scroll
 // How much of the panel the arriving boundary must still cross before the parked label starts to go
 const cueFadeStart = 0.25;
 
+// Asked for past the window's end, so a slow link lands the next chunk before it scrolls into view rather than as it does
+const lookAheadSeconds = 30;
+
 const noSamples = new Int8Array(0);
 
 export interface PanelCanvas {
@@ -76,7 +79,11 @@ export function createPanelCanvas({
 			const pairsPerSecond = loaded?.pairsPerSecond ?? 0;
 			const fromPair = Math.floor(windowStartSeconds * pairsPerSecond);
 			const toPair = Math.ceil((windowStartSeconds + windowSeconds) * pairsPerSecond);
-			const landedChunks = requestSpan(loaded, fromPair, toPair);
+			const landedChunks = requestSpan(
+				loaded,
+				fromPair,
+				toPair + Math.ceil(lookAheadSeconds * pairsPerSecond),
+			);
 			const geometry = { durationSeconds, pixelsPerSecond, width, windowStartSeconds };
 			const pending = placeholder.frame({
 				archive: loaded,

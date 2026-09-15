@@ -2,17 +2,13 @@ import type { ReactNode } from 'react';
 
 import { useEffect, useId, useRef, useState } from 'react';
 
+import type { OverlayList } from '#components/overlay-lists.tsx';
 import type { PlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
 import { CloseIcon, QueueIcon, TracklistIcon } from '#components/icons.tsx';
-import { OverlayTracklist } from '#components/overlay-tracklist.tsx';
+import { OverlayListContent, useOverlayLists } from '#components/overlay-lists.tsx';
 import { PanelToggle } from '#components/panel-toggle.tsx';
-import { QueueTrayPanel } from '#components/queue-tray.tsx';
-import { usePlayer } from '#store/context.tsx';
-import { displayedItem } from '#store/selectors.ts';
-
-type OverlaySheet = 'playlist' | 'tracklist';
 
 type SheetLabels = Pick<
 	PlayerLabels,
@@ -30,14 +26,15 @@ type SheetLabels = Pick<
 
 // A nested modal, so Escape and Android back close the list before the overlay beneath it
 export function OverlaySheets({ actions, labels }: { actions?: ReactNode; labels: SheetLabels }) {
-	const hasCuePoints = usePlayer((state) => (displayedItem(state)?.cuePoints?.length ?? 0) > 0);
-	const [chosenSheet, setChosenSheet] = useState<OverlaySheet | undefined>();
+	const lists = useOverlayLists();
+	const [chosenSheet, setChosenSheet] = useState<OverlayList | undefined>();
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const openerRef = useRef<HTMLButtonElement | null>(null);
 	const titleId = useId();
 
 	// The Tracklist closes with its button when the next item has no cue points
-	const shownSheet = chosenSheet === 'tracklist' && !hasCuePoints ? undefined : chosenSheet;
+	const shownSheet =
+		chosenSheet !== undefined && lists.includes(chosenSheet) ? chosenSheet : undefined;
 
 	useEffect(() => {
 		const dialog = dialogRef.current;
@@ -52,14 +49,14 @@ export function OverlaySheets({ actions, labels }: { actions?: ReactNode; labels
 		dialog.close();
 	}, [shownSheet]);
 
-	function openSheet(sheet: OverlaySheet, opener: HTMLButtonElement): void {
+	function openSheet(sheet: OverlayList, opener: HTMLButtonElement): void {
 		openerRef.current = opener;
 		setChosenSheet(sheet);
 	}
 
 	return (
 		<div className="player-overlay-sheets">
-			{hasCuePoints ? (
+			{lists.includes('tracklist') ? (
 				<Button
 					aria-haspopup="dialog"
 					aria-label={labels.tracklist}
@@ -118,27 +115,21 @@ function SheetContent({
 	actions: ReactNode;
 	labels: SheetLabels;
 	onClose: () => void;
-	sheet: OverlaySheet;
+	sheet: OverlayList;
 	titleId: string;
 }) {
-	const sheetLabels = { playlist: labels.playlist, tracklist: labels.tracklist };
-
 	return (
 		<>
 			<div className="player-overlay-sheet-header">
 				<p className="player-overlay-sheet-title" id={titleId}>
-					{sheetLabels[sheet]}
+					{labels[sheet]}
 				</p>
 				<Button aria-label={labels.close} className="player-button-icon" onClick={onClose}>
 					<CloseIcon size={16} />
 				</Button>
 			</div>
 			<div className="player-overlay-list">
-				{sheet === 'tracklist' ? (
-					<OverlayTracklist />
-				) : (
-					<QueueTrayPanel actions={actions} labels={labels} />
-				)}
+				<OverlayListContent actions={actions} labels={labels} list={sheet} />
 			</div>
 		</>
 	);

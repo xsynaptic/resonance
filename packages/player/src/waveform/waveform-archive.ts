@@ -1,4 +1,4 @@
-import type { PlayerUrls } from '#types.ts';
+import type { PlayerUrls, QueueItem } from '#types.ts';
 
 // A `bbc/audiowaveform` .dat read a window at a time; its header makes the byte offset of any pair exact
 // One shared promise per track serves as both the cache and the in-flight dedupe
@@ -47,12 +47,13 @@ interface MissingChunk {
 // `undefined` on any failure leaves the panel on its grid
 export function openArchive(
 	resolveArchive: NonNullable<PlayerUrls['archive']>,
-	trackId: string,
+	item: QueueItem,
 ): Promise<undefined | WaveformArchive> {
+	const { trackId } = item;
 	const cached = cache.get(trackId);
 	if (cached) return cached;
 
-	const request = fetchArchive(resolveArchive, trackId);
+	const request = fetchArchive(resolveArchive, item);
 
 	remember(trackId, request);
 
@@ -162,12 +163,12 @@ function createArchive({
 
 async function fetchArchive(
 	resolveArchive: NonNullable<PlayerUrls['archive']>,
-	trackId: string,
+	item: QueueItem,
 ): Promise<undefined | WaveformArchive> {
 	const openedMs = performance.now();
 
 	try {
-		const url = await resolveArchive(trackId);
+		const url = await resolveArchive(item);
 		if (url === undefined) return undefined;
 
 		const response = await fetch(url, {

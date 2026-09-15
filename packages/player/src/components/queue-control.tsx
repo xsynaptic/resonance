@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react';
 
-import { Suspense, useRef } from 'react';
+import { useRef } from 'react';
 
 import type { PlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
 import { QueueIcon } from '#components/icons.tsx';
 import { queueTrayPanelPart } from '#components/lazy-parts.ts';
-import { PartBoundary } from '#components/part-boundary.tsx';
-import { usePreloadWhenQueued } from '#components/preload-when-queued.ts';
 import { joinClassNames } from '#lib/class-names.ts';
 import { useDismiss } from '#lib/use-dismiss.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
@@ -27,13 +25,11 @@ export function QueueControl({
 	const isTrayOpen = usePlayer((state) => state.isTrayOpen);
 	const store = usePlayerStoreApi();
 	const containerRef = useRef<HTMLDivElement>(null);
-
-	usePreloadWhenQueued(queueTrayPanelPart.preload);
-
 	const triggerRef = useRef<HTMLButtonElement>(null);
+	const preload = queueTrayPanelPart.usePreload();
 
 	const closeTray = (): void => {
-		if (store.getState().isTrayOpen) store.getState().toggleTray();
+		store.getState().setTrayOpen(false);
 	};
 
 	const onKeyDown = useDismiss({
@@ -51,11 +47,7 @@ export function QueueControl({
 			ref={containerRef}
 		>
 			{isTrayOpen ? (
-				<PartBoundary onError={closeTray} part={queueTrayPanelPart}>
-					<Suspense fallback={undefined}>
-						<queueTrayPanelPart.Component actions={actions} labels={labels} />
-					</Suspense>
-				</PartBoundary>
+				<queueTrayPanelPart.Component actions={actions} labels={labels} onFailed={closeTray} />
 			) : undefined}
 			<Button
 				aria-expanded={isTrayOpen}
@@ -64,8 +56,8 @@ export function QueueControl({
 				onClick={() => {
 					store.getState().toggleTray();
 				}}
-				onFocus={queueTrayPanelPart.preload}
-				onPointerEnter={queueTrayPanelPart.preload}
+				onFocus={preload.onFocus}
+				onPointerEnter={preload.onPointerEnter}
 				ref={triggerRef}
 			>
 				<QueueIcon />

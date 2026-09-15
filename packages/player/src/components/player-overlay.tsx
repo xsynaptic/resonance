@@ -1,9 +1,8 @@
-import { Suspense, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import type { PlayerOverlayProps } from '#components/overlay-content.tsx';
 
 import { overlayContentPart } from '#components/lazy-parts.ts';
-import { PartBoundary } from '#components/part-boundary.tsx';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 export function PlayerOverlay(props: PlayerOverlayProps) {
@@ -40,13 +39,7 @@ export function PlayerOverlay(props: PlayerOverlayProps) {
 			}}
 			ref={dialogRef}
 		>
-			{isOpen ? (
-				<PartBoundary onError={closeOverlay} part={overlayContentPart}>
-					<Suspense fallback={undefined}>
-						<overlayContentPart.Component {...props} />
-					</Suspense>
-				</PartBoundary>
-			) : undefined}
+			{isOpen ? <overlayContentPart.Component {...props} onFailed={closeOverlay} /> : undefined}
 		</dialog>
 	);
 }

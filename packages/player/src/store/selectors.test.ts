@@ -1,7 +1,12 @@
 import { describe, expect, test } from 'vitest';
 
 import { createPlayerStore } from '#store/player-store.ts';
-import { canStepBack, canStepForward, restartThresholdSeconds } from '#store/selectors.ts';
+import {
+	canStepBack,
+	canStepForward,
+	currentCue,
+	restartThresholdSeconds,
+} from '#store/selectors.ts';
 
 function stateAt(
 	currentIndex: number | undefined,
@@ -31,6 +36,40 @@ describe('canStepBack', () => {
 	test('follows the play order rather than the queue order', () => {
 		expect(canStepBack(stateAt(0, 0, [1, 0]))).toBe(true);
 		expect(canStepBack(stateAt(1, 0, [1, 0]))).toBe(false);
+	});
+});
+
+describe('currentCue', () => {
+	const cuePoints = [
+		{ artistLine: '', startSeconds: 0, title: 'Opening' },
+		{ artistLine: '', startSeconds: 60, title: 'Second' },
+	];
+
+	function cuedState(currentIndex: number | undefined, currentTimeSeconds: number) {
+		const store = createPlayerStore();
+
+		store.getState().loadQueue([
+			{
+				albumLoudness: {},
+				artistLine: 'Nebula Drift',
+				cuePoints,
+				loudness: {},
+				releaseTitle: 'Cosmic Drift',
+				title: 'Mix',
+				trackId: 'a',
+			},
+		]);
+		store.setState({ currentIndex, currentTimeSeconds });
+
+		return store.getState();
+	}
+
+	test('names no cue while the queue is only positioned', () => {
+		expect(currentCue(cuedState(undefined, 90))).toBeUndefined();
+	});
+
+	test('names the cue the loaded item is inside', () => {
+		expect(currentCue(cuedState(0, 90))?.title).toBe('Second');
 	});
 });
 

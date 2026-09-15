@@ -4,31 +4,14 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
-const engineMock = vi.hoisted(() => ({
-	analyser: vi.fn(),
-	canPlay: vi.fn(() => true),
-	currentTime: vi.fn(() => 0),
-	load: vi.fn(() => Promise.resolve()),
-	outputDelay: vi.fn(() => 0),
-	pause: vi.fn(),
-	play: vi.fn(() => Promise.resolve()),
-	prepare: vi.fn(),
-	reset: vi.fn(),
-	seek: vi.fn(),
-	setVolume: vi.fn(),
-}));
-
-vi.mock('#engine/audio-engine.ts', () => ({
-	createAudioEngine: () => engineMock,
-}));
-
 import { AudioPlayer } from '#components/audio-player.tsx';
 import * as Player from '#components/parts.ts';
 import { labels } from '#components/test-labels.ts';
+import { createFakeEngine } from '#engine/fake-engine.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 const testUrls: PlayerUrls = {
-	stream: (trackId) =>
+	stream: ({ trackId }) =>
 		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
 };
 
@@ -57,8 +40,10 @@ function preventNavigation(event: MouseEvent): void {
 	event.preventDefault();
 }
 
+let fake = createFakeEngine();
+
 function renderPlayer() {
-	const store = createPlayerStore();
+	const store = createPlayerStore({ createEngine: fake.createEngine });
 
 	render(<AudioPlayer labels={labels} store={store} urls={testUrls} />);
 
@@ -66,7 +51,7 @@ function renderPlayer() {
 }
 
 beforeEach(() => {
-	vi.clearAllMocks();
+	fake = createFakeEngine();
 });
 
 afterEach(() => {
@@ -114,7 +99,7 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('button', { name: labels.pause })).toBeEnabled();
 
 		await waitFor(() => {
-			expect(engineMock.load).toHaveBeenCalledWith({
+			expect(fake.engine.load).toHaveBeenCalledWith({
 				gain: 1,
 				resumeAtSeconds: 0,
 				src: 'https://api.test/tracks/a/stream',
@@ -133,11 +118,11 @@ describe('AudioPlayer', () => {
 		expect(store.getState().currentIndex).toBe(1);
 
 		act(() => {
-			store.setState({ status: 'playing' });
+			fake.callbacks.current?.onStatus('playing');
 		});
 		fireEvent.click(screen.getByRole('button', { name: labels.pause }));
 
-		expect(engineMock.pause).toHaveBeenCalled();
+		expect(fake.engine.pause).toHaveBeenCalled();
 	});
 
 	test('the play button follows intent and marks a load toward playback', () => {
@@ -158,7 +143,7 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('button', { name: labels.play })).not.toHaveAttribute('data-loading');
 
 		act(() => {
-			store.setState({ status: 'loading' });
+			fake.callbacks.current?.onStatus('loading');
 		});
 
 		expect(screen.getByRole('button', { name: labels.play })).not.toHaveAttribute('data-loading');
@@ -265,7 +250,7 @@ describe('AudioPlayer', () => {
 	});
 
 	test('renders no artwork where the host switches it off', () => {
-		const store = createPlayerStore();
+		const store = createPlayerStore({ createEngine: fake.createEngine });
 
 		render(<AudioPlayer isArtworkEnabled={false} labels={labels} store={store} urls={testUrls} />);
 		act(() => {
@@ -282,21 +267,21 @@ describe('AudioPlayer', () => {
 
 		cleanup();
 
-		const store = createPlayerStore();
+		const store = createPlayerStore({ createEngine: fake.createEngine });
 
 		render(<AudioPlayer labels={labels} skipSeconds={30} store={store} urls={testUrls} />);
 
 		act(() => {
 			store.getState().playTrack(release, 'a');
-			store.setState({ currentTimeSeconds: 100 });
+			fake.callbacks.current?.onTime(100);
 		});
 		fireEvent.click(screen.getByRole('button', { name: labels.skipForward }));
 
-		expect(engineMock.seek).toHaveBeenCalledWith(130);
+		expect(fake.engine.seek).toHaveBeenCalledWith(130);
 
 		fireEvent.click(screen.getByRole('button', { name: labels.skipBack }));
 
-		expect(engineMock.seek).toHaveBeenCalledWith(100);
+		expect(fake.engine.seek).toHaveBeenCalledWith(100);
 	});
 
 	test('seeks in seconds off the range input', () => {
@@ -309,7 +294,7 @@ describe('AudioPlayer', () => {
 			target: { value: '42' },
 		});
 
-		expect(engineMock.seek).toHaveBeenCalledWith(42);
+		expect(fake.engine.seek).toHaveBeenCalledWith(42);
 	});
 
 	test('swaps the range input for the waveform surface once a track carries peaks', () => {
@@ -334,14 +319,23 @@ describe('AudioPlayer', () => {
 		expect(store.getState().volume).toBe(0.5);
 	});
 
-	test('surfaces the error state in the status region', () => {
-		const store = renderPlayer();
+	test('surfaces a failed resolve in the status region', async () => {
+		const store = createPlayerStore({ createEngine: fake.createEngine });
 
+		render(
+			<AudioPlayer
+				labels={labels}
+				store={store}
+				urls={{ stream: () => Promise.reject(new Error('Offline')) }}
+			/>,
+		);
 		act(() => {
-			store.setState({ status: 'error' });
+			store.getState().playTrack(release, 'a');
 		});
 
-		expect(screen.getByRole('status')).toHaveTextContent(labels.error);
+		await waitFor(() => {
+			expect(screen.getByRole('status')).toHaveTextContent(labels.error);
+		});
 	});
 
 	test('flips the clock between elapsed and remaining', () => {
@@ -349,7 +343,7 @@ describe('AudioPlayer', () => {
 
 		act(() => {
 			store.getState().playTrack(release, 'a');
-			store.setState({ currentTimeSeconds: 64 });
+			fake.callbacks.current?.onTime(64);
 		});
 
 		const clock = screen.getByRole('button', { name: labels.toggleTimeMode });
@@ -363,7 +357,7 @@ describe('AudioPlayer', () => {
 	});
 
 	test('renders what the host composed into the track info beside the artist', () => {
-		const store = createPlayerStore();
+		const store = createPlayerStore({ createEngine: fake.createEngine });
 
 		render(
 			<Player.Root store={store} urls={testUrls}>
@@ -505,7 +499,7 @@ describe('AudioPlayer', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /Middle/ }));
 
-		expect(engineMock.seek).toHaveBeenCalledWith(60);
+		expect(fake.engine.seek).toHaveBeenCalledWith(60);
 		expect(screen.getByRole('button', { name: /Middle/ })).toHaveAttribute('aria-current', 'true');
 		expect(screen.getByRole('button', { name: /Opening/ })).not.toHaveAttribute('aria-current');
 	});
@@ -558,7 +552,7 @@ describe('AudioPlayer', () => {
 	});
 
 	test('renders a host composition of the parts through Player.Root', () => {
-		const store = createPlayerStore();
+		const store = createPlayerStore({ createEngine: fake.createEngine });
 
 		render(
 			<Player.Root className="host-bar" store={store} urls={testUrls}>

@@ -1,6 +1,12 @@
-import type { PlayerLabels, PlayerUrls } from '@xsynaptic/player';
+import type { PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
 
-import { AudioPlayer, bindMediaSession, playerStore } from '@xsynaptic/player';
+import {
+	AudioPlayer,
+	bindMediaSession,
+	currentCue,
+	loadedItem,
+	playerStore,
+} from '@xsynaptic/player';
 import { useEffect } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
@@ -16,10 +22,12 @@ const streamType = 'audio/webm; codecs="opus"';
 
 // Both URLs come from the payload, so neither resolver touches the network
 const urls: PlayerUrls = {
-	archive: (trackId) => Promise.resolve(resolve(trackId, 'archiveUrl')),
-	stream: (trackId) => {
-		const streamUrl = resolve(trackId, 'streamUrl');
-		if (streamUrl === undefined) return Promise.reject(new Error(`No stream URL for ${trackId}`));
+	archive: (item) => Promise.resolve(payloadUrl(item, 'archiveUrl')),
+	stream: (item) => {
+		const streamUrl = payloadUrl(item, 'streamUrl');
+		if (streamUrl === undefined) {
+			return Promise.reject(new Error(`No stream URL for ${item.trackId}`));
+		}
 
 		return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
 	},
@@ -27,9 +35,6 @@ const urls: PlayerUrls = {
 
 let parsedSource: string | undefined;
 let parsedItems: Array<PlayerPayloadItem> | undefined;
-
-// Kept across soft navigations: a queue outlives the page it was built from, and the next page's payload need not carry it
-const payloadItems = new Map<string, PlayerPayloadItem>();
 
 interface RowState {
 	cueStartSeconds: number | undefined;
@@ -58,6 +63,21 @@ export function PlayerIsland({
 
 		return () => {
 			document.removeEventListener('astro:before-preparation', onBeforePreparation);
+		};
+	}, []);
+
+	// A queue restored from storage can predate this build; a press on a track already queued jumps to the stored copy
+	useEffect(() => {
+		const refreshQueue = (): void => {
+			const items = readPayload();
+			if (items) playerStore.getState().refreshQueue(items);
+		};
+
+		refreshQueue();
+		document.addEventListener('astro:after-swap', refreshQueue);
+
+		return () => {
+			document.removeEventListener('astro:after-swap', refreshQueue);
 		};
 	}, []);
 
@@ -114,19 +134,14 @@ export function PlayerIsland({
 }
 
 function currentRowState(): RowState {
-	const { currentIndex, currentTimeSeconds, isPlayIntended, queue } = playerStore.getState();
-	const item = currentIndex === undefined ? undefined : queue[currentIndex];
-	const cuePoints = item?.cuePoints ?? [];
-	let cueStartSeconds: number | undefined;
-
-	for (const cue of cuePoints) {
-		if (cue.startSeconds > currentTimeSeconds) break;
-
-		cueStartSeconds = cue.startSeconds;
-	}
+	const state = playerStore.getState();
 
 	// Intent rather than sound, matching the bar's play button
-	return { cueStartSeconds, isPlaying: isPlayIntended, trackId: item?.trackId };
+	return {
+		cueStartSeconds: currentCue(state)?.startSeconds,
+		isPlaying: state.isPlayIntended,
+		trackId: loadedItem(state)?.trackId,
+	};
 }
 
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
@@ -141,7 +156,7 @@ function dispatchControl(target: Element | undefined): void {
 	const { playQueue, playRelease, playTrack, queueTrack } = control.dataset;
 
 	if (playQueue !== undefined) {
-		store.playQueue(stationItems(playQueue));
+		store.playQueue(stationItems(playQueue, items));
 		return;
 	}
 
@@ -186,6 +201,13 @@ function markRows({ cueStartSeconds, isPlaying, trackId }: RowState): void {
 	}
 }
 
+// Every item this island queues is a payload item, and the store keeps its fields through a reload
+function payloadUrl(item: QueueItem, field: 'archiveUrl' | 'streamUrl'): string | undefined {
+	const value: unknown = Reflect.get(item, field);
+
+	return typeof value === 'string' ? value : undefined;
+}
+
 // Parsed once per payload rather than once per click; the string changes with each soft navigation
 function readPayload(): Array<PlayerPayloadItem> | undefined {
 	const payload =
@@ -197,8 +219,6 @@ function readPayload(): Array<PlayerPayloadItem> | undefined {
 
 	try {
 		parsedItems = JSON.parse(payload) as Array<PlayerPayloadItem>;
-
-		for (const item of parsedItems) payloadItems.set(item.trackId, item);
 	} catch {
 		parsedItems = undefined;
 	}
@@ -214,19 +234,12 @@ function replayHeldPress(): void {
 	dispatchControl(held);
 }
 
-// A restored queue keeps the payload's fields, so a track queued on another page still resolves
-function resolve(trackId: string, field: 'archiveUrl' | 'streamUrl'): string | undefined {
-	const item =
-		payloadItems.get(trackId) ??
-		(playerStore.getState().queue.find((queued) => queued.trackId === trackId) as
-			Partial<PlayerPayloadItem> | undefined);
-
-	return item?.[field];
-}
-
-function stationItems(ids: string): Array<PlayerPayloadItem> {
+function stationItems(
+	ids: string,
+	items: ReadonlyArray<PlayerPayloadItem>,
+): Array<PlayerPayloadItem> {
 	return ids
 		.split(' ')
-		.map((trackId) => payloadItems.get(trackId))
+		.map((trackId) => items.find((item) => item.trackId === trackId))
 		.filter((item) => item !== undefined);
 }

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
+import type { QueueItem } from '#types.ts';
+
 import { openArchive } from '#waveform/waveform-archive.ts';
 
 const archiveUrl = 'https://files.test/waveform/a.dat';
@@ -15,6 +17,10 @@ function header(): ArrayBuffer {
 	view.setUint32(16, 20_000, true);
 
 	return view.buffer;
+}
+
+function itemFor(trackId: string): QueueItem {
+	return { albumLoudness: {}, artistLine: '', loudness: {}, releaseTitle: '', title: '', trackId };
 }
 
 function rangeOf(init: RequestInit | undefined): string | undefined {
@@ -50,7 +56,7 @@ afterEach(() => {
 
 test('chunks asked for as the header lands carry its wait, and later ones their own', async () => {
 	const openedMs = performance.now();
-	const opening = openArchive(() => Promise.resolve(archiveUrl), 'slow-header');
+	const opening = openArchive(() => Promise.resolve(archiveUrl), itemFor('slow-header'));
 
 	vi.advanceTimersByTime(600);
 
@@ -68,7 +74,7 @@ test('chunks asked for as the header lands carry its wait, and later ones their 
 });
 
 test('a chunk that fails waits longer each time before it is asked for again', async () => {
-	const archive = await openArchive(() => Promise.resolve(archiveUrl), 'offline-track');
+	const archive = await openArchive(() => Promise.resolve(archiveUrl), itemFor('offline-track'));
 	if (!archive) throw new Error('The header did not open');
 
 	archive.want(0, 100);

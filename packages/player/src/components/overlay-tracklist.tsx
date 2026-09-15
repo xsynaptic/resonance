@@ -1,30 +1,25 @@
-import { useSyncExternalStore } from 'react';
-
 import type { QueueCuePoint } from '#types.ts';
 
 import { formatClock } from '#lib/format.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
-import { displayedItem, isLoaded } from '#store/selectors.ts';
+import { currentCue, displayedItem, isLoaded } from '#store/selectors.ts';
 
 const noCuePoints: ReadonlyArray<QueueCuePoint> = [];
 
 export function OverlayTracklist() {
 	const item = usePlayer(displayedItem);
 	const isTrackLoaded = usePlayer(isLoaded);
+	const playingCue = usePlayer(currentCue);
 	const store = usePlayerStoreApi();
 
 	const cuePoints = item?.cuePoints ?? noCuePoints;
 
-	const currentCue = useSyncExternalStore(store.subscribe, () =>
-		isTrackLoaded ? cueIndexAt(cuePoints, store.getState().currentTimeSeconds) : undefined,
-	);
-
 	return (
 		<ol className="player-overlay-tracklist">
-			{cuePoints.map((cue, index) => (
+			{cuePoints.map((cue) => (
 				<li key={`${String(cue.startSeconds)}:${cue.title}`}>
 					<button
-						aria-current={index === currentCue ? 'true' : undefined}
+						aria-current={cue === playingCue ? 'true' : undefined}
 						className="player-overlay-cue"
 						disabled={!isTrackLoaded}
 						onClick={() => {
@@ -42,16 +37,4 @@ export function OverlayTracklist() {
 			))}
 		</ol>
 	);
-}
-
-function cueIndexAt(cuePoints: ReadonlyArray<QueueCuePoint>, seconds: number): number | undefined {
-	let found: number | undefined;
-
-	for (const [index, cue] of cuePoints.entries()) {
-		if (cue.startSeconds > seconds) break;
-
-		found = index;
-	}
-
-	return found;
 }

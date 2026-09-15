@@ -5,7 +5,7 @@ import { Component } from 'react';
 interface PartBoundaryProps {
 	children: ReactNode;
 	onError: () => void;
-	part: { reset: () => void };
+	onReset: () => void;
 }
 
 interface PartBoundaryState {
@@ -21,7 +21,7 @@ export class PartBoundary extends Component<PartBoundaryProps, PartBoundaryState
 	}
 
 	override componentDidCatch(): void {
-		this.props.part.reset();
+		this.props.onReset();
 		this.props.onError();
 	}
 

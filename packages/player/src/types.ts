@@ -48,10 +48,11 @@ export type PlayerStatus =
 export type PlayerTimeMode = 'elapsed' | 'remaining';
 
 // The host owns its route shapes, so the package asks for a track's URLs rather than deriving them
+// Each resolver is handed the item as the host queued it, its own extra fields included, even after a reload
 export interface PlayerUrls {
 	// Full-resolution `.dat`, range-requested a window at a time; `undefined` leaves the panel on its grid
-	archive?: ((trackId: string) => Promise<string | undefined>) | undefined;
-	stream: (trackId: string) => Promise<StreamResolution>;
+	archive?: ((item: QueueItem) => Promise<string | undefined>) | undefined;
+	stream: (item: QueueItem) => Promise<StreamResolution>;
 }
 
 // One square rendition, `width` its size in pixels; the host builds the URL, the player only lists it

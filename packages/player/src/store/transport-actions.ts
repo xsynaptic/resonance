@@ -2,13 +2,9 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerActions, PlayerStore } from '#store/player-types.ts';
-import type { PlayerStatus } from '#types.ts';
 
-import { previousInOrder } from '#queue/queue.ts';
+import { nextInOrder, previousInOrder } from '#queue/queue.ts';
 import { restartThresholdSeconds } from '#store/selectors.ts';
-
-// Nothing worth resuming stays in the engine after any of these
-const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
 
 type TransportActions = Pick<
 	PlayerActions,
@@ -39,32 +35,21 @@ export function createTransportActions({
 		getAnalyser: playback.analyser,
 		getCurrentTime: playback.currentTime,
 		getOutputDelay: playback.outputDelay,
-		next: playback.advance,
-		pause: playback.pause,
+		// At the end of the play order, stop without wrapping
+		next: () => {
+			const { currentIndex, playOrder } = get();
+			if (currentIndex === undefined) return;
 
-		play: () => {
-			const state = get();
-			if (state.currentIndex === undefined) {
-				const first = state.playOrder[0];
-				if (first === undefined) return;
-
-				playback.loadIndex(first, true);
+			const upcoming = nextInOrder(playOrder, currentIndex);
+			if (upcoming === undefined) {
+				get().stop();
 				return;
 			}
 
-			if (state.isPlayIntended && state.status === 'loading') return;
-
-			// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
-			if (
-				terminalStatuses.has(state.status) ||
-				!playback.holdsTrack(state.queue[state.currentIndex]?.queueId)
-			) {
-				playback.loadIndex(state.currentIndex, true, { resumeAtSeconds: state.currentTimeSeconds });
-				return;
-			}
-
-			playback.play();
+			playback.loadIndex(upcoming, true);
 		},
+		pause: playback.pause,
+		play: playback.play,
 
 		playAt: (index) => {
 			if (index < 0 || index >= get().queue.length) return;
@@ -98,10 +83,7 @@ export function createTransportActions({
 			get().seek(Math.min(durationSeconds, Math.max(0, currentTimeSeconds + deltaSeconds)));
 		},
 
-		stop: () => {
-			playback.unload();
-			set({ currentTimeSeconds: 0, status: 'idle' });
-		},
+		stop: playback.unload,
 
 		togglePlay: () => {
 			if (get().isPlayIntended) {
@@ -109,7 +91,7 @@ export function createTransportActions({
 				return;
 			}
 
-			get().play();
+			playback.play();
 		},
 	};
 }

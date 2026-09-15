@@ -2,11 +2,12 @@ import type { RefObject } from 'react';
 
 import { useEffect, useSyncExternalStore } from 'react';
 
-import type { PlayerUrls, QueueCuePoint } from '#types.ts';
+import type { PlayerUrls, QueueCuePoint, QueueItem } from '#types.ts';
 import type { CueSlot } from '#waveform/cue-rider.ts';
 import type { WaveformArchive } from '#waveform/waveform-archive.ts';
 
 import { usePlayer, usePlayerStoreApi, useSubscribeTime } from '#store/context.tsx';
+import { loadedItem } from '#store/selectors.ts';
 import { createCueRider, toCueSlot } from '#waveform/cue-rider.ts';
 import { createGhostMarker } from '#waveform/ghost-marker.ts';
 import { createPanelCanvas } from '#waveform/panel-canvas.ts';
@@ -44,9 +45,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 	// Destructured so the effect depends on each ref's own identity rather than the wrapper's
 	const { arriving: arrivingRef, canvas: canvasRef, panel: panelRef, parked: parkedRef } = refs;
 
-	const current = usePlayer((state) =>
-		state.currentIndex === undefined ? undefined : state.queue[state.currentIndex],
-	);
+	const current = usePlayer(loadedItem);
 	const pxPerSecond = usePlayer((state) => state.panelPxPerSecond);
 	const resolveArchive = usePlayer((state) => state.urls?.archive);
 	const store = usePlayerStoreApi();
@@ -55,7 +54,6 @@ export function useScrollPanel(refs: PanelRefs): void {
 
 	const cuePoints = current?.cuePoints ?? noCuePoints;
 	const trackCount = current?.trackCount ?? cuePoints.length;
-	const trackId = current?.trackId;
 
 	useEffect(() => {
 		const parts = toPanelParts({
@@ -68,7 +66,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 
 		const { arriving, canvas, context, ghost, panel, parked } = parts;
 
-		const archive = openPanelArchive(resolveArchive, trackId);
+		const archive = openPanelArchive(resolveArchive, current);
 		const surface = createPanelCanvas({
 			canvas,
 			context,
@@ -77,7 +75,11 @@ export function useScrollPanel(refs: PanelRefs): void {
 			pxPerSecond,
 			readArchive: () => archive.current,
 		});
-		const clock = createScrollClock(subscribeTime, store.getState().getCurrentTime);
+		const clock = createScrollClock({
+			elementTime: store.getState().getCurrentTime,
+			outputDelay: store.getState().getOutputDelay,
+			subscribeTime,
+		});
 		const marker = createGhostMarker(ghost, pxPerSecond);
 		const rider = createCueRider({
 			arriving,
@@ -88,11 +90,8 @@ export function useScrollPanel(refs: PanelRefs): void {
 		});
 		const drag = createPanelDrag({
 			canDrag: () => store.getState().currentIndex !== undefined,
-			// The panel shows the audible position, so the element's clock has to land that far ahead of it
 			onSeek: (seconds) => {
-				const state = store.getState();
-
-				state.seek(seconds + state.getOutputDelay());
+				store.getState().seek(clock.toElementSeconds(seconds));
 			},
 			panel,
 			pxPerSecond,
@@ -107,11 +106,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 
 			const state = store.getState();
 			// Read every frame even while a drag overrides it, so the clock keeps its own elapsed time honest
-			// What the listener is hearing rather than what the element has handed the graph; the delay is the difference
-			const clockSeconds = Math.max(
-				0,
-				clock.read(frameMs, state.status === 'playing') - state.getOutputDelay(),
-			);
+			const clockSeconds = clock.read(frameMs, state.status === 'playing');
 			const targetSeconds = drag.targetSeconds();
 			const currentTimeSeconds = targetSeconds ?? clockSeconds;
 			const durationSeconds = state.durationSeconds ?? archiveDurationSeconds(archive.current);
@@ -145,6 +140,7 @@ export function useScrollPanel(refs: PanelRefs): void {
 	}, [
 		arrivingRef,
 		canvasRef,
+		current,
 		cuePoints,
 		panelRef,
 		parkedRef,
@@ -154,7 +150,6 @@ export function useScrollPanel(refs: PanelRefs): void {
 		subscribeTime,
 		themeVersion,
 		trackCount,
-		trackId,
 	]);
 }
 
@@ -168,13 +163,13 @@ function archiveDurationSeconds(archive: undefined | WaveformArchive): number | 
 // One slot per effect run, so an answer landing after cleanup lands where nothing reads it
 function openPanelArchive(
 	resolveArchive: PlayerUrls['archive'],
-	trackId: string | undefined,
+	item: QueueItem | undefined,
 ): PanelArchive {
 	const slot: PanelArchive = { current: undefined, isOpening: false };
-	if (!resolveArchive || trackId === undefined) return slot;
+	if (!resolveArchive || item === undefined) return slot;
 
 	slot.isOpening = true;
-	void openArchive(resolveArchive, trackId).then((opened) => {
+	void openArchive(resolveArchive, item).then((opened) => {
 		slot.current = opened;
 		slot.isOpening = false;
 	});

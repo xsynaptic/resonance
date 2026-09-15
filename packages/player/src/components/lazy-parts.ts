@@ -1,4 +1,4 @@
-import { createLazyPart } from '#components/create-lazy-part.ts';
+import { createLazyPart } from '#components/create-lazy-part.tsx';
 
 // Each part loads on first open, and its toggle's hover or focus starts the request so a pointer open is warm
 export const overlayContentPart = createLazyPart(async () => {

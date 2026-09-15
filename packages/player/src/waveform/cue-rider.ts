@@ -1,5 +1,7 @@
 import type { QueueCuePoint } from '#types.ts';
 
+import { cueIndexAt } from '#waveform/cue-points.ts';
+
 // Where a label parks once its boundary has swept past, and how far it trails that boundary on the way in
 const cueRestPx = 16;
 const cueGapPx = 8;
@@ -124,19 +126,6 @@ export function toCueSlot(root: HTMLElement | null): CueSlot | undefined {
 	if (!root || !artist || !title) return undefined;
 
 	return { artist, clip: NaN, opacity: NaN, root, title, written: NaN, x: NaN };
-}
-
-// -1 until the first timestamp, where a mix indexed from part way in begins
-function cueIndexAt(cuePoints: ReadonlyArray<QueueCuePoint>, currentTimeSeconds: number): number {
-	let found = -1;
-
-	for (const [index, cue] of cuePoints.entries()) {
-		if (cue.startSeconds > currentTimeSeconds) break;
-
-		found = index;
-	}
-
-	return found;
 }
 
 function fadeOut({

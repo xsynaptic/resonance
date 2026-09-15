@@ -9,15 +9,24 @@ const seekThresholdSeconds = 0.5;
 const catchUpPerFrame = 0.06;
 
 export interface ScrollClock {
+	// Audible seconds: the element's clock less what the graph and the device still hold
 	// `frameMs` is the rAF timestamp: presentation time, not when the callback ran
 	read: (frameMs: number, isPlaying: boolean) => number;
 	stop: () => void;
+	toElementSeconds: (audibleSeconds: number) => number;
 }
 
-export function createScrollClock(
-	subscribeTime: SubscribeTime,
-	getCurrentTime: () => number | undefined,
-): ScrollClock {
+interface ScrollClockSources {
+	elementTime: () => number | undefined;
+	outputDelay: () => number;
+	subscribeTime: SubscribeTime;
+}
+
+export function createScrollClock({
+	elementTime,
+	outputDelay,
+	subscribeTime,
+}: ScrollClockSources): ScrollClock {
 	let positionSeconds = 0;
 	let lastFrameMs: number | undefined;
 	let hasPosition = false;
@@ -30,7 +39,7 @@ export function createScrollClock(
 
 	return {
 		read: (frameMs, isPlaying) => {
-			const sourceTimeSeconds = getCurrentTime() ?? storeTimeSeconds;
+			const sourceTimeSeconds = elementTime() ?? storeTimeSeconds;
 			const elapsedSeconds = lastFrameMs === undefined ? 0 : (frameMs - lastFrameMs) / 1000;
 
 			lastFrameMs = frameMs;
@@ -49,8 +58,9 @@ export function createScrollClock(
 				positionSeconds += (sourceTimeSeconds - positionSeconds) * catchUpPerFrame;
 			}
 
-			return Math.max(0, positionSeconds);
+			return Math.max(0, positionSeconds - outputDelay());
 		},
 		stop: unsubscribe,
+		toElementSeconds: (audibleSeconds) => audibleSeconds + outputDelay(),
 	};
 }

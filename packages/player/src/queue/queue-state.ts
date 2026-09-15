@@ -91,6 +91,24 @@ export function movedItem(state: QueueState, from: number, to: number): QueueSta
 	};
 }
 
+// `undefined` when nothing differs, so an unchanged queue is not written back to storage
+export function refreshedQueue(
+	queue: ReadonlyArray<QueuedItem>,
+	items: ReadonlyArray<QueueItem>,
+): Array<QueuedItem> | undefined {
+	const refreshed = queue.map((queued) => {
+		const fresh = items.find((item) => item.trackId === queued.trackId);
+		if (!fresh) return queued;
+
+		const candidate = { ...fresh, queueId: queued.queueId };
+
+		// Both sides are plain JSON in the same key order, so the serialized forms compare exactly
+		return JSON.stringify(candidate) === JSON.stringify(queued) ? queued : candidate;
+	});
+
+	return refreshed.some((item, index) => item !== queue[index]) ? refreshed : undefined;
+}
+
 export function removedAt(state: QueueState, index: number): QueueState {
 	const queue = state.queue.filter((_, position) => position !== index);
 	const currentIndex = remainingIndex(state.currentIndex, index);

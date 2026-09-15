@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { Suspense } from 'react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { QueueItem } from '#types.ts';
@@ -13,8 +12,7 @@ vi.mock('#components/queue-tray.tsx', () => ({
 }));
 
 import { AudioPlayer } from '#components/audio-player.tsx';
-import { createLazyPart } from '#components/create-lazy-part.ts';
-import { PartBoundary } from '#components/part-boundary.tsx';
+import { createLazyPart } from '#components/create-lazy-part.tsx';
 import { labels } from '#components/test-labels.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
@@ -68,13 +66,7 @@ describe('lazy parts', () => {
 		});
 
 		function renderOpen(key: number) {
-			return (
-				<PartBoundary key={key} onError={onError} part={part}>
-					<Suspense fallback={undefined}>
-						<part.Component name="Loaded" />
-					</Suspense>
-				</PartBoundary>
-			);
+			return <part.Component key={key} name="Loaded" onFailed={onError} />;
 		}
 
 		part.preload();

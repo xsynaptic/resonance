@@ -1,6 +1,5 @@
 import { waveformPanelSurfacePart } from '#components/lazy-parts.ts';
 import { PanelToggle } from '#components/panel-toggle.tsx';
-import { usePreloadWhenQueued } from '#components/preload-when-queued.ts';
 
 export function WaveformToggle({
 	className,
@@ -9,14 +8,14 @@ export function WaveformToggle({
 	className?: string | undefined;
 	label: string;
 }) {
-	usePreloadWhenQueued(waveformPanelSurfacePart.preload);
+	const preload = waveformPanelSurfacePart.usePreload();
 
 	return (
 		<PanelToggle
 			className={className}
 			label={label}
-			onFocus={waveformPanelSurfacePart.preload}
-			onPointerEnter={waveformPanelSurfacePart.preload}
+			onFocus={preload.onFocus}
+			onPointerEnter={preload.onPointerEnter}
 		/>
 	);
 }

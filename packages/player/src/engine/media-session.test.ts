@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { QueueItem } from '#types.ts';
 
+import { createFakeEngine } from '#engine/fake-engine.ts';
 import { bindMediaSession } from '#engine/media-session.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
@@ -56,21 +57,7 @@ const release = [makeItem('a'), makeItem('b')];
 let mediaSession: FakeMediaSession;
 
 function loadedStore() {
-	const store = createPlayerStore({
-		createEngine: () => ({
-			analyser: vi.fn(),
-			canPlay: vi.fn(() => true),
-			currentTime: vi.fn(() => 0),
-			load: vi.fn(() => Promise.resolve()),
-			outputDelay: vi.fn(() => 0),
-			pause: vi.fn(),
-			play: vi.fn(() => Promise.resolve()),
-			prepare: vi.fn(),
-			reset: vi.fn(),
-			seek: vi.fn(),
-			setVolume: vi.fn(),
-		}),
-	});
+	const store = createPlayerStore({ createEngine: createFakeEngine().createEngine });
 
 	store.getState().configure({
 		urls: {

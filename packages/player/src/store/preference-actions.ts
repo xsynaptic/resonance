@@ -11,6 +11,8 @@ type PreferenceActions = Pick<
 	| 'configure'
 	| 'hydratePreferences'
 	| 'setOverlayOpen'
+	| 'setPanelOpen'
+	| 'setTrayOpen'
 	| 'setVolume'
 	| 'toggleMute'
 	| 'toggleOverlay'
@@ -61,6 +63,18 @@ export function createPreferenceActions({
 			if (get().isOverlayOpen === isOpen) return;
 
 			set({ isOverlayOpen: isOpen });
+		},
+
+		setPanelOpen: (isOpen) => {
+			if (get().isPanelOpen === isOpen) return;
+
+			set({ isPanelOpen: isOpen });
+		},
+
+		setTrayOpen: (isOpen) => {
+			if (get().isTrayOpen === isOpen) return;
+
+			set({ isTrayOpen: isOpen });
 		},
 
 		setVolume: (volume) => {

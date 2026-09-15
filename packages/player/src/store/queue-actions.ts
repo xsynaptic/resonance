@@ -11,6 +11,7 @@ import {
 	createQueueIds,
 	loadedQueue,
 	movedItem,
+	refreshedQueue,
 	removedAt,
 	replacedAfter,
 	shuffledQueue,
@@ -29,12 +30,13 @@ type QueueActions = Pick<
 	| 'playRelease'
 	| 'playTrack'
 	| 'queueTrack'
+	| 'refreshQueue'
 	| 'removeAt'
 	| 'replaceAfter'
 	| 'toggleShuffle'
 >;
 
-// Positioned with nothing loaded: what a clear, a fresh queue, and dropping the current track all leave behind
+// A fresh queue is positioned with nothing loaded, and leaves the engine to the next gesture
 const nothingLoaded = {
 	currentTimeSeconds: 0,
 	durationSeconds: undefined,
@@ -81,7 +83,7 @@ export function createQueueActions({
 	return {
 		clearQueue: () => {
 			playback.unload();
-			set({ ...nothingLoaded, currentIndex: undefined, playOrder: [], queue: [] });
+			set({ currentIndex: undefined, durationSeconds: undefined, playOrder: [], queue: [] });
 		},
 
 		hydrateQueue: () => {
@@ -139,13 +141,19 @@ export function createQueueActions({
 			set(appended.state);
 		},
 
+		refreshQueue: (items) => {
+			const queue = refreshedQueue(get().queue, items);
+
+			if (queue) set({ queue });
+		},
+
 		removeAt: (index) => {
 			const state = queueState();
 			if (index < 0 || index >= state.queue.length) return;
 
 			if (index === state.currentIndex) {
 				playback.unload();
-				set({ ...removedAt(state, index), ...nothingLoaded });
+				set({ ...removedAt(state, index), durationSeconds: undefined });
 				return;
 			}
 

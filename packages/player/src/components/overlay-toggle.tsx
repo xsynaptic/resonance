@@ -1,5 +1,5 @@
 import { Button } from '#components/button.tsx';
-import { ChevronUpIcon } from '#components/icons.tsx';
+import { ExpandIcon } from '#components/icons.tsx';
 import { overlayContentPart } from '#components/lazy-parts.ts';
 import { usePreloadWhenQueued } from '#components/preload-when-queued.ts';
 import { joinClassNames } from '#lib/class-names.ts';
@@ -29,7 +29,7 @@ export function OverlayToggle({
 			onFocus={overlayContentPart.preload}
 			onPointerEnter={overlayContentPart.preload}
 		>
-			<ChevronUpIcon />
+			<ExpandIcon />
 		</Button>
 	);
 }

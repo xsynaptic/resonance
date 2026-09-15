@@ -3,7 +3,7 @@ import type { PlayerLabels } from '#types.ts';
 export const labels = {
 	capped: 'Daily limit reached',
 	clearQueue: 'Clear',
-	collapse: 'Collapse',
+	close: 'Close',
 	empty: 'Queue is empty',
 	error: 'Playback error',
 	expand: 'Expand',

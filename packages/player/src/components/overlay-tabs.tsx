@@ -97,7 +97,12 @@ export function OverlayTabs({
 					</button>
 				))}
 			</div>
-			<div aria-labelledby={`${id}-${shownTab}`} id={`${id}-panel`} role="tabpanel">
+			<div
+				aria-labelledby={`${id}-${shownTab}`}
+				className="player-overlay-list"
+				id={`${id}-panel`}
+				role="tabpanel"
+			>
 				{shownTab === 'tracklist' ? (
 					<OverlayTracklist />
 				) : (

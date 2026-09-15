@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerUrls, QueueItem } from '#types.ts';
@@ -382,7 +382,7 @@ describe('AudioPlayer', () => {
 		);
 	});
 
-	test('expands into the overlay and closes it from the chevron and from the dialog', async () => {
+	test('expands into the overlay and closes it from its close button and from the dialog', async () => {
 		const store = renderPlayer();
 
 		act(() => {
@@ -394,7 +394,7 @@ describe('AudioPlayer', () => {
 
 		expect(dialog).toHaveAttribute('open');
 
-		fireEvent.click(await screen.findByRole('button', { name: labels.collapse }));
+		fireEvent.click(await screen.findByRole('button', { name: labels.close }));
 
 		expect(store.getState().isOverlayOpen).toBe(false);
 		expect(dialog).not.toHaveAttribute('open');
@@ -460,7 +460,7 @@ describe('AudioPlayer', () => {
 		document.removeEventListener('click', preventNavigation);
 	});
 
-	test('focuses collapse on open and keeps focus on the tabs when the Tracklist goes', async () => {
+	test('focuses close on open and keeps focus on the tabs when the Tracklist goes', async () => {
 		const store = renderPlayer();
 		const cuePoints = [
 			{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
@@ -473,7 +473,7 @@ describe('AudioPlayer', () => {
 		});
 
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: labels.collapse })).toHaveFocus();
+			expect(screen.getByRole('button', { name: labels.close })).toHaveFocus();
 		});
 
 		act(() => {
@@ -520,6 +520,41 @@ describe('AudioPlayer', () => {
 
 		expect(await screen.findAllByRole('tab')).toHaveLength(1);
 		expect(screen.getByRole('button', { name: /Track b/ })).toBeInTheDocument();
+	});
+
+	test('opens a list over the phone layout and closes back to its button', async () => {
+		const measure = vi
+			.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+			.mockReturnValue(new DOMRect(0, 0, 390, 844));
+		const store = renderPlayer();
+		const cuePoints = [
+			{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
+			{ artistLine: '', startSeconds: 60, title: 'Middle' },
+		];
+
+		act(() => {
+			store.getState().playTrack([makeItem('a', { cuePoints })], 'a');
+			store.getState().toggleOverlay();
+		});
+
+		const opener = await screen.findByRole('button', { name: labels.tracklist });
+
+		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+
+		fireEvent.click(opener);
+
+		const sheet = screen.getByRole('dialog', { hidden: true, name: labels.tracklist });
+
+		expect(sheet).toHaveAttribute('open');
+		expect(within(sheet).getByRole('button', { name: /Middle/ })).toBeInTheDocument();
+
+		fireEvent.click(within(sheet).getByRole('button', { name: labels.close }));
+
+		expect(sheet).not.toHaveAttribute('open');
+		expect(store.getState().isOverlayOpen).toBe(true);
+		expect(opener).toHaveFocus();
+
+		measure.mockRestore();
 	});
 
 	test('renders a host composition of the parts through Player.Root', () => {

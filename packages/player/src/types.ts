@@ -8,7 +8,7 @@ export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported
 export interface PlayerLabels {
 	capped: string;
 	clearQueue: string;
-	collapse: string;
+	close: string;
 	empty: string;
 	error: string;
 	expand: string;

@@ -1148,8 +1148,10 @@
 	}
 }
 
-/* The UA sizes a modal short of the viewport and centres it; this one fills it */
-.player-overlay {
+/* The UA sizes a modal short of the viewport and centres it; these fill it */
+.player-overlay,
+.player-overlay-sheet {
+	box-sizing: border-box;
 	width: 100%;
 	max-width: none;
 	height: 100dvh;
@@ -1169,46 +1171,101 @@
 
 /* A size container, so the artwork is capped by the overlay's height as well as its width */
 .player-overlay-body {
+	--player-overlay-inset-top: max(var(--player-gap-tight), env(safe-area-inset-top));
+	--player-overlay-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
+	--player-overlay-inset-bottom: max(var(--player-padding-inline), env(safe-area-inset-bottom));
+	--player-overlay-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
+
 	box-sizing: border-box;
 	block-size: 100%;
-	padding: max(var(--player-gap-tight), env(safe-area-inset-top))
-		max(var(--player-padding-inline), env(safe-area-inset-right))
-		max(1.5rem, env(safe-area-inset-bottom))
-		max(var(--player-padding-inline), env(safe-area-inset-left));
+	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
+		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
 	container-type: size;
-	overflow-y: auto;
-	overscroll-behavior: contain;
+	overflow: hidden;
 	background-color: var(--player-surface);
 }
 
 .player-overlay-layout {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr);
 	gap: var(--player-gap);
+	block-size: 100%;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-layout {
+	grid-template: 'artwork' minmax(0, 1fr) 'deck' auto / minmax(0, 1fr);
 	max-inline-size: 40rem;
 	margin-inline: auto;
 }
 
-.player-overlay-close {
-	justify-self: start;
+.player-overlay-body[data-layout='columns'] .player-overlay-layout {
+	grid-template: 'artwork deck' minmax(0, 1fr) / auto minmax(0, 64rem);
+	column-gap: 3rem;
+	justify-content: center;
 }
 
-.player-overlay-artwork {
-	justify-self: center;
-	inline-size: min(100%, 900px, 55cqb);
+.player-overlay-body[data-layout='columns']
+	.player-overlay-layout:not(:has(.player-overlay-artwork)) {
+	grid-template: 'deck' minmax(0, 1fr) / minmax(0, 64rem);
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-art {
+	display: contents;
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-artwork {
+	grid-area: artwork;
+	inline-size: min(40cqi, 100cqb, 900px);
 	block-size: auto;
 	aspect-ratio: 1;
 }
 
-.player-overlay-deck {
+/* Its own size container, so the artwork fits whatever height the deck leaves */
+.player-overlay-body[data-layout='phone'] .player-overlay-art {
 	display: grid;
-	gap: var(--player-gap);
-	align-content: start;
-	min-inline-size: 0;
+	grid-area: artwork;
+	place-items: center;
+	container-type: size;
 }
 
-.player-overlay-track {
-	--player-clock-width: 0;
+.player-overlay-body[data-layout='phone'] .player-overlay-artwork {
+	inline-size: min(100cqi, 100cqb, 900px);
+	block-size: auto;
+	aspect-ratio: 1;
+}
+
+/* A landscape phone with the panel open leaves a sliver, which reads as a stray border */
+@container (height < 6rem) {
+	.player-overlay-body[data-layout='phone'] .player-overlay-artwork {
+		display: none;
+	}
+}
+
+.player-overlay-deck {
+	display: flex;
+	flex-direction: column;
+	grid-area: deck;
+	gap: var(--player-gap);
+	min-inline-size: 0;
+	min-block-size: 0;
+}
+
+/* The close button sits at the title's end, over the clock, so the right edge is one column */
+.player-overlay-head {
+	position: relative;
+}
+
+/* Through the head, so it outranks the coarse pointer's `position: relative` on icon buttons */
+
+/* The end inset puts the 12px glyph's edge, not the 2rem button's, on the clock's */
+.player-overlay-head > .player-overlay-close {
+	position: absolute;
+	inset-block-start: -0.125rem;
+	inset-inline-end: -0.625rem;
+	z-index: 1;
+}
+
+.player-overlay-track :is(.player-track-title, .player-track-empty) {
+	padding-inline-end: calc(2rem + var(--player-gap-tight));
 }
 
 .player-overlay-track .player-track-title {
@@ -1221,34 +1278,30 @@
 	line-height: 1.25rem;
 }
 
+/* The bar's size on the artist's line box, which keeps the two baselines together */
+.player-overlay-track .player-time {
+	line-height: 1.25rem;
+}
+
 .player-overlay-scrub {
 	position: relative;
 }
 
-.player-overlay-meter {
+.player-overlay-controls {
 	display: flex;
+	gap: var(--player-gap);
 	align-items: center;
-	justify-content: space-between;
-	min-block-size: 2rem;
 }
 
-.player-overlay-meter .player-time {
-	position: static;
-	width: auto;
-	font-size: var(--player-font-size);
-	line-height: 1.25rem;
-	text-align: start;
-}
-
-/* A phone has hardware buttons for this */
-@media not (pointer: fine) {
-	.player-overlay-meter .player-volume {
-		display: none;
-	}
-}
-
-.player-overlay-deck .player-transport {
+.player-overlay-controls .player-transport {
 	gap: 1rem;
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-controls .player-transport {
+	margin-inline-end: auto;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-controls {
 	justify-content: center;
 }
 
@@ -1260,6 +1313,19 @@
 .player-overlay-deck .player-transport .player-button-primary svg {
 	inline-size: auto;
 	block-size: 1.5rem;
+}
+
+.player-overlay-sheets {
+	display: flex;
+	gap: 3rem;
+	justify-content: center;
+}
+
+.player-overlay-tabs {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-block-size: 0;
 }
 
 .player-overlay-tablist {
@@ -1295,7 +1361,37 @@
 	border-bottom-color: var(--player-control-active);
 }
 
-.player-overlay-tabs .player-tray {
+/* The one scroller; a stable gutter keeps its width, so switching lists moves nothing */
+.player-overlay-list {
+	flex: 1 1 0;
+	min-block-size: 0;
+	overflow-y: auto;
+	scrollbar-gutter: stable;
+	overscroll-behavior: contain;
+}
+
+.player-overlay-sheet[open] {
+	display: flex;
+	flex-direction: column;
+	gap: var(--player-gap-tight);
+	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
+		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
+}
+
+.player-overlay-sheet-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.player-overlay-sheet-title {
+	margin: 0;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+}
+
+.player-overlay-list .player-tray {
 	position: static;
 	width: auto;
 	margin: 0;
@@ -1306,7 +1402,7 @@
 	box-shadow: none;
 }
 
-.player-overlay-tabs .player-tray-list {
+.player-overlay-list .player-tray-list {
 	max-height: none;
 }
 
@@ -1346,7 +1442,7 @@
 	font-size: var(--player-font-size-small);
 	font-variant-numeric: tabular-nums;
 	line-height: 1.25rem;
-	color: var(--player-clock);
+	color: var(--player-meta);
 }
 
 .player-overlay-cue-artist {
@@ -1364,41 +1460,12 @@
 	color: var(--player-meta);
 }
 
-.player-overlay-cue[aria-current='true']
-	:is(.player-overlay-cue-artist, .player-overlay-cue-title) {
-	color: var(--player-current);
+.player-overlay-cue[aria-current='true'] .player-overlay-cue-artist {
+	color: var(--player-cue-artist);
 }
 
-/* A container query rather than the viewport's, so a specimen frame can render either layout */
-@container (width >= 64rem) {
-	.player-overlay-layout {
-		grid-template:
-			'close close' auto
-			'artwork deck' auto / minmax(0, 900px) minmax(20rem, 32rem);
-		column-gap: 3rem;
-		align-items: start;
-		justify-content: center;
-		max-inline-size: none;
-	}
-
-	.player-overlay-layout:not(:has(> .player-overlay-artwork)) {
-		grid-template: 'close' auto 'deck' auto / minmax(0, 32rem);
-	}
-
-	.player-overlay-close {
-		grid-area: close;
-	}
-
-	.player-overlay-artwork {
-		position: sticky;
-		top: 0;
-		grid-area: artwork;
-		inline-size: min(100%, 900px, 100cqb - 3.5rem);
-	}
-
-	.player-overlay-deck {
-		grid-area: deck;
-	}
+.player-overlay-cue[aria-current='true'] .player-overlay-cue-title {
+	color: var(--player-cue-title);
 }
 
 @media (pointer: coarse) {

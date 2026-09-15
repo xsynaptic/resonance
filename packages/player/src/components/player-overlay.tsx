@@ -34,7 +34,10 @@ export function PlayerOverlay(props: PlayerOverlayProps) {
 		<dialog
 			aria-label={props.labels.nowPlaying}
 			className="player-overlay"
-			onClose={closeOverlay}
+			onClose={(event) => {
+				// A list's nested dialog closing reaches this handler too
+				if (event.target === event.currentTarget) closeOverlay();
+			}}
 			ref={dialogRef}
 		>
 			{isOpen ? (

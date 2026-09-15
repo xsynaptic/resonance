@@ -136,7 +136,7 @@ const strings = {
 	'pagination.submit': 'Go',
 	'player.capped': 'Streaming is unavailable',
 	'player.clearQueue': 'Clear',
-	'player.collapse': 'Collapse the player',
+	'player.close': 'Close',
 	'player.empty': 'Nothing in the playlist',
 	'player.error': 'Playback failed, press play to try again',
 	'player.expand': 'Expand the player',

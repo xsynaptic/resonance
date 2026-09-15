@@ -10,7 +10,7 @@ export function getPlayerLabels(): PlayerLabels {
 	return {
 		capped: t('player.capped'),
 		clearQueue: t('player.clearQueue'),
-		collapse: t('player.collapse'),
+		close: t('player.close'),
 		empty: t('player.empty'),
 		error: t('player.error'),
 		expand: t('player.expand'),

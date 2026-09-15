@@ -1,13 +1,13 @@
 import type { KeyboardEvent, PointerEvent, RefObject } from 'react';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 
-import type { SubscribeTime } from '#types.ts';
+import type { QueueCuePoint, SubscribeTime } from '#types.ts';
 import type { WaveformRendering } from '#waveform/waveform-render.ts';
 
 import { formatClock } from '#lib/format.ts';
-import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
-import { paintWaveform, prepareRendering } from '#waveform/waveform-render.ts';
+import { useOverviewRendering } from '#waveform/use-overview-rendering.tsx';
+import { paintWaveform } from '#waveform/waveform-render.ts';
 
 // Coarse for a mix that runs hours, but the steps a slider is expected to answer to
 const arrowStepSeconds = 5;
@@ -30,11 +30,14 @@ interface HeldScrubOptions {
 	durationSeconds: number | undefined;
 	isHeldRef: RefObject<boolean>;
 	onSeek: (seconds: number) => void;
+	overviewRendering: ReturnType<typeof useOverviewRendering>;
 	repaintRef: RefObject<(() => void) | undefined>;
 	scrubSecondsRef: RefObject<number | undefined>;
 }
 
 interface WaveformCanvasProps {
+	cueDurationSeconds?: number | undefined;
+	cuePoints?: ReadonlyArray<QueueCuePoint> | undefined;
 	durationSeconds: number | undefined;
 	label: string;
 	onSeek: (seconds: number) => void;
@@ -43,6 +46,8 @@ interface WaveformCanvasProps {
 }
 
 export function WaveformCanvas({
+	cueDurationSeconds,
+	cuePoints,
 	durationSeconds,
 	label,
 	onSeek,
@@ -61,7 +66,8 @@ export function WaveformCanvas({
 	// The paint closes over the effect's rendering, so a scrub reaches it through here rather than by re-rendering
 	const repaintRef = useRef<(() => void) | undefined>(undefined);
 
-	const themeVersion = useSyncExternalStore(subscribeTheme, getThemeVersion, zeroVersion);
+	const overviewRendering = useOverviewRendering({ cueDurationSeconds, cuePoints, overview });
+	const { rebuild, themeVersion } = overviewRendering;
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -75,12 +81,9 @@ export function WaveformCanvas({
 			currentTimeRef.current = currentTimeSeconds;
 
 			if (rendering === undefined) {
-				rendering = prepareRendering(canvas, overview);
+				rendering = rebuild(canvas);
 				if (rendering === undefined) return;
 
-				// Assigning either resets the backing store, so it happens with the rebuild rather than per tick
-				canvas.width = rendering.width;
-				canvas.height = rendering.height;
 				painted = '';
 			}
 
@@ -122,43 +125,44 @@ export function WaveformCanvas({
 			observer.disconnect();
 			unsubscribe();
 		};
-	}, [durationSeconds, overview, subscribeTime, themeVersion]);
+	}, [durationSeconds, rebuild, subscribeTime, themeVersion]);
 
 	const scrubHandlers = useHeldScrub({
 		currentTimeRef,
 		durationSeconds,
 		isHeldRef,
 		onSeek,
+		overviewRendering,
 		repaintRef,
 		scrubSecondsRef,
 	});
 
-	function seekToKey(event: KeyboardEvent<HTMLCanvasElement>): void {
-		if (durationSeconds === undefined) return;
-
-		const target = keyTarget(event.key, currentTimeRef.current, durationSeconds);
-		if (target === undefined) return;
-
-		event.preventDefault();
-		onSeek(Math.min(durationSeconds, Math.max(0, target)));
-	}
-
 	return (
-		<canvas
-			aria-label={label}
-			aria-valuemax={durationSeconds ?? 0}
-			aria-valuemin={0}
-			className="player-waveform"
-			onKeyDown={seekToKey}
-			onPointerCancel={scrubHandlers.onPointerCancel}
-			onPointerDown={scrubHandlers.onPointerDown}
-			onPointerMove={scrubHandlers.onPointerMove}
-			onPointerUp={scrubHandlers.onPointerUp}
-			ref={canvasRef}
-			role="slider"
-			tabIndex={0}
-		/>
+		<>
+			<canvas
+				aria-label={label}
+				aria-valuemax={durationSeconds ?? 0}
+				aria-valuemin={0}
+				className="player-waveform"
+				onBlur={scrubHandlers.onBlur}
+				onKeyDown={scrubHandlers.onKeyDown}
+				onKeyUp={scrubHandlers.onKeyUp}
+				onPointerCancel={scrubHandlers.onPointerCancel}
+				onPointerDown={scrubHandlers.onPointerDown}
+				onPointerLeave={overviewRendering.onPointerLeave}
+				onPointerMove={scrubHandlers.onPointerMove}
+				onPointerUp={scrubHandlers.onPointerUp}
+				ref={canvasRef}
+				role="slider"
+				tabIndex={0}
+			/>
+			{overviewRendering.label}
+		</>
 	);
+}
+
+function isSliderKey(key: string): boolean {
+	return key === 'Home' || key === 'End' || keyStepsSeconds.has(key);
 }
 
 // The keys `role="slider"` contracts for; anything else falls through to the page
@@ -191,6 +195,7 @@ function useHeldScrub({
 	durationSeconds,
 	isHeldRef,
 	onSeek,
+	overviewRendering,
 	repaintRef,
 	scrubSecondsRef,
 }: HeldScrubOptions) {
@@ -203,13 +208,39 @@ function useHeldScrub({
 		[],
 	);
 
+	// A press over a cue point lands on its start, so a drag across one snaps to it
 	function scrubToPointer(event: PointerEvent<HTMLCanvasElement>): void {
 		if (durationSeconds === undefined) return;
 
 		const rect = event.currentTarget.getBoundingClientRect();
 		const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+		const cuePoint = overviewRendering.cuePointAt(event);
 
-		scrubSecondsRef.current = ratio * durationSeconds;
+		scrubSecondsRef.current = cuePoint?.cuePoint.startSeconds ?? ratio * durationSeconds;
+		repaintRef.current?.();
+	}
+
+	// Auto-repeat moves the scrub as a held pointer does, so a held key costs one seek on release rather than one per repeat
+	function scrubToKey(event: KeyboardEvent<HTMLCanvasElement>): void {
+		if (durationSeconds === undefined) return;
+
+		const fromSeconds = event.repeat
+			? (scrubSecondsRef.current ?? currentTimeRef.current)
+			: currentTimeRef.current;
+		const target = keyTarget(event.key, fromSeconds, durationSeconds);
+		if (target === undefined) return;
+
+		event.preventDefault();
+
+		const seconds = Math.min(durationSeconds, Math.max(0, target));
+
+		if (!event.repeat) {
+			onSeek(seconds);
+			return;
+		}
+
+		scrubSecondsRef.current = seconds;
+		isHeldRef.current = true;
 		repaintRef.current?.();
 	}
 
@@ -228,6 +259,11 @@ function useHeldScrub({
 	}
 
 	return {
+		onBlur: commitScrub,
+		onKeyDown: scrubToKey,
+		onKeyUp: (event: KeyboardEvent<HTMLCanvasElement>) => {
+			if (isSliderKey(event.key)) commitScrub();
+		},
 		onPointerCancel: commitScrub,
 		onPointerDown: (event: PointerEvent<HTMLCanvasElement>) => {
 			event.currentTarget.setPointerCapture(event.pointerId);
@@ -239,11 +275,9 @@ function useHeldScrub({
 		},
 		onPointerMove: (event: PointerEvent<HTMLCanvasElement>) => {
 			if (event.buttons === 1) scrubToPointer(event);
+
+			overviewRendering.onPointerMove(event);
 		},
 		onPointerUp: commitScrub,
 	};
-}
-
-function zeroVersion(): number {
-	return 0;
 }

@@ -1,5 +1,6 @@
+export { OverlayContent } from '#components/overlay-content.tsx';
 export { OverlayToggle } from '#components/overlay-toggle.tsx';
-export { PlayerOverlay as Overlay, OverlayContent } from '#components/player-overlay.tsx';
+export { PlayerOverlay as Overlay } from '#components/player-overlay.tsx';
 export { PlayerRoot as Root } from '#components/player-root.tsx';
 export { QueueControl as Queue } from '#components/queue-control.tsx';
 export { SeekBar as Seek } from '#components/seek-bar.tsx';

@@ -24,45 +24,12 @@ vi.mock('#engine/audio-engine.ts', () => ({
 
 import { AudioPlayer } from '#components/audio-player.tsx';
 import * as Player from '#components/parts.ts';
+import { labels } from '#components/test-labels.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 const testUrls: PlayerUrls = {
 	stream: (trackId) =>
 		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
-};
-
-const labels = {
-	capped: 'Daily limit reached',
-	clearQueue: 'Clear',
-	collapse: 'Collapse',
-	empty: 'Queue is empty',
-	error: 'Playback error',
-	expand: 'Expand',
-	loading: 'Loading',
-	moved: 'Moved to position {position} of {total}',
-	mute: 'Mute',
-	next: 'Next',
-	nowPlaying: 'Nothing playing',
-	pause: 'Pause',
-	play: 'Play',
-	playlist: 'Playlist',
-	previous: 'Previous',
-	queue: 'Queue',
-	removeFromQueue: 'Remove',
-	reorder: 'Reorder',
-	seek: 'Seek',
-	shuffle: 'Shuffle',
-	skipBack: 'Back 30 seconds',
-	skipForward: 'Forward 30 seconds',
-	timestampsPartial: 'Timestamps end here',
-	toggleTimeMode: 'Toggle elapsed and remaining',
-	tracklist: 'Tracklist',
-	unmute: 'Unmute',
-	unplayable: 'This browser cannot play the stream',
-	volume: 'Volume',
-	waveformPanel: 'Waveform detail',
-	zoomIn: 'Zoom in',
-	zoomOut: 'Zoom out',
 };
 
 function makeItem(id: string, extra: Partial<QueueItem> = {}): QueueItem {
@@ -113,6 +80,27 @@ describe('AudioPlayer', () => {
 
 		expect(screen.getByRole('button', { name: labels.play })).toBeDisabled();
 		expect(screen.getByText(labels.nowPlaying)).toBeInTheDocument();
+	});
+
+	test('keeps focus on next once its own press leaves nothing after the current track', () => {
+		const store = renderPlayer();
+
+		act(() => {
+			store.getState().playTrack(release, 'a');
+		});
+
+		const next = screen.getByRole('button', { name: labels.next });
+
+		next.focus();
+		fireEvent.click(next);
+
+		expect(store.getState().currentIndex).toBe(1);
+		expect(next).toHaveAttribute('aria-disabled', 'true');
+		expect(next).toHaveFocus();
+
+		fireEvent.click(next);
+
+		expect(store.getState().currentIndex).toBe(1);
 	});
 
 	test('shows the loaded track and enables transport after a play', async () => {
@@ -176,19 +164,19 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('button', { name: labels.play })).not.toHaveAttribute('data-loading');
 	});
 
-	test('opens the queue tray and jumps to a track', () => {
+	test('opens the queue tray and jumps to a track', async () => {
 		const store = renderPlayer();
 
 		act(() => {
 			store.getState().playTrack(release, 'a');
 		});
 		fireEvent.click(screen.getByRole('button', { name: labels.queue }));
-		fireEvent.click(screen.getByRole('button', { name: /Track b/ }));
+		fireEvent.click(await screen.findByRole('button', { name: /Track b/ }));
 
 		expect(store.getState().currentIndex).toBe(1);
 	});
 
-	test('closes the queue tray on a click outside it and on Escape', () => {
+	test('closes the queue tray on a click outside it and on Escape', async () => {
 		const store = renderPlayer();
 
 		act(() => {
@@ -207,7 +195,7 @@ describe('AudioPlayer', () => {
 		expect(store.getState().isTrayOpen).toBe(false);
 
 		fireEvent.click(trigger);
-		fireEvent.keyDown(screen.getByRole('button', { name: /Track b/ }), { key: 'Escape' });
+		fireEvent.keyDown(await screen.findByRole('button', { name: /Track b/ }), { key: 'Escape' });
 
 		expect(store.getState().isTrayOpen).toBe(false);
 		expect(trigger).toHaveFocus();
@@ -394,7 +382,7 @@ describe('AudioPlayer', () => {
 		);
 	});
 
-	test('expands into the overlay and closes it from the chevron and from the dialog', () => {
+	test('expands into the overlay and closes it from the chevron and from the dialog', async () => {
 		const store = renderPlayer();
 
 		act(() => {
@@ -406,7 +394,7 @@ describe('AudioPlayer', () => {
 
 		expect(dialog).toHaveAttribute('open');
 
-		fireEvent.click(screen.getByRole('button', { name: labels.collapse }));
+		fireEvent.click(await screen.findByRole('button', { name: labels.collapse }));
 
 		expect(store.getState().isOverlayOpen).toBe(false);
 		expect(dialog).not.toHaveAttribute('open');
@@ -419,20 +407,20 @@ describe('AudioPlayer', () => {
 		expect(store.getState().isOverlayOpen).toBe(false);
 	});
 
-	test('closes the overlay once the queue empties', () => {
+	test('closes the overlay once the queue empties', async () => {
 		const store = renderPlayer();
 
 		act(() => {
 			store.getState().loadQueue(release);
 			store.getState().toggleOverlay();
 		});
-		fireEvent.click(screen.getByRole('button', { name: labels.clearQueue }));
+		fireEvent.click(await screen.findByRole('button', { name: labels.clearQueue }));
 
 		expect(store.getState().isOverlayOpen).toBe(false);
 		expect(screen.getByRole('dialog', { hidden: true })).not.toHaveAttribute('open');
 	});
 
-	test('draws one waveform panel while the overlay is open', () => {
+	test('draws one waveform panel while the overlay is open', async () => {
 		const store = renderPlayer();
 
 		act(() => {
@@ -441,10 +429,10 @@ describe('AudioPlayer', () => {
 			store.getState().toggleOverlay();
 		});
 
-		expect(screen.getAllByRole('group', { name: labels.waveformPanel })).toHaveLength(1);
+		expect(await screen.findAllByRole('group', { name: labels.waveformPanel })).toHaveLength(1);
 	});
 
-	test('closes the overlay for a plain link click and stays open for a modified one', () => {
+	test('closes the overlay for a plain link click and stays open for a modified one', async () => {
 		const store = renderPlayer();
 
 		document.addEventListener('click', preventNavigation);
@@ -453,8 +441,12 @@ describe('AudioPlayer', () => {
 			store.getState().toggleOverlay();
 		});
 
-		const link = screen.getByRole('dialog', { hidden: true }).querySelector('a[href]');
-		if (!link) throw new Error('The overlay rendered no link');
+		const link = await waitFor(() => {
+			const found = screen.getByRole('dialog', { hidden: true }).querySelector('a[href]');
+			if (!found) throw new Error('The overlay rendered no link');
+
+			return found;
+		});
 
 		fireEvent.click(link, { metaKey: true });
 		fireEvent.click(link, { button: 1 });
@@ -468,7 +460,7 @@ describe('AudioPlayer', () => {
 		document.removeEventListener('click', preventNavigation);
 	});
 
-	test('focuses collapse on open and keeps focus on the tabs when the Tracklist goes', () => {
+	test('focuses collapse on open and keeps focus on the tabs when the Tracklist goes', async () => {
 		const store = renderPlayer();
 		const cuePoints = [
 			{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
@@ -480,7 +472,9 @@ describe('AudioPlayer', () => {
 			store.getState().toggleOverlay();
 		});
 
-		expect(screen.getByRole('button', { name: labels.collapse })).toHaveFocus();
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: labels.collapse })).toHaveFocus();
+		});
 
 		act(() => {
 			screen.getByRole('button', { name: /Middle/ }).focus();
@@ -492,7 +486,7 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('tab', { name: labels.playlist })).toHaveFocus();
 	});
 
-	test('seeks from a cue in the Tracklist and marks the current one', () => {
+	test('seeks from a cue in the Tracklist and marks the current one', async () => {
 		const store = renderPlayer();
 		const cuePoints = [
 			{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
@@ -504,7 +498,7 @@ describe('AudioPlayer', () => {
 			store.getState().toggleOverlay();
 		});
 
-		expect(screen.getByRole('tab', { name: labels.tracklist })).toHaveAttribute(
+		expect(await screen.findByRole('tab', { name: labels.tracklist })).toHaveAttribute(
 			'aria-selected',
 			'true',
 		);
@@ -516,7 +510,7 @@ describe('AudioPlayer', () => {
 		expect(screen.getByRole('button', { name: /Opening/ })).not.toHaveAttribute('aria-current');
 	});
 
-	test('offers only the Playlist for an item without cue points', () => {
+	test('offers only the Playlist for an item without cue points', async () => {
 		const store = renderPlayer();
 
 		act(() => {
@@ -524,7 +518,7 @@ describe('AudioPlayer', () => {
 			store.getState().toggleOverlay();
 		});
 
-		expect(screen.getAllByRole('tab')).toHaveLength(1);
+		expect(await screen.findAllByRole('tab')).toHaveLength(1);
 		expect(screen.getByRole('button', { name: /Track b/ })).toBeInTheDocument();
 	});
 

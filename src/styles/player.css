@@ -1,0 +1,2 @@
+/* A sublayer, so the site's token mapping directly in `components` wins whichever sheet loads last */
+@import '@xsynaptic/player/player.css' layer(components.player);

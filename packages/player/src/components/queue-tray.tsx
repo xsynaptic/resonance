@@ -32,15 +32,6 @@ interface QueueTrayRowProps {
 	onHandleKeyDown: (event: ReactKeyboardEvent<HTMLElement>, index: number) => void;
 }
 
-// Closed renders nothing, so an idle tray costs no layout and its subscriptions no renders
-export function QueueTray({ actions, labels }: QueueTrayProps) {
-	const isOpen = usePlayer((state) => state.isTrayOpen);
-
-	if (!isOpen) return;
-
-	return <QueueTrayPanel actions={actions} labels={labels} />;
-}
-
 export function QueueTrayPanel({ actions, labels }: QueueTrayProps) {
 	const queue = usePlayer((state) => state.queue);
 	const currentIndex = usePlayer((state) => state.currentIndex);

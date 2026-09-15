@@ -1,42 +1,52 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 
-import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
-import { paintWaveform, prepareRendering } from '#waveform/waveform-render.ts';
+import type { QueueCuePoint } from '#types.ts';
 
-export function WaveformPreview({ overview }: { overview: ReadonlyArray<number> }) {
+import { useOverviewRendering } from '#waveform/use-overview-rendering.tsx';
+import { paintWaveform } from '#waveform/waveform-render.ts';
+
+interface WaveformPreviewProps {
+	cueDurationSeconds: number | undefined;
+	cuePoints: ReadonlyArray<QueueCuePoint> | undefined;
+	overview: ReadonlyArray<number>;
+}
+
+export function WaveformPreview({ cueDurationSeconds, cuePoints, overview }: WaveformPreviewProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-
-	const themeVersion = useSyncExternalStore(subscribeTheme, getThemeVersion, zeroVersion);
+	const { label, onPointerLeave, onPointerMove, rebuild, themeVersion } = useOverviewRendering({
+		cueDurationSeconds,
+		cuePoints,
+		overview,
+	});
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 
-		const paint = (): void => {
-			const rendering = prepareRendering(canvas, overview);
-			if (rendering === undefined) return;
-
-			canvas.width = rendering.width;
-			canvas.height = rendering.height;
-
-			paintWaveform(rendering, 0);
-		};
-
 		// Observing paints once on its own, which is the first paint
-		const observer = new ResizeObserver(paint);
+		const observer = new ResizeObserver(() => {
+			const rendering = rebuild(canvas);
+
+			if (rendering !== undefined) paintWaveform(rendering, 0);
+		});
 
 		observer.observe(canvas);
 
 		return () => {
 			observer.disconnect();
 		};
-	}, [overview, themeVersion]);
+	}, [rebuild, themeVersion]);
 
 	return (
-		<canvas aria-hidden="true" className="player-waveform player-waveform-inert" ref={canvasRef} />
+		<>
+			<canvas
+				aria-hidden="true"
+				className="player-waveform player-waveform-inert"
+				onPointerLeave={onPointerLeave}
+				onPointerMove={onPointerMove}
+				ref={canvasRef}
+			/>
+			{label}
+		</>
 	);
-}
-
-function zeroVersion(): number {
-	return 0;
 }

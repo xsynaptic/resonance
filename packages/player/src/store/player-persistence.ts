@@ -3,7 +3,8 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerTimeMode, QueuedItem } from '#types.ts';
 
-const queueStorageKey = 'player:v1:queue';
+import { queueStorageKey } from '#store/queue-storage-key.ts';
+
 const timeModeStorageKey = 'player:v1:time-mode';
 const volumeStorageKey = 'player:v1:volume';
 
@@ -42,7 +43,7 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 	let volumeToWrite: number | undefined;
 
 	let isQueueBound = false;
-	let persistedQueue: Array<QueuedItem> | undefined;
+	let persistedQueue: Array<QueuedItem> = [];
 	let persistedIndex: number | undefined;
 
 	function flushVolume(): void {
@@ -56,13 +57,10 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 		volumeToWrite = undefined;
 	}
 
+	// An empty store writes nothing, so a tab unloading idle never deletes a queue another tab saved
 	function writeQueue(): void {
 		const { currentIndex, currentTimeSeconds, isShuffling, queue } = api.getState();
-
-		if (queue.length === 0) {
-			removeStored(queueStorageKey);
-			return;
-		}
+		if (queue.length === 0) return;
 
 		writeStored(
 			queueStorageKey,
@@ -80,15 +78,20 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			if (isQueueBound) return;
 
 			isQueueBound = true;
+			({ currentIndex: persistedIndex, queue: persistedQueue } = api.getState());
 
 			// Queue changes write straight away; the position drifting between them goes out on `pagehide`
 			api.subscribe(() => {
 				const { currentIndex, queue } = api.getState();
 				if (queue === persistedQueue && currentIndex === persistedIndex) return;
 
+				const hasEmptied = queue.length === 0 && persistedQueue.length > 0;
+
 				persistedQueue = queue;
 				persistedIndex = currentIndex;
-				writeQueue();
+
+				if (hasEmptied) removeStored(queueStorageKey);
+				else writeQueue();
 			});
 			window.addEventListener('pagehide', writeQueue);
 		},

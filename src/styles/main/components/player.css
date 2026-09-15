@@ -1,6 +1,3 @@
-/* The package sheet declares no layer; main.css imports this file into layer(components) for both */
-@import '@xsynaptic/player/player.css';
-
 /* The package's tokens default to its own palette; this maps every one onto the theme, so none falls through */
 :root {
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
@@ -52,7 +49,7 @@
 	--player-font-mono: var(--font-mono);
 }
 
-/* Nothing queued means no bar; the sticky dock collapses to where `MainTopButton` sits with the flag off */
+/* The bar server-renders empty, so it hides in this render-blocking sheet; the dock collapses to where `MainTopButton` sits with the flag off */
 .player-bar[data-empty] {
 	display: none;
 }

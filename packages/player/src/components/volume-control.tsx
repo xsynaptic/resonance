@@ -43,7 +43,6 @@ export function VolumeControl({
 			<Button
 				aria-expanded={isHoverCapable ? undefined : isOpen}
 				aria-label={isHoverCapable ? muteLabel : labels.volume}
-				aria-pressed={isHoverCapable ? isMuted : undefined}
 				className="player-button-icon"
 				onClick={() => {
 					if (isHoverCapable) {
@@ -60,6 +59,7 @@ export function VolumeControl({
 			<div className="player-volume-panel">
 				<input
 					aria-label={labels.volume}
+					aria-valuetext={`${String(Math.round(volume * 100))}%`}
 					className="player-volume-slider"
 					max={1}
 					min={0}
@@ -74,7 +74,6 @@ export function VolumeControl({
 				{isHoverCapable ? undefined : (
 					<Button
 						aria-label={muteLabel}
-						aria-pressed={isMuted}
 						className="player-button-icon"
 						onClick={() => {
 							store.getState().toggleMute();

@@ -31,9 +31,9 @@ export function TransportControls({
 	return (
 		<div className={joinClassNames('player-transport', className)}>
 			<Button
+				aria-disabled={isBackEnabled ? undefined : true}
 				aria-label={labels.previous}
 				className="player-button-icon player-step"
-				disabled={!isBackEnabled}
 				onClick={() => {
 					store.getState().previous();
 				}}
@@ -66,9 +66,9 @@ export function TransportControls({
 				</Button>
 			)}
 			<Button
+				aria-disabled={isForwardEnabled ? undefined : true}
 				aria-label={labels.next}
 				className="player-button-icon player-step"
-				disabled={!isForwardEnabled}
 				onClick={() => {
 					store.getState().next();
 				}}

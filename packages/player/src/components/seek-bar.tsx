@@ -1,11 +1,10 @@
-import type { QueueCuePoint, QueuedItem } from '#types.ts';
+import type { QueueCuePoint } from '#types.ts';
 
 import { joinClassNames } from '#lib/class-names.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { usePlayer, usePlayerStoreApi, useSubscribeTime } from '#store/context.tsx';
 import { displayedItem, isLoaded } from '#store/selectors.ts';
 import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
-import { WaveformCues } from '#waveform/waveform-cues.tsx';
 import { WaveformPreview } from '#waveform/waveform-preview.tsx';
 
 // Split so each branch owns its own subscriptions: the waveform takes none for the clock, the range input does
@@ -16,15 +15,24 @@ export function SeekBar({ className, label }: { className?: string | undefined; 
 	if (item?.waveformOverview === undefined)
 		return <RangeSeek className={className} label={label} />;
 
+	// Mapped against the item's own duration, the span the overview's peaks were measured over
+	const cueDurationSeconds = toDurationSeconds(item);
+
 	return (
 		<div className={joinClassNames('player-waveform-frame', className)}>
 			{isTrackLoaded ? (
-				<WaveformSeek label={label} overview={item.waveformOverview} />
+				<WaveformSeek
+					cueDurationSeconds={cueDurationSeconds}
+					cuePoints={item.cuePoints}
+					label={label}
+					overview={item.waveformOverview}
+				/>
 			) : (
-				<WaveformPreview overview={item.waveformOverview} />
-			)}
-			{item.cuePoints === undefined ? undefined : (
-				<SeekCues cuePoints={item.cuePoints} isTrackLoaded={isTrackLoaded} item={item} />
+				<WaveformPreview
+					cueDurationSeconds={cueDurationSeconds}
+					cuePoints={item.cuePoints}
+					overview={item.waveformOverview}
+				/>
 			)}
 		</div>
 	);
@@ -52,40 +60,25 @@ function RangeSeek({ className, label }: { className?: string | undefined; label
 	);
 }
 
-// Mapped against the item's own duration, the span the overview's peaks were measured over
-function SeekCues({
+function WaveformSeek({
+	cueDurationSeconds,
 	cuePoints,
-	isTrackLoaded,
-	item,
+	label,
+	overview,
 }: {
-	cuePoints: ReadonlyArray<QueueCuePoint>;
-	isTrackLoaded: boolean;
-	item: QueuedItem;
+	cueDurationSeconds: number | undefined;
+	cuePoints: ReadonlyArray<QueueCuePoint> | undefined;
+	label: string;
+	overview: ReadonlyArray<number>;
 }) {
-	const store = usePlayerStoreApi();
-
-	return (
-		<WaveformCues
-			cuePoints={cuePoints}
-			durationSeconds={toDurationSeconds(item)}
-			onSeek={
-				isTrackLoaded
-					? (seconds) => {
-							store.getState().seek(seconds);
-						}
-					: undefined
-			}
-		/>
-	);
-}
-
-function WaveformSeek({ label, overview }: { label: string; overview: ReadonlyArray<number> }) {
 	const durationSeconds = usePlayer((state) => state.durationSeconds);
 	const store = usePlayerStoreApi();
 	const subscribeTime = useSubscribeTime();
 
 	return (
 		<WaveformCanvas
+			cueDurationSeconds={cueDurationSeconds}
+			cuePoints={cuePoints}
 			durationSeconds={durationSeconds}
 			label={label}
 			onSeek={(seconds) => {

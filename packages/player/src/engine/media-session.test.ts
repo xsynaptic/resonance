@@ -11,17 +11,21 @@ interface FakeMediaSession {
 	handlers: Map<string, MediaSessionActionHandler>;
 	metadata: MediaMetadata | null;
 	playbackState: MediaSessionPlaybackState;
+	positions: Array<MediaPositionState | undefined>;
 	setActionHandler: (action: string, handler: MediaSessionActionHandler | null) => void;
+	setPositionState: (state?: MediaPositionState) => void;
 }
 
 function createFakeMediaSession(): FakeMediaSession {
 	const handlers = new Map<string, MediaSessionActionHandler>();
+	const positions: Array<MediaPositionState | undefined> = [];
 
 	return {
 		handlers,
 		// eslint-disable-next-line unicorn/no-null -- matching the platform API this stands in for
 		metadata: null,
 		playbackState: 'none',
+		positions,
 		setActionHandler: (action, handler) => {
 			if (handler === null) {
 				handlers.delete(action);
@@ -29,6 +33,9 @@ function createFakeMediaSession(): FakeMediaSession {
 			}
 
 			handlers.set(action, handler);
+		},
+		setPositionState: (state) => {
+			positions.push(state);
 		},
 	};
 }
@@ -203,5 +210,38 @@ describe('bindMediaSession', () => {
 		mediaSession.handlers.get('nexttrack')?.({ action: 'nexttrack' });
 
 		expect(store.getState().currentIndex).toBe(1);
+	});
+
+	test('projects the position on each whole second and each change of state', () => {
+		const store = loadedStore();
+
+		bindMediaSession(store);
+		store.setState({
+			currentIndex: 0,
+			currentTimeSeconds: 12.3,
+			durationSeconds: 600,
+			status: 'playing',
+		});
+		store.setState({ currentTimeSeconds: 12.6 });
+		store.setState({ currentTimeSeconds: 13.1 });
+		store.setState({ status: 'paused' });
+		store.setState({ status: 'idle' });
+
+		expect(mediaSession.positions).toStrictEqual([
+			{ duration: 600, playbackRate: 1, position: 12.3 },
+			{ duration: 600, playbackRate: 1, position: 13.1 },
+			{ duration: 600, playbackRate: 1, position: 13.1 },
+			undefined,
+		]);
+	});
+
+	test('skips by the host interval where the platform names no offset', () => {
+		const store = loadedStore();
+
+		bindMediaSession(store, 30);
+		store.setState({ currentIndex: 0, currentTimeSeconds: 100, durationSeconds: 600 });
+		mediaSession.handlers.get('seekbackward')?.({ action: 'seekbackward' });
+
+		expect(store.getState().currentTimeSeconds).toBe(70);
 	});
 });

@@ -5,6 +5,13 @@ import { useEffect } from 'react';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
+import {
+	controlSelector,
+	heldPressAttribute,
+	heldPressSelector,
+	listeningEvent,
+} from '#components/player/player-held-press.ts';
+
 const streamType = 'audio/webm; codecs="opus"';
 
 // Both URLs come from the payload, so neither resolver touches the network
@@ -39,7 +46,7 @@ export function PlayerIsland({
 	labels: PlayerLabels;
 	skipSeconds: number;
 }) {
-	useEffect(() => bindMediaSession(playerStore), []);
+	useEffect(() => bindMediaSession(playerStore, skipSeconds), [skipSeconds]);
 
 	// Without `moveBefore` the router moves the persisted island out and back, which drops the dialog's modal state
 	useEffect(() => {
@@ -61,6 +68,9 @@ export function PlayerIsland({
 		};
 
 		document.addEventListener('click', onClick);
+		// The directive stops holding presses on this event, so the held one lands exactly once
+		document.dispatchEvent(new Event(listeningEvent));
+		replayHeldPress();
 
 		return () => {
 			document.removeEventListener('click', onClick);
@@ -121,9 +131,7 @@ function currentRowState(): RowState {
 
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
 function dispatchControl(target: Element | undefined): void {
-	const control = target?.closest<HTMLElement>(
-		'[data-queue-track],[data-play-track],[data-play-release],[data-play-queue]',
-	);
+	const control = target?.closest<HTMLElement>(controlSelector);
 	if (!control) return;
 
 	const items = readPayload();
@@ -196,6 +204,14 @@ function readPayload(): Array<PlayerPayloadItem> | undefined {
 	}
 
 	return parsedItems;
+}
+
+function replayHeldPress(): void {
+	const held = document.querySelector(heldPressSelector);
+	if (!held) return;
+
+	held.removeAttribute(heldPressAttribute);
+	dispatchControl(held);
 }
 
 // A restored queue keeps the payload's fields, so a track queued on another page still resolves

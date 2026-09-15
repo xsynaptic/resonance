@@ -3,22 +3,26 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerStatus, QueuedItem } from '#types.ts';
 
-const defaultSeekOffsetSeconds = 10;
+const defaultSkipSeconds = 10;
 const mediaSessionArtworkMaxWidth = 512;
 
-export function bindMediaSession(store: StoreApi<PlayerStore>): () => void {
+export function bindMediaSession(
+	store: StoreApi<PlayerStore>,
+	skipSeconds = defaultSkipSeconds,
+): () => void {
 	if (!('mediaSession' in navigator))
 		return () => {
 			// Nothing was claimed
 		};
 
-	const actions = bindActions(store);
+	const actions = bindActions(store, skipSeconds);
 
 	let boundQueueId: string | undefined;
 	let boundState: MediaSessionPlaybackState | undefined;
+	let boundPositionKey: string | undefined;
 
-	const project = ({ currentIndex, queue, status }: PlayerStore): void => {
-		const item = currentIndex === undefined ? undefined : queue[currentIndex];
+	const project = (state: PlayerStore): void => {
+		const item = state.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
 
 		if (item?.queueId !== boundQueueId) {
 			boundQueueId = item?.queueId;
@@ -26,13 +30,21 @@ export function bindMediaSession(store: StoreApi<PlayerStore>): () => void {
 		}
 
 		// Loading is a step on the way to a state, not one of its own
-		if (status === 'loading') return;
+		if (state.status === 'loading') return;
 
-		const playbackState = playbackStateFor(status);
-		if (playbackState === boundState) return;
+		const playbackState = playbackStateFor(state.status);
 
-		boundState = playbackState;
-		navigator.mediaSession.playbackState = playbackState;
+		if (playbackState !== boundState) {
+			boundState = playbackState;
+			navigator.mediaSession.playbackState = playbackState;
+		}
+
+		const position = positionStateFor(state);
+		const positionKey = positionKeyFor(position, playbackState);
+		if (positionKey === boundPositionKey) return;
+
+		boundPositionKey = positionKey;
+		navigator.mediaSession.setPositionState(position);
 	};
 
 	project(store.getState());
@@ -45,11 +57,12 @@ export function bindMediaSession(store: StoreApi<PlayerStore>): () => void {
 		for (const action of actions) didSetHandler(action, undefined);
 
 		setMetadata(undefined);
+		navigator.mediaSession.setPositionState();
 		navigator.mediaSession.playbackState = 'none';
 	};
 }
 
-function bindActions(store: StoreApi<PlayerStore>): Array<MediaSessionAction> {
+function bindActions(store: StoreApi<PlayerStore>, skipSeconds: number): Array<MediaSessionAction> {
 	const bindings: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
 		[
 			'play',
@@ -78,13 +91,13 @@ function bindActions(store: StoreApi<PlayerStore>): Array<MediaSessionAction> {
 		[
 			'seekbackward',
 			(details) => {
-				store.getState().seekBy(-(details.seekOffset ?? defaultSeekOffsetSeconds));
+				store.getState().seekBy(-(details.seekOffset ?? skipSeconds));
 			},
 		],
 		[
 			'seekforward',
 			(details) => {
-				store.getState().seekBy(details.seekOffset ?? defaultSeekOffsetSeconds);
+				store.getState().seekBy(details.seekOffset ?? skipSeconds);
 			},
 		],
 		[
@@ -122,6 +135,31 @@ function playbackStateFor(status: PlayerStatus): MediaSessionPlaybackState {
 	if (status === 'idle') return 'none';
 
 	return 'paused';
+}
+
+// Whole seconds are enough: the platform advances the position itself while playing
+function positionKeyFor(
+	position: Required<MediaPositionState> | undefined,
+	playbackState: MediaSessionPlaybackState,
+): string | undefined {
+	if (position === undefined) return undefined;
+
+	return `${playbackState}:${String(position.duration)}:${String(Math.floor(position.position))}`;
+}
+
+// The platform throws on a position past the duration
+function positionStateFor({
+	currentTimeSeconds,
+	durationSeconds,
+	status,
+}: PlayerStore): Required<MediaPositionState> | undefined {
+	if (status === 'idle' || durationSeconds === undefined || durationSeconds <= 0) return undefined;
+
+	return {
+		duration: durationSeconds,
+		playbackRate: 1,
+		position: Math.min(durationSeconds, Math.max(0, currentTimeSeconds)),
+	};
 }
 
 function setMetadata(item: QueuedItem | undefined): void {

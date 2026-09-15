@@ -27,31 +27,11 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 		let width = 0;
 		let height = 0;
 		let columns = 0;
-
-		// Reassigning width resets the transform, so size first and then set it
-		const sizeCanvas = (): void => {
-			ratio = window.devicePixelRatio || 1;
-			width = canvas.clientWidth;
-			height = canvas.clientHeight;
-			columns = Math.floor(width * ratio);
-			canvas.width = Math.max(1, columns);
-			canvas.height = Math.max(1, Math.floor(height * ratio));
-			context.setTransform(ratio, 0, 0, ratio, 0, 0);
-		};
-
-		sizeCanvas();
-
-		const observer = new ResizeObserver(sizeCanvas);
-
-		observer.observe(canvas);
-
 		let frame = 0;
 
 		const render = (): void => {
 			frame = requestAnimationFrame(render);
 			if (document.hidden) return;
-
-			if (columns === 0) return;
 
 			analyser.getByteTimeDomainData(samples);
 
@@ -91,7 +71,26 @@ export function SignalDisplay({ className }: { className?: string | undefined })
 			context.stroke();
 		};
 
-		frame = requestAnimationFrame(render);
+		// Reassigning width resets the transform, so size first and then set it
+		const sizeCanvas = (): void => {
+			ratio = window.devicePixelRatio || 1;
+			width = canvas.clientWidth;
+			height = canvas.clientHeight;
+			columns = Math.floor(width * ratio);
+			canvas.width = Math.max(1, columns);
+			canvas.height = Math.max(1, Math.floor(height * ratio));
+			context.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+			// A hidden scope has no columns, so its loop stops until the observer sees it take width again
+			cancelAnimationFrame(frame);
+			frame = columns > 0 ? requestAnimationFrame(render) : 0;
+		};
+
+		sizeCanvas();
+
+		const observer = new ResizeObserver(sizeCanvas);
+
+		observer.observe(canvas);
 
 		return () => {
 			cancelAnimationFrame(frame);

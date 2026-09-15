@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import type { StoreApi } from 'zustand/vanilla';
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerStore } from '#store/player-store.ts';
@@ -116,5 +116,18 @@ describe('VolumeControl', () => {
 		});
 
 		expect(store.getState().volume).toBe(0.4);
+	});
+
+	test('names the level as a percentage rather than a fraction', () => {
+		const store = renderControl('hover');
+
+		act(() => {
+			store.getState().setVolume(0.37);
+		});
+
+		expect(screen.getByRole('slider', { name: labels.volume })).toHaveAttribute(
+			'aria-valuetext',
+			'37%',
+		);
 	});
 });

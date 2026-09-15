@@ -1,3 +1,7 @@
+import type { QueueCuePoint } from '#types.ts';
+import type { PlacedCuePoint } from '#waveform/cue-points.ts';
+
+import { layoutCuePoints } from '#waveform/cue-points.ts';
 import { resamplePeaks } from '#waveform/resample.ts';
 
 export interface BarGrid {
@@ -8,12 +12,24 @@ export interface BarGrid {
 	width: number;
 }
 
+export interface OverviewCues {
+	cueDurationSeconds: number | undefined;
+	cuePoints: ReadonlyArray<QueueCuePoint> | undefined;
+}
+
 export interface WaveformRendering {
 	baseStyle: string;
 	context: CanvasRenderingContext2D;
+	cuePoints: ReadonlyArray<PlacedCuePoint>;
+	cuePointSize: number;
+	cuePointsPath: Path2D | undefined;
+	cuePointStyle: string;
 	height: number;
 	path: Path2D;
 	playedStyle: string;
+	ratio: number;
+	ringStyle: string;
+	ringWidth: number;
 	scrubStyle: string;
 	width: number;
 }
@@ -23,22 +39,6 @@ interface BarLayout {
 	height: number;
 	pitch: number;
 	radius: number;
-}
-
-// The columns the bars land on, in device pixels; anything laid over the waveform reads the same grid
-export function measureBarGrid(
-	element: HTMLElement,
-	styles: CSSStyleDeclaration = getComputedStyle(element),
-): BarGrid {
-	const ratio = window.devicePixelRatio || 1;
-	const width = Math.max(1, Math.round(element.clientWidth * ratio));
-	const readDevicePixels = createDevicePixelReader(styles, ratio);
-	const bar = Math.max(1, readDevicePixels('--player-waveform-bar', 2));
-	const gap = readDevicePixels('--player-waveform-gap', 1);
-	const pitch = bar + gap;
-
-	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
-	return { bar, count: Math.max(1, Math.floor((width + gap) / pitch)), pitch, ratio, width };
 }
 
 export function paintWaveform(
@@ -53,19 +53,23 @@ export function paintWaveform(
 	context.fill(path);
 
 	if (playedPx > 0) fillSpan(rendering, { fromPx: 0, style: playedStyle, toPx: playedPx });
-	if (scrubPx === undefined || scrubPx === playedPx) return;
 
-	fillSpan(rendering, {
-		fromPx: Math.min(playedPx, scrubPx),
-		style: scrubStyle,
-		toPx: Math.max(playedPx, scrubPx),
-	});
+	if (scrubPx !== undefined && scrubPx !== playedPx) {
+		fillSpan(rendering, {
+			fromPx: Math.min(playedPx, scrubPx),
+			style: scrubStyle,
+			toPx: Math.max(playedPx, scrubPx),
+		});
+	}
+
+	paintCuePoints(rendering);
 }
 
 // Every length is in device pixels; a fractional bar pitch aliases each bar differently
 export function prepareRendering(
 	canvas: HTMLCanvasElement,
 	peaks: ReadonlyArray<number>,
+	cues?: OverviewCues,
 ): undefined | WaveformRendering {
 	if (peaks.length === 0) return undefined;
 
@@ -74,21 +78,39 @@ export function prepareRendering(
 	if (!context) return undefined;
 
 	const styles = getComputedStyle(canvas);
-	const { bar, count, pitch, ratio, width } = measureBarGrid(canvas, styles);
+	const grid = measureBarGrid(canvas, styles);
+	const { bar, count, pitch, ratio, width } = grid;
+	const readDevicePixels = createDevicePixelReader(styles, ratio);
 	const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
 	const layout = {
 		bar,
 		height,
 		pitch,
-		radius: createDevicePixelReader(styles, ratio)('--player-waveform-radius', 0),
+		radius: readDevicePixels('--player-waveform-radius', 0),
 	} satisfies BarLayout;
+	const cuePointSize = Math.max(1, readDevicePixels('--player-cue-size', 4));
+	const cuePoints =
+		cues?.cuePoints === undefined || !cues.cueDurationSeconds || cues.cueDurationSeconds <= 0
+			? []
+			: layoutCuePoints(cues.cuePoints, cues.cueDurationSeconds, { ...grid, size: cuePointSize });
+
+	// Assigning either resets the backing store, so it happens with the rebuild rather than per tick
+	canvas.width = width;
+	canvas.height = height;
 
 	return {
 		baseStyle: styles.getPropertyValue('--player-waveform-base'),
 		context,
+		cuePoints,
+		cuePointSize,
+		cuePointsPath: cuePoints.length === 0 ? undefined : cuePointsPath(cuePoints, cuePointSize / 2),
+		cuePointStyle: styles.getPropertyValue('--player-cue-dot'),
 		height,
 		path: barsPath(resamplePeaks(peaks, count), layout),
 		playedStyle: styles.getPropertyValue('--player-waveform-played'),
+		ratio,
+		ringStyle: styles.getPropertyValue('--player-surface'),
+		ringWidth: Math.max(1, Math.round(ratio)),
 		scrubStyle: styles.getPropertyValue('--player-waveform-scrub'),
 		width,
 	};
@@ -119,6 +141,17 @@ function createDevicePixelReader(styles: CSSStyleDeclaration, ratio: number) {
 	};
 }
 
+function cuePointsPath(cuePoints: ReadonlyArray<PlacedCuePoint>, radius: number): Path2D {
+	const path = new Path2D();
+
+	for (const { x, y } of cuePoints) {
+		path.moveTo(x + radius, y);
+		path.arc(x, y, radius, 0, Math.PI * 2);
+	}
+
+	return path;
+}
+
 // Clipped rather than coloured per bar, so an edge can land mid-bar
 function fillSpan(
 	{ context, height, path }: WaveformRendering,
@@ -131,4 +164,34 @@ function fillSpan(
 	context.fillStyle = style;
 	context.fill(path);
 	context.restore();
+}
+
+// The columns the bars land on, in device pixels
+function measureBarGrid(element: HTMLElement, styles: CSSStyleDeclaration): BarGrid {
+	const ratio = window.devicePixelRatio || 1;
+	const width = Math.max(1, Math.round(element.clientWidth * ratio));
+	const readDevicePixels = createDevicePixelReader(styles, ratio);
+	const bar = Math.max(1, readDevicePixels('--player-waveform-bar', 2));
+	const gap = readDevicePixels('--player-waveform-gap', 1);
+	const pitch = bar + gap;
+
+	// The trailing gap is not drawn, so one more bar fits than the pitch alone allows
+	return { bar, count: Math.max(1, Math.floor((width + gap) / pitch)), pitch, ratio, width };
+}
+
+// The fill covers the stroke's inner half, leaving a ring of surface around each cue point
+function paintCuePoints({
+	context,
+	cuePointsPath,
+	cuePointStyle,
+	ringStyle,
+	ringWidth,
+}: WaveformRendering): void {
+	if (cuePointsPath === undefined) return;
+
+	context.lineWidth = ringWidth * 2;
+	context.strokeStyle = ringStyle;
+	context.stroke(cuePointsPath);
+	context.fillStyle = cuePointStyle;
+	context.fill(cuePointsPath);
 }

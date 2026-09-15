@@ -1110,6 +1110,34 @@ describe('queue persistence', () => {
 		expect(localStorage.getItem('player:v1:queue')).toBeNull();
 	});
 
+	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
+		const store = configured();
+
+		store.getState().hydrateQueue();
+		localStorage.setItem('player:v1:queue', JSON.stringify({ queue: release }));
+		leavePage();
+
+		expect(storedQueue()?.queue).toHaveLength(3);
+
+		localStorage.removeItem('player:v1:queue');
+	});
+
+	test('clears a restored queue once it is emptied', () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().loadQueue(release);
+
+		fake = createFakeEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+		second.getState().clearQueue();
+
+		expect(localStorage.getItem('player:v1:queue')).toBeNull();
+	});
+
 	test('restores the queue and its position without loading anything', () => {
 		const first = configured();
 

@@ -43,7 +43,6 @@ export function bindTabs(
 	const render = (view: TabsView): void => {
 		const shown = shownList(view.lists, chosen);
 		const wasFocused = tabs.contains(document.activeElement);
-		
 		const key = shown === 'tracklist' ? `tracklist:${view.itemId ?? ''}` : shown;
 
 		applyTabs({ buttons, tablist }, view.lists, shown);

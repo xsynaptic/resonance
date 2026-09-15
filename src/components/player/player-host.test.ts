@@ -11,7 +11,7 @@ const elements = vi.hoisted(() => ({
 	playerStore: {},
 }));
 
-vi.mock('@xsynaptic/player/elements', () => elements);
+vi.mock('@xsynaptic/player', () => elements);
 
 import { startPlayer } from '#components/player/player-host.ts';
 

@@ -1,8 +1,8 @@
 import { fireEvent, getAllByRole, getByRole, queryByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { labels } from '#components/test-labels.ts';
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
+import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
 const cuePoints = [

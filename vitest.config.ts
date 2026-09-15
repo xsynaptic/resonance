@@ -12,8 +12,7 @@ export default defineConfig({
 		},
 	},
 	test: {
-		// Vitest defaults this only when unset; an inherited `production` loads React without `React.act`
-		env: { NODE_ENV: 'test', SITE: 'http://localhost:4321/' },
+		env: { SITE: 'http://localhost:4321/' },
 		projects: [
 			{
 				extends: true,

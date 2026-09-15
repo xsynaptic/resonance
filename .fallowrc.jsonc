@@ -9,6 +9,7 @@
 	"dynamicallyLoaded": ["src/components/mdx/**/*.astro"],
 	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],
 	"ignoreDependencies": [
+		"@types/react",
 		"@fontsource/fira-sans",
 		"@fontsource/manrope",
 		"@xsynaptic/stylelint-config",

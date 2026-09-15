@@ -1,7 +1,7 @@
 import { fireEvent, getAllByRole, getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { labels } from '#components/test-labels.ts';
+import { labels } from '#test/labels.ts';
 import { mount } from '#test/mount.ts';
 
 function controlOf(part: HTMLElement): HTMLElement {

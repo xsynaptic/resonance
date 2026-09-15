@@ -1,10 +1,10 @@
 import type { PlayerRoot } from '#elements/player-root.ts';
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
-import { labels } from '#components/test-labels.ts';
 import { definePlayerElements } from '#elements/define.ts';
 import { createFakeEngine } from '#engine/fake-engine.ts';
 import { createPlayerStore } from '#store/player-store.ts';
+import { labels } from '#test/labels.ts';
 
 const testUrls: PlayerUrls = {
 	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),

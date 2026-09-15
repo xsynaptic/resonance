@@ -1,7 +1,4 @@
-import type { ESLint } from 'eslint';
-
 import { getAstroConfig, getConfig, getWebComponentConfig } from '@xsynaptic/eslint-config';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 
 export default getConfig(
@@ -54,16 +51,6 @@ export default getConfig(
 			},
 			rules: {
 				'unicorn/prefer-global-this': 'off',
-			},
-		},
-		{
-			files: ['**/*.ts', '**/*.tsx'],
-			plugins: {
-				'react-hooks': reactHooksPlugin as unknown as ESLint.Plugin,
-			},
-			rules: {
-				...reactHooksPlugin.configs['recommended-latest'].rules,
-				'react-hooks/component-hook-factories': 'error',
 			},
 		},
 		getWebComponentConfig(['src/components/**/*.ts', 'packages/player/src/elements/**/*.ts']),

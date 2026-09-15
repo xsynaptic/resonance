@@ -71,7 +71,6 @@ export function bindSheets(
 		hasTracklist,
 		(isOffered) => {
 			if (!isOffered) {
-				
 				if (chosen === 'tracklist') closeSheet();
 				openers.tracklist.remove();
 				return;

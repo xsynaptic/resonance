@@ -15,7 +15,7 @@ interface PlayerBarConfig {
 	stylesheetUrl: string;
 }
 
-const streamType = 'audio/webm; codecs="opus"';
+const streamType = 'audio/mp4; codecs="opus"';
 
 // Both URLs come from the payload, so neither resolver touches the network
 const urls: PlayerUrls = {
@@ -82,7 +82,7 @@ async function loadPlayer(host: Element): Promise<void> {
 	]);
 
 	const { bindMediaSession, bindPageControls, definePlayerElements, playerStore } =
-		await import('@xsynaptic/player/elements');
+		await import('@xsynaptic/player');
 
 	definePlayerElements();
 	host.append(createRoot(config, playerStore));

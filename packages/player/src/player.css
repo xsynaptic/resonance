@@ -256,7 +256,7 @@
 }
 
 /* The triangle's mass sits left of its box, so it reads off centre until nudged */
-.player-button-primary:is([data-state='paused'], [data-paused]) svg {
+.player-button-primary[data-paused] svg {
 	translate: 8%;
 }
 
@@ -1016,12 +1016,12 @@ player-title[data-idle] {
 	backdrop-filter: blur(8px);
 }
 
-.player-bar:has(> .player-panel, > player-panel > .player-panel) {
+.player-bar:has(> player-panel > .player-panel) {
 	border-top-color: transparent;
 }
 
 /* Full-bleed under a landscape notch, so the zoom buttons and the parked label take the inset back */
-:is(.player-bar, .player-bar > player-panel) > .player-panel {
+.player-bar > player-panel > .player-panel {
 	--player-panel-inset-left: env(safe-area-inset-left);
 
 	margin: calc(-1 * var(--player-padding-block-start)) calc(-1 * var(--player-inset-right))
@@ -1029,7 +1029,7 @@ player-title[data-idle] {
 }
 
 /* Full: transport and toggles, the title line, the waveform; a fixed height, so no item shifts the bar */
-:is(.player-bar, .player-bar > player-panel) > .player-panel .player-panel-zoom {
+.player-bar > player-panel > .player-panel .player-panel-zoom {
 	right: env(safe-area-inset-right);
 }
 
@@ -1086,7 +1086,7 @@ player-title[data-idle] {
 }
 
 /* Full-bleed from under the bar's top border to its foot, beside the grid rows and never the panel */
-:is(.player-bar-grid, .player-bar-grid > player-artwork) > .player-artwork {
+.player-bar-grid > player-artwork > .player-artwork {
 	position: absolute;
 	bottom: var(--player-inset-bottom);
 	left: env(safe-area-inset-left);
@@ -1095,7 +1095,7 @@ player-title[data-idle] {
 	block-size: var(--player-layout-artwork);
 }
 
-.player-bar-grid:has(> .player-artwork, > player-artwork > .player-artwork) {
+.player-bar-grid:has(> player-artwork > .player-artwork) {
 	padding-left: calc(
 		env(safe-area-inset-left) + var(--player-layout-artwork) + 2px + var(--player-gap) -
 			var(--player-inset-left)
@@ -1110,12 +1110,7 @@ player-title[data-idle] {
 	grid-area: info;
 }
 
-.player-bar-grid
-	:is(
-		.player-bar-seek,
-		player-time-slider > .player-waveform-frame,
-		player-time-slider > .player-seek
-	) {
+.player-bar-grid player-time-slider > :is(.player-waveform-frame, .player-seek) {
 	grid-area: seek;
 	min-block-size: var(--player-waveform-height);
 }
@@ -1149,33 +1144,28 @@ player-title[data-idle] {
 	}
 
 	/* A host without the overlay keeps the Playlist here, its tray spanning the bar */
-	.player-bar-grid:not(:has(> .player-overlay-toggle, > player-overlay-toggle)) {
+	.player-bar-grid:not(:has(> player-overlay-toggle)) {
 		--player-layout: 'transport info queue' auto / auto minmax(0, 1fr) auto;
 	}
 
-	.player-bar-grid:has(> .player-artwork, > player-artwork > .player-artwork) {
+	.player-bar-grid:has(> player-artwork > .player-artwork) {
 		padding-left: 0;
 	}
 
-	.player-bar-grid:not(:has(> .player-overlay-toggle, > player-overlay-toggle)) .player-queue {
+	.player-bar-grid:not(:has(> player-overlay-toggle)) .player-queue {
 		position: static;
 	}
 
-	.player-bar-grid:not(:has(> .player-overlay-toggle, > player-overlay-toggle)) .player-tray {
+	.player-bar-grid:not(:has(> player-overlay-toggle)) .player-tray {
 		left: 0;
 		width: auto;
 	}
 
-	:is(.player-bar, .player-bar > player-panel) > .player-panel,
-	:is(.player-bar-grid, .player-bar-grid > player-artwork) > .player-artwork,
-	.player-bar-grid
-		:is(
-			.player-bar-seek,
-			player-time-slider > .player-waveform-frame,
-			player-time-slider > .player-seek
-		),
+	.player-bar > player-panel > .player-panel,
+	.player-bar-grid > player-artwork > .player-artwork,
+	.player-bar-grid player-time-slider > :is(.player-waveform-frame, .player-seek),
 	.player-bar-grid .player-panel-toggle,
-	.player-bar-grid:has(> .player-overlay-toggle, > player-overlay-toggle) .player-queue,
+	.player-bar-grid:has(> player-overlay-toggle) .player-queue,
 	.player-bar-grid .player-seek-button,
 	.player-bar-grid .player-step,
 	.player-bar-grid .player-time,

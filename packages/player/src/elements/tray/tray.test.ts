@@ -10,8 +10,8 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { QueueItem } from '#types.ts';
 
-import { labels } from '#components/test-labels.ts';
 import { trayModule } from '#elements/tray/tray-module.ts';
+import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
 const threeItems = [queueItem('a'), queueItem('b'), queueItem('c')];

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { labels } from '#components/test-labels.ts';
 import { PlayerRoot } from '#elements/player-root.ts';
 import { createPlayerStore } from '#store/player-store.ts';
+import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
 // A tag of its own, so the upgrade happens here whatever else in the file has already defined `player-root`

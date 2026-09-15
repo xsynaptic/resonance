@@ -24,10 +24,6 @@ import { PlayerTitle } from '#elements/title.ts';
 import { PlayerVolumePopover } from '#elements/volume-popover.ts';
 import { PlayerVolumeSlider } from '#elements/volume-slider.ts';
 
-export { bindMediaSession } from '#engine/media-session.ts';
-export { bindPageControls } from '#lib/page-controls.ts';
-export { playerStore } from '#store/player-store.ts';
-
 declare global {
 	interface HTMLElementTagNameMap {
 		'player-artist-line': PlayerArtistLine;

@@ -1,7 +1,7 @@
 import { getByRole, getByText, queryByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { labels } from '#components/test-labels.ts';
+import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
 afterEach(() => {

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { QueueCuePoint } from '#types.ts';
 
-import { labels } from '#components/test-labels.ts';
+import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
 // Vitest wants a constructible stub, and the renderer never reads back from the path it builds

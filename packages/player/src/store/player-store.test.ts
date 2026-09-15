@@ -705,7 +705,7 @@ describe('engine errors', () => {
 			resolved.push(trackId);
 			return Promise.resolve({
 				status: 'ok',
-				type: 'audio/webm; codecs="opus"',
+				type: 'audio/mp4; codecs="opus"',
 				url: `https://api.test/tracks/${trackId}/stream`,
 			});
 		});
@@ -716,7 +716,7 @@ describe('engine errors', () => {
 			expect(store.getState().status).toBe('unplayable');
 		});
 
-		expect(fake.engine.canPlay).toHaveBeenCalledWith('audio/webm; codecs="opus"');
+		expect(fake.engine.canPlay).toHaveBeenCalledWith('audio/mp4; codecs="opus"');
 		expect(fake.engine.load).not.toHaveBeenCalled();
 		expect(resolved).toStrictEqual(['a']);
 	});

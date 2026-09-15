@@ -23,8 +23,8 @@ MEDIA_ROOT = "/srv/resonance"
 STATE_DIR = "/srv/resonance/stats"
 
 COMPLETION_THRESHOLD = 0.95
-# Four minutes of a 70 minute mix is 5.7% of the file and still a listen, not a download
-# Credited per visitor-day like a completion, so scrubbing cannot count twice
+# Bytes delivered, not audio heard; read-ahead and each seek's open-ended range count toward it
+# Credited once per visitor and file like a completion, so scrubbing and repeat plays cannot count twice
 STREAM_THRESHOLD = 0.25
 WINDOW_DAYS = 90
 # A quiet week and a stopped nginx look identical without this

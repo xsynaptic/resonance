@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { QueueItem } from '#types.ts';
 
-import { preloadWhenQueued } from '#components/preload-when-queued.ts';
+import { preloadWhenQueued } from '#lib/preload-when-queued.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 const item = {

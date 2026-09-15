@@ -22,6 +22,7 @@ export const labels = {
 	seek: 'Seek',
 	seekBack: 'Back 30 seconds',
 	seekForward: 'Forward 30 seconds',
+	seekPosition: '{current} of {duration}',
 	shuffle: 'Shuffle',
 	timestampsPartial: 'Timestamps end here',
 	toggleTimeMode: 'Toggle elapsed and remaining',

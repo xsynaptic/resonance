@@ -5,12 +5,9 @@ import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import type { PlacedCuePoint } from '#waveform/cue-points.ts';
 import type { OverviewCues, WaveformRendering } from '#waveform/waveform-render.ts';
 
-import { cuePointAt } from '#waveform/cue-points.ts';
+import { cuePointAtPointer } from '#waveform/overview-scrub.ts';
 import { getThemeVersion, subscribeTheme } from '#waveform/theme-version.ts';
 import { prepareRendering } from '#waveform/waveform-render.ts';
-
-// In CSS pixels: the 0.25rem a pointer can miss a cue point's edge by
-const hitMarginPx = 4;
 
 interface HoveredCuePoint {
 	placed: PlacedCuePoint;
@@ -54,7 +51,7 @@ export function useOverviewRendering({ cueDurationSeconds, cuePoints, overview }
 
 	return {
 		cuePointAt: (event: PointerEvent<HTMLCanvasElement>) =>
-			cuePointAtPointer(renderingRef.current, event),
+			cuePointAtPointer(renderingRef.current, event.currentTarget, event),
 		// Hidden from assistive tech: the tracklist carries the same names and the slider the same seeks
 		label:
 			hovered === undefined ? undefined : (
@@ -80,30 +77,11 @@ export function useOverviewRendering({ cueDurationSeconds, cuePoints, overview }
 		onPointerMove: (event: PointerEvent<HTMLCanvasElement>) => {
 			if (event.pointerType === 'touch') return;
 
-			show(cuePointAtPointer(renderingRef.current, event));
+			show(cuePointAtPointer(renderingRef.current, event.currentTarget, event));
 		},
 		rebuild,
 		themeVersion,
 	};
-}
-
-function cuePointAtPointer(
-	rendering: undefined | WaveformRendering,
-	event: PointerEvent<HTMLCanvasElement>,
-): PlacedCuePoint | undefined {
-	if (rendering === undefined || rendering.cuePoints.length === 0) return undefined;
-
-	const rect = event.currentTarget.getBoundingClientRect();
-	if (rect.width === 0 || rect.height === 0) return undefined;
-
-	return cuePointAt(
-		rendering.cuePoints,
-		{
-			x: ((event.clientX - rect.left) * rendering.width) / rect.width,
-			y: ((event.clientY - rect.top) * rendering.height) / rect.height,
-		},
-		rendering.cuePointSize / 2 + hitMarginPx * rendering.ratio,
-	);
 }
 
 function zeroVersion(): number {

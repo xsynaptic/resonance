@@ -1,10 +1,12 @@
 import type { StoreApi } from 'zustand/vanilla';
 
+import type { PlayerRoot } from '#elements/player-root.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 
 export interface PlayerContext {
 	labels: PlayerLabels;
+	root: PlayerRoot;
 	store: StoreApi<PlayerStore>;
 }
 
@@ -18,5 +20,5 @@ export function playerContext(element: Element): PlayerContext {
 		);
 	}
 
-	return { labels: root.labels, store: root.store };
+	return { labels: root.labels, root, store: root.store };
 }

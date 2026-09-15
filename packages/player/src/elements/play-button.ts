@@ -13,7 +13,6 @@ interface PlayButtonView {
 
 const playButtonAttributes = {
 	isPaused: 'data-paused',
-	// Named for the ring it draws in `player.css`
 	isWaiting: 'data-loading',
 } as const satisfies Partial<Record<keyof PlayButtonView, `data-${string}`>>;
 

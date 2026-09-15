@@ -6,6 +6,7 @@ import type { OverlayList } from '#components/overlay-lists.tsx';
 import type { PlayerLabels } from '#types.ts';
 
 import { OverlayListContent, useOverlayLists } from '#components/overlay-lists.tsx';
+import { nextTabIndex } from '#lib/tab-keys.ts';
 import { usePlayer } from '#store/context.tsx';
 import { displayedItem } from '#store/selectors.ts';
 
@@ -103,24 +104,4 @@ export function OverlayTabs({
 			</div>
 		</div>
 	);
-}
-
-function nextTabIndex(key: string, index: number, count: number): number | undefined {
-	switch (key) {
-		case 'ArrowLeft': {
-			return (index - 1 + count) % count;
-		}
-		case 'ArrowRight': {
-			return (index + 1) % count;
-		}
-		case 'End': {
-			return count - 1;
-		}
-		case 'Home': {
-			return 0;
-		}
-		default: {
-			return undefined;
-		}
-	}
 }

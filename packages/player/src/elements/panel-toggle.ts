@@ -1,7 +1,9 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
+import { bindPreload } from '#elements/bind-preload.ts';
 import { buttonPart } from '#elements/button-part.ts';
 import { renderIconButton } from '#elements/icon-button.ts';
+import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
 import { isLoaded } from '#store/selectors.ts';
 
 interface PanelToggleView {
@@ -13,6 +15,9 @@ export const PlayerPanelToggle = buttonPart({
 	apply: (button, view: PanelToggleView) => {
 		button.disabled = view.isDisabled;
 		button.setAttribute('aria-pressed', String(view.isOpen));
+	},
+	connect: (button, { store }, signal) => {
+		bindPreload({ preload: panelSurfaceModule.preload, store, trigger: button }, signal);
 	},
 	icon: 'waveform',
 	label: 'waveformPanel',

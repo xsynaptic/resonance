@@ -28,7 +28,6 @@ const renderRegion = template(
 export class PlayerStatusRegion extends PlayerElement {
 	readonly #region = renderRegion();
 
-	// Kept once the status clears, so the words stay while the region fades out
 	#shown: ReportedStatus | undefined;
 
 	readonly #skull = cloneIcon('skull');

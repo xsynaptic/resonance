@@ -12,7 +12,6 @@ import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
 
-import player from '#components/player/player-integration.ts';
 import devAudio from '#dev/audio/audio-integration.ts';
 import devInventory from '#dev/inventory/inventory-integration.ts';
 
@@ -95,7 +94,6 @@ export default defineConfig({
 		fontDevtools({ providers: ['fontsource'] }),
 		pagefind(),
 		buildLogger(),
-		player(),
 		devAudio(),
 		devInventory(),
 	],

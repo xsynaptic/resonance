@@ -7,6 +7,7 @@ import { useStore } from 'zustand';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { SubscribeTime } from '#types.ts';
 
+import { subscribeStoreTime } from '#lib/subscribe-time.ts';
 import { playerStore } from '#store/player-store.ts';
 
 // Defaults to the module singleton; tests provide a fresh store so state never leaks between them
@@ -33,14 +34,5 @@ export function usePlayerStoreApi(): StoreApi<PlayerStore> {
 export function useSubscribeTime(): SubscribeTime {
 	const store = usePlayerStoreApi();
 
-	return useMemo<SubscribeTime>(
-		() => (onTime) => {
-			onTime(store.getState().currentTimeSeconds);
-
-			return store.subscribe((state) => {
-				onTime(state.currentTimeSeconds);
-			});
-		},
-		[store],
-	);
+	return useMemo<SubscribeTime>(() => subscribeStoreTime(store), [store]);
 }

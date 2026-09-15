@@ -6,24 +6,9 @@ import type { QueueCuePoint, SubscribeTime } from '#types.ts';
 import type { WaveformRendering } from '#waveform/waveform-render.ts';
 
 import { formatClock } from '#lib/format.ts';
+import { holdDelayMs, isSliderKey, keyScrubSeconds, pixelAt } from '#waveform/overview-scrub.ts';
 import { useOverviewRendering } from '#waveform/use-overview-rendering.tsx';
 import { paintWaveform } from '#waveform/waveform-render.ts';
-
-// Coarse for a mix that runs hours, but the steps a slider is expected to answer to
-const arrowStepSeconds = 5;
-const pageStepSeconds = 60;
-
-// A click seeks without drawing the scrub; only a press held past this shows where the release will land
-const holdDelayMs = 150;
-
-const keyStepsSeconds = new Map<string, number>([
-	['ArrowDown', -arrowStepSeconds],
-	['ArrowLeft', -arrowStepSeconds],
-	['ArrowRight', arrowStepSeconds],
-	['ArrowUp', arrowStepSeconds],
-	['PageDown', -pageStepSeconds],
-	['PageUp', pageStepSeconds],
-]);
 
 interface HeldScrubOptions {
 	currentTimeRef: RefObject<number>;
@@ -161,35 +146,6 @@ export function WaveformCanvas({
 	);
 }
 
-function isSliderKey(key: string): boolean {
-	return key === 'Home' || key === 'End' || keyStepsSeconds.has(key);
-}
-
-// The keys `role="slider"` contracts for; anything else falls through to the page
-function keyTarget(
-	key: string,
-	currentTimeSeconds: number,
-	durationSeconds: number,
-): number | undefined {
-	if (key === 'Home') return 0;
-	if (key === 'End') return durationSeconds;
-
-	const step = keyStepsSeconds.get(key);
-
-	return step === undefined ? undefined : currentTimeSeconds + step;
-}
-
-function pixelAt(
-	seconds: number | undefined,
-	durationSeconds: number | undefined,
-	width: number,
-): number | undefined {
-	if (seconds === undefined) return undefined;
-	if (!durationSeconds || durationSeconds <= 0) return 0;
-
-	return Math.round(Math.min(1, Math.max(0, seconds / durationSeconds)) * width);
-}
-
 function useHeldScrub({
 	currentTimeRef,
 	durationSeconds,
@@ -220,19 +176,17 @@ function useHeldScrub({
 		repaintRef.current?.();
 	}
 
-	// Auto-repeat moves the scrub as a held pointer does, so a held key costs one seek on release rather than one per repeat
 	function scrubToKey(event: KeyboardEvent<HTMLCanvasElement>): void {
 		if (durationSeconds === undefined) return;
 
-		const fromSeconds = event.repeat
-			? (scrubSecondsRef.current ?? currentTimeRef.current)
-			: currentTimeRef.current;
-		const target = keyTarget(event.key, fromSeconds, durationSeconds);
-		if (target === undefined) return;
+		const seconds = keyScrubSeconds(event, {
+			currentSeconds: currentTimeRef.current,
+			durationSeconds,
+			scrubSeconds: scrubSecondsRef.current,
+		});
+		if (seconds === undefined) return;
 
 		event.preventDefault();
-
-		const seconds = Math.min(durationSeconds, Math.max(0, target));
 
 		if (!event.repeat) {
 			onSeek(seconds);

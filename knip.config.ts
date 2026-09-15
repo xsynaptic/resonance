@@ -15,8 +15,6 @@ export default {
 				'src/dev/inventory/inventory-og-image.ts',
 				'src/dev/audio/stream-rendition.ts',
 				'src/dev/audio/waveform-archive.ts',
-				// The player's client directive; registered by entrypoint string, not imported
-				'src/components/player/player-directive.ts',
 			],
 			ignoreDependencies: [
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })

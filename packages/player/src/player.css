@@ -72,6 +72,35 @@
 	font-family: var(--player-font-family);
 }
 
+/* A part tag only wraps what the stylesheet places, so layout reaches past it */
+:is(
+	player-artist-line,
+	player-artwork,
+	player-bar,
+	player-mute-button,
+	player-overlay,
+	player-overlay-content,
+	player-overlay-toggle,
+	player-panel,
+	player-panel-toggle,
+	player-panel-zoom,
+	player-play-button,
+	player-queue-button,
+	player-scope,
+	player-seek-button,
+	player-status,
+	player-step-button,
+	player-time,
+	player-time-slider,
+	player-title,
+	player-tracklist,
+	player-tray,
+	player-volume-popover,
+	player-volume-slider
+):not([hidden]) {
+	display: contents;
+}
+
 .player-status {
 	position: absolute;
 	top: 50%;
@@ -987,12 +1016,12 @@ player-title[data-idle] {
 	backdrop-filter: blur(8px);
 }
 
-.player-bar:has(> .player-panel) {
+.player-bar:has(> .player-panel, > player-panel > .player-panel) {
 	border-top-color: transparent;
 }
 
 /* Full-bleed under a landscape notch, so the zoom buttons and the parked label take the inset back */
-.player-bar > .player-panel {
+:is(.player-bar, .player-bar > player-panel) > .player-panel {
 	--player-panel-inset-left: env(safe-area-inset-left);
 
 	margin: calc(-1 * var(--player-padding-block-start)) calc(-1 * var(--player-inset-right))
@@ -1000,7 +1029,7 @@ player-title[data-idle] {
 }
 
 /* Full: transport and toggles, the title line, the waveform; a fixed height, so no item shifts the bar */
-.player-bar > .player-panel .player-panel-zoom {
+:is(.player-bar, .player-bar > player-panel) > .player-panel .player-panel-zoom {
 	right: env(safe-area-inset-right);
 }
 
@@ -1057,7 +1086,7 @@ player-title[data-idle] {
 }
 
 /* Full-bleed from under the bar's top border to its foot, beside the grid rows and never the panel */
-.player-bar-grid > .player-artwork {
+:is(.player-bar-grid, .player-bar-grid > player-artwork) > .player-artwork {
 	position: absolute;
 	bottom: var(--player-inset-bottom);
 	left: env(safe-area-inset-left);
@@ -1066,7 +1095,7 @@ player-title[data-idle] {
 	block-size: var(--player-layout-artwork);
 }
 
-.player-bar-grid:has(> .player-artwork) {
+.player-bar-grid:has(> .player-artwork, > player-artwork > .player-artwork) {
 	padding-left: calc(
 		env(safe-area-inset-left) + var(--player-layout-artwork) + 2px + var(--player-gap) -
 			var(--player-inset-left)
@@ -1081,7 +1110,12 @@ player-title[data-idle] {
 	grid-area: info;
 }
 
-.player-bar-grid .player-bar-seek {
+.player-bar-grid
+	:is(
+		.player-bar-seek,
+		player-time-slider > .player-waveform-frame,
+		player-time-slider > .player-seek
+	) {
 	grid-area: seek;
 	min-block-size: var(--player-waveform-height);
 }
@@ -1114,29 +1148,34 @@ player-title[data-idle] {
 		block-size: auto;
 	}
 
-	.player-bar-grid:has(> .player-artwork) {
-		padding-left: 0;
-	}
-
 	/* A host without the overlay keeps the Playlist here, its tray spanning the bar */
-	.player-bar-grid:not(:has(> .player-overlay-toggle)) {
+	.player-bar-grid:not(:has(> .player-overlay-toggle, > player-overlay-toggle)) {
 		--player-layout: 'transport info queue' auto / auto minmax(0, 1fr) auto;
 	}
 
-	.player-bar-grid:not(:has(> .player-overlay-toggle)) .player-queue {
+	.player-bar-grid:has(> .player-artwork, > player-artwork > .player-artwork) {
+		padding-left: 0;
+	}
+
+	.player-bar-grid:not(:has(> .player-overlay-toggle, > player-overlay-toggle)) .player-queue {
 		position: static;
 	}
 
-	.player-bar-grid:not(:has(> .player-overlay-toggle)) .player-tray {
+	.player-bar-grid:not(:has(> .player-overlay-toggle, > player-overlay-toggle)) .player-tray {
 		left: 0;
 		width: auto;
 	}
 
-	.player-bar > .player-panel,
-	.player-bar-grid > .player-artwork,
-	.player-bar-grid .player-bar-seek,
+	:is(.player-bar, .player-bar > player-panel) > .player-panel,
+	:is(.player-bar-grid, .player-bar-grid > player-artwork) > .player-artwork,
+	.player-bar-grid
+		:is(
+			.player-bar-seek,
+			player-time-slider > .player-waveform-frame,
+			player-time-slider > .player-seek
+		),
 	.player-bar-grid .player-panel-toggle,
-	.player-bar-grid:has(> .player-overlay-toggle) .player-queue,
+	.player-bar-grid:has(> .player-overlay-toggle, > player-overlay-toggle) .player-queue,
 	.player-bar-grid .player-seek-button,
 	.player-bar-grid .player-step,
 	.player-bar-grid .player-time,
@@ -1205,7 +1244,7 @@ player-title[data-idle] {
 }
 
 .player-overlay-body[data-layout='columns']
-	.player-overlay-layout:not(:has(.player-overlay-artwork)) {
+	.player-overlay-layout:not(:has(.player-overlay-art .player-artwork)) {
 	grid-template: 'deck' minmax(0, 1fr) / minmax(0, 64rem);
 }
 
@@ -1213,7 +1252,7 @@ player-title[data-idle] {
 	display: contents;
 }
 
-.player-overlay-body[data-layout='columns'] .player-overlay-artwork {
+.player-overlay-body[data-layout='columns'] .player-overlay-art .player-artwork {
 	grid-area: artwork;
 	inline-size: min(40cqi, 100cqb, 900px);
 	block-size: auto;
@@ -1228,7 +1267,7 @@ player-title[data-idle] {
 	container-type: size;
 }
 
-.player-overlay-body[data-layout='phone'] .player-overlay-artwork {
+.player-overlay-body[data-layout='phone'] .player-overlay-art .player-artwork {
 	inline-size: min(100cqi, 100cqb, 900px);
 	block-size: auto;
 	aspect-ratio: 1;
@@ -1236,7 +1275,7 @@ player-title[data-idle] {
 
 /* A landscape phone with the panel open leaves a sliver, which reads as a stray border */
 @container (height < 6rem) {
-	.player-overlay-body[data-layout='phone'] .player-overlay-artwork {
+	.player-overlay-body[data-layout='phone'] .player-overlay-art .player-artwork {
 		display: none;
 	}
 }
@@ -1329,6 +1368,11 @@ player-title[data-idle] {
 	min-block-size: 0;
 }
 
+.player-overlay-sheets[hidden],
+.player-overlay-tabs[hidden] {
+	display: none;
+}
+
 .player-overlay-tablist {
 	display: flex;
 	gap: var(--player-gap);
@@ -1411,6 +1455,11 @@ player-title[data-idle] {
 	padding: 0;
 	margin: 0;
 	list-style: none;
+}
+
+.player-overlay-tracklist > li {
+	contain-intrinsic-size: auto 3.25rem;
+	content-visibility: auto;
 }
 
 .player-overlay-cue {

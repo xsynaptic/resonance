@@ -5,7 +5,6 @@ import type { QueueCuePoint } from '#types.ts';
 
 import { WaveformCanvas } from '#waveform/waveform-canvas.tsx';
 
-// Vitest wants a constructible stub, and the renderer never reads back from the path it builds
 class StubPath2D {
 	arc = vi.fn();
 	closePath = vi.fn();

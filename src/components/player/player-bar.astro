@@ -1,18 +1,25 @@
 ---
-import { PlayerIsland } from '#components/player/player-island.tsx';
 import { getPlayerLabels, seekSeconds } from '#components/player/player-labels.ts';
 import { isPlayerEnabled, isPlayerOverlayEnabled } from '#lib/site.ts';
 import playerStylesheetUrl from '#styles/player.css?url';
 
-const labels = getPlayerLabels();
+// Escaped so no label can close the script early
+const config = JSON.stringify({
+	isOverlayEnabled: isPlayerOverlayEnabled,
+	labels: getPlayerLabels(),
+	seekSeconds,
+	stylesheetUrl: playerStylesheetUrl,
+}).replaceAll('<', String.raw`\u003c`);
 ---
 
 {isPlayerEnabled ? (
-	<PlayerIsland
-		client:player={playerStylesheetUrl}
-		isOverlayEnabled={isPlayerOverlayEnabled}
-		labels={labels}
-		seekSeconds={seekSeconds}
-		transition:persist="player"
-	/>
+	<div data-player-host transition:persist="player">
+		<script is:inline set:html={config} type="application/json"></script>
+	</div>
 ) : undefined}
+<script>
+	import { startPlayer } from '#components/player/player-host.ts';
+
+	startPlayer();
+	document.addEventListener('astro:page-load', startPlayer);
+</script>

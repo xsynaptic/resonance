@@ -49,8 +49,9 @@
 	--player-font-mono: var(--font-mono);
 }
 
-/* The bar server-renders empty, so it hides in this render-blocking sheet; the dock collapses to where `MainTopButton` sits with the flag off */
-.player-bar[data-empty] {
+/* Hiding an empty bar is the host's call, so it sits here rather than in the player's sheet; the dock collapses to where `MainTopButton` sits with the flag off */
+.player-bar[data-empty],
+player-root[data-empty] .player-bar {
 	display: none;
 }
 

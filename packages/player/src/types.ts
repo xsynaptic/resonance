@@ -28,6 +28,8 @@ export interface PlayerLabels {
 	seek: string;
 	seekBack: string;
 	seekForward: string;
+	// Carries `{current}` and `{duration}`, spoken by the time slider as the position moves
+	seekPosition: string;
 	shuffle: string;
 	timestampsPartial: string;
 	toggleTimeMode: string;

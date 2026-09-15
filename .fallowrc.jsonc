@@ -5,7 +5,6 @@
 		"src/dev/inventory/inventory-og-image.ts",
 		"src/dev/audio/stream-rendition.ts",
 		"src/dev/audio/waveform-archive.ts",
-		"src/components/player/player-directive.ts",
 	],
 	"dynamicallyLoaded": ["src/components/mdx/**/*.astro"],
 	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],

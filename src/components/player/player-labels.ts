@@ -5,7 +5,7 @@ import { formatStringTemplate } from '#lib/utils/text.ts';
 
 export const seekSeconds = 30;
 
-// Serialized as island props rather than imported into the island, which would ship the whole strings table
+// Serialized into the bar's JSON script rather than imported by the host script, which would ship the whole strings table
 export function getPlayerLabels(): PlayerLabels {
 	return {
 		capped: t('player.capped'),
@@ -29,6 +29,7 @@ export function getPlayerLabels(): PlayerLabels {
 		seek: t('player.seek'),
 		seekBack: formatStringTemplate(t('player.seekBack'), { seconds: seekSeconds }),
 		seekForward: formatStringTemplate(t('player.seekForward'), { seconds: seekSeconds }),
+		seekPosition: t('player.seekPosition'),
 		shuffle: t('player.shuffle'),
 		timestampsPartial: t('player.timestampsPartial'),
 		toggleTimeMode: t('player.toggleTimeMode'),

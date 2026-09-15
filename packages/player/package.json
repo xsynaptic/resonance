@@ -10,6 +10,7 @@
 		".": "./src/index.ts",
 		"./artwork": "./src/lib/artwork.ts",
 		"./elements": "./src/elements/define.ts",
+		"./page-control-selectors": "./src/lib/page-control-selectors.ts",
 		"./player.css": "./src/player.css",
 		"./queue-storage-key": "./src/store/queue-storage-key.ts"
 	},

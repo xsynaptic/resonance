@@ -2,7 +2,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 
-import type { RowDrag } from '#queue/use-row-drag.ts';
+import type { RowDrag } from '#queue/row-drag.ts';
 import type { PlayerLabels, QueuedItem } from '#types.ts';
 
 import { Button } from '#components/button.tsx';

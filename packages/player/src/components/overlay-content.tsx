@@ -1,7 +1,8 @@
-import type { MouseEvent, ReactNode, RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import type { OverlayLayout } from '#lib/overlay-layout.ts';
 import type { PlayerLabels } from '#types.ts';
 
 import { Button } from '#components/button.tsx';
@@ -18,6 +19,8 @@ import { TransportControls } from '#components/transport-controls.tsx';
 import { VolumeControl } from '#components/volume-control.tsx';
 import { WaveformPanelSurface } from '#components/waveform-panel-surface.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
+import { isLeavingPage } from '#lib/leaving-page.ts';
+import { layoutFor } from '#lib/overlay-layout.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
 
 export interface PlayerOverlayProps {
@@ -26,12 +29,6 @@ export interface PlayerOverlayProps {
 	queueActions?: ReactNode;
 	seekSeconds?: number | undefined;
 }
-
-type OverlayLayout = 'columns' | 'phone';
-
-// Rem, so the switch follows the reader's font size as a media query would
-const columnsMinWidthRem = 40;
-const columnsMinHeightRem = 30;
 
 // The stylesheet's artwork caps for each layout, less the overlay's padding
 const artworkSizes =
@@ -110,29 +107,6 @@ export function OverlayContent({
 			</div>
 		</div>
 	);
-}
-
-// The client router leaves a modified click, another target and a download to the browser, which keeps this page
-function isLeavingPage(event: MouseEvent): boolean {
-	if (isModifiedClick(event)) return false;
-
-	const link = event.target instanceof Element ? event.target.closest('a[href]') : undefined;
-	if (!(link instanceof HTMLAnchorElement)) return false;
-
-	return (link.target === '' || link.target === '_self') && !link.hasAttribute('download');
-}
-
-function isModifiedClick(event: MouseEvent): boolean {
-	return event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
-}
-
-function layoutFor(width: number, height: number): OverlayLayout {
-	// eslint-disable-next-line unicorn/prefer-number-coercion -- `Number('16px')` is NaN; a computed font size carries its unit
-	const remPixels = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-
-	return width >= columnsMinWidthRem * remPixels && height >= columnsMinHeightRem * remPixels
-		? 'columns'
-		: 'phone';
 }
 
 // Measured rather than queried in CSS, since the layouts differ in markup: tabs in columns, dialogs on a phone

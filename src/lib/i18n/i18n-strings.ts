@@ -155,6 +155,7 @@ const strings = {
 	'player.seek': 'Seek',
 	'player.seekBack': 'Back {seconds} seconds',
 	'player.seekForward': 'Forward {seconds} seconds',
+	'player.seekPosition': '{current} of {duration}',
 	'player.shuffle': 'Shuffle',
 	'player.timestampsPartial': 'Timestamps end here',
 	'player.toggleTimeMode': 'Toggle elapsed and remaining',

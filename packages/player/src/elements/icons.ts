@@ -1,13 +1,11 @@
 import { template } from '#lib/render.ts';
 
 // Font Awesome Free 6.7.2 solid (CC BY 4.0)
-
 const glyphHeight = 512;
 
 // The three levels share the widest glyph's box, so the speaker holds still as the waves change
 const volumeGlyphWidth = 640;
 
-// Empty, so each seek button writes its own interval into it
 const seekCount =
 	'<text dominant-baseline="central" font-size="190" font-weight="700" text-anchor="middle" x="256" y="268"></text>';
 

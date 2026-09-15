@@ -9,7 +9,6 @@ import { canStepBack, canStepForward } from '#store/selectors.ts';
 
 type StepDirection = keyof typeof stepSelectors;
 
-// Each direction's key names its action, its label and its glyph alike
 const stepSelectors = {
 	next: canStepForward,
 	previous: canStepBack,

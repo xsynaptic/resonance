@@ -15,7 +15,6 @@ export function muteLabel(view: LevelView, labels: Pick<PlayerLabels, 'mute' | '
 	return view.isSilent ? labels.unmute : labels.mute;
 }
 
-// A fader dragged to zero is as silent as a mute, and reads as one
 export function selectLevel(state: PlayerStore): LevelView {
 	const volume = audibleVolume(state);
 

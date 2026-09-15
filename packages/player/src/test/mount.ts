@@ -1,3 +1,4 @@
+import type { PlayerRoot } from '#elements/player-root.ts';
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
 import { labels } from '#components/test-labels.ts';
@@ -12,7 +13,11 @@ const testUrls: PlayerUrls = {
 export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	tag: Tag,
 	attributes: Record<string, string> = {},
+	options: Partial<Pick<PlayerRoot, 'isArtworkEnabled' | 'isOverlayEnabled' | 'seekSeconds'>> = {},
 ) {
+	// Defined first, so a root created here is upgraded before any part reads its options
+	definePlayerElements();
+
 	const fake = createFakeEngine();
 	const store = createPlayerStore({ createEngine: fake.createEngine, isPersistent: false });
 	const root = document.createElement('player-root');
@@ -20,7 +25,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 
 	for (const [name, value] of Object.entries(attributes)) part.setAttribute(name, value);
 
-	definePlayerElements();
+	Object.assign(root, options);
 	root.className = 'player';
 	root.labels = labels;
 	root.store = store;

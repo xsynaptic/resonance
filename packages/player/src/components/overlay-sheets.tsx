@@ -24,7 +24,6 @@ type SheetLabels = Pick<
 	| 'waveformPanel'
 >;
 
-// A nested modal, so Escape and Android back close the list before the overlay beneath it
 export function OverlaySheets({ actions, labels }: { actions?: ReactNode; labels: SheetLabels }) {
 	const lists = useOverlayLists();
 	const [chosenSheet, setChosenSheet] = useState<OverlayList | undefined>();

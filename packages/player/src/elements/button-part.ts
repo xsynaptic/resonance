@@ -1,4 +1,5 @@
 import type { IconName } from '#elements/icons.ts';
+import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 
@@ -9,6 +10,7 @@ import { PlayerElement } from '#elements/player-element.ts';
 
 export interface ButtonPart<Selected> {
 	apply: (button: HTMLButtonElement, selected: Selected, labels: PlayerLabels) => void;
+	connect?: (button: HTMLButtonElement, context: PlayerContext, signal: AbortSignal) => void;
 	icon?: IconName;
 	label?: keyof PlayerLabels;
 	press: (state: PlayerStore) => void;
@@ -16,13 +18,13 @@ export interface ButtonPart<Selected> {
 	select: (state: PlayerStore) => Selected;
 }
 
-// A part that is one button pressing into the store and reflecting a selector is nothing but this spec
 export function buttonPart<Selected>(part: ButtonPart<Selected>) {
 	return class extends PlayerElement {
 		readonly #button = part.render();
 
 		protected connect(signal: AbortSignal): void {
-			const { labels, store } = playerContext(this);
+			const context = playerContext(this);
+			const { labels, store } = context;
 			const button = this.#button;
 
 			this.appendOnce(button);
@@ -41,6 +43,7 @@ export function buttonPart<Selected>(part: ButtonPart<Selected>) {
 				},
 				signal,
 			);
+			part.connect?.(button, context, signal);
 		}
 	};
 }

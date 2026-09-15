@@ -22,16 +22,40 @@ const rootAttributes = {
 	isWaiting: 'data-waiting',
 } as const satisfies Record<Exclude<keyof RootView, 'status'>, `data-${string}`>;
 
-// Per store, so a root the router reconnects never reads storage over a level still waiting to be written
 const hydratedStores = new WeakSet<StoreApi<PlayerStore>>();
 
 export class PlayerRoot extends PlayerElement {
+	get isArtworkEnabled(): boolean {
+		return this.#isArtworkEnabled;
+	}
+
+	set isArtworkEnabled(isArtworkEnabled: boolean) {
+		this.#isArtworkEnabled = isArtworkEnabled;
+	}
+
+	get isOverlayEnabled(): boolean {
+		return this.#isOverlayEnabled;
+	}
+
+	set isOverlayEnabled(isOverlayEnabled: boolean) {
+		this.#isOverlayEnabled = isOverlayEnabled;
+	}
+
 	get labels(): PlayerLabels | undefined {
 		return this.#labels;
 	}
 	set labels(labels: PlayerLabels | undefined) {
 		this.#labels = labels;
 	}
+
+	get seekSeconds(): number | undefined {
+		return this.#seekSeconds;
+	}
+
+	set seekSeconds(seekSeconds: number | undefined) {
+		this.#seekSeconds = seekSeconds;
+	}
+
 	get store(): StoreApi<PlayerStore> | undefined {
 		return this.#store;
 	}
@@ -44,21 +68,29 @@ export class PlayerRoot extends PlayerElement {
 		return this.#urls;
 	}
 
-	// A root not yet connected holds the resolvers for its next connect
 	set urls(urls: PlayerUrls | undefined) {
 		this.#urls = urls;
 
 		if (this.isConnected) this.#store?.getState().configure({ urls });
 	}
 
+	#isArtworkEnabled = true;
+
+	#isOverlayEnabled = true;
+
 	#labels: PlayerLabels | undefined;
+
+	#seekSeconds: number | undefined;
 
 	#store: StoreApi<PlayerStore> | undefined;
 
 	#urls: PlayerUrls | undefined;
 
 	protected connect(signal: AbortSignal): void {
+		this.upgradeProperty('isArtworkEnabled');
+		this.upgradeProperty('isOverlayEnabled');
 		this.upgradeProperty('labels');
+		this.upgradeProperty('seekSeconds');
 		this.upgradeProperty('store');
 		this.upgradeProperty('urls');
 
@@ -80,6 +112,7 @@ export class PlayerRoot extends PlayerElement {
 			},
 			signal,
 		);
+		if (this.hasAttribute('is-primary')) bindPrimary(store, signal);
 	}
 }
 
@@ -91,10 +124,21 @@ function applyRoot(root: HTMLElement, view: RootView): void {
 	root.toggleAttribute(rootAttributes.isWaiting, view.isWaiting);
 }
 
+// The document's own bar answers the router; a specimen root does not
+function bindPrimary(store: StoreApi<PlayerStore>, signal: AbortSignal): void {
+	// Without `moveBefore` the router moves the persisted bar out and back, which drops the dialog's modal state
+	document.addEventListener(
+		'astro:before-preparation',
+		() => {
+			store.getState().setOverlayOpen(false);
+		},
+		{ signal },
+	);
+}
+
 function selectRoot(state: PlayerStore): RootView {
 	return {
 		isEmpty: state.queue.length === 0,
-		// A fader dragged to zero is as silent as a mute, and reads as one
 		isMuted: audibleVolume(state) === 0,
 		isPaused: state.isPaused,
 		isWaiting: isAwaitingPlayback(state),

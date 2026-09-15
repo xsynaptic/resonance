@@ -35,10 +35,11 @@ deploy/certs
 .claude/reference
 .claude/tasks*
 .claude/settings*.json
+.claude/worktrees/
 .impeccable/
 
-# content lives within a private repo
-packages/content/
+# content lives within a private repo; no trailing slash, so the worktree symlink matches too
+/packages/content
 
 # database backups (large, not for VCS)
 backups/

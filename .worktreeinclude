@@ -1,0 +1,5 @@
+# Claude Code reads project settings from the worktree itself, and this file is gitignored
+/.claude/settings.json
+/.dev.vars
+/.env
+/deploy/.env

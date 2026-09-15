@@ -26,6 +26,13 @@
 		"css-duplicate-block": "error",
 		"css-broken-reference": "error",
 	},
+	"overrides": [
+		{
+			// An element's accessors are reached through `HTMLElementTagNameMap`, which the class member check cannot follow
+			"files": ["packages/player/src/elements/**"],
+			"rules": { "unused-class-members": "off" },
+		},
+	],
 	"health": {
 		// Zero disables CRAP, which fallow otherwise estimates without coverage data
 		"maxCrap": 0,

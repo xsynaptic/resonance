@@ -9,6 +9,7 @@ export default getConfig(
 		{
 			ignores: [
 				'node_modules/**/*',
+				'.claude/worktrees/**/*',
 				'**/.astro/**/*',
 				'**/.cache/**/*',
 				'**/.wrangler/**/*',
@@ -65,7 +66,7 @@ export default getConfig(
 				'react-hooks/component-hook-factories': 'error',
 			},
 		},
-		getWebComponentConfig(['src/components/**/*.ts']),
+		getWebComponentConfig(['src/components/**/*.ts', 'packages/player/src/elements/**/*.ts']),
 		...getAstroConfig({ a11y: 'strict' }),
 	],
 	{

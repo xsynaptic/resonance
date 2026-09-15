@@ -1,4 +1,4 @@
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerState, PlayerStore } from '#store/player-types.ts';
 import type { QueueCuePoint, QueuedItem } from '#types.ts';
 
 import { nextInOrder, previousInOrder } from '#queue/queue.ts';
@@ -6,6 +6,10 @@ import { cueIndexAt } from '#waveform/cue-points.ts';
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
 export const restartThresholdSeconds = 3;
+
+export function audibleVolume(state: Pick<PlayerState, 'isMuted' | 'volume'>): number {
+	return state.isMuted ? 0 : state.volume;
+}
 
 export function canStepBack(state: PlayerStore): boolean {
 	if (state.currentIndex === undefined) return false;
@@ -39,7 +43,7 @@ export function displayedItem(state: PlayerStore): QueuedItem | undefined {
 
 // Loading while paused has nobody waiting on it
 export function isAwaitingPlayback(state: PlayerStore): boolean {
-	return state.isPlayIntended && state.status === 'loading';
+	return !state.isPaused && state.status === 'loading';
 }
 
 export function isLoaded(state: PlayerStore): boolean {

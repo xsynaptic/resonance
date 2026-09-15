@@ -6,8 +6,8 @@ import {
 	PauseIcon,
 	PlayIcon,
 	PreviousIcon,
-	SkipBackIcon,
-	SkipForwardIcon,
+	SeekBackIcon,
+	SeekForwardIcon,
 } from '#components/icons.tsx';
 import { joinClassNames } from '#lib/class-names.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
@@ -16,12 +16,12 @@ import { canStepBack, canStepForward, isAwaitingPlayback, isLoaded } from '#stor
 export function TransportControls({
 	className,
 	labels,
-	skipSeconds,
+	seekSeconds,
 }: {
 	className?: string | undefined;
-	labels: Pick<PlayerLabels, 'next' | 'pause' | 'play' | 'previous' | 'skipBack' | 'skipForward'>;
-	// Unset renders no skip buttons
-	skipSeconds?: number | undefined;
+	labels: Pick<PlayerLabels, 'next' | 'pause' | 'play' | 'previous' | 'seekBack' | 'seekForward'>;
+	// Unset renders no seek buttons
+	seekSeconds?: number | undefined;
 }) {
 	const isTrackLoaded = usePlayer(isLoaded);
 	const isBackEnabled = usePlayer(canStepBack);
@@ -40,29 +40,29 @@ export function TransportControls({
 			>
 				<PreviousIcon />
 			</Button>
-			{skipSeconds === undefined ? undefined : (
+			{seekSeconds === undefined ? undefined : (
 				<Button
-					aria-label={labels.skipBack}
-					className="player-button-icon player-skip"
+					aria-label={labels.seekBack}
+					className="player-button-icon player-seek-button"
 					disabled={!isTrackLoaded}
 					onClick={() => {
-						store.getState().seekBy(-skipSeconds);
+						store.getState().seekBy(-seekSeconds);
 					}}
 				>
-					<SkipBackIcon seconds={skipSeconds} />
+					<SeekBackIcon seconds={seekSeconds} />
 				</Button>
 			)}
 			<PlayButton labels={labels} />
-			{skipSeconds === undefined ? undefined : (
+			{seekSeconds === undefined ? undefined : (
 				<Button
-					aria-label={labels.skipForward}
-					className="player-button-icon player-skip"
+					aria-label={labels.seekForward}
+					className="player-button-icon player-seek-button"
 					disabled={!isTrackLoaded}
 					onClick={() => {
-						store.getState().seekBy(skipSeconds);
+						store.getState().seekBy(seekSeconds);
 					}}
 				>
-					<SkipForwardIcon seconds={skipSeconds} />
+					<SeekForwardIcon seconds={seekSeconds} />
 				</Button>
 			)}
 			<Button
@@ -80,23 +80,23 @@ export function TransportControls({
 }
 
 function PlayButton({ labels }: { labels: Pick<PlayerLabels, 'pause' | 'play'> }) {
-	const isPlayIntended = usePlayer((state) => state.isPlayIntended);
+	const isPaused = usePlayer((state) => state.isPaused);
 	const isAwaiting = usePlayer(isAwaitingPlayback);
 	const hasQueue = usePlayer((state) => state.queue.length > 0);
 	const store = usePlayerStoreApi();
 
 	return (
 		<Button
-			aria-label={isPlayIntended ? labels.pause : labels.play}
+			aria-label={isPaused ? labels.play : labels.pause}
 			className="player-button-primary"
 			data-loading={isAwaiting ? '' : undefined}
-			data-state={isPlayIntended ? 'playing' : 'paused'}
+			data-state={isPaused ? 'paused' : 'playing'}
 			disabled={!hasQueue}
 			onClick={() => {
-				store.getState().togglePlay();
+				store.getState().togglePaused();
 			}}
 		>
-			{isPlayIntended ? <PauseIcon /> : <PlayIcon />}
+			{isPaused ? <PlayIcon /> : <PauseIcon />}
 		</Button>
 	);
 }

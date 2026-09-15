@@ -6,7 +6,7 @@ import type { PlaybackErrorStage, PlayerStatus, QueuedItem, StreamResolution } f
 
 import { normalizationGain } from '#engine/playback-gain.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
+import { audibleVolume, isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
 
 // Nothing worth resuming stays in the engine after any of these
 const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
@@ -20,8 +20,8 @@ export interface PlaybackController {
 	pause: () => void;
 	play: () => void;
 	seek: (seconds: number) => void;
-	// Clamps into 0..1 and answers with what it applied, so the stored level matches the engine's
-	setVolume: (volume: number) => number;
+	// Hands the engine silence while muted, leaving the stored level alone
+	syncVolume: () => void;
 	// Whatever resolve is in flight answers into nothing rather than reloading what was dropped
 	unload: () => void;
 }
@@ -56,17 +56,17 @@ export function createPlaybackController(
 		if (engine) return engine;
 
 		engine = createEngine(toEngineCallbacks({ api, onError: onEngineError }));
-		engine.setVolume(get().volume);
+		engine.setVolume(audibleVolume(get()));
 
 		return engine;
 	}
 
 	// A resolved URL can go stale while the page sits open, so one failure earns one re-resolve from where playback stood
 	function onEngineError(stage: PlaybackErrorStage): void {
-		const { currentIndex, currentTimeSeconds, isPlayIntended } = get();
+		const { currentIndex, currentTimeSeconds, isPaused } = get();
 
 		if (currentIndex !== undefined && loading && !loading.isRetry) {
-			loadIndex(currentIndex, isPlayIntended, {
+			loadIndex(currentIndex, !isPaused, {
 				isRetry: true,
 				resumeAtSeconds: currentTimeSeconds,
 			});
@@ -112,7 +112,7 @@ export function createPlaybackController(
 			gain: normalizationGain(item, isShuffling),
 			isCurrent: () => loading === attempt,
 			onDeclined: (status) => {
-				set({ isPlayIntended: false, status });
+				set({ isPaused: true, status });
 			},
 			onFail: () => {
 				fail('resolve');
@@ -127,7 +127,7 @@ export function createPlaybackController(
 		if (press === 'ignore') return;
 
 		if (press === 'resume') {
-			set({ isPlayIntended: true });
+			set({ isPaused: false });
 			void ensureEngine().play();
 			return;
 		}
@@ -152,19 +152,15 @@ export function createPlaybackController(
 			ensureEngine().seek(seconds);
 		},
 
-		setVolume(volume) {
-			const clamped = Math.min(1, Math.max(0, volume));
-
-			engine?.setVolume(clamped);
-
-			return clamped;
+		syncVolume() {
+			engine?.setVolume(audibleVolume(get()));
 		},
 
 		unload() {
 			engine?.reset();
 			loading = undefined;
 			loadedQueueId = undefined;
-			set({ currentTimeSeconds: 0, isPlayIntended: false, status: 'idle' });
+			set({ currentTimeSeconds: 0, isPaused: true, status: 'idle' });
 		},
 	};
 }
@@ -174,7 +170,7 @@ function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
 	const trackId = loadedItem(state)?.trackId;
 
 	return {
-		isPlayIntended: false,
+		isPaused: true,
 		playbackError: trackId === undefined ? undefined : { stage, trackId },
 		status: 'error',
 	} satisfies Partial<PlayerStore>;
@@ -200,7 +196,7 @@ function loadingState({
 		currentIndex: index,
 		currentTimeSeconds: resumeAtSeconds,
 		durationSeconds: toDurationSeconds(item),
-		isPlayIntended: shouldAutoplay,
+		isPaused: !shouldAutoplay,
 		playbackError: undefined,
 		status: shouldAutoplay ? 'loading' : 'paused',
 	} satisfies Partial<PlayerStore>;
@@ -209,7 +205,7 @@ function loadingState({
 // A load stopped before the element holds anything reports no pause of its own
 function pausedState(status: PlayerStatus) {
 	return {
-		isPlayIntended: false,
+		isPaused: true,
 		status: status === 'loading' ? 'paused' : status,
 	} satisfies Partial<PlayerStore>;
 }
@@ -284,7 +280,7 @@ function toEngineCallbacks({
 	const { getState: get, setState: set } = api;
 
 	return {
-		isPlayIntended: () => get().isPlayIntended,
+		isPaused: () => get().isPaused,
 		onDuration: (durationSeconds) => {
 			set({ durationSeconds });
 		},
@@ -302,7 +298,7 @@ function toEngineCallbacks({
 			if (status === 'paused' && get().status === 'idle') return;
 
 			// The intent follows the element, so a pause from the system or a headset reads as one
-			set({ isPlayIntended: status === 'playing', status });
+			set({ isPaused: status !== 'playing', status });
 		},
 		onTime: (currentTimeSeconds) => {
 			set({ currentTimeSeconds });

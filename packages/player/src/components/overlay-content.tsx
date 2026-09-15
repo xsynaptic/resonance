@@ -24,7 +24,7 @@ export interface PlayerOverlayProps {
 	isArtworkEnabled?: boolean | undefined;
 	labels: PlayerLabels;
 	queueActions?: ReactNode;
-	skipSeconds?: number | undefined;
+	seekSeconds?: number | undefined;
 }
 
 type OverlayLayout = 'columns' | 'phone';
@@ -43,7 +43,7 @@ export function OverlayContent({
 	isArtworkEnabled = true,
 	labels,
 	queueActions,
-	skipSeconds,
+	seekSeconds,
 }: PlayerOverlayProps & { className?: string | undefined }) {
 	const isPanelOpen = usePlayer((state) => state.isPanelOpen);
 	const store = usePlayerStoreApi();
@@ -93,7 +93,7 @@ export function OverlayContent({
 						<StatusRegion labels={labels} />
 					</div>
 					<div className="player-overlay-controls">
-						<TransportControls labels={labels} skipSeconds={skipSeconds} />
+						<TransportControls labels={labels} seekSeconds={seekSeconds} />
 						{layout === 'columns' ? (
 							<>
 								<PanelToggle label={labels.waveformPanel} />

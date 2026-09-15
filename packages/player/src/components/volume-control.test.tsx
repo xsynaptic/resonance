@@ -49,7 +49,7 @@ describe('VolumeControl', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: labels.mute }));
 
-		expect(store.getState().volume).toBe(0);
+		expect(store.getState().isMuted).toBe(true);
 		expect(control()).not.toHaveAttribute('data-open');
 		expect(screen.getByRole('button', { name: labels.unmute })).not.toHaveAttribute(
 			'aria-expanded',

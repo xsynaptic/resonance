@@ -72,7 +72,7 @@ export function createQueueActions({
 		if (!appended) return;
 
 		if (appended.loadIndex === get().currentIndex) {
-			get().togglePlay();
+			get().togglePaused();
 			return;
 		}
 

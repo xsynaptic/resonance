@@ -19,13 +19,13 @@ import { createAudioEngine } from '#engine/audio-engine.ts';
 
 const request = { gain: 1, resumeAtSeconds: 0, src: 'https://api.test/a' };
 
-let isPlayIntended = true;
+let isPaused = false;
 let resume = Promise.withResolvers<boolean>();
 let media: ReturnType<typeof spyOnMedia>;
 
 function createCallbacks(): AudioEngineCallbacks {
 	return {
-		isPlayIntended: () => isPlayIntended,
+		isPaused: () => isPaused,
 		onDuration: vi.fn(),
 		onEnded: vi.fn(),
 		onError: vi.fn(),
@@ -43,7 +43,7 @@ function spyOnMedia() {
 }
 
 beforeEach(() => {
-	isPlayIntended = true;
+	isPaused = false;
 	resume = Promise.withResolvers<boolean>();
 	graphMock.resume.mockImplementation(() => resume.promise);
 	media = spyOnMedia();
@@ -66,7 +66,7 @@ describe('audio engine', () => {
 	test('a pause while the graph resumes leaves the element paused', async () => {
 		const loaded = createAudioEngine(createCallbacks()).load(request);
 
-		isPlayIntended = false;
+		isPaused = true;
 		resume.resolve(true);
 		await loaded;
 
@@ -91,7 +91,7 @@ describe('audio engine', () => {
 			expect(media.play).toHaveBeenCalledOnce();
 		});
 
-		isPlayIntended = false;
+		isPaused = true;
 		engine.pause();
 		await loaded;
 

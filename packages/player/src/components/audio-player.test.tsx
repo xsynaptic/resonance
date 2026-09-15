@@ -260,26 +260,26 @@ describe('AudioPlayer', () => {
 		expect(document.querySelector('.player-artwork')).not.toBeInTheDocument();
 	});
 
-	test('renders the skip buttons only when the host names a skip', () => {
+	test('renders the seek buttons only when the host names an interval', () => {
 		renderPlayer();
 
-		expect(screen.queryByRole('button', { name: labels.skipBack })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: labels.seekBack })).not.toBeInTheDocument();
 
 		cleanup();
 
 		const store = createPlayerStore({ createEngine: fake.createEngine });
 
-		render(<AudioPlayer labels={labels} skipSeconds={30} store={store} urls={testUrls} />);
+		render(<AudioPlayer labels={labels} seekSeconds={30} store={store} urls={testUrls} />);
 
 		act(() => {
 			store.getState().playTrack(release, 'a');
 			fake.callbacks.current?.onTime(100);
 		});
-		fireEvent.click(screen.getByRole('button', { name: labels.skipForward }));
+		fireEvent.click(screen.getByRole('button', { name: labels.seekForward }));
 
 		expect(fake.engine.seek).toHaveBeenCalledWith(130);
 
-		fireEvent.click(screen.getByRole('button', { name: labels.skipBack }));
+		fireEvent.click(screen.getByRole('button', { name: labels.seekBack }));
 
 		expect(fake.engine.seek).toHaveBeenCalledWith(100);
 	});

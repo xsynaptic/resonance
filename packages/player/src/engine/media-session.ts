@@ -5,19 +5,19 @@ import type { PlayerStatus, QueuedItem } from '#types.ts';
 
 import { loadedItem } from '#store/selectors.ts';
 
-const defaultSkipSeconds = 10;
+const defaultSeekSeconds = 10;
 const mediaSessionArtworkMaxWidth = 512;
 
 export function bindMediaSession(
 	store: StoreApi<PlayerStore>,
-	skipSeconds = defaultSkipSeconds,
+	seekSeconds = defaultSeekSeconds,
 ): () => void {
 	if (!('mediaSession' in navigator))
 		return () => {
 			// Nothing was claimed
 		};
 
-	const actions = bindActions(store, skipSeconds);
+	const actions = bindActions(store, seekSeconds);
 
 	let boundQueueId: string | undefined;
 	let boundState: MediaSessionPlaybackState | undefined;
@@ -64,7 +64,7 @@ export function bindMediaSession(
 	};
 }
 
-function bindActions(store: StoreApi<PlayerStore>, skipSeconds: number): Array<MediaSessionAction> {
+function bindActions(store: StoreApi<PlayerStore>, seekSeconds: number): Array<MediaSessionAction> {
 	const bindings: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
 		[
 			'play',
@@ -93,13 +93,13 @@ function bindActions(store: StoreApi<PlayerStore>, skipSeconds: number): Array<M
 		[
 			'seekbackward',
 			(details) => {
-				store.getState().seekBy(-(details.seekOffset ?? skipSeconds));
+				store.getState().seekBy(-(details.seekOffset ?? seekSeconds));
 			},
 		],
 		[
 			'seekforward',
 			(details) => {
-				store.getState().seekBy(details.seekOffset ?? skipSeconds);
+				store.getState().seekBy(details.seekOffset ?? seekSeconds);
 			},
 		],
 		[

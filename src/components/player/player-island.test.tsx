@@ -8,7 +8,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 const playerState = vi.hoisted(() => ({
 	currentIndex: undefined,
 	currentTimeSeconds: 0,
-	isPlayIntended: false,
+	isPaused: true,
 	playQueue: vi.fn(),
 	playRelease: vi.fn(),
 	playTrack: vi.fn(),
@@ -57,7 +57,7 @@ describe('PlayerIsland', () => {
 		document.body.append(container);
 		root = createRoot(container);
 		root.render(
-			<PlayerIsland isOverlayEnabled={false} labels={getPlayerLabels()} skipSeconds={30} />,
+			<PlayerIsland isOverlayEnabled={false} labels={getPlayerLabels()} seekSeconds={30} />,
 		);
 
 		await vi.waitFor(() => {
@@ -77,7 +77,7 @@ describe('PlayerIsland', () => {
 		document.body.append(container);
 		root = createRoot(container);
 		root.render(
-			<PlayerIsland isOverlayEnabled={false} labels={getPlayerLabels()} skipSeconds={30} />,
+			<PlayerIsland isOverlayEnabled={false} labels={getPlayerLabels()} seekSeconds={30} />,
 		);
 
 		await vi.waitFor(() => {

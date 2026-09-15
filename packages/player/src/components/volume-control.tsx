@@ -9,6 +9,7 @@ import { VolumeIcon, VolumeLowIcon, VolumeMutedIcon } from '#components/icons.ts
 import { joinClassNames } from '#lib/class-names.ts';
 import { useDismiss } from '#lib/use-dismiss.ts';
 import { usePlayer, usePlayerStoreApi } from '#store/context.tsx';
+import { audibleVolume } from '#store/selectors.ts';
 
 const hoverQuery = '(hover: hover)';
 const lowVolume = 0.5;
@@ -25,7 +26,7 @@ export function VolumeControl({
 	className?: string | undefined;
 	labels: Pick<PlayerLabels, 'mute' | 'unmute' | 'volume'>;
 }) {
-	const volume = usePlayer((state) => state.volume);
+	const volume = usePlayer(audibleVolume);
 	const store = usePlayerStoreApi();
 	const isHoverCapable = useIsHoverCapable();
 	const { controlRef, isOpen, onKeyDown, setIsOpen, triggerRef } = useDismissablePanel();
@@ -46,7 +47,7 @@ export function VolumeControl({
 				className="player-button-icon"
 				onClick={() => {
 					if (isHoverCapable) {
-						store.getState().toggleMute();
+						store.getState().toggleMuted();
 						return;
 					}
 
@@ -76,7 +77,7 @@ export function VolumeControl({
 						aria-label={muteLabel}
 						className="player-button-icon"
 						onClick={() => {
-							store.getState().toggleMute();
+							store.getState().toggleMuted();
 						}}
 					>
 						{isMuted ? <VolumeMutedIcon /> : <VolumeIcon />}

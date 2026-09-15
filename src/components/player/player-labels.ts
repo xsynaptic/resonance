@@ -3,7 +3,7 @@ import type { PlayerLabels } from '@xsynaptic/player';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
-export const skipSeconds = 30;
+export const seekSeconds = 30;
 
 // Serialized as island props rather than imported into the island, which would ship the whole strings table
 export function getPlayerLabels(): PlayerLabels {
@@ -27,9 +27,9 @@ export function getPlayerLabels(): PlayerLabels {
 		removeFromQueue: t('player.removeFromQueue'),
 		reorder: t('player.reorder'),
 		seek: t('player.seek'),
+		seekBack: formatStringTemplate(t('player.seekBack'), { seconds: seekSeconds }),
+		seekForward: formatStringTemplate(t('player.seekForward'), { seconds: seekSeconds }),
 		shuffle: t('player.shuffle'),
-		skipBack: formatStringTemplate(t('player.skipBack'), { seconds: skipSeconds }),
-		skipForward: formatStringTemplate(t('player.skipForward'), { seconds: skipSeconds }),
 		timestampsPartial: t('player.timestampsPartial'),
 		toggleTimeMode: t('player.toggleTimeMode'),
 		tracklist: t('player.tracklist'),

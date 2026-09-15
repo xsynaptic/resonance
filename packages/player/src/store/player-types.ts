@@ -51,19 +51,20 @@ export interface PlayerActions {
 	// Swaps out everything after `index`, leaving the loaded track and what came before it alone
 	replaceAfter: (index: number, items: ReadonlyArray<QueueItem>) => void;
 	seek: (seconds: number) => void;
-	// Clamped into the loaded track, so the skip buttons and the lock screen cannot run past either end
+	// Clamped into the loaded track, so the seek buttons and the lock screen cannot run past either end
 	seekBy: (deltaSeconds: number) => void;
 	setOverlayOpen: (isOpen: boolean) => void;
 	setPanelOpen: (isOpen: boolean) => void;
 	setTrayOpen: (isOpen: boolean) => void;
+	// Clamped into 0..1; a level above zero ends a mute
 	setVolume: (volume: number) => void;
 	stop: () => void;
-	// Drops to silence and back to the level held at the last mute, or to full before any mute
-	toggleMute: () => void;
+	// Unmuting a level of zero lands at a quarter, so the press is never answered with silence
+	toggleMuted: () => void;
 	toggleOverlay: () => void;
 	// The scrolling detail panel above the bar; session state, not a persisted preference
 	togglePanel: () => void;
-	togglePlay: () => void;
+	togglePaused: () => void;
 	toggleShuffle: () => void;
 	toggleTimeMode: () => void;
 	toggleTray: () => void;
@@ -75,9 +76,12 @@ export interface PlayerState {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
 	durationSeconds: number | undefined;
+	// Beside `volume` rather than a volume of zero, so an unmute after a reload returns to the level
+	isMuted: boolean;
 	isOverlayOpen: boolean;
 	isPanelOpen: boolean;
-	isPlayIntended: boolean;
+	// Intent, as `HTMLMediaElement.paused` is: false from the press, before any sound
+	isPaused: boolean;
 	isShuffling: boolean;
 	isTrayOpen: boolean;
 	// How many CSS pixels of the panel one second of audio takes

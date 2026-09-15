@@ -27,8 +27,8 @@ export interface AudioPlayerProps {
 	labels: PlayerLabels;
 	// Host controls rendered into the tray's header
 	queueActions?: ReactNode;
-	// Unset renders no skip buttons
-	skipSeconds?: number | undefined;
+	// Unset renders no seek buttons
+	seekSeconds?: number | undefined;
 	// Tests and secondary mounts pass a fresh store for isolation
 	store?: StoreApi<PlayerStore> | undefined;
 	// `undefined` renders the player inert
@@ -40,7 +40,7 @@ export function AudioPlayer({
 	isOverlayEnabled = true,
 	labels,
 	queueActions,
-	skipSeconds,
+	seekSeconds,
 	store,
 	urls,
 }: AudioPlayerProps) {
@@ -55,7 +55,7 @@ export function AudioPlayer({
 			<WaveformPanel labels={labels} />
 			<div className="player-bar-grid">
 				{isArtworkEnabled ? <TrackArtwork /> : undefined}
-				<TransportControls labels={labels} skipSeconds={skipSeconds} />
+				<TransportControls labels={labels} seekSeconds={seekSeconds} />
 				<TrackInfo emptyLabel={labels.nowPlaying}>
 					<TimeDisplay label={labels.toggleTimeMode} />
 				</TrackInfo>
@@ -72,7 +72,7 @@ export function AudioPlayer({
 					isArtworkEnabled={isArtworkEnabled}
 					labels={labels}
 					queueActions={queueActions}
-					skipSeconds={skipSeconds}
+					seekSeconds={seekSeconds}
 				/>
 			) : undefined}
 		</PlayerRoot>

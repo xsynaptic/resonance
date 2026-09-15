@@ -524,7 +524,7 @@ describe('transport', () => {
 
 		store.getState().playTrack(release, 'a');
 		fake.callbacks.current?.onStatus('playing');
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 
 		expect(fake.engine.pause).toHaveBeenCalled();
 	});
@@ -536,7 +536,7 @@ describe('transport', () => {
 		store.getState().playTrack(release, 'b');
 		fake.callbacks.current?.onStatus('playing');
 		store.getState().removeAt(0);
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 
 		expect(fake.engine.pause).toHaveBeenCalled();
 	});
@@ -546,7 +546,7 @@ describe('transport', () => {
 
 		store.getState().playTrack(release, 'a');
 		fake.callbacks.current?.onStatus('paused');
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 
 		expect(fake.engine.play).toHaveBeenCalled();
 	});
@@ -558,7 +558,7 @@ describe('transport', () => {
 		store.getState().removeAt(0);
 		expect(store.getState().currentIndex).toBeUndefined();
 
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 		expect(store.getState().currentIndex).toBe(0);
 	});
 
@@ -763,7 +763,7 @@ describe('engine errors', () => {
 		fake.callbacks.current?.onError('network');
 		expect(store.getState().status).toBe('error');
 
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(3);
 		});
@@ -790,7 +790,7 @@ describe('play intent', () => {
 		const { answer, store } = pendingResolver();
 
 		store.getState().playTrack(release, 'a');
-		expect(store.getState().isPlayIntended).toBe(true);
+		expect(store.getState().isPaused).toBe(false);
 
 		store.getState().pause();
 		answer('a');
@@ -802,25 +802,25 @@ describe('play intent', () => {
 		});
 		expect(fake.engine.play).not.toHaveBeenCalled();
 		expect(store.getState().status).toBe('paused');
-		expect(store.getState().isPlayIntended).toBe(false);
+		expect(store.getState().isPaused).toBe(true);
 	});
 
 	test('a press during a load cancels it, and a second press plays once the source lands', async () => {
 		const { answer, store } = pendingResolver();
 
 		store.getState().playTrack(release, 'a');
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 
 		expect(fake.engine.pause).toHaveBeenCalledOnce();
-		expect(store.getState().isPlayIntended).toBe(false);
+		expect(store.getState().isPaused).toBe(true);
 
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 		answer('a');
 
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledOnce();
 		});
-		expect(store.getState().isPlayIntended).toBe(true);
+		expect(store.getState().isPaused).toBe(false);
 	});
 
 	test('a seek while the stream resolves carries into the load', async () => {
@@ -828,7 +828,7 @@ describe('play intent', () => {
 
 		store.getState().loadQueue(release);
 		store.setState({ currentIndex: 1, currentTimeSeconds: 600 });
-		store.getState().togglePlay();
+		store.getState().togglePaused();
 		store.getState().seek(100);
 		answer('b');
 
@@ -868,12 +868,12 @@ describe('play intent', () => {
 		fake.callbacks.current?.onStatus('paused');
 
 		expect(store.getState().status).toBe('paused');
-		expect(store.getState().isPlayIntended).toBe(false);
+		expect(store.getState().isPaused).toBe(true);
 
 		store.getState().play();
 
 		expect(fake.engine.play).toHaveBeenCalledOnce();
-		expect(store.getState().isPlayIntended).toBe(true);
+		expect(store.getState().isPaused).toBe(false);
 	});
 
 	test('play never pauses a load already on its way', () => {
@@ -883,7 +883,7 @@ describe('play intent', () => {
 		store.getState().play();
 
 		expect(fake.engine.pause).not.toHaveBeenCalled();
-		expect(store.getState().isPlayIntended).toBe(true);
+		expect(store.getState().isPaused).toBe(false);
 	});
 
 	test('a pause from outside the player during playback drops the intent', () => {
@@ -894,7 +894,7 @@ describe('play intent', () => {
 		fake.callbacks.current?.onStatus('paused');
 
 		expect(store.getState().status).toBe('paused');
-		expect(store.getState().isPlayIntended).toBe(false);
+		expect(store.getState().isPaused).toBe(true);
 	});
 
 	test('a failure long into playback retries where playback stood', async () => {
@@ -930,7 +930,7 @@ describe('play intent', () => {
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(2);
 		});
-		expect(store.getState().isPlayIntended).toBe(false);
+		expect(store.getState().isPaused).toBe(true);
 		expect(store.getState().status).toBe('paused');
 	});
 
@@ -951,9 +951,9 @@ describe('play intent', () => {
 			await vi.waitFor(() => {
 				expect(store.getState().status).toBe(status);
 			});
-			expect(store.getState().isPlayIntended).toBe(false);
+			expect(store.getState().isPaused).toBe(true);
 
-			store.getState().togglePlay();
+			store.getState().togglePaused();
 
 			await vi.waitFor(() => {
 				expect(resolved).toHaveLength(2);
@@ -985,39 +985,66 @@ describe('volume', () => {
 		localStorage.removeItem('player:v1:volume');
 	});
 
-	test('mutes to zero and unmutes to the level held when muting', () => {
+	test('mutes without touching the level, silencing the engine meanwhile', () => {
 		const store = configured();
 
+		store.getState().playTrack(release, 'a');
 		store.getState().setVolume(0.7);
 
-		store.getState().toggleMute();
-		expect(store.getState().volume).toBe(0);
+		store.getState().toggleMuted();
+		expect(store.getState()).toMatchObject({ isMuted: true, volume: 0.7 });
+		expect(fake.engine.setVolume).toHaveBeenLastCalledWith(0);
 
-		store.getState().toggleMute();
-		expect(store.getState().volume).toBe(0.7);
+		store.getState().toggleMuted();
+		expect(store.getState()).toMatchObject({ isMuted: false, volume: 0.7 });
+		expect(fake.engine.setVolume).toHaveBeenLastCalledWith(0.7);
 	});
 
-	test('unmutes to full when nothing was muted', () => {
+	test('unmutes a level of zero into a quarter, dragged there or muted there', () => {
 		const store = configured();
 
 		store.getState().setVolume(0);
+		store.getState().toggleMuted();
+		expect(store.getState()).toMatchObject({ isMuted: false, volume: 0.25 });
 
-		store.getState().toggleMute();
-		expect(store.getState().volume).toBe(1);
+		store.getState().toggleMuted();
+		store.getState().setVolume(0);
+		store.getState().toggleMuted();
+		expect(store.getState()).toMatchObject({ isMuted: false, volume: 0.25 });
 	});
 
-	test('leaves the slider at the level it was dragged to while muted', () => {
+	test('raising the level while muted unmutes at that level', () => {
 		const store = configured();
 
 		store.getState().setVolume(0.7);
-		store.getState().toggleMute();
+		store.getState().toggleMuted();
 		store.getState().setVolume(0.2);
 
-		store.getState().toggleMute();
-		expect(store.getState().volume).toBe(0);
+		expect(store.getState()).toMatchObject({ isMuted: false, volume: 0.2 });
+	});
 
-		store.getState().toggleMute();
-		expect(store.getState().volume).toBe(0.2);
+	test('a mute survives a reload and unmutes to the level it held', () => {
+		vi.useFakeTimers();
+
+		try {
+			const store = configured();
+
+			store.getState().setVolume(0.3);
+			store.getState().toggleMuted();
+			vi.runAllTimers();
+
+			const reloaded = configured();
+
+			reloaded.getState().hydratePreferences();
+			expect(reloaded.getState()).toMatchObject({ isMuted: true, volume: 0.3 });
+
+			reloaded.getState().toggleMuted();
+			expect(reloaded.getState()).toMatchObject({ isMuted: false, volume: 0.3 });
+		} finally {
+			vi.useRealTimers();
+			localStorage.removeItem('player:v1:muted');
+			localStorage.removeItem('player:v1:volume');
+		}
 	});
 });
 
@@ -1141,7 +1168,7 @@ describe('queue persistence', () => {
 		const second = configured();
 
 		second.getState().hydrateQueue();
-		second.getState().togglePlay();
+		second.getState().togglePaused();
 
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledWith({

@@ -1,0 +1,28 @@
+import type { PlayerStore } from '#store/player-types.ts';
+
+import { buttonPart } from '#elements/button-part.ts';
+import { renderIconButton } from '#elements/icon-button.ts';
+import { isLoaded } from '#store/selectors.ts';
+
+interface PanelToggleView {
+	isDisabled: boolean;
+	isOpen: boolean;
+}
+
+export const PlayerPanelToggle = buttonPart({
+	apply: (button, view: PanelToggleView) => {
+		button.disabled = view.isDisabled;
+		button.setAttribute('aria-pressed', String(view.isOpen));
+	},
+	icon: 'waveform',
+	label: 'waveformPanel',
+	press: (state) => {
+		state.togglePanel();
+	},
+	render: () => renderIconButton('player-panel-toggle'),
+	select: selectPanelToggle,
+});
+
+function selectPanelToggle(state: PlayerStore): PanelToggleView {
+	return { isDisabled: !isLoaded(state), isOpen: state.isPanelOpen };
+}

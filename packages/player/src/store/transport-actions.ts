@@ -19,7 +19,7 @@ type TransportActions = Pick<
 	| 'seek'
 	| 'seekBy'
 	| 'stop'
-	| 'togglePlay'
+	| 'togglePaused'
 >;
 
 export function createTransportActions({
@@ -85,13 +85,13 @@ export function createTransportActions({
 
 		stop: playback.unload,
 
-		togglePlay: () => {
-			if (get().isPlayIntended) {
-				playback.pause();
+		togglePaused: () => {
+			if (get().isPaused) {
+				playback.play();
 				return;
 			}
 
-			playback.play();
+			playback.pause();
 		},
 	};
 }

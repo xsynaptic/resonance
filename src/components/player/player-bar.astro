@@ -1,6 +1,6 @@
 ---
 import { PlayerIsland } from '#components/player/player-island.tsx';
-import { getPlayerLabels, skipSeconds } from '#components/player/player-labels.ts';
+import { getPlayerLabels, seekSeconds } from '#components/player/player-labels.ts';
 import { isPlayerEnabled, isPlayerOverlayEnabled } from '#lib/site.ts';
 import playerStylesheetUrl from '#styles/player.css?url';
 
@@ -12,7 +12,7 @@ const labels = getPlayerLabels();
 		client:player={playerStylesheetUrl}
 		isOverlayEnabled={isPlayerOverlayEnabled}
 		labels={labels}
-		skipSeconds={skipSeconds}
+		seekSeconds={seekSeconds}
 		transition:persist="player"
 	/>
 ) : undefined}

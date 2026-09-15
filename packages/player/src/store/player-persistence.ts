@@ -5,6 +5,7 @@ import type { PlayerTimeMode, QueuedItem } from '#types.ts';
 
 import { queueStorageKey } from '#store/queue-storage-key.ts';
 
+const mutedStorageKey = 'player:v1:muted';
 const timeModeStorageKey = 'player:v1:time-mode';
 const volumeStorageKey = 'player:v1:volume';
 
@@ -13,11 +14,18 @@ const volumeWriteDelayMs = 250;
 export interface PlayerPersistence {
 	// Bound from a mount effect rather than at module load, because the store is also imported where there is no window
 	bindQueue: () => void;
+	persistMuted: (isMuted: boolean) => void;
 	persistTimeMode: (timeMode: PlayerTimeMode) => void;
 	persistVolume: (volume: number) => void;
-	// Unclamped: the controller owns the volume range, so a hand-edited entry is corrected in one place
-	readPreferences: () => { timeMode: PlayerTimeMode | undefined; volume: number | undefined };
+	// Unclamped: the preference actions own the volume range, so a hand-edited entry is corrected in one place
+	readPreferences: () => StoredPreferences;
 	readQueue: () => StoredQueue | undefined;
+}
+
+interface StoredPreferences {
+	isMuted: boolean | undefined;
+	timeMode: PlayerTimeMode | undefined;
+	volume: number | undefined;
 }
 
 // What a reload puts back: the items, which one was loaded, and how far into it
@@ -30,9 +38,10 @@ interface StoredQueue {
 
 export const inertPersistence: PlayerPersistence = {
 	bindQueue: touchNothing,
+	persistMuted: touchNothing,
 	persistTimeMode: touchNothing,
 	persistVolume: touchNothing,
-	readPreferences: () => ({ timeMode: undefined, volume: undefined }),
+	readPreferences: () => ({ isMuted: undefined, timeMode: undefined, volume: undefined }),
 	readQueue: touchNothing,
 };
 
@@ -96,6 +105,10 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			window.addEventListener('pagehide', writeQueue);
 		},
 
+		persistMuted(isMuted) {
+			writeStored(mutedStorageKey, String(isMuted));
+		},
+
 		persistTimeMode(timeMode) {
 			writeStored(timeModeStorageKey, timeMode);
 		},
@@ -114,7 +127,11 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			volumeWriteTimer = setTimeout(flushVolume, volumeWriteDelayMs);
 		},
 
-		readPreferences: () => ({ timeMode: readStoredTimeMode(), volume: readStoredVolume() }),
+		readPreferences: () => ({
+			isMuted: readStoredMuted(),
+			timeMode: readStoredTimeMode(),
+			volume: readStoredVolume(),
+		}),
 		readQueue: readStoredQueue,
 	};
 }
@@ -126,6 +143,13 @@ function readStored(key: string): string | undefined {
 	} catch {
 		return undefined;
 	}
+}
+
+function readStoredMuted(): boolean | undefined {
+	const stored = readStored(mutedStorageKey);
+	if (stored === undefined) return undefined;
+
+	return stored === 'true';
 }
 
 // Only this store writes the entry, so the guard covers a stale or hand-edited one rather than a foreign schema

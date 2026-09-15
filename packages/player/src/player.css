@@ -227,21 +227,21 @@
 }
 
 /* The triangle's mass sits left of its box, so it reads off centre until nudged */
-.player-button-primary[data-state='paused'] svg {
+.player-button-primary:is([data-state='paused'], [data-paused]) svg {
 	translate: 8%;
 }
 
-.player-skip {
+.player-seek-button {
 	color: color-mix(in oklab, var(--player-control) 80%, var(--player-surface));
 }
 
 @media (hover: hover) {
-	.player-skip:hover {
+	.player-seek-button:hover {
 		color: var(--player-control-hover);
 	}
 }
 
-.player-skip:focus-visible {
+.player-seek-button:focus-visible {
 	color: var(--player-control-hover);
 }
 
@@ -286,7 +286,8 @@
 }
 
 /* A knob rather than a rule of its own, so hover and focus still outrank the idle tone */
-.player-track[data-idle] {
+.player-track[data-idle],
+player-title[data-idle] {
 	--player-track-title-color: var(--player-meta);
 }
 
@@ -1136,7 +1137,7 @@
 	.player-bar-grid .player-bar-seek,
 	.player-bar-grid .player-panel-toggle,
 	.player-bar-grid:has(> .player-overlay-toggle) .player-queue,
-	.player-bar-grid .player-skip,
+	.player-bar-grid .player-seek-button,
 	.player-bar-grid .player-step,
 	.player-bar-grid .player-time,
 	.player-bar-grid .player-volume {

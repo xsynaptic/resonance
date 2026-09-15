@@ -26,9 +26,9 @@ export interface PlayerLabels {
 	removeFromQueue: string;
 	reorder: string;
 	seek: string;
+	seekBack: string;
+	seekForward: string;
 	shuffle: string;
-	skipBack: string;
-	skipForward: string;
 	timestampsPartial: string;
 	toggleTimeMode: string;
 	tracklist: string;

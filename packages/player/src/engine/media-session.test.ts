@@ -222,7 +222,7 @@ describe('bindMediaSession', () => {
 		]);
 	});
 
-	test('skips by the host interval where the platform names no offset', () => {
+	test('seeks by the host interval where the platform names no offset', () => {
 		const store = loadedStore();
 
 		bindMediaSession(store, 30);

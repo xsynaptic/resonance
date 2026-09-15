@@ -20,7 +20,7 @@ export interface AudioEngine {
 }
 
 export interface AudioEngineCallbacks {
-	isPlayIntended: () => boolean;
+	isPaused: () => boolean;
 	onDuration: (durationSeconds: number | undefined) => void;
 	onEnded: () => void;
 	onError: (stage: PlaybackErrorStage) => void;
@@ -94,7 +94,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 
 		graph.ensure();
 		await graph.resume();
-		if (startedIn !== generation || !callbacks.isPlayIntended()) return;
+		if (startedIn !== generation || callbacks.isPaused()) return;
 
 		try {
 			await audio.play();
@@ -118,7 +118,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			audio.src = src;
 			audio.load();
 
-			if (!callbacks.isPlayIntended()) return;
+			if (callbacks.isPaused()) return;
 
 			callbacks.onStatus('loading');
 			await play();

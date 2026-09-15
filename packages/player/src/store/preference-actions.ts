@@ -2,9 +2,12 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerPersistence } from '#store/player-persistence.ts';
-import type { PlayerActions, PlayerStore } from '#store/player-types.ts';
+import type { PlayerActions, PlayerState, PlayerStore } from '#store/player-types.ts';
 
 import { stepPanelZoom } from '#waveform/panel-zoom.ts';
+
+// Unmuting into silence would read as a dead button
+const unmuteVolume = 0.25;
 
 type PreferenceActions = Pick<
 	PlayerActions,
@@ -14,7 +17,7 @@ type PreferenceActions = Pick<
 	| 'setPanelOpen'
 	| 'setTrayOpen'
 	| 'setVolume'
-	| 'toggleMute'
+	| 'toggleMuted'
 	| 'toggleOverlay'
 	| 'togglePanel'
 	| 'toggleTimeMode'
@@ -33,13 +36,14 @@ export function createPreferenceActions({
 }): PreferenceActions {
 	const { getState: get, setState: set } = api;
 
-	let volumeBeforeMute: number | undefined;
+	function applyVolume({ isMuted, volume }: Pick<PlayerState, 'isMuted' | 'volume'>): void {
+		const previous = get();
 
-	function applyVolume(volume: number): void {
-		const applied = playback.setVolume(volume);
+		set({ isMuted, volume });
+		playback.syncVolume();
 
-		set({ volume: applied });
-		persistence.persistVolume(applied);
+		if (volume !== previous.volume) persistence.persistVolume(volume);
+		if (isMuted !== previous.isMuted) persistence.persistMuted(isMuted);
 	}
 
 	return {
@@ -50,13 +54,14 @@ export function createPreferenceActions({
 		},
 
 		hydratePreferences: () => {
-			const { timeMode, volume } = persistence.readPreferences();
-
-			if (timeMode !== undefined) set({ timeMode });
-			if (volume === undefined) return;
+			const { isMuted, timeMode, volume } = persistence.readPreferences();
 
 			// Not persisted back: this is the stored value arriving, not the listener moving the slider
-			set({ volume: playback.setVolume(volume) });
+			if (isMuted !== undefined) set({ isMuted });
+			if (timeMode !== undefined) set({ timeMode });
+			if (volume !== undefined) set({ volume: clampVolume(volume) });
+
+			playback.syncVolume();
 		},
 
 		setOverlayOpen: (isOpen) => {
@@ -78,18 +83,20 @@ export function createPreferenceActions({
 		},
 
 		setVolume: (volume) => {
-			applyVolume(volume);
+			const clamped = clampVolume(volume);
+
+			applyVolume({ isMuted: get().isMuted && clamped === 0, volume: clamped });
 		},
 
-		toggleMute: () => {
-			const { volume } = get();
-			if (volume > 0) {
-				volumeBeforeMute = volume;
-				applyVolume(0);
+		toggleMuted: () => {
+			const { isMuted, volume } = get();
+
+			if (!isMuted && volume > 0) {
+				applyVolume({ isMuted: true, volume });
 				return;
 			}
 
-			applyVolume(volumeBeforeMute ?? 1);
+			applyVolume({ isMuted: false, volume: volume === 0 ? unmuteVolume : volume });
 		},
 
 		toggleOverlay: () => {
@@ -115,4 +122,8 @@ export function createPreferenceActions({
 			set((state) => ({ panelPxPerSecond: stepPanelZoom(state.panelPxPerSecond, steps) }));
 		},
 	};
+}
+
+function clampVolume(volume: number): number {
+	return Math.min(1, Math.max(0, volume));
 }

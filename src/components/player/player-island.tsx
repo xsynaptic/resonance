@@ -45,13 +45,13 @@ interface RowState {
 export function PlayerIsland({
 	isOverlayEnabled,
 	labels,
-	skipSeconds,
+	seekSeconds,
 }: {
 	isOverlayEnabled: boolean;
 	labels: PlayerLabels;
-	skipSeconds: number;
+	seekSeconds: number;
 }) {
-	useEffect(() => bindMediaSession(playerStore, skipSeconds), [skipSeconds]);
+	useEffect(() => bindMediaSession(playerStore, seekSeconds), [seekSeconds]);
 
 	// Without `moveBefore` the router moves the persisted island out and back, which drops the dialog's modal state
 	useEffect(() => {
@@ -127,7 +127,7 @@ export function PlayerIsland({
 		<AudioPlayer
 			isOverlayEnabled={isOverlayEnabled}
 			labels={labels}
-			skipSeconds={skipSeconds}
+			seekSeconds={seekSeconds}
 			urls={urls}
 		/>
 	);
@@ -139,7 +139,7 @@ function currentRowState(): RowState {
 	// Intent rather than sound, matching the bar's play button
 	return {
 		cueStartSeconds: currentCue(state)?.startSeconds,
-		isPlaying: state.isPlayIntended,
+		isPlaying: !state.isPaused,
 		trackId: loadedItem(state)?.trackId,
 	};
 }

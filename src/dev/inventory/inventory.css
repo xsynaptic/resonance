@@ -1,9 +1,10 @@
 @import '#styles/main.css' theme(static);
+@import '#styles/player.css';
 
-@source './*.{astro,mdx,tsx}';
+@source './*.{astro,mdx}';
 
 /* Unlayered, so it beats the site's rule hiding an empty bar; this specimen exists to show that state */
-.inventory-player-empty .player-bar[data-empty] {
+.inventory-player-empty player-root[data-empty] .player-bar {
 	display: block;
 }
 

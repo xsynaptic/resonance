@@ -30,7 +30,7 @@ import MediaImage from '#components/parts/media-image.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import TermLinks from '#components/parts/term-links.astro';
-import { skipSeconds } from '#components/player/player-labels.ts';
+import { seekSeconds } from '#components/player/player-labels.ts';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
@@ -38,11 +38,7 @@ import SectionHome from '#components/sections/section-home.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import { getInventoryFixtures } from '#dev/inventory/inventory-fixtures.ts';
-import {
-	PlayerSpecimen,
-	VolumeSpecimen,
-	WaveformComparison,
-} from '#dev/inventory/inventory-player.tsx';
+import PlayerSection from '#dev/inventory/inventory-player.astro';
 import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
 import Section from '#dev/inventory/inventory-section.astro';
 import Specimen from '#dev/inventory/inventory-specimen.astro';
@@ -804,177 +800,7 @@ const inlineSelection: SelectionValue = {
 			{soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}
 		</Specimen>
 	</Section>
-	<Section
-		note="Every specimen holds a store of its own, so the live bar at the foot of this page keeps the module singleton. None reaches the network: the resolver answers from the payload it was handed, and a silent engine stands at the engine seam."
-		title="Player"
-	>
-		<Specimen
-			name="AudioPlayer"
-			note="Unforced, so the bar picks its layout from its own width through a container query rather than from the viewport."
-			source="packages/player/src/components/audio-player.tsx"
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="default"
-			/>
-		</Specimen>
-		<Specimen
-			name="AudioPlayer"
-			note="The compact layout, forced through <code>variant</code>. One row: the scope is placed and the skips are hidden."
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="default"
-				variant="compact"
-			/>
-		</Specimen>
-		<Specimen
-			name="AudioPlayer"
-			note="The expanded layout, forced the same way; the skips seek 30 seconds. Both layouts are one DOM, so the switch remounts nothing and loses no state."
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="default"
-				variant="expanded"
-			/>
-		</Specimen>
-		<Specimen
-			name="AudioPlayer"
-			note="Unforced in a 32rem column, so it picks the expanded layout on its own."
-			source="packages/player/src/player.css"
-		>
-			<div class="max-w-lg">
-				<PlayerSpecimen
-					client:load
-					items={playerItems}
-					labels={playerLabels}
-					skipSeconds={skipSeconds}
-					specimen="default"
-				/>
-			</div>
-		</Specimen>
-		<Specimen
-			name="MarqueeText"
-			note="A title and an artist too long for the info window. Hover or focus pauses it; <code>prefers-reduced-motion</code> stops it and restores the ellipsis."
-			source="packages/player/src/components/marquee-text.tsx"
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="marquee"
-			/>
-		</Specimen>
-		<Specimen
-			name="Player.Time"
-			note="A toggle button, seeded a third of the way in: elapsed or remaining, persisted under <code>player:v1:time-mode</code>."
-			source="packages/player/src/components/time-display.tsx"
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="remaining"
-			/>
-		</Specimen>
-		<Specimen
-			name="Player.Seek"
-			note="The bar count comes from the box, so a variation is nothing but <code>--player-waveform-bar</code>, <code>-gap</code> and <code>-radius</code> on a wrapper. Each is shown full width and again in a 24rem column."
-			source="packages/player/src/waveform/waveform-canvas.tsx"
-		>
-			<WaveformComparison client:load items={playerItems} labels={playerLabels} />
-		</Specimen>
-		<Specimen
-			name="Player.Volume"
-			note="Pinned open here. With a hover-capable pointer the button mutes and the panel opens on hover; without one the button opens the panel and mute moves inside it."
-			source="packages/player/src/components/volume-control.tsx"
-		>
-			<div class="pt-36">
-				<VolumeSpecimen client:load labels={playerLabels} />
-			</div>
-		</Specimen>
-		<Specimen
-			name="Player.Queue"
-			note="Pointer drag reorders, and so does Alt+ArrowUp or Alt+ArrowDown with a handle focused."
-			source="packages/player/src/components/queue-tray.tsx"
-		>
-			<div class="pt-96">
-				<PlayerSpecimen
-					client:load
-					items={playerItems}
-					labels={playerLabels}
-					skipSeconds={skipSeconds}
-					specimen="tray"
-				/>
-			</div>
-		</Specimen>
-		<Specimen
-			name="Player.Queue sectioned"
-			note="A queue carrying any heading can neither shuffle nor reorder, so the shuffle button and the drag handles are gone."
-			source="packages/player/src/components/queue-control.tsx"
-		>
-			<div class="pt-44">
-				<PlayerSpecimen
-					client:load
-					items={playerItems}
-					labels={playerLabels}
-					skipSeconds={skipSeconds}
-					specimen="tray-sectioned"
-				/>
-			</div>
-		</Specimen>
-		<Specimen
-			name="AudioPlayer"
-			note="Queued with nothing loaded, where Add to Playlist leaves the bar. The waveform is the track Play would start, drawn inert; only Play is live."
-			source="packages/player/src/store/selectors.ts"
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="idle"
-			/>
-		</Specimen>
-		<Specimen
-			name="AudioPlayer"
-			note="Nothing queued. The site hides this state outright, so the specimen opts back in to show it."
-		>
-			<div class="inventory-player-empty">
-				<PlayerSpecimen
-					client:load
-					items={playerItems}
-					labels={playerLabels}
-					skipSeconds={skipSeconds}
-					specimen="empty"
-				/>
-			</div>
-		</Specimen>
-		<Specimen
-			name="Player.Status"
-			note="A stream that will not resolve; pressing play runs the real rejection path."
-			source="packages/player/src/components/status-region.tsx"
-		>
-			<PlayerSpecimen
-				client:load
-				items={playerItems}
-				labels={playerLabels}
-				skipSeconds={skipSeconds}
-				specimen="error"
-			/>
-		</Specimen>
-	</Section>
+	<PlayerSection items={playerItems} labels={playerLabels} seekSeconds={seekSeconds} />
 	<Section
 		note="The MDX tags an author writes in a body, wrapped in .prose-x as they are in production."
 		title="Content blocks"

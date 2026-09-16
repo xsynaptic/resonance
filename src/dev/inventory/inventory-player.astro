@@ -1,0 +1,533 @@
+---
+import type { PlayerLabels } from '@xsynaptic/player';
+
+import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+
+import InventoryPalette from '#dev/inventory/inventory-palette.astro';
+import Section from '#dev/inventory/inventory-section.astro';
+import Specimen from '#dev/inventory/inventory-specimen.astro';
+
+interface Props {
+	items: Array<PlayerPayloadItem>;
+	labels: PlayerLabels;
+	seekSeconds: number;
+}
+
+const { items, labels, seekSeconds } = Astro.props;
+
+// Escaped so no title can close the script early
+const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
+	'<',
+	String.raw`\u003c`,
+);
+
+// Each variation is nothing but tokens on the wrapper, which the renderer reads when it paints
+const waveformVariations = [
+	{ className: undefined, label: '2px bar, 1px gap, 1px radius (the default)' },
+	{ className: 'inventory-waveform-square', label: '2px bar, 1px gap, no radius' },
+	{ className: 'inventory-waveform-chunky', label: '3px bar, 1px gap, 1px radius' },
+];
+---
+
+<Section
+	note="The player's custom elements, composed as the site's bar composes them and then part by part. Plain tags defined by one script; each root holds a store of its own on a silent engine, so nothing plays."
+	title="Player"
+>
+	<Specimen
+		name="Palette (temporary)"
+		note="Pick a ramp step for any <code>--player-*</code> colour token. Picks land on <code>:root</code>, so every bar on the page follows, and persist in this browser until reset. Hold on the waveform to see the scrub colour. Changed lines print below for pasting into <code>src/styles/main/components/player.css</code>."
+		source="src/dev/inventory/inventory-palette.astro"
+	>
+		<InventoryPalette />
+	</Specimen>
+	<Specimen
+		name="player-bar full"
+		note="From a 52rem bar, three rows: transport and toggles, the title line, the waveform. The Mix's artwork runs the bar's full height at 140px. The tier comes from the bar's own width through a container query, never the viewport, and every tier is one DOM."
+		source="packages/player/src/elements/player-bar.ts"
+	>
+		<player-root class="player block" data-inventory-queue="bar">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-bar compact"
+		note="From 40rem to 52rem, two rows beside 120px artwork. The scope drops out; ±30s stay. Chrome can show a larger rendition here than the 240w a 2x screen asks for, because it reuses a larger one the page already cached; on a Mix page the bar is pixel-exact."
+		source="packages/player/src/player.css"
+	>
+		<player-root class="player block max-w-3xl" data-inventory-queue="bar">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-bar without artwork"
+		note="An item with no Featured Image, or an image that fails to load, collapses the column. The bar keeps its height, so switching items never shifts it."
+		source="packages/player/src/elements/artwork.ts"
+	>
+		<div class="flex flex-col gap-4">
+			<player-root class="player block" data-inventory-queue="no-artwork">
+				<player-bar></player-bar>
+			</player-root>
+			<player-root class="player block max-w-3xl" data-inventory-queue="no-artwork">
+				<player-bar></player-bar>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-bar artwork off"
+		note="<code>isArtworkEnabled</code> set to <code>false</code> on the root, for a host that wants no artwork whatever its items carry."
+		source="packages/player/src/elements/player-root.ts"
+	>
+		<player-root class="player block" data-inventory-artwork="off" data-inventory-queue="bar">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-bar mini"
+		note="Below a 40rem bar: play, the title and expand, in a 32rem column and again at 320px. Everything else lives in the overlay. Expand on any bar in this section opens the real modal overlay on that root's store; its close button or Escape closes it."
+		source="packages/player/src/player.css"
+	>
+		<div class="flex flex-col gap-4">
+			<player-root class="player block max-w-lg" data-inventory-queue="bar">
+				<player-bar></player-bar>
+			</player-root>
+			<player-root class="player block max-w-xs" data-inventory-queue="marquee">
+				<player-bar></player-bar>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-bar mini, overlay off"
+		note="<code>isOverlayEnabled</code> set to <code>false</code> on the root, which production ships until the overlay is ready. With no expand button the mini bar keeps the Playlist, whose tray spans the bar and opens above it. At 32rem and at 320px."
+		source="packages/player/src/elements/player-root.ts"
+	>
+		<div class="flex flex-col gap-4 pt-96">
+			<player-root
+				class="player block max-w-lg"
+				data-inventory-overlay="off"
+				data-inventory-queue="bar"
+			>
+				<player-bar></player-bar>
+			</player-root>
+			<player-root
+				class="player block max-w-xs"
+				data-inventory-overlay="off"
+				data-inventory-queue="marquee"
+			>
+				<player-bar></player-bar>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-overlay-content phone"
+		note="The overlay's body in a 390x844 frame, outside its dialog, in the phone layout: artwork, the title with the artist and clock, the waveform, the transport, and buttons for the Tracklist, the waveform panel and the Playlist, each list opening as its own full-screen dialog. The layout comes from the body's measured size, so a frame shows what a viewport of that size would."
+		source="packages/player/src/elements/overlay/"
+	>
+		<player-root
+			class="player block h-211 w-97.5 max-w-full border border-surface-400"
+			data-inventory-queue="overlay"
+		>
+			<player-overlay-content></player-overlay-content>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-overlay-content phone landscape"
+		note="An 844x390 frame. Under 30rem tall the phone layout holds whatever the width, since two columns would leave the list a sliver."
+		source="packages/player/src/lib/overlay-layout.ts"
+	>
+		<player-root
+			class="player block h-97.5 w-211 max-w-full border border-surface-400"
+			data-inventory-queue="overlay"
+		>
+			<player-overlay-content></player-overlay-content>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-overlay-content columns"
+		note="A 900x800 frame. From 40rem wide and 30rem tall, two columns: the artwork capped at 40% of the width, at the overlay's height and at 900px, and the deck beside it. The transport row ends in the waveform panel toggle and volume; only the Tracklist or Playlist scrolls."
+		source="packages/player/src/player.css"
+	>
+		<player-root
+			class="player block h-200 w-225 max-w-full border border-surface-400"
+			data-inventory-queue="overlay"
+		>
+			<player-overlay-content></player-overlay-content>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-overlay-content desktop"
+		note="The columns layout at the Inventory's full width, where the deck stops at 64rem."
+		source="packages/player/src/player.css"
+	>
+		<player-root
+			class="player block h-200 max-w-full border border-surface-400"
+			data-inventory-queue="overlay"
+		>
+			<player-overlay-content></player-overlay-content>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-title, player-artist-line marquee"
+		note="A title and an artist too long for the info window. Hover or focus pauses it; <code>prefers-reduced-motion</code> stops it and restores the ellipsis."
+		source="packages/player/src/lib/marquee.ts"
+	>
+		<player-root class="player block" data-inventory-queue="marquee">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-time remaining"
+		note="A toggle button, seeded a third of the way in: elapsed or remaining, persisted under <code>player:v1:time-mode</code>."
+		source="packages/player/src/elements/time.ts"
+	>
+		<player-root class="player block" data-inventory-queue="remaining">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-time-slider variations"
+		note="The bar count comes from the box, so a variation is nothing but <code>--player-waveform-bar</code>, <code>-gap</code> and <code>-radius</code> on a wrapper. Each is shown full width and again in a 24rem column, seeded a third of the way in."
+		source="packages/player/src/elements/time-slider/time-slider.ts"
+	>
+		<div class="flex flex-col gap-6">
+			{waveformVariations.map((variation) => (
+				<div class={variation.className}>
+					<p class="mb-2 font-mono text-xs text-ink-600">{variation.label}</p>
+					<player-root class="player block" data-inventory-queue="bar">
+						<div class="bg-surface-900 px-4 py-2.5">
+							<player-time-slider class="block" />
+						</div>
+						<div class="mt-2 max-w-96 bg-surface-900 px-4 py-2.5">
+							<player-time-slider class="block" />
+						</div>
+					</player-root>
+				</div>
+			))}
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-volume-popover"
+		note="Pinned open here. With a hover-capable pointer the button mutes and the panel opens on hover; without one the button opens the panel and mute moves inside it."
+		source="packages/player/src/elements/volume-popover.ts"
+	>
+		<div class="pt-36">
+			<player-root
+				class="player inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="volume"
+			>
+				<player-volume-popover></player-volume-popover>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-volume-popover muted"
+		note="Muted at 30%. The button reads Unmute and the fader shows zero, while the store keeps the level an unmute returns to."
+		source="packages/player/src/store/preference-actions.ts"
+	>
+		<div class="pt-36">
+			<player-root
+				class="player inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="muted"
+			>
+				<player-volume-popover></player-volume-popover>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-tray"
+		note="Seven rows with the tray open. Drag a handle, or focus one and press Alt+ArrowUp or Alt+ArrowDown, and the status announces the new position. The tray arrives as its own chunk on first open."
+		source="packages/player/src/elements/tray/"
+	>
+		<div class="pt-96">
+			<player-root class="player block" data-inventory-queue="tray">
+				<player-bar></player-bar>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-tray sectioned"
+		note="A queue carrying any heading can neither shuffle nor reorder, so the shuffle button and the drag handles are gone."
+		source="packages/player/src/elements/tray/tray-rows.ts"
+	>
+		<div class="pt-44">
+			<player-root class="player block" data-inventory-queue="tray-sectioned">
+				<player-bar></player-bar>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-bar idle"
+		note="Queued with nothing loaded, where Add to Playlist leaves the bar. The waveform is the track Play would start, drawn inert; only Play is live."
+		source="packages/player/src/store/selectors.ts"
+	>
+		<player-root class="player block" data-inventory-queue="idle">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-bar empty"
+		note="Nothing queued. The site hides this state outright, so the specimen opts back in to show it."
+		source="src/styles/main/components/player.css"
+	>
+		<div class="inventory-player-empty">
+			<player-root class="player block" data-inventory-queue="empty">
+				<player-bar></player-bar>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-status"
+		note="A stream that will not resolve; the root plays, so its status runs the real rejection path and shows the skull."
+		source="packages/player/src/elements/status.ts"
+	>
+		<player-root class="player block" data-inventory-queue="error">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-play-button loading"
+		note="Loading toward playback, held there by an engine that never makes a sound. The ring on the play button appears after 400ms and the status pill stays hidden. A press cancels the load and shows Play; another brings the ring back. Emulate <code>prefers-reduced-motion</code> to see the arc fade instead of rotating."
+		source="packages/player/src/elements/play-button.ts"
+	>
+		<player-root class="player block" data-inventory-queue="loading">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-panel pending"
+		note="An archive that never answers, so the whole window waits: a dimmed sine drawn after 400ms, travelling one wavelength every 2.5s. Reduced motion freezes it. With a real archive each chunk replaces its own span as it lands; throttle the network and seek in the palette's panel to see that."
+		source="packages/player/src/elements/panel/panel-surface.ts"
+	>
+		<player-root class="player block" data-inventory-queue="panel">
+			<player-bar></player-bar>
+		</player-root>
+	</Specimen>
+	<Specimen
+		name="player-play-button, player-time"
+		note="The parts alone, outside a bar. The first root holds the fixture Mix paused a third of the way in: play turns to Pause, and the clock counts down once pressed. The second holds nothing, so play is disabled and the clock reads <code>--:--</code>."
+		source="packages/player/src/elements/"
+	>
+		<div class="flex flex-col gap-3">
+			<player-root
+				class="player flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="bar"
+			>
+				<player-play-button></player-play-button>
+				<div class="relative h-4 w-20">
+					<player-time></player-time>
+				</div>
+			</player-root>
+			<player-root
+				class="player flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="empty"
+			>
+				<player-play-button></player-play-button>
+				<div class="relative h-4 w-20">
+					<player-time></player-time>
+				</div>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="The bar's leaves"
+		note="Every leaf bound to one store per row, outside a bar. The first row holds the fixture Mix cued and paused; the second has a resolver that rejects, so its status reports the error with the skull. Hover or focus the volume to open its fader. Expand opens the real modal overlay on the first row's store."
+		source="packages/player/src/elements/"
+	>
+		<div class="flex flex-col gap-3">
+			<player-root
+				class="player relative flex flex-wrap items-center gap-4 bg-surface-900 py-2.5 pr-4"
+				data-inventory-queue="bar"
+			>
+				<player-artwork></player-artwork>
+				<div class="flex items-center gap-1">
+					<player-step-button direction="previous"></player-step-button>
+					<player-seek-button seconds="-30"></player-seek-button>
+					<player-play-button></player-play-button>
+					<player-seek-button seconds="30"></player-seek-button>
+					<player-step-button direction="next"></player-step-button>
+				</div>
+				<div class="player-track min-w-48 flex-1">
+					<player-title></player-title>
+					<div class="player-track-meta">
+						<player-artist-line></player-artist-line>
+						<player-time></player-time>
+					</div>
+				</div>
+				<player-status></player-status>
+				<player-scope></player-scope>
+				<player-panel-toggle></player-panel-toggle>
+				<player-volume-popover></player-volume-popover>
+				<player-queue-button></player-queue-button>
+				<player-overlay-toggle></player-overlay-toggle>
+				<player-overlay></player-overlay>
+			</player-root>
+			<player-root
+				class="player relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="error"
+			>
+				<player-play-button></player-play-button>
+				<div class="player-track min-w-0 flex-1">
+					<player-title></player-title>
+					<div class="player-track-meta">
+						<player-artist-line></player-artist-line>
+					</div>
+				</div>
+				<player-status></player-status>
+			</player-root>
+		</div>
+	</Specimen>
+	<Specimen
+		name="player-time-slider, player-panel"
+		note="Outside a bar. The first root holds the fixture Mix paused a third in with the panel open on an archive that never answers, while the slider carries the cue points; hover a dot for its label. The second is queued with nothing loaded, so the waveform is the inert preview. The third holds an item measured without peaks, so the slider falls back to a range input."
+		source="packages/player/src/elements/time-slider/"
+	>
+		<div class="flex flex-col gap-3">
+			<player-root class="player relative bg-surface-900 pb-2.5" data-inventory-queue="panel">
+				<player-panel class="block"></player-panel>
+				<div class="flex items-center gap-4 px-4 pt-2.5">
+					<player-play-button></player-play-button>
+					<player-time-slider class="block min-w-0 flex-1"></player-time-slider>
+					<div class="relative h-4 w-20">
+						<player-time></player-time>
+					</div>
+					<player-panel-toggle></player-panel-toggle>
+				</div>
+			</player-root>
+			<player-root
+				class="player relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="idle"
+			>
+				<player-play-button></player-play-button>
+				<player-time-slider class="block min-w-0 flex-1"></player-time-slider>
+			</player-root>
+			<player-root
+				class="player relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				data-inventory-queue="no-peaks"
+			>
+				<player-play-button></player-play-button>
+				<player-time-slider class="block min-w-0 flex-1"></player-time-slider>
+				<div class="relative h-4 w-20">
+					<player-time></player-time>
+				</div>
+			</player-root>
+		</div>
+	</Specimen>
+</Section>
+<script id="inventory-player" is:inline set:html={specimenData} type="application/json"></script>
+<script>
+	import type { PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
+
+	import { createPlayerStore, definePlayerElements } from '@xsynaptic/player';
+
+	import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+
+	import {
+		createLoadingEngine,
+		createSilentEngine,
+		cueFirstPaused,
+		failingUrls,
+		marqueed,
+		pendingPanelQueue,
+		pendingUrls,
+		queuedUrls,
+		sectioned,
+		trayQueue,
+		withoutArtwork,
+	} from '#dev/inventory/inventory-player-specimens.ts';
+
+	interface SpecimenData {
+		items: Array<PlayerPayloadItem>;
+		labels: PlayerLabels;
+		seekSeconds: number;
+	}
+
+	type SpecimenStore = ReturnType<typeof createPlayerStore>;
+
+	// Roots that show a control rather than an item hold no queue
+	const unqueued = new Set(['empty', 'muted', 'volume']);
+
+	const openPanelQueues = new Set(['palette', 'panel']);
+
+	function createSpecimenStore(queue: string): SpecimenStore {
+		const store = createPlayerStore({
+			createEngine: queue === 'loading' ? createLoadingEngine : createSilentEngine,
+			isPersistent: false,
+		});
+
+		if (queue === 'muted') {
+			store.getState().setVolume(0.3);
+			store.getState().toggleMuted();
+		}
+
+		return store;
+	}
+
+	// The error and loading roots play, so the rejection and the held load are what they show
+	function seedSpecimen(store: SpecimenStore, queue: string): void {
+		if (queue === 'idle') return;
+		if (queue === 'error' || queue === 'loading') {
+			store.getState().playAt(0);
+			return;
+		}
+
+		cueFirstPaused(store);
+		if (queue.startsWith('tray')) {
+			store.getState().setTrayOpen(true);
+			return;
+		}
+
+		store.getState().seek((store.getState().durationSeconds ?? 0) / 3);
+		if (openPanelQueues.has(queue)) store.getState().setPanelOpen(true);
+		else if (queue === 'remaining') store.setState({ timeMode: 'remaining' });
+	}
+
+	// Properties land before the tags are defined, which is the order the site's host script takes
+	function setUpSpecimens(): void {
+		const source = document.querySelector('#inventory-player')?.textContent;
+		if (!source) return;
+
+		const { items, labels, seekSeconds } = JSON.parse(source) as SpecimenData;
+
+		for (const root of document.querySelectorAll('player-root')) {
+			const queue = root.dataset.inventoryQueue;
+			if (queue === undefined) continue;
+
+			const store = createSpecimenStore(queue);
+			const urls = specimenUrls(items, queue);
+
+			root.isArtworkEnabled = root.dataset.inventoryArtwork !== 'off';
+			root.isOverlayEnabled = root.dataset.inventoryOverlay !== 'off';
+			root.labels = labels;
+			root.seekSeconds = seekSeconds;
+			root.store = store;
+			root.urls = urls;
+
+			if (unqueued.has(queue)) continue;
+
+			store.getState().configure({ urls });
+			store.getState().loadQueue(specimenItems(items, queue));
+			seedSpecimen(store, queue);
+		}
+
+		definePlayerElements();
+	}
+
+	function specimenItems(items: Array<PlayerPayloadItem>, queue: string): Array<QueueItem> {
+		if (queue === 'marquee') return marqueed(items);
+		if (queue === 'no-artwork') return withoutArtwork(items);
+		if (queue === 'no-peaks') return items.filter((item) => item.waveformOverview === undefined);
+		if (queue === 'panel') return pendingPanelQueue(items);
+		if (queue === 'tray') return trayQueue(items);
+		if (queue === 'tray-sectioned') return sectioned(items);
+
+		return items;
+	}
+
+	function specimenUrls(items: Array<PlayerPayloadItem>, queue: string): PlayerUrls {
+		if (queue === 'error') return failingUrls;
+		if (queue === 'panel') return pendingUrls(items);
+
+		return queuedUrls(items);
+	}
+
+	setUpSpecimens();
+</script>

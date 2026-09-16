@@ -167,4 +167,51 @@ describe('bindPageControls', () => {
 
 		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a', 'b'], verb: 'play-release' });
 	});
+
+	test('the queue toggle adds the track that is off the playlist', () => {
+		const page = bindPage(
+			[queueItem('a')],
+			'<div data-track-id="a"><button data-queue-toggle="a"></button></div>',
+		);
+
+		page.bind();
+		element('[data-queue-toggle]').click();
+
+		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['a']);
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a'], verb: 'queue-track' });
+	});
+
+	test('the queue toggle takes the track back off the playlist', () => {
+		const page = bindPage(
+			[queueItem('a')],
+			'<div data-track-id="a"><button data-queue-toggle="a"></button></div>',
+		);
+
+		page.bind();
+		element('[data-queue-toggle]').click();
+		element('[data-queue-toggle]').click();
+
+		expect(page.store.getState().queue).toEqual([]);
+		expect(page.onPress).toHaveBeenLastCalledWith({ itemIds: ['a'], verb: 'unqueue-track' });
+	});
+
+	test('marks the queued track and disables its toggle while it plays', () => {
+		const page = bindPage(
+			[queueItem('a')],
+			'<div data-track-id="a"><button data-queue-toggle="a"></button><button data-play-track="a"></button></div>',
+		);
+
+		page.bind();
+
+		expect(element('[data-track-id="a"]').dataset.queued).toBeUndefined();
+
+		element('[data-queue-toggle]').click();
+
+		expect(element('[data-track-id="a"]').dataset.queued).toBe('');
+		expect(element('[data-queue-toggle]').hasAttribute('disabled')).toBe(false);
+
+		element('[data-play-track]').click();
+
+		expect(element('[data-queue-toggle]').hasAttribute('disabled')).toBe(true);
+	});
 });

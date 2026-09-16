@@ -4,6 +4,9 @@
 	--player-popover: #171717;
 	--player-hover: #262626;
 	--player-border: #262626;
+
+	/* Darker than the surface, so the bar reads as a lip over the page rather than a panel edge */
+	--player-bar-border: #000;
 	--player-title: #f5f5f5;
 	--player-meta: #a3a3a3;
 	--player-hint: #737373;
@@ -22,6 +25,8 @@
 	--player-loader: #ecfdf5;
 	--player-loader-track: #047857;
 	--player-current: #34d399;
+	--player-current-icon: var(--player-current);
+	--player-current-meta: var(--player-meta);
 	--player-focus-ring: #10b981;
 	--player-waveform-base: #525252;
 	--player-waveform-buffered: #737373;
@@ -60,6 +65,7 @@
 	--player-panel-height: 7.5rem;
 	--player-waveform-height: 3rem;
 	--player-waveform-height-compact: 3.5rem;
+	--player-waveform-height-full: 4.5rem;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
 	--player-font-size-large: 1.25rem;
@@ -836,9 +842,14 @@ player-title[data-idle] {
 	white-space: nowrap;
 }
 
+/* The row's two lines in two tones, as the panel's readout carries them */
+.player-tray-item[data-current] .player-tray-artist {
+	color: var(--player-current-meta);
+}
+
 .player-tray-item[data-current] .player-tray-title svg {
 	flex-shrink: 0;
-	color: var(--player-current);
+	color: var(--player-current-icon);
 }
 
 .player-tray-status {
@@ -1017,13 +1028,8 @@ player-title[data-idle] {
 		calc(var(--player-padding-block) + var(--player-inset-bottom)) var(--player-inset-left);
 	container-type: inline-size;
 	background-color: color-mix(in oklab, var(--player-surface) 95%, transparent);
-	border-top: 1px solid var(--player-border);
+	border-top: 1px solid var(--player-bar-border);
 	backdrop-filter: blur(8px);
-}
-
-/* The tag step scopes to the bar's own panel; the overlay holds another and sits inside the bar */
-.player-bar:has(> player-panel > .player-panel) {
-	border-top-color: transparent;
 }
 
 /* Full-bleed under a landscape notch, so the zoom buttons and the parked label take the inset back */
@@ -1040,9 +1046,9 @@ player-title[data-idle] {
 }
 
 .player-bar-grid {
-	--player-layout: 'transport . scope panel volume queue expand' auto
-		'info info info info info info info' auto 'seek seek seek seek seek seek seek' minmax(0, 1fr) /
-		auto minmax(0, 1fr) auto auto auto auto auto;
+	--player-layout: 'transport info scope panel volume queue expand' auto
+		'seek seek seek seek seek seek seek' minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto
+		auto;
 	--player-layout-artwork: var(--player-artwork-size);
 
 	display: grid;
@@ -1050,26 +1056,13 @@ player-title[data-idle] {
 	gap: var(--player-gap-tight) var(--player-gap);
 	align-items: center;
 	block-size: calc(
-		var(--player-layout-artwork) + 2px - var(--player-padding-block-start) -
-			var(--player-padding-block)
+		var(--player-layout-artwork) - var(--player-padding-block-start) - var(--player-padding-block)
 	);
 }
 
 @container (width >= 52rem) {
-	.player-bar-grid .player-track {
-		display: flex;
-		gap: var(--player-gap-tight);
-		align-items: baseline;
-	}
-
-	.player-bar-grid .player-track-title {
-		flex: 0 1 auto;
-		min-width: 0;
-	}
-
-	.player-bar-grid .player-track-meta {
-		flex: 1 1 0%;
-		min-width: 0;
+	.player-bar-grid {
+		--player-waveform-height: var(--player-waveform-height-full);
 	}
 }
 
@@ -1096,16 +1089,27 @@ player-title[data-idle] {
 	position: absolute;
 	bottom: var(--player-inset-bottom);
 	left: env(safe-area-inset-left);
-	box-sizing: content-box;
 	inline-size: var(--player-layout-artwork);
 	block-size: var(--player-layout-artwork);
+	border: 0;
 }
 
 .player-bar-grid:has(.player-artwork) {
 	padding-left: calc(
-		env(safe-area-inset-left) + var(--player-layout-artwork) + 2px + var(--player-gap) -
+		env(safe-area-inset-left) + var(--player-layout-artwork) + var(--player-gap) -
 			var(--player-inset-left)
 	);
+}
+
+/* The cover costs the row more than it returns before the compact tier has room for both */
+@container (26rem <= width < 40rem) {
+	.player-bar-grid .player-artwork {
+		display: none;
+	}
+
+	.player-bar-grid:has(.player-artwork) {
+		padding-left: 0;
+	}
 }
 
 .player-bar-grid .player-transport {
@@ -1141,8 +1145,23 @@ player-title[data-idle] {
 	grid-area: expand;
 }
 
-/* Mini: play, the title and expand; scoped to the grid and the bar's own panel, since the overlay's dialog sits in this container too */
-@container (width < 40rem) {
+/* The glyph is centred in a 2rem box, so each end takes back half the room it leaves */
+@container (width >= 26rem) {
+	.player-bar-grid .player-transport {
+		margin-inline-start: calc((2rem - 0.625rem) / -2);
+	}
+
+	.player-bar-grid .player-overlay-toggle {
+		margin-inline-end: calc((2rem - 0.875rem) / -2);
+	}
+
+	.player-bar-grid:not(:has(> player-overlay-toggle)) .player-queue {
+		margin-inline-end: calc((2rem - 1rem) / -2);
+	}
+}
+
+/* Mini: play, the title, the clock and expand; scoped to the grid and the bar's own panel, since the overlay's dialog sits in this container too */
+@container (width < 26rem) {
 	.player-bar-grid {
 		--player-layout: 'transport info expand' auto / auto minmax(0, 1fr) auto;
 
@@ -1173,13 +1192,8 @@ player-title[data-idle] {
 	.player-bar-grid:has(> player-overlay-toggle) .player-queue,
 	.player-bar-grid .player-seek-button,
 	.player-bar-grid .player-step-button,
-	.player-bar-grid .player-time,
 	.player-bar-grid .player-volume {
 		display: none;
-	}
-
-	.player-bar-grid .player-track-meta {
-		--player-clock-width: 0;
 	}
 }
 
@@ -1494,10 +1508,24 @@ player-title[data-idle] {
 		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
 }
 
-.player-overlay-sheet-header {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
+/* The close shares the tab row, so the lists start at the top of the sheet */
+.player-overlay-sheet .player-overlay-tabs {
+	display: grid;
+	grid-template: 'tabs' auto 'list' minmax(0, 1fr) / minmax(0, 1fr);
+}
+
+.player-overlay-sheet .player-overlay-tablist {
+	grid-area: tabs;
+	padding-inline-end: 2.75rem;
+}
+
+.player-overlay-sheet[open] .player-overlay-tabs > .player-overlay-close {
+	grid-area: tabs;
+	place-self: center end;
+}
+
+.player-overlay-sheet .player-overlay-list {
+	grid-area: list;
 }
 
 .player-overlay-list .player-tray {
@@ -1513,6 +1541,12 @@ player-title[data-idle] {
 
 .player-overlay-list .player-tray-list {
 	max-height: none;
+}
+
+/* Rows run to the panel's edges, so both lists line up with the tabs above them */
+.player-overlay-list
+	:is(.player-tray-header, .player-tray-item, .player-tray-section, .player-tray-empty) {
+	padding-inline: 0;
 }
 
 .player-overlay-tracklist {
@@ -1533,7 +1567,7 @@ player-title[data-idle] {
 		'time title' auto / var(--player-clock-width) minmax(0, 1fr);
 	column-gap: var(--player-gap-tight);
 	width: 100%;
-	padding: 0.5rem;
+	padding-block: 0.5rem;
 	text-align: left;
 	border-radius: var(--player-radius);
 }
@@ -1628,7 +1662,7 @@ player-title[data-idle] {
 		content: '';
 	}
 
-	@container (width >= 40rem) {
+	@container (width >= 26rem) {
 		.player-bar-grid .player-track-title::before {
 			inset-block: calc(var(--player-gap-tight) / -2);
 		}

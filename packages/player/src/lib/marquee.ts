@@ -13,6 +13,8 @@ const renderBox = template(
 	HTMLSpanElement,
 );
 
+const measured = new WeakMap<HTMLElement, number>();
+
 // Travel is proportional to the distance, so a long title marches rather than flying
 const tempoPixelsPerSecond = 40;
 
@@ -53,9 +55,12 @@ function marqueeProperties(distance: number) {
 	};
 }
 
+// Rewriting the properties re-maps a running animation, so an unchanged measurement leaves them alone
 function measureMarquee(box: HTMLElement): void {
 	const distance = overflowDistance(box);
+	if (distance === measured.get(box)) return;
 
+	measured.set(box, distance);
 	box.toggleAttribute('data-overflow', distance > 0);
 	box.removeAttribute('style');
 	if (distance === 0) return;

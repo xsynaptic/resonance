@@ -10,12 +10,12 @@ import {
 	heldPressSelector,
 	payloadSelector,
 } from '#page-control-selectors.ts';
-import { currentCue, loadedItem } from '#store/selectors.ts';
+import { currentCue, loadedItem, queuedIndex } from '#store/selectors.ts';
 
 // The resolved press, so a host reads the verb rather than re-deriving it from the DOM
 export interface ControlPress {
 	itemIds: Array<string>;
-	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track';
+	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track' | 'unqueue-track';
 }
 
 interface PageControlOptions {
@@ -26,6 +26,7 @@ interface RowState {
 	cueStartSeconds: number | undefined;
 	isPlaying: boolean;
 	itemId: string | undefined;
+	queuedIds: string;
 }
 
 // One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
@@ -90,14 +91,7 @@ export function bindPageControls(
 	};
 }
 
-function markRows(page: Document, { cueStartSeconds, isPlaying, itemId }: RowState): void {
-	for (const row of page.querySelectorAll<HTMLElement>('[data-track-id]')) {
-		const isLoaded = itemId !== undefined && row.dataset.trackId === itemId;
-
-		row.toggleAttribute('data-loaded', isLoaded);
-		row.toggleAttribute('data-playing', isLoaded && isPlaying);
-	}
-
+function markCueRows(page: Document, { cueStartSeconds, itemId }: RowState): void {
 	for (const list of page.querySelectorAll<HTMLElement>('[data-cue-mix]')) {
 		const isLoaded = itemId !== undefined && list.dataset.cueMix === itemId;
 
@@ -106,6 +100,30 @@ function markRows(page: Document, { cueStartSeconds, isPlaying, itemId }: RowSta
 				'data-cue-current',
 				isLoaded && Number(row.dataset.cueSeconds) === cueStartSeconds,
 			);
+		}
+	}
+}
+
+function markRows(page: Document, state: RowState): void {
+	markTrackRows(page, state);
+	markCueRows(page, state);
+}
+
+function markTrackRows(page: Document, { isPlaying, itemId, queuedIds }: RowState): void {
+	const queued = new Set(queuedIds.split(' '));
+
+	for (const row of page.querySelectorAll<HTMLElement>('[data-track-id]')) {
+		const { trackId } = row.dataset;
+		const isLoaded = itemId !== undefined && trackId === itemId;
+		const isRowPlaying = isLoaded && isPlaying;
+
+		row.toggleAttribute('data-loaded', isLoaded);
+		row.toggleAttribute('data-playing', isRowPlaying);
+		row.toggleAttribute('data-queued', trackId !== undefined && queued.has(trackId));
+
+		// Taking the playing Mix off the playlist would stop it under the listener
+		for (const toggle of row.querySelectorAll<HTMLButtonElement>('[data-queue-toggle]')) {
+			toggle.disabled = isRowPlaying;
 		}
 	}
 }
@@ -138,7 +156,7 @@ function pressControl(
 	verbs: DOMStringMap,
 	items: Array<QueueItem>,
 ): ControlPress | undefined {
-	const { playQueue, playRelease, playTrack, queueTrack } = verbs;
+	const { playQueue, playRelease, playTrack, queueToggle, queueTrack } = verbs;
 
 	if (playQueue !== undefined) {
 		const station = stationItems(playQueue, items);
@@ -146,6 +164,20 @@ function pressControl(
 		state.playQueue(station);
 
 		return { itemIds: station.map((item) => item.itemId), verb: 'play-queue' };
+	}
+
+	if (queueToggle) {
+		const index = queuedIndex(state, queueToggle);
+
+		if (index === -1) {
+			state.queueTrack(items, queueToggle);
+
+			return { itemIds: [queueToggle], verb: 'queue-track' };
+		}
+
+		state.removeAt(index);
+
+		return { itemIds: [queueToggle], verb: 'unqueue-track' };
 	}
 
 	if (queueTrack) {
@@ -173,6 +205,7 @@ function selectRowState(state: PlayerStore): RowState {
 		cueStartSeconds: currentCue(state)?.startSeconds,
 		isPlaying: !state.isPaused,
 		itemId: loadedItem(state)?.itemId,
+		queuedIds: state.queue.map((item) => item.itemId).join(' '),
 	};
 }
 

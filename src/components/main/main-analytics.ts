@@ -7,6 +7,7 @@ type AnalyticsEvent =
 	| 'player-panel-open'
 	| 'player-play'
 	| 'player-queue-add'
+	| 'player-queue-remove'
 	| 'search-open'
 	| 'search-query';
 

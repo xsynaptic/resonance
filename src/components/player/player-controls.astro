@@ -28,6 +28,9 @@ const { itemId } = Astro.props;
 				{t('player.pause')}
 			</span>
 		</Button>
-		<Button data-queue-track={itemId}>{t('player.queue')}</Button>
+		<Button data-queue-toggle={itemId}>
+			<span class="player-controls-queue">{t('player.queue')}</span>
+			<span class="player-controls-unqueue">{t('player.unqueue')}</span>
+		</Button>
 	</ButtonSplit>
 </div>

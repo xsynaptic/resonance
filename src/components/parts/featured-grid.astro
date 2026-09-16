@@ -15,7 +15,7 @@ const body = await renderSlot(Astro.slots, 'default');
 const footer = await renderSlot(Astro.slots, 'footer');
 ---
 
-<div class="featured-grid mt-10">
+<div class="featured-grid mt-4 sm:mt-6">
 	{path ? (
 		<div class="featured-grid-image">
 			<MediaFeatured alt={alt} path={path} />

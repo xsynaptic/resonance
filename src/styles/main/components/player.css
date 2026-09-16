@@ -3,9 +3,10 @@
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
 	--player-surface: var(--color-surface-800);
 	--player-panel-well: var(--color-surface-700);
-	--player-popover: var(--color-surface-600);
+	--player-popover: var(--color-surface-900);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
+	--player-bar-border: var(--color-surface-950);
 	--player-title: var(--color-ink-200);
 	--player-meta: var(--color-ink-600);
 	--player-hint: var(--color-ink-700);
@@ -26,8 +27,10 @@
 	--player-loader-track: var(--color-highlight-700);
 	--player-drag-handle: var(--color-surface-400);
 	--player-current: var(--color-highlight-400);
+	--player-current-icon: var(--color-accent-500);
+	--player-current-meta: var(--color-highlight-600);
 	--player-focus-ring: var(--color-highlight-500);
-	--player-waveform-base: var(--color-ink-800);
+	--player-waveform-base: var(--color-surface-500);
 	--player-waveform-buffered: var(--color-ink-600);
 	--player-waveform-played: var(--color-ink-100);
 	--player-waveform-scrub: var(--color-ink-400);
@@ -56,11 +59,15 @@ player-root[data-empty] .player-bar {
 }
 
 .player-controls-play,
-.player-controls-pause {
+.player-controls-pause,
+.player-controls-queue,
+.player-controls-unqueue {
 	display: contents;
 }
 
 [data-track-id][data-playing] .player-controls-play,
-[data-track-id]:not([data-playing]) .player-controls-pause {
+[data-track-id]:not([data-playing]) .player-controls-pause,
+[data-track-id][data-queued] .player-controls-queue,
+[data-track-id]:not([data-queued]) .player-controls-unqueue {
 	display: none;
 }

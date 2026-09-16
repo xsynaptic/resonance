@@ -4,6 +4,7 @@ import { cloneIcon } from '#lib/icons.ts';
 import { requireChild } from '#lib/render.ts';
 
 interface SheetControls {
+	close: HTMLButtonElement;
 	closeSheet: () => void;
 	dialog: HTMLDialogElement;
 }
@@ -42,5 +43,5 @@ export function bindSheets(
 		{ signal },
 	);
 
-	return { closeSheet, dialog };
+	return { close, closeSheet, dialog };
 }

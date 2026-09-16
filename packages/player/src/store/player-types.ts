@@ -39,10 +39,10 @@ export interface PlayerActions {
 	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
 	playRelease: (releaseItems: ReadonlyArray<QueueItem>) => void;
 	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
-	playTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
+	playTrack: (releaseItems: ReadonlyArray<QueueItem>, itemId: string) => void;
 	previous: () => void;
 	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
-	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
+	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, itemId: string) => void;
 	// Swaps in the page's copy of every queued item it carries, so a queue restored from an older build picks up new fields
 	refreshQueue: (items: ReadonlyArray<QueueItem>) => void;
 	removeAt: (index: number) => void;
@@ -58,7 +58,7 @@ export interface PlayerActions {
 	// Unmuting a level of zero lands at a quarter, so the press is never answered with silence
 	toggleMuted: () => void;
 	toggleOverlay: () => void;
-	// The scrolling detail panel above the bar; session state, not a persisted preference
+	// The scrolling detail panel above the bar; its open state is persisted, as the time mode is
 	togglePanel: () => void;
 	togglePaused: () => void;
 	toggleShuffle: () => void;

@@ -14,14 +14,14 @@ import {
 	stampQueue,
 } from '#queue/queue-state.ts';
 
-function makeItem(trackId: string, sectionLabel?: string): QueueItem {
+function makeItem(itemId: string, sectionLabel?: string): QueueItem {
 	return {
 		albumLoudness: {},
 		artistLine: 'Nebula Drift',
+		itemId,
 		loudness: {},
 		releaseTitle: 'Cosmic Drift',
-		title: `Track ${trackId}`,
-		trackId,
+		title: `Track ${itemId}`,
 		...(sectionLabel === undefined ? {} : { sectionLabel }),
 	};
 }
@@ -39,7 +39,7 @@ function stamp(items: ReadonlyArray<QueueItem>): Array<QueuedItem> {
 }
 
 function trackIds(queue: ReadonlyArray<QueuedItem>): Array<string> {
-	return queue.map((item) => item.trackId);
+	return queue.map((item) => item.itemId);
 }
 
 function withQueue(items: ReadonlyArray<QueueItem>, currentIndex: number | undefined): QueueState {

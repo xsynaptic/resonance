@@ -53,10 +53,10 @@ describe('currentCue', () => {
 				albumLoudness: {},
 				artistLine: 'Nebula Drift',
 				cuePoints,
+				itemId: 'a',
 				loudness: {},
 				releaseTitle: 'Cosmic Drift',
 				title: 'Mix',
-				trackId: 'a',
 			},
 		]);
 		store.setState({ currentIndex, currentTimeSeconds });

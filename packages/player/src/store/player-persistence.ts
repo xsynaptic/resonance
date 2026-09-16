@@ -4,8 +4,11 @@ import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerTimeMode, QueuedItem } from '#types.ts';
 
 import { queueStorageKey } from '#store/queue-storage-key.ts';
+import { isPanelZoom } from '#waveform/zoom-levels.ts';
 
 const mutedStorageKey = 'player:v1:muted';
+const panelOpenStorageKey = 'player:v1:panel-open';
+const panelZoomStorageKey = 'player:v1:panel-zoom';
 const retiredQueueStorageKey = 'player:v1:queue';
 const timeModeStorageKey = 'player:v1:time-mode';
 const volumeStorageKey = 'player:v1:volume';
@@ -16,6 +19,8 @@ export interface PlayerPersistence {
 	// Bound on connect rather than at module load, because the store is also imported where there is no window
 	bindQueue: () => void;
 	persistMuted: (isMuted: boolean) => void;
+	persistPanelOpen: (isOpen: boolean) => void;
+	persistPanelZoom: (pxPerSecond: number) => void;
 	persistTimeMode: (timeMode: PlayerTimeMode) => void;
 	persistVolume: (volume: number) => void;
 	// Unclamped: the preference actions own the volume range, so a hand-edited entry is corrected in one place
@@ -25,6 +30,8 @@ export interface PlayerPersistence {
 
 interface StoredPreferences {
 	isMuted: boolean | undefined;
+	isPanelOpen: boolean | undefined;
+	panelPxPerSecond: number | undefined;
 	timeMode: PlayerTimeMode | undefined;
 	volume: number | undefined;
 }
@@ -40,9 +47,17 @@ interface StoredQueue {
 export const inertPersistence: PlayerPersistence = {
 	bindQueue: touchNothing,
 	persistMuted: touchNothing,
+	persistPanelOpen: touchNothing,
+	persistPanelZoom: touchNothing,
 	persistTimeMode: touchNothing,
 	persistVolume: touchNothing,
-	readPreferences: () => ({ isMuted: undefined, timeMode: undefined, volume: undefined }),
+	readPreferences: () => ({
+		isMuted: undefined,
+		isPanelOpen: undefined,
+		panelPxPerSecond: undefined,
+		timeMode: undefined,
+		volume: undefined,
+	}),
 	readQueue: touchNothing,
 };
 
@@ -111,6 +126,14 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			writeStored(mutedStorageKey, String(isMuted));
 		},
 
+		persistPanelOpen(isOpen) {
+			writeStored(panelOpenStorageKey, String(isOpen));
+		},
+
+		persistPanelZoom(pxPerSecond) {
+			writeStored(panelZoomStorageKey, String(pxPerSecond));
+		},
+
 		persistTimeMode(timeMode) {
 			writeStored(timeModeStorageKey, timeMode);
 		},
@@ -131,6 +154,8 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 
 		readPreferences: () => ({
 			isMuted: readStoredMuted(),
+			isPanelOpen: readStoredPanelOpen(),
+			panelPxPerSecond: readStoredPanelZoom(),
 			timeMode: readStoredTimeMode(),
 			volume: readStoredVolume(),
 		}),
@@ -154,6 +179,21 @@ function readStoredMuted(): boolean | undefined {
 	return stored === 'true';
 }
 
+function readStoredPanelOpen(): boolean | undefined {
+	const stored = readStored(panelOpenStorageKey);
+	if (stored === undefined) return undefined;
+
+	return stored === 'true';
+}
+
+// Validated against the ladder, so a hand-edited or retired step cannot land as the panel's scale
+function readStoredPanelZoom(): number | undefined {
+	const stored = readStored(panelZoomStorageKey);
+	if (stored === undefined) return undefined;
+
+	return isPanelZoom(Number(stored)) ? Number(stored) : undefined;
+}
+
 // Only this store writes the entry, so the guard covers a stale or hand-edited one rather than a foreign schema
 function readStoredQueue(): StoredQueue | undefined {
 	const stored = readStored(queueStorageKey);
@@ -170,7 +210,7 @@ function readStoredQueue(): StoredQueue | undefined {
 			currentTimeSeconds:
 				currentIndex === undefined ? 0 : storedTimeSeconds(parsed.currentTimeSeconds),
 			isShuffling: parsed.isShuffling === true,
-			queue: parsed.queue,
+			queue: storedQueueItems(parsed.queue),
 		};
 	} catch {
 		return undefined;
@@ -206,6 +246,16 @@ function storedQueueIndex(currentIndex: number | undefined, length: number): num
 	}
 
 	return currentIndex;
+}
+
+// A queue stored before the 2026-09-16 rename carries `trackId`; droppable once those queues have aged out
+function storedQueueItems(queue: Array<QueuedItem>): Array<QueuedItem> {
+	return queue.map((item) => {
+		const { trackId, ...rest } = item as QueuedItem & { trackId?: string };
+		if (trackId === undefined) return item;
+
+		return { ...rest, itemId: trackId };
+	});
 }
 
 function storedTimeSeconds(currentTimeSeconds: number | undefined): number {

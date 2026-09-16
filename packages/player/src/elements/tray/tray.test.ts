@@ -58,7 +58,7 @@ async function openQueue() {
 }
 
 function queuedIds({ store }: ReturnType<typeof mount>): Array<string> {
-	return store.getState().queue.map((item) => item.trackId);
+	return store.getState().queue.map((item) => item.itemId);
 }
 
 async function waitForTray(part: HTMLElement): Promise<HTMLElement> {

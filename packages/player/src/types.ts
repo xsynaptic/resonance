@@ -1,6 +1,6 @@
 export interface PlaybackError {
+	itemId: string;
 	stage: PlaybackErrorStage;
-	trackId: string;
 }
 
 export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported';
@@ -84,6 +84,7 @@ export interface QueueItem {
 	// Timestamped tracks in order; the panel draws a boundary at each one
 	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	durationMs?: number;
+	itemId: string;
 	loudness: QueueLoudness;
 	// Absent renders the title as plain text
 	releaseHref?: string;
@@ -93,7 +94,6 @@ export interface QueueItem {
 	title: string;
 	// The whole tracklist, so a mix indexed in part can say where the index runs out
 	trackCount?: number;
-	trackId: string;
 	// Normalized 0..1 peak per bucket; absent falls back to a range input
 	waveformOverview?: ReadonlyArray<number>;
 }

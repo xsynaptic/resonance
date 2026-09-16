@@ -98,7 +98,7 @@ export function createScrollPainter(
 
 	// Drawn even before any audio lands, so an opening panel reads as empty rather than as broken
 	// Stops at the mix's ends: outside them the hatch already says there is nothing to anchor
-	function paintGrid(view: ScrollView): void {
+	function paintGrid(view: ScrollView, ratio: number): void {
 		const { durationSeconds, height, pixelsPerSecond, width, windowStartSeconds } = view;
 		const openingX =
 			durationSeconds === undefined ? 0 : Math.max(0, -windowStartSeconds * pixelsPerSecond);
@@ -109,7 +109,7 @@ export function createScrollPainter(
 		if (closingX <= openingX) return;
 
 		context.fillStyle = theme.gridStyle;
-		context.fillRect(openingX, Math.round(height / 2), closingX - openingX, 1);
+		context.fillRect(openingX, Math.round(height / 2), closingX - openingX, ratio);
 	}
 
 	// Outside the mix there is no audio at all, and flat silence would misreport that
@@ -141,7 +141,7 @@ export function createScrollPainter(
 		paint: (view, ratio) => {
 			context.clearRect(0, 0, view.width, view.height);
 			paintNull(view, ratio);
-			paintGrid(view);
+			paintGrid(view, ratio);
 			paintPlaceholders(view, ratio);
 			envelope.paint(view);
 			paintEdges(view, ratio);

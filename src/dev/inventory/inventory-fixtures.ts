@@ -88,11 +88,11 @@ const itemWithoutPeaks: PlayerPayloadItem = {
 	archiveUrl: '/inventory/#player',
 	artistLine: 'A Hand-Built Fixture',
 	durationMs: 2_400_000,
+	itemId: 'inventory-no-peaks',
 	loudness: {},
 	releaseTitle: 'Inventory Sample',
 	streamUrl: '/inventory/#player',
 	title: 'A Mix With No Measured Peaks',
-	trackId: 'inventory-no-peaks',
 };
 
 // No mix in the corpus is split across audio files, so the grouped tracklist has to be hand-built

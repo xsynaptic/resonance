@@ -19,6 +19,7 @@ export const createSilentEngine: CreateAudioEngine = (callbacks) => {
 		analyser: () => silentAnalyser,
 		canPlay: () => true,
 		currentTime: () => currentTimeSeconds,
+		element: document.createElement('audio'),
 		load: () => {
 			callbacks.onStatus('paused');
 
@@ -84,13 +85,13 @@ export function pendingUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls
 
 // Any id resolves: the tray specimen synthesizes its own to get distinct rows, and a specimen shows layout rather than resolution
 export function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
-	const find = (trackId: string) => items.find((queued) => queued.trackId === trackId) ?? items[0];
+	const find = (itemId: string) => items.find((queued) => queued.itemId === itemId) ?? items[0];
 
 	return {
-		archive: ({ trackId }) => Promise.resolve(find(trackId)?.archiveUrl),
-		stream: ({ trackId }) => {
-			const item = find(trackId);
-			if (!item) return Promise.reject(new Error(`No stream URL for ${trackId}`));
+		archive: ({ itemId }) => Promise.resolve(find(itemId)?.archiveUrl),
+		stream: ({ itemId }) => {
+			const item = find(itemId);
+			if (!item) return Promise.reject(new Error(`No stream URL for ${itemId}`));
 
 			return Promise.resolve({ status: 'ok', url: item.streamUrl });
 		},
@@ -110,7 +111,7 @@ export function marqueed(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueIt
 
 // The archive cache is keyed by track, so the real archive elsewhere on the page must not answer for this one
 export function pendingPanelQueue(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
-	return items.slice(0, 1).map((item) => ({ ...item, trackId: 'inventory-panel-pending' }));
+	return items.slice(0, 1).map((item) => ({ ...item, itemId: 'inventory-panel-pending' }));
 }
 
 // A queue carrying any heading cannot shuffle
@@ -142,7 +143,7 @@ export function trayQueue(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueI
 
 	return trayTitles.map((title, index) => ({
 		...(items[index % items.length] ?? first),
+		itemId: `inventory-tray-${String(index)}`,
 		title,
-		trackId: `inventory-tray-${String(index)}`,
 	}));
 }

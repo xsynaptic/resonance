@@ -36,12 +36,12 @@ export async function getMixQueueItem(
 		archiveUrl: audio.archiveUrl,
 		artistLine,
 		durationMs: audio.seconds * 1000,
+		itemId: entry.id,
 		loudness: audio.loudness,
 		releaseHref: getContentPath('mixes', entry.id),
 		releaseTitle: entry.data.title,
 		streamUrl: audio.streamUrl,
 		title: entry.data.title,
-		trackId: entry.id,
 		waveformOverview: audio.peaks.map((peak) => Math.round(peak * 100) / 100),
 		...(artwork ? { artwork } : {}),
 		// Only alongside the cue points it qualifies; on its own the count tells the panel nothing

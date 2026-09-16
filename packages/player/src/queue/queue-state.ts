@@ -24,12 +24,12 @@ interface OrderedQueue {
 export function appendedQueue(
 	state: QueueState,
 	items: ReadonlyArray<QueuedItem>,
-	trackId?: string,
+	itemId?: string,
 ): undefined | { loadIndex: number; state: QueueState } {
 	if (items.length === 0) return undefined;
 
 	if (state.queue.length === 0) {
-		const startIndex = trackId === undefined ? 0 : indexOfTrack(items, trackId);
+		const startIndex = itemId === undefined ? 0 : indexOfTrack(items, itemId);
 		if (startIndex === undefined) return undefined;
 
 		const queue = [...items];
@@ -45,13 +45,13 @@ export function appendedQueue(
 		};
 	}
 
-	if (trackId === undefined) return appended(state, items);
+	if (itemId === undefined) return appended(state, items);
 
 	// Already queued is a jump, not a second copy
-	const queued = indexOfTrack(state.queue, trackId);
+	const queued = indexOfTrack(state.queue, itemId);
 	if (queued !== undefined) return { loadIndex: queued, state };
 
-	const found = items.find((item) => item.trackId === trackId);
+	const found = items.find((item) => item.itemId === itemId);
 	if (!found) return undefined;
 
 	return appended(state, [found]);
@@ -97,7 +97,7 @@ export function refreshedQueue(
 	items: ReadonlyArray<QueueItem>,
 ): Array<QueuedItem> | undefined {
 	const refreshed = queue.map((queued) => {
-		const fresh = items.find((item) => item.trackId === queued.trackId);
+		const fresh = items.find((item) => item.itemId === queued.itemId);
 		if (!fresh) return queued;
 
 		const candidate = { ...fresh, queueId: queued.queueId };
@@ -160,8 +160,8 @@ function canShuffle(state: QueueState, queue: ReadonlyArray<QueuedItem>): boolea
 	return state.isShuffling && !isSectioned(queue);
 }
 
-function indexOfTrack(items: ReadonlyArray<QueueItem>, trackId: string): number | undefined {
-	const index = items.findIndex((item) => item.trackId === trackId);
+function indexOfTrack(items: ReadonlyArray<QueueItem>, itemId: string): number | undefined {
+	const index = items.findIndex((item) => item.itemId === itemId);
 
 	return index === -1 ? undefined : index;
 }

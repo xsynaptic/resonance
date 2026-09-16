@@ -78,7 +78,7 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 	<Content />
 	<Fragment slot="media">
 		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
-		{queueItem ? <PlayerControls trackId={entry.id} /> : undefined}
+		{queueItem ? <PlayerControls itemId={entry.id} /> : undefined}
 		<PlayerPayload items={queueItem ? [queueItem] : []} />
 	</Fragment>
 	<Fragment slot="actions">

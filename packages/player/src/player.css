@@ -1190,6 +1190,45 @@ player-title[data-idle] {
 	overflow: hidden;
 }
 
+/* The sheet follows the finger while grabbed, and springs back from wherever it was let go */
+.player-overlay {
+	transition: translate 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-overlay[data-grabbing] {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-overlay {
+		transition-duration: 1ms;
+	}
+}
+
+/* The cue for the downward drag; the close button stays the control, so this carries no role of its own */
+.player-overlay-grabber {
+	position: absolute;
+	inset-block-start: calc(var(--player-overlay-inset-top) / 2);
+	inset-inline-start: 50%;
+	inline-size: 2.5rem;
+	block-size: 0.25rem;
+	touch-action: none;
+	cursor: grab;
+	background-color: var(--player-drag-handle);
+	border-radius: 9999px;
+	translate: -50% 0;
+}
+
+.player-overlay[data-grabbing] .player-overlay-grabber {
+	cursor: grabbing;
+}
+
+/* The drag regions own the vertical gesture, so the sheet moves rather than the page rubber-banding */
+.player-overlay-head,
+.player-overlay-body[data-layout='phone'] .player-overlay-art {
+	touch-action: none;
+}
+
 /* A size container, so the artwork is capped by the overlay's height as well as its width */
 .player-overlay-body {
 	--player-overlay-inset-top: max(var(--player-gap-tight), env(safe-area-inset-top));
@@ -1197,6 +1236,7 @@ player-title[data-idle] {
 	--player-overlay-inset-bottom: max(var(--player-padding-inline), env(safe-area-inset-bottom));
 	--player-overlay-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
 
+	position: relative;
 	box-sizing: border-box;
 	block-size: 100%;
 	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)

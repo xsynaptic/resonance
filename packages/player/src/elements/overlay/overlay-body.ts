@@ -3,6 +3,7 @@ import type { PlayerContext } from '#elements/player-context.ts';
 
 import { defineOnce } from '#elements/define-once.ts';
 import { isLeavingPage } from '#elements/overlay/leaving-page.ts';
+import { bindOverlayGrab } from '#elements/overlay/overlay-grab.ts';
 import { layoutFor } from '#elements/overlay/overlay-layout.ts';
 import { bindSheets } from '#elements/overlay/overlay-sheets.ts';
 import { bindTabs } from '#elements/overlay/overlay-tabs.ts';
@@ -28,7 +29,7 @@ const artworkSizes =
 	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh - 2rem, 900px), min(100vw - 2rem, 60vh, 40rem)';
 
 const renderBody = template(
-	`<div class="player-overlay-body" data-layout="columns"><div class="player-overlay-layout"><div class="player-overlay-art"><player-artwork sizes="${artworkSizes}"></player-artwork></div><div class="player-overlay-deck"><div class="player-overlay-head"><button class="player-button player-button-icon player-overlay-close" type="button"></button><div class="player-track player-overlay-track"><player-title></player-title><div class="player-track-meta"><player-artist-line></player-artist-line><player-time></player-time></div></div></div><player-panel></player-panel><div class="player-overlay-scrub"><player-time-slider></player-time-slider><player-status></player-status></div><div class="player-overlay-controls"><div class="player-transport"><player-step-button direction="previous"></player-step-button><player-play-button></player-play-button><player-step-button direction="next"></player-step-button></div><player-panel-toggle></player-panel-toggle><player-volume-popover></player-volume-popover></div><div class="player-overlay-tabs"><div class="player-overlay-tablist" role="tablist"></div><div class="player-overlay-list" role="tabpanel"></div></div><div class="player-overlay-sheets" hidden><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><player-panel-toggle></player-panel-toggle><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><dialog class="player-overlay-sheet"><div class="player-overlay-sheet-header"><p class="player-overlay-sheet-title"></p><button class="player-button player-button-icon" type="button"></button></div><div class="player-overlay-list"></div></dialog></div></div></div></div>`,
+	`<div class="player-overlay-body" data-layout="columns"><div aria-hidden="true" class="player-overlay-grabber"></div><div class="player-overlay-layout"><div class="player-overlay-art"><player-artwork sizes="${artworkSizes}"></player-artwork></div><div class="player-overlay-deck"><div class="player-overlay-head"><button class="player-button player-button-icon player-overlay-close" type="button"></button><div class="player-track player-overlay-track"><player-title></player-title><div class="player-track-meta"><player-artist-line></player-artist-line><player-time></player-time></div></div></div><player-panel></player-panel><div class="player-overlay-scrub"><player-time-slider></player-time-slider><player-status></player-status></div><div class="player-overlay-controls"><div class="player-transport"><player-step-button direction="previous"></player-step-button><player-play-button></player-play-button><player-step-button direction="next"></player-step-button></div><player-panel-toggle></player-panel-toggle><player-volume-popover></player-volume-popover></div><div class="player-overlay-tabs"><div class="player-overlay-tablist" role="tablist"></div><div class="player-overlay-list" role="tabpanel"></div></div><div class="player-overlay-sheets" hidden><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><player-panel-toggle></player-panel-toggle><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><dialog class="player-overlay-sheet"><div class="player-overlay-sheet-header"><p class="player-overlay-sheet-title"></p><button class="player-button player-button-icon" type="button"></button></div><div class="player-overlay-list"></div></dialog></div></div></div></div>`,
 	HTMLDivElement,
 );
 
@@ -65,6 +66,15 @@ export function connectOverlayBody(
 	);
 	bindTabs(parts.tabs, context, signal);
 	host.append(parts.body);
+	bindOverlayGrab(
+		{
+			body: parts.body,
+			onDismiss: () => {
+				store.getState().setOverlayOpen(false);
+			},
+		},
+		signal,
+	);
 	bindLayout(
 		parts.body,
 		(layout) => {

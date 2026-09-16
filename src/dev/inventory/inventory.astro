@@ -768,6 +768,8 @@ const inlineSelection: SelectionValue = {
 			{mix ? (
 				<AudioCounts
 					downloads={mix.downloads}
+					listeningSeconds={2400}
+					listens={642}
 					mixcloudPlays={38_216}
 					soundcloudPlays={9412}
 					streams={1204}
@@ -775,7 +777,14 @@ const inlineSelection: SelectionValue = {
 			) : undefined}
 		</Specimen>
 		<Specimen name="AudioCounts" note="A single of each, to check the pluralisation.">
-			<AudioCounts downloads={1} mixcloudPlays={1} soundcloudPlays={1} streams={1} />
+			<AudioCounts
+				downloads={1}
+				listeningSeconds={3600}
+				listens={1}
+				mixcloudPlays={1}
+				soundcloudPlays={1}
+				streams={1}
+			/>
 		</Specimen>
 		<Specimen
 			name="EmbedFrame"

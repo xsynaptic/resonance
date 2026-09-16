@@ -17,7 +17,7 @@ const { stations } = Astro.props;
 
 const items = [
 	...new Map(
-		stations.flatMap((station) => station.items).map((item) => [item.trackId, item]),
+		stations.flatMap((station) => station.items).map((item) => [item.itemId, item]),
 	).values(),
 ];
 ---

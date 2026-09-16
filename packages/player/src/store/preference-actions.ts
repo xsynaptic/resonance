@@ -54,10 +54,13 @@ export function createPreferenceActions({
 		},
 
 		hydratePreferences: () => {
-			const { isMuted, timeMode, volume } = persistence.readPreferences();
+			const { isMuted, isPanelOpen, panelPxPerSecond, timeMode, volume } =
+				persistence.readPreferences();
 
 			// Not persisted back: this is the stored value arriving, not the listener moving the slider
 			if (isMuted !== undefined) set({ isMuted });
+			if (isPanelOpen !== undefined) set({ isPanelOpen });
+			if (panelPxPerSecond !== undefined) set({ panelPxPerSecond });
 			if (timeMode !== undefined) set({ timeMode });
 			if (volume !== undefined) set({ volume: clampVolume(volume) });
 
@@ -104,7 +107,10 @@ export function createPreferenceActions({
 		},
 
 		togglePanel: () => {
-			set((state) => ({ isPanelOpen: !state.isPanelOpen }));
+			const isPanelOpen = !get().isPanelOpen;
+
+			set({ isPanelOpen });
+			persistence.persistPanelOpen(isPanelOpen);
 		},
 
 		toggleTimeMode: () => {
@@ -119,7 +125,10 @@ export function createPreferenceActions({
 		},
 
 		zoomPanel: (steps) => {
-			set((state) => ({ panelPxPerSecond: stepPanelZoom(state.panelPxPerSecond, steps) }));
+			const panelPxPerSecond = stepPanelZoom(get().panelPxPerSecond, steps);
+
+			set({ panelPxPerSecond });
+			persistence.persistPanelZoom(panelPxPerSecond);
 		},
 	};
 }

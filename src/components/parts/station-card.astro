@@ -16,7 +16,7 @@ const { priority = false, station } = Astro.props;
 <button
 	aria-label={formatStringTemplate(t('home.stations.play'), { title: station.title })}
 	class="group relative block aspect-square w-full cursor-pointer overflow-hidden rounded-lg bg-surface-700 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
-	data-play-queue={station.items.map((item) => item.trackId).join(' ')}
+	data-play-queue={station.items.map((item) => item.itemId).join(' ')}
 	type="button"
 >
 	{station.image ? (

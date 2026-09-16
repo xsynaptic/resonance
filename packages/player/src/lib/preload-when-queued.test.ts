@@ -9,10 +9,10 @@ const item = {
 	albumLoudness: {},
 	artistLine: 'Nebula Drift',
 	durationMs: 180_000,
+	itemId: 'a',
 	loudness: {},
 	releaseTitle: 'Cosmic Drift',
 	title: 'Track a',
-	trackId: 'a',
 } satisfies QueueItem;
 
 function stubIdle() {
@@ -45,7 +45,7 @@ describe('preloadWhenQueued', () => {
 		expect(idle.pending).toHaveLength(0);
 
 		store.getState().loadQueue([item]);
-		store.getState().loadQueue([item, { ...item, trackId: 'b' }]);
+		store.getState().loadQueue([item, { ...item, itemId: 'b' }]);
 
 		expect(idle.pending).toHaveLength(1);
 		expect(preload).not.toHaveBeenCalled();

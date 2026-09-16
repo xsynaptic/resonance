@@ -15,7 +15,7 @@ import { currentCue, loadedItem } from '#store/selectors.ts';
 interface RowState {
 	cueStartSeconds: number | undefined;
 	isPlaying: boolean;
-	trackId: string | undefined;
+	itemId: string | undefined;
 }
 
 // One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
@@ -74,16 +74,16 @@ export function bindPageControls(store: StoreApi<PlayerStore>, page: Document): 
 	};
 }
 
-function markRows(page: Document, { cueStartSeconds, isPlaying, trackId }: RowState): void {
+function markRows(page: Document, { cueStartSeconds, isPlaying, itemId }: RowState): void {
 	for (const row of page.querySelectorAll<HTMLElement>('[data-track-id]')) {
-		const isLoaded = trackId !== undefined && row.dataset.trackId === trackId;
+		const isLoaded = itemId !== undefined && row.dataset.trackId === itemId;
 
 		row.toggleAttribute('data-loaded', isLoaded);
 		row.toggleAttribute('data-playing', isLoaded && isPlaying);
 	}
 
 	for (const list of page.querySelectorAll<HTMLElement>('[data-cue-mix]')) {
-		const isLoaded = trackId !== undefined && list.dataset.cueMix === trackId;
+		const isLoaded = itemId !== undefined && list.dataset.cueMix === itemId;
 
 		for (const row of list.querySelectorAll<HTMLElement>('[data-cue-seconds]')) {
 			row.toggleAttribute(
@@ -143,13 +143,13 @@ function selectRowState(state: PlayerStore): RowState {
 	return {
 		cueStartSeconds: currentCue(state)?.startSeconds,
 		isPlaying: !state.isPaused,
-		trackId: loadedItem(state)?.trackId,
+		itemId: loadedItem(state)?.itemId,
 	};
 }
 
 function stationItems(ids: string, items: ReadonlyArray<QueueItem>): Array<QueueItem> {
 	return ids
 		.split(' ')
-		.map((trackId) => items.find((item) => item.trackId === trackId))
+		.map((itemId) => items.find((item) => item.itemId === itemId))
 		.filter((item) => item !== undefined);
 }

@@ -23,7 +23,7 @@ const urls: PlayerUrls = {
 	stream: (item) => {
 		const streamUrl = payloadUrl(item, 'streamUrl');
 		if (streamUrl === undefined) {
-			return Promise.reject(new Error(`No stream URL for ${item.trackId}`));
+			return Promise.reject(new Error(`No stream URL for ${item.itemId}`));
 		}
 
 		return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
@@ -95,7 +95,7 @@ async function loadPlayer(host: Element): Promise<void> {
 	bindPageControls(playerStore, document);
 	// Once per document, since Safari reconnects the persisted root on every navigation and a root's binding would clear the lock screen each time
 	bindMediaSession(playerStore, config.seekSeconds);
-	bindPlayerStats(playerStore, () => loadedItem(playerStore.getState())?.trackId);
+	bindPlayerStats(playerStore, () => loadedItem(playerStore.getState())?.itemId);
 }
 
 // A link moved with the persisted bar drops out of `document.styleSheets`, so the sheet lives in the head

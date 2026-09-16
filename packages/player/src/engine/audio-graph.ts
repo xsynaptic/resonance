@@ -28,7 +28,8 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 
 		claimPlaybackSession();
 
-		context = new AudioContext();
+		// A playback buffer rather than the 512-frame interactive default, which underruns on Android Chrome
+		context = new AudioContext({ latencyHint: 'playback' });
 		normalizationNode = context.createGain();
 		volumeNode = context.createGain();
 		analyserNode = context.createAnalyser();
@@ -66,7 +67,7 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 		analyser: () => analyserNode,
 		ensure,
 		outputDelay: () =>
-			context === undefined ? 0 : analysisDelaySeconds + outputLatencySeconds(context),
+			context === undefined ? 0 : analysisDelaySeconds + contextLatencySeconds(context),
 		resume: async () => {
 			if (context !== undefined && context.state !== 'running') await context.resume();
 		},
@@ -88,17 +89,25 @@ function claimPlaybackSession(): void {
 	if (audioSession) audioSession.type = 'playback';
 }
 
-// The analyser's window weights a transient fully only at its midpoint, and output latency is a credit against that lag
-// Floored at zero because a long output latency (Bluetooth) already puts the display ahead
+// Neither latency is on the base class, and an analyser types its context as one
+// A browser missing either property counts it as zero; Safari's outputLatency has been patchier than its baseLatency
+function contextLatencySeconds(context: BaseAudioContext): number {
+	const { baseLatency, outputLatency } = context as {
+		baseLatency?: unknown;
+		outputLatency?: unknown;
+	};
+
+	return latencySeconds(baseLatency) + latencySeconds(outputLatency);
+}
+
+function latencySeconds(latency: unknown): number {
+	return typeof latency === 'number' ? latency : 0;
+}
+
+// The analyser's window weights a transient fully only at its midpoint, and the context's latency is a credit against that lag
+// Floored at zero because a long latency (Bluetooth, a playback buffer) already puts the display ahead
 function measureAnalysisDelay(analyser: AnalyserNode): number {
 	const windowCentreSeconds = analyser.fftSize / 2 / analyser.context.sampleRate;
 
-	return Math.max(0, windowCentreSeconds - outputLatencySeconds(analyser.context));
-}
-
-// Only AudioContext carries outputLatency, and an analyser types its context as the base class
-function outputLatencySeconds(context: BaseAudioContext): number {
-	const latency: unknown = (context as { outputLatency?: unknown }).outputLatency;
-
-	return typeof latency === 'number' ? latency : 0;
+	return Math.max(0, windowCentreSeconds - contextLatencySeconds(analyser.context));
 }

@@ -16,11 +16,11 @@ function makeItem(id: string): QueueItem {
 		albumLoudness: {},
 		artistLine: 'Nebula Drift',
 		durationMs: 180_000,
+		itemId: id,
 		loudness: {},
 		releaseHref: '/releases/cosmic-drift',
 		releaseTitle: 'Cosmic Drift',
 		title: `Track ${id}`,
-		trackId: id,
 	};
 }
 
@@ -29,12 +29,12 @@ const release = [makeItem('a'), makeItem('b'), makeItem('c')];
 interface StoredQueueRecord {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
-	queue: Array<{ trackId: string }>;
+	queue: Array<{ itemId: string }>;
 }
 
 function configured(): StoreApi<PlayerStore> {
-	return withResolver(({ trackId }) =>
-		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
+	return withResolver(({ itemId }) =>
+		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${itemId}/stream` }),
 	);
 }
 
@@ -46,15 +46,15 @@ function leavePage(): void {
 function pendingResolver() {
 	const pending = new Map<string, (resolution: StreamResolution) => void>();
 	const store = withResolver(
-		({ trackId }) =>
+		({ itemId }) =>
 			new Promise<StreamResolution>((resolve) => {
-				pending.set(trackId, resolve);
+				pending.set(itemId, resolve);
 			}),
 	);
 
 	return {
-		answer: (trackId: string) => {
-			pending.get(trackId)?.({ status: 'ok', url: `https://api.test/${trackId}` });
+		answer: (itemId: string) => {
+			pending.get(itemId)?.({ status: 'ok', url: `https://api.test/${itemId}` });
 		},
 		store,
 	};
@@ -125,7 +125,7 @@ describe('playTrack', () => {
 
 		expect(state.queue).toHaveLength(2);
 		expect(state.currentIndex).toBe(1);
-		expect(state.queue[1]?.trackId).toBe('c');
+		expect(state.queue[1]?.itemId).toBe('c');
 	});
 
 	test('jumps to the queued copy rather than appending a second one', () => {
@@ -185,7 +185,7 @@ describe('playQueue', () => {
 
 		const state = store.getState();
 
-		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['x', 'y']);
+		expect(state.queue.map((item) => item.itemId)).toStrictEqual(['x', 'y']);
 		expect(state.currentIndex).toBe(0);
 		expect(fake.engine.reset).toHaveBeenCalledOnce();
 	});
@@ -211,7 +211,7 @@ describe('queueTrack', () => {
 		const state = store.getState();
 
 		expect(state.queue).toHaveLength(2);
-		expect(state.queue[1]?.trackId).toBe('c');
+		expect(state.queue[1]?.itemId).toBe('c');
 		expect(state.currentIndex).toBeUndefined();
 		expect(state.status).toBe('idle');
 		expect(fake.engine.load).not.toHaveBeenCalled();
@@ -225,7 +225,7 @@ describe('queueTrack', () => {
 		store.getState().queueTrack(release, 'c');
 
 		expect(store.getState().currentIndex).toBe(0);
-		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['x', 'c']);
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['x', 'c']);
 	});
 
 	test('leaves a track already queued where it is', () => {
@@ -453,7 +453,7 @@ describe('moveItem', () => {
 
 		const state = store.getState();
 
-		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['b', 'c', 'a']);
+		expect(state.queue.map((item) => item.itemId)).toStrictEqual(['b', 'c', 'a']);
 		expect(state.playOrder).toStrictEqual([0, 1, 2]);
 	});
 
@@ -472,7 +472,7 @@ describe('moveItem', () => {
 		store.getState().playTrack(release, 'b');
 		store.getState().moveItem(2, 0);
 
-		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['c', 'a', 'b']);
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['c', 'a', 'b']);
 		expect(store.getState().currentIndex).toBe(2);
 	});
 
@@ -494,8 +494,8 @@ describe('moveItem', () => {
 
 		const state = store.getState();
 
-		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['b', 'c', 'a']);
-		expect(state.playOrder.map((index) => state.queue[index]?.trackId)).toStrictEqual([
+		expect(state.queue.map((item) => item.itemId)).toStrictEqual(['b', 'c', 'a']);
+		expect(state.playOrder.map((index) => state.queue[index]?.itemId)).toStrictEqual([
 			'c',
 			'a',
 			'b',
@@ -508,7 +508,7 @@ describe('moveItem', () => {
 		store.getState().loadQueue(release.map((item) => ({ ...item, sectionLabel: 'Section' })));
 		store.getState().moveItem(0, 2);
 
-		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
 	});
 
 	test('refuses an index outside the queue', () => {
@@ -518,7 +518,7 @@ describe('moveItem', () => {
 		store.getState().moveItem(0, 3);
 		store.getState().moveItem(-1, 1);
 
-		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
 	});
 });
 
@@ -662,11 +662,11 @@ describe('transport', () => {
 describe('engine errors', () => {
 	test('re-resolves once on a failure, then reports the second as an error', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ trackId }) => {
-			resolved.push(trackId);
+		const store = withResolver(({ itemId }) => {
+			resolved.push(itemId);
 			return Promise.resolve({
 				status: 'ok',
-				url: `https://api.test/tracks/${trackId}/${String(resolved.length)}`,
+				url: `https://api.test/tracks/${itemId}/${String(resolved.length)}`,
 			});
 		});
 
@@ -684,13 +684,44 @@ describe('engine errors', () => {
 
 		fake.callbacks.current?.onError('network');
 		expect(store.getState().status).toBe('error');
-		expect(store.getState().playbackError).toStrictEqual({ stage: 'network', trackId: 'a' });
+		expect(store.getState().playbackError).toStrictEqual({ itemId: 'a', stage: 'network' });
+	});
+
+	test('re-resolves again after a failure that follows playback', async () => {
+		const resolved: Array<string> = [];
+		const store = withResolver(({ itemId }) => {
+			resolved.push(itemId);
+			return Promise.resolve({
+				status: 'ok',
+				url: `https://api.test/tracks/${itemId}/${String(resolved.length)}`,
+			});
+		});
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+
+		fake.callbacks.current?.onError('network');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
+		});
+
+		// Reaching playback closes the chain the one re-resolve was spent on
+		fake.callbacks.current?.onStatus('playing');
+		fake.callbacks.current?.onError('network');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(3);
+		});
+		expect(resolved).toStrictEqual(['a', 'a', 'a']);
+		expect(store.getState().status).not.toBe('error');
 	});
 
 	test('stops at a capped resolve without loading or re-resolving', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ trackId }) => {
-			resolved.push(trackId);
+		const store = withResolver(({ itemId }) => {
+			resolved.push(itemId);
 			return Promise.resolve({ status: 'capped' });
 		});
 
@@ -705,12 +736,12 @@ describe('engine errors', () => {
 
 	test('stops at a format the browser cannot play without loading or re-resolving', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ trackId }) => {
-			resolved.push(trackId);
+		const store = withResolver(({ itemId }) => {
+			resolved.push(itemId);
 			return Promise.resolve({
 				status: 'ok',
 				type: 'audio/mp4; codecs="opus"',
-				url: `https://api.test/tracks/${trackId}/stream`,
+				url: `https://api.test/tracks/${itemId}/stream`,
 			});
 		});
 		fake.engine.canPlay.mockReturnValue(false);
@@ -728,9 +759,9 @@ describe('engine errors', () => {
 	test('drops a resolve that lands after the listener moved on', async () => {
 		const pending = new Map<string, (resolution: StreamResolution) => void>();
 		const store = withResolver(
-			({ trackId }) =>
+			({ itemId }) =>
 				new Promise<StreamResolution>((resolve) => {
-					pending.set(trackId, resolve);
+					pending.set(itemId, resolve);
 				}),
 		);
 
@@ -945,8 +976,8 @@ describe('play intent', () => {
 		'a press on a %s track re-resolves rather than playing what the engine holds',
 		async (status, resolution) => {
 			const resolved: Array<string> = [];
-			const store = withResolver(({ trackId }) => {
-				resolved.push(trackId);
+			const store = withResolver(({ itemId }) => {
+				resolved.push(itemId);
 				return Promise.resolve(resolution);
 			});
 			fake.engine.canPlay.mockReturnValue(false);
@@ -1092,6 +1123,45 @@ describe('time mode', () => {
 	});
 });
 
+describe('panel state', () => {
+	test('persists the open state and restores it on hydrate', () => {
+		configured().getState().togglePanel();
+
+		expect(localStorage.getItem('player:v1:panel-open')).toBe('true');
+
+		const restored = configured();
+
+		restored.getState().hydratePreferences();
+		expect(restored.getState().isPanelOpen).toBe(true);
+
+		localStorage.removeItem('player:v1:panel-open');
+	});
+
+	test('persists the zoom step and restores it on hydrate', () => {
+		configured().getState().zoomPanel(1);
+
+		expect(localStorage.getItem('player:v1:panel-zoom')).toBe('105');
+
+		const restored = configured();
+
+		restored.getState().hydratePreferences();
+		expect(restored.getState().panelPxPerSecond).toBe(105);
+
+		localStorage.removeItem('player:v1:panel-zoom');
+	});
+
+	test('ignores a stored zoom that is not a step on the ladder', () => {
+		localStorage.setItem('player:v1:panel-zoom', '83');
+
+		const store = configured();
+
+		store.getState().hydratePreferences();
+		expect(store.getState().panelPxPerSecond).toBe(70);
+
+		localStorage.removeItem('player:v1:panel-zoom');
+	});
+});
+
 describe('queue persistence', () => {
 	test('writes the queue as it changes, and clears it when the queue empties', () => {
 		const store = configured();
@@ -1099,7 +1169,7 @@ describe('queue persistence', () => {
 		store.getState().hydrateQueue();
 		store.getState().playTrack(release, 'b');
 
-		expect(storedQueue()?.queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+		expect(storedQueue()?.queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
 		expect(storedQueue()?.currentIndex).toBe(1);
 
 		store.getState().clearQueue();
@@ -1150,7 +1220,7 @@ describe('queue persistence', () => {
 
 		const state = second.getState();
 
-		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
+		expect(state.queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
 		expect(state.currentIndex).toBe(1);
 		expect(state.currentTimeSeconds).toBe(42);
 		expect(state.status).toBe('idle');
@@ -1256,6 +1326,28 @@ describe('queue persistence', () => {
 		store.getState().hydrateQueue();
 
 		expect(store.getState().isShuffling).toBe(false);
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('restores a queue stored before the item id rename', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({
+				currentIndex: 1,
+				currentTimeSeconds: 12,
+				isShuffling: false,
+				queue: release.map(({ itemId, ...rest }) => ({ ...rest, trackId: itemId })),
+			}),
+		);
+
+		const store = configured();
+
+		store.getState().hydrateQueue();
+
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
+		expect(store.getState().currentIndex).toBe(1);
+		expect(store.getState().currentTimeSeconds).toBe(12);
 
 		localStorage.removeItem('player:v2:queue');
 	});

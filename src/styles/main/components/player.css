@@ -12,9 +12,9 @@
 	--player-clock: var(--color-accent-500);
 	--player-clock-hover: var(--color-accent-400);
 
-	/* Orange, so the things you press separate from the waveforms */
+	/* Orange, so the things you press separate from the waveforms; near-white on hover leaves orange for engaged */
 	--player-control: var(--color-highlight-600);
-	--player-control-hover: var(--color-highlight-400);
+	--player-control-hover: var(--color-ink-200);
 	--player-control-active: var(--color-highlight-400);
 	--player-control-active-hover: var(--color-highlight-300);
 	--player-control-inert: var(--color-ink-900);

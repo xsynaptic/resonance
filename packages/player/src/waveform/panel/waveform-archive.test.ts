@@ -19,8 +19,8 @@ function header(): ArrayBuffer {
 	return view.buffer;
 }
 
-function itemFor(trackId: string): QueueItem {
-	return { albumLoudness: {}, artistLine: '', loudness: {}, releaseTitle: '', title: '', trackId };
+function itemFor(itemId: string): QueueItem {
+	return { albumLoudness: {}, artistLine: '', itemId, loudness: {}, releaseTitle: '', title: '' };
 }
 
 function rangeOf(init: RequestInit | undefined): string | undefined {

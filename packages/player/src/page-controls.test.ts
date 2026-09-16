@@ -12,7 +12,7 @@ import { queueItem } from '#test/mount.ts';
 let unbind: (() => void) | undefined;
 
 const urls: PlayerUrls = {
-	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+	stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
 };
 
 afterEach(() => {
@@ -54,7 +54,7 @@ describe('bindPageControls', () => {
 
 		page.bind();
 
-		expect(loadedItem(page.store.getState())?.trackId).toBe('b');
+		expect(loadedItem(page.store.getState())?.itemId).toBe('b');
 		expect(element('[data-play-track]').hasAttribute(heldPressAttribute)).toBe(false);
 	});
 
@@ -67,7 +67,7 @@ describe('bindPageControls', () => {
 		page.bind();
 		element('[data-queue-track]').click();
 
-		expect(page.store.getState().queue.map((item) => item.trackId)).toEqual(['a', 'b']);
+		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['a', 'b']);
 		expect(loadedItem(page.store.getState())).toBeUndefined();
 	});
 

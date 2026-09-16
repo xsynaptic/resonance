@@ -56,7 +56,9 @@ export function createPlaybackController(
 	function ensureEngine(): AudioEngine {
 		if (engine) return engine;
 
-		engine = createEngine(toEngineCallbacks({ api, onError: onEngineError }));
+		engine = createEngine(
+			toEngineCallbacks({ api, onError: onEngineError, onPlaying: onEnginePlaying }),
+		);
 		engine.setVolume(audibleVolume(get()));
 
 		return engine;
@@ -75,6 +77,11 @@ export function createPlaybackController(
 		}
 
 		fail(stage);
+	}
+
+	// A load that reached playback closes its attempt chain, so a later failure earns a re-resolve of its own
+	function onEnginePlaying(): void {
+		if (loading) loading.isRetry = false;
 	}
 
 	// The element and the play promise can both report one failure; clearing the attempt makes the second a no-op
@@ -169,11 +176,11 @@ export function createPlaybackController(
 
 // Without a current track there is nothing to pin the failure to, so the status carries it alone
 function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
-	const trackId = loadedItem(state)?.trackId;
+	const itemId = loadedItem(state)?.itemId;
 
 	return {
 		isPaused: true,
-		playbackError: trackId === undefined ? undefined : { stage, trackId },
+		playbackError: itemId === undefined ? undefined : { itemId, stage },
 		status: 'error',
 	} satisfies Partial<PlayerStore>;
 }
@@ -271,13 +278,15 @@ async function streamIntoEngine({
 	}
 }
 
-// Every report but `onError` is a state write; the retry policy is the caller's
+// Every report but `onError` and `onPlaying` is a state write; the retry policy is the caller's
 function toEngineCallbacks({
 	api,
 	onError,
+	onPlaying,
 }: {
 	api: StoreApi<PlayerStore>;
 	onError: (stage: PlaybackErrorStage) => void;
+	onPlaying: () => void;
 }): AudioEngineCallbacks {
 	const { getState: get, setState: set } = api;
 
@@ -298,6 +307,8 @@ function toEngineCallbacks({
 
 			// An unload has already left nothing loaded
 			if (status === 'paused' && get().status === 'idle') return;
+
+			if (status === 'playing') onPlaying();
 
 			// The intent follows the element, so a pause from the system or a headset reads as one
 			set({ isPaused: status !== 'playing', status });

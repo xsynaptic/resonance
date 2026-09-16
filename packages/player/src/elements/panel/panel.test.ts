@@ -14,8 +14,8 @@ function mountPanel() {
 	const mounted = mount('player-panel');
 
 	mounted.root.urls = {
-		archive: ({ trackId }) => Promise.resolve(`https://api.test/${trackId}.dat`),
-		stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+		archive: ({ itemId }) => Promise.resolve(`https://api.test/${itemId}.dat`),
+		stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
 	};
 	mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
 

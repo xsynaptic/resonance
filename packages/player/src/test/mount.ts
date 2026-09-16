@@ -7,7 +7,7 @@ import { createPlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
 const testUrls: PlayerUrls = {
-	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+	stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
 };
 
 export function mount<Tag extends keyof HTMLElementTagNameMap>(
@@ -37,14 +37,14 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 }
 
 // No duration unless a test names one, so the clock can be seen waiting on metadata
-export function queueItem(trackId: string, overrides: Partial<QueueItem> = {}): QueueItem {
+export function queueItem(itemId: string, overrides: Partial<QueueItem> = {}): QueueItem {
 	return {
 		albumLoudness: {},
 		artistLine: 'Forest Signal',
+		itemId,
 		loudness: {},
 		releaseTitle: 'Winter Transmissions',
-		title: `Mix ${trackId}`,
-		trackId,
+		title: `Mix ${itemId}`,
 		...overrides,
 	};
 }

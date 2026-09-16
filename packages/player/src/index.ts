@@ -7,10 +7,13 @@ export type { PlayerStoreOptions } from '#store/player-store.ts';
 export { loadedItem } from '#store/selectors.ts';
 export type {
 	PlaybackError,
+	PlaybackErrorStage,
 	PlayerLabels,
+	PlayerStatus,
 	PlayerUrls,
 	QueueArtwork,
 	QueueCuePoint,
 	QueueItem,
+	QueueLoudness,
 	StreamResolution,
 } from '#types.ts';

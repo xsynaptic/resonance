@@ -12,7 +12,11 @@ const elements = vi.hoisted(() => ({
 	playerStore: {},
 }));
 
+// Bound for real under `NODE_ENV=production`, where `import.meta.env.DEV` stops short-circuiting it
+const stats = vi.hoisted(() => ({ bindPlayerStats: vi.fn() }));
+
 vi.mock('@xsynaptic/player', () => elements);
+vi.mock('#components/player/player-stats.ts', () => stats);
 
 import { startPlayer } from '#components/player/player-host.ts';
 
@@ -75,6 +79,7 @@ describe('startPlayer', () => {
 
 		expect(rootAtDefine).toBeNull();
 		expect(elements.bindMediaSession).toHaveBeenCalledWith(elements.playerStore, 30);
+		expect(stats.bindPlayerStats).toHaveBeenCalledWith(elements.playerStore, expect.any(Function));
 		expect(root.store).toBe(elements.playerStore);
 		expect(root.querySelector(':scope > player-bar')).not.toBeNull();
 		expect(control('[data-play-track]').hasAttribute(heldPressAttribute)).toBe(true);

@@ -3,7 +3,7 @@ import type { createPlayerStore } from '@xsynaptic/player';
 
 import { monitorPlayback } from '@xsynaptic/playback-stats';
 
-// Follows the `player:v1:queue` naming; set to `1` by hand, once per browser
+// Follows the `player:v2:queue` naming; set to `1` by hand, once per browser
 const optOutKey = 'stats:v1:opt-out';
 
 // The Worker refuses to open a listen below this, so nothing shorter is worth a request

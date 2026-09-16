@@ -49,17 +49,17 @@ export function openArchive(
 	resolveArchive: NonNullable<PlayerUrls['archive']>,
 	item: QueueItem,
 ): Promise<undefined | WaveformArchive> {
-	const { trackId } = item;
-	const cached = cache.get(trackId);
+	const { itemId } = item;
+	const cached = cache.get(itemId);
 	if (cached) return cached;
 
 	const request = fetchArchive(resolveArchive, item);
 
-	remember(trackId, request);
+	remember(itemId, request);
 
 	// One bad header would otherwise hold the mix on its empty grid for the life of the page
 	void request.then((archive) => {
-		if (archive === undefined && cache.get(trackId) === request) cache.delete(trackId);
+		if (archive === undefined && cache.get(itemId) === request) cache.delete(itemId);
 	});
 
 	return request;
@@ -208,12 +208,12 @@ function readHeader({
 	return createArchive({ openedMs, pairsPerSecond: sampleRate / samplesPerPixel, pairsTotal, url });
 }
 
-function remember(trackId: string, archive: Promise<undefined | WaveformArchive>): void {
+function remember(itemId: string, archive: Promise<undefined | WaveformArchive>): void {
 	if (cache.size >= cacheLimit) {
 		const oldest = cache.keys().next().value;
 
 		if (oldest !== undefined) cache.delete(oldest);
 	}
 
-	cache.set(trackId, archive);
+	cache.set(itemId, archive);
 }

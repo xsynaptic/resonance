@@ -4,6 +4,11 @@ const flickPxPerMs = 0.5;
 // A flick is only a flick while the finger is still moving; one held still and let go is judged on distance
 const flickWindowMs = 100;
 
+const grabAttributes = { isGrabbing: 'data-grabbing' } as const satisfies Record<
+	string,
+	`data-${string}`
+>;
+
 // Where a grab may start; everything else in the deck owns a gesture of its own
 const grabRegions = '.player-overlay-grabber, .player-overlay-head, .player-overlay-art';
 
@@ -50,7 +55,7 @@ export function bindOverlayGrab({ body, onDismiss }: OverlayGrab, signal: AbortS
 			event.currentTarget.setPointerCapture(event.pointerId);
 		}
 
-		sheet.toggleAttribute('data-grabbing', true);
+		sheet.toggleAttribute(grabAttributes.isGrabbing, true);
 	}
 
 	function onPointerMove(event: PointerEvent): void {
@@ -78,7 +83,7 @@ export function bindOverlayGrab({ body, onDismiss }: OverlayGrab, signal: AbortS
 		};
 
 		pointerId = undefined;
-		sheet.toggleAttribute('data-grabbing', false);
+		sheet.toggleAttribute(grabAttributes.isGrabbing, false);
 		// Cleared before the close, since the dialog outlives the contents that moved it
 		show(0);
 
@@ -89,7 +94,7 @@ export function bindOverlayGrab({ body, onDismiss }: OverlayGrab, signal: AbortS
 	signal.addEventListener(
 		'abort',
 		() => {
-			sheet.toggleAttribute('data-grabbing', false);
+			sheet.toggleAttribute(grabAttributes.isGrabbing, false);
 			show(0);
 		},
 		{ once: true },

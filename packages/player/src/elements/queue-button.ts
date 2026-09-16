@@ -10,6 +10,7 @@ import { bindPreload } from '#lib/bind-preload.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, template } from '#lib/render.ts';
+import { supersede } from '#lib/supersede.ts';
 
 interface QueueParts {
 	control: HTMLDivElement;
@@ -27,17 +28,11 @@ export class PlayerQueueButton extends PlayerElement {
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
 		const { control, trigger } = this.#parts;
-		let opened: AbortController | undefined;
-
-		const close = (): void => {
-			opened?.abort();
-			opened = undefined;
-		};
+		const opened = supersede(signal);
 
 		this.appendOnce(control);
 		trigger.setAttribute('aria-label', labels.queue);
 		trigger.replaceChildren(cloneIcon('queue'));
-		signal.addEventListener('abort', close, { once: true });
 		bindPreload({ preload: trayModule.preload, store, trigger }, signal);
 		bindDismiss(
 			{
@@ -54,11 +49,10 @@ export class PlayerQueueButton extends PlayerElement {
 			{
 				apply: (isOpen) => {
 					trigger.setAttribute('aria-expanded', String(isOpen));
-					close();
+					opened.cancel();
 					if (!isOpen) return;
 
-					opened = new AbortController();
-					void openTray(control, store, opened.signal);
+					void openTray(control, store, opened.next());
 				},
 				button: trigger,
 				press: (state) => {

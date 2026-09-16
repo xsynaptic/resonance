@@ -3,6 +3,11 @@ import { dropIndex, movedIndex } from '#queue/reorder.ts';
 const autoScrollMarginPx = 32;
 const autoScrollStepPx = 10;
 
+const dragAttributes = { isDragging: 'data-dragging' } as const satisfies Record<
+	string,
+	`data-${string}`
+>;
+
 export interface RowDrag {
 	onPointerCancel: (event: Pick<RowPointer, 'pointerId'>) => void;
 	onPointerDown: (event: RowPointerDown, from: number) => void;
@@ -70,7 +75,7 @@ export function createRowDrag(
 		closeSession(finished);
 
 		for (const row of finished.rows) row.style.transform = '';
-		finished.rows[finished.from]?.removeAttribute('data-dragging');
+		finished.rows[finished.from]?.removeAttribute(dragAttributes.isDragging);
 
 		if (shouldCommit && finished.to !== finished.from) onMove(finished.from, finished.to);
 	}
@@ -141,7 +146,7 @@ function openSession(list: HTMLElement, event: RowPointer, from: number): DragSe
 	const listTop = list.getBoundingClientRect().top;
 	const { scrollTop } = list;
 
-	row.dataset.dragging = '';
+	row.toggleAttribute(dragAttributes.isDragging, true);
 
 	return {
 		controller: new AbortController(),

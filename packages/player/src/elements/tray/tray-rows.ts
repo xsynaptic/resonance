@@ -44,6 +44,10 @@ const renderRow = template(
 
 const renderSection = template('<li class="player-tray-section"></li>', HTMLLIElement);
 
+const rowAttributes = { isCurrent: 'data-current' } as const satisfies Partial<
+	Record<keyof RowEntry, `data-${string}`>
+>;
+
 const rowControls = new WeakMap<Element, Omit<RowPress, 'button'>>();
 
 export function rowPressAt(target: EventTarget | null): RowPress | undefined {
@@ -99,7 +103,7 @@ function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 		update: (entry) => {
 			if (entry.kind !== 'row') return;
 
-			node.toggleAttribute('data-current', entry.isCurrent);
+			node.toggleAttribute(rowAttributes.isCurrent, entry.isCurrent);
 			handle.disabled = !entry.isMovable;
 			name.textContent = entry.item.title;
 			artist.textContent = entry.item.artistLine;

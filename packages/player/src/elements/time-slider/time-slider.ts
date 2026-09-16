@@ -14,6 +14,7 @@ import {
 import { bindOverviewPreview } from '#elements/time-slider/overview.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
+import { supersede } from '#lib/supersede.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { displayedItem, isLoaded } from '#store/selectors.ts';
 
@@ -50,22 +51,13 @@ export class PlayerTimeSlider extends PlayerElement {
 
 	protected connect(signal: AbortSignal): void {
 		const context: SliderContext = { ...playerContext(this), scrub: createScrub(signal) };
-		let shown: AbortController | undefined;
+		const shown = supersede(signal);
 
-		signal.addEventListener(
-			'abort',
-			() => {
-				shown?.abort();
-			},
-			{ once: true },
-		);
 		bind(
 			context.store,
 			selectSlider,
 			(view) => {
-				shown?.abort();
-				shown = new AbortController();
-				this.#show(view, context, shown.signal);
+				this.#show(view, context, shown.next());
 			},
 			signal,
 		);

@@ -5,6 +5,7 @@ import { PlayerElement } from '#elements/player-element.ts';
 import { traceSignal } from '#elements/scope-trace.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
+import { supersede } from '#lib/supersede.ts';
 
 const renderCanvas = template(
 	'<canvas aria-hidden="true" class="player-scope"></canvas>',
@@ -16,29 +17,20 @@ export class PlayerScope extends PlayerElement {
 
 	protected connect(signal: AbortSignal): void {
 		const { store } = playerContext(this);
-		let trace: AbortController | undefined;
+		const trace = supersede(signal);
 
 		this.appendOnce(this.#canvas);
-		signal.addEventListener(
-			'abort',
-			() => {
-				trace?.abort();
-			},
-			{ once: true },
-		);
 		bind(
 			store,
 			isTracing,
 			(shouldTrace) => {
-				trace?.abort();
-				trace = undefined;
+				trace.cancel();
 				if (!shouldTrace) return;
 
 				const analyser = store.getState().getAnalyser();
 				if (!analyser) return;
 
-				trace = new AbortController();
-				traceSignal(this.#canvas, analyser, trace.signal);
+				traceSignal(this.#canvas, analyser, trace.next());
 			},
 			signal,
 		);

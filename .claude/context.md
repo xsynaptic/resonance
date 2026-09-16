@@ -78,6 +78,8 @@ Terms come in two idioms whose reference syntax is inverted, each written for it
 
 **Term Index**: The map from a Term to every Catalog Item referencing it. Hierarchical Terms roll their descendants' items up, so a parent's Detail Page shows everything beneath it. _Avoid_: taxonomy data, lookup. Index is a data structure here and nowhere else; a page is never an index.
 
+**Appearance**: A Term credited on a Track or a Selection row rather than on the Entry itself. Weaker evidence than authorship, and kept in its own index and its own section so the two never mix. An Entry is never also an Appearance of the same Term. _Avoid_: mention, reference.
+
 ### Projection
 
 **Catalog**: The unified cross-collection view of every user-facing Entry reduced to one common shape, used for listing, sorting, and pagination. _Avoid_: index, registry, manifest.

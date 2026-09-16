@@ -18,8 +18,5 @@
 	},
 	"dependencies": {
 		"zustand": "^5.0.15"
-	},
-	"devDependencies": {
-		"@testing-library/dom": "^10.4.1"
 	}
 }

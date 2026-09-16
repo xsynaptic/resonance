@@ -10,6 +10,7 @@
 	"dynamicallyLoaded": ["src/components/mdx/**/*.astro", "src/components/player/player-stats.ts"],
 	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],
 	"ignoreDependencies": [
+		"@testing-library/dom",
 		"@types/react",
 		"@fontsource/fira-sans",
 		"@fontsource/manrope",

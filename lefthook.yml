@@ -18,7 +18,7 @@ check:
           - name: format
             run: prettier --check . --cache --log-level warn
           - name: js
-            run: eslint --cache --cache-location node_modules/.cache/eslint/
+            run: eslint --max-warnings 0 --cache --cache-location node_modules/.cache/eslint/
           - name: worker
             group:
               piped: true

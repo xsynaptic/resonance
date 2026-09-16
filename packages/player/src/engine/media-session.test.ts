@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { QueueItem } from '#types.ts';
 
-import { createFakeEngine } from '#engine/fake-engine.ts';
+import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bindMediaSession } from '#engine/media-session.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
@@ -57,7 +57,7 @@ const release = [makeItem('a'), makeItem('b')];
 let mediaSession: FakeMediaSession;
 
 function loadedStore() {
-	const store = createPlayerStore({ createEngine: createFakeEngine().createEngine });
+	const store = createPlayerStore({ createEngine: createMockEngine().createEngine });
 
 	store.getState().configure({
 		urls: {
@@ -127,7 +127,7 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toBe(null);
 	});
 
-	test('hands over renditions up to 512px, largest first', () => {
+	test('hands over renditions up to 512px, smallest first', () => {
 		const store = loadedStore();
 		const [first] = store.getState().queue;
 		if (!first) throw new Error('The queue loaded nothing');
@@ -149,9 +149,9 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toMatchObject({
 			init: {
 				artwork: [
-					{ sizes: '512x512', src: '/artwork-512.webp' },
-					{ sizes: '240x240', src: '/artwork-240.webp' },
 					{ sizes: '120x120', src: '/artwork-120.webp' },
+					{ sizes: '240x240', src: '/artwork-240.webp' },
+					{ sizes: '512x512', src: '/artwork-512.webp' },
 				],
 			},
 		});

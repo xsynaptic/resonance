@@ -5,11 +5,11 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
 
-import { createFakeEngine } from '#engine/fake-engine.ts';
+import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 // Replaced per test, so nothing a store did survives into the next one
-let fake = createFakeEngine();
+let fake = createMockEngine();
 
 function makeItem(id: string): QueueItem {
 	return {
@@ -77,7 +77,7 @@ function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
 }
 
 beforeEach(() => {
-	fake = createFakeEngine();
+	fake = createMockEngine();
 });
 
 describe('playTrack', () => {
@@ -1194,7 +1194,7 @@ describe('queue persistence', () => {
 		first.getState().hydrateQueue();
 		first.getState().loadQueue(release);
 
-		fake = createFakeEngine();
+		fake = createMockEngine();
 
 		const second = configured();
 
@@ -1212,7 +1212,7 @@ describe('queue persistence', () => {
 		first.getState().seek(42);
 		leavePage();
 
-		fake = createFakeEngine();
+		fake = createMockEngine();
 
 		const second = configured();
 
@@ -1237,7 +1237,7 @@ describe('queue persistence', () => {
 		first.getState().seek(42);
 		leavePage();
 
-		fake = createFakeEngine();
+		fake = createMockEngine();
 
 		const second = configured();
 
@@ -1261,7 +1261,7 @@ describe('queue persistence', () => {
 		first.getState().hydrateQueue();
 		first.getState().loadQueue(release);
 
-		fake = createFakeEngine();
+		fake = createMockEngine();
 
 		const second = configured();
 
@@ -1303,7 +1303,7 @@ describe('queue persistence', () => {
 		first.getState().hydrateQueue();
 		first.getState().loadQueue(release);
 
-		fake = createFakeEngine();
+		fake = createMockEngine();
 
 		const second = configured();
 

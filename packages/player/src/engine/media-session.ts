@@ -209,10 +209,9 @@ function setMetadata(item: QueuedItem | undefined): void {
 	navigator.mediaSession.metadata = new MediaMetadata({
 		album: item.releaseTitle,
 		artist: item.artistLine,
-		// WebKit has been reported to take the first entry
+		// Gecko takes the first entry that decodes and never reads `sizes`, so the smallest leads
 		artwork: (item.artwork ?? [])
 			.filter(({ width }) => width <= mediaSessionArtworkMaxWidth)
-			.toReversed()
 			.map(({ src, width }) => ({
 				sizes: `${String(width)}x${String(width)}`,
 				src,

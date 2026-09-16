@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
-import { createFakeEngine } from '#engine/fake-engine.ts';
+import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { heldPressAttribute } from '#page-control-selectors.ts';
 import { bindPageControls } from '#page-controls.ts';
 import { createPlayerStore } from '#store/player-store.ts';
@@ -23,7 +23,7 @@ afterEach(() => {
 
 function bindPage(items: Array<QueueItem>, controls: string) {
 	const store = createPlayerStore({
-		createEngine: createFakeEngine().createEngine,
+		createEngine: createMockEngine().createEngine,
 		isPersistent: false,
 	});
 

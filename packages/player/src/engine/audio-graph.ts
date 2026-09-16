@@ -1,10 +1,11 @@
-// The graph the element plays through: normalization, then the analysis tap, then volume
+// The graph the element plays through: normalization, then volume, with an analysis tap spliced in on demand
 // Property syntax so the engine can hand a reader straight on without tripping `unbound-method`
 export interface AudioGraph {
+	// Built on the first ask, so a page that never draws a visualizer never carries the node
 	analyser: () => AnalyserNode | undefined;
 	// A media element source can be created once, so the graph is built once, inside the first gesture
 	ensure: () => void;
-	// The graph's own share of how far the element's clock runs ahead of the sound
+	// The device's buffer; the graph itself adds no delay of its own
 	outputDelay: () => number;
 	// Autoplay policy can leave the context suspended and iOS can leave it interrupted; a running one resolves without doing anything
 	resume: () => Promise<void>;
@@ -17,7 +18,6 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 	let normalizationNode: GainNode | undefined;
 	let volumeNode: GainNode | undefined;
 	let analyserNode: AnalyserNode | undefined;
-	let analysisDelaySeconds = 0;
 
 	// Applied to the live nodes once the graph exists
 	let pendingGain = 1;
@@ -32,28 +32,12 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 		context = new AudioContext({ latencyHint: 'playback' });
 		normalizationNode = context.createGain();
 		volumeNode = context.createGain();
-		analyserNode = context.createAnalyser();
-
-		// 4096 gives the low bands the resolution this catalogue needs; 0.3 keeps attacks sharp for a visualizer
-		// Time-domain reads are unaffected by the smoothing
-		analyserNode.fftSize = 4096;
-		analyserNode.smoothingTimeConstant = 0.3;
 		normalizationNode.gain.value = pendingGain;
 		volumeNode.gain.value = pendingVolume;
 
-		// Playback waits for the analysis window rather than the display trailing the sound
-		analysisDelaySeconds = measureAnalysisDelay(analyserNode);
-
-		const delayNode = context.createDelay(1);
-
-		delayNode.delayTime.value = analysisDelaySeconds;
-
-		// The tap sits ahead of the volume stage so the display follows the track, not the volume knob
 		context
 			.createMediaElementSource(element)
 			.connect(normalizationNode)
-			.connect(analyserNode)
-			.connect(delayNode)
 			.connect(volumeNode)
 			.connect(context.destination);
 
@@ -63,11 +47,29 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 		});
 	}
 
+	// Spliced ahead of the volume stage, so a visualizer follows the track rather than the volume knob
+	// An analyser passes its input through, so the reconnection costs at most a render quantum
+	function ensureAnalyser(): AnalyserNode | undefined {
+		if (analyserNode) return analyserNode;
+		if (context === undefined || !normalizationNode || !volumeNode) return undefined;
+
+		analyserNode = context.createAnalyser();
+
+		// 4096 gives the low bands the resolution this catalogue needs; 0.3 keeps attacks sharp for a visualizer
+		// Time-domain reads are unaffected by the smoothing
+		analyserNode.fftSize = 4096;
+		analyserNode.smoothingTimeConstant = 0.3;
+
+		normalizationNode.disconnect();
+		normalizationNode.connect(analyserNode).connect(volumeNode);
+
+		return analyserNode;
+	}
+
 	return {
-		analyser: () => analyserNode,
+		analyser: ensureAnalyser,
 		ensure,
-		outputDelay: () =>
-			context === undefined ? 0 : analysisDelaySeconds + contextLatencySeconds(context),
+		outputDelay: () => (context === undefined ? 0 : contextLatencySeconds(context)),
 		resume: async () => {
 			if (context !== undefined && context.state !== 'running') await context.resume();
 		},
@@ -89,8 +91,7 @@ function claimPlaybackSession(): void {
 	if (audioSession) audioSession.type = 'playback';
 }
 
-// Neither latency is on the base class, and an analyser types its context as one
-// A browser missing either property counts it as zero; Safari's outputLatency has been patchier than its baseLatency
+// A browser missing either property counts it as zero; Firefox hardcodes `baseLatency` and Safari answers zero while paused
 function contextLatencySeconds(context: BaseAudioContext): number {
 	const { baseLatency, outputLatency } = context as {
 		baseLatency?: unknown;
@@ -102,12 +103,4 @@ function contextLatencySeconds(context: BaseAudioContext): number {
 
 function latencySeconds(latency: unknown): number {
 	return typeof latency === 'number' ? latency : 0;
-}
-
-// The analyser's window weights a transient fully only at its midpoint, and the context's latency is a credit against that lag
-// Floored at zero because a long latency (Bluetooth, a playback buffer) already puts the display ahead
-function measureAnalysisDelay(analyser: AnalyserNode): number {
-	const windowCentreSeconds = analyser.fftSize / 2 / analyser.context.sampleRate;
-
-	return Math.max(0, windowCentreSeconds - contextLatencySeconds(analyser.context));
 }

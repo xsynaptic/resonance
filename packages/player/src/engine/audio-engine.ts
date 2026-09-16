@@ -9,7 +9,7 @@ export interface AudioEngine {
 	currentTime(): number;
 	element: HTMLMediaElement;
 	load(request: AudioLoadRequest): Promise<void>;
-	// How far the element's clock runs ahead of the sound: the graph's delay plus the device's
+	// How far the element's clock runs ahead of the sound, which is the device's buffer
 	outputDelay(): number;
 	pause(): void;
 	play(): Promise<void>;

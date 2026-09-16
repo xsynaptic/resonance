@@ -2,7 +2,7 @@ import type { PlayerRoot } from '#elements/player-root.ts';
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
 import { definePlayerElements } from '#elements/define.ts';
-import { createFakeEngine } from '#engine/fake-engine.ts';
+import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
@@ -20,7 +20,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	// Defined first, so a root created here is upgraded before any part reads its options
 	definePlayerElements();
 
-	const fake = createFakeEngine();
+	const fake = createMockEngine();
 	const store = createPlayerStore({ createEngine: fake.createEngine, isPersistent: false });
 	const root = document.createElement('player-root');
 	const part = document.createElement(tag);

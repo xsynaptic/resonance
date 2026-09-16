@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 import type { AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
 
-export function createFakeEngine() {
+export function createMockEngine() {
 	let time = 0;
 	const callbacks: { current: AudioEngineCallbacks | undefined } = { current: undefined };
 	const engine = {

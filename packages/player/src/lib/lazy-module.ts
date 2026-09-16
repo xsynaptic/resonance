@@ -3,7 +3,7 @@ export interface LazyModule<Module> {
 	preload: () => void;
 }
 
-// A rejected import is forgotten, so the next open asks the network again rather than replaying the failure
+// A failed import is cached for the life of the document, and the reload that would clear it stops playback
 export function lazyModule<Module>(importModule: () => Promise<Module>): LazyModule<Module> {
 	let pending: Promise<Module> | undefined;
 
@@ -17,7 +17,10 @@ export function lazyModule<Module>(importModule: () => Promise<Module>): LazyMod
 	}
 
 	function load(): Promise<Module> {
-		if (pending === undefined) pending = request();
+		if (pending !== undefined) return pending;
+		if (!navigator.onLine) return Promise.reject(new Error('Offline, chunk not requested'));
+
+		pending = request();
 
 		return pending;
 	}

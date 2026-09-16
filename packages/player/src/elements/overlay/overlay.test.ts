@@ -1,4 +1,4 @@
-import { fireEvent, getAllByRole, getByRole, queryByRole } from '@testing-library/dom';
+import { fireEvent, getAllByRole, getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
@@ -213,8 +213,8 @@ describe('the overlay tabs', () => {
 	});
 });
 
-describe('the overlay sheets', () => {
-	test('open a list over the phone layout and close back to its button', async () => {
+describe('the overlay sheet', () => {
+	test('raises the tabs over the phone layout and closes back to its button', async () => {
 		vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
 			new DOMRect(0, 0, 390, 844),
 		);
@@ -224,15 +224,16 @@ describe('the overlay sheets', () => {
 		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
 		await openOverlay(mounted);
 
-		expect(queryByRole(mounted.dialog, 'tab')).toBeNull();
-
-		const opener = getByRole(mounted.dialog, 'button', { name: labels.tracklist });
+		const opener = getByRole(mounted.dialog, 'button', { name: labels.lists });
 
 		opener.click();
 
-		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: labels.tracklist });
+		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: labels.lists });
 
 		expect(sheet).toHaveProperty('open', true);
+		expect(getByRole(sheet, 'tab', { name: labels.tracklist }).getAttribute('aria-selected')).toBe(
+			'true',
+		);
 		expect(getByRole(sheet, 'button', { name: /Middle/ }).textContent).toContain('Middle');
 
 		getByRole(sheet, 'button', { name: labels.close }).click();

@@ -11,25 +11,26 @@ import { PlayerTracklist } from '#elements/overlay/tracklist.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { observeResize } from '#lib/observe-resize.ts';
 import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, template } from '#lib/render.ts';
 
 interface BodyParts {
 	art: HTMLElement;
 	body: HTMLDivElement;
 	close: HTMLButtonElement;
 	columnsOnly: Array<HTMLElement>;
+	head: HTMLElement;
 	next: HTMLElement;
 	previous: HTMLElement;
 	sheets: HTMLElement;
 	tabs: HTMLElement;
 }
 
-// The stylesheet's artwork caps for each layout, less the overlay's padding
+// The stylesheet's artwork caps for each layout; the phone cover is full bleed, so it takes no padding off
 const artworkSizes =
-	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh - 2rem, 900px), min(100vw - 2rem, 60vh, 40rem)';
+	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh - 2rem, 900px), min(100vw, 60vh, 40rem)';
 
 const renderBody = template(
-	`<div class="player-overlay-body" data-layout="columns"><div aria-hidden="true" class="player-overlay-grabber"></div><div class="player-overlay-layout"><div class="player-overlay-art"><player-artwork sizes="${artworkSizes}"></player-artwork></div><div class="player-overlay-deck"><div class="player-overlay-head"><button class="player-button player-button-icon player-overlay-close" type="button"></button><div class="player-track player-overlay-track"><player-title></player-title><div class="player-track-meta"><player-artist-line></player-artist-line><player-time></player-time></div></div></div><player-panel></player-panel><div class="player-overlay-scrub"><player-time-slider></player-time-slider><player-status></player-status></div><div class="player-overlay-controls"><div class="player-transport"><player-step-button direction="previous"></player-step-button><player-play-button></player-play-button><player-step-button direction="next"></player-step-button></div><player-panel-toggle></player-panel-toggle><player-volume-popover></player-volume-popover></div><div class="player-overlay-tabs"><div class="player-overlay-tablist" role="tablist"></div><div class="player-overlay-list" role="tabpanel"></div></div><div class="player-overlay-sheets" hidden><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><player-panel-toggle></player-panel-toggle><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><dialog class="player-overlay-sheet"><div class="player-overlay-sheet-header"><p class="player-overlay-sheet-title"></p><button class="player-button player-button-icon" type="button"></button></div><div class="player-overlay-list"></div></dialog></div></div></div></div>`,
+	`<div class="player-overlay-body" data-layout="columns"><div aria-hidden="true" class="player-overlay-grabber"></div><div class="player-overlay-layout"><div class="player-overlay-art"><player-artwork sizes="${artworkSizes}"></player-artwork></div><div class="player-overlay-deck"><div class="player-overlay-head"><button class="player-button player-button-icon player-overlay-close" type="button"></button><div class="player-track player-overlay-track"><player-title></player-title><div class="player-track-meta"><player-artist-line></player-artist-line><player-time></player-time></div></div></div><player-panel></player-panel><div class="player-overlay-scrub"><player-time-slider></player-time-slider><player-status></player-status></div><div class="player-overlay-controls"><div class="player-transport"><player-step-button direction="previous"></player-step-button><player-play-button></player-play-button><player-step-button direction="next"></player-step-button></div><player-panel-toggle></player-panel-toggle><player-volume-popover></player-volume-popover></div><div class="player-overlay-tabs"><div class="player-overlay-tablist" role="tablist"></div><div class="player-overlay-list" role="tabpanel"></div></div><div class="player-overlay-sheets" hidden><button aria-haspopup="dialog" class="player-button player-button-icon" type="button"></button><player-panel-toggle></player-panel-toggle><dialog class="player-overlay-sheet"><div class="player-overlay-sheet-header"><button class="player-button player-button-icon player-overlay-close" type="button"></button></div></dialog></div></div></div></div>`,
 	HTMLDivElement,
 );
 
@@ -42,7 +43,7 @@ export function connectOverlayBody(
 
 	const { labels, root, store } = context;
 	const parts = renderBodyParts();
-	const closeSheet = bindSheets(parts.sheets, context, signal);
+	const sheet = bindSheets(parts.sheets, context, signal);
 
 	if (!root.isArtworkEnabled) parts.art.remove();
 	if (root.seekSeconds !== undefined)
@@ -79,10 +80,18 @@ export function connectOverlayBody(
 		parts.body,
 		(layout) => {
 			parts.body.dataset.layout = layout;
-			parts.tabs.hidden = layout !== 'columns';
 			parts.sheets.hidden = layout === 'columns';
 			for (const control of parts.columnsOnly) control.hidden = layout !== 'columns';
-			if (layout === 'columns') closeSheet();
+
+			if (layout === 'phone') {
+				parts.body.prepend(parts.close);
+				sheet.dialog.append(parts.tabs);
+				return;
+			}
+
+			sheet.closeSheet();
+			parts.head.prepend(parts.close);
+			parts.sheets.before(parts.tabs);
 		},
 		signal,
 	);
@@ -91,18 +100,25 @@ export function connectOverlayBody(
 	if (host.closest('dialog[open]')) parts.close.focus();
 }
 
-// Measured rather than queried in CSS, since a layout change has to close an open sheet
+// Measured rather than queried in CSS, since a layout change moves the tabs and has to close an open sheet
 function bindLayout(
 	body: HTMLElement,
 	apply: (layout: OverlayLayout) => void,
 	signal: AbortSignal,
 ): void {
+	let applied: OverlayLayout | undefined;
+
 	const measure = (): void => {
 		const { height, width } = body.getBoundingClientRect();
 
 		if (width === 0) return;
 
-		apply(layoutFor(width, height));
+		const layout = layoutFor(width, height);
+		// Re-placing the tabs would blur whatever holds focus and drop the list's scroll position
+		if (layout === applied) return;
+
+		applied = layout;
+		apply(layout);
 	};
 	observeResize(body, measure, signal);
 	measure();
@@ -110,20 +126,21 @@ function bindLayout(
 
 function renderBodyParts(): BodyParts {
 	const body = renderBody();
-	const art = body.querySelector<HTMLElement>('.player-overlay-art');
-	const close = body.querySelector<HTMLButtonElement>('.player-overlay-close');
+	const art = requireChild(body, '.player-overlay-art', HTMLElement);
+	const close = requireChild(body, '.player-overlay-close', HTMLButtonElement);
+	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
+	const head = requireChild(body, '.player-overlay-head', HTMLElement);
+	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);
+	const tabs = requireChild(body, '.player-overlay-tabs', HTMLElement);
 	const [previous, next] = [...body.querySelectorAll('player-step-button')];
-	const tabs = body.querySelector<HTMLElement>('.player-overlay-tabs');
-	const sheets = body.querySelector<HTMLElement>('.player-overlay-sheets');
-	const controls = body.querySelector('.player-overlay-controls');
 
-	if (!art || !close || !previous || !next || !tabs || !sheets || !controls) {
-		throw new Error('The overlay body template lost part of its markup');
+	if (!previous || !next) {
+		throw new Error('The overlay body template lost its step buttons');
 	}
 
 	const columnsOnly = [
 		...controls.querySelectorAll<HTMLElement>(':scope > :not(.player-transport)'),
 	];
 
-	return { art, body, close, columnsOnly, next, previous, sheets, tabs };
+	return { art, body, close, columnsOnly, head, next, previous, sheets, tabs };
 }

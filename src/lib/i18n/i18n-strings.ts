@@ -146,6 +146,7 @@ const strings = {
 	'player.empty': 'Nothing in the playlist',
 	'player.error': 'Playback failed, press play to try again',
 	'player.expand': 'Expand the player',
+	'player.lists': 'Tracklist and Playlist',
 	'player.loading': 'Loading',
 	'player.moved': 'Moved to position {position} of {total}',
 	'player.mute': 'Mute',

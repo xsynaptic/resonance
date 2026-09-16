@@ -1,105 +1,46 @@
-import type { OverlayList } from '#elements/overlay/overlay-lists.ts';
 import type { PlayerContext } from '#elements/player-context.ts';
-import type { IconName } from '#lib/icons.ts';
-import type { PlayerStore } from '#store/player-types.ts';
 
-import { overlayId, renderList, selectLists } from '#elements/overlay/overlay-lists.ts';
-import { bind } from '#lib/bind.ts';
 import { cloneIcon } from '#lib/icons.ts';
-import { placeWhen } from '#lib/place-when.ts';
+import { requireChild } from '#lib/render.ts';
 
-interface SheetParts {
-	close: HTMLButtonElement;
+interface SheetControls {
+	closeSheet: () => void;
 	dialog: HTMLDialogElement;
-	list: HTMLElement;
-	openers: Record<OverlayList, HTMLButtonElement>;
-	title: HTMLElement;
 }
-
-const sheetIcons = { playlist: 'queue', tracklist: 'tracklist' } as const satisfies Record<
-	OverlayList,
-	IconName
->;
 
 export function bindSheets(
 	sheets: HTMLElement,
-	{ labels, store }: PlayerContext,
+	{ labels }: PlayerContext,
 	signal: AbortSignal,
-): () => void {
-	const { close, dialog, list, openers, title } = renderSheetParts(sheets);
-	let chosen: OverlayList | undefined;
-	let opener: HTMLButtonElement | undefined;
+): SheetControls {
+	const opener = requireChild(sheets, ':scope > button', HTMLButtonElement);
+	const dialog = requireChild(sheets, 'dialog', HTMLDialogElement);
+	const close = requireChild(sheets, '.player-overlay-close', HTMLButtonElement);
 
 	const closeSheet = (): void => {
 		if (dialog.open) dialog.close();
 	};
 
-	title.id = `${overlayId()}-sheet`;
-	dialog.setAttribute('aria-labelledby', title.id);
+	dialog.setAttribute('aria-label', labels.lists);
+	opener.setAttribute('aria-label', labels.lists);
+	opener.append(cloneIcon('tracklist'));
+	opener.addEventListener(
+		'click',
+		() => {
+			dialog.showModal();
+		},
+		{ signal },
+	);
 	close.setAttribute('aria-label', labels.close);
 	close.append(cloneIcon('closeLarge'));
 	close.addEventListener('click', closeSheet, { signal });
 	dialog.addEventListener(
 		'close',
 		() => {
-			chosen = undefined;
-			list.replaceChildren();
-			if (opener?.isConnected) opener.focus();
+			if (opener.isConnected) opener.focus();
 		},
 		{ signal },
 	);
 
-	for (const sheet of ['playlist', 'tracklist'] as const) {
-		const button = openers[sheet];
-
-		button.setAttribute('aria-label', labels[sheet]);
-		button.append(cloneIcon(sheetIcons[sheet]));
-		button.addEventListener(
-			'click',
-			() => {
-				chosen = sheet;
-				opener = button;
-				title.textContent = labels[sheet];
-				list.replaceChildren(renderList(sheet));
-				dialog.showModal();
-			},
-			{ signal },
-		);
-	}
-
-	bind(
-		store,
-		hasTracklist,
-		(isOffered) => {
-			if (!isOffered && chosen === 'tracklist') closeSheet();
-
-			placeWhen({
-				isShown: isOffered,
-				node: openers.tracklist,
-				parent: sheets,
-				position: 'prepend',
-			});
-		},
-		signal,
-	);
-
-	return closeSheet;
-}
-
-function hasTracklist(state: PlayerStore): boolean {
-	return selectLists(state).includes('tracklist');
-}
-
-function renderSheetParts(sheets: HTMLElement): SheetParts {
-	const [tracklist, playlist] = [...sheets.querySelectorAll<HTMLButtonElement>(':scope > button')];
-	const dialog = sheets.querySelector('dialog');
-	const title = sheets.querySelector<HTMLElement>('.player-overlay-sheet-title');
-	const close = sheets.querySelector<HTMLButtonElement>(':scope > dialog button');
-	const list = sheets.querySelector<HTMLElement>(':scope > dialog > .player-overlay-list');
-
-	if (!tracklist || !playlist || !dialog || !title || !close || !list) {
-		throw new Error('The overlay sheets lost part of their markup');
-	}
-
-	return { close, dialog, list, openers: { playlist, tracklist }, title };
+	return { closeSheet, dialog };
 }

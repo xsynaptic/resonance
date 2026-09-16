@@ -7,6 +7,7 @@ export const labels = {
 	empty: 'Queue is empty',
 	error: 'Playback error',
 	expand: 'Expand',
+	lists: 'Tracklist and Playlist',
 	loading: 'Loading',
 	moved: 'Moved to position {position} of {total}',
 	mute: 'Mute',

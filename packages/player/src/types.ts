@@ -12,6 +12,7 @@ export interface PlayerLabels {
 	empty: string;
 	error: string;
 	expand: string;
+	lists: string;
 	loading: string;
 	// Carries `{position}` and `{total}`, filled in as a row lands
 	moved: string;

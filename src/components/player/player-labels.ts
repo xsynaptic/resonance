@@ -3,7 +3,7 @@ import type { PlayerLabels } from '@xsynaptic/player';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
-export const seekSeconds = 30;
+export const seekSeconds = 15;
 
 // Serialized into the bar's JSON script rather than imported by the host script, which would ship the whole strings table
 export function getPlayerLabels(): PlayerLabels {
@@ -14,6 +14,7 @@ export function getPlayerLabels(): PlayerLabels {
 		empty: t('player.empty'),
 		error: t('player.error'),
 		expand: t('player.expand'),
+		lists: t('player.lists'),
 		loading: t('player.loading'),
 		moved: t('player.moved'),
 		mute: t('player.mute'),

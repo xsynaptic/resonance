@@ -3,13 +3,20 @@ import type { ChalkInstance } from 'chalk';
 
 import { executeComments, queryComments, toIdLiteral } from '@xsynaptic/shared/comments';
 import chalk from 'chalk';
-import { once } from 'node:events';
 
 import { pullComments } from '#comments/pull.ts';
+import { readKey } from '#shared/prompt.ts';
 
 export interface ModerateOptions {
 	isLocal: boolean;
 	rootPath: string;
+}
+
+export interface Tally {
+	approved: number;
+	rejected: number;
+	skipped: number;
+	spam: number;
 }
 
 type Choice = (typeof choices)[number];
@@ -35,13 +42,6 @@ type PendingRow = Pick<
 	| 'parent_id'
 >;
 
-interface Tally {
-	approved: number;
-	rejected: number;
-	skipped: number;
-	spam: number;
-}
-
 const commentColumns =
 	'id, collection, entry_id, parent_id, author, author_email, author_url, body, created_at';
 
@@ -66,9 +66,6 @@ const statusColors: Record<ModeratedStatus, ChalkInstance> = {
 	rejected: chalk.red,
 	spam: chalk.magenta,
 };
-
-// Raw mode swallows SIGINT, so ctrl-c arrives as a keystroke
-const interrupt = '\u{3}';
 
 const bodyWidth = 76;
 
@@ -100,13 +97,13 @@ export async function deleteComment(id: string, options: ModerateOptions): Promi
 	if (comment.status === 'approved') await pullComments(options);
 }
 
-export async function moderateComments(options: ModerateOptions): Promise<void> {
+export async function moderateComments(options: ModerateOptions): Promise<Tally> {
 	const target = toTarget(options);
 	const pending = await queryComments<PendingRow>(pendingQuery, target);
 
 	if (pending.length === 0) {
 		console.log(chalk.green('\n  Nothing pending.\n'));
-		return;
+		return toEmptyTally();
 	}
 
 	printHeader(pending.length, options.isLocal);
@@ -115,6 +112,8 @@ export async function moderateComments(options: ModerateOptions): Promise<void> 
 
 	printTally(tally);
 	await pullOnApproval(tally, options);
+
+	return tally;
 }
 
 function formatDate(createdAt: number): string {
@@ -205,32 +204,9 @@ async function pullOnApproval(tally: Tally, options: ModerateOptions): Promise<v
 	await pullComments(options);
 }
 
-// Resolves undefined on ctrl-c, which every caller reads as quit
-async function readKey(keys: ReadonlyArray<string>): Promise<string | undefined> {
-	const { stdin } = process;
-
-	if (!stdin.isTTY) throw new Error('Moderation needs an interactive terminal');
-
-	stdin.setRawMode(true);
-	stdin.resume();
-	stdin.setEncoding('utf8');
-
-	try {
-		for (;;) {
-			const [key] = (await once(stdin, 'data')) as [string];
-
-			if (key === interrupt) return undefined;
-			if (keys.includes(key)) return key;
-		}
-	} finally {
-		stdin.setRawMode(false);
-		stdin.pause();
-	}
-}
-
 // One pass over the pending rows, stopping early on quit or on a blanket approval
 async function runQueue(pending: Array<PendingRow>, target: D1Target): Promise<Tally> {
-	const tally: Tally = { approved: 0, rejected: 0, skipped: 0, spam: 0 };
+	const tally = toEmptyTally();
 
 	for (const [index, comment] of pending.entries()) {
 		const choice = await promptChoice({
@@ -284,6 +260,10 @@ async function setStatus(
 		`UPDATE comments SET status = '${status}' WHERE id IN (${literals})`,
 		target,
 	);
+}
+
+function toEmptyTally(): Tally {
+	return { approved: 0, rejected: 0, skipped: 0, spam: 0 };
 }
 
 function toTarget(options: ModerateOptions): D1Target {

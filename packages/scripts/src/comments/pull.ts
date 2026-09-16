@@ -27,7 +27,8 @@ const snapshotQuery = `
 	ORDER BY collection, entry_id, created_at
 `;
 
-export async function pullComments(options: PullCommentsOptions): Promise<void> {
+// Returns the pending count, or undefined when a stale snapshot stood in for an unreachable D1
+export async function pullComments(options: PullCommentsOptions): Promise<number | undefined> {
 	const { allowStale = false, isLocal = false, rootPath } = options;
 
 	const filePath = path.join(rootPath, commentsSnapshotPath(isLocal));
@@ -42,7 +43,7 @@ export async function pullComments(options: PullCommentsOptions): Promise<void> 
 		if (!allowStale) throw error;
 
 		await reportStaleSnapshot(filePath, error);
-		return;
+		return undefined;
 	}
 
 	// Validate before writing so a change to D1's columns fails the pull, not the build
@@ -54,12 +55,16 @@ export async function pullComments(options: PullCommentsOptions): Promise<void> 
 	await mkdir(path.dirname(filePath), { recursive: true });
 	await writeFile(filePath, JSON.stringify(snapshot));
 
+	const pending = rows.length - snapshot.rows.length;
+
 	console.log(
 		chalk.green(
 			`  ${String(snapshot.rows.length)} approved comments written to ${commentsSnapshotPath(isLocal)}`,
 		),
 	);
-	printPendingCount(rows.length - snapshot.rows.length);
+	printPendingCount(pending);
+
+	return pending;
 }
 
 function printPendingCount(pending: number): void {

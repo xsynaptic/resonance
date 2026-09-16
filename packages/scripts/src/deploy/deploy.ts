@@ -12,6 +12,7 @@ import { generateRenditions } from '#audio/renditions.ts';
 import { validateAudio } from '#audio/validate.ts';
 import { generateWaveforms } from '#audio/waveforms.ts';
 import { backupIfStale } from '#comments/backup.ts';
+import { moderateComments } from '#comments/moderate.ts';
 import { pullComments } from '#comments/pull.ts';
 import { deployApp } from '#deploy/deploy-app.ts';
 import { deployAudio, reapDerivedAudio } from '#deploy/deploy-audio.ts';
@@ -19,6 +20,7 @@ import { loadDeployConfig, printDeployConfig } from '#deploy/deploy-config.ts';
 import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
+import { readKey } from '#shared/prompt.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 import { pullListens } from '#stats/listens-pull.ts';
 
@@ -244,6 +246,39 @@ function probeSample(uploaded: Array<string>, fallback: Array<string>): Array<st
 	return [...firstByExtension.values()];
 }
 
+async function promptPendingComments(pending: number | undefined): Promise<void> {
+	// Nothing to ask about: no pending rows, or no reachable D1 to have counted them
+	if (!pending) return;
+
+	// Moderation statuses are one-way: a rehearsal must not spend them, and a non-TTY cannot ask
+	if (isDryRun || !process.stdin.isTTY) {
+		recordStep('Comments pending', 'warned');
+		return;
+	}
+
+	console.log(
+		`\n  ${chalk.bold.white('m')} ${chalk.dim('moderate now')}   ${chalk.bold.white('c')} ${chalk.dim('continue')}   ${chalk.bold.white('q')} ${chalk.dim('quit')}`,
+	);
+
+	const key = await readKey(['c', 'm', 'q']);
+
+	// Nothing is deployed yet, so a deliberate stop exits clean rather than throwing
+	if (key === undefined || key === 'q') {
+		console.log(chalk.dim('\n  Deploy stopped.'));
+		printWarnOnlySummary();
+		process.exit(0);
+	}
+
+	if (key === 'm') {
+		const tally = await moderateComments({ isLocal: false, rootPath });
+
+		// Quitting the queue breaks out untallied, so measure what was decided, not what was skipped
+		if (tally.approved + tally.rejected + tally.spam === pending) return;
+	}
+
+	recordStep('Comments pending', 'warned');
+}
+
 function recordStep(label: string, status: StepStatus): void {
 	warnOnlySteps.push({ label, status });
 }
@@ -265,7 +300,11 @@ try {
 	recordStep('Listening stats', await pullListens({ dryRun: isDryRun, rootPath }));
 
 	recordStep('D1 backup', await backupIfStale({ dryRun: isDryRun, rootPath }));
-	await pullComments({ allowStale: true, rootPath });
+
+	const pending = await pullComments({ allowStale: true, rootPath });
+
+	// Before the build, so moderating here reaches the same deploy
+	await promptPendingComments(pending);
 
 	await check();
 	await build();

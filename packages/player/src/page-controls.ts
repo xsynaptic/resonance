@@ -8,7 +8,7 @@ import {
 	heldPressAttribute,
 	heldPressSelector,
 	payloadSelector,
-} from '#contract/page-control-selectors.ts';
+} from '#constants.ts';
 import { bind } from '#lib/bind.ts';
 import { currentCue, loadedItem, queuedIndex } from '#store/selectors.ts';
 

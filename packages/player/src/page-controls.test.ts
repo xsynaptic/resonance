@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
-import { heldPressAttribute } from '#contract/page-control-selectors.ts';
+import { heldPressAttribute } from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bindPageControls } from '#page-controls.ts';
 import { createPlayerStore } from '#store/player-store.ts';

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { heldPressAttribute } from '@xsynaptic/player/page-control-selectors';
+import { heldPressAttribute } from '@xsynaptic/player/constants';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';

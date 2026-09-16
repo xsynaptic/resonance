@@ -5,8 +5,8 @@ import {
 	heldPressAttribute,
 	heldPressSelector,
 	payloadSelector,
-} from '@xsynaptic/player/page-control-selectors';
-import { queueStorageKey } from '@xsynaptic/player/queue-storage-key';
+	queueStorageKey,
+} from '@xsynaptic/player/constants';
 
 interface PlayerBarConfig {
 	isOverlayEnabled: boolean;

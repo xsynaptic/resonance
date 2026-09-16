@@ -8,10 +8,8 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
-		"./artwork": "./src/contract/artwork.ts",
-		"./page-control-selectors": "./src/contract/page-control-selectors.ts",
-		"./player.css": "./src/player.css",
-		"./queue-storage-key": "./src/contract/queue-storage-key.ts"
+		"./constants": "./src/constants.ts",
+		"./player.css": "./src/player.css"
 	},
 	"imports": {
 		"#*": "./src/*"

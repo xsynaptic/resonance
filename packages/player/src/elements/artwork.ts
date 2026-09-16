@@ -1,7 +1,7 @@
 import type { PlayerStore } from '#store/player-types.ts';
 import type { QueueArtwork } from '#types.ts';
 
-import { barArtworkSizes } from '#contract/artwork.ts';
+import { barArtworkSizes } from '#constants.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';

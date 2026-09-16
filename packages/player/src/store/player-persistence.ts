@@ -3,7 +3,7 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerTimeMode, QueuedItem } from '#types.ts';
 
-import { queueStorageKey } from '#contract/queue-storage-key.ts';
+import { queueStorageKey } from '#constants.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
 
 const mutedStorageKey = 'player:v1:muted';

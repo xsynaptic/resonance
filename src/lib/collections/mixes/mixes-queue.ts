@@ -1,7 +1,7 @@
 import type { QueueArtwork, QueueItem } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
-import { barArtworkSizes } from '@xsynaptic/player/artwork';
+import { barArtworkSizes } from '@xsynaptic/player/constants';
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { getImage } from 'astro:assets';
 

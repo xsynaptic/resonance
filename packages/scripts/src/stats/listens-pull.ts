@@ -48,10 +48,21 @@ export async function pullListens(options: PullListensOptions): Promise<StepStat
 
 		return 'ok';
 	} catch (error) {
-		console.warn(chalk.yellow(`  Listening stats skipped: ${String(error)}`));
+		console.warn(chalk.yellow(`  Listening stats skipped: ${describeError(error)}`));
 
 		return 'warned';
 	}
+}
+
+// wrangler reports API failures on stdout, which the error's own message leaves out
+function describeError(error: unknown): string {
+	if (error instanceof Error && 'stdout' in error && typeof error.stdout === 'string') {
+		const output = error.stdout.trim();
+
+		if (output) return `${error.message}\n${output}`;
+	}
+
+	return String(error);
 }
 
 // Written beside the target and renamed, so a build never reads half a file

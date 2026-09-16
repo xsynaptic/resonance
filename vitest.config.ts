@@ -1,6 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
+// `deploy-site` exports NODE_ENV=production, which flips `import.meta.env.DEV`; pinned so the gate cannot depend on its caller
+process.env.NODE_ENV = 'test';
+
 export default defineConfig({
 	resolve: {
 		alias: {

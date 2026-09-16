@@ -6,7 +6,7 @@ export interface AudioGraph {
 	ensure: () => void;
 	// The graph's own share of how far the element's clock runs ahead of the sound
 	outputDelay: () => number;
-	// Autoplay policy can leave the context suspended; a running one resolves without doing anything
+	// Autoplay policy can leave the context suspended and iOS can leave it interrupted; a running one resolves without doing anything
 	resume: () => Promise<void>;
 	setGain: (gain: number) => void;
 	setVolume: (volume: number) => void;
@@ -25,6 +25,8 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 
 	function ensure(): void {
 		if (context) return;
+
+		claimPlaybackSession();
 
 		context = new AudioContext();
 		normalizationNode = context.createGain();
@@ -53,6 +55,11 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 			.connect(delayNode)
 			.connect(volumeNode)
 			.connect(context.destination);
+
+		// Nothing here suspends the context, so leaving `running` mid-play is an interruption; pausing keeps the listener's place
+		context.addEventListener('statechange', () => {
+			if (context?.state !== 'running' && !element.paused) element.pause();
+		});
 	}
 
 	return {
@@ -61,7 +68,7 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 		outputDelay: () =>
 			context === undefined ? 0 : analysisDelaySeconds + outputLatencySeconds(context),
 		resume: async () => {
-			if (context?.state === 'suspended') await context.resume();
+			if (context !== undefined && context.state !== 'running') await context.resume();
 		},
 		setGain: (gain) => {
 			pendingGain = gain;
@@ -72,6 +79,13 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 			if (volumeNode) volumeNode.gain.value = volume;
 		},
 	};
+}
+
+// iOS mutes Web Audio with the ringer switch unless the page claims a playback session; only Safari has one
+function claimPlaybackSession(): void {
+	const { audioSession } = navigator as { audioSession?: { type: string } };
+
+	if (audioSession) audioSession.type = 'playback';
 }
 
 // The analyser's window weights a transient fully only at its midpoint, and output latency is a credit against that lag

@@ -61,7 +61,7 @@ function pendingResolver() {
 }
 
 function storedQueue(): null | StoredQueueRecord {
-	return JSON.parse(localStorage.getItem('player:v1:queue') ?? 'null') as null | StoredQueueRecord;
+	return JSON.parse(localStorage.getItem('player:v2:queue') ?? 'null') as null | StoredQueueRecord;
 }
 
 function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
@@ -96,6 +96,21 @@ describe('playTrack', () => {
 				gain: 1,
 				resumeAtSeconds: 0,
 				src: 'https://api.test/tracks/b/stream',
+			});
+		});
+	});
+
+	test('hands the engine the gain the loaded item measures at', async () => {
+		const store = configured();
+		const loudness = { integratedLufs: -12, truePeakDbtp: -2 };
+
+		store.getState().playTrack([{ ...makeItem('hot'), albumLoudness: loudness, loudness }], 'hot');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledWith({
+				gain: 10 ** (-4 / 20),
+				resumeAtSeconds: 0,
+				src: 'https://api.test/tracks/hot/stream',
 			});
 		});
 	});
@@ -1099,19 +1114,19 @@ describe('queue persistence', () => {
 		expect(storedQueue()?.currentIndex).toBe(1);
 
 		store.getState().clearQueue();
-		expect(localStorage.getItem('player:v1:queue')).toBeNull();
+		expect(localStorage.getItem('player:v2:queue')).toBeNull();
 	});
 
 	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
 		const store = configured();
 
 		store.getState().hydrateQueue();
-		localStorage.setItem('player:v1:queue', JSON.stringify({ queue: release }));
+		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: release }));
 		leavePage();
 
 		expect(storedQueue()?.queue).toHaveLength(3);
 
-		localStorage.removeItem('player:v1:queue');
+		localStorage.removeItem('player:v2:queue');
 	});
 
 	test('clears a restored queue once it is emptied', () => {
@@ -1127,7 +1142,7 @@ describe('queue persistence', () => {
 		second.getState().hydrateQueue();
 		second.getState().clearQueue();
 
-		expect(localStorage.getItem('player:v1:queue')).toBeNull();
+		expect(localStorage.getItem('player:v2:queue')).toBeNull();
 	});
 
 	test('restores the queue and its position without loading anything', () => {
@@ -1152,7 +1167,7 @@ describe('queue persistence', () => {
 		expect(state.status).toBe('idle');
 		expect(fake.engine.load).not.toHaveBeenCalled();
 
-		localStorage.removeItem('player:v1:queue');
+		localStorage.removeItem('player:v2:queue');
 	});
 
 	test('loads a restored track at the stored position on the first press', async () => {
@@ -1178,7 +1193,7 @@ describe('queue persistence', () => {
 			});
 		});
 
-		localStorage.removeItem('player:v1:queue');
+		localStorage.removeItem('player:v2:queue');
 	});
 
 	test('stamps a restored queue with fresh ids rather than the ones it was stored with', () => {
@@ -1198,12 +1213,12 @@ describe('queue persistence', () => {
 
 		expect(new Set(ids).size).toBe(ids.length);
 
-		localStorage.removeItem('player:v1:queue');
+		localStorage.removeItem('player:v2:queue');
 	});
 
 	test('ignores a stored entry whose index falls outside the queue', () => {
 		localStorage.setItem(
-			'player:v1:queue',
+			'player:v2:queue',
 			JSON.stringify({
 				currentIndex: 9,
 				currentTimeSeconds: 42,
@@ -1220,7 +1235,7 @@ describe('queue persistence', () => {
 		expect(store.getState().currentIndex).toBeUndefined();
 		expect(store.getState().currentTimeSeconds).toBe(0);
 
-		localStorage.removeItem('player:v1:queue');
+		localStorage.removeItem('player:v2:queue');
 	});
 
 	test('keeps what a page queued before the restore ran', () => {
@@ -1238,7 +1253,7 @@ describe('queue persistence', () => {
 
 		expect(second.getState().queue).toHaveLength(1);
 
-		localStorage.removeItem('player:v1:queue');
+		localStorage.removeItem('player:v2:queue');
 	});
 });
 
@@ -1275,7 +1290,7 @@ describe('storage', () => {
 		vi.useFakeTimers();
 		localStorage.setItem('player:v1:volume', '0.4');
 		localStorage.setItem(
-			'player:v1:queue',
+			'player:v2:queue',
 			JSON.stringify({
 				currentIndex: 0,
 				currentTimeSeconds: 42,
@@ -1304,7 +1319,7 @@ describe('storage', () => {
 			setItem.mockRestore();
 			vi.useRealTimers();
 			localStorage.removeItem('player:v1:volume');
-			localStorage.removeItem('player:v1:queue');
+			localStorage.removeItem('player:v2:queue');
 		}
 	});
 

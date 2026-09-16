@@ -1,6 +1,6 @@
 import type { QueueItem, QueueLoudness } from '#types.ts';
 
-// Provisional until a corpus measurement sets it from the real catalogue
+// Apple Music's level; a quiet source stops short of it at the ceiling rather than clip
 const playbackTargetLufs = -16;
 
 // dBTP headroom the gain is clamped against, so normalization can never introduce clipping

@@ -6,6 +6,7 @@ import type { PlayerTimeMode, QueuedItem } from '#types.ts';
 import { queueStorageKey } from '#store/queue-storage-key.ts';
 
 const mutedStorageKey = 'player:v1:muted';
+const retiredQueueStorageKey = 'player:v1:queue';
 const timeModeStorageKey = 'player:v1:time-mode';
 const volumeStorageKey = 'player:v1:volume';
 
@@ -87,6 +88,7 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			if (isQueueBound) return;
 
 			isQueueBound = true;
+			removeStored(retiredQueueStorageKey);
 			({ currentIndex: persistedIndex, queue: persistedQueue } = api.getState());
 
 			// Queue changes write straight away; the position drifting between them goes out on `pagehide`

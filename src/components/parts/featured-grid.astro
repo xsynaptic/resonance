@@ -28,7 +28,7 @@ const footer = await renderSlot(Astro.slots, 'footer');
 			</div>
 		) : undefined}
 		{body ? (
-			<div class="prose-x content-measure">
+			<div class="prose-x content-measure" data-pagefind-weight="2">
 				<Fragment set:html={body} />
 			</div>
 		) : undefined}

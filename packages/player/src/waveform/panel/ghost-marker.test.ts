@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { createGhostMarker } from '#waveform/ghost-marker.ts';
+import { createGhostMarker } from '#waveform/panel/ghost-marker.ts';
 
 function setup() {
 	const root = document.createElement('div');

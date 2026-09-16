@@ -1,4 +1,4 @@
-import type { IconName } from '#elements/icons.ts';
+import type { IconName } from '#lib/icons.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 

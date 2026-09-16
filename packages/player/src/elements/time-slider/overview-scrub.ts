@@ -1,5 +1,5 @@
 import type { PlacedCuePoint } from '#waveform/cue-points.ts';
-import type { WaveformRendering } from '#waveform/waveform-render.ts';
+import type { WaveformRendering } from '#waveform/overview/overview-render.ts';
 
 import { cuePointAt } from '#waveform/cue-points.ts';
 

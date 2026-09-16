@@ -103,6 +103,21 @@ describe('<player-volume-popover>', () => {
 		expect(controlOf(part).dataset.open).toBeUndefined();
 	});
 
+	test('comes back closed after a reconnect', () => {
+		stubHover(false);
+
+		const { part, root } = mount('player-volume-popover');
+
+		getByRole(part, 'button', { name: labels.volume }).click();
+
+		expect(controlOf(part).dataset.open).toBe('');
+
+		root.remove();
+		document.body.append(root);
+
+		expect(controlOf(part).dataset.open).toBeUndefined();
+	});
+
 	test('follows the pointer when the hover answer changes', () => {
 		const hover = stubHover(false);
 		const { part } = mount('player-volume-popover');

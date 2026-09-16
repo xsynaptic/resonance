@@ -4,7 +4,7 @@ import type { PlayerStore } from '#store/player-types.ts';
 
 import { bind } from '#lib/bind.ts';
 
-export interface ButtonBinding<Selected> {
+interface ButtonBinding<Selected> {
 	apply: (selected: Selected) => void;
 	button: HTMLButtonElement;
 	press: (state: PlayerStore) => void;

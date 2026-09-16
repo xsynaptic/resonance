@@ -1,11 +1,12 @@
 import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
-import { openArchive } from '#waveform/waveform-archive.ts';
+import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
-vi.mock('#waveform/waveform-archive.ts', () => ({
+vi.mock('#waveform/panel/waveform-archive.ts', () => ({
 	openArchive: vi.fn(() => Promise.resolve(undefined)),
 }));
 
@@ -69,6 +70,24 @@ describe('<player-panel>', () => {
 
 		mounted.store.getState().next();
 		expect(openArchive).toHaveBeenCalledTimes(2);
+	});
+
+	test('closes and reports the failure when its surface fails to arrive', async () => {
+		const offline = new Error('offline');
+		const reportError = vi.fn();
+
+		vi.spyOn(panelSurfaceModule, 'load').mockRejectedValueOnce(offline);
+		vi.stubGlobal('reportError', reportError);
+
+		const mounted = mountPanel();
+
+		mounted.store.getState().setPanelOpen(true);
+
+		await vi.waitFor(() => {
+			expect(mounted.store.getState().isPanelOpen).toBe(false);
+		});
+		expect(mounted.part.childElementCount).toBe(0);
+		expect(reportError).toHaveBeenCalledWith(offline);
 	});
 
 	test('stops zooming at the last level without dropping focus', async () => {

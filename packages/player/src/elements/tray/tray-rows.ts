@@ -1,20 +1,9 @@
 import type { PlayerLabels, QueuedItem } from '#types.ts';
 
-import { cloneIcon } from '#elements/icons.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { keyedChildren } from '#lib/keyed-children.ts';
+import { placeWhen } from '#lib/place-when.ts';
 import { template } from '#lib/render.ts';
-
-export interface RowPress {
-	button: HTMLButtonElement;
-	control: 'handle' | 'pick' | 'remove';
-	queueId: string;
-}
-
-export interface TrayListView {
-	canReorder: boolean;
-	currentIndex: number | undefined;
-	queue: ReadonlyArray<QueuedItem>;
-}
 
 interface RowEntry {
 	canReorder: boolean;
@@ -22,6 +11,12 @@ interface RowEntry {
 	isMovable: boolean;
 	item: QueuedItem;
 	kind: 'row';
+}
+
+interface RowPress {
+	button: HTMLButtonElement;
+	control: 'handle' | 'pick' | 'remove';
+	queueId: string;
 }
 
 interface SectionEntry {
@@ -35,6 +30,12 @@ interface TrayChild {
 }
 
 type TrayEntry = RowEntry | SectionEntry;
+
+interface TrayListView {
+	canReorder: boolean;
+	currentIndex: number | undefined;
+	queue: ReadonlyArray<QueuedItem>;
+}
 
 const renderRow = template(
 	'<li class="player-tray-item"><button class="player-tray-handle" type="button"></button><button class="player-tray-pick" type="button"><span class="player-tray-title"><span class="player-tray-name"></span></span><span class="player-tray-artist"></span></button><button class="player-button player-button-small" type="button"></button></li>',
@@ -103,12 +104,8 @@ function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 			name.textContent = entry.item.title;
 			artist.textContent = entry.item.artistLine;
 
-			// Placed only when absent, since re-placing a focused handle would blur it
-			if (!entry.canReorder) handle.remove();
-			else if (handle.parentNode !== node) node.prepend(handle);
-
-			if (!entry.isCurrent) playing.remove();
-			else if (playing.parentNode !== title) title.append(playing);
+			placeWhen({ isShown: entry.canReorder, node: handle, parent: node, position: 'prepend' });
+			placeWhen({ isShown: entry.isCurrent, node: playing, parent: title, position: 'append' });
 		},
 	};
 }

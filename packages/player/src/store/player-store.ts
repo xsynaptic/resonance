@@ -10,7 +10,7 @@ import { createPlayerPersistence, inertPersistence } from '#store/player-persist
 import { createPreferenceActions } from '#store/preference-actions.ts';
 import { createQueueActions } from '#store/queue-actions.ts';
 import { createTransportActions } from '#store/transport-actions.ts';
-import { panelZoomDefault } from '#waveform/panel-zoom.ts';
+import { panelZoomDefault } from '#waveform/zoom-levels.ts';
 
 export type { PlayerStore, PlayerStoreOptions } from '#store/player-types.ts';
 

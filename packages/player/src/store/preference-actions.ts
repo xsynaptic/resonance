@@ -4,7 +4,7 @@ import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerPersistence } from '#store/player-persistence.ts';
 import type { PlayerActions, PlayerState, PlayerStore } from '#store/player-types.ts';
 
-import { stepPanelZoom } from '#waveform/panel-zoom.ts';
+import { stepPanelZoom } from '#waveform/zoom-levels.ts';
 
 // Unmuting into silence would read as a dead button
 const unmuteVolume = 0.25;

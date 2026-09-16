@@ -1,3 +1,14 @@
+export function requireChild<Child extends Element>(
+	root: Element,
+	selector: string,
+	child: new () => Child,
+): Child {
+	const found = root.querySelector(selector);
+	if (!(found instanceof child)) throw new Error(`A template is missing its ${selector}`);
+
+	return found;
+}
+
 // Checked against the root it promises, so a template typo fails at the first clone rather than as a null later
 export function template<Root extends Element>(html: string, root: new () => Root): () => Root {
 	const parsed = document.createElement('template');

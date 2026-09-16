@@ -19,6 +19,8 @@ interface MarksView {
 	isLoaded: boolean;
 }
 
+const cueOfButton = new WeakMap<Element, QueueCuePoint>();
+
 const renderList = template('<ol class="player-overlay-tracklist"></ol>', HTMLOListElement);
 
 const renderRow = template(
@@ -38,10 +40,10 @@ export class PlayerTracklist extends PlayerElement {
 		list.addEventListener(
 			'click',
 			(event) => {
-				const { target } = event;
-				const row = rows.find(({ button }) => target instanceof Node && button.contains(target));
+				const button = event.target instanceof Element ? event.target.closest('button') : undefined;
+				const cue = button ? cueOfButton.get(button) : undefined;
 
-				if (row) store.getState().seek(row.cue.startSeconds);
+				if (cue) store.getState().seek(cue.startSeconds);
 			},
 			{ signal },
 		);
@@ -83,6 +85,7 @@ function renderCue(cue: QueueCuePoint): CueRow {
 		throw new Error('The tracklist row template lost part of its markup');
 	}
 
+	cueOfButton.set(button, cue);
 	time.textContent = formatClock(cue.startSeconds);
 	title.textContent = cue.title;
 

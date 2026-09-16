@@ -1,14 +1,14 @@
-import type { IconName } from '#elements/icons.ts';
 import type { PlayerContext } from '#elements/player-context.ts';
+import type { IconName } from '#lib/icons.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 
-import { bindButton } from '#elements/bind-button.ts';
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { bindButton } from '#lib/bind-button.ts';
+import { cloneIcon } from '#lib/icons.ts';
 
-export interface ButtonPart<Selected> {
+interface ButtonPart<Selected> {
 	apply: (button: HTMLButtonElement, selected: Selected, labels: PlayerLabels) => void;
 	connect?: (button: HTMLButtonElement, context: PlayerContext, signal: AbortSignal) => void;
 	icon?: IconName;
@@ -18,7 +18,7 @@ export interface ButtonPart<Selected> {
 	select: (state: PlayerStore) => Selected;
 }
 
-export function buttonPart<Selected>(part: ButtonPart<Selected>) {
+export function buttonPart<Selected>(part: ButtonPart<Selected>): new () => PlayerElement {
 	return class extends PlayerElement {
 		readonly #button = part.render();
 

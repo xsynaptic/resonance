@@ -3,8 +3,8 @@ import { afterEach, describe, expect, test } from 'vitest';
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
 import { createFakeEngine } from '#engine/fake-engine.ts';
-import { heldPressAttribute } from '#lib/page-control-selectors.ts';
-import { bindPageControls } from '#lib/page-controls.ts';
+import { heldPressAttribute } from '#page-control-selectors.ts';
+import { bindPageControls } from '#page-controls.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 import { loadedItem } from '#store/selectors.ts';
 import { queueItem } from '#test/mount.ts';

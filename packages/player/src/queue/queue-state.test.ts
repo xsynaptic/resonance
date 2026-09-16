@@ -10,7 +10,6 @@ import {
 	movedItem,
 	refreshedQueue,
 	removedAt,
-	replacedAfter,
 	shuffledQueue,
 	stampQueue,
 } from '#queue/queue-state.ts';
@@ -165,22 +164,6 @@ describe('removedAt', () => {
 
 	test('leaves the loaded track where it is when a later one goes', () => {
 		expect(removedAt(withQueue(release, 0), 2).currentIndex).toBe(0);
-	});
-});
-
-describe('replacedAfter', () => {
-	test('keeps the loaded track and everything before it', () => {
-		const state = replacedAfter(withQueue(release, 1), 1, stamp([makeItem('d')]));
-
-		expect(trackIds(state.queue)).toStrictEqual(['a', 'b', 'd']);
-		expect(state.currentIndex).toBe(1);
-	});
-
-	test('drops shuffle when the replacement is sectioned', () => {
-		const shuffling = { ...withQueue(release, 0), isShuffling: true };
-		const state = replacedAfter(shuffling, 0, stamp([makeItem('d', 'Side two')]));
-
-		expect(state.isShuffling).toBe(false);
 	});
 });
 

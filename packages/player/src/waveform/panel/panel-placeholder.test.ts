@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 
-import type { WaveformArchive } from '#waveform/waveform-archive.ts';
+import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
-import { createPanelPlaceholder } from '#waveform/panel-placeholder.ts';
+import { createPanelPlaceholder } from '#waveform/panel/panel-placeholder.ts';
 
 const windowSpan = { fromSeconds: 0, toSeconds: 2 };
 

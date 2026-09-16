@@ -1,8 +1,8 @@
-import { bindButton } from '#elements/bind-button.ts';
-import { renderIconButton } from '#elements/icon-button.ts';
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { bindButton } from '#lib/bind-button.ts';
+import { renderIconButton } from '#lib/icon-button.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { isLoaded } from '#store/selectors.ts';
 
 export class PlayerSeekButton extends PlayerElement {

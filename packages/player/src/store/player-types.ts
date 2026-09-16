@@ -8,18 +8,18 @@ import type {
 	QueueItem,
 } from '#types.ts';
 
-// Property syntax so a component can select one action without tripping `unbound-method`
+// Property syntax so an element can select one action without tripping `unbound-method`
 export interface PlayerActions {
 	clearQueue: () => void;
-	// Accepts the host's resolvers and nothing else; a host passing an inline object re-runs it on every render
+	// Accepts the host's resolvers and nothing else; an unchanged object writes nothing
 	configure: (config: { urls: PlayerUrls | undefined }) => void;
-	// Read inside a rAF loop, never as a render input
+	// Read inside a rAF loop rather than subscribed to
 	getAnalyser: () => AnalyserNode | undefined;
 	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; also rAF-only
 	getCurrentTime: () => number | undefined;
 	// Seconds the element's clock runs ahead of the sound
 	getOutputDelay: () => number;
-	// Reads the listener's persisted preferences; separate from `configure` so a re-render cannot re-run it
+	// Reads the listener's persisted preferences; the root hydrates each store once, however often it reconnects
 	hydratePreferences: () => void;
 	// Puts back the queue this browser left: positioned, with nothing loaded and nothing playing
 	hydrateQueue: () => void;
@@ -37,19 +37,13 @@ export interface PlayerActions {
 	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
 	playRelease: (releaseItems: ReadonlyArray<QueueItem>) => void;
 	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
-	playTrack: (
-		releaseItems: ReadonlyArray<QueueItem>,
-		trackId: string,
-		startSeconds?: number,
-	) => void;
+	playTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
 	previous: () => void;
 	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
 	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, trackId: string) => void;
 	// Swaps in the page's copy of every queued item it carries, so a queue restored from an older build picks up new fields
 	refreshQueue: (items: ReadonlyArray<QueueItem>) => void;
 	removeAt: (index: number) => void;
-	// Swaps out everything after `index`, leaving the loaded track and what came before it alone
-	replaceAfter: (index: number, items: ReadonlyArray<QueueItem>) => void;
 	seek: (seconds: number) => void;
 	// Clamped into the loaded track, so the seek buttons and the lock screen cannot run past either end
 	seekBy: (deltaSeconds: number) => void;

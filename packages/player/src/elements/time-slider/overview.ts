@@ -1,9 +1,10 @@
 import type { PlacedCuePoint } from '#waveform/cue-points.ts';
-import type { OverviewCues, WaveformRendering } from '#waveform/waveform-render.ts';
+import type { OverviewCues, WaveformRendering } from '#waveform/overview/overview-render.ts';
 
-import { cuePointAtPointer } from '#waveform/overview-scrub.ts';
-import { subscribeTheme } from '#waveform/theme-version.ts';
-import { paintWaveform, prepareRendering } from '#waveform/waveform-render.ts';
+import { cuePointAtPointer } from '#elements/time-slider/overview-scrub.ts';
+import { observeResize } from '#lib/observe-resize.ts';
+import { paintWaveform, prepareRendering } from '#waveform/overview/overview-render.ts';
+import { subscribeTheme } from '#waveform/theme-change.ts';
 
 export interface OverviewInput extends OverviewCues {
 	overview: ReadonlyArray<number>;
@@ -60,10 +61,9 @@ export function bindOverview(
 		show(undefined);
 		repaint();
 	};
-	const observer = new ResizeObserver(invalidate);
 	const unsubscribeTheme = subscribeTheme(invalidate);
 
-	observer.observe(canvas);
+	observeResize(canvas, invalidate, signal);
 	canvas.addEventListener(
 		'pointermove',
 		(event) => {
@@ -83,7 +83,6 @@ export function bindOverview(
 	signal.addEventListener(
 		'abort',
 		() => {
-			observer.disconnect();
 			unsubscribeTheme();
 			show(undefined);
 		},

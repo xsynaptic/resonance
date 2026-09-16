@@ -2,14 +2,14 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { bindButton } from '#elements/bind-button.ts';
-import { bindPreload } from '#elements/bind-preload.ts';
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { trayModule } from '#elements/tray/tray-module.ts';
+import { bindButton } from '#lib/bind-button.ts';
+import { bindPreload } from '#lib/bind-preload.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
-import { template } from '#lib/render.ts';
+import { cloneIcon } from '#lib/icons.ts';
+import { requireChild, template } from '#lib/render.ts';
 
 interface QueueParts {
 	control: HTMLDivElement;
@@ -105,8 +105,6 @@ async function openTray(
 
 function renderQueueParts(): QueueParts {
 	const control = renderControl();
-	const trigger = control.querySelector('button');
-	if (!trigger) throw new Error('The queue template lost its trigger');
 
-	return { control, trigger };
+	return { control, trigger: requireChild(control, 'button', HTMLButtonElement) };
 }

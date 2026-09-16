@@ -1,13 +1,15 @@
+import type { OverlayLayout } from '#elements/overlay/overlay-layout.ts';
 import type { PlayerContext } from '#elements/player-context.ts';
-import type { OverlayLayout } from '#lib/overlay-layout.ts';
 
-import { cloneIcon } from '#elements/icons.ts';
+import { defineOnce } from '#elements/define-once.ts';
+import { isLeavingPage } from '#elements/overlay/leaving-page.ts';
+import { layoutFor } from '#elements/overlay/overlay-layout.ts';
 import { bindSheets } from '#elements/overlay/overlay-sheets.ts';
 import { bindTabs } from '#elements/overlay/overlay-tabs.ts';
 import { PlayerTracklist } from '#elements/overlay/tracklist.ts';
-import { placeSeekButtons } from '#elements/seek-buttons.ts';
-import { isLeavingPage } from '#lib/leaving-page.ts';
-import { layoutFor } from '#lib/overlay-layout.ts';
+import { cloneIcon } from '#lib/icons.ts';
+import { observeResize } from '#lib/observe-resize.ts';
+import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
 import { template } from '#lib/render.ts';
 
 interface BodyParts {
@@ -35,9 +37,7 @@ export function connectOverlayBody(
 	context: PlayerContext,
 	signal: AbortSignal,
 ): void {
-	if (!customElements.get('player-tracklist')) {
-		customElements.define('player-tracklist', PlayerTracklist);
-	}
+	defineOnce('player-tracklist', PlayerTracklist);
 
 	const { labels, root, store } = context;
 	const parts = renderBodyParts();
@@ -94,16 +94,7 @@ function bindLayout(
 
 		apply(layoutFor(width, height));
 	};
-	const observer = new ResizeObserver(measure);
-
-	observer.observe(body);
-	signal.addEventListener(
-		'abort',
-		() => {
-			observer.disconnect();
-		},
-		{ once: true },
-	);
+	observeResize(body, measure, signal);
 	measure();
 }
 

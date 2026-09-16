@@ -1,9 +1,9 @@
 import type { QueueCuePoint } from '#types.ts';
-import type { WaveformArchive } from '#waveform/waveform-archive.ts';
-import type { ScrollTheme } from '#waveform/waveform-scroll.ts';
+import type { ScrollTheme } from '#waveform/panel/panel-painter.ts';
+import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
-import { createPanelPlaceholder } from '#waveform/panel-placeholder.ts';
-import { createScrollPainter, placeholderRange } from '#waveform/waveform-scroll.ts';
+import { createScrollPainter, placeholderRange } from '#waveform/panel/panel-painter.ts';
+import { createPanelPlaceholder } from '#waveform/panel/panel-placeholder.ts';
 
 // How much of the panel the arriving boundary must still cross before the parked label starts to go
 const cueFadeStart = 0.25;

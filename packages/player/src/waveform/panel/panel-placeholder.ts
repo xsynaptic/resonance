@@ -1,5 +1,5 @@
-import type { WaveformArchive } from '#waveform/waveform-archive.ts';
-import type { SecondsSpan } from '#waveform/waveform-scroll.ts';
+import type { SecondsSpan } from '#waveform/panel/panel-painter.ts';
+import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
 // The status pill's delay, so a chunk that lands quickly never flashes a placeholder
 const placeholderDelayMs = 400;

@@ -71,7 +71,7 @@ export interface QueueCuePoint {
 	title: string;
 }
 
-// The store stamps an id as items are enqueued, so a row keeps its React identity across a reorder
+// The store stamps an id as items are enqueued, so a row keeps its node across a reorder
 export interface QueuedItem extends QueueItem {
 	queueId: string;
 }

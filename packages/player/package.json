@@ -9,7 +9,7 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./artwork": "./src/lib/artwork.ts",
-		"./page-control-selectors": "./src/lib/page-control-selectors.ts",
+		"./page-control-selectors": "./src/page-control-selectors.ts",
 		"./player.css": "./src/player.css",
 		"./queue-storage-key": "./src/store/queue-storage-key.ts"
 	},

@@ -1,16 +1,10 @@
 import type { QueueCuePoint } from '#types.ts';
+import type { BarGrid } from '#waveform/bar-grid.ts';
 import type { PlacedCuePoint } from '#waveform/cue-points.ts';
 
+import { readPxProperty } from '#lib/read-px-property.ts';
 import { layoutCuePoints } from '#waveform/cue-points.ts';
-import { resamplePeaks } from '#waveform/resample.ts';
-
-export interface BarGrid {
-	bar: number;
-	count: number;
-	pitch: number;
-	ratio: number;
-	width: number;
-}
+import { resamplePeaks } from '#waveform/overview/resample.ts';
 
 export interface OverviewCues {
 	cueDurationSeconds: number | undefined;
@@ -131,14 +125,9 @@ function barsPath(bars: ReadonlyArray<number>, { bar, height, pitch, radius }: B
 	return path;
 }
 
-// The token has to be a px length; converting any other unit needs a probe element
 function createDevicePixelReader(styles: CSSStyleDeclaration, ratio: number) {
-	return (property: string, fallback: number): number => {
-		// eslint-disable-next-line unicorn/prefer-number-coercion -- `Number('2px')` is NaN; the token carries its unit
-		const parsed = Number.parseFloat(styles.getPropertyValue(property));
-
-		return Math.max(0, Math.round((Number.isFinite(parsed) ? parsed : fallback) * ratio));
-	};
+	return (property: string, fallback: number): number =>
+		Math.max(0, Math.round(readPxProperty(styles, property, fallback) * ratio));
 }
 
 function cuePointsPath(cuePoints: ReadonlyArray<PlacedCuePoint>, radius: number): Path2D {

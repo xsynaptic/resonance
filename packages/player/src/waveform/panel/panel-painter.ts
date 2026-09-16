@@ -1,7 +1,7 @@
 import type { QueueCuePoint } from '#types.ts';
-import type { EnvelopeTheme, EnvelopeView } from '#waveform/waveform-envelope.ts';
+import type { EnvelopeTheme, EnvelopeView } from '#waveform/panel/waveform-envelope.ts';
 
-import { createEnvelopePainter } from '#waveform/waveform-envelope.ts';
+import { createEnvelopePainter } from '#waveform/panel/waveform-envelope.ts';
 
 // Every length here is a device pixel, never a CSS pixel
 

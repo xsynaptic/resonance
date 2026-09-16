@@ -121,21 +121,6 @@ export function removedAt(state: QueueState, index: number): QueueState {
 	});
 }
 
-export function replacedAfter(
-	state: QueueState,
-	index: number,
-	items: ReadonlyArray<QueuedItem>,
-): QueueState {
-	const queue = [...state.queue.slice(0, index + 1), ...items];
-
-	return ordered({
-		currentIndex: state.currentIndex,
-		isShuffling: canShuffle(state, queue),
-		orderAround: state.currentIndex,
-		queue,
-	});
-}
-
 export function shuffledQueue(state: QueueState, isShuffling: boolean): QueueState {
 	return ordered({
 		currentIndex: state.currentIndex,

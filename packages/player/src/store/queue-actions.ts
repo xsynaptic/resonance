@@ -13,7 +13,6 @@ import {
 	movedItem,
 	refreshedQueue,
 	removedAt,
-	replacedAfter,
 	shuffledQueue,
 	stampQueue,
 } from '#queue/queue-state.ts';
@@ -32,7 +31,6 @@ type QueueActions = Pick<
 	| 'queueTrack'
 	| 'refreshQueue'
 	| 'removeAt'
-	| 'replaceAfter'
 	| 'toggleShuffle'
 >;
 
@@ -158,14 +156,6 @@ export function createQueueActions({
 			}
 
 			set(removedAt(state, index));
-		},
-
-		replaceAfter: (index, items) => {
-			const state = queueState();
-			if (index < 0 || index >= state.queue.length) return;
-			if (state.currentIndex !== undefined && state.currentIndex > index) return;
-
-			set(replacedAfter(state, index, stamped(items)));
 		},
 
 		toggleShuffle: () => {

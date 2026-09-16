@@ -1,10 +1,10 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { bindButton } from '#elements/bind-button.ts';
-import { renderIconButton } from '#elements/icon-button.ts';
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { bindButton } from '#lib/bind-button.ts';
+import { renderIconButton } from '#lib/icon-button.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { canStepBack, canStepForward } from '#store/selectors.ts';
 
 type StepDirection = keyof typeof stepSelectors;
@@ -15,7 +15,7 @@ const stepSelectors = {
 } as const satisfies Record<'next' | 'previous', (state: PlayerStore) => boolean>;
 
 export class PlayerStepButton extends PlayerElement {
-	readonly #button = renderIconButton('player-step');
+	readonly #button = renderIconButton('player-step-button');
 
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
@@ -33,7 +33,7 @@ export class PlayerStepButton extends PlayerElement {
 				button,
 				// `aria-disabled` rather than `disabled`, since a press that leaves nothing to step to would drop focus to the page
 				press: (state) => {
-					if (button.getAttribute('aria-disabled') === 'true') return;
+					if (!stepSelectors[direction](state)) return;
 
 					state[direction]();
 				},

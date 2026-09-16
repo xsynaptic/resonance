@@ -1,9 +1,9 @@
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerTimeMode } from '#types.ts';
 
-import { bindButton } from '#elements/bind-button.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { bindButton } from '#lib/bind-button.ts';
 import { bind } from '#lib/bind.ts';
 import { formatClock } from '#lib/format.ts';
 import { template } from '#lib/render.ts';

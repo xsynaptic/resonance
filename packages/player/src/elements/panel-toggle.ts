@@ -1,9 +1,9 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { bindPreload } from '#elements/bind-preload.ts';
 import { buttonPart } from '#elements/button-part.ts';
-import { renderIconButton } from '#elements/icon-button.ts';
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
+import { bindPreload } from '#lib/bind-preload.ts';
+import { renderIconButton } from '#lib/icon-button.ts';
 import { isLoaded } from '#store/selectors.ts';
 
 interface PanelToggleView {

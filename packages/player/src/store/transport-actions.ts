@@ -64,7 +64,7 @@ export function createTransportActions({
 			const back = previousInOrder(playOrder, currentIndex);
 
 			if (back === undefined || (playback.currentTime() ?? 0) > restartThresholdSeconds) {
-				playback.seek(0);
+				get().seek(0);
 				return;
 			}
 

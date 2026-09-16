@@ -1,9 +1,9 @@
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { template } from '#lib/render.ts';
-import { stepPanelZoom } from '#waveform/panel-zoom.ts';
+import { stepPanelZoom } from '#waveform/zoom-levels.ts';
 
 interface ZoomParts {
 	control: HTMLDivElement;

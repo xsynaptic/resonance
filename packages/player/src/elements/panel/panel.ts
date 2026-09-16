@@ -60,6 +60,6 @@ async function openSurface(
 		if (!signal.aborted) connectPanelSurface(panel, context, signal);
 	} catch (error) {
 		context.store.getState().setPanelOpen(false);
-		throw error;
+		reportError(error);
 	}
 }

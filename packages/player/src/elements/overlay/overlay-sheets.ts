@@ -1,11 +1,12 @@
-import type { IconName } from '#elements/icons.ts';
 import type { OverlayList } from '#elements/overlay/overlay-lists.ts';
 import type { PlayerContext } from '#elements/player-context.ts';
+import type { IconName } from '#lib/icons.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { cloneIcon } from '#elements/icons.ts';
 import { overlayId, renderList, selectLists } from '#elements/overlay/overlay-lists.ts';
 import { bind } from '#lib/bind.ts';
+import { cloneIcon } from '#lib/icons.ts';
+import { placeWhen } from '#lib/place-when.ts';
 
 interface SheetParts {
 	close: HTMLButtonElement;
@@ -70,13 +71,14 @@ export function bindSheets(
 		store,
 		hasTracklist,
 		(isOffered) => {
-			if (!isOffered) {
-				if (chosen === 'tracklist') closeSheet();
-				openers.tracklist.remove();
-				return;
-			}
+			if (!isOffered && chosen === 'tracklist') closeSheet();
 
-			if (openers.tracklist.parentNode !== sheets) sheets.prepend(openers.tracklist);
+			placeWhen({
+				isShown: isOffered,
+				node: openers.tracklist,
+				parent: sheets,
+				position: 'prepend',
+			});
 		},
 		signal,
 	);

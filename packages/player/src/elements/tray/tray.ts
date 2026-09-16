@@ -4,13 +4,14 @@ import type { QueuedItem } from '#types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { createRowDrag } from '#elements/tray/row-drag.ts';
 import { rowPressAt, trayRows } from '#elements/tray/tray-rows.ts';
 import { bind } from '#lib/bind.ts';
 import { formatTemplate } from '#lib/format.ts';
+import { placeWhen } from '#lib/place-when.ts';
 import { template } from '#lib/render.ts';
 import { isSectioned } from '#queue/queue.ts';
 import { canMove } from '#queue/reorder.ts';
-import { createRowDrag } from '#queue/row-drag.ts';
 
 interface TrayParts {
 	clear: HTMLButtonElement;
@@ -69,8 +70,12 @@ function bindHeader(
 			shuffle.setAttribute('aria-pressed', String(isShuffling));
 
 			// A sectioned queue cannot shuffle, so its button goes rather than sitting disabled
-			if (isSectioned(queue)) shuffle.remove();
-			else if (shuffle.parentNode !== header) header.prepend(shuffle);
+			placeWhen({
+				isShown: !isSectioned(queue),
+				node: shuffle,
+				parent: header,
+				position: 'prepend',
+			});
 		},
 		signal,
 	);
@@ -81,6 +86,7 @@ function bindList(
 	{ labels, store }: PlayerContext,
 	signal: AbortSignal,
 ): void {
+	// A reconnect starts a fresh key map, which would leave the previous connection's rows behind
 	list.replaceChildren();
 	empty.textContent = labels.empty;
 

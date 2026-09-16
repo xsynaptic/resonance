@@ -1,43 +1,56 @@
-import { marqueeProperties, overflowDistance } from '#lib/marquee-timing.ts';
-import { template } from '#lib/render.ts';
+import { observeResize } from '#lib/observe-resize.ts';
+import { requireChild, template } from '#lib/render.ts';
 
 export interface MarqueeParts {
 	box: HTMLSpanElement;
 	line: HTMLSpanElement;
 }
 
+const marqueeHoldSeconds = 8;
+
 const renderBox = template(
 	'<span class="player-marquee"><span class="player-marquee-text"></span></span>',
 	HTMLSpanElement,
 );
 
-export function bindMarquee(parts: MarqueeParts, signal: AbortSignal): void {
-	const observer = new ResizeObserver(() => {
-		measureMarquee(parts.box);
-	});
+// Travel is proportional to the distance, so a long title marches rather than flying
+const tempoPixelsPerSecond = 40;
 
-	observer.observe(parts.box);
-	signal.addEventListener(
-		'abort',
+export function bindMarquee(parts: MarqueeParts, signal: AbortSignal): void {
+	observeResize(
+		parts.box,
 		() => {
-			observer.disconnect();
+			measureMarquee(parts.box);
 		},
-		{ once: true },
+		signal,
 	);
 }
 
 export function renderMarquee(): MarqueeParts {
 	const box = renderBox();
-	const line = box.firstElementChild;
-	if (!(line instanceof HTMLSpanElement)) throw new Error('The marquee template carries no line');
 
-	return { box, line };
+	return { box, line: requireChild(box, '.player-marquee-text', HTMLSpanElement) };
 }
 
-// One line that marches only when it does not fit; the measurement is the whole mechanism, there is no timer
+// One line that marches only when it does not fit
 export function writeMarquee(parts: MarqueeParts, text: string): void {
 	parts.line.textContent = text;
 	measureMarquee(parts.box);
+}
+
+// A keyframe selector cannot read a custom property, so the two holds ride in a `linear()` easing instead
+function marqueeProperties(distance: number) {
+	const travelSeconds = distance / tempoPixelsPerSecond;
+	const totalSeconds = marqueeHoldSeconds * 2 + travelSeconds * 2;
+	const holdEnd = percentOf(marqueeHoldSeconds, totalSeconds);
+	const travelEnd = percentOf(marqueeHoldSeconds + travelSeconds, totalSeconds);
+	const holdBackEnd = percentOf(marqueeHoldSeconds * 2 + travelSeconds, totalSeconds);
+
+	return {
+		'--player-marquee-distance': `${String(distance)}px`,
+		'--player-marquee-duration': `${totalSeconds.toFixed(2)}s`,
+		'--player-marquee-timing': `linear(0 0%, 0 ${holdEnd}%, 1 ${travelEnd}%, 1 ${holdBackEnd}%, 0 100%)`,
+	};
 }
 
 function measureMarquee(box: HTMLElement): void {
@@ -47,9 +60,17 @@ function measureMarquee(box: HTMLElement): void {
 	box.removeAttribute('style');
 	if (distance === 0) return;
 
-	const properties: Record<string, string> = { ...marqueeProperties(distance) };
+	const properties = marqueeProperties(distance);
 
 	for (const [property, value] of Object.entries(properties)) {
 		box.style.setProperty(property, value);
 	}
+}
+
+function overflowDistance(box: HTMLElement): number {
+	return Math.max(0, Math.round(box.scrollWidth - box.clientWidth));
+}
+
+function percentOf(elapsedSeconds: number, totalSeconds: number): string {
+	return ((elapsedSeconds / totalSeconds) * 100).toFixed(2);
 }

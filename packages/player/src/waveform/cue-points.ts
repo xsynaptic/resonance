@@ -1,5 +1,5 @@
 import type { QueueCuePoint } from '#types.ts';
-import type { BarGrid } from '#waveform/waveform-render.ts';
+import type { BarGrid } from '#waveform/bar-grid.ts';
 
 // One empty column between cue points on a row; closer than that drops a row
 const columnsApart = 2;

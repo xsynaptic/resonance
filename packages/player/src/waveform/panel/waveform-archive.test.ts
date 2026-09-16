@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
 import type { QueueItem } from '#types.ts';
 
-import { openArchive } from '#waveform/waveform-archive.ts';
+import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
 const archiveUrl = 'https://files.test/waveform/a.dat';
 const headerRange = 'bytes=0-19';

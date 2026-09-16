@@ -1,9 +1,11 @@
 import type { PlayerTracklist } from '#elements/overlay/tracklist.ts';
 import type { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
+import type { PlayerElement } from '#elements/player-element.ts';
 import type { PlayerTray } from '#elements/tray/tray.ts';
 
 import { PlayerArtistLine } from '#elements/artist-line.ts';
 import { PlayerArtwork } from '#elements/artwork.ts';
+import { defineOnce } from '#elements/define-once.ts';
 import { PlayerMuteButton } from '#elements/mute-button.ts';
 import { PlayerOverlayToggle } from '#elements/overlay-toggle.ts';
 import { PlayerOverlayContent } from '#elements/overlay/overlay-content.ts';
@@ -29,14 +31,14 @@ declare global {
 		'player-artist-line': PlayerArtistLine;
 		'player-artwork': PlayerArtwork;
 		'player-bar': PlayerBar;
-		'player-mute-button': InstanceType<typeof PlayerMuteButton>;
+		'player-mute-button': PlayerElement;
 		'player-overlay': PlayerOverlay;
 		'player-overlay-content': PlayerOverlayContent;
-		'player-overlay-toggle': InstanceType<typeof PlayerOverlayToggle>;
+		'player-overlay-toggle': PlayerElement;
 		'player-panel': PlayerPanel;
-		'player-panel-toggle': InstanceType<typeof PlayerPanelToggle>;
+		'player-panel-toggle': PlayerElement;
 		'player-panel-zoom': PlayerPanelZoom;
-		'player-play-button': InstanceType<typeof PlayerPlayButton>;
+		'player-play-button': PlayerElement;
 		'player-queue-button': PlayerQueueButton;
 		'player-root': PlayerRoot;
 		'player-scope': PlayerScope;
@@ -78,7 +80,5 @@ const playerElements = [
 ] as const;
 
 export function definePlayerElements(): void {
-	for (const [tag, element] of playerElements) {
-		if (!customElements.get(tag)) customElements.define(tag, element);
-	}
+	for (const [tag, elementClass] of playerElements) defineOnce(tag, elementClass);
 }

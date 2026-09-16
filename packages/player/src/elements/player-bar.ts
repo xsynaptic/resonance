@@ -2,7 +2,7 @@ import type { PlayerRoot } from '#elements/player-root.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
-import { placeSeekButtons } from '#elements/seek-buttons.ts';
+import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
 import { template } from '#lib/render.ts';
 
 const renderBar = template(

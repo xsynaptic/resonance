@@ -1,7 +1,7 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
 import { buttonPart } from '#elements/button-part.ts';
-import { cloneIcon } from '#elements/icons.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { template } from '#lib/render.ts';
 import { isAwaitingPlayback } from '#store/selectors.ts';
 

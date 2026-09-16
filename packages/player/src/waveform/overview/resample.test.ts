@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { resamplePeaks } from '#waveform/resample.ts';
+import { resamplePeaks } from '#waveform/overview/resample.ts';
 
 // Means and interpolation both leave float noise the shape of the answer does not depend on
 function rounded(peaks: ReadonlyArray<number>): Array<number> {

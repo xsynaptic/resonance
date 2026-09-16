@@ -1,10 +1,10 @@
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
-import { muteLabel, selectLevel } from '#elements/volume-level.ts';
 import { bind } from '#lib/bind.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
-import { template } from '#lib/render.ts';
+import { cloneIcon } from '#lib/icons.ts';
+import { requireChild, template } from '#lib/render.ts';
+import { muteLabel, selectLevel } from '#lib/volume-level.ts';
 
 interface PopoverParts {
 	control: HTMLDivElement;
@@ -30,6 +30,9 @@ export class PlayerVolumePopover extends PlayerElement {
 	readonly #parts = renderPopover();
 
 	protected connect(signal: AbortSignal): void {
+		// A reconnect re-appends the retained control, so a stale open state would spring the panel open
+		this.#isOpen = false;
+
 		const { labels, store } = playerContext(this);
 		const { control, muteButton, trigger } = this.#parts;
 		// Decides what the trigger's click does: mute where the panel already opens on hover, open it where it cannot
@@ -90,9 +93,10 @@ export class PlayerVolumePopover extends PlayerElement {
 
 function renderPopover(): PopoverParts {
 	const control = renderControl();
-	const trigger = control.querySelector('button');
-	const muteButton = control.querySelector('player-mute-button');
-	if (!trigger || !muteButton) throw new Error('The volume popover template lost its buttons');
 
-	return { control, muteButton, trigger };
+	return {
+		control,
+		muteButton: requireChild(control, 'player-mute-button', HTMLElement),
+		trigger: requireChild(control, 'button', HTMLButtonElement),
+	};
 }

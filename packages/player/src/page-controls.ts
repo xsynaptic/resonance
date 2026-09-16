@@ -9,7 +9,7 @@ import {
 	heldPressAttribute,
 	heldPressSelector,
 	payloadSelector,
-} from '#lib/page-control-selectors.ts';
+} from '#page-control-selectors.ts';
 import { currentCue, loadedItem } from '#store/selectors.ts';
 
 interface RowState {

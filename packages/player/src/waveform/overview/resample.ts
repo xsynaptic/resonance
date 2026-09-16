@@ -1,3 +1,5 @@
+import { bucketBounds } from '#lib/bucket-bounds.ts';
+
 // The renderer picks its bar count from the box, not from the manifest, so the peaks are resampled to fit
 export function resamplePeaks(peaks: ReadonlyArray<number>, count: number): ReadonlyArray<number> {
 	if (count <= 0 || peaks.length === 0) return [];
@@ -12,8 +14,7 @@ function downsample(peaks: ReadonlyArray<number>, count: number): Array<number> 
 	const resampled: Array<number> = [];
 
 	for (let index = 0; index < count; index += 1) {
-		const start = Math.floor((index * peaks.length) / count);
-		const end = Math.max(start + 1, Math.floor(((index + 1) * peaks.length) / count));
+		const { end, start } = bucketBounds(peaks.length, index, count);
 
 		let total = 0;
 

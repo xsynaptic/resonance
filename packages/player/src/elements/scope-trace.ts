@@ -1,3 +1,6 @@
+import { bucketBounds } from '#lib/bucket-bounds.ts';
+import { observeResize } from '#lib/observe-resize.ts';
+
 interface ScopeSize {
 	columns: number;
 	height: number;
@@ -71,22 +74,18 @@ export function traceSignal(
 
 	sizeCanvas();
 
-	const observer = new ResizeObserver(sizeCanvas);
-
-	observer.observe(canvas);
+	observeResize(canvas, sizeCanvas, signal);
 	signal.addEventListener(
 		'abort',
 		() => {
 			cancelAnimationFrame(frame);
-			observer.disconnect();
 		},
 		{ once: true },
 	);
 }
 
 function columnRange(samples: Uint8Array, column: number, columns: number) {
-	const start = Math.floor((column * samples.length) / columns);
-	const end = Math.max(start + 1, Math.floor(((column + 1) * samples.length) / columns));
+	const { end, start } = bucketBounds(samples.length, column, columns);
 
 	let lowest = 255;
 	let highest = 0;

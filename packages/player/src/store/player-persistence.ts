@@ -13,7 +13,7 @@ const volumeStorageKey = 'player:v1:volume';
 const volumeWriteDelayMs = 250;
 
 export interface PlayerPersistence {
-	// Bound from a mount effect rather than at module load, because the store is also imported where there is no window
+	// Bound on connect rather than at module load, because the store is also imported where there is no window
 	bindQueue: () => void;
 	persistMuted: (isMuted: boolean) => void;
 	persistTimeMode: (timeMode: PlayerTimeMode) => void;
@@ -160,7 +160,7 @@ function readStoredQueue(): StoredQueue | undefined {
 	if (stored === undefined) return undefined;
 
 	try {
-		const parsed = JSON.parse(stored) as StoredQueue;
+		const parsed = JSON.parse(stored) as Partial<StoredQueue>;
 		if (!Array.isArray(parsed.queue) || parsed.queue.length === 0) return undefined;
 
 		const currentIndex = storedQueueIndex(parsed.currentIndex, parsed.queue.length);
@@ -169,7 +169,7 @@ function readStoredQueue(): StoredQueue | undefined {
 			currentIndex,
 			currentTimeSeconds:
 				currentIndex === undefined ? 0 : storedTimeSeconds(parsed.currentTimeSeconds),
-			isShuffling: parsed.isShuffling,
+			isShuffling: parsed.isShuffling === true,
 			queue: parsed.queue,
 		};
 	} catch {
@@ -208,8 +208,10 @@ function storedQueueIndex(currentIndex: number | undefined, length: number): num
 	return currentIndex;
 }
 
-function storedTimeSeconds(currentTimeSeconds: number): number {
-	return Number.isFinite(currentTimeSeconds) ? Math.max(0, currentTimeSeconds) : 0;
+function storedTimeSeconds(currentTimeSeconds: number | undefined): number {
+	if (typeof currentTimeSeconds !== 'number' || !Number.isFinite(currentTimeSeconds)) return 0;
+
+	return Math.max(0, currentTimeSeconds);
 }
 
 function touchNothing(): undefined {

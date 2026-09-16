@@ -66,6 +66,7 @@
 	--player-font-mono: ui-monospace, menlo, consolas, monospace;
 	--player-radius: 0.25rem;
 	--player-radius-large: 0.375rem;
+	--player-shadow-popover: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
 }
 
 .player {
@@ -315,7 +316,6 @@
 }
 
 /* A knob rather than a rule of its own, so hover and focus still outrank the idle tone */
-.player-track[data-idle],
 player-title[data-idle] {
 	--player-track-title-color: var(--player-meta);
 }
@@ -444,9 +444,7 @@ player-title[data-idle] {
 	background-color: var(--player-popover);
 	border: 1px solid var(--player-border);
 	border-radius: var(--player-radius);
-	box-shadow:
-		0 20px 25px -5px rgb(0 0 0 / 10%),
-		0 8px 10px -6px rgb(0 0 0 / 10%);
+	box-shadow: var(--player-shadow-popover);
 	translate: -50%;
 }
 
@@ -460,12 +458,12 @@ player-title[data-idle] {
 }
 
 @media (hover: hover) {
-	.player-volume:hover .player-volume-panel,
-	.player-volume:focus-within .player-volume-panel {
+	.player-volume:hover .player-volume-panel {
 		display: flex;
 	}
 }
 
+.player-volume:focus-within .player-volume-panel,
 .player-volume[data-open] .player-volume-panel {
 	display: flex;
 }
@@ -626,7 +624,8 @@ player-title[data-idle] {
 	color: var(--player-cue-artist);
 }
 
-.player-cue-artist:not(:empty)::after {
+.player-cue-artist:not(:empty)::after,
+.player-panel-now-artist:not(:empty)::after {
 	padding-inline: 0.3em;
 	color: var(--player-cue-title);
 	content: '-';
@@ -659,9 +658,7 @@ player-title[data-idle] {
 	background-color: var(--player-popover);
 	border: 1px solid var(--player-border);
 	border-radius: var(--player-radius-large);
-	box-shadow:
-		0 20px 25px -5px rgb(0 0 0 / 10%),
-		0 8px 10px -6px rgb(0 0 0 / 10%);
+	box-shadow: var(--player-shadow-popover);
 }
 
 .player-tray-list {
@@ -947,12 +944,6 @@ player-title[data-idle] {
 	color: var(--player-cue-artist);
 }
 
-.player-panel-now-artist:not(:empty)::after {
-	padding-inline: 0.3em;
-	color: var(--player-cue-title);
-	content: '-';
-}
-
 .player-panel-now-title {
 	font-size: var(--player-font-size);
 	line-height: 1.25rem;
@@ -1167,7 +1158,7 @@ player-title[data-idle] {
 	.player-bar-grid .player-panel-toggle,
 	.player-bar-grid:has(> player-overlay-toggle) .player-queue,
 	.player-bar-grid .player-seek-button,
-	.player-bar-grid .player-step,
+	.player-bar-grid .player-step-button,
 	.player-bar-grid .player-time,
 	.player-bar-grid .player-volume {
 		display: none;

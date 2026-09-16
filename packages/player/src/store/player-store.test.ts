@@ -297,6 +297,17 @@ describe('previous', () => {
 		expect(fake.engine.seek).toHaveBeenCalledWith(0);
 	});
 
+	test('writes the restart back to the store, since a paused clock gets no update', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'b');
+		fake.setTime(5);
+		fake.callbacks.current?.onTime(5);
+		store.getState().previous();
+
+		expect(store.getState().currentTimeSeconds).toBe(0);
+	});
+
 	test('steps back within the opening seconds', () => {
 		const store = configured();
 
@@ -395,28 +406,6 @@ describe('queue editing', () => {
 		expect(state.currentIndex).toBeUndefined();
 		expect(state.status).toBe('idle');
 		expect(fake.engine.reset).toHaveBeenCalled();
-	});
-
-	test('swaps out everything after the loaded track', () => {
-		const store = configured();
-
-		store.getState().playTrack(release, 'b');
-		store.getState().replaceAfter(1, [makeItem('x'), makeItem('y')]);
-
-		const state = store.getState();
-
-		expect(state.queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'x', 'y']);
-		expect(state.currentIndex).toBe(1);
-		expect(state.playOrder).toStrictEqual([0, 1, 2, 3]);
-	});
-
-	test('refuses to swap out the loaded track itself', () => {
-		const store = configured();
-
-		store.getState().playTrack(release, 'c');
-		store.getState().replaceAfter(0, [makeItem('x')]);
-
-		expect(store.getState().queue.map((item) => item.trackId)).toStrictEqual(['a', 'b', 'c']);
 	});
 
 	test('clears the queue and resets the engine', () => {
@@ -1252,6 +1241,21 @@ describe('queue persistence', () => {
 		second.getState().hydrateQueue();
 
 		expect(second.getState().queue).toHaveLength(1);
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('restores a stored entry that carries no shuffle flag', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({ currentIndex: 0, currentTimeSeconds: 0, queue: release }),
+		);
+
+		const store = configured();
+
+		store.getState().hydrateQueue();
+
+		expect(store.getState().isShuffling).toBe(false);
 
 		localStorage.removeItem('player:v2:queue');
 	});

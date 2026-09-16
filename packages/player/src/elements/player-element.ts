@@ -1,4 +1,3 @@
-// Every part's lifecycle in one place: one controller per connection, and a move that redoes nothing
 // eslint-disable-next-line wc/define-tag-after-class-definition -- abstract, so only its subclasses are ever defined
 export abstract class PlayerElement extends HTMLElement {
 	#connection: AbortController | undefined;

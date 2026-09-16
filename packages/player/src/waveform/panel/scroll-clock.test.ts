@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import type { SubscribeTime } from '#types.ts';
 
-import { createScrollClock } from '#waveform/scroll-clock.ts';
+import { createScrollClock } from '#waveform/panel/scroll-clock.ts';
 
 const noStoreTime: SubscribeTime = () => unsubscribeNothing;
 

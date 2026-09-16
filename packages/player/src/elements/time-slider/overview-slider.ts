@@ -7,19 +7,19 @@ import type {
 } from '#elements/time-slider/overview.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
-import type { WaveformRendering } from '#waveform/waveform-render.ts';
+import type { WaveformRendering } from '#waveform/overview/overview-render.ts';
 
-import { bindOverview } from '#elements/time-slider/overview.ts';
-import { bind } from '#lib/bind.ts';
-import { formatSpokenPosition } from '#lib/spoken-time.ts';
 import {
 	holdDelayMs,
 	isSliderKey,
 	keyScrubSeconds,
 	pixelAt,
 	scrubSecondsAt,
-} from '#waveform/overview-scrub.ts';
-import { paintWaveform } from '#waveform/waveform-render.ts';
+} from '#elements/time-slider/overview-scrub.ts';
+import { bindOverview } from '#elements/time-slider/overview.ts';
+import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
+import { bind } from '#lib/bind.ts';
+import { paintWaveform } from '#waveform/overview/overview-render.ts';
 
 export interface Scrub {
 	currentSeconds: number;

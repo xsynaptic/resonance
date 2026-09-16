@@ -1,22 +1,23 @@
 import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels, PlayerUrls, QueueItem } from '#types.ts';
-import type { PanelParts, PanelView } from '#waveform/scroll-panel.ts';
+import type { PanelParts, PanelView } from '#waveform/panel/panel-view.ts';
 
+import { defineOnce } from '#elements/define-once.ts';
 import { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
-import { subscribeStoreTime } from '#lib/subscribe-time.ts';
 import { loadedItem } from '#store/selectors.ts';
-import { toCueSlot } from '#waveform/cue-rider.ts';
-import { createScrollClock } from '#waveform/scroll-clock.ts';
+import { subscribeStoreTime } from '#store/subscribe-time.ts';
+import { toCueSlot } from '#waveform/panel/cue-rider.ts';
 import {
 	createPanelView,
 	openPanelArchive,
 	paintPanelFrame,
 	startPanelLoop,
-} from '#waveform/scroll-panel.ts';
-import { subscribeTheme } from '#waveform/theme-version.ts';
+} from '#waveform/panel/panel-view.ts';
+import { createScrollClock } from '#waveform/panel/scroll-clock.ts';
+import { subscribeTheme } from '#waveform/theme-change.ts';
 
 interface PanelSource {
 	item: QueueItem | undefined;
@@ -35,9 +36,7 @@ export function connectPanelSurface(
 	{ labels, store }: PlayerContext,
 	signal: AbortSignal,
 ): void {
-	if (!customElements.get('player-panel-zoom')) {
-		customElements.define('player-panel-zoom', PlayerPanelZoom);
-	}
+	defineOnce('player-panel-zoom', PlayerPanelZoom);
 
 	const parts = renderPanelParts(panel, labels);
 	const clock = createScrollClock({
@@ -62,7 +61,7 @@ export function connectPanelSurface(
 			store,
 		});
 
-		if (parts.canvas.clientWidth > 0) view.surface.resize();
+		if (parts.canvas.clientWidth > 0) view.canvas.resize();
 	};
 
 	bind(
@@ -79,21 +78,22 @@ export function connectPanelSurface(
 		signal,
 	);
 
-	const stopLoop = startPanelLoop({
+	startPanelLoop({
 		onFrame: (frameMs, insetPx) => {
 			if (view) paintPanelFrame({ archive, clock, frameMs, insetPx, store, view });
 		},
 		onResize: () => {
-			view?.surface.resize();
+			view?.canvas.resize();
 		},
 		parts,
+		signal,
 	});
+
 	const unsubscribeTheme = subscribeTheme(rebuild);
 
 	signal.addEventListener(
 		'abort',
 		() => {
-			stopLoop();
 			unsubscribeTheme();
 			view?.drag.stop();
 			clock.stop();

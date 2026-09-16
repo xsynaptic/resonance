@@ -1,9 +1,9 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { bindPreload } from '#elements/bind-preload.ts';
 import { buttonPart } from '#elements/button-part.ts';
-import { renderIconButton } from '#elements/icon-button.ts';
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
+import { bindPreload } from '#lib/bind-preload.ts';
+import { renderIconButton } from '#lib/icon-button.ts';
 
 export const PlayerOverlayToggle = buttonPart({
 	apply: (button, isEmpty: boolean) => {

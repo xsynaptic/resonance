@@ -1,9 +1,9 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { cloneIcon } from '#elements/icons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { template } from '#lib/render.ts';
 
 type ReportedStatus = (typeof reportedStatuses)[number];

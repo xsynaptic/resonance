@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 
-import { placeholderRange } from '#waveform/waveform-scroll.ts';
+import { placeholderRange } from '#waveform/panel/panel-painter.ts';
 
 const view = { durationSeconds: 60, pixelsPerSecond: 10, width: 100 };
 

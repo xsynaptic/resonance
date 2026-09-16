@@ -3,9 +3,10 @@ import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 
 import { overlayId, renderList, selectLists, shownList } from '#elements/overlay/overlay-lists.ts';
+import { nextTabIndex } from '#elements/overlay/overlay-tab-keys.ts';
 import { bind } from '#lib/bind.ts';
-import { template } from '#lib/render.ts';
-import { nextTabIndex } from '#lib/tab-keys.ts';
+import { placeWhen } from '#lib/place-when.ts';
+import { requireChild, template } from '#lib/render.ts';
 import { displayedItem } from '#store/selectors.ts';
 
 interface TabParts {
@@ -28,10 +29,8 @@ export function bindTabs(
 	{ labels, store }: PlayerContext,
 	signal: AbortSignal,
 ): void {
-	const tablist = tabs.querySelector<HTMLElement>('[role="tablist"]');
-	const panel = tabs.querySelector<HTMLElement>('[role="tabpanel"]');
-	if (!tablist || !panel) throw new Error('The overlay tabs lost their tablist or panel');
-
+	const tablist = requireChild(tabs, '[role="tablist"]', HTMLElement);
+	const panel = requireChild(tabs, '[role="tabpanel"]', HTMLElement);
 	const id = overlayId();
 	const buttons = { playlist: renderTab(), tracklist: renderTab() } satisfies Record<
 		OverlayList,
@@ -100,8 +99,12 @@ function applyTabs(
 	lists: ReadonlyArray<OverlayList>,
 	shown: OverlayList,
 ): void {
-	if (!lists.includes('tracklist')) buttons.tracklist.remove();
-	else if (buttons.tracklist.parentNode !== tablist) tablist.prepend(buttons.tracklist);
+	placeWhen({
+		isShown: lists.includes('tracklist'),
+		node: buttons.tracklist,
+		parent: tablist,
+		position: 'prepend',
+	});
 
 	for (const list of ['playlist', 'tracklist'] as const) {
 		buttons[list].setAttribute('aria-selected', String(list === shown));

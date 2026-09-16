@@ -26,7 +26,7 @@ const lqip = getMediaLqip(path);
 {image ? (
 	<Image
 		alt={alt}
-		class:list={[className, lqip ? 'bg-cover bg-center' : undefined]}
+		class:list={[className, lqip ? 'bg-cover bg-center text-transparent' : undefined]}
 		layout={layout}
 		priority={priority ?? false}
 		src={image}

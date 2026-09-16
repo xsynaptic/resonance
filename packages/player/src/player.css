@@ -24,6 +24,7 @@
 	--player-current: #34d399;
 	--player-focus-ring: #10b981;
 	--player-waveform-base: #525252;
+	--player-waveform-buffered: #737373;
 	--player-waveform-played: #10b981;
 	--player-waveform-scrub: #6ee7b7;
 
@@ -619,6 +620,19 @@ player-title[data-idle] {
 	translate: -100%;
 }
 
+.player-cue-time {
+	font-family: var(--player-font-mono);
+	font-variant-numeric: tabular-nums;
+	color: var(--player-clock);
+}
+
+/* The clock carries the separator only while a Track follows it */
+.player-cue-time:not(:empty):has(~ :not(:empty))::after {
+	padding-inline: 0.3em;
+	color: var(--player-cue-title);
+	content: '-';
+}
+
 .player-cue-artist {
 	font-weight: 500;
 	color: var(--player-cue-artist);
@@ -1007,6 +1021,7 @@ player-title[data-idle] {
 	backdrop-filter: blur(8px);
 }
 
+/* The tag step scopes to the bar's own panel; the overlay holds another and sits inside the bar */
 .player-bar:has(> player-panel > .player-panel) {
 	border-top-color: transparent;
 }
@@ -1077,7 +1092,7 @@ player-title[data-idle] {
 }
 
 /* Full-bleed from under the bar's top border to its foot, beside the grid rows and never the panel */
-.player-bar-grid > player-artwork > .player-artwork {
+.player-bar-grid .player-artwork {
 	position: absolute;
 	bottom: var(--player-inset-bottom);
 	left: env(safe-area-inset-left);
@@ -1086,7 +1101,7 @@ player-title[data-idle] {
 	block-size: var(--player-layout-artwork);
 }
 
-.player-bar-grid:has(> player-artwork > .player-artwork) {
+.player-bar-grid:has(.player-artwork) {
 	padding-left: calc(
 		env(safe-area-inset-left) + var(--player-layout-artwork) + 2px + var(--player-gap) -
 			var(--player-inset-left)
@@ -1139,7 +1154,7 @@ player-title[data-idle] {
 		--player-layout: 'transport info queue' auto / auto minmax(0, 1fr) auto;
 	}
 
-	.player-bar-grid:has(> player-artwork > .player-artwork) {
+	.player-bar-grid:has(.player-artwork) {
 		padding-left: 0;
 	}
 
@@ -1153,7 +1168,7 @@ player-title[data-idle] {
 	}
 
 	.player-bar > player-panel > .player-panel,
-	.player-bar-grid > player-artwork > .player-artwork,
+	.player-bar-grid .player-artwork,
 	.player-bar-grid player-time-slider > :is(.player-waveform-frame, .player-seek),
 	.player-bar-grid .player-panel-toggle,
 	.player-bar-grid:has(> player-overlay-toggle) .player-queue,

@@ -55,6 +55,13 @@ export function cuePointAt(
 	return nearest;
 }
 
+// Which way a label opens from an anchor, and the room it has on that side
+export function labelPlacement(x: number, width: number): Pick<PlacedCuePoint, 'room' | 'side'> {
+	const side = x < width * openEndFrom ? 'start' : 'end';
+
+	return { room: side === 'start' ? width - x : x, side };
+}
+
 export function layoutCuePoints(
 	cuePoints: ReadonlyArray<QueueCuePoint>,
 	durationSeconds: number,
@@ -76,17 +83,22 @@ export function layoutCuePoints(
 
 		lastColumns[lane] = column;
 
-		const side = x < width * openEndFrom ? 'start' : 'end';
-
 		placed.push({
 			cuePoint,
 			lane,
-			room: side === 'start' ? width - x : x,
-			side,
+			...labelPlacement(x, width),
 			x,
 			y: size / 2 + lane * laneStep,
 		});
 	}
 
 	return placed;
+}
+
+// The cue whose span covers the instant; nothing before the first timestamp
+export function placedCueAt(
+	placed: ReadonlyArray<PlacedCuePoint>,
+	seconds: number,
+): PlacedCuePoint | undefined {
+	return placed.findLast((point) => point.cuePoint.startSeconds <= seconds);
 }

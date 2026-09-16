@@ -28,6 +28,7 @@
 	--player-current: var(--color-highlight-400);
 	--player-focus-ring: var(--color-highlight-500);
 	--player-waveform-base: var(--color-ink-700);
+	--player-waveform-buffered: var(--color-ink-600);
 	--player-waveform-played: var(--color-ink-100);
 	--player-waveform-scrub: var(--color-ink-400);
 	--player-panel-wave: var(--color-ink-100);

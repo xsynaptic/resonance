@@ -20,11 +20,13 @@ const themes = {
 	dim: {
 		'--player-cue-dot': '#f59e0b',
 		'--player-waveform-base': '#333333',
+		'--player-waveform-buffered': '#4d4d4d',
 		'--player-waveform-played': '#1c7a55',
 	},
 	lit: {
 		'--player-cue-dot': '#fbbf24',
 		'--player-waveform-base': '#cccccc',
+		'--player-waveform-buffered': '#999999',
 		'--player-waveform-played': '#10b981',
 	},
 };
@@ -32,7 +34,7 @@ const themes = {
 const overview = [0.4, 0.8, 0.6, 0.2];
 
 function cue(startSeconds: number): QueueCuePoint {
-	return { artistLine: '', startSeconds, title: String(startSeconds) };
+	return { artistLine: 'Forest Signal', startSeconds, title: String(startSeconds) };
 }
 
 function mountSlider(options: {
@@ -64,6 +66,30 @@ function painted(theme: keyof typeof themes) {
 	const { '--player-waveform-base': base, '--player-waveform-played': played } = themes[theme];
 
 	return [base, played];
+}
+
+// The readout's three spans, as a listener reads them left to right
+function readout(part: HTMLElement): string | undefined {
+	const label = part.querySelector<HTMLSpanElement>('.player-cue-label');
+
+	if (!label || label.hidden) return undefined;
+
+	return [...label.children].map((span) => span.textContent).join('|');
+}
+
+// happy-dom builds no `TimeRanges`, and the element the store hands out is the fake engine's
+function stubBuffered(
+	element: HTMLMediaElement,
+	ranges: Array<{ end: number; start: number }>,
+): void {
+	Object.defineProperty(element, 'buffered', {
+		configurable: true,
+		value: {
+			end: (index: number) => ranges[index]?.end ?? 0,
+			length: ranges.length,
+			start: (index: number) => ranges[index]?.start ?? 0,
+		},
+	});
 }
 
 // happy-dom has no 2d context and resolves no custom property; the fills record the colours in the order painted
@@ -286,6 +312,139 @@ describe('<player-time-slider>', () => {
 		fireEvent.pointerUp(slider);
 
 		expect(seeks()).toStrictEqual([100]);
+	});
+
+	// 300 px over a 200s mix put the pointer at half the bar on 100s, inside the Track that starts at 50s
+	test('reads out the time under the pointer and the Track covering it', () => {
+		stubPainting();
+
+		const { part, slider } = mountSlider({
+			cuePoints: [cue(50)],
+			currentTimeSeconds: 0,
+			durationSeconds: 200,
+		});
+
+		fireEvent.pointerMove(slider, { clientX: 150, clientY: 24 });
+
+		expect(readout(part)).toBe('1:40|Forest Signal|50');
+		expect(part.querySelector<HTMLSpanElement>('.player-cue-label')?.style.left).toBe('150px');
+	});
+
+	test('reads out the time alone where no Track has started yet', () => {
+		stubPainting();
+
+		const { part, slider } = mountSlider({
+			cuePoints: [cue(50)],
+			currentTimeSeconds: 0,
+			durationSeconds: 200,
+		});
+
+		fireEvent.pointerMove(slider, { clientX: 30, clientY: 24 });
+
+		expect(readout(part)).toBe('0:20||');
+	});
+
+	// The press snaps to the cue point's start, so the readout says where the click would land rather than where the pointer is
+	test('reads out a cue point at its start rather than at the pointer', () => {
+		stubPainting();
+
+		const { part, slider } = mountSlider({
+			cuePoints: [cue(50)],
+			currentTimeSeconds: 0,
+			durationSeconds: 200,
+		});
+
+		fireEvent.pointerMove(slider, { clientX: 79, clientY: 4 });
+
+		expect(readout(part)).toBe('0:50|Forest Signal|50');
+		expect(part.querySelector<HTMLSpanElement>('.player-cue-label')?.style.left).toBe('76px');
+	});
+
+	test('leaves the readout hidden for a touch pointer', () => {
+		stubPainting();
+
+		const { part, slider } = mountSlider({
+			cuePoints: [cue(50)],
+			currentTimeSeconds: 0,
+			durationSeconds: 200,
+		});
+
+		fireEvent.pointerMove(slider, { clientX: 150, clientY: 24, pointerType: 'touch' });
+
+		expect(readout(part)).toBeUndefined();
+
+		fireEvent.pointerMove(slider, { clientX: 150, clientY: 24 });
+		fireEvent.pointerLeave(slider);
+
+		expect(readout(part)).toBeUndefined();
+	});
+
+	// Nothing on the idle preview maps a pixel to a time, so it keeps the marker label and shows no clock
+	test('reads out a cue point without a time on the idle preview', () => {
+		stubPainting();
+
+		const { part, store } = mount('player-time-slider');
+
+		store.getState().loadQueue([
+			queueItem('a', {
+				cuePoints: [cue(50)],
+				durationMs: 200_000,
+				waveformOverview: overview,
+			}),
+		]);
+
+		const canvas = part.querySelector('canvas');
+
+		expect(canvas).not.toBeNull();
+
+		fireEvent.pointerMove(canvas!, { clientX: 150, clientY: 24 });
+		expect(readout(part)).toBeUndefined();
+
+		fireEvent.pointerMove(canvas!, { clientX: 79, clientY: 4 });
+		expect(readout(part)).toBe('|Forest Signal|50');
+	});
+
+	// 20s and the span from 100s to 140s of a 200s mix land on 0 to 30 and 150 to 210 of a 300 px bar
+	test('paints every buffered range rather than the furthest end alone', () => {
+		const { context, fills } = stubPainting();
+		const { fake } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
+
+		stubBuffered(fake.engine.element, [
+			{ end: 20, start: 0 },
+			{ end: 140, start: 100 },
+		]);
+		context.rect.mockClear();
+		fills.length = 0;
+		fake.engine.element.dispatchEvent(new Event('progress'));
+
+		expect(context.rect.mock.calls).toStrictEqual([
+			[0, 0, 30, 48],
+			[150, 0, 60, 48],
+		]);
+		expect(fills).toStrictEqual([
+			themes.lit['--player-waveform-base'],
+			themes.lit['--player-waveform-buffered'],
+		]);
+	});
+
+	// A range grows continuously while a stream loads, and most of that growth moves no device pixel
+	test('repaints on progress only once a buffered edge reaches the next device pixel', () => {
+		const { context } = stubPainting();
+		const { fake } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 3000 });
+
+		const paints = () => context.clearRect.mock.calls.length;
+
+		stubBuffered(fake.engine.element, [{ end: 100, start: 0 }]);
+		fake.engine.element.dispatchEvent(new Event('progress'));
+
+		const settled = paints();
+
+		fake.engine.element.dispatchEvent(new Event('progress'));
+		expect(paints()).toBe(settled);
+
+		stubBuffered(fake.engine.element, [{ end: 110, start: 0 }]);
+		fake.engine.element.dispatchEvent(new Event('progress'));
+		expect(paints()).toBe(settled + 1);
 	});
 
 	test('falls back to a range input for an item measured without peaks', () => {

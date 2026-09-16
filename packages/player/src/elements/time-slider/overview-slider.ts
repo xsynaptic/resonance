@@ -9,6 +9,7 @@ import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 import type { WaveformRendering } from '#waveform/overview/overview-render.ts';
 
+import { bufferedKey, bufferedSpans } from '#elements/time-slider/overview-buffered.ts';
 import {
 	holdDelayMs,
 	isSliderKey,
@@ -55,6 +56,7 @@ export function bindOverviewSlider(
 	const { canvas } = parts;
 	const { durationSeconds, scrub, store } = input;
 	const overview = bindOverview(parts, input, {
+		durationSeconds,
 		paint: createSliderPaint(canvas, input, scrub),
 		signal,
 	});
@@ -98,6 +100,16 @@ export function bindOverviewSlider(
 		);
 	}
 
+	// The element is built after the load lands in the store, so it arrives a tick after the slider binds
+	bind(
+		store,
+		selectMediaElement,
+		(element) => {
+			// The one event that reports a range growing; a paused listener sees nothing move without it
+			element?.addEventListener('progress', overview.repaint, { signal });
+		},
+		signal,
+	);
 	bind(
 		store,
 		selectTime,
@@ -203,7 +215,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 
 // Only the edges that land on another device pixel repaint, and only a new whole second is spoken
 function createSliderPaint(canvas: HTMLCanvasElement, input: SliderInput, scrub: Scrub) {
-	const { durationSeconds, labels } = input;
+	const { durationSeconds, labels, store } = input;
 	let paintedRendering: undefined | WaveformRendering;
 	let paintedEdges = '';
 	let spokenSeconds = -1;
@@ -213,12 +225,17 @@ function createSliderPaint(canvas: HTMLCanvasElement, input: SliderInput, scrub:
 		const shownSeconds = Math.floor(heldSeconds ?? scrub.currentSeconds);
 		const playedPx = pixelAt(scrub.currentSeconds, durationSeconds, rendering.width) ?? 0;
 		const scrubPx = pixelAt(heldSeconds, durationSeconds, rendering.width);
-		const edges = `${String(playedPx)}:${String(scrubPx)}`;
+		const buffered = bufferedSpans(
+			store.getState().getMediaElement()?.buffered,
+			durationSeconds,
+			rendering.width,
+		);
+		const edges = `${String(playedPx)}:${String(scrubPx)}:${bufferedKey(buffered)}`;
 
 		if (rendering !== paintedRendering || edges !== paintedEdges) {
 			paintedRendering = rendering;
 			paintedEdges = edges;
-			paintWaveform(rendering, playedPx, scrubPx);
+			paintWaveform(rendering, { buffered, playedPx, scrubPx });
 		}
 
 		if (shownSeconds === spokenSeconds) return;
@@ -261,6 +278,10 @@ function scrubToKey(gesture: ScrubGesture, event: KeyboardEvent): void {
 	scrub.scrubSeconds = seconds;
 	scrub.isHeld = true;
 	overview.repaint();
+}
+
+function selectMediaElement(state: PlayerStore): HTMLMediaElement | undefined {
+	return state.getMediaElement();
 }
 
 function selectTime(state: PlayerStore): number {

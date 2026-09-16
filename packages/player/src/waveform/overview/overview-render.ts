@@ -11,8 +11,16 @@ export interface OverviewCues {
 	cuePoints: ReadonlyArray<QueueCuePoint> | undefined;
 }
 
+export interface WaveformEdges {
+	// Every range the element holds, not the furthest end alone
+	buffered?: ReadonlyArray<WaveformSpan> | undefined;
+	playedPx: number;
+	scrubPx?: number | undefined;
+}
+
 export interface WaveformRendering {
 	baseStyle: string;
+	bufferedStyle: string;
 	context: CanvasRenderingContext2D;
 	cuePoints: ReadonlyArray<PlacedCuePoint>;
 	cuePointSize: number;
@@ -28,6 +36,12 @@ export interface WaveformRendering {
 	width: number;
 }
 
+// A band across the waveform, in device pixels
+export interface WaveformSpan {
+	fromPx: number;
+	toPx: number;
+}
+
 interface BarLayout {
 	bar: number;
 	height: number;
@@ -35,16 +49,19 @@ interface BarLayout {
 	radius: number;
 }
 
-export function paintWaveform(
-	rendering: WaveformRendering,
-	playedPx: number,
-	scrubPx?: number,
-): void {
-	const { baseStyle, context, height, path, playedStyle, scrubStyle, width } = rendering;
+export function paintWaveform(rendering: WaveformRendering, edges: WaveformEdges): void {
+	const { baseStyle, bufferedStyle, context, height, path, playedStyle, scrubStyle, width } =
+		rendering;
+	const { buffered = [], playedPx, scrubPx } = edges;
 
 	context.clearRect(0, 0, width, height);
 	context.fillStyle = baseStyle;
 	context.fill(path);
+
+	// Under the played span, so a range the playhead has already crossed reads as played
+	for (const { fromPx, toPx } of buffered) {
+		fillSpan(rendering, { fromPx, style: bufferedStyle, toPx });
+	}
 
 	if (playedPx > 0) fillSpan(rendering, { fromPx: 0, style: playedStyle, toPx: playedPx });
 
@@ -94,6 +111,7 @@ export function prepareRendering(
 
 	return {
 		baseStyle: styles.getPropertyValue('--player-waveform-base'),
+		bufferedStyle: styles.getPropertyValue('--player-waveform-buffered'),
 		context,
 		cuePoints,
 		cuePointSize,

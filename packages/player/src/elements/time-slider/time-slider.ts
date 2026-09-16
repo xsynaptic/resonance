@@ -36,7 +36,7 @@ interface SliderView {
 
 // The cue label is hidden from assistive tech: the tracklist carries the same names and the slider the same seeks
 const renderFrame = template(
-	'<div class="player-waveform-frame"><canvas class="player-waveform"></canvas><span aria-hidden="true" class="player-cue-label" hidden><span class="player-cue-artist"></span><span class="player-cue-title"></span></span></div>',
+	'<div class="player-waveform-frame"><canvas class="player-waveform"></canvas><span aria-hidden="true" class="player-cue-label" hidden><span class="player-cue-time"></span><span class="player-cue-artist"></span><span class="player-cue-title"></span></span></div>',
 	HTMLDivElement,
 );
 
@@ -130,15 +130,29 @@ function bindRange(range: HTMLInputElement, { labels, store }: PlayerContext, si
 function renderSliderParts(): SliderParts {
 	const frame = renderFrame();
 	const canvas = frame.querySelector('canvas');
-	const label = frame.querySelector('span');
-	const artist = label?.querySelector<HTMLSpanElement>('.player-cue-artist');
-	const title = label?.querySelector<HTMLSpanElement>('.player-cue-title');
+	const label = frame.querySelector<HTMLSpanElement>('.player-cue-label');
 
-	if (!canvas || !label || !artist || !title) {
+	if (!canvas || !label) {
 		throw new Error('The time slider template lost its canvas or its cue label');
 	}
 
-	return { artist, canvas, frame, label, range: renderRange(), title };
+	return {
+		artist: requireLabelSpan(label, 'player-cue-artist'),
+		canvas,
+		frame,
+		label,
+		range: renderRange(),
+		time: requireLabelSpan(label, 'player-cue-time'),
+		title: requireLabelSpan(label, 'player-cue-title'),
+	};
+}
+
+function requireLabelSpan(label: HTMLSpanElement, className: string): HTMLSpanElement {
+	const span = label.querySelector<HTMLSpanElement>(`.${className}`);
+
+	if (!span) throw new Error(`The cue label lost its ${className} span`);
+
+	return span;
 }
 
 function selectRange(state: PlayerStore) {

@@ -6,7 +6,7 @@ export default getConfig(
 		{
 			ignores: [
 				'node_modules/**/*',
-				'.claude/worktrees/**/*',
+				'.claude/**/*',
 				'**/.astro/**/*',
 				'**/.cache/**/*',
 				'**/.wrangler/**/*',

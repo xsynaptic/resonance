@@ -36,6 +36,11 @@ export default defineConfig({
 				context: 'server',
 				default: 'https://files.djbasilisk.com/',
 			}),
+			LISTENING_TIME_ENABLED: envField.boolean({
+				access: 'public',
+				context: 'server',
+				default: false,
+			}),
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
 			PLAYER_ENABLED: envField.boolean({ access: 'public', context: 'server', default: false }),
 			PLAYER_OVERLAY_ENABLED: envField.boolean({

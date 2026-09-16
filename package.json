@@ -18,6 +18,7 @@
 		"comments": "pnpm -F @xsynaptic/scripts comments",
 		"comments-backup": "pnpm -F @xsynaptic/scripts comments-backup",
 		"comments-pull": "pnpm -F @xsynaptic/scripts comments-pull",
+		"listens-pull": "pnpm -F @xsynaptic/scripts listens-pull",
 		"discogs-tracklists": "pnpm -F @xsynaptic/scripts discogs-tracklists",
 		"deploy-app": "pnpm -F @xsynaptic/scripts deploy-app",
 		"deploy-audio": "pnpm -F @xsynaptic/scripts deploy-audio",
@@ -42,6 +43,7 @@
 		"#*": "./src/*"
 	},
 	"dependencies": {
+		"@xsynaptic/playback-stats": "workspace:*",
 		"@xsynaptic/player": "workspace:*",
 		"astro": "^7.3.2",
 		"yaml": "^2.9.0"
@@ -54,6 +56,7 @@
 		"@astrojs/sitemap": "^3.7.4",
 		"@pagefind/component-ui": "^1.5.2",
 		"@tailwindcss/vite": "^4.3.3",
+		"@types/node": "^24.13.2",
 		"@types/react": "^19.3.0",
 		"@types/sanitize-html": "^2.16.1",
 		"@xsynaptic/astro-build-logger": "^1.1.0",

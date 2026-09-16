@@ -42,7 +42,7 @@ export default getConfig(
 		},
 		{
 			// These files run in the browser and might need browser globals
-			files: ['src/components/**/*', 'packages/player/**/*'],
+			files: ['src/components/**/*', 'packages/player/**/*', 'packages/playback-stats/**/*'],
 			languageOptions: {
 				globals: {
 					...Object.fromEntries(Object.keys(globals.node).map((key) => [key, 'off'])),

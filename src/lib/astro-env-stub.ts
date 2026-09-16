@@ -3,4 +3,7 @@
 export const FILES_URL = 'https://files.example.com/';
 
 // eslint-disable-next-line unicorn/consistent-boolean-name -- the name mirrors the astro:env variable it stands in for
+export const LISTENING_TIME_ENABLED = false;
+
+// eslint-disable-next-line unicorn/consistent-boolean-name -- the name mirrors the astro:env variable it stands in for
 export const PLAYER_ENABLED = false;

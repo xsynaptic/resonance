@@ -1,5 +1,10 @@
 import { siteTitle } from '@xsynaptic/shared/constants';
-import { FILES_URL, PLAYER_ENABLED, PLAYER_OVERLAY_ENABLED } from 'astro:env/server';
+import {
+	FILES_URL,
+	LISTENING_TIME_ENABLED,
+	PLAYER_ENABLED,
+	PLAYER_OVERLAY_ENABLED,
+} from 'astro:env/server';
 
 export const site = {
 	description: 'Mixes, reviews, and lists from DJ Basilisk.',
@@ -32,3 +37,6 @@ export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).
 // Dev always shows the player and its overlay; a build shows each only where the deploying machine sets its variable
 export const isPlayerEnabled = import.meta.env.DEV || PLAYER_ENABLED;
 export const isPlayerOverlayEnabled = import.meta.env.DEV || PLAYER_OVERLAY_ENABLED;
+
+// Listen counts render unflagged; listening time waits until the numbers are worth showing
+export const isListeningTimeEnabled = import.meta.env.DEV || LISTENING_TIME_ENABLED;

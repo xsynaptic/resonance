@@ -17,16 +17,18 @@ afterEach(() => {
 });
 
 describe('fetch', () => {
-	test('answers a non-POST on the comments route with 405, not the 404 page', async () => {
-		for (const method of ['GET', 'HEAD', 'PUT']) {
-			const response = await worker.fetch(
-				new Request('https://example.test/api/comments', { method }),
-				createEnv(),
-			);
+	test('answers a non-POST on an API route with 405, not the 404 page', async () => {
+		for (const path of ['/api/comments', '/api/listen']) {
+			for (const method of ['GET', 'HEAD', 'PUT']) {
+				const response = await worker.fetch(
+					new Request(`https://example.test${path}`, { method }),
+					createEnv(),
+				);
 
-			expect(response.status).toBe(405);
-			expect(response.headers.get('allow')).toBe('POST');
-			await expect(response.text()).resolves.toBe('');
+				expect(response.status).toBe(405);
+				expect(response.headers.get('allow')).toBe('POST');
+				await expect(response.text()).resolves.toBe('');
+			}
 		}
 	});
 

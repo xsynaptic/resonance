@@ -1,0 +1,14 @@
+{
+	"name": "@xsynaptic/playback-stats",
+	"version": "0.0.1",
+	"description": "Heard time from a media element, reported as running totals",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": "./src/monitor-playback.ts"
+	},
+	"imports": {
+		"#*": "./src/*"
+	}
+}

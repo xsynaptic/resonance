@@ -8,6 +8,9 @@ export const contentExcerptMarker = '<!--more-->';
 // Pulled via `pnpm stats-pull`; may not exist locally
 export const downloadsStatsPath = './packages/content/data/downloads.json';
 
+// Pulled via `pnpm listens-pull`; may not exist locally
+export const listensStatsPath = './packages/content/data/listens.json';
+
 // Every feed item is a full off-page MDX render, so the count is the build cost
 export const feedItemCount = 20;
 

@@ -8,6 +8,7 @@ const elements = vi.hoisted(() => ({
 	bindMediaSession: vi.fn(),
 	bindPageControls: vi.fn(),
 	definePlayerElements: vi.fn(),
+	loadedItem: vi.fn(),
 	playerStore: {},
 }));
 

@@ -23,6 +23,7 @@ export default defineConfig({
 						'**/.git/**',
 						'.claude/worktrees/**',
 						'dist/**',
+						'packages/playback-stats/**',
 						'packages/player/**',
 					],
 					name: 'site',
@@ -34,6 +35,14 @@ export default defineConfig({
 					environment: 'happy-dom',
 					include: ['packages/player/**/*.test.{ts,tsx}'],
 					name: 'player',
+				},
+			},
+			{
+				extends: true,
+				test: {
+					environment: 'happy-dom',
+					include: ['packages/playback-stats/**/*.test.ts'],
+					name: 'playback-stats',
 				},
 			},
 		],

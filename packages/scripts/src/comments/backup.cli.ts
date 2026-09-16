@@ -1,8 +1,9 @@
 #!/usr/bin/env tsx
-import { backupComments } from '#comments/backup.ts';
+import { backupDatabase } from '#comments/backup.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 
-await backupComments({
+await backupDatabase({
+	databaseName: 'resonance-comments',
 	isLocal: process.argv.includes('--local'),
 	rootPath: findWorkspaceRoot(),
 });

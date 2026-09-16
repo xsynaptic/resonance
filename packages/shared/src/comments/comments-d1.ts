@@ -1,8 +1,8 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { z } from 'zod';
 
-const execFileAsync = promisify(execFile);
+import type { D1CommandOptions } from '#d1.ts';
+
+import { runD1Command } from '#d1.ts';
 
 const databaseName = 'resonance-comments';
 
@@ -55,16 +55,6 @@ export type CommentsSnapshot = z.infer<typeof commentsSnapshotSchema>;
 
 export type CommentStatus = z.infer<typeof commentStatusSchema>;
 
-interface CommandResult<Row> {
-	meta: { changes: number };
-	results: Array<Row>;
-}
-
-interface CommentsD1Options {
-	cwd?: string | undefined;
-	isLocal?: boolean | undefined;
-}
-
 // Local and remote pulls write separate files, so a production build never reads local data
 export function commentsSnapshotPath(isLocal: boolean): string {
 	return `node_modules/.cache/comments/approved-${isLocal ? 'local' : 'remote'}.json`;
@@ -72,18 +62,18 @@ export function commentsSnapshotPath(isLocal: boolean): string {
 
 export async function executeComments(
 	sql: string,
-	options: CommentsD1Options = {},
+	options: D1CommandOptions = {},
 ): Promise<number> {
-	const results = await runCommand<never>(sql, options);
+	const results = await runD1Command<never>(databaseName, sql, options);
 
 	return results.reduce((total, result) => total + result.meta.changes, 0);
 }
 
 export async function queryComments<Row>(
 	sql: string,
-	options: CommentsD1Options = {},
+	options: D1CommandOptions = {},
 ): Promise<Array<Row>> {
-	const results = await runCommand<Row>(sql, options);
+	const results = await runD1Command<Row>(databaseName, sql, options);
 
 	return results.flatMap((result) => result.results);
 }
@@ -92,30 +82,4 @@ export function toIdLiteral(id: string): string {
 	if (!idPattern.test(id)) throw new Error(`"${id}" is not a comment id`);
 
 	return `'${id}'`;
-}
-
-async function runCommand<Row>(
-	sql: string,
-	options: CommentsD1Options,
-): Promise<Array<CommandResult<Row>>> {
-	const { cwd, isLocal = false } = options;
-
-	const { stdout } = await execFileAsync(
-		'pnpm',
-		[
-			'exec',
-			'wrangler',
-			'd1',
-			'execute',
-			databaseName,
-			isLocal ? '--local' : '--remote',
-			'--json',
-			'--command',
-			sql,
-		],
-		// The corpus grows without bound; Node's 1 MB default would truncate it into a parse failure
-		{ cwd, maxBuffer: Infinity },
-	);
-
-	return JSON.parse(stdout) as Array<CommandResult<Row>>;
 }

@@ -4,6 +4,7 @@
 	"compilerOptions": {
 		"erasableSyntaxOnly": true,
 		"lib": ["ESNext"],
-		"types": ["../worker-configuration.d.ts"]
+		// `node` is for the tests alone, which drive a real SQLite; the Worker itself uses no Node API
+		"types": ["../worker-configuration.d.ts", "node"]
 	}
 }

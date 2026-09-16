@@ -20,6 +20,7 @@ import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
+import { pullListens } from '#stats/listens-pull.ts';
 
 interface HealthCheckFiles {
 	archives: Array<string>;
@@ -261,8 +262,9 @@ try {
 	recordStep('Download stats', await pullStats({ config, dryRun: isDryRun, rootPath }));
 	recordStep('Mixcloud stats', await pullMixcloudStats({ dryRun: isDryRun, rootPath }));
 	recordStep('SoundCloud stats', await pullSoundcloudStats({ dryRun: isDryRun, rootPath }));
+	recordStep('Listening stats', await pullListens({ dryRun: isDryRun, rootPath }));
 
-	recordStep('Comment backup', await backupIfStale({ dryRun: isDryRun, rootPath }));
+	recordStep('D1 backup', await backupIfStale({ dryRun: isDryRun, rootPath }));
 	await pullComments({ allowStale: true, rootPath });
 
 	await check();

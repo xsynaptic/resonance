@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { sha256 } from '#worker/sha256.ts';
 
 const siteverifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
@@ -199,12 +200,6 @@ async function readSubmission(request: Request): Promise<Response | Submission> 
 		return fail(request, 400, t('comments.error.tooFast'));
 
 	return parsed.data;
-}
-
-async function sha256(value: string): Promise<string> {
-	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-
-	return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 // The native form post reads the redirect; the client asks for JSON so it can stay on the page

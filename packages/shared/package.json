@@ -14,7 +14,8 @@
 		"./platform-stats": "./src/platform-stats.ts",
 		"./routing": "./src/routing.ts",
 		"./schemas": "./src/schemas/index.ts",
-		"./sitemap": "./src/sitemap.ts"
+		"./sitemap": "./src/sitemap.ts",
+		"./stats": "./src/stats.ts"
 	},
 	"dependencies": {
 		"zod": "^4.6.2"

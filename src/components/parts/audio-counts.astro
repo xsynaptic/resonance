@@ -7,12 +7,36 @@ import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	downloads?: number | undefined;
+	listeningSeconds?: number | undefined;
+	listens?: number | undefined;
 	mixcloudPlays?: number | undefined;
 	soundcloudPlays?: number | undefined;
 	streams?: number | undefined;
 }
 
-const { downloads, mixcloudPlays, soundcloudPlays, streams } = Astro.props;
+const { downloads, listeningSeconds, listens, mixcloudPlays, soundcloudPlays, streams } =
+	Astro.props;
+
+function toDurationRow(unit: StringKey, count: number) {
+	return {
+		heading: t('audio.listeningTimeLabel'),
+		value: formatStringTemplate(t(unit), { count: formatNumber({ number: count }) }),
+	};
+}
+
+function toListeningTimeRow(seconds: number | undefined) {
+	if (!seconds || seconds < 60) return;
+
+	if (seconds < 3600) {
+		const minutes = Math.floor(seconds / 60);
+
+		return toDurationRow(minutes === 1 ? 'audio.minutes.one' : 'audio.minutes.other', minutes);
+	}
+
+	const hours = Math.round(seconds / 3600);
+
+	return toDurationRow(hours === 1 ? 'audio.hours.one' : 'audio.hours.other', hours);
+}
 
 function toPlaysRow(heading: StringKey, value: number | undefined) {
 	if (!value) return;
@@ -33,6 +57,8 @@ function toTotalRow(heading: StringKey, value: number | undefined) {
 
 const rows = [
 	toTotalRow('audio.downloadsLabel', downloads),
+	toTotalRow('audio.listensLabel', listens),
+	toListeningTimeRow(listeningSeconds),
 	toTotalRow('audio.streamsLabel', streams),
 	toPlaysRow('audio.mixcloud', mixcloudPlays),
 	toPlaysRow('audio.soundcloud', soundcloudPlays),

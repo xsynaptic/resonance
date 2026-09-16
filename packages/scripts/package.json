@@ -14,6 +14,7 @@
 		"comments": "tsx ./src/comments/moderate.cli.ts",
 		"comments-backup": "tsx ./src/comments/backup.cli.ts",
 		"comments-pull": "tsx ./src/comments/pull.cli.ts",
+		"listens-pull": "tsx ./src/stats/listens-pull.cli.ts",
 		"discogs-tracklists": "tsx --env-file-if-exists=../../.env ./src/discogs/discogs-tracklists.cli.ts",
 		"lqip": "tsx ./src/lqip/lqip.cli.ts",
 		"audio-validate": "tsx ./src/audio/validate.cli.ts",

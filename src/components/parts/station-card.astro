@@ -22,7 +22,7 @@ const { priority = false, station } = Astro.props;
 	{station.image ? (
 		<MediaImage
 			alt=""
-			class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 group-focus-visible:scale-105"
+			class="absolute inset-0 h-full w-full object-cover"
 			path={station.image}
 			sizes="auto, (min-width: 80rem) 288px, (min-width: 40rem) 50vw, 100vw"
 			width={300}
@@ -31,7 +31,7 @@ const { priority = false, station } = Astro.props;
 	) : undefined}
 	<span class="absolute inset-0 bg-linear-to-t from-surface-950/90 via-surface-950/40 to-surface-950/10"></span>
 	<span class="absolute inset-0 flex items-center justify-center">
-		<span class="flex size-16 items-center justify-center rounded-full bg-highlight-400 text-surface-800 shadow-lg transition group-hover:scale-110 group-hover:bg-highlight-300 group-focus-visible:scale-110 group-focus-visible:bg-highlight-300">
+		<span class="flex size-16 items-center justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-surface-950/50 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
 			<svg aria-hidden="true" class="ml-1 size-7 fill-current">
 				<use href="#icon:play"></use>
 			</svg>

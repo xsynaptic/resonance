@@ -34,7 +34,7 @@ const strings = {
 	'collection.eras.title': 'Eras',
 	'collection.labels.title': 'Labels',
 	'collection.mixes.description':
-		'Studio mixes and live recordings under various aliases, primarily DJ Basilisk (psytrance, techno, progressive house, downtempo, and more) and Synaptic FX (more contemporary house, nu-disco, and a little trance).',
+		'Studio mixes and live recordings under various aliases, primarily DJ Basilisk (psytrance, techno, progressive house, downtempo, and more) and in the 2010s, Synaptic FX (more contemporary house, nu-disco, and a little trance).',
 	'collection.mixes.title': 'Mixes',
 	'collection.posts.title': 'Posts',
 	'collection.regions.title': 'Regions',
@@ -108,8 +108,8 @@ const strings = {
 	'footer.recentMixes.heading': 'Recent Mixes',
 	'footer.support.lead': 'Support this work through',
 	'footer.support.link': 'Patreon',
-	'home.intro':
-		'Mixes, charts, reviews, and articles on psytrance, techno, house, IDM, electro, breaks, ambient, and adjacent genres. My focus in the 2020s is mixcraft: profiling specific styles and movements, exploring the possibilities of long-form cross-genre mixing, and improving my production skills to maximize the quality of my output.',
+	'home.intro.description': `Mixes, reviews, charts, and articles on psytrance, techno, house, IDM, electro, breaks, ambient, and adjacent realms of electronic music culture. My focus in the 2020s is primarily mixcraft: profiling specific styles and movements and exploring the manifold possibilities of harmonic, cross-genre mixing, often in unusually long and involved forms. I'm based in Taiwan and available for bookings worldwide.`,
+	'home.intro.title': 'Rhizomatic explorations of electronic music since 1999',
 	'home.mixes.heading': 'Latest Mixes',
 	'home.mixes.link': 'All mixes',
 	'home.posts.heading': 'Recent Posts',
@@ -125,8 +125,6 @@ const strings = {
 	'nav.primary.label': 'Primary',
 	'nav.submenu.label': '{title} submenu',
 	'notFound.body': 'The page you are looking for does not exist or has moved.',
-	'notFound.link': 'Back to the home page',
-	'notFound.search': 'Search this site',
 	'notFound.suggestions': 'Did you mean one of these?',
 	'notFound.suggestionsLoading': 'Looking for a close match…',
 	'notFound.title': 'Page Not Found',

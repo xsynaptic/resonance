@@ -7,7 +7,7 @@ import {
 } from 'astro:env/server';
 
 export const site = {
-	description: 'Mixes, reviews, and lists from DJ Basilisk.',
+	description: 'Mixes, reviews, and selections from DJ Basilisk.',
 	title: siteTitle,
 } as const;
 

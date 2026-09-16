@@ -1,27 +1,33 @@
 ---
 import { openGraphHomeId } from '@xsynaptic/shared/constants';
 
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
 import StationsSection from '#components/sections/section-stations.astro';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getStations } from '#lib/collections/stations/stations-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { isPlayerEnabled, site } from '#lib/site.ts';
+import { isPlayerEnabled } from '#lib/site.ts';
 import { buildAuthorSchema, buildWebSiteSchema } from '#lib/utils/seo-structured-data.ts';
+
+function hasFeaturedImage(item: ContentCatalogItem) {
+	return item.image !== undefined;
+}
 
 const catalog = await getCatalog();
 
-const mixItems = catalog.byCollection('mixes').slice(0, 4);
-const reviewItems = catalog.byCollection('reviews').slice(0, 4);
-const postItems = catalog.byCollection('posts').slice(0, 4);
+const mixItems = catalog.byCollection('mixes').filter(hasFeaturedImage).slice(0, 4);
+const reviewItems = catalog.byCollection('reviews').filter(hasFeaturedImage).slice(0, 4);
+const postItems = catalog.byCollection('posts').filter(hasFeaturedImage).slice(0, 4);
 const stations = isPlayerEnabled ? await getStations() : [];
 ---
 
 <MainSite openGraphId={openGraphHomeId} schemas={[buildWebSiteSchema(), buildAuthorSchema()]}>
 	<section class="mb-12">
-		<h1 class="title-main">{site.title}</h1>
-		<p class="mt-2 content-measure text-ink-300">{t('home.intro')}</p>
+		<h1 class="title-main">{t('home.intro.title')}</h1>
+		<p class="mt-2 content-measure text-ink-300">{t('home.intro.description')}</p>
 	</section>
 	{stations.length > 0 ? <StationsSection stations={stations} /> : undefined}
 	<HomeSection collection="mixes" items={mixItems} priority={true} />

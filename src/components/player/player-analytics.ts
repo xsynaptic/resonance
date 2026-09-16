@@ -2,8 +2,8 @@ import type { ControlPress, createPlayerStore, PlayerStatus } from '@xsynaptic/p
 
 import { LazyModuleError, loadedItem } from '@xsynaptic/player';
 
+import { trackEvent } from '#components/main/main-analytics.ts';
 import { isOptedOut } from '#components/player/player-opt-out.ts';
-import { trackEvent } from '#lib/utils/analytics.ts';
 
 interface PlayerGate {
 	isOverlayOpen: boolean;

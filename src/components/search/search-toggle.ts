@@ -2,7 +2,7 @@ import type { Instance, PagefindModal, PagefindSearchResult } from '@pagefind/co
 
 import { getInstanceManager } from '@pagefind/component-ui';
 
-import { trackEvent } from '#lib/utils/analytics.ts';
+import { trackEvent } from '#components/main/main-analytics.ts';
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent);
 

@@ -4,6 +4,7 @@ export { bindMediaSession } from '#engine/media-session.ts';
 export { bindPageControls } from '#page-controls.ts';
 export { createPlayerStore, playerStore } from '#store/player-store.ts';
 export type { PlayerStoreOptions } from '#store/player-store.ts';
+export { loadedItem } from '#store/selectors.ts';
 export type {
 	PlaybackError,
 	PlayerLabels,

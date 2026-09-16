@@ -9,6 +9,7 @@ export function createFakeEngine() {
 		analyser: vi.fn(),
 		canPlay: vi.fn(() => true),
 		currentTime: vi.fn(() => time),
+		element: document.createElement('audio'),
 		load: vi.fn(() => Promise.resolve()),
 		outputDelay: vi.fn(() => 0),
 		pause: vi.fn(),

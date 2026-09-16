@@ -7,6 +7,7 @@ export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
 	canPlay(type: string): boolean;
 	currentTime(): number;
+	element: HTMLMediaElement;
 	load(request: AudioLoadRequest): Promise<void>;
 	// How far the element's clock runs ahead of the sound: the graph's delay plus the device's
 	outputDelay(): number;
@@ -111,6 +112,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		analyser: graph.analyser,
 		canPlay: (type) => audio.canPlayType(type) !== '',
 		currentTime: () => audio.currentTime,
+		element: audio,
 		async load({ gain, resumeAtSeconds, src }) {
 			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;
 			graph.setGain(gain);

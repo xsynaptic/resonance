@@ -15,6 +15,7 @@ export interface PlaybackController {
 	analyser: () => AnalyserNode | undefined;
 	currentTime: () => number | undefined;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
+	mediaElement: () => HTMLMediaElement | undefined;
 	outputDelay: () => number;
 	// Clears the intent, which stops a load short of playing wherever it has got to
 	pause: () => void;
@@ -139,6 +140,7 @@ export function createPlaybackController(
 		analyser: () => engine?.analyser(),
 		currentTime: () => engine?.currentTime(),
 		loadIndex,
+		mediaElement: () => engine?.element,
 		outputDelay: () => engine?.outputDelay() ?? 0,
 
 		pause: () => {

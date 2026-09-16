@@ -17,6 +17,8 @@ export interface PlayerActions {
 	getAnalyser: () => AnalyserNode | undefined;
 	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; also rAF-only
 	getCurrentTime: () => number | undefined;
+	// Created on the first load, so an observer waits for it
+	getMediaElement: () => HTMLMediaElement | undefined;
 	// Seconds the element's clock runs ahead of the sound
 	getOutputDelay: () => number;
 	// Reads the listener's persisted preferences; the root hydrates each store once, however often it reconnects

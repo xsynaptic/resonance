@@ -131,15 +131,19 @@ export function paintPanelFrame({
 	view,
 }: PanelFrame): void {
 	const state = store.getState();
+	const isPlaying = state.status === 'playing';
 	// Read every frame even while a drag overrides it, so the clock keeps its own elapsed time honest
-	const clockSeconds = clock.read(frameMs, state.status === 'playing');
+	const clockSeconds = clock.read(frameMs, isPlaying);
 	const targetSeconds = view.drag.targetSeconds();
 	const currentTimeSeconds = targetSeconds ?? clockSeconds;
 	const durationSeconds = state.durationSeconds ?? archiveDurationSeconds(archive.current);
 	const windowStartSeconds = currentTimeSeconds - view.canvas.windowSeconds() / 2;
 
 	view.drag.showing(currentTimeSeconds, durationSeconds);
-	view.marker.place(targetSeconds === undefined ? undefined : clockSeconds - targetSeconds);
+	// A stopped track has no live position to mark, so the ghost would only double the playhead
+	view.marker.place(
+		targetSeconds === undefined || !isPlaying ? undefined : clockSeconds - targetSeconds,
+	);
 
 	view.canvas.scroll(windowStartSeconds, durationSeconds, frameMs);
 	view.rider.travel(windowStartSeconds, view.canvas.fadeFromPx(), insetPx);

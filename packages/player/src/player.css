@@ -80,7 +80,6 @@
 	font-family: var(--player-font-family);
 }
 
-/* A part tag only wraps what the stylesheet places, so layout reaches past it */
 :is(
 	player-artist-line,
 	player-artwork,
@@ -218,7 +217,6 @@
 	background-color: var(--player-play-fill-hover);
 }
 
-/* On the rim, clear of the focus outline and of `::before`, which is the hit area under a coarse pointer */
 .player-button-primary[data-loading]::after {
 	position: absolute;
 	inset: 0;
@@ -232,7 +230,6 @@
 		player-loader-spin 900ms linear infinite;
 }
 
-/* A still arc reads as focus or selection, so it fades rather than stopping */
 @media (prefers-reduced-motion: reduce) {
 	.player-button-primary[data-loading]::after {
 		animation:
@@ -263,7 +260,6 @@
 	}
 }
 
-/* The triangle's mass sits left of its box, so it reads off centre until nudged */
 .player-button-primary[data-paused] svg {
 	translate: 8%;
 }
@@ -322,7 +318,6 @@
 	text-decoration: none;
 }
 
-/* A knob rather than a rule of its own, so hover and focus still outrank the idle tone */
 player-title[data-idle] {
 	--player-track-title-color: var(--player-meta);
 }
@@ -475,7 +470,6 @@ player-title[data-idle] {
 	display: flex;
 }
 
-/* The tray paints later in the bar, so an open fader lifts over it */
 @media (hover: hover) {
 	.player-volume:hover {
 		z-index: 1;
@@ -605,7 +599,6 @@ player-title[data-idle] {
 	position: relative;
 }
 
-/* Capped at a width and at the room on its side, so a long pairing ends in an ellipsis rather than off the bar */
 .player-cue-label {
 	position: absolute;
 	max-width: min(var(--player-cue-label-max), var(--player-cue-room, 100%));
@@ -632,7 +625,6 @@ player-title[data-idle] {
 	color: var(--player-clock);
 }
 
-/* The clock carries the separator only while a Track follows it */
 .player-cue-time:not(:empty):has(~ :not(:empty))::after {
 	padding-inline: 0.3em;
 	color: var(--player-cue-title);
@@ -842,7 +834,6 @@ player-title[data-idle] {
 	white-space: nowrap;
 }
 
-/* The row's two lines in two tones, as the panel's readout carries them */
 .player-tray-item[data-current] .player-tray-artist {
 	color: var(--player-current-meta);
 }
@@ -868,11 +859,12 @@ player-title[data-idle] {
 	touch-action: pan-y;
 	cursor: grab;
 	user-select: none;
+
 	background-image: linear-gradient(
 		to bottom,
-		var(--player-surface),
-		var(--player-panel-well) 50%,
-		var(--player-surface)
+		transparent,
+		color-mix(in oklab, var(--player-panel-well) 70%, transparent) 50%,
+		transparent
 	);
 	background-repeat: no-repeat;
 }
@@ -1014,11 +1006,8 @@ player-title[data-idle] {
 	color: var(--player-control-active-hover);
 }
 
-/* The top border sits outside the padding box, so the grid's inset owes it back a pixel */
 .player-bar {
 	--player-padding-block-start: calc(var(--player-padding-block) - 1px);
-
-	/* Clear of a notch and the home indicator under `viewport-fit=cover` */
 	--player-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
 	--player-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
 	--player-inset-bottom: env(safe-area-inset-bottom);
@@ -1032,7 +1021,6 @@ player-title[data-idle] {
 	backdrop-filter: blur(8px);
 }
 
-/* Full-bleed under a landscape notch, so the zoom buttons and the parked label take the inset back */
 .player-bar > player-panel > .player-panel {
 	--player-panel-inset-left: env(safe-area-inset-left);
 
@@ -1040,7 +1028,6 @@ player-title[data-idle] {
 		var(--player-padding-block) calc(-1 * var(--player-inset-left));
 }
 
-/* Full: transport and toggles, the title line, the waveform; a fixed height, so no item shifts the bar */
 .player-bar > player-panel > .player-panel .player-panel-zoom {
 	right: env(safe-area-inset-right);
 }
@@ -1101,7 +1088,6 @@ player-title[data-idle] {
 	);
 }
 
-/* The cover costs the row more than it returns before the compact tier has room for both */
 @container (26rem <= width < 40rem) {
 	.player-bar-grid .player-artwork {
 		display: none;
@@ -1344,6 +1330,11 @@ player-title[data-idle] {
 		calc(-1 * var(--player-overlay-inset-right));
 }
 
+.player-overlay-body[data-layout='columns'] .player-overlay-deck > player-panel > .player-panel {
+	background-color: color-mix(in oklab, var(--player-panel-well) 55%, transparent);
+	border-radius: var(--player-radius-large);
+}
+
 .player-overlay-head {
 	position: relative;
 }
@@ -1543,7 +1534,6 @@ player-title[data-idle] {
 	max-height: none;
 }
 
-/* Rows run to the panel's edges, so both lists line up with the tabs above them */
 .player-overlay-list
 	:is(.player-tray-header, .player-tray-item, .player-tray-section, .player-tray-empty) {
 	padding-inline: 0;

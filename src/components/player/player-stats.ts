@@ -3,8 +3,7 @@ import type { createPlayerStore } from '@xsynaptic/player';
 
 import { monitorPlayback } from '@xsynaptic/playback-stats';
 
-// Follows the `player:v2:queue` naming; set to `1` by hand, once per browser
-const optOutKey = 'stats:v1:opt-out';
+import { isOptedOut } from '#components/player/player-opt-out.ts';
 
 // The Worker refuses to open a listen below this, so nothing shorter is worth a request
 const minimumSeconds = 30;
@@ -39,15 +38,6 @@ export function bindPlayerStats(
 
 function doNothing(): void {
 	// Nothing was bound, so there is nothing to unbind
-}
-
-// A browser that refuses storage has set nothing, so a throw reads as not opted out
-function isOptedOut(): boolean {
-	try {
-		return localStorage.getItem(optOutKey) === '1';
-	} catch {
-		return false;
-	}
 }
 
 // The result is ignored: the next report carries the same running total, so a dropped one costs nothing

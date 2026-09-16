@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
@@ -27,13 +27,16 @@ function bindPage(items: Array<QueueItem>, controls: string) {
 		isPersistent: false,
 	});
 
+	const onPress = vi.fn();
+
 	store.getState().configure({ urls });
 	document.body.innerHTML = `<div data-player-payload='${JSON.stringify(items)}' hidden></div>${controls}`;
 
 	return {
 		bind: () => {
-			unbind = bindPageControls(store, document);
+			unbind = bindPageControls(store, document, { onPress });
 		},
+		onPress,
 		store,
 	};
 }
@@ -118,5 +121,50 @@ describe('bindPageControls', () => {
 		element('[data-play-track]').click();
 
 		expect(loadedItem(page.store.getState())).toBeUndefined();
+	});
+
+	test('reports the queued track, which beats the play-all wrapped around it', () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b')],
+			'<div data-play-release><button data-queue-track="b"></button></div>',
+		);
+
+		page.bind();
+		element('[data-queue-track]').click();
+
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b'], verb: 'queue-track' });
+	});
+
+	test('reports the pressed track, which beats the play-all wrapped around it', () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b')],
+			'<div data-play-release><button data-play-track="b"></button></div>',
+		);
+
+		page.bind();
+		element('[data-play-track]').click();
+
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b'], verb: 'play-track' });
+	});
+
+	test('reports a station in the order it queued, so the first id is what starts', () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b'), queueItem('c')],
+			'<button data-play-queue="c a"></button>',
+		);
+
+		page.bind();
+		element('[data-play-queue]').click();
+
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['c', 'a'], verb: 'play-queue' });
+	});
+
+	test('reports a release with every item it queued', () => {
+		const page = bindPage([queueItem('a'), queueItem('b')], '<button data-play-release></button>');
+
+		page.bind();
+		element('[data-play-release]').click();
+
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a', 'b'], verb: 'play-release' });
 	});
 });

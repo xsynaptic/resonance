@@ -140,9 +140,16 @@ export function resetScrub(scrub: Scrub): void {
 function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 	const { canvas, commit, durationSeconds, overview, scrub } = gesture;
 
+	// One rect for the whole press; the slider only ever sits in the sticky bar or the modal, so no scroll moves it
+	let pressRect: DOMRect | undefined;
+
 	const scrubToPointer = (event: PointerEvent): void => {
 		scrub.scrubSeconds = scrubSecondsAt(
-			{ canvas, durationSeconds, rendering: overview.current() },
+			{
+				durationSeconds,
+				rect: pressRect ?? canvas.getBoundingClientRect(),
+				rendering: overview.current(),
+			},
 			event,
 		);
 		overview.repaint();
@@ -152,6 +159,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 		'pointerdown',
 		(event) => {
 			canvas.setPointerCapture(event.pointerId);
+			pressRect = canvas.getBoundingClientRect();
 			scrubToPointer(event);
 			scrub.holdTimer = setTimeout(() => {
 				scrub.isHeld = true;
@@ -168,7 +176,14 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 		{ signal },
 	);
 	for (const type of ['blur', 'pointercancel', 'pointerup'] as const) {
-		canvas.addEventListener(type, commit, { signal });
+		canvas.addEventListener(
+			type,
+			() => {
+				pressRect = undefined;
+				commit();
+			},
+			{ signal },
+		);
 	}
 	canvas.addEventListener(
 		'keydown',

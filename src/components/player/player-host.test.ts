@@ -14,8 +14,10 @@ const elements = vi.hoisted(() => ({
 
 // Bound for real under `NODE_ENV=production`, where `import.meta.env.DEV` stops short-circuiting it
 const stats = vi.hoisted(() => ({ bindPlayerStats: vi.fn() }));
+const analytics = vi.hoisted(() => ({ bindPlayerAnalytics: vi.fn(), trackControlPress: vi.fn() }));
 
 vi.mock('@xsynaptic/player', () => elements);
+vi.mock('#components/player/player-analytics.ts', () => analytics);
 vi.mock('#components/player/player-stats.ts', () => stats);
 
 import { startPlayer } from '#components/player/player-host.ts';
@@ -71,7 +73,9 @@ describe('startPlayer', () => {
 		control('[data-play-track] span').click();
 
 		await vi.waitFor(() => {
-			expect(elements.bindPageControls).toHaveBeenCalledWith(elements.playerStore, document);
+			expect(elements.bindPageControls).toHaveBeenCalledWith(elements.playerStore, document, {
+				onPress: analytics.trackControlPress,
+			});
 		});
 		const root = control(
 			'[data-player-host] > player-root[is-primary]',
@@ -80,6 +84,7 @@ describe('startPlayer', () => {
 		expect(rootAtDefine).toBeNull();
 		expect(elements.bindMediaSession).toHaveBeenCalledWith(elements.playerStore, 30);
 		expect(stats.bindPlayerStats).toHaveBeenCalledWith(elements.playerStore, expect.any(Function));
+		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(elements.playerStore);
 		expect(root.store).toBe(elements.playerStore);
 		expect(root.querySelector(':scope > player-bar')).not.toBeNull();
 		expect(control('[data-play-track]').hasAttribute(heldPressAttribute)).toBe(true);

@@ -84,18 +84,21 @@ async function loadPlayer(host: Element): Promise<void> {
 	const [
 		{ bindMediaSession, bindPageControls, definePlayerElements, loadedItem, playerStore },
 		{ bindPlayerStats },
+		{ bindPlayerAnalytics, trackControlPress },
 	] = await Promise.all([
 		import('@xsynaptic/player'),
 		import('#components/player/player-stats.ts'),
+		import('#components/player/player-analytics.ts'),
 	]);
 
 	definePlayerElements();
 	host.append(createRoot(config, playerStore));
 	holding.abort();
-	bindPageControls(playerStore, document);
+	bindPageControls(playerStore, document, { onPress: trackControlPress });
 	// Once per document, since Safari reconnects the persisted root on every navigation and a root's binding would clear the lock screen each time
 	bindMediaSession(playerStore, config.seekSeconds);
 	bindPlayerStats(playerStore, () => loadedItem(playerStore.getState())?.itemId);
+	bindPlayerAnalytics(playerStore);
 }
 
 // A link moved with the persisted bar drops out of `document.styleSheets`, so the sheet lives in the head

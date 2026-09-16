@@ -7,7 +7,11 @@
 		"src/dev/audio/waveform-archive.ts",
 	],
 	// The player host imports the reporter dynamically, which fallow does not follow and knip does
-	"dynamicallyLoaded": ["src/components/mdx/**/*.astro", "src/components/player/player-stats.ts"],
+	"dynamicallyLoaded": [
+		"src/components/mdx/**/*.astro",
+		"src/components/player/player-analytics.ts",
+		"src/components/player/player-stats.ts",
+	],
 	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],
 	"ignoreDependencies": [
 		"@testing-library/dom",

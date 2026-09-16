@@ -12,6 +12,16 @@ import {
 } from '#page-control-selectors.ts';
 import { currentCue, loadedItem } from '#store/selectors.ts';
 
+// The resolved press, so a host reads the verb rather than re-deriving it from the DOM
+export interface ControlPress {
+	itemIds: Array<string>;
+	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track';
+}
+
+interface PageControlOptions {
+	onPress?: ((press: ControlPress) => void) | undefined;
+}
+
 interface RowState {
 	cueStartSeconds: number | undefined;
 	isPlaying: boolean;
@@ -19,7 +29,11 @@ interface RowState {
 }
 
 // One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
-export function bindPageControls(store: StoreApi<PlayerStore>, page: Document): () => void {
+export function bindPageControls(
+	store: StoreApi<PlayerStore>,
+	page: Document,
+	{ onPress }: PageControlOptions = {},
+): () => void {
 	const connection = new AbortController();
 	const { signal } = connection;
 	const readPayload = payloadReader(page);
@@ -29,7 +43,9 @@ export function bindPageControls(store: StoreApi<PlayerStore>, page: Document): 
 		const items = control ? readPayload() : undefined;
 		if (!control || !items) return;
 
-		pressControl(store.getState(), control.dataset, items);
+		const press = pressControl(store.getState(), control.dataset, items);
+
+		if (press) onPress?.(press);
 	};
 
 	// A queue restored from storage can predate this build; a press on a track already queued jumps to the stored copy
@@ -117,25 +133,38 @@ function payloadReader(page: Document): () => Array<QueueItem> | undefined {
 }
 
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
-function pressControl(state: PlayerStore, verbs: DOMStringMap, items: Array<QueueItem>): void {
+function pressControl(
+	state: PlayerStore,
+	verbs: DOMStringMap,
+	items: Array<QueueItem>,
+): ControlPress | undefined {
 	const { playQueue, playRelease, playTrack, queueTrack } = verbs;
 
 	if (playQueue !== undefined) {
-		state.playQueue(stationItems(playQueue, items));
-		return;
+		const station = stationItems(playQueue, items);
+
+		state.playQueue(station);
+
+		return { itemIds: station.map((item) => item.itemId), verb: 'play-queue' };
 	}
 
 	if (queueTrack) {
 		state.queueTrack(items, queueTrack);
-		return;
+
+		return { itemIds: [queueTrack], verb: 'queue-track' };
 	}
 
 	if (playTrack) {
 		state.playTrack(items, playTrack);
-		return;
+
+		return { itemIds: [playTrack], verb: 'play-track' };
 	}
 
-	if (playRelease !== undefined) state.playRelease(items);
+	if (playRelease === undefined) return undefined;
+
+	state.playRelease(items);
+
+	return { itemIds: items.map((item) => item.itemId), verb: 'play-release' };
 }
 
 // Intent rather than sound, matching the bar's play button

@@ -11,6 +11,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { QueueItem } from '#types.ts';
 
 import { trayModule } from '#elements/tray/tray-module.ts';
+import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
@@ -106,7 +107,7 @@ describe('<player-queue-button> with its tray', () => {
 	});
 
 	test('stays closed and reports the failure when the tray fails to arrive', async () => {
-		const offline = new Error('offline');
+		const offline = new LazyModuleError('tray', 'offline');
 		const reportError = vi.fn();
 
 		vi.spyOn(trayModule, 'load').mockRejectedValueOnce(offline);

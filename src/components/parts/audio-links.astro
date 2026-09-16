@@ -61,6 +61,8 @@ const hasFiles = files && files.length > 0;
 					{cueSlug ? (
 						<Button
 							as="a"
+							data-umami-event="cue-sheet-download"
+							data-umami-event-mix={cueSlug}
 							download={true}
 							href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
 							title={formatStringTemplate(t('audio.cueTitle'), { file })}

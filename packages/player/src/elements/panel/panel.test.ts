@@ -2,6 +2,7 @@ import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
+import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 import { openArchive } from '#waveform/panel/waveform-archive.ts';
@@ -73,7 +74,7 @@ describe('<player-panel>', () => {
 	});
 
 	test('closes and reports the failure when its surface fails to arrive', async () => {
-		const offline = new Error('offline');
+		const offline = new LazyModuleError('panel', 'offline');
 		const reportError = vi.fn();
 
 		vi.spyOn(panelSurfaceModule, 'load').mockRejectedValueOnce(offline);

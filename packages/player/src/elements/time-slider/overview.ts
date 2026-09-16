@@ -69,7 +69,7 @@ export function bindOverview(
 		(event) => {
 			if (event.pointerType === 'touch') return;
 
-			show(cuePointAtPointer(rendering, canvas, event));
+			show(cuePointAtPointer(rendering, canvas.getBoundingClientRect(), event));
 		},
 		{ signal },
 	);

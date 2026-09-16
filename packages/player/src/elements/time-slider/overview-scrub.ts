@@ -20,8 +20,8 @@ interface KeyScrub {
 }
 
 interface ScrubTarget {
-	canvas: Element;
 	durationSeconds: number;
+	rect: DOMRect;
 	rendering: undefined | WaveformRendering;
 }
 
@@ -36,12 +36,10 @@ const keyStepsSeconds = new Map<string, number>([
 
 export function cuePointAtPointer(
 	rendering: undefined | WaveformRendering,
-	canvas: Element,
+	rect: DOMRect,
 	pointer: { clientX: number; clientY: number },
 ): PlacedCuePoint | undefined {
 	if (rendering === undefined || rendering.cuePoints.length === 0) return undefined;
-
-	const rect = canvas.getBoundingClientRect();
 	if (rect.width === 0 || rect.height === 0) return undefined;
 
 	return cuePointAt(
@@ -83,14 +81,13 @@ export function pixelAt(
 
 // A press over a cue point lands on its start, so a drag across one snaps to it
 export function scrubSecondsAt(
-	{ canvas, durationSeconds, rendering }: ScrubTarget,
+	{ durationSeconds, rect, rendering }: ScrubTarget,
 	pointer: { clientX: number; clientY: number },
 ): number {
-	const rect = canvas.getBoundingClientRect();
 	const ratio = Math.min(1, Math.max(0, (pointer.clientX - rect.left) / rect.width));
 
 	return (
-		cuePointAtPointer(rendering, canvas, pointer)?.cuePoint.startSeconds ?? ratio * durationSeconds
+		cuePointAtPointer(rendering, rect, pointer)?.cuePoint.startSeconds ?? ratio * durationSeconds
 	);
 }
 

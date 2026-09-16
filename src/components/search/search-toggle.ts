@@ -1,8 +1,17 @@
-import type { Instance, PagefindModal } from '@pagefind/component-ui';
+import type { Instance, PagefindModal, PagefindSearchResult } from '@pagefind/component-ui';
 
 import { getInstanceManager } from '@pagefind/component-ui';
 
+import { trackEvent } from '#lib/utils/analytics.ts';
+
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent);
+
+const searchQueryDebounceMs = 1500;
+const searchQueryMinLength = 2;
+const searchQueryMaxLength = 100;
+
+// Pagefind deregisters no hook at all, and `connectedCallback` runs on every navigation
+let isSearchAnalyticsRegistered = false;
 
 class SearchToggle extends HTMLElement {
 	// eslint-disable-next-line unicorn/no-null -- matches Pagefind's PagefindComponent interface
@@ -27,6 +36,8 @@ class SearchToggle extends HTMLElement {
 		const instanceName = this.getAttribute('instance') ?? 'default';
 
 		this.instance = getInstanceManager().getInstance(instanceName);
+
+		registerSearchAnalytics(this.instance);
 
 		this.instance.registerUtility(this, 'modal-trigger', { keyboardNavigation: true });
 
@@ -126,6 +137,39 @@ class SearchToggle extends HTMLElement {
 	#preloadPagefindCss = () => {
 		void this.#ensurePagefindCss();
 	};
+}
+
+function getResultCount(result: unknown): number | undefined {
+	if (!result || typeof result !== 'object') return undefined;
+
+	const { results } = result as Partial<PagefindSearchResult>;
+
+	return Array.isArray(results) ? results.length : undefined;
+}
+
+// Both the term and its count go out, so Umami's flat data view needs no join
+function registerSearchAnalytics(instance: Instance): void {
+	if (isSearchAnalyticsRegistered) return;
+
+	isSearchAnalyticsRegistered = true;
+
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+	instance.on('results', (result: unknown) => {
+		clearTimeout(debounceTimer);
+
+		const query = instance.searchTerm.replaceAll(/\s+/g, ' ').trim().slice(0, searchQueryMaxLength);
+
+		if (query.length < searchQueryMinLength) return;
+
+		const resultCount = getResultCount(result);
+		const queryWithCount =
+			resultCount === undefined ? query : `${query} (${resultCount.toString()})`;
+
+		debounceTimer = setTimeout(() => {
+			trackEvent('search-query', { query, queryWithCount });
+		}, searchQueryDebounceMs);
+	});
 }
 
 if (!customElements.get('search-toggle')) {

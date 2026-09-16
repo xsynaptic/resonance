@@ -2,6 +2,7 @@ import { fireEvent, getAllByRole, getByRole, queryByRole } from '@testing-librar
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
+import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
@@ -75,7 +76,7 @@ describe('<player-overlay>', () => {
 	});
 
 	test('closes and reports the failure when its body fails to arrive', async () => {
-		const offline = new Error('offline');
+		const offline = new LazyModuleError('overlay', 'offline');
 		const reportError = vi.fn();
 
 		vi.spyOn(overlayBodyModule, 'load').mockRejectedValueOnce(offline);

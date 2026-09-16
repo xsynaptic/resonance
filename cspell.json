@@ -52,6 +52,7 @@
 		"netlabel",
 		"nodelay",
 		"normalise",
+		"nosnippet",
 		"nostdin",
 		"nums",
 		"pagefind",

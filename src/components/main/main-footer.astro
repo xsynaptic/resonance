@@ -18,74 +18,83 @@ const recentMixes = publishedMixes.slice(0, 8);
 const year = new Date().getFullYear();
 ---
 
-<footer class="pattern-maze-surface-700 bg-surface-900 band-fade-footer" data-nosnippet>
-	<div class="content-wide grid gap-8 py-(--content-gutter-step) text-sm leading-7 text-ink-600 sm:grid-cols-3">
-		<section>
-			<h2 class="heading-label">{site.title}</h2>
-			<p class="mt-3">
-				{t('footer.about.lead')}{' '}
-				<Anchor anchorColor="muted" href={getContentPath('pages', 'profile')}>
-					{t('footer.about.profileLink')}
+<footer class="pattern-maze-surface-700 bg-surface-900 band-fade-footer">
+	<div data-nosnippet>
+		<div class="content-wide grid gap-8 py-(--content-gutter-step) text-sm leading-7 text-ink-600 sm:grid-cols-3">
+			<section>
+				<h2 class="heading-label">{site.title}</h2>
+				<p class="mt-3">
+					{t('footer.about.lead')}{' '}
+					<Anchor anchorColor="muted" href={getContentPath('pages', 'profile')}>
+						{t('footer.about.profileLink')}
+					</Anchor>
+					{t('footer.about.body')}{' '}
+					<Anchor anchorColor="muted" href={getContentPath('pages', 'about')}>
+						{t('footer.about.aboutLink')}
+					</Anchor>
+					.
+				</p>
+				<p class="mt-7">
+					{t('footer.support.lead')}{' '}
+					<Anchor anchorColor="muted" href="https://www.patreon.com/ektoplazm">
+						{t('footer.support.link')}
+					</Anchor>
+					.
+				</p>
+			</section>
+			<section>
+				<h2 class="heading-label">{t('footer.recentMixes.heading')}</h2>
+				<ul class="mt-3">
+					{recentMixes.map((mix) => (
+						<li>
+							<Anchor
+								anchorColor="muted"
+								class="inline-block"
+								href={getContentPath('mixes', mix.id)}
+							>
+								{mix.data.title}
+							</Anchor>
+						</li>
+					))}
+				</ul>
+			</section>
+			<NavigationFooter />
+		</div>
+		<ul aria-label={t('footer.colophonLabel')} class="colophon content-wide py-6">
+			<DividedItem as="li" dividerColor="muted">
+				{formatStringTemplate(t('footer.copyright'), { year })}
+			</DividedItem>
+			{downloadTotal > 0 ? (
+				<DividedItem as="li" dividerColor="muted">
+					{formatStringTemplate(
+						t(downloadTotal === 1 ? 'audio.downloads.one' : 'audio.downloads.other'),
+						{ count: formatNumber({ number: downloadTotal }) },
+					)}
+				</DividedItem>
+			) : undefined}
+			{streamTotal > 0 ? (
+				<DividedItem as="li" dividerColor="muted">
+					{formatStringTemplate(
+						t(streamTotal === 1 ? 'audio.streams.one' : 'audio.streams.other'),
+						{
+							count: formatNumber({ number: streamTotal }),
+						},
+					)}
+				</DividedItem>
+			) : undefined}
+			<DividedItem as="li" dividerColor="muted">
+				<span>
+					{t('footer.poweredBy')}{' '}
+					<Anchor anchorColor="muted" href="https://astro.build">
+						{t('footer.astro')}
+					</Anchor>
+				</span>
+			</DividedItem>
+			<DividedItem as="li" dividerColor="muted">
+				<Anchor anchorColor="muted" data-astro-prefetch="false" href="/rss.xml" rel="feed">
+					{t('footer.feed')}
 				</Anchor>
-				{t('footer.about.body')}{' '}
-				<Anchor anchorColor="muted" href={getContentPath('pages', 'about')}>
-					{t('footer.about.aboutLink')}
-				</Anchor>
-				.
-			</p>
-			<p class="mt-7">
-				{t('footer.support.lead')}{' '}
-				<Anchor anchorColor="muted" href="https://www.patreon.com/ektoplazm">
-					{t('footer.support.link')}
-				</Anchor>
-				.
-			</p>
-		</section>
-		<section>
-			<h2 class="heading-label">{t('footer.recentMixes.heading')}</h2>
-			<ul class="mt-3">
-				{recentMixes.map((mix) => (
-					<li>
-						<Anchor anchorColor="muted" class="inline-block" href={getContentPath('mixes', mix.id)}>
-							{mix.data.title}
-						</Anchor>
-					</li>
-				))}
-			</ul>
-		</section>
-		<NavigationFooter />
+			</DividedItem>
+		</ul>
 	</div>
-	<ul aria-label={t('footer.colophonLabel')} class="colophon content-wide py-6">
-		<DividedItem as="li" dividerColor="muted">
-			{formatStringTemplate(t('footer.copyright'), { year })}
-		</DividedItem>
-		{downloadTotal > 0 ? (
-			<DividedItem as="li" dividerColor="muted">
-				{formatStringTemplate(
-					t(downloadTotal === 1 ? 'audio.downloads.one' : 'audio.downloads.other'),
-					{ count: formatNumber({ number: downloadTotal }) },
-				)}
-			</DividedItem>
-		) : undefined}
-		{streamTotal > 0 ? (
-			<DividedItem as="li" dividerColor="muted">
-				{formatStringTemplate(t(streamTotal === 1 ? 'audio.streams.one' : 'audio.streams.other'), {
-					count: formatNumber({ number: streamTotal }),
-				})}
-			</DividedItem>
-		) : undefined}
-		<DividedItem as="li" dividerColor="muted">
-			<span>
-				{t('footer.poweredBy')}{' '}
-				<Anchor anchorColor="muted" href="https://astro.build">
-					{t('footer.astro')}
-				</Anchor>
-			</span>
-		</DividedItem>
-		<DividedItem as="li" dividerColor="muted">
-			<Anchor anchorColor="muted" data-astro-prefetch="false" href="/rss.xml" rel="feed">
-				{t('footer.feed')}
-			</Anchor>
-		</DividedItem>
-	</ul>
 </footer>

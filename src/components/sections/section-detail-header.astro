@@ -40,7 +40,7 @@ const releasedYearText =
 	{styleTerms.length > 0 ? (
 		<div class="title-eyebrow">
 			{styleTerms.map((term) => (
-				<DividedItem as="span">
+				<DividedItem as="div">
 					<LinkedNameText anchorColor="highlight" name={term.name} url={term.url} />
 				</DividedItem>
 			))}
@@ -50,23 +50,25 @@ const releasedYearText =
 	{hasMeta ? (
 		<div class="title-meta">
 			{kind ? (
-				<DividedItem as="span" dividerContent="slash">
+				<DividedItem as="div" dividerContent="slash">
 					<span class="title-kind">
 						<LinkedNameText anchorColor="highlight" name={kind.name} url={kind.url} />
 					</span>
 				</DividedItem>
 			) : undefined}
 			{hasReleasedLine ? (
-				<DividedItem as="span" dividerContent="slash">
-					{releasedLead}
+				<DividedItem as="div" dividerContent="slash">
+					<span data-pagefind-ignore>{releasedLead}</span>
 					<LinkedNameList names={labelTerms} />
 					{releasedYearText}
 				</DividedItem>
 			) : undefined}
 			{date ? (
-				<DividedItem as="span" dividerContent="slash">
-					{t('detail.posted')}
-					<time datetime={date.toISOString()}>{formatDate(date)}</time>
+				<DividedItem as="div" dividerContent="slash">
+					<span data-pagefind-ignore>{t('detail.posted')}</span>
+					<time data-pagefind-ignore datetime={date.toISOString()}>
+						{formatDate(date)}
+					</time>
 				</DividedItem>
 			) : undefined}
 		</div>

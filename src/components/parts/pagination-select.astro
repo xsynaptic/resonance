@@ -32,7 +32,7 @@ const isEmptyWithoutScript = !counter && !previous && !next && !middleContent;
 ---
 
 {options.length > 1 ? (
-	<pagination-select class="block" data-nosnippet data-pagefind-ignore>
+	<pagination-select class="block" data-pagefind-ignore>
 		<nav
 			aria-label={label}
 			class:list={[
@@ -42,7 +42,7 @@ const isEmptyWithoutScript = !counter && !previous && !next && !middleContent;
 			hidden={isEmptyWithoutScript}
 			{...props}
 		>
-			<div class="flex items-center">
+			<div class="flex items-center" data-nosnippet>
 				{counter ? (
 					<span class="text-ink-500" data-pagination-counter>
 						{counter}
@@ -91,7 +91,7 @@ const isEmptyWithoutScript = !counter && !previous && !next && !middleContent;
 					</button>
 				</form>
 			</div>
-			<div class="flex items-center gap-6">
+			<div class="flex items-center gap-6" data-nosnippet>
 				{previous ? (
 					<span class="flex flex-wrap gap-1">
 						<span class="text-highlight-500 select-none">&lsaquo;</span>

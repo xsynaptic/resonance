@@ -12,7 +12,7 @@ const { trackId } = Astro.props;
 // One button carries both verbs, so focus survives the swap; the island's row state picks which shows
 ---
 
-<div class="mt-4 first:mt-0" data-track-id={trackId}>
+<div class="mt-4 first:mt-0" data-nosnippet data-pagefind-ignore data-track-id={trackId}>
 	<ButtonSplit>
 		<Button data-play-track={trackId}>
 			<span class="player-controls-play">

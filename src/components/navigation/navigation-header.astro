@@ -13,12 +13,7 @@ const { class: className, ...props } = Astro.props;
 ---
 
 <site-navigation>
-	<nav
-		aria-label={t('nav.primary.label')}
-		class:list={['nav-menu', className]}
-		data-nosnippet
-		{...props}
-	>
+	<nav aria-label={t('nav.primary.label')} class:list={['nav-menu', className]} {...props}>
 		<ul class="nav-ul">
 			{navigationHeaderItems.map((item) => {
 				const children = item.children ?? [];

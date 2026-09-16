@@ -12,12 +12,14 @@ interface Props {
 const { trail } = Astro.props;
 ---
 
-<nav aria-label={t('nav.breadcrumb.label')} data-nosnippet data-pagefind-ignore>
-	<ol class="title-eyebrow">
-		{trail.map((breadcrumb) => (
-			<DividedItem as="li" dividerContent="chevron">
-				<LinkedNameText anchorColor="highlight" name={breadcrumb.name} url={breadcrumb.url} />
-			</DividedItem>
-		))}
-	</ol>
-</nav>
+<div data-nosnippet>
+	<nav aria-label={t('nav.breadcrumb.label')} data-pagefind-ignore>
+		<ol class="title-eyebrow">
+			{trail.map((breadcrumb) => (
+				<DividedItem as="li" dividerContent="chevron">
+					<LinkedNameText anchorColor="highlight" name={breadcrumb.name} url={breadcrumb.url} />
+				</DividedItem>
+			))}
+		</ol>
+	</nav>
+</div>

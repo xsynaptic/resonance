@@ -43,14 +43,12 @@ export interface PlayerLabels {
 	zoomOut: string;
 }
 
-// `capped` is terminal like `error`, but nothing failed: the host's resolver declined to serve the track
-// `unplayable` is terminal the same way: the browser declined the format the host resolved
+// `capped` and `unplayable` are terminal like `error`, but nothing failed: the resolver or the browser declined
 export type PlayerStatus =
 	'capped' | 'error' | 'idle' | 'loading' | 'paused' | 'playing' | 'unplayable';
 
 export type PlayerTimeMode = 'elapsed' | 'remaining';
 
-// The host owns its route shapes, so the package asks for a track's URLs rather than deriving them
 // Each resolver is handed the item as the host queued it, its own extra fields included, even after a reload
 export interface PlayerUrls {
 	// Full-resolution `.dat`, range-requested a window at a time; `undefined` leaves the panel on its grid
@@ -58,7 +56,7 @@ export interface PlayerUrls {
 	stream: (item: QueueItem) => Promise<StreamResolution>;
 }
 
-// One square rendition, `width` its size in pixels; the host builds the URL, the player only lists it
+// One square rendition; `width` is its size in pixels
 export interface QueueArtwork {
 	src: string;
 	width: number;
@@ -82,7 +80,7 @@ export interface QueueItem {
 	artistLine: string;
 	// Ascending by width
 	artwork?: ReadonlyArray<QueueArtwork>;
-	// Timestamped tracks in order; the panel draws a boundary at each one
+	// Timestamped tracks, in order
 	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	durationMs?: number;
 	itemId: string;

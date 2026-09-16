@@ -1,6 +1,5 @@
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
-// A `bbc/audiowaveform` .dat read a window at a time; its header makes the byte offset of any pair exact
 // One shared promise per track serves as both the cache and the in-flight dedupe
 
 const headerBytes = 20;

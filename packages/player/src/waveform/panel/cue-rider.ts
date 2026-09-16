@@ -83,8 +83,7 @@ export function createCueRider({
 			slot.root.style.opacity = opacity.toFixed(3);
 		}
 
-		// The line that ends this track wipes the label away, so two labels never run through each other
-		// Infinite where there is no next boundary, and an infinite length is a clip the CSSOM would drop
+		// Clipped at the next boundary so two labels never overlap; a missing boundary would be an infinite clip the CSSOM drops
 		const clip = boundaryX(windowStartSeconds, index + 1) - cueGapPx - x;
 
 		if (clip !== slot.clip) {

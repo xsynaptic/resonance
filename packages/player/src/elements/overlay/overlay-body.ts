@@ -1,16 +1,14 @@
-import type { OverlayLayout } from '#elements/overlay/overlay-layout.ts';
 import type { PlayerContext } from '#elements/player-context.ts';
 
 import { defineOnce } from '#elements/define-once.ts';
-import { isLeavingPage } from '#elements/overlay/leaving-page.ts';
 import { bindOverlayGrab } from '#elements/overlay/overlay-grab.ts';
-import { layoutFor } from '#elements/overlay/overlay-layout.ts';
 import { bindSheets } from '#elements/overlay/overlay-sheets.ts';
 import { bindTabs } from '#elements/overlay/overlay-tabs.ts';
 import { PlayerTracklist } from '#elements/overlay/tracklist.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { observeResize } from '#lib/observe-resize.ts';
 import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
+import { readPxProperty } from '#lib/read-px-property.ts';
 import { requireChild, template } from '#lib/render.ts';
 
 interface BodyParts {
@@ -24,6 +22,17 @@ interface BodyParts {
 	sheets: HTMLElement;
 	tabs: HTMLElement;
 }
+
+type LinkClick = Pick<
+	MouseEvent,
+	'altKey' | 'button' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'target'
+>;
+
+type OverlayLayout = 'columns' | 'phone';
+
+// Rem, so the switch follows the reader's font size as a media query would
+const columnsMinWidthRem = 40;
+const columnsMinHeightRem = 30;
 
 // The stylesheet's artwork caps for each layout; the phone cover is full bleed, so it takes no padding off
 const artworkSizes =
@@ -124,6 +133,28 @@ function bindLayout(
 	};
 	observeResize(body, measure, signal);
 	measure();
+}
+
+// The client router leaves a modified click, another target and a download to the browser, which keeps this page
+function isLeavingPage(event: LinkClick): boolean {
+	if (isModifiedClick(event)) return false;
+
+	const link = event.target instanceof Element ? event.target.closest('a[href]') : undefined;
+	if (!(link instanceof HTMLAnchorElement)) return false;
+
+	return (link.target === '' || link.target === '_self') && !link.hasAttribute('download');
+}
+
+function isModifiedClick(event: LinkClick): boolean {
+	return event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+}
+
+function layoutFor(width: number, height: number): OverlayLayout {
+	const remPixels = readPxProperty(getComputedStyle(document.documentElement), 'font-size', 16);
+
+	return width >= columnsMinWidthRem * remPixels && height >= columnsMinHeightRem * remPixels
+		? 'columns'
+		: 'phone';
 }
 
 function renderBodyParts(): BodyParts {

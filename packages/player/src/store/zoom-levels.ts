@@ -1,4 +1,4 @@
-// Below about 45 CSS px per second the envelope starts to collapse into a band
+// Below about 45 the envelope reads as a band rather than as beats; the two lowest rungs buy context at that cost
 const zoomLevels: ReadonlyArray<number> = [20, 30, 45, 70, 105, 160, 240];
 
 export const panelZoomDefault = 70;

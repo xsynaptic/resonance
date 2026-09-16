@@ -9,7 +9,7 @@ const grabAttributes = { isGrabbing: 'data-grabbing' } as const satisfies Record
 	`data-${string}`
 >;
 
-// Where a grab may start; everything else in the deck owns a gesture of its own
+// Everything else in the deck owns a gesture of its own
 const grabRegions = '.player-overlay-grabber, .player-overlay-head, .player-overlay-art';
 
 export interface GrabRelease {
@@ -19,7 +19,6 @@ export interface GrabRelease {
 }
 
 interface OverlayGrab {
-	// The overlay's contents, holding both the regions a grab starts in and the sheet they move
 	body: HTMLElement;
 	onDismiss: () => void;
 }

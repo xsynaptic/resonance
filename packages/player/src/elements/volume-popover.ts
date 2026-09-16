@@ -4,7 +4,7 @@ import { bind } from '#lib/bind.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { muteLabel, selectLevel } from '#lib/volume-level.ts';
+import { muteLabel, selectLevel } from '#store/volume-level.ts';
 
 interface PopoverParts {
 	control: HTMLDivElement;

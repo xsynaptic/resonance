@@ -3,7 +3,7 @@ import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { template } from '#lib/render.ts';
-import { stepPanelZoom } from '#waveform/zoom-levels.ts';
+import { stepPanelZoom } from '#store/zoom-levels.ts';
 
 interface ZoomParts {
 	control: HTMLDivElement;

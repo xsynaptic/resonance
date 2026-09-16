@@ -1,4 +1,3 @@
-// Every length here is a device pixel, never a CSS pixel
 // Buckets are keyed to absolute sample-pair indices; keying them to screen columns re-buckets the same samples every frame and judders
 
 // 8-bit signed samples, so the envelope reaches 128 either side of the centre line

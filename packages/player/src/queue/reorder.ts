@@ -1,4 +1,3 @@
-// A move with both ends inside the queue that actually goes somewhere
 export function canMove(length: number, from: number, to: number): boolean {
 	if (from === to) return false;
 	if (from < 0 || from >= length) return false;
@@ -32,7 +31,6 @@ export function movedArray<T>(items: ReadonlyArray<T>, from: number, to: number)
 	return next;
 }
 
-// Where the item at `index` ends up once the item at `from` is moved to `to`
 export function movedIndex(index: number, from: number, to: number): number {
 	if (index === from) return to;
 	if (from < index && index <= to) return index - 1;

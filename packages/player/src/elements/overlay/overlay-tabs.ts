@@ -1,13 +1,12 @@
-import type { OverlayList } from '#elements/overlay/overlay-lists.ts';
 import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { overlayId, renderList, selectLists, shownList } from '#elements/overlay/overlay-lists.ts';
-import { nextTabIndex } from '#elements/overlay/overlay-tab-keys.ts';
 import { bind } from '#lib/bind.ts';
 import { placeWhen } from '#lib/place-when.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { displayedItem } from '#store/selectors.ts';
+
+type OverlayList = 'playlist' | 'tracklist';
 
 interface TabParts {
 	buttons: Record<OverlayList, HTMLButtonElement>;
@@ -23,6 +22,11 @@ const renderTab = template(
 	'<button class="player-overlay-tab" role="tab" type="button"></button>',
 	HTMLButtonElement,
 );
+
+const withTracklist: ReadonlyArray<OverlayList> = ['tracklist', 'playlist'];
+const playlistOnly: ReadonlyArray<OverlayList> = ['playlist'];
+
+let idCount = 0;
 
 export function bindTabs(
 	tabs: HTMLElement,
@@ -112,6 +116,44 @@ function applyTabs(
 	}
 }
 
+function nextTabIndex(key: string, index: number, count: number): number | undefined {
+	switch (key) {
+		case 'ArrowLeft': {
+			return (index - 1 + count) % count;
+		}
+		case 'ArrowRight': {
+			return (index + 1) % count;
+		}
+		case 'End': {
+			return count - 1;
+		}
+		case 'Home': {
+			return 0;
+		}
+		default: {
+			return undefined;
+		}
+	}
+}
+
+function overlayId(): string {
+	idCount += 1;
+
+	return `player-overlay-${String(idCount)}`;
+}
+
+function renderList(list: OverlayList): HTMLElement {
+	return document.createElement(list === 'tracklist' ? 'player-tracklist' : 'player-tray');
+}
+
+function selectLists(state: PlayerStore): ReadonlyArray<OverlayList> {
+	return (displayedItem(state)?.cuePoints?.length ?? 0) > 0 ? withTracklist : playlistOnly;
+}
+
 function selectTabs(state: PlayerStore): TabsView {
 	return { itemId: displayedItem(state)?.queueId, lists: selectLists(state) };
+}
+
+function shownList(lists: ReadonlyArray<OverlayList>, chosen: OverlayList): OverlayList {
+	return lists.includes(chosen) ? chosen : 'playlist';
 }

@@ -1,0 +1,77 @@
+:root {
+	--player-surface: #0a0a0a;
+	--player-panel-well: #000;
+	--player-popover: #171717;
+	--player-hover: #262626;
+	--player-border: #262626;
+
+	/* Darker than the surface, so the bar reads as a lip over the page rather than a panel edge */
+	--player-bar-border: #000;
+	--player-title: #f5f5f5;
+	--player-meta: #a3a3a3;
+	--player-hint: #737373;
+	--player-drag-handle: #737373;
+	--player-clock: #a3a3a3;
+	--player-clock-hover: #f5f5f5;
+	--player-control: #d4d4d4;
+	--player-control-hover: #fafafa;
+	--player-control-active: #10b981;
+	--player-control-active-hover: #34d399;
+	--player-control-inert: #737373;
+	--player-play-fill: #10b981;
+	--player-play-fill-hover: #34d399;
+	--player-play-glyph: #0a0a0a;
+	--player-play-glyph-hover: #0a0a0a;
+	--player-loader: #ecfdf5;
+	--player-loader-track: #047857;
+	--player-current: #34d399;
+	--player-current-icon: var(--player-current);
+	--player-current-meta: var(--player-meta);
+	--player-focus-ring: #10b981;
+	--player-waveform-base: #525252;
+	--player-waveform-buffered: #737373;
+	--player-waveform-played: #10b981;
+	--player-waveform-scrub: #6ee7b7;
+
+	/* The canvas parses these three and `--player-cue-size` as px, so another unit reads as its bare number */
+	--player-waveform-bar: 2px;
+	--player-waveform-gap: 1px;
+	--player-waveform-radius: 1px;
+	--player-panel-wave: #34d399;
+	--player-panel-wave-peak: #065f46;
+	--player-panel-ghost: #a3a3a3;
+	--player-panel-grid: #262626;
+	--player-panel-ends: #525252;
+	--player-panel-cue: #fafafa;
+	--player-panel-placeholder: #404040;
+	--player-playhead: #fafafa;
+	--player-cue-dot: #fafafa;
+	--player-cue-artist: #fafafa;
+	--player-cue-title: #a3a3a3;
+	--player-cue-size: 4px;
+	--player-cue-label-max: 20rem;
+	--player-fader-slot: #525252;
+	--player-fader-cap: #525252;
+	--player-fader-cap-hover: #737373;
+	--player-volume-level: 100%;
+	--player-gap: 0.75rem;
+	--player-gap-tight: 0.5rem;
+	--player-padding-inline: 1rem;
+	--player-padding-block: 0.625rem;
+	--player-padding-block-start: var(--player-padding-block);
+	--player-artwork-size: 8.75rem;
+	--player-artwork-size-compact: 7.5rem;
+	--player-clock-width: 3.75rem;
+	--player-panel-height: 7.5rem;
+	--player-waveform-height: 3rem;
+	--player-waveform-height-compact: 3.5rem;
+	--player-waveform-height-full: 4.5rem;
+	--player-font-size: 0.875rem;
+	--player-font-size-small: 0.75rem;
+	--player-font-size-large: 1.25rem;
+	--player-font-family: inherit;
+	--player-font-mono: ui-monospace, menlo, consolas, monospace;
+	--player-radius: 0.25rem;
+	--player-radius-large: 0.375rem;
+	--player-shadow-popover: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+}

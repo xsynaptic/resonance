@@ -1,0 +1,31 @@
+.player {
+	font-family: var(--player-font-family);
+}
+
+:is(
+	player-artist-line,
+	player-artwork,
+	player-bar,
+	player-mute-button,
+	player-overlay,
+	player-overlay-content,
+	player-overlay-toggle,
+	player-panel,
+	player-panel-toggle,
+	player-panel-zoom,
+	player-play-button,
+	player-queue-button,
+	player-scope,
+	player-seek-button,
+	player-status,
+	player-step-button,
+	player-time,
+	player-time-slider,
+	player-title,
+	player-tracklist,
+	player-tray,
+	player-volume-popover,
+	player-volume-slider
+):not([hidden]) {
+	display: contents;
+}

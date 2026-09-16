@@ -1,0 +1,196 @@
+.player-queue {
+	position: relative;
+	flex-shrink: 0;
+}
+
+.player-tray {
+	position: absolute;
+	right: 0;
+	bottom: 100%;
+	width: min(26rem, 100vw - 2rem);
+	margin-bottom: var(--player-gap-tight);
+	overflow: hidden;
+	background-color: var(--player-popover);
+	border: 1px solid var(--player-border);
+	border-radius: var(--player-radius-large);
+	box-shadow: var(--player-shadow-popover);
+}
+
+.player-tray-list {
+	max-height: 20rem;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.player-tray-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.25rem 0.5rem;
+	border-bottom: 1px solid var(--player-border);
+}
+
+.player-tray-action {
+	display: inline-flex;
+	gap: 0.375rem;
+	align-items: center;
+	padding-block: 0.25rem;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-meta);
+	border-radius: var(--player-radius);
+}
+
+@media (hover: hover) {
+	.player-tray-action:hover {
+		color: var(--player-title);
+	}
+}
+
+.player-tray-action:focus-visible {
+	color: var(--player-title);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: 0;
+}
+
+.player-tray-action[aria-pressed='true'] {
+	color: var(--player-control-active);
+}
+
+.player-tray-empty {
+	padding: 1rem 0.75rem;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-hint);
+	text-align: center;
+}
+
+.player-tray-section {
+	padding: 0.5rem 0.75rem 0.25rem;
+	font-size: var(--player-font-size-small);
+	font-weight: 600;
+	line-height: 1rem;
+	color: var(--player-meta);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.player-tray-item {
+	position: relative;
+	display: flex;
+	gap: var(--player-gap-tight);
+	align-items: center;
+	contain-intrinsic-size: auto 3.25rem;
+	padding-inline: 0.5rem;
+	content-visibility: auto;
+}
+
+.player-tray-item[data-dragging] {
+	z-index: 1;
+	background-color: var(--player-hover);
+	box-shadow: 0 8px 10px -6px rgb(0 0 0 / 40%);
+}
+
+.player-tray-handle {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	color: var(--player-drag-handle);
+	touch-action: none;
+	cursor: grab;
+	border-radius: var(--player-radius);
+}
+
+@media (hover: hover) {
+	.player-tray-handle:hover {
+		color: var(--player-title);
+	}
+}
+
+.player-tray-handle:disabled {
+	pointer-events: none;
+	opacity: 0.4;
+}
+
+.player-tray-handle:focus-visible {
+	color: var(--player-title);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: -2px;
+}
+
+.player-tray-item[data-dragging] .player-tray-handle {
+	cursor: grabbing;
+}
+
+@media (hover: hover) {
+	.player-tray-item:hover {
+		background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+	}
+}
+
+.player-tray-item:focus-within {
+	background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+}
+
+.player-tray-pick {
+	flex: 1 1 0%;
+	min-width: 0;
+	padding-block: 0.5rem;
+	color: var(--player-title);
+	text-align: left;
+}
+
+.player-tray-pick:focus-visible {
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: -2px;
+}
+
+.player-tray-item[data-current] .player-tray-pick {
+	color: var(--player-current);
+}
+
+.player-tray-title {
+	display: flex;
+	gap: 0.25rem;
+	align-items: center;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+}
+
+.player-tray-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.player-tray-artist {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-meta);
+	white-space: nowrap;
+}
+
+.player-tray-item[data-current] .player-tray-artist {
+	color: var(--player-current-meta);
+}
+
+.player-tray-item[data-current] .player-tray-title svg {
+	flex-shrink: 0;
+	color: var(--player-current-icon);
+}
+
+.player-tray-status {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	white-space: nowrap;
+	clip-path: inset(50%);
+}

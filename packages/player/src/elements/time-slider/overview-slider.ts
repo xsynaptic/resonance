@@ -9,8 +9,9 @@ import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 import type { WaveformRendering } from '#waveform/overview/overview-render.ts';
 
-import { bufferedKey, bufferedSpans } from '#elements/time-slider/overview-buffered.ts';
 import {
+	bufferedKey,
+	bufferedSpans,
 	holdDelayMs,
 	isSliderKey,
 	keyScrubSeconds,

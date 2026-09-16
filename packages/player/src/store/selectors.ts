@@ -41,7 +41,6 @@ export function displayedItem(state: PlayerStore): QueuedItem | undefined {
 	return first === undefined ? undefined : state.queue[first];
 }
 
-// Loading while paused has nobody waiting on it
 export function isAwaitingPlayback(state: PlayerStore): boolean {
 	return !state.isPaused && state.status === 'loading';
 }
@@ -56,7 +55,6 @@ export function loadedItem(
 	return state.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
 }
 
-// `-1` where the track is off the queue, as `findIndex` reports it
 export function queuedIndex(state: Pick<PlayerStore, 'queue'>, itemId: string): number {
 	return state.queue.findIndex((item) => item.itemId === itemId);
 }

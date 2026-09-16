@@ -24,7 +24,6 @@ export function createPanelDrag({
 	let shownTimeSeconds = 0;
 	let shownDurationSeconds: number | undefined;
 
-	// One seek commits where the drag landed
 	let pointerId: number | undefined;
 	let dragFromX = 0;
 	let dragFromSeconds = 0;

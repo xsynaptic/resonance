@@ -1,0 +1,47 @@
+.player-cue-label {
+	position: absolute;
+	max-width: min(var(--player-cue-label-max), var(--player-cue-room, 100%));
+	padding: 0.125rem 0.375rem;
+	margin-top: calc(var(--player-cue-size) / 2 + 0.25rem);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	white-space: nowrap;
+	pointer-events: none;
+	background-color: var(--player-popover);
+	border: 1px solid var(--player-border);
+	border-radius: var(--player-radius);
+}
+
+.player-cue-label[data-side='end'] {
+	translate: -100%;
+}
+
+.player-cue-time {
+	font-family: var(--player-font-mono);
+	font-variant-numeric: tabular-nums;
+	color: var(--player-clock);
+}
+
+.player-cue-time:not(:empty):has(~ :not(:empty))::after {
+	padding-inline: 0.3em;
+	color: var(--player-cue-title);
+	content: '-';
+}
+
+.player-cue-artist {
+	font-weight: 500;
+	color: var(--player-cue-artist);
+}
+
+.player-cue-artist:not(:empty)::after,
+.player-panel-now-artist:not(:empty)::after {
+	padding-inline: 0.3em;
+	color: var(--player-cue-title);
+	content: '-';
+}
+
+.player-cue-title {
+	color: var(--player-cue-title);
+}

@@ -39,7 +39,7 @@ interface LoadOptions {
 
 type PressOutcome = 'ignore' | 'resume' | { index: number; resumeAtSeconds: number };
 
-// Owns the engine and the load state machine; every action that reaches audio comes through here
+// Every action that reaches audio comes through here
 export function createPlaybackController(
 	api: StoreApi<PlayerStore>,
 	createEngine: CreateAudioEngine,

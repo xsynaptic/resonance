@@ -34,7 +34,6 @@ export function renderMarquee(): MarqueeParts {
 	return { box, line: requireChild(box, '.player-marquee-text', HTMLSpanElement) };
 }
 
-// One line that marches only when it does not fit
 export function writeMarquee(parts: MarqueeParts, text: string): void {
 	parts.line.textContent = text;
 	measureMarquee(parts.box);

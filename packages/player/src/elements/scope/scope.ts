@@ -2,7 +2,7 @@ import type { PlayerStore } from '#store/player-types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
-import { traceSignal } from '#elements/scope-trace.ts';
+import { traceSignal } from '#elements/scope/scope-trace.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
 import { supersede } from '#lib/supersede.ts';

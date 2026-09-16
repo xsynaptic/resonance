@@ -34,7 +34,7 @@ type QueueActions = Pick<
 	| 'toggleShuffle'
 >;
 
-// A fresh queue is positioned with nothing loaded, and leaves the engine to the next gesture
+// Leaves the engine to the next gesture
 const nothingLoaded = {
 	currentTimeSeconds: 0,
 	durationSeconds: undefined,

@@ -3,13 +3,13 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { QueueItem } from '#types.ts';
 
-import { bind } from '#lib/bind.ts';
 import {
 	controlSelector,
 	heldPressAttribute,
 	heldPressSelector,
 	payloadSelector,
-} from '#page-control-selectors.ts';
+} from '#contract/page-control-selectors.ts';
+import { bind } from '#lib/bind.ts';
 import { currentCue, loadedItem, queuedIndex } from '#store/selectors.ts';
 
 // The resolved press, so a host reads the verb rather than re-deriving it from the DOM

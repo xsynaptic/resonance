@@ -3,8 +3,6 @@ import type { EnvelopeTheme, EnvelopeView } from '#waveform/panel/waveform-envel
 
 import { createEnvelopePainter } from '#waveform/panel/waveform-envelope.ts';
 
-// Every length here is a device pixel, never a CSS pixel
-
 const hatchTilePx = 8;
 
 // In CSS pixels, and as a share of half the panel's height

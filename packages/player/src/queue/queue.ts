@@ -30,7 +30,6 @@ export function previousInOrder(
 	return playOrder[position - 1];
 }
 
-// Current track first, then a Fisher-Yates shuffle of the rest
 export function shuffledOrder(
 	length: number,
 	currentIndex: number | undefined,

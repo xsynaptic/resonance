@@ -34,7 +34,6 @@ interface RowPointer {
 	pointerId: number;
 }
 
-// The handle pressed, which takes the capture so every later event of the drag reaches it
 interface RowPointerDown extends RowPointer {
 	currentTarget: Element;
 }

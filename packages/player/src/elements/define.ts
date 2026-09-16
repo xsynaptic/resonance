@@ -16,7 +16,7 @@ import { PlayerPlayButton } from '#elements/play-button.ts';
 import { PlayerBar } from '#elements/player-bar.ts';
 import { PlayerRoot } from '#elements/player-root.ts';
 import { PlayerQueueButton } from '#elements/queue-button.ts';
-import { PlayerScope } from '#elements/scope.ts';
+import { PlayerScope } from '#elements/scope/scope.ts';
 import { PlayerSeekButton } from '#elements/seek-button.ts';
 import { PlayerStatusRegion } from '#elements/status.ts';
 import { PlayerStepButton } from '#elements/step-button.ts';

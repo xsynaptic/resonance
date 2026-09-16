@@ -1,0 +1,422 @@
+.player-overlay,
+.player-overlay-sheet {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+	color: var(--player-title);
+	background-color: var(--player-surface);
+	border: 0;
+}
+
+:root:has(.player-overlay:modal) {
+	overflow: hidden;
+}
+
+.player-overlay {
+	transition: translate 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-overlay[data-grabbing] {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-overlay {
+		transition-duration: 1ms;
+	}
+}
+
+.player-overlay-grabber {
+	position: absolute;
+	inset-block-start: calc(var(--player-overlay-inset-top) / 2);
+	inset-inline-start: 50%;
+	inline-size: 2.5rem;
+	block-size: 0.25rem;
+	touch-action: none;
+	cursor: grab;
+	background-color: var(--player-drag-handle);
+	border-radius: 9999px;
+	translate: -50% 0;
+}
+
+.player-overlay[data-grabbing] .player-overlay-grabber {
+	cursor: grabbing;
+}
+
+.player-overlay-head,
+.player-overlay-body[data-layout='phone'] .player-overlay-art {
+	touch-action: none;
+}
+
+.player-overlay-body {
+	--player-overlay-inset-top: max(var(--player-gap-tight), env(safe-area-inset-top));
+	--player-overlay-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
+	--player-overlay-inset-bottom: max(var(--player-padding-inline), env(safe-area-inset-bottom));
+	--player-overlay-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
+
+	position: relative;
+	box-sizing: border-box;
+	block-size: 100%;
+	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
+		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
+	container-type: size;
+	overflow: hidden;
+	background-color: var(--player-surface);
+}
+
+.player-overlay-layout {
+	display: grid;
+	gap: var(--player-gap);
+	block-size: 100%;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-layout {
+	grid-template: 'artwork' minmax(0, 1fr) 'deck' auto / minmax(0, 1fr);
+	max-inline-size: 40rem;
+	margin-inline: auto;
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-layout {
+	grid-template: 'artwork deck' minmax(0, 1fr) / auto minmax(0, 64rem);
+	column-gap: 3rem;
+	justify-content: center;
+}
+
+.player-overlay-body[data-layout='columns']
+	.player-overlay-layout:not(:has(.player-overlay-art .player-artwork)) {
+	grid-template: 'deck' minmax(0, 1fr) / minmax(0, 64rem);
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-art {
+	display: contents;
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-art .player-artwork {
+	grid-area: artwork;
+	inline-size: min(40cqi, 100cqb, 900px);
+	block-size: auto;
+	aspect-ratio: 1;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-art {
+	display: grid;
+	grid-area: artwork;
+	place-items: start center;
+	margin-block-start: calc(-1 * var(--player-overlay-inset-top));
+	margin-inline: calc(-1 * var(--player-overlay-inset-left))
+		calc(-1 * var(--player-overlay-inset-right));
+	container-type: size;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-art .player-artwork {
+	inline-size: min(100cqi, 100cqb, 900px);
+	block-size: auto;
+	aspect-ratio: 1;
+}
+
+@container (height < 6rem) {
+	.player-overlay-body[data-layout='phone'] .player-overlay-art .player-artwork {
+		display: none;
+	}
+}
+
+.player-overlay-deck {
+	display: flex;
+	flex-direction: column;
+	grid-area: deck;
+	gap: var(--player-gap);
+	min-inline-size: 0;
+	min-block-size: 0;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-deck {
+	position: relative;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-deck > player-panel > .player-panel {
+	position: absolute;
+	inset-block-end: calc(100% + var(--player-gap));
+	inset-inline: calc(-1 * var(--player-overlay-inset-left))
+		calc(-1 * var(--player-overlay-inset-right));
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-deck > player-panel > .player-panel {
+	background-color: color-mix(in oklab, var(--player-panel-well) 55%, transparent);
+	border-radius: var(--player-radius-large);
+}
+
+.player-overlay-head {
+	position: relative;
+}
+
+.player-overlay-head > .player-overlay-close {
+	position: absolute;
+	inset-block-start: -0.125rem;
+	inset-inline-end: -0.625rem;
+	z-index: 1;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-close {
+	width: 2.5rem;
+	height: 2.5rem;
+	color: var(--player-control-active);
+}
+
+.player-overlay-body[data-layout='phone'] > .player-overlay-close {
+	position: absolute;
+	inset-block-start: var(--player-overlay-inset-top);
+	inset-inline-end: var(--player-overlay-inset-right);
+	z-index: 1;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-close svg {
+	inline-size: auto;
+	block-size: 1.25rem;
+}
+
+@media (hover: hover) {
+	.player-overlay-body[data-layout='phone'] .player-overlay-close:hover {
+		color: var(--player-control-active-hover);
+	}
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-close:focus-visible {
+	color: var(--player-control-active-hover);
+}
+
+.player-overlay-track :is(.player-track-title, .player-track-empty) {
+	padding-inline-end: calc(2rem + var(--player-gap-tight));
+}
+
+.player-overlay-body[data-layout='phone']
+	.player-overlay-track
+	:is(.player-track-title, .player-track-empty) {
+	padding-inline-end: 0;
+}
+
+.player-overlay-track .player-track-title {
+	font-size: var(--player-font-size-large);
+	line-height: 1.75rem;
+}
+
+.player-overlay-track .player-track-artist {
+	font-size: var(--player-font-size);
+	line-height: 1.25rem;
+}
+
+.player-overlay-track .player-time {
+	line-height: 1.25rem;
+}
+
+.player-overlay-scrub {
+	position: relative;
+}
+
+.player-overlay-controls {
+	display: flex;
+	gap: var(--player-gap);
+	align-items: center;
+}
+
+.player-overlay-controls .player-transport {
+	gap: 1rem;
+}
+
+.player-overlay-body[data-layout='columns'] .player-overlay-controls .player-transport {
+	margin-inline-end: auto;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-controls {
+	justify-content: center;
+}
+
+.player-overlay-deck .player-button-primary {
+	width: 3.5rem;
+	height: 3.5rem;
+}
+
+.player-overlay-deck .player-transport .player-button-primary svg {
+	inline-size: auto;
+	block-size: 1.5rem;
+}
+
+.player-overlay-sheets {
+	display: flex;
+	gap: 3rem;
+	justify-content: center;
+}
+
+.player-overlay-tabs {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-block-size: 0;
+}
+
+.player-overlay-sheets[hidden],
+.player-overlay-tabs[hidden] {
+	display: none;
+}
+
+.player-overlay-tablist {
+	display: flex;
+	gap: var(--player-gap);
+	border-bottom: 1px solid var(--player-border);
+}
+
+.player-overlay-tab {
+	padding-block: 0.5rem;
+	margin-bottom: -1px;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-meta);
+	border-bottom: 2px solid transparent;
+}
+
+@media (hover: hover) {
+	.player-overlay-tab:hover {
+		color: var(--player-title);
+	}
+}
+
+.player-overlay-tab:focus-visible {
+	color: var(--player-title);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: 0;
+}
+
+.player-overlay-tab[aria-selected='true'] {
+	color: var(--player-title);
+	border-bottom-color: var(--player-control-active);
+}
+
+.player-overlay-list {
+	flex: 1 1 0;
+	min-block-size: 0;
+	overflow-y: auto;
+	scrollbar-gutter: stable;
+	overscroll-behavior: contain;
+}
+
+.player-overlay-sheet[open] {
+	--player-overlay-inset-top: max(var(--player-padding-inline), env(safe-area-inset-top));
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--player-gap);
+	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
+		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
+}
+
+/* The close shares the tab row, so the lists start at the top of the sheet */
+.player-overlay-sheet .player-overlay-tabs {
+	display: grid;
+	grid-template: 'tabs' auto 'list' minmax(0, 1fr) / minmax(0, 1fr);
+}
+
+.player-overlay-sheet .player-overlay-tablist {
+	grid-area: tabs;
+	padding-inline-end: 2.75rem;
+}
+
+.player-overlay-sheet[open] .player-overlay-tabs > .player-overlay-close {
+	grid-area: tabs;
+	place-self: center end;
+}
+
+.player-overlay-sheet .player-overlay-list {
+	grid-area: list;
+}
+
+.player-overlay-list .player-tray {
+	position: static;
+	width: auto;
+	margin: 0;
+	overflow: visible;
+	background-color: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.player-overlay-list .player-tray-list {
+	max-height: none;
+}
+
+.player-overlay-list
+	:is(.player-tray-header, .player-tray-item, .player-tray-section, .player-tray-empty) {
+	padding-inline: 0;
+}
+
+.player-overlay-tracklist {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.player-overlay-tracklist > li {
+	contain-intrinsic-size: auto 3.25rem;
+	content-visibility: auto;
+}
+
+.player-overlay-cue {
+	display: grid;
+	grid-template:
+		'time artist' auto
+		'time title' auto / var(--player-clock-width) minmax(0, 1fr);
+	column-gap: var(--player-gap-tight);
+	width: 100%;
+	padding-block: 0.5rem;
+	text-align: left;
+	border-radius: var(--player-radius);
+}
+
+@media (hover: hover) {
+	.player-overlay-cue:enabled:hover {
+		background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+	}
+}
+
+.player-overlay-cue:focus-visible {
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: -2px;
+	background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+}
+
+.player-overlay-cue-time {
+	grid-area: time;
+	font-family: var(--player-font-mono);
+	font-size: var(--player-font-size-small);
+	font-variant-numeric: tabular-nums;
+	line-height: 1.25rem;
+	color: var(--player-meta);
+}
+
+.player-overlay-cue-artist {
+	grid-area: artist;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-title);
+}
+
+.player-overlay-cue-title {
+	grid-area: title;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-meta);
+}
+
+.player-overlay-cue[aria-current='true'] .player-overlay-cue-artist {
+	color: var(--player-cue-artist);
+}
+
+.player-overlay-cue[aria-current='true'] .player-overlay-cue-title {
+	color: var(--player-cue-title);
+}

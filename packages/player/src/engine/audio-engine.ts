@@ -100,8 +100,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		try {
 			await audio.play();
 		} catch (error) {
-			// Media failures reach `onError` through the element's error event; a second report from the promise would spend the retry on the same failure
-			// The promise alone knows about an autoplay refusal, and a superseding load rejects it with AbortError, which is benign
+			// Only an autoplay refusal is the promise's to report; a media failure already came through the error event, and AbortError is a superseding load
 			if (!(error instanceof DOMException) || error.name !== 'NotAllowedError') return;
 
 			callbacks.onError('network');

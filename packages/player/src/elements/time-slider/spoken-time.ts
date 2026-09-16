@@ -37,7 +37,7 @@ function durationFormat(
 function formatSpokenDuration(seconds: number, locale: string | undefined): string {
 	const total = Math.max(0, Math.floor(seconds));
 
-	// Baseline since 2025; an engine without it speaks the clock string instead
+	// Not in every engine; without it the clock string is spoken instead
 	if (!('DurationFormat' in Intl)) return formatClock(total);
 
 	// Every unit hides at zero by default, which would speak nothing at the start of a track

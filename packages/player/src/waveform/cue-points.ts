@@ -1,11 +1,18 @@
 import type { QueueCuePoint } from '#types.ts';
-import type { BarGrid } from '#waveform/bar-grid.ts';
 
-// One empty column between cue points on a row; closer than that drops a row
+// One empty column between cue points on a row; closer than that pushes the cue to the next row
 const columnsApart = 2;
 
 // Past this share of the width a label opens leftward, ending over its cue point
 const openEndFrom = 2 / 3;
+
+export interface BarGrid {
+	bar: number;
+	count: number;
+	pitch: number;
+	ratio: number;
+	width: number;
+}
 
 export interface CuePointGrid extends BarGrid {
 	size: number;
@@ -55,7 +62,6 @@ export function cuePointAt(
 	return nearest;
 }
 
-// Which way a label opens from an anchor, and the room it has on that side
 export function labelPlacement(x: number, width: number): Pick<PlacedCuePoint, 'room' | 'side'> {
 	const side = x < width * openEndFrom ? 'start' : 'end';
 
@@ -95,7 +101,6 @@ export function layoutCuePoints(
 	return placed;
 }
 
-// The cue whose span covers the instant; nothing before the first timestamp
 export function placedCueAt(
 	placed: ReadonlyArray<PlacedCuePoint>,
 	seconds: number,

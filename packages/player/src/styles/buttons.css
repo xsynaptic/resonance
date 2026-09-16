@@ -1,0 +1,137 @@
+.player-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--player-control);
+	border-radius: var(--player-radius);
+	transition:
+		color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+		background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+		border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+	.player-button:hover {
+		color: var(--player-control-hover);
+	}
+}
+
+.player-button:focus-visible {
+	color: var(--player-control-hover);
+	outline: 2px solid var(--player-focus-ring);
+	outline-offset: 0;
+}
+
+.player-button:disabled,
+.player-button[aria-disabled='true'] {
+	pointer-events: none;
+	opacity: 0.4;
+}
+
+.player-button-icon {
+	width: 2rem;
+	height: 2rem;
+}
+
+.player-button-small {
+	flex-shrink: 0;
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+.player-button-icon:disabled,
+.player-button-icon[aria-disabled='true'],
+.player-button-small:disabled,
+.player-button-small[aria-disabled='true'] {
+	color: var(--player-control-inert);
+	opacity: 1;
+}
+
+.player-button-primary {
+	position: relative;
+	width: 2.25rem;
+	height: 2.25rem;
+	color: var(--player-play-glyph);
+	background-color: var(--player-play-fill);
+	border-radius: 9999px;
+}
+
+@media (hover: hover) {
+	.player-button-primary:hover {
+		color: var(--player-play-glyph-hover);
+		background-color: var(--player-play-fill-hover);
+	}
+}
+
+.player-button-primary:focus-visible {
+	color: var(--player-play-glyph-hover);
+	background-color: var(--player-play-fill-hover);
+}
+
+.player-button-primary[data-loading]::after {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	content: '';
+	border: 2px solid var(--player-loader-track);
+	border-top-color: var(--player-loader);
+	border-radius: inherit;
+	animation:
+		player-loader-appear 150ms 400ms both,
+		player-loader-spin 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-button-primary[data-loading]::after {
+		animation:
+			player-loader-appear 150ms 400ms both,
+			player-loader-fade 1.6s ease-in-out 400ms infinite alternate;
+	}
+}
+
+@keyframes player-loader-appear {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes player-loader-spin {
+	to {
+		rotate: 1turn;
+	}
+}
+
+@keyframes player-loader-fade {
+	from {
+		border-top-color: var(--player-loader-track);
+	}
+
+	to {
+		border-top-color: var(--player-loader);
+	}
+}
+
+.player-button-primary[data-paused] svg {
+	translate: 8%;
+}
+
+.player-seek-button {
+	color: color-mix(in oklab, var(--player-control) 80%, var(--player-surface));
+}
+
+@media (hover: hover) {
+	.player-seek-button:hover {
+		color: var(--player-control-hover);
+	}
+}
+
+.player-seek-button:focus-visible {
+	color: var(--player-control-hover);
+}
+
+.player-transport {
+	display: flex;
+	flex-shrink: 0;
+	gap: 0.25rem;
+	align-items: center;
+}

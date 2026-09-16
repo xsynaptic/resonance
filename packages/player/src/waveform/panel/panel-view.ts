@@ -34,7 +34,7 @@ export interface PanelParts {
 	parked: CueSlot;
 }
 
-// Everything that draws at one zoom; the archive and the clock outlive it
+// The archive and the clock outlive it
 export interface PanelView {
 	canvas: PanelCanvas;
 	drag: PanelDrag;

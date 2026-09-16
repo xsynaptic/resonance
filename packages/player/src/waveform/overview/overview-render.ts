@@ -1,6 +1,5 @@
 import type { QueueCuePoint } from '#types.ts';
-import type { BarGrid } from '#waveform/bar-grid.ts';
-import type { PlacedCuePoint } from '#waveform/cue-points.ts';
+import type { BarGrid, PlacedCuePoint } from '#waveform/cue-points.ts';
 
 import { readPxProperty } from '#lib/read-px-property.ts';
 import { layoutCuePoints } from '#waveform/cue-points.ts';
@@ -36,7 +35,6 @@ export interface WaveformRendering {
 	width: number;
 }
 
-// A band across the waveform, in device pixels
 export interface WaveformSpan {
 	fromPx: number;
 	toPx: number;
@@ -173,7 +171,6 @@ function fillSpan(
 	context.restore();
 }
 
-// The columns the bars land on, in device pixels
 function measureBarGrid(element: HTMLElement, styles: CSSStyleDeclaration): BarGrid {
 	const ratio = window.devicePixelRatio || 1;
 	const width = Math.max(1, Math.round(element.clientWidth * ratio));

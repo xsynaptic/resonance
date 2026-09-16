@@ -1,4 +1,3 @@
-// The graph the element plays through: normalization, then volume, with an analysis tap spliced in on demand
 // Property syntax so the engine can hand a reader straight on without tripping `unbound-method`
 export interface AudioGraph {
 	// Built on the first ask, so a page that never draws a visualizer never carries the node
@@ -48,7 +47,6 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 	}
 
 	// Spliced ahead of the volume stage, so a visualizer follows the track rather than the volume knob
-	// An analyser passes its input through, so the reconnection costs at most a render quantum
 	function ensureAnalyser(): AnalyserNode | undefined {
 		if (analyserNode) return analyserNode;
 		if (context === undefined || !normalizationNode || !volumeNode) return undefined;
@@ -56,7 +54,6 @@ export function createAudioGraph(element: HTMLAudioElement): AudioGraph {
 		analyserNode = context.createAnalyser();
 
 		// 4096 gives the low bands the resolution this catalogue needs; 0.3 keeps attacks sharp for a visualizer
-		// Time-domain reads are unaffected by the smoothing
 		analyserNode.fftSize = 4096;
 		analyserNode.smoothingTimeConstant = 0.3;
 

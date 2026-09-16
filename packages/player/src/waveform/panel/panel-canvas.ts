@@ -31,7 +31,7 @@ interface PanelCanvasOptions {
 	readArchive: () => undefined | WaveformArchive;
 }
 
-// Owns the backing store's geometry and the painted frame; everything here is in device pixels
+// Everything here is in device pixels
 export function createPanelCanvas({
 	canvas,
 	context,

@@ -1,0 +1,152 @@
+.player-panel {
+	position: relative;
+	height: var(--player-panel-height);
+	overflow: hidden;
+	touch-action: pan-y;
+	cursor: grab;
+	user-select: none;
+	background-image: linear-gradient(
+		to bottom,
+		transparent,
+		color-mix(in oklab, var(--player-panel-well) 70%, transparent) 50%,
+		transparent
+	);
+	background-repeat: no-repeat;
+}
+
+.player-panel[data-dragging] {
+	cursor: grabbing;
+}
+
+.player-panel-canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.player-panel-playhead {
+	position: absolute;
+	inset-block: 0;
+	left: 50%;
+	width: 1px;
+	background-color: var(--player-playhead);
+	translate: -50%;
+}
+
+.player-panel-ghost {
+	position: absolute;
+	inset-block: 0;
+	left: 50%;
+	width: 1px;
+	margin-left: -0.5px;
+	background-color: var(--player-panel-ghost);
+}
+
+.player-panel-ghost[hidden] {
+	display: none;
+}
+
+.player-panel-zoom {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	gap: 0.25rem;
+	padding: 0.375rem;
+	cursor: default;
+}
+
+.player-panel-zoom .player-button-small {
+	width: 1.375rem;
+	height: 1.375rem;
+	background-color: color-mix(in oklab, var(--player-popover) 90%, transparent);
+	border: 1px solid var(--player-border);
+	border-radius: 9999px;
+}
+
+@media (hover: hover) {
+	.player-panel-zoom .player-button-small:hover {
+		background-color: var(--player-hover);
+	}
+}
+
+.player-panel-zoom .player-button-small:focus-visible {
+	background-color: var(--player-hover);
+}
+
+.player-panel-readout {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: grid;
+	overflow: hidden;
+	pointer-events: none;
+	background-image: linear-gradient(to top, var(--player-surface), transparent);
+	background-repeat: no-repeat;
+}
+
+.player-panel-now {
+	display: flex;
+	grid-area: 1 / 1;
+	align-items: baseline;
+	justify-self: start;
+	padding-block: 0.25rem;
+	white-space: nowrap;
+}
+
+.player-panel-now[data-empty] {
+	visibility: hidden;
+}
+
+.player-panel-now-artist {
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-cue-artist);
+}
+
+.player-panel-now-title {
+	font-size: var(--player-font-size);
+	line-height: 1.25rem;
+	color: var(--player-cue-title);
+}
+
+.player-panel-now-note {
+	display: none;
+	flex-shrink: 0;
+	margin-left: var(--player-gap-tight);
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
+	color: var(--player-hint);
+}
+
+.player-panel-now[data-uncertain] .player-panel-now-title,
+.player-panel-now[data-uncertain] .player-panel-now-artist {
+	color: var(--player-hint);
+}
+
+.player-panel-now[data-uncertain] .player-panel-now-artist::after {
+	color: var(--player-hint);
+}
+
+.player-panel-now[data-uncertain] .player-panel-now-note {
+	display: block;
+}
+
+.player-panel-toggle[aria-pressed='true'],
+.player-button-icon[aria-expanded='true'] {
+	color: var(--player-control-active);
+}
+
+@media (hover: hover) {
+	.player-panel-toggle[aria-pressed='true']:hover,
+	.player-button-icon[aria-expanded='true']:hover {
+		color: var(--player-control-active-hover);
+	}
+}
+
+.player-panel-toggle[aria-pressed='true']:focus-visible,
+.player-button-icon[aria-expanded='true']:focus-visible {
+	color: var(--player-control-active-hover);
+}

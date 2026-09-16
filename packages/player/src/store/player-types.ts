@@ -21,9 +21,9 @@ export interface PlayerActions {
 	getMediaElement: () => HTMLMediaElement | undefined;
 	// Seconds the element's clock runs ahead of the sound
 	getOutputDelay: () => number;
-	// Reads the listener's persisted preferences; the root hydrates each store once, however often it reconnects
+	// The root hydrates each store once, however often it reconnects
 	hydratePreferences: () => void;
-	// Puts back the queue this browser left: positioned, with nothing loaded and nothing playing
+	// Positioned, with nothing loaded and nothing playing
 	hydrateQueue: () => void;
 	// Replaces the queue without touching the engine; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
@@ -34,7 +34,6 @@ export interface PlayerActions {
 	// Never pauses, for a remote that sends play and pause as separate actions
 	play: () => void;
 	playAt: (index: number) => void;
-	// Replaces the queue with these items and plays from the top
 	playQueue: (items: ReadonlyArray<QueueItem>) => void;
 	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
 	playRelease: (releaseItems: ReadonlyArray<QueueItem>) => void;
@@ -58,7 +57,7 @@ export interface PlayerActions {
 	// Unmuting a level of zero lands at a quarter, so the press is never answered with silence
 	toggleMuted: () => void;
 	toggleOverlay: () => void;
-	// The scrolling detail panel above the bar; its open state is persisted, as the time mode is
+	// Its open state is persisted, as the time mode is
 	togglePanel: () => void;
 	togglePaused: () => void;
 	toggleShuffle: () => void;
@@ -84,7 +83,7 @@ export interface PlayerState {
 	panelPxPerSecond: number;
 	// The last terminal failure, cleared as a new load starts
 	playbackError: PlaybackError | undefined;
-	// A permutation of queue indices; reshuffled when shuffle toggles or items are appended
+	// A permutation of queue indices
 	playOrder: Array<number>;
 	queue: Array<QueuedItem>;
 	status: PlayerStatus;

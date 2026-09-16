@@ -8,6 +8,8 @@ import { createTermDetailPaths } from '#lib/collections/terms/term-routes.ts';
 export const getStaticPaths = createTermDetailPaths('themes', getThemesIndex);
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { page, term } = Astro.props;
 ---
 
-<TermDetail {...Astro.props} />
+<TermDetail items={page.data} page={page} term={term} />

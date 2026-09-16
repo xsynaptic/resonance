@@ -25,6 +25,25 @@ type TermReferences = (entry: MemberEntry) => Array<{ id: string }> | undefined;
 
 let membersPromise: Promise<Array<Member>> | undefined;
 
+// One pass shared by every index, so an entry is paired with its catalog item once per build
+export function getMembers(): Promise<Array<Member>> {
+	if (!membersPromise) membersPromise = buildMembers();
+
+	return membersPromise;
+}
+
+export function rollUp(collection: HierarchicalCollection) {
+	return (index: TermIndex) => rollUpHierarchy(index, collection);
+}
+
+export function sortIndex(index: TermIndex): TermIndex {
+	for (const list of index.values()) {
+		list.sort((first, second) => second.date.getTime() - first.date.getTime());
+	}
+
+	return index;
+}
+
 // A mix reaches its artist's page through the alias it was published as, not through `artists`
 function artistReferences(entry: MemberEntry): Array<{ id: string }> {
 	if (entry.collection === 'mixes') return entry.data.alias ? [entry.data.alias] : [];
@@ -88,13 +107,6 @@ function dedupeById(items: Array<ContentCatalogItem>): Array<ContentCatalogItem>
 	return deduped;
 }
 
-// One pass shared by every index, so an entry is paired with its catalog item once per build
-function getMembers(): Promise<Array<Member>> {
-	if (!membersPromise) membersPromise = buildMembers();
-
-	return membersPromise;
-}
-
 // Flat term collections date-sort (the default); hierarchical ones pass `rollUp`
 function makeTermIndex(
 	getReferences: TermReferences,
@@ -107,10 +119,6 @@ function makeTermIndex(
 
 		return cached;
 	};
-}
-
-function rollUp(collection: HierarchicalCollection) {
-	return (index: TermIndex) => rollUpHierarchy(index, collection);
 }
 
 // A parent's page (e.g. /regions/africa/) then shows everything below it, not just direct tags
@@ -129,14 +137,6 @@ async function rollUpHierarchy(
 	}
 
 	return sortIndex(rolled);
-}
-
-function sortIndex(index: TermIndex): TermIndex {
-	for (const list of index.values()) {
-		list.sort((first, second) => second.date.getTime() - first.date.getTime());
-	}
-
-	return index;
 }
 
 // Keeps only the linked (object) credits; free text carries no id to index by

@@ -5,8 +5,8 @@ import { z } from 'zod';
 import { CreditSchema } from '#lib/schemas/credits.ts';
 import { TitleSchema } from '#lib/schemas/index.ts';
 
-// Shared term fields; `description` lives in the body, not frontmatter
 const termBaseSchema = {
+	_appearanceCount: z.number().int().optional(),
 	_entryCount: z.number().int().optional(),
 	imageFeatured: ImageFeaturedSchema.optional(),
 	links: z.string().array().optional(),
@@ -42,9 +42,6 @@ export const eraSchema = z
 	.object({ ...termBaseSchema, parent: reference('eras').optional() })
 	.strict();
 
-// The series entry owns its members: `seriesItems` is an ordered list of content ids
-// Plain strings, not references, so one field resolves members across collections
-// Array order is display order
 export const seriesSchema = z
 	.object({ ...termBaseSchema, seriesItems: z.string().array().optional() })
 	.strict();

@@ -9,12 +9,13 @@ import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
 
 import MainSite from '#components/main/main-site.astro';
-import EntryCardGroups from '#components/parts/entry-card-groups.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermLinks from '#components/parts/term-links.astro';
 import SearchThumbnail from '#components/search/search-thumbnail.astro';
+import SectionAppearances from '#components/sections/section-appearances.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
+import SectionEntries from '#components/sections/section-entries.astro';
 import { isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { getTermRelations } from '#lib/collections/terms/term-relations.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -27,19 +28,25 @@ import { getOpenGraphId } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
 
 interface Props {
+	appearances?: Array<ContentCatalogItem> | undefined;
 	groupByYear?: boolean | undefined;
-	page: Page<ContentCatalogItem>;
+	items: Array<ContentCatalogItem>;
+	page?: Page<ContentCatalogItem> | undefined;
 	term: CollectionEntry<'artists' | 'eras' | 'labels' | 'regions' | 'series' | 'styles' | 'themes'>;
 }
 
-const { groupByYear = false, page, term } = Astro.props;
+const { appearances, groupByYear = false, items, page, term } = Astro.props;
+
+// Only the vocabularies passing `appearances` carry two sections, so only they label either one
+const appearanceItems = appearances ?? [];
+const isSectioned = appearances !== undefined;
 
 const { Content } = await render(term);
 
 const imageHeroId = getImageHeroId(term.data.imageFeatured);
 
-// Only the first page of a paginated term carries the search body, and its thumbnail with it
-const isSearchable = page.currentPage === 1;
+// Only the first page of a paginated term carries the search body, its thumbnail and its relations
+const isFirstPage = page === undefined || page.currentPage === 1;
 
 // Artists carry relationships (a group's members, a person's projects); other terms do not
 const memberLinks =
@@ -47,8 +54,7 @@ const memberLinks =
 const projectLinks =
 	term.collection === 'artists' ? await resolveCredits('artists', term.data.projects) : [];
 
-const relationGroups =
-	page.currentPage === 1 ? await getTermRelations(term.collection, term.id) : [];
+const relationGroups = isFirstPage ? await getTermRelations(term.collection, term.id) : [];
 
 // A term's description is its body, so the page head derives from it too
 const body = term.body?.trim() ?? '';
@@ -63,19 +69,18 @@ const breadcrumbTrail: Array<LinkedName> = [
 ];
 
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
-const schemas =
-	page.currentPage === 1
-		? buildCollectionGraph({
-				description,
-				title: term.data.title,
-				trail: breadcrumbTrail,
-				url: pageUrl,
-			})
-		: undefined;
+const schemas = isFirstPage
+	? buildCollectionGraph({
+			description,
+			title: term.data.title,
+			trail: breadcrumbTrail,
+			url: pageUrl,
+		})
+	: undefined;
 ---
 
 <MainSite
-	noIndex={page.currentPage > 1}
+	noIndex={!isFirstPage}
 	openGraphId={getOpenGraphId(term.collection, term.id)}
 	schemas={schemas}
 	title={term.data.title}
@@ -89,8 +94,8 @@ const schemas =
 			title={term.data.title}
 		/>
 	) : undefined}
-	<div class="mb-6" {...(isSearchable ? { 'data-pagefind-body': '' } : {})}>
-		{isSearchable ? (
+	<div class="mb-6" {...(isFirstPage ? { 'data-pagefind-body': '' } : {})}>
+		{isFirstPage ? (
 			<SearchThumbnail path={getImageFeaturedId(term.data.imageFeatured)} />
 		) : undefined}
 		{imageHeroId ? undefined : (
@@ -111,10 +116,9 @@ const schemas =
 			))}
 		</div>
 	) : undefined}
-	{page.data.length > 0 ? (
-		<EntryCardGroups groupByYear={groupByYear} items={page.data} meta={['kind']} />
-	) : (
-		<p class="text-ink-600">{t('detail.empty')}</p>
+	<SectionEntries groupByYear={groupByYear} isLabelled={isSectioned} items={items} />
+	<SectionAppearances items={appearanceItems} />
+	{page === undefined ? undefined : (
+		<PaginationSelect class="mt-8" pagination={getPagination(page)} />
 	)}
-	<PaginationSelect class="mt-8" pagination={getPagination(page)} />
 </MainSite>

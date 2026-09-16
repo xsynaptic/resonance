@@ -1,0 +1,20 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+
+import TermDetail from '#layouts/term-detail.astro';
+import { getArtistAppearancesIndex } from '#lib/collections/terms/appearances-index.ts';
+import { getArtistsIndex } from '#lib/collections/terms/term-index.ts';
+import { createTermDetailPathsUnpaged } from '#lib/collections/terms/term-routes.ts';
+
+export const getStaticPaths = createTermDetailPathsUnpaged(
+	'artists',
+	getArtistsIndex,
+	getArtistAppearancesIndex,
+);
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { appearances, items, term } = Astro.props;
+---
+
+<TermDetail appearances={appearances} items={items} term={term} />

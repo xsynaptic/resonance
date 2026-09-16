@@ -25,3 +25,27 @@ export function createTermDetailPaths<Collection extends CollectionKey>(
 		);
 	}) satisfies GetStaticPaths;
 }
+
+// Artists and Labels carry two sections, so splitting the second across pages has no good answer
+export function createTermDetailPathsUnpaged<Collection extends CollectionKey>(
+	collection: Collection,
+	getIndex: () => Promise<TermIndex>,
+	getAppearances: () => Promise<TermIndex>,
+) {
+	return (async () => {
+		const [terms, index, appearances] = await Promise.all([
+			getCollection(collection),
+			getIndex(),
+			getAppearances(),
+		]);
+
+		return terms.map((term) => ({
+			params: { slug: term.id },
+			props: {
+				appearances: appearances.get(term.id) ?? [],
+				items: index.get(term.id) ?? [],
+				term,
+			},
+		}));
+	}) satisfies GetStaticPaths;
+}

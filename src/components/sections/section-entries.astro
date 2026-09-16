@@ -1,0 +1,23 @@
+---
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+
+import EntryCardGroups from '#components/parts/entry-card-groups.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	groupByYear: boolean;
+	isLabelled: boolean;
+	items: Array<ContentCatalogItem>;
+}
+
+const { groupByYear, isLabelled, items } = Astro.props;
+---
+
+{items.length > 0 ? (
+	<section>
+		{isLabelled ? <h2 class="heading-section mb-4">{t('section.entries')}</h2> : undefined}
+		<EntryCardGroups groupByYear={groupByYear} items={items} meta={['kind']} />
+	</section>
+) : (
+	<p class="text-ink-600">{t('detail.empty')}</p>
+)}

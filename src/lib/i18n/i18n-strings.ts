@@ -177,6 +177,8 @@ const strings = {
 	'search.shortcut.description': 'open search',
 	'search.toggle.label': 'Search',
 	'search.toggle.title': 'Search this site',
+	'section.appearances': 'Appearances',
+	'section.entries': 'Entries',
 	'section.related.carouselLabel': 'related entries',
 	'section.related.heading': 'Related',
 	'section.selection.links': 'Links:',

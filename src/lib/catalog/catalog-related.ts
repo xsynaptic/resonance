@@ -2,24 +2,17 @@ import { getCollection } from 'astro:content';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
-import type { CreditValue, LabelCreditValue } from '#lib/schemas/credits.ts';
+import type { CreditValue } from '#lib/schemas/credits.ts';
 import type { LinkableEntry } from '#lib/utils/entries.ts';
 
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getTermHierarchy } from '#lib/collections/terms/hierarchy.ts';
-import { getSlugs, toCreditArray } from '#lib/utils/terms.ts';
-import { toSlug } from '#lib/utils/text.ts';
-import { toFlatTracks } from '#lib/utils/track-groups.ts';
+import { toCreditId, toListedRows, toRowArtists } from '#lib/utils/listed-rows.ts';
+import { getSlugs } from '#lib/utils/terms.ts';
 
 interface CreditSlugs {
 	artists: Map<string, string>;
 	labels: Map<string, string>;
-}
-
-interface ListedRow {
-	artists?: Array<CreditValue> | CreditValue | undefined;
-	labels?: Array<LabelCreditValue> | undefined;
-	mixArtists?: Array<CreditValue> | CreditValue | undefined;
 }
 
 interface RelatedContext {
@@ -187,7 +180,7 @@ function collectReferences(entry: LinkableEntry): Set<string> {
 
 function collectTerms(entry: LinkableEntry, slugs: CreditSlugs): Map<string, number> {
 	const { data } = entry;
-	const listed = listedRows(entry);
+	const listed = toListedRows(entry);
 	const terms = new Map<string, number>();
 
 	function add(keys: Array<string>, weight: number) {
@@ -200,7 +193,7 @@ function collectTerms(entry: LinkableEntry, slugs: CreditSlugs): Map<string, num
 	add(referenceKeys('themes', data.themes), signalWeights.themes);
 	add(creditKeys('artists', authoredArtists(entry), slugs), signalWeights.artistsAuthored);
 	add(creditKeys('labels', data.labels ?? [], slugs), signalWeights.labelsAuthored);
-	add(creditKeys('artists', listed.flatMap(rowArtists), slugs), signalWeights.artistsListed);
+	add(creditKeys('artists', listed.flatMap(toRowArtists), slugs), signalWeights.artistsListed);
 	add(
 		creditKeys(
 			'labels',
@@ -219,31 +212,15 @@ function creditKeys(
 	slugs: CreditSlugs,
 ): Array<string> {
 	return credits
-		.map((credit) =>
-			typeof credit === 'string' ? freeTextId(credit, slugs[vocabulary]) : credit.id,
-		)
+		.map((credit) => toCreditId(credit, slugs[vocabulary]))
 		.filter((id) => id !== '')
 		.map((id) => termKey(vocabulary, id));
-}
-
-// Free text takes a cataloged Term's id when its name matches, as `resolveCredits` links it
-function freeTextId(name: string, slugs: Map<string, string>): string {
-	const slug = toSlug(name);
-
-	return slugs.get(slug) ?? slug;
 }
 
 function getRelatedContext(): Promise<RelatedContext> {
 	if (!contextPromise) contextPromise = buildRelatedContext();
 
 	return contextPromise;
-}
-
-// A roundup names its Releases in passing, as a tracklist does
-function listedRows(entry: LinkableEntry): Array<ListedRow> {
-	if (entry.collection === 'posts') return entry.data.selections ?? [];
-
-	return toFlatTracks(entry.data.tracks);
 }
 
 function measureRarity(profiles: Array<RelatedProfile>): Map<string, number> {
@@ -276,10 +253,6 @@ function referenceKeys(
 	references: Array<{ id: string }> | undefined,
 ): Array<string> {
 	return (references ?? []).map((reference) => termKey(vocabulary, reference.id));
-}
-
-function rowArtists(row: ListedRow): Array<CreditValue> {
-	return [...toCreditArray(row.artists), ...toCreditArray(row.mixArtists)];
 }
 
 function scoreCandidate(

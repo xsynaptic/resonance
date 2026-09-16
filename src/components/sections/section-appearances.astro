@@ -1,0 +1,19 @@
+---
+import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
+
+import EntryCardGroups from '#components/parts/entry-card-groups.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	items: Array<ContentCatalogItem>;
+}
+
+const { items } = Astro.props;
+---
+
+{items.length > 0 ? (
+	<section class="mt-16" data-nosnippet data-pagefind-ignore>
+		<h2 class="heading-section mb-4">{t('section.appearances')}</h2>
+		<EntryCardGroups groupByYear={false} items={items} meta={['kind']} />
+	</section>
+) : undefined}

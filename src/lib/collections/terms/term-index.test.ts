@@ -4,7 +4,7 @@ import type { StubEntry } from '#lib/collections/astro-content-stub.ts';
 
 type Fixtures = Record<string, Array<Pick<StubEntry, 'data' | 'id'>>>;
 
-type IndexName = Extract<keyof Awaited<ReturnType<typeof importIndexes>>, `get${string}`>;
+type IndexName = Extract<keyof Awaited<ReturnType<typeof importIndexes>>, `get${string}Index`>;
 
 const fixtures: Fixtures = {
 	artists: [

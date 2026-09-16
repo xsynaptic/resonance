@@ -8,7 +8,6 @@ interface ScopeSize {
 	width: number;
 }
 
-// An oscilloscope trace of the analyser's time-domain data, drawn every frame until the signal aborts
 export function traceSignal(
 	canvas: HTMLCanvasElement,
 	analyser: AnalyserNode,
@@ -28,7 +27,6 @@ export function traceSignal(
 
 	const render = (): void => {
 		frame = requestAnimationFrame(render);
-		if (document.hidden) return;
 
 		analyser.getByteTimeDomainData(samples);
 
@@ -57,6 +55,12 @@ export function traceSignal(
 		context.stroke();
 	};
 
+	// A scope with no columns is hidden by a container query, and a hidden document presents no frames
+	const restart = (): void => {
+		cancelAnimationFrame(frame);
+		frame = size.columns > 0 && !document.hidden ? requestAnimationFrame(render) : 0;
+	};
+
 	// Reassigning width resets the transform, so size first and then set it
 	const sizeCanvas = (): void => {
 		size.ratio = window.devicePixelRatio || 1;
@@ -67,14 +71,13 @@ export function traceSignal(
 		canvas.height = Math.max(1, Math.floor(size.height * size.ratio));
 		context.setTransform(size.ratio, 0, 0, size.ratio, 0, 0);
 
-		// A hidden scope has no columns, so its loop stops until the observer sees it take width again
-		cancelAnimationFrame(frame);
-		frame = size.columns > 0 ? requestAnimationFrame(render) : 0;
+		restart();
 	};
 
 	sizeCanvas();
 
 	observeResize(canvas, sizeCanvas, signal);
+	document.addEventListener('visibilitychange', restart, { signal });
 	signal.addEventListener(
 		'abort',
 		() => {

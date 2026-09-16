@@ -38,5 +38,7 @@ export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).
 export const isPlayerEnabled = import.meta.env.DEV || PLAYER_ENABLED;
 export const isPlayerOverlayEnabled = import.meta.env.DEV || PLAYER_OVERLAY_ENABLED;
 
+export const isPlayerScopeEnabled = import.meta.env.DEV;
+
 // Listen counts render unflagged; listening time waits until the numbers are worth showing
 export const isListeningTimeEnabled = import.meta.env.DEV || LISTENING_TIME_ENABLED;

@@ -89,6 +89,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	vi.useRealTimers();
 	vi.unstubAllGlobals();
 });
 
@@ -199,25 +200,50 @@ describe('bindMediaSession', () => {
 		expect(store.getState().currentIndex).toBe(1);
 	});
 
-	test('projects the position on each whole second and each change of state', () => {
+	test('reports the position once across steady playback', () => {
+		vi.useFakeTimers();
+
 		const store = loadedStore();
 
 		bindMediaSession(store);
 		store.setState({
 			currentIndex: 0,
-			currentTimeSeconds: 12.3,
+			currentTimeSeconds: 0,
 			durationSeconds: 600,
 			status: 'playing',
 		});
-		store.setState({ currentTimeSeconds: 12.6 });
-		store.setState({ currentTimeSeconds: 13.1 });
+
+		// A minute at four store writes a second, the rate `timeupdate` drives, wobbling well inside the tolerance
+		for (let tick = 1; tick <= 240; tick += 1) {
+			vi.advanceTimersByTime(250);
+			store.setState({ currentTimeSeconds: tick * 0.25 + (tick % 7) * 0.05 });
+		}
+
+		expect(mediaSession.positions).toStrictEqual([{ duration: 600, playbackRate: 1, position: 0 }]);
+	});
+
+	test('reports again where the position leaves the projection', () => {
+		vi.useFakeTimers();
+
+		const store = loadedStore();
+
+		bindMediaSession(store);
+		store.setState({
+			currentIndex: 0,
+			currentTimeSeconds: 100,
+			durationSeconds: 600,
+			status: 'playing',
+		});
+
+		vi.advanceTimersByTime(1000);
+		store.setState({ currentTimeSeconds: 220 });
 		store.setState({ status: 'paused' });
 		store.setState({ status: 'idle' });
 
 		expect(mediaSession.positions).toStrictEqual([
-			{ duration: 600, playbackRate: 1, position: 12.3 },
-			{ duration: 600, playbackRate: 1, position: 13.1 },
-			{ duration: 600, playbackRate: 1, position: 13.1 },
+			{ duration: 600, playbackRate: 1, position: 100 },
+			{ duration: 600, playbackRate: 1, position: 220 },
+			{ duration: 600, playbackRate: 1, position: 220 },
 			undefined,
 		]);
 	});

@@ -41,6 +41,14 @@ export class PlayerRoot extends PlayerElement {
 		this.#isOverlayEnabled = isOverlayEnabled;
 	}
 
+	get isScopeEnabled(): boolean {
+		return this.#isScopeEnabled;
+	}
+
+	set isScopeEnabled(isScopeEnabled: boolean) {
+		this.#isScopeEnabled = isScopeEnabled;
+	}
+
 	get labels(): PlayerLabels | undefined {
 		return this.#labels;
 	}
@@ -77,6 +85,7 @@ export class PlayerRoot extends PlayerElement {
 	#isArtworkEnabled = true;
 
 	#isOverlayEnabled = true;
+	#isScopeEnabled = false;
 
 	#labels: PlayerLabels | undefined;
 
@@ -89,6 +98,7 @@ export class PlayerRoot extends PlayerElement {
 	protected connect(signal: AbortSignal): void {
 		this.upgradeProperty('isArtworkEnabled');
 		this.upgradeProperty('isOverlayEnabled');
+		this.upgradeProperty('isScopeEnabled');
 		this.upgradeProperty('labels');
 		this.upgradeProperty('seekSeconds');
 		this.upgradeProperty('store');

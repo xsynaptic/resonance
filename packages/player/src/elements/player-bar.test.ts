@@ -28,6 +28,13 @@ describe('<player-bar>', () => {
 		]);
 		expect(part.querySelector('player-artwork')).not.toBeNull();
 		expect(part.querySelector('dialog')).not.toBeNull();
+		expect(part.querySelector('player-scope')).toBeNull();
+	});
+
+	test('carries the oscilloscope only where the root opts in', () => {
+		const { part } = mount('player-bar', {}, { isScopeEnabled: true });
+
+		expect(part.querySelector('player-scope')).not.toBeNull();
 	});
 
 	test('leaves out what the root turns off', () => {

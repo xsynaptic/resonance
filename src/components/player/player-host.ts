@@ -10,6 +10,7 @@ import { queueStorageKey } from '@xsynaptic/player/queue-storage-key';
 
 interface PlayerBarConfig {
 	isOverlayEnabled: boolean;
+	isScopeEnabled: boolean;
 	labels: PlayerLabels;
 	seekSeconds: number;
 	stylesheetUrl: string;
@@ -51,6 +52,7 @@ function createRoot(
 	root.className = 'player block';
 	root.toggleAttribute('is-primary', true);
 	root.isOverlayEnabled = config.isOverlayEnabled;
+	root.isScopeEnabled = config.isScopeEnabled;
 	root.labels = config.labels;
 	root.seekSeconds = config.seekSeconds;
 	root.store = store;

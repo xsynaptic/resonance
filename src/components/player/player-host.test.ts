@@ -32,6 +32,7 @@ function control(selector: string): HTMLElement {
 function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 	const config = JSON.stringify({
 		isOverlayEnabled: false,
+		isScopeEnabled: false,
 		labels: getPlayerLabels(),
 		seekSeconds: 30,
 		stylesheetUrl: 'data:text/css,',

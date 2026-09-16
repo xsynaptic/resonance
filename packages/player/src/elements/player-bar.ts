@@ -5,10 +5,18 @@ import { PlayerElement } from '#elements/player-element.ts';
 import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
 import { template } from '#lib/render.ts';
 
+type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isScopeEnabled';
+
 const renderBar = template(
 	'<section class="player-bar"><player-panel></player-panel><div class="player-bar-grid"><player-artwork></player-artwork><div class="player-transport"><player-step-button direction="previous"></player-step-button><player-play-button></player-play-button><player-step-button direction="next"></player-step-button></div><div class="player-track"><player-title></player-title><div class="player-track-meta"><player-artist-line></player-artist-line><player-time></player-time></div></div><player-time-slider></player-time-slider><player-status></player-status><player-scope></player-scope><player-panel-toggle></player-panel-toggle><player-volume-popover></player-volume-popover><player-queue-button></player-queue-button><player-overlay-toggle></player-overlay-toggle></div><player-overlay></player-overlay></section>',
 	HTMLElement,
 );
+
+const optionalParts: ReadonlyArray<[option: BarOption, selector: string]> = [
+	['isArtworkEnabled', 'player-artwork'],
+	['isOverlayEnabled', 'player-overlay, player-overlay-toggle'],
+	['isScopeEnabled', 'player-scope'],
+];
 
 // The root's options shape the bar once, as it is first placed, so a host sets them before the bar connects
 export class PlayerBar extends PlayerElement {
@@ -27,12 +35,14 @@ export class PlayerBar extends PlayerElement {
 }
 
 function shapeBar(bar: HTMLElement, root: PlayerRoot): void {
+	for (const [option, selector] of optionalParts) {
+		if (root[option]) continue;
+
+		for (const part of bar.querySelectorAll(selector)) part.remove();
+	}
+
 	const [previous, next] = [...bar.querySelectorAll('player-step-button')];
 
-	if (!root.isArtworkEnabled) bar.querySelector('player-artwork')?.remove();
-	if (!root.isOverlayEnabled) {
-		for (const part of bar.querySelectorAll('player-overlay, player-overlay-toggle')) part.remove();
-	}
 	if (previous && next && root.seekSeconds !== undefined) {
 		placeSeekButtons(previous, next, root.seekSeconds);
 	}

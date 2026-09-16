@@ -8,6 +8,16 @@ import { loadedItem } from '#store/selectors.ts';
 const defaultSeekSeconds = 10;
 const mediaSessionArtworkMaxWidth = 512;
 
+// Firefox on Android re-requests Android audio focus on every position report, so one is owed only where the platform is wrong
+const positionToleranceSeconds = 2;
+
+interface ReportedPosition {
+	atMilliseconds: number;
+	duration: number;
+	isAdvancing: boolean;
+	position: number;
+}
+
 export function bindMediaSession(
 	store: StoreApi<PlayerStore>,
 	seekSeconds = defaultSeekSeconds,
@@ -21,13 +31,37 @@ export function bindMediaSession(
 
 	let boundQueueId: string | undefined;
 	let boundState: MediaSessionPlaybackState | undefined;
-	let boundPositionKey: string | undefined;
+	let reported: ReportedPosition | undefined;
+
+	const reportPosition = (state: PlayerStore, playbackState: MediaSessionPlaybackState): void => {
+		const position = positionStateFor(state);
+
+		if (position === undefined) {
+			if (reported === undefined) return;
+
+			reported = undefined;
+			navigator.mediaSession.setPositionState();
+			return;
+		}
+
+		const isAdvancing = playbackState === 'playing';
+		if (!hasLeftProjection(reported, position, isAdvancing)) return;
+
+		reported = {
+			atMilliseconds: Date.now(),
+			duration: position.duration,
+			isAdvancing,
+			position: position.position,
+		};
+		navigator.mediaSession.setPositionState(position);
+	};
 
 	const project = (state: PlayerStore): void => {
 		const item = loadedItem(state);
 
 		if (item?.queueId !== boundQueueId) {
 			boundQueueId = item?.queueId;
+			reported = undefined;
 			setMetadata(item);
 		}
 
@@ -41,12 +75,7 @@ export function bindMediaSession(
 			navigator.mediaSession.playbackState = playbackState;
 		}
 
-		const position = positionStateFor(state);
-		const positionKey = positionKeyFor(position, playbackState);
-		if (positionKey === boundPositionKey) return;
-
-		boundPositionKey = positionKey;
-		navigator.mediaSession.setPositionState(position);
+		reportPosition(state, playbackState);
 	};
 
 	project(store.getState());
@@ -132,21 +161,27 @@ function didSetHandler(
 	}
 }
 
+// The platform advances the position itself while playing, so the last report projects forward and only a discontinuity is worth sending
+function hasLeftProjection(
+	reported: ReportedPosition | undefined,
+	position: Required<MediaPositionState>,
+	isAdvancing: boolean,
+): boolean {
+	if (reported === undefined) return true;
+	if (reported.isAdvancing !== isAdvancing || reported.duration !== position.duration) return true;
+
+	const elapsedSeconds = isAdvancing ? (Date.now() - reported.atMilliseconds) / 1000 : 0;
+
+	return (
+		Math.abs(position.position - (reported.position + elapsedSeconds)) > positionToleranceSeconds
+	);
+}
+
 function playbackStateFor(status: PlayerStatus): MediaSessionPlaybackState {
 	if (status === 'playing') return 'playing';
 	if (status === 'idle') return 'none';
 
 	return 'paused';
-}
-
-// Whole seconds are enough: the platform advances the position itself while playing
-function positionKeyFor(
-	position: Required<MediaPositionState> | undefined,
-	playbackState: MediaSessionPlaybackState,
-): string | undefined {
-	if (position === undefined) return undefined;
-
-	return `${playbackState}:${String(position.duration)}:${String(Math.floor(position.position))}`;
 }
 
 // The platform throws on a position past the duration

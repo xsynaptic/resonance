@@ -16,7 +16,7 @@
 		"audio-manifest": "pnpm -F @xsynaptic/scripts audio-manifest",
 		"audio-waveforms": "pnpm -F @xsynaptic/scripts audio-waveforms",
 		"comments": "pnpm -F @xsynaptic/scripts comments",
-		"comments-backup": "pnpm -F @xsynaptic/scripts comments-backup",
+		"backup": "pnpm -F @xsynaptic/scripts backup",
 		"comments-pull": "pnpm -F @xsynaptic/scripts comments-pull",
 		"listens-pull": "pnpm -F @xsynaptic/scripts listens-pull",
 		"discogs-tracklists": "pnpm -F @xsynaptic/scripts discogs-tracklists",

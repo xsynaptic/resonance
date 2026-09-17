@@ -12,7 +12,7 @@
 	},
 	"scripts": {
 		"comments": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/moderate.cli.ts",
-		"comments-backup": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/backup.cli.ts",
+		"backup": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/backup/backup.cli.ts",
 		"comments-pull": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/pull.cli.ts",
 		"listens-pull": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/stats/listens-pull.cli.ts",
 		"discogs-tracklists": "tsx --env-file-if-exists=../../.env ./src/discogs/discogs-tracklists.cli.ts",

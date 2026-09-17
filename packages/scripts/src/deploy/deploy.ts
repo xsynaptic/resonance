@@ -11,7 +11,7 @@ import { generateAudioManifest, readManifestFiles } from '#audio/manifest.ts';
 import { generateRenditions } from '#audio/renditions.ts';
 import { validateAudio } from '#audio/validate.ts';
 import { generateWaveforms } from '#audio/waveforms.ts';
-import { backupIfStale } from '#comments/backup.ts';
+import { backupIfStale } from '#backup/backup.ts';
 import { moderateComments } from '#comments/moderate.ts';
 import { pullComments } from '#comments/pull.ts';
 import { deployApp } from '#deploy/deploy-app.ts';

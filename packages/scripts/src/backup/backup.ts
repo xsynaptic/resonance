@@ -8,7 +8,7 @@ import type { StepStatus } from '#shared/step-status.ts';
 import { isPathPresent } from '#shared/utils.ts';
 
 // Each database runs its own 30-day clock, so a new one does not reset the other's
-const databaseNames = ['resonance-comments', 'resonance-stats'];
+export const databaseNames = ['resonance-comments', 'resonance-stats'];
 
 const backupDir = 'backups';
 

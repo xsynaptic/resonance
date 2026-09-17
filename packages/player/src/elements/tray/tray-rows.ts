@@ -38,7 +38,15 @@ interface TrayListView {
 }
 
 const renderRow = template(
-	'<li class="player-tray-item"><button class="player-tray-handle" type="button"></button><button class="player-tray-pick" type="button"><span class="player-tray-title"><span class="player-tray-name"></span></span><span class="player-tray-artist"></span></button><button class="player-button player-button-small" type="button"></button></li>',
+	/* HTML */ `
+		<li class="player-tray-item">
+			<button class="player-tray-handle" type="button"></button
+			><button class="player-tray-pick" type="button">
+				<span class="player-tray-title"><span class="player-tray-name"></span></span
+				><span class="player-tray-artist"></span></button
+			><button class="player-button player-button-small" type="button"></button>
+		</li>
+	`,
 	HTMLLIElement,
 );
 

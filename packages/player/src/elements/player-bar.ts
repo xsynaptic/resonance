@@ -8,7 +8,30 @@ import { template } from '#lib/render.ts';
 type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isScopeEnabled';
 
 const renderBar = template(
-	'<section class="player-bar"><player-panel></player-panel><div class="player-bar-grid"><player-artwork></player-artwork><div class="player-transport"><player-step-button direction="previous"></player-step-button><player-play-button></player-play-button><player-step-button direction="next"></player-step-button></div><div class="player-track"><player-title></player-title><div class="player-track-meta"><player-artist-line></player-artist-line><player-time></player-time></div></div><player-time-slider></player-time-slider><player-status></player-status><player-scope></player-scope><player-panel-toggle></player-panel-toggle><player-volume-popover></player-volume-popover><player-queue-button></player-queue-button><player-overlay-toggle></player-overlay-toggle></div><player-overlay></player-overlay></section>',
+	/* HTML */ `
+		<section class="player-bar">
+			<player-panel></player-panel>
+			<div class="player-bar-grid">
+				<player-artwork></player-artwork>
+				<div class="player-transport">
+					<player-step-button direction="previous"></player-step-button
+					><player-play-button></player-play-button
+					><player-step-button direction="next"></player-step-button>
+				</div>
+				<div class="player-track">
+					<player-title></player-title>
+					<div class="player-track-meta">
+						<player-artist-line></player-artist-line><player-time></player-time>
+					</div>
+				</div>
+				<player-time-slider></player-time-slider><player-status></player-status
+				><player-scope></player-scope><player-panel-toggle></player-panel-toggle
+				><player-volume-popover></player-volume-popover><player-queue-button></player-queue-button
+				><player-overlay-toggle></player-overlay-toggle>
+			</div>
+			<player-overlay></player-overlay>
+		</section>
+	`,
 	HTMLElement,
 );
 

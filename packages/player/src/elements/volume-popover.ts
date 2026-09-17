@@ -20,7 +20,14 @@ const popoverAttributes = { isOpen: 'data-open' } as const satisfies Record<
 >;
 
 const renderControl = template(
-	'<div class="player-volume"><button class="player-button player-button-icon" type="button"></button><div class="player-volume-panel"><player-volume-slider></player-volume-slider><player-mute-button></player-mute-button></div></div>',
+	/* HTML */ `
+		<div class="player-volume">
+			<button class="player-button player-button-icon" type="button"></button>
+			<div class="player-volume-panel">
+				<player-volume-slider></player-volume-slider><player-mute-button></player-mute-button>
+			</div>
+		</div>
+	`,
 	HTMLDivElement,
 );
 

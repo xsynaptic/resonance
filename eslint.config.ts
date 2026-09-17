@@ -53,6 +53,13 @@ export default getConfig(
 				'unicorn/prefer-global-this': 'off',
 			},
 		},
+		{
+			// Prettier formats the `/* HTML */` literals these elements render from; the rule reindents what it just laid out
+			files: ['packages/player/src/elements/**/*.ts'],
+			rules: {
+				'unicorn/template-indent': 'off',
+			},
+		},
 		getWebComponentConfig(['src/components/**/*.ts', 'packages/player/src/elements/**/*.ts']),
 		...getAstroConfig({ a11y: 'strict' }),
 	],

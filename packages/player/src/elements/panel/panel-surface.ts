@@ -27,7 +27,24 @@ interface PanelSource {
 
 // The arriving readout is hidden from assistive tech: it names a track that is not playing yet
 const renderSurface = template(
-	'<div><canvas aria-hidden="true" class="player-panel-canvas"></canvas><div aria-hidden="true" class="player-panel-playhead"></div><div aria-hidden="true" class="player-panel-ghost" hidden></div><player-panel-zoom></player-panel-zoom><div class="player-panel-readout"><p class="player-panel-now" data-empty><span class="player-panel-now-artist"></span><span class="player-panel-now-title"></span><span class="player-panel-now-note"></span></p><p aria-hidden="true" class="player-panel-now" data-empty><span class="player-panel-now-artist"></span><span class="player-panel-now-title"></span><span class="player-panel-now-note"></span></p></div></div>',
+	/* HTML */ `
+		<div>
+			<canvas aria-hidden="true" class="player-panel-canvas"></canvas>
+			<div aria-hidden="true" class="player-panel-playhead"></div>
+			<div aria-hidden="true" class="player-panel-ghost" hidden></div>
+			<player-panel-zoom></player-panel-zoom>
+			<div class="player-panel-readout">
+				<p class="player-panel-now" data-empty>
+					<span class="player-panel-now-artist"></span><span class="player-panel-now-title"></span
+					><span class="player-panel-now-note"></span>
+				</p>
+				<p aria-hidden="true" class="player-panel-now" data-empty>
+					<span class="player-panel-now-artist"></span><span class="player-panel-now-title"></span
+					><span class="player-panel-now-note"></span>
+				</p>
+			</div>
+		</div>
+	`,
 	HTMLDivElement,
 );
 

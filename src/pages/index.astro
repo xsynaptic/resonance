@@ -9,7 +9,6 @@ import StationsSection from '#components/sections/section-stations.astro';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { getStations } from '#lib/collections/stations/stations-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { isPlayerEnabled } from '#lib/site.ts';
 import { buildAuthorSchema, buildWebSiteSchema } from '#lib/utils/seo-structured-data.ts';
 
 function hasFeaturedImage(item: ContentCatalogItem) {
@@ -21,7 +20,7 @@ const catalog = await getCatalog();
 const mixItems = catalog.byCollection('mixes').filter(hasFeaturedImage).slice(0, 4);
 const reviewItems = catalog.byCollection('reviews').filter(hasFeaturedImage).slice(0, 4);
 const postItems = catalog.byCollection('posts').filter(hasFeaturedImage).slice(0, 4);
-const stations = isPlayerEnabled ? await getStations() : [];
+const stations = await getStations();
 ---
 
 <MainSite openGraphId={openGraphHomeId} schemas={[buildWebSiteSchema(), buildAuthorSchema()]}>

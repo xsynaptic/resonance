@@ -13,7 +13,12 @@ interface ZoomParts {
 
 // Marked as a panel control, so a press here never starts a drag of the waveform beneath
 const renderControl = template(
-	'<div class="player-panel-zoom" data-panel-control><button class="player-button player-button-small" type="button"></button><button class="player-button player-button-small" type="button"></button></div>',
+	/* HTML */ `
+		<div class="player-panel-zoom" data-panel-control>
+			<button class="player-button player-button-small" type="button"></button
+			><button class="player-button player-button-small" type="button"></button>
+		</div>
+	`,
 	HTMLDivElement,
 );
 

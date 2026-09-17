@@ -24,7 +24,14 @@ const cueOfButton = new WeakMap<Element, QueueCuePoint>();
 const renderList = template('<ol class="player-overlay-tracklist"></ol>', HTMLOListElement);
 
 const renderRow = template(
-	'<li><button class="player-overlay-cue" type="button"><span class="player-overlay-cue-time"></span><span class="player-overlay-cue-artist"></span><span class="player-overlay-cue-title"></span></button></li>',
+	/* HTML */ `
+		<li>
+			<button class="player-overlay-cue" type="button">
+				<span class="player-overlay-cue-time"></span><span class="player-overlay-cue-artist"></span
+				><span class="player-overlay-cue-title"></span>
+			</button>
+		</li>
+	`,
 	HTMLLIElement,
 );
 

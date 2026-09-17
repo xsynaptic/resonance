@@ -1,10 +1,5 @@
 import { siteTitle } from '@xsynaptic/shared/constants';
-import {
-	FILES_URL,
-	LISTENING_TIME_ENABLED,
-	PLAYER_ENABLED,
-	PLAYER_OVERLAY_ENABLED,
-} from 'astro:env/server';
+import { FILES_URL, LISTENING_TIME_ENABLED } from 'astro:env/server';
 
 export const site = {
 	description: 'Mixes, reviews, and selections from DJ Basilisk.',
@@ -33,10 +28,6 @@ export const waveformBaseUrl = import.meta.env.DEV
 
 // Dev serves audio locally, so only a build has a remote host worth connecting to early
 export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).origin;
-
-// Dev always shows the player and its overlay; a build shows each only where the deploying machine sets its variable
-export const isPlayerEnabled = import.meta.env.DEV || PLAYER_ENABLED;
-export const isPlayerOverlayEnabled = import.meta.env.DEV || PLAYER_OVERLAY_ENABLED;
 
 export const isPlayerScopeEnabled = import.meta.env.DEV;
 

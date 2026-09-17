@@ -37,7 +37,15 @@ interface SliderView {
 
 // The cue label is hidden from assistive tech: the tracklist carries the same names and the slider the same seeks
 const renderFrame = template(
-	'<div class="player-waveform-frame"><canvas class="player-waveform"></canvas><span aria-hidden="true" class="player-cue-label" hidden><span class="player-cue-time"></span><span class="player-cue-artist"></span><span class="player-cue-title"></span></span></div>',
+	/* HTML */ `
+		<div class="player-waveform-frame">
+			<canvas class="player-waveform"></canvas
+			><span aria-hidden="true" class="player-cue-label" hidden
+				><span class="player-cue-time"></span><span class="player-cue-artist"></span
+				><span class="player-cue-title"></span
+			></span>
+		</div>
+	`,
 	HTMLDivElement,
 );
 

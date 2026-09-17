@@ -24,7 +24,17 @@ interface TrayParts {
 }
 
 const renderTray = template(
-	'<div class="player-tray"><div class="player-tray-header"><button class="player-tray-action" type="button"></button><button class="player-tray-action" type="button"></button></div><ul class="player-tray-list"></ul><p class="player-tray-empty"></p><p aria-live="polite" class="player-tray-status" role="status"></p></div>',
+	/* HTML */ `
+		<div class="player-tray">
+			<div class="player-tray-header">
+				<button class="player-tray-action" type="button"></button
+				><button class="player-tray-action" type="button"></button>
+			</div>
+			<ul class="player-tray-list"></ul>
+			<p class="player-tray-empty"></p>
+			<p aria-live="polite" class="player-tray-status" role="status"></p>
+		</div>
+	`,
 	HTMLDivElement,
 );
 

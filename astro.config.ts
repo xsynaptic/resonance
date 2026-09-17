@@ -42,12 +42,6 @@ export default defineConfig({
 				default: false,
 			}),
 			OG_BASE_URL: envField.string({ access: 'public', context: 'server', optional: true }),
-			PLAYER_ENABLED: envField.boolean({ access: 'public', context: 'server', default: false }),
-			PLAYER_OVERLAY_ENABLED: envField.boolean({
-				access: 'public',
-				context: 'server',
-				default: false,
-			}),
 			TURNSTILE_SITE_KEY: envField.string({ access: 'public', context: 'server' }),
 			UMAMI_DOMAIN: envField.string({ access: 'public', context: 'client', optional: true }),
 			UMAMI_ID: envField.string({ access: 'public', context: 'client', optional: true }),

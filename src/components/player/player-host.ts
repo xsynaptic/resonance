@@ -9,7 +9,6 @@ import {
 } from '@xsynaptic/player/constants';
 
 interface PlayerBarConfig {
-	isOverlayEnabled: boolean;
 	isScopeEnabled: boolean;
 	labels: PlayerLabels;
 	seekSeconds: number;
@@ -51,7 +50,6 @@ function createRoot(
 
 	root.className = 'player block';
 	root.toggleAttribute('is-primary', true);
-	root.isOverlayEnabled = config.isOverlayEnabled;
 	root.isScopeEnabled = config.isScopeEnabled;
 	root.labels = config.labels;
 	root.seekSeconds = config.seekSeconds;

@@ -1,11 +1,10 @@
 ---
 import { getPlayerLabels, seekSeconds } from '#components/player/player-labels.ts';
-import { isPlayerEnabled, isPlayerOverlayEnabled, isPlayerScopeEnabled } from '#lib/site.ts';
+import { isPlayerScopeEnabled } from '#lib/site.ts';
 import playerStylesheetUrl from '#styles/player.css?url';
 
 // Escaped so no label can close the script early
 const config = JSON.stringify({
-	isOverlayEnabled: isPlayerOverlayEnabled,
 	isScopeEnabled: isPlayerScopeEnabled,
 	labels: getPlayerLabels(),
 	seekSeconds,
@@ -13,11 +12,9 @@ const config = JSON.stringify({
 }).replaceAll('<', String.raw`\u003c`);
 ---
 
-{isPlayerEnabled ? (
-	<div data-player-host transition:persist="player">
-		<script is:inline set:html={config} type="application/json"></script>
-	</div>
-) : undefined}
+<div data-player-host transition:persist="player">
+	<script is:inline set:html={config} type="application/json"></script>
+</div>
 <script>
 	import { startPlayer } from '#components/player/player-host.ts';
 

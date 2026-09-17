@@ -63,11 +63,6 @@ export function trackControlPress({ itemIds, verb }: ControlPress): void {
 		return;
 	}
 
-	if (verb === 'unqueue-track') {
-		trackEvent('player-queue-remove', { mix });
-		return;
-	}
-
 	trackEvent('player-play', { mix, origin: origins[verb] });
 }
 

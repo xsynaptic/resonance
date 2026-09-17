@@ -4,7 +4,6 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollectionPath } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
-import EmbedAudio from '#components/embed/embed-audio.astro';
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import EntryTermLinks from '#components/parts/entry-term-links.astro';
@@ -75,16 +74,14 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 >
 	<Content />
 	<Fragment slot="media">
-		<EmbedAudio mixcloudLink={entry.data.mixcloudLink} soundcloudLink={entry.data.soundcloudLink} />
-		{queueItem ? <PlayerControls itemId={entry.id} /> : undefined}
-		<PlayerPayload items={queueItem ? [queueItem] : []} />
-	</Fragment>
-	<Fragment slot="actions">
 		<AudioLinks
 			links={entry.data.links}
 			{...(hasGroupFiles ? {} : { files: entry.data.files })}
 			{...(hasMixTimestamps(entry) ? { cueSlug: entry.id } : {})}
-		/>
+		>
+			{queueItem ? <PlayerControls itemId={entry.id} /> : undefined}
+		</AudioLinks>
+		<PlayerPayload items={queueItem ? [queueItem] : []} />
 	</Fragment>
 	<Fragment slot="coda">
 		<AudioCounts

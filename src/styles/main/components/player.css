@@ -61,15 +61,11 @@ player-root[data-empty] .player-bar {
 }
 
 .player-controls-play,
-.player-controls-pause,
-.player-controls-queue,
-.player-controls-unqueue {
+.player-controls-pause {
 	display: contents;
 }
 
 [data-track-id][data-playing] .player-controls-play,
-[data-track-id]:not([data-playing]) .player-controls-pause,
-[data-track-id][data-queued] .player-controls-queue,
-[data-track-id]:not([data-queued]) .player-controls-unqueue {
+[data-track-id]:not([data-playing]) .player-controls-pause {
 	display: none;
 }

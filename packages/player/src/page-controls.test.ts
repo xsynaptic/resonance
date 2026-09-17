@@ -168,50 +168,46 @@ describe('bindPageControls', () => {
 		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a', 'b'], verb: 'play-release' });
 	});
 
-	test('the queue toggle adds the track that is off the playlist', () => {
+	test('adds the track to the playlist once, however often it is pressed', () => {
 		const page = bindPage(
 			[queueItem('a')],
-			'<div data-track-id="a"><button data-queue-toggle="a"></button></div>',
+			'<div data-track-id="a"><button data-queue-track="a"></button></div>',
 		);
 
 		page.bind();
-		element('[data-queue-toggle]').click();
+		element('[data-queue-track]').click();
+		element('[data-queue-track]').click();
 
 		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['a']);
 		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a'], verb: 'queue-track' });
 	});
 
-	test('the queue toggle takes the track back off the playlist', () => {
+	test('marks the queued track and disables the button that adds it', () => {
 		const page = bindPage(
 			[queueItem('a')],
-			'<div data-track-id="a"><button data-queue-toggle="a"></button></div>',
-		);
-
-		page.bind();
-		element('[data-queue-toggle]').click();
-		element('[data-queue-toggle]').click();
-
-		expect(page.store.getState().queue).toEqual([]);
-		expect(page.onPress).toHaveBeenLastCalledWith({ itemIds: ['a'], verb: 'unqueue-track' });
-	});
-
-	test('marks the queued track and disables its toggle while it plays', () => {
-		const page = bindPage(
-			[queueItem('a')],
-			'<div data-track-id="a"><button data-queue-toggle="a"></button><button data-play-track="a"></button></div>',
+			'<div data-track-id="a"><button data-queue-track="a"></button></div>',
 		);
 
 		page.bind();
 
 		expect(element('[data-track-id="a"]').dataset.queued).toBeUndefined();
+		expect(element('[data-queue-track]').hasAttribute('disabled')).toBe(false);
 
-		element('[data-queue-toggle]').click();
+		element('[data-queue-track]').click();
 
 		expect(element('[data-track-id="a"]').dataset.queued).toBe('');
-		expect(element('[data-queue-toggle]').hasAttribute('disabled')).toBe(false);
+		expect(element('[data-queue-track]').hasAttribute('disabled')).toBe(true);
+	});
 
+	test('playing a track queues it, so its add button disables too', () => {
+		const page = bindPage(
+			[queueItem('a')],
+			'<div data-track-id="a"><button data-queue-track="a"></button><button data-play-track="a"></button></div>',
+		);
+
+		page.bind();
 		element('[data-play-track]').click();
 
-		expect(element('[data-queue-toggle]').hasAttribute('disabled')).toBe(true);
+		expect(element('[data-queue-track]').hasAttribute('disabled')).toBe(true);
 	});
 });

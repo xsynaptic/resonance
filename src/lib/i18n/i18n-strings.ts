@@ -167,7 +167,6 @@ const strings = {
 	'player.tracklist': 'Tracklist',
 	'player.unmute': 'Unmute',
 	'player.unplayable': 'This browser cannot play the stream',
-	'player.unqueue': 'Remove from Playlist',
 	'player.volume': 'Volume',
 	'player.waveformPanel': 'Waveform detail',
 	'player.zoomIn': 'Zoom in',

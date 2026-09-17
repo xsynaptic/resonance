@@ -54,7 +54,3 @@ export function loadedItem(
 ): QueuedItem | undefined {
 	return state.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
 }
-
-export function queuedIndex(state: Pick<PlayerStore, 'queue'>, itemId: string): number {
-	return state.queue.findIndex((item) => item.itemId === itemId);
-}

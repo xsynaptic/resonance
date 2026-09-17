@@ -5,6 +5,7 @@ import ButtonSplit from '#components/parts/button-split.astro';
 import Button from '#components/parts/button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { downloadBaseUrl } from '#lib/site.ts';
+import { renderSlot } from '#lib/utils/astro.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
@@ -35,12 +36,19 @@ function getLinkMeta(url: string): LinkMeta {
 	return { label: hostname.replace(/^www\./, '') };
 }
 
+const leading = await renderSlot(Astro.slots);
+
 const hasLinks = links && links.length > 0;
 const hasFiles = files && files.length > 0;
 ---
 
-{hasLinks || hasFiles ? (
+{leading || hasLinks || hasFiles ? (
 	<ul class="m-0 flex list-none flex-wrap gap-2 p-0" data-pagefind-ignore>
+		{leading ? (
+			<li class="m-0">
+				<Fragment set:html={leading} />
+			</li>
+		) : undefined}
 		{links?.map((link) => {
 			const { icon, label } = getLinkMeta(link);
 

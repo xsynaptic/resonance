@@ -10,12 +10,12 @@ import {
 	payloadSelector,
 } from '#constants.ts';
 import { bind } from '#lib/bind.ts';
-import { currentCue, loadedItem, queuedIndex } from '#store/selectors.ts';
+import { currentCue, loadedItem } from '#store/selectors.ts';
 
 // The resolved press, so a host reads the verb rather than re-deriving it from the DOM
 export interface ControlPress {
 	itemIds: Array<string>;
-	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track' | 'unqueue-track';
+	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track';
 }
 
 interface PageControlOptions {
@@ -115,15 +115,15 @@ function markTrackRows(page: Document, { isPlaying, itemId, queuedIds }: RowStat
 	for (const row of page.querySelectorAll<HTMLElement>('[data-track-id]')) {
 		const { trackId } = row.dataset;
 		const isLoaded = itemId !== undefined && trackId === itemId;
-		const isRowPlaying = isLoaded && isPlaying;
+		const isQueued = trackId !== undefined && queued.has(trackId);
 
 		row.toggleAttribute('data-loaded', isLoaded);
-		row.toggleAttribute('data-playing', isRowPlaying);
-		row.toggleAttribute('data-queued', trackId !== undefined && queued.has(trackId));
+		row.toggleAttribute('data-playing', isLoaded && isPlaying);
+		row.toggleAttribute('data-queued', isQueued);
 
-		// Taking the playing Mix off the playlist would stop it under the listener
-		for (const toggle of row.querySelectorAll<HTMLButtonElement>('[data-queue-toggle]')) {
-			toggle.disabled = isRowPlaying;
+		// The verb only adds, so a queued Mix leaves the button nothing to do
+		for (const button of row.querySelectorAll<HTMLButtonElement>('[data-queue-track]')) {
+			button.disabled = isQueued;
 		}
 	}
 }
@@ -156,7 +156,7 @@ function pressControl(
 	verbs: DOMStringMap,
 	items: Array<QueueItem>,
 ): ControlPress | undefined {
-	const { playQueue, playRelease, playTrack, queueToggle, queueTrack } = verbs;
+	const { playQueue, playRelease, playTrack, queueTrack } = verbs;
 
 	if (playQueue !== undefined) {
 		const station = stationItems(playQueue, items);
@@ -164,20 +164,6 @@ function pressControl(
 		state.playQueue(station);
 
 		return { itemIds: station.map((item) => item.itemId), verb: 'play-queue' };
-	}
-
-	if (queueToggle) {
-		const index = queuedIndex(state, queueToggle);
-
-		if (index === -1) {
-			state.queueTrack(items, queueToggle);
-
-			return { itemIds: [queueToggle], verb: 'queue-track' };
-		}
-
-		state.removeAt(index);
-
-		return { itemIds: [queueToggle], verb: 'unqueue-track' };
 	}
 
 	if (queueTrack) {

@@ -30,6 +30,7 @@ import MediaImage from '#components/parts/media-image.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import TermLinks from '#components/parts/term-links.astro';
+import PlayerControls from '#components/player/player-controls.astro';
 import { seekSeconds } from '#components/player/player-labels.ts';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
@@ -743,8 +744,18 @@ const inlineSelection: SelectionValue = {
 	<Section title="Audio">
 		<Specimen
 			name="AudioLinks"
-			note="A mix carrying timestamps gets a CUE half attached to each download."
+			note="The row a Mix Detail Page renders: the play controls take the leading slot, the links and downloads follow, and the whole thing wraps as one list."
 			source="src/components/parts/audio-links.astro"
+		>
+			{mix?.queueItem ? (
+				<AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links}>
+					<PlayerControls itemId={mix.queueItem.itemId} />
+				</AudioLinks>
+			) : undefined}
+		</Specimen>
+		<Specimen
+			name="AudioLinks"
+			note="Without the slot, which is how a tracklist group renders its own files. A mix carrying timestamps gets a CUE half attached to each download."
 		>
 			{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
 		</Specimen>

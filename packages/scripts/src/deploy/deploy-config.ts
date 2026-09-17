@@ -13,8 +13,13 @@ const requiredEnv = {
 	siteUrl: 'DEPLOY_SITE_URL',
 } as const;
 
+// Every wrangler call reads these; without them it falls back to OAuth, whose refresh is not scriptable
+const requiredAuthEnv = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN'] as const;
+
 const exampleEnv = [
 	'  deploy/.env:',
+	'    CLOUDFLARE_ACCOUNT_ID=<account-id>',
+	'    CLOUDFLARE_API_TOKEN=<token with Workers Scripts:Edit, Workers Routes:Edit, D1:Edit>',
 	'    DEPLOY_REMOTE_HOST=<ssh-host-alias>',
 	'    DEPLOY_SITE_URL=https://resonance.<account>.workers.dev/',
 	'  .env:',
@@ -46,6 +51,13 @@ function readRequiredEnv(): RequiredConfig {
 
 		if (value) values[key] = value;
 		else missing.push(name);
+	}
+
+	// Checked here so a missing token costs a second rather than surfacing minutes in, mid-pipeline
+	for (const name of requiredAuthEnv) {
+		const value = process.env[name];
+
+		if (!value) missing.push(name);
 	}
 
 	if (missing.length > 0) {

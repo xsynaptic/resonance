@@ -45,7 +45,7 @@
 	"dependencies": {
 		"@xsynaptic/playback-stats": "workspace:*",
 		"@xsynaptic/player": "workspace:*",
-		"astro": "^7.3.2",
+		"astro": "^7.3.3",
 		"yaml": "^2.9.1"
 	},
 	"devDependencies": {

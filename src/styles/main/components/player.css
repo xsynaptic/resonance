@@ -9,6 +9,7 @@
 	--player-bar-border: var(--color-surface-950);
 	--player-title: var(--color-ink-200);
 	--player-meta: var(--color-ink-600);
+	--player-meta-hover: var(--color-ink-200);
 	--player-hint: var(--color-ink-700);
 	--player-clock: var(--color-accent-500);
 	--player-clock-hover: var(--color-accent-400);
@@ -26,12 +27,13 @@
 	--player-loader: var(--color-highlight-200);
 	--player-loader-track: var(--color-highlight-700);
 	--player-drag-handle: var(--color-surface-400);
+	--player-drag-handle-hover: var(--color-surface-300);
 	--player-current: var(--color-highlight-400);
 	--player-current-icon: var(--color-accent-500);
 	--player-current-meta: var(--color-highlight-600);
 	--player-focus-ring: var(--color-highlight-500);
 	--player-waveform-base: var(--color-surface-500);
-	--player-waveform-buffered: var(--color-ink-600);
+	--player-waveform-buffered: var(--color-surface-400);
 	--player-waveform-played: var(--color-ink-100);
 	--player-waveform-scrub: var(--color-ink-400);
 	--player-panel-wave: var(--color-ink-100);

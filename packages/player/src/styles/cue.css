@@ -18,8 +18,10 @@
 	translate: -100%;
 }
 
+/* Mono reads a step larger than the sans beside it at the same size */
 .player-cue-time {
 	font-family: var(--player-font-mono);
+	font-size: 0.6875rem;
 	font-variant-numeric: tabular-nums;
 	color: var(--player-clock);
 }

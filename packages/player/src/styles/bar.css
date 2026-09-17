@@ -28,29 +28,21 @@
 	--player-layout: 'transport info scope panel volume queue expand' auto
 		'seek seek seek seek seek seek seek' minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto
 		auto;
-	--player-layout-artwork: var(--player-artwork-size);
+	--player-waveform-height: var(--player-waveform-height-bar);
 
 	display: grid;
 	grid-template: var(--player-layout);
 	gap: var(--player-gap-tight) var(--player-gap);
 	align-items: center;
 	block-size: calc(
-		var(--player-layout-artwork) - var(--player-padding-block-start) - var(--player-padding-block)
+		var(--player-artwork-size) - var(--player-padding-block-start) - var(--player-padding-block)
 	);
-}
-
-@container (width >= 52rem) {
-	.player-bar-grid {
-		--player-waveform-height: var(--player-waveform-height-full);
-	}
 }
 
 @container (width < 52rem) {
 	.player-bar-grid {
 		--player-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
 			minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto;
-		--player-layout-artwork: var(--player-artwork-size-compact);
-		--player-waveform-height: var(--player-waveform-height-compact);
 	}
 
 	.player-bar-grid .player-scope {
@@ -68,14 +60,14 @@
 	position: absolute;
 	bottom: var(--player-inset-bottom);
 	left: env(safe-area-inset-left);
-	inline-size: var(--player-layout-artwork);
-	block-size: var(--player-layout-artwork);
+	inline-size: var(--player-artwork-size);
+	block-size: var(--player-artwork-size);
 	border: 0;
 }
 
 .player-bar-grid:has(.player-artwork) {
 	padding-left: calc(
-		env(safe-area-inset-left) + var(--player-layout-artwork) + var(--player-gap) -
+		env(safe-area-inset-left) + var(--player-artwork-size) + var(--player-gap) -
 			var(--player-inset-left)
 	);
 }

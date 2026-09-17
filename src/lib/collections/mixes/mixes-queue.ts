@@ -1,7 +1,7 @@
 import type { QueueArtwork, QueueItem } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
-import { barArtworkSizes } from '@xsynaptic/player/constants';
+import { barArtworkSize } from '@xsynaptic/player/constants';
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { getImage } from 'astro:assets';
 
@@ -11,8 +11,8 @@ import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { toFlatTracks } from '#lib/utils/track-groups.ts';
 
-// Each bar size at 1x and 2x, then the lock screen and the overlay's larger slots
-const artworkWidths = [...barArtworkSizes.flatMap((size) => [size, size * 2]), 512, 900, 1800];
+// The bar at 1x and 2x, then the lock screen and the overlay's larger slots
+const artworkWidths = [barArtworkSize, barArtworkSize * 2, 512, 900, 1800];
 
 // Both files are resolved at build time, so the island's resolvers read them off the queue
 export interface PlayerPayloadItem extends QueueItem {

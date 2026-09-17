@@ -39,16 +39,17 @@
 	line-height: 1rem;
 	color: var(--player-meta);
 	border-radius: var(--player-radius);
+	transition: color var(--player-transition);
 }
 
 @media (hover: hover) {
 	.player-tray-action:hover {
-		color: var(--player-title);
+		color: var(--player-meta-hover);
 	}
 }
 
 .player-tray-action:focus-visible {
-	color: var(--player-title);
+	color: var(--player-meta-hover);
 	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 0;
 }
@@ -83,6 +84,7 @@
 	contain-intrinsic-size: auto 3.25rem;
 	padding-inline: 0.5rem;
 	content-visibility: auto;
+	transition: background-color var(--player-transition);
 }
 
 .player-tray-item[data-dragging] {
@@ -102,11 +104,12 @@
 	touch-action: none;
 	cursor: grab;
 	border-radius: var(--player-radius);
+	transition: color var(--player-transition);
 }
 
 @media (hover: hover) {
 	.player-tray-handle:hover {
-		color: var(--player-title);
+		color: var(--player-drag-handle-hover);
 	}
 }
 
@@ -116,7 +119,7 @@
 }
 
 .player-tray-handle:focus-visible {
-	color: var(--player-title);
+	color: var(--player-drag-handle-hover);
 	outline: 2px solid var(--player-focus-ring);
 	outline-offset: -2px;
 }

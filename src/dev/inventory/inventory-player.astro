@@ -42,7 +42,7 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-bar full"
-		note="From a 52rem bar, three rows: transport and toggles, the title line, the waveform. The Mix's artwork runs the bar's full height at 140px. The tier comes from the bar's own width through a container query, never the viewport, and every tier is one DOM."
+		note="From a 52rem bar, three rows: transport and toggles, the title line, the waveform. The Mix's artwork runs the bar's full height at 120px, the one size every tier shows. The tier comes from the bar's own width through a container query, never the viewport, and every tier is one DOM."
 		source="packages/player/src/elements/player-bar.ts"
 	>
 		<player-root class="player block" data-inventory-queue="bar">
@@ -51,7 +51,7 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-bar compact"
-		note="From 40rem to 52rem, two rows beside 120px artwork. The scope drops out; ±30s stay. Chrome can show a larger rendition here than the 240w a 2x screen asks for, because it reuses a larger one the page already cached; on a Mix page the bar is pixel-exact."
+		note="From 40rem to 52rem, the same two rows beside the same 120px artwork, with the scope dropped out; ±30s stay."
 		source="packages/player/src/player.css"
 	>
 		<player-root class="player block max-w-3xl" data-inventory-queue="bar">

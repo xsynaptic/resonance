@@ -29,6 +29,7 @@
 	line-height: 1.25rem;
 	color: var(--player-track-title-color, var(--player-title));
 	text-decoration: none;
+	transition: color var(--player-transition);
 }
 
 player-title[data-idle] {
@@ -120,6 +121,7 @@ player-title[data-idle] {
 	text-align: right;
 	white-space: nowrap;
 	cursor: pointer;
+	transition: color var(--player-transition);
 }
 
 @media (hover: hover) {

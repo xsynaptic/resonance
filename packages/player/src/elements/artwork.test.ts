@@ -22,7 +22,7 @@ describe('<player-artwork>', () => {
 		const image = part.querySelector('img');
 
 		expect(image?.getAttribute('srcset')).toBe('/artwork-120.webp 120w, /artwork-240.webp 240w');
-		expect(image?.getAttribute('sizes')).toMatch(/^auto, /);
+		expect(image?.getAttribute('sizes')).toBe('120px');
 
 		image?.dispatchEvent(new Event('error'));
 

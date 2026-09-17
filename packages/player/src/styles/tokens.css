@@ -9,8 +9,10 @@
 	--player-bar-border: #000;
 	--player-title: #f5f5f5;
 	--player-meta: #a3a3a3;
+	--player-meta-hover: #f5f5f5;
 	--player-hint: #737373;
 	--player-drag-handle: #737373;
+	--player-drag-handle-hover: #a3a3a3;
 	--player-clock: #a3a3a3;
 	--player-clock-hover: #f5f5f5;
 	--player-control: #d4d4d4;
@@ -59,13 +61,11 @@
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
 	--player-padding-block-start: var(--player-padding-block);
-	--player-artwork-size: 8.75rem;
-	--player-artwork-size-compact: 7.5rem;
+	--player-artwork-size: 7.5rem;
 	--player-clock-width: 3.75rem;
 	--player-panel-height: 7.5rem;
 	--player-waveform-height: 3rem;
-	--player-waveform-height-compact: 3.5rem;
-	--player-waveform-height-full: 4.5rem;
+	--player-waveform-height-bar: 3.5rem;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
 	--player-font-size-large: 1.25rem;
@@ -73,5 +73,6 @@
 	--player-font-mono: ui-monospace, menlo, consolas, monospace;
 	--player-radius: 0.25rem;
 	--player-radius-large: 0.375rem;
+	--player-transition: 100ms cubic-bezier(0.4, 0, 0.2, 1);
 	--player-shadow-popover: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
 }

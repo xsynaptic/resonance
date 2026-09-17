@@ -1,21 +1,17 @@
 import type { PlayerStore } from '#store/player-types.ts';
 import type { QueueArtwork } from '#types.ts';
 
-import { barArtworkSizes } from '#constants.ts';
+import { barArtworkSize } from '#constants.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
 import { displayedItem } from '#store/selectors.ts';
 
-const smallestBarSize = Math.min(...barArtworkSizes);
-const largestBarSize = String(Math.max(...barArtworkSizes));
-
-// `auto` reads the rendered box where supported; elsewhere a 54rem viewport stands in for the 52rem tier plus the bar's padding
-const barSizes = `auto, (width < 54rem) ${String(smallestBarSize)}px, ${largestBarSize}px`;
+const barSize = String(barArtworkSize);
 
 const renderImage = template(
-	`<img alt="" class="player-artwork" decoding="async" height="${largestBarSize}" loading="lazy" width="${largestBarSize}">`,
+	`<img alt="" class="player-artwork" decoding="async" height="${barSize}" loading="lazy" width="${barSize}">`,
 	HTMLImageElement,
 );
 
@@ -29,7 +25,7 @@ export class PlayerArtwork extends PlayerElement {
 		const { store } = playerContext(this);
 		const image = this.#image;
 
-		image.sizes = this.getAttribute('sizes') ?? barSizes;
+		image.sizes = this.getAttribute('sizes') ?? `${barSize}px`;
 		image.addEventListener(
 			'error',
 			() => {

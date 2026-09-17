@@ -277,16 +277,19 @@
 	line-height: 1.25rem;
 	color: var(--player-meta);
 	border-bottom: 2px solid transparent;
+	transition:
+		color var(--player-transition),
+		border-color var(--player-transition);
 }
 
 @media (hover: hover) {
 	.player-overlay-tab:hover {
-		color: var(--player-title);
+		color: var(--player-meta-hover);
 	}
 }
 
 .player-overlay-tab:focus-visible {
-	color: var(--player-title);
+	color: var(--player-meta-hover);
 	outline: 2px solid var(--player-focus-ring);
 	outline-offset: 0;
 }
@@ -375,6 +378,7 @@
 	padding-block: 0.5rem;
 	text-align: left;
 	border-radius: var(--player-radius);
+	transition: background-color var(--player-transition);
 }
 
 @media (hover: hover) {

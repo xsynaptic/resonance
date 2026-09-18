@@ -86,7 +86,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			// Only an autoplay refusal is the promise's to report; a media failure already came through the error event, and AbortError is a superseding load
 			if (!(error instanceof DOMException) || error.name !== 'NotAllowedError') return;
 
-			callbacks.onError('network');
+			callbacks.onStatus('paused');
 		}
 	}
 

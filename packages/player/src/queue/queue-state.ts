@@ -102,8 +102,7 @@ export function refreshedQueue(
 
 		const candidate = { ...fresh, queueId: queued.queueId };
 
-		// Both sides are plain JSON in the same key order, so the serialized forms compare exactly
-		return JSON.stringify(candidate) === JSON.stringify(queued) ? queued : candidate;
+		return isSameJson(candidate, queued) ? queued : candidate;
 	});
 
 	return refreshed.some((item, index) => item !== queue[index]) ? refreshed : undefined;
@@ -156,10 +155,37 @@ function appended(
 	};
 }
 
+function definedKeys(record: Record<string, unknown>): Array<string> {
+	return Object.keys(record).filter((key) => record[key] !== undefined);
+}
+
 function indexOfTrack(items: ReadonlyArray<QueueItem>, itemId: string): number | undefined {
 	const index = items.findIndex((item) => item.itemId === itemId);
 
 	return index === -1 ? undefined : index;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isSameJson(left: unknown, right: unknown): boolean {
+	if (left === right) return true;
+
+	if (Array.isArray(left) && Array.isArray(right)) {
+		return (
+			left.length === right.length && left.every((value, index) => isSameJson(value, right[index]))
+		);
+	}
+
+	if (!isRecord(left) || !isRecord(right)) return false;
+
+	const leftKeys = definedKeys(left);
+
+	return (
+		leftKeys.length === definedKeys(right).length &&
+		leftKeys.every((key) => isSameJson(left[key], right[key]))
+	);
 }
 
 function ordered({ currentIndex, isShuffling, orderAround, queue }: OrderedQueue): QueueState {

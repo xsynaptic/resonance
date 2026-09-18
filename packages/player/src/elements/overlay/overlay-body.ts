@@ -108,6 +108,10 @@ export function connectOverlayBody(
 	const sheet = bindSheets(parts.sheets, context, signal);
 
 	if (!root.isArtworkEnabled) parts.art.remove();
+	if (!root.isPanelEnabled) {
+		for (const part of parts.body.querySelectorAll('player-panel, player-panel-toggle'))
+			part.remove();
+	}
 	if (root.seekSeconds !== undefined)
 		placeSeekButtons(parts.previous, parts.next, root.seekSeconds);
 

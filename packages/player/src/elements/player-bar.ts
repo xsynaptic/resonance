@@ -5,7 +5,7 @@ import { PlayerElement } from '#elements/player-element.ts';
 import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
 import { template } from '#lib/render.ts';
 
-type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isScopeEnabled';
+type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'isScopeEnabled';
 
 const renderBar = template(
 	/* HTML */ `
@@ -38,6 +38,7 @@ const renderBar = template(
 const optionalParts: ReadonlyArray<[option: BarOption, selector: string]> = [
 	['isArtworkEnabled', 'player-artwork'],
 	['isOverlayEnabled', 'player-overlay, player-overlay-toggle'],
+	['isPanelEnabled', 'player-panel, player-panel-toggle'],
 	['isScopeEnabled', 'player-scope'],
 ];
 

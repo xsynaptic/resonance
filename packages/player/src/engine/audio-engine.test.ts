@@ -66,6 +66,17 @@ describe('audio engine', () => {
 		);
 	});
 
+	test('an autoplay refusal reports a pause rather than a failure', async () => {
+		const callbacks = createCallbacks();
+
+		media.play.mockRejectedValue(new DOMException('Refused', 'NotAllowedError'));
+
+		await createAudioEngine(callbacks).load(request);
+
+		expect(callbacks.onError).not.toHaveBeenCalled();
+		expect(callbacks.onStatus).toHaveBeenLastCalledWith('paused');
+	});
+
 	test('the pause a reset causes goes unreported, and a later one is reported', () => {
 		vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockReturnValue(false);
 

@@ -140,6 +140,53 @@ describe('refreshedQueue', () => {
 		expect(refreshedQueue(stamp(release), release)).toBeUndefined();
 	});
 
+	test('answers nothing when the page carries the same fields in another key order', () => {
+		const queue = stamp([
+			{ ...makeItem('a'), cuePoints: [{ artistLine: 'Kin', startSeconds: 0, title: 'Open' }] },
+		]);
+		const fresh = Object.assign(
+			{ title: 'Track a' },
+			{
+				...makeItem('a'),
+				cuePoints: [Object.assign({ title: 'Open' }, { artistLine: 'Kin', startSeconds: 0 })],
+			},
+		);
+
+		expect(refreshedQueue(queue, [fresh])).toBeUndefined();
+	});
+
+	test('answers nothing when the page carries a key holding undefined that storage dropped', () => {
+		const fresh = makeItem('a');
+
+		Reflect.set(fresh, 'releaseHref', undefined);
+
+		expect(refreshedQueue(stamp([makeItem('a')]), [fresh])).toBeUndefined();
+	});
+
+	test('refreshes an item whose nested field changed', () => {
+		const queue = stamp([
+			{ ...makeItem('a'), cuePoints: [{ artistLine: 'Kin', startSeconds: 0, title: 'Open' }] },
+		]);
+		const fresh = {
+			...makeItem('a'),
+			cuePoints: [{ artistLine: 'Kin', startSeconds: 5, title: 'Open' }],
+		};
+
+		expect(refreshedQueue(queue, [fresh])?.[0]).toStrictEqual({
+			...fresh,
+			queueId: queue[0]?.queueId,
+		});
+	});
+
+	test('refreshes an item that gained or lost a field', () => {
+		const queue = stamp([{ ...makeItem('a'), trackCount: 12 }]);
+
+		expect(refreshedQueue(queue, [makeItem('a')])).toBeDefined();
+		expect(
+			refreshedQueue(stamp([makeItem('a')]), [{ ...makeItem('a'), trackCount: 12 }]),
+		).toBeDefined();
+	});
+
 	test('answers nothing when the page carries none of the queued tracks', () => {
 		expect(refreshedQueue(stamp(release), [makeItem('z')])).toBeUndefined();
 	});

@@ -38,12 +38,17 @@ describe('<player-bar>', () => {
 	});
 
 	test('leaves out what the root turns off', () => {
-		const { part } = mount('player-bar', {}, { isArtworkEnabled: false, isOverlayEnabled: false });
+		const { part } = mount(
+			'player-bar',
+			{},
+			{ isArtworkEnabled: false, isOverlayEnabled: false, isPanelEnabled: false },
+		);
 
 		expect(transportLabels(part)).toEqual([labels.previous, labels.play, labels.next]);
 		expect(part.querySelector('player-artwork')).toBeNull();
 		expect(part.querySelector('player-overlay-toggle')).toBeNull();
 		expect(part.querySelector('dialog')).toBeNull();
+		expect(part.querySelector('player-panel, player-panel-toggle')).toBeNull();
 	});
 
 	test('keeps its one bar across a reconnect', () => {

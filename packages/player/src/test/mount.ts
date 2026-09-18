@@ -14,7 +14,10 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	tag: Tag,
 	attributes: Record<string, string> = {},
 	options: Partial<
-		Pick<PlayerRoot, 'isArtworkEnabled' | 'isOverlayEnabled' | 'isScopeEnabled' | 'seekSeconds'>
+		Pick<
+			PlayerRoot,
+			'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'isScopeEnabled' | 'seekSeconds'
+		>
 	> = {},
 ) {
 	// Defined first, so a root created here is upgraded before any part reads its options

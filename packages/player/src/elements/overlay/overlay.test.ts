@@ -11,8 +11,8 @@ const cuePoints = [
 	{ artistLine: '', startSeconds: 60, title: 'Middle' },
 ];
 
-function mountOverlay() {
-	const mounted = mount('player-overlay');
+function mountOverlay(options: Parameters<typeof mount>[2] = {}) {
+	const mounted = mount('player-overlay', {}, options);
 	const toggle = document.createElement('player-overlay-toggle');
 	const dialog = mounted.part.querySelector('dialog');
 	if (!dialog) throw new Error('The overlay rendered no dialog');
@@ -112,6 +112,16 @@ describe('<player-overlay>', () => {
 			expect(groups).toHaveLength(1);
 			expect(groups[0]?.closest('dialog')).toBe(mounted.dialog);
 		});
+	});
+
+	test('leaves out the waveform panel and its toggles when the root turns the panel off', async () => {
+		const mounted = mountOverlay({ isPanelEnabled: false });
+
+		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		mounted.store.getState().setPanelOpen(true);
+		await openOverlay(mounted);
+
+		expect(mounted.dialog.querySelector('player-panel, player-panel-toggle')).toBeNull();
 	});
 
 	test('closes for a plain link click and stays open for a modified one', async () => {

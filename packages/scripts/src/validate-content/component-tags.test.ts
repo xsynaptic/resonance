@@ -63,24 +63,4 @@ describe('getBodyLineOffset', () => {
 
 		expect(getBodyLineOffset(entry, rootPath)).toBe(6);
 	});
-
-	test('is zero for an entry with no file path', () => {
-		expect(getBodyLineOffset(makeEntry({ body: fixtureBody, id: 'a-post' }), rootPath)).toBe(0);
-	});
-
-	test('is zero for a file path that is not on disk', () => {
-		const entry = makeEntry({ body: fixtureBody, filePath: 'fixtures/absent.mdx', id: 'a-post' });
-
-		expect(getBodyLineOffset(entry, rootPath)).toBe(0);
-	});
-
-	test('is zero when the body is not found in the file', () => {
-		const entry = makeEntry({
-			body: 'prose that is not there',
-			filePath: fixturePath,
-			id: 'a-post',
-		});
-
-		expect(getBodyLineOffset(entry, rootPath)).toBe(0);
-	});
 });

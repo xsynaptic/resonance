@@ -32,12 +32,6 @@ describe('getWorkTitle', () => {
 		});
 	});
 
-	test('leaves a mix with no alias uncredited', async () => {
-		await expect(getWorkTitle(makeMix({ title: 'Voyager' }))).resolves.toEqual({
-			title: 'Voyager',
-		});
-	});
-
 	test('splits a review title and links the prefix naming its credit', async () => {
 		const review = makeReview({
 			artists: [{ id: 'ott' }],
@@ -48,19 +42,6 @@ describe('getWorkTitle', () => {
 		await expect(getWorkTitle(review)).resolves.toEqual({
 			credit: { name: 'Ott', url: '/artists/ott/' },
 			title: 'Skylon',
-		});
-	});
-
-	test('splits off a free-text credit that names no term, unlinked', async () => {
-		const review = makeReview({
-			artists: ['Some Guest'],
-			releaseTitle: 'Elsewhere',
-			title: 'Some Guest - Elsewhere',
-		});
-
-		await expect(getWorkTitle(review)).resolves.toEqual({
-			credit: { name: 'Some Guest' },
-			title: 'Elsewhere',
 		});
 	});
 

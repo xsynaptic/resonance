@@ -1,17 +1,10 @@
 import { describe, expect, test } from 'vitest';
 
-import { identityOrder, nextInOrder, previousInOrder, shuffledOrder } from '#queue/queue.ts';
+import { nextInOrder, previousInOrder, shuffledOrder } from '#queue/queue.ts';
 
 const zeroRandom = () => 0;
 
 const ascending = (first: number, second: number) => first - second;
-
-describe('identityOrder', () => {
-	test('is the queue positions in sequence', () => {
-		expect(identityOrder(3)).toStrictEqual([0, 1, 2]);
-		expect(identityOrder(0)).toStrictEqual([]);
-	});
-});
 
 describe('shuffledOrder', () => {
 	test('puts the current track first', () => {

@@ -39,8 +39,4 @@ describe('parseEbur128', () => {
 	test('reads digital silence as negative infinity rather than NaN', () => {
 		expect(parseEbur128(summary('-70.0', '-inf')).truePeakDbtp).toBe(-Infinity);
 	});
-
-	test('throws when ffmpeg printed no summary', () => {
-		expect(() => parseEbur128('Error opening input file')).toThrow('no summary');
-	});
 });

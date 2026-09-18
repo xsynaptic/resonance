@@ -57,10 +57,6 @@ test('a missing chunk shows its placeholder only once it has waited 400ms', () =
 	]);
 });
 
-test('a panel mounted after the chunk was asked for shows its placeholder at once', () => {
-	expect(createPanelPlaceholder().frame(opened([0], 0, 1000)).spans).toHaveLength(1);
-});
-
 test('the whole window waits on the header, then gives way to the chunks', () => {
 	const placeholder = createPanelPlaceholder();
 

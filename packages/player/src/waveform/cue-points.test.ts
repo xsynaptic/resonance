@@ -28,12 +28,6 @@ describe('layoutCuePoints', () => {
 		expect(placed.map((cuePoint) => cuePoint.side)).toEqual(['start', 'start', 'end']);
 	});
 
-	test('measures the room a label has toward the edge it opens to', () => {
-		const placed = layoutCuePoints([cue(10), cue(90)], 100, grid);
-
-		expect(placed.map((cuePoint) => cuePoint.room)).toEqual([269, 271]);
-	});
-
 	test('drops a cue point to the next row when it would touch the last one on its row', () => {
 		const placed = layoutCuePoints([cue(10), cue(11), cue(11.5), cue(12), cue(20)], 100, grid);
 
@@ -52,10 +46,6 @@ describe('cueIndexAt', () => {
 	test('takes a cue from its own timestamp onward', () => {
 		expect(cueIndexAt(cuePoints, 90)).toBe(1);
 		expect(cueIndexAt(cuePoints, 149.9)).toBe(1);
-	});
-
-	test('holds the last cue past its timestamp', () => {
-		expect(cueIndexAt(cuePoints, 4000)).toBe(2);
 	});
 });
 

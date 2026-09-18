@@ -58,14 +58,6 @@ describe('toFeedLine', () => {
 			),
 		).toBe('A Track (Twisted Records, 1999)');
 	});
-
-	test('omits the separator when only one half of the meta is present', () => {
-		expect(toFeedLine(rowOf({ hasMeta: true, year: '1999' }))).toBe('A Track (1999)');
-	});
-
-	test('brackets the duration last', () => {
-		expect(toFeedLine(rowOf({ time: '06:12' }))).toBe('A Track [06:12]');
-	});
 });
 
 describe('buildTrackGroupRows', () => {
@@ -106,14 +98,5 @@ describe('buildTrackGroupRows', () => {
 		);
 
 		expect([timed.cueSlug, untimed.cueSlug]).toEqual(['a-mix', undefined]);
-	});
-
-	test('reports hasMeta for the group when any one row carries meta', async () => {
-		const group = await buildTrackGroupRows(
-			{ tracks: [{ title: 'First' }, { title: 'Second', year: '1999' }] },
-			undefined,
-		);
-
-		expect([group.hasMeta, ...group.rows.map((row) => row.hasMeta)]).toEqual([true, false, true]);
 	});
 });

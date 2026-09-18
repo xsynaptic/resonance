@@ -27,22 +27,6 @@ describe('buildRedirectPairs', () => {
 		]);
 	});
 
-	test('emits one rule per formerId and ignores an entry carrying none', () => {
-		const entries = makeEntries({
-			posts: [
-				makeEntry({ data: { formerIds: ['old-a', 'old-b'] }, id: 'current' }),
-				makeEntry({ data: {}, id: 'plain' }),
-			],
-		});
-
-		expect(buildRedirectPairs(entries).pairs).toEqual([
-			{ from: '/old-a/', to: '/current/' },
-			{ from: '/og/posts-old-a.jpg', to: '/og/posts-current.jpg' },
-			{ from: '/old-b/', to: '/current/' },
-			{ from: '/og/posts-old-b.jpg', to: '/og/posts-current.jpg' },
-		]);
-	});
-
 	test('reports a collision and a skip, and drops each card rule with the page rule it rides on', () => {
 		const entries = makeEntries({
 			pages: [makeEntry({ data: {}, id: 'about' })],

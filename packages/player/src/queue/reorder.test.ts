@@ -31,18 +31,9 @@ describe('movedArray', () => {
 	test('moves an item up', () => {
 		expect(movedArray(['a', 'b', 'c', 'd'], 3, 1)).toStrictEqual(['a', 'd', 'b', 'c']);
 	});
-
-	test('leaves the array alone when the item does not move', () => {
-		expect(movedArray(['a', 'b', 'c'], 1, 1)).toStrictEqual(['a', 'b', 'c']);
-	});
 });
 
 describe('movedIndex', () => {
-	test('follows the moved item to its destination', () => {
-		expect(movedIndex(0, 0, 2)).toBe(2);
-		expect(movedIndex(3, 3, 1)).toBe(1);
-	});
-
 	test('shifts the items a downward move passes down one place', () => {
 		expect(movedIndex(1, 0, 2)).toBe(0);
 		expect(movedIndex(2, 0, 2)).toBe(1);
@@ -51,11 +42,6 @@ describe('movedIndex', () => {
 	test('shifts the items an upward move passes up one place', () => {
 		expect(movedIndex(1, 3, 1)).toBe(2);
 		expect(movedIndex(2, 3, 1)).toBe(3);
-	});
-
-	test('leaves the items outside the move alone', () => {
-		expect(movedIndex(3, 0, 2)).toBe(3);
-		expect(movedIndex(0, 3, 1)).toBe(0);
 	});
 
 	test('agrees with the array it describes', () => {

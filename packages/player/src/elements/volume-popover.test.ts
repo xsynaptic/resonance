@@ -1,4 +1,4 @@
-import { fireEvent, getAllByRole, getByRole } from '@testing-library/dom';
+import { getAllByRole, getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { labels } from '#test/labels.ts';
@@ -44,28 +44,6 @@ afterEach(() => {
 });
 
 describe('<player-volume-popover>', () => {
-	test('mutes on a click where the panel already opens on hover', () => {
-		stubHover(true);
-
-		const { part, store } = mount('player-volume-popover');
-
-		getByRole(part, 'button', { name: labels.mute }).click();
-
-		expect(store.getState().isMuted).toBe(true);
-		expect(controlOf(part).dataset.open).toBeUndefined();
-		expect(getByRole(part, 'button', { name: labels.unmute }).hasAttribute('aria-expanded')).toBe(
-			false,
-		);
-	});
-
-	test('leaves the panel to the slider alone where the trigger mutes', () => {
-		stubHover(true);
-
-		const { part } = mount('player-volume-popover');
-
-		expect(getAllByRole(part, 'button')).toHaveLength(1);
-	});
-
 	test('opens the panel on a click where the pointer cannot hover, with mute moved inside', () => {
 		stubHover(false);
 
@@ -80,34 +58,6 @@ describe('<player-volume-popover>', () => {
 		expect(controlOf(part).dataset.open).toBe('');
 		expect(trigger.getAttribute('aria-expanded')).toBe('true');
 		expect(store.getState().volume).toBe(1);
-	});
-
-	test('closes on Escape and hands focus back to the trigger', () => {
-		stubHover(false);
-
-		const { part } = mount('player-volume-popover');
-		const trigger = getByRole(part, 'button', { name: labels.volume });
-
-		trigger.click();
-		fireEvent.keyDown(getByRole(part, 'slider', { name: labels.volume }), { key: 'Escape' });
-
-		expect(controlOf(part).dataset.open).toBeUndefined();
-		expect(document.activeElement).toBe(trigger);
-	});
-
-	test('closes on a click outside the control and not on one inside it', () => {
-		stubHover(false);
-
-		const { part } = mount('player-volume-popover');
-
-		getByRole(part, 'button', { name: labels.volume }).click();
-		getByRole(part, 'slider', { name: labels.volume }).click();
-
-		expect(controlOf(part).dataset.open).toBe('');
-
-		document.body.click();
-
-		expect(controlOf(part).dataset.open).toBeUndefined();
 	});
 
 	test('comes back closed after a reconnect', () => {

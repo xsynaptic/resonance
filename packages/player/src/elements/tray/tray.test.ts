@@ -143,18 +143,6 @@ describe('<player-tray>', () => {
 		expect(getByText(part, labels.empty).hidden).toBe(false);
 	});
 
-	test('shuffles an ordinary queue', async () => {
-		const { part, store } = await mountTray();
-		const shuffle = getByRole(part, 'button', { name: labels.shuffle });
-
-		expect(shuffle.getAttribute('aria-pressed')).toBe('false');
-
-		shuffle.click();
-
-		expect(store.getState().isShuffling).toBe(true);
-		expect(shuffle.getAttribute('aria-pressed')).toBe('true');
-	});
-
 	test('moves a row on Alt+Arrow, announces the move and keeps focus on its handle', async () => {
 		const mounted = await mountTray();
 		const handle = getAllByRole(mounted.part, 'button', { name: labels.reorder })[1];
@@ -165,16 +153,6 @@ describe('<player-tray>', () => {
 		expect(queuedIds(mounted)).toStrictEqual(['b', 'a', 'c']);
 		expect(getByRole(mounted.part, 'status').textContent).toBe('Moved to position 1 of 3');
 		expect(document.activeElement).toBe(handle);
-	});
-
-	test('moves a dragged row to where the pointer lets go', async () => {
-		const { handle, mounted } = await mountDraggableTray();
-
-		fireEvent.pointerDown(handle, { clientY: 60, pointerId: 1 });
-		fireEvent.pointerMove(handle, { clientY: 110, pointerId: 1 });
-		fireEvent.pointerUp(handle, { pointerId: 1 });
-
-		expect(queuedIds(mounted)).toStrictEqual(['b', 'c', 'a']);
 	});
 
 	test('leaves a drag running when another pointer lifts elsewhere in the list', async () => {

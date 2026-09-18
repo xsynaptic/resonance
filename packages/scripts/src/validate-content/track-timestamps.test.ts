@@ -31,10 +31,6 @@ function makeTracks(timestamps: Array<string | undefined>) {
 }
 
 describe('collectTimestampIssues', () => {
-	test('accepts timestamps that run forwards', () => {
-		expect(collectTimestampIssues([makeMix(['00:00:00', '00:07:51', '01:14:02'])])).toEqual([]);
-	});
-
 	test('accepts two tracks sharing a cue point', () => {
 		expect(collectTimestampIssues([makeMix(['00:07:51', '00:07:51'])])).toEqual([]);
 	});

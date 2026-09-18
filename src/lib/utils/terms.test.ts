@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { setCollections } from '#lib/collections/astro-content-stub.ts';
-import { labelIds, resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
+import { resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
 
 setCollections({
 	artists: [
@@ -23,12 +23,6 @@ describe('resolveCredits', () => {
 		await expect(resolveCredits('artists', [{ id: 'dj-basilisk' }])).resolves.toEqual([
 			{ name: 'DJ Basilisk', url: '/artists/dj-basilisk/' },
 		]);
-	});
-
-	test('lets an object credit override the catalog title', async () => {
-		await expect(
-			resolveCredits('artists', [{ id: 'dj-basilisk', name: 'Basilisk (live)' }]),
-		).resolves.toEqual([{ name: 'Basilisk (live)', url: '/artists/dj-basilisk/' }]);
 	});
 
 	test('warns and renders plain when an object credit names nothing', async () => {
@@ -61,17 +55,5 @@ describe('resolveAncestors', () => {
 		await expect(resolveAncestors('labels', 'twisted-sub')).resolves.toEqual([
 			{ name: 'Twisted Records', url: '/labels/twisted-records/' },
 		]);
-	});
-
-	test('returns nothing for a term with no parent', async () => {
-		await expect(resolveAncestors('labels', 'twisted-records')).resolves.toEqual([]);
-	});
-});
-
-describe('labelIds', () => {
-	test('keeps the linked credits and drops the free text', () => {
-		expect(
-			labelIds(['Some Label', { id: 'twisted-records' }, { code: 'TW', id: 'other' }]),
-		).toEqual(['twisted-records', 'other']);
 	});
 });

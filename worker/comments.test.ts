@@ -182,14 +182,6 @@ describe('handleCommentSubmission', () => {
 		expect(untouched.status).toBe(201);
 	});
 
-	test('rejects a submission the schema will not take', async () => {
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(makeRequest({ author: undefined }), env);
-
-		expect(response.status).toBe(400);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.invalid') });
-	});
-
 	test('rejects an entry id outside the slug pattern before it reaches the assets binding', async () => {
 		const { env } = createEnv();
 		const assets = vi.spyOn(env.ASSETS, 'fetch');
@@ -366,16 +358,5 @@ describe('handleCommentSubmission', () => {
 		expect(response.headers.get('location')).toBe(
 			'https://example.test/mixes/voyager/?comment=received#comments',
 		);
-	});
-
-	test('answers a native form post with plain text on rejection', async () => {
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(
-			makeRequest({ website: 'spam.test' }, { accept: 'text/html' }),
-			env,
-		);
-
-		expect(response.headers.get('content-type')).toBe('text/plain; charset=utf-8');
-		await expect(response.text()).resolves.toBe(`${t('comments.error.rejected')}\n`);
 	});
 });

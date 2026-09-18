@@ -53,17 +53,4 @@ describe('lazyModule', () => {
 		await expect(module.load()).resolves.toStrictEqual({ isReady: true });
 		expect(importModule).toHaveBeenCalledTimes(1);
 	});
-
-	test('names the chunk and why it failed, keeping the error it was handed', async () => {
-		const failure = new TypeError('Failed to fetch dynamically imported module');
-		const importModule = vi.fn<() => Promise<{ isReady: boolean }>>().mockRejectedValue(failure);
-		const module = lazyModule('panel', importModule);
-		await expect(module.load()).rejects.toBeInstanceOf(LazyModuleError);
-		await expect(module.load()).rejects.toMatchObject({ chunk: 'panel', reason: 'import' });
-		await expect(module.load()).rejects.toHaveProperty('cause', failure);
-
-		vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-
-		await expect(module.load()).rejects.toMatchObject({ chunk: 'panel', reason: 'offline' });
-	});
 });

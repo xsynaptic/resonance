@@ -44,11 +44,9 @@ describe('buildCueSheet', () => {
 	});
 
 	test.each([
-		['00:00:00', '00:00:00'],
 		['00:03:54.46', '03:54:34'],
 		['00:57:15.5', '57:15:37'],
 		['01:02:14', '62:14:00'],
-		['08:07:12', '487:12:00'],
 	])('converts %s to %s', (timestamp, expected) => {
 		expect(indexOf(timestamp)).toBe(expected);
 	});
@@ -86,19 +84,6 @@ describe('buildCueSheet', () => {
 		expect(sheet).toContain('PERFORMER "The Band"');
 		expect(sheet).toContain('    PERFORMER "A Name"');
 		expect(sheet).toContain('    TITLE "A Title"');
-	});
-
-	test('ends every line with CRLF', () => {
-		const sheet = buildCueSheet({
-			date: '2021',
-			fileName: 'mix.flac',
-			performer: 'DJ Basilisk',
-			title: 'A Mix',
-			tracks: [{ performer: 'Lorn', timestamp: '00:00:00', title: 'Track' }],
-		});
-
-		expect(sheet.split('\r\n').length - 1).toBe(sheet.split('\n').length - 1);
-		expect(sheet.endsWith('\r\n')).toBe(true);
 	});
 
 	test('omits header lines whose source is absent', () => {

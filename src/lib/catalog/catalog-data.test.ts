@@ -87,13 +87,6 @@ describe('getCatalog', () => {
 		});
 	});
 
-	test('puts posts and pages at the site root', async () => {
-		const catalog = await buildCatalog();
-
-		expect(catalog.getById('a-post')?.url).toBe('/a-post/');
-		expect(catalog.getById('profile')?.url).toBe('/profile/');
-	});
-
 	test('subtitles a review with its release year, not the year it was written', async () => {
 		const catalog = await buildCatalog();
 

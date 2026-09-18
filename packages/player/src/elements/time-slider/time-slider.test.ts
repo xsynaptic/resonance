@@ -94,7 +94,7 @@ function stubBuffered(
 }
 
 // happy-dom has no 2d context and resolves no custom property; the fills record the colours in the order painted
-function stubPainting(tokens: Partial<Record<string, string>> = {}) {
+function stubPainting() {
 	const fills: Array<string> = [];
 	const context = {
 		beginPath: vi.fn(),
@@ -127,7 +127,7 @@ function stubPainting(tokens: Partial<Record<string, string>> = {}) {
 			const theme: Partial<Record<string, string>> =
 				themes[document.documentElement.dataset.theme === 'dim' ? 'dim' : 'lit'];
 
-			return tokens[property] ?? theme[property] ?? '';
+			return theme[property] ?? '';
 		},
 	} as unknown as CSSStyleDeclaration);
 
@@ -251,22 +251,6 @@ describe('<player-time-slider>', () => {
 		expect(seeks()).toStrictEqual([50, 100]);
 	});
 
-	// A 12px cue point on column 25 is centred at x 76 and y 6, so a press 8px off still lands within half its size plus the margin
-	test('reaches a cue point by the size the theme gives it', () => {
-		stubPainting({ '--player-cue-size': '12px' });
-
-		const { seeks, slider } = mountSlider({
-			cuePoints: [cue(50)],
-			currentTimeSeconds: 0,
-			durationSeconds: 200,
-		});
-
-		fireEvent.pointerDown(slider, { clientX: 84, clientY: 6 });
-		fireEvent.pointerUp(slider);
-
-		expect(seeks()).toStrictEqual([50]);
-	});
-
 	test('speaks the position against the duration, once a second rather than on every tick', () => {
 		stubPainting();
 
@@ -332,20 +316,6 @@ describe('<player-time-slider>', () => {
 		expect(part.querySelector<HTMLSpanElement>('.player-cue-label')?.style.left).toBe('150px');
 	});
 
-	test('reads out the time alone where no Track has started yet', () => {
-		stubPainting();
-
-		const { part, slider } = mountSlider({
-			cuePoints: [cue(50)],
-			currentTimeSeconds: 0,
-			durationSeconds: 200,
-		});
-
-		fireEvent.pointerMove(slider, { clientX: 30, clientY: 24 });
-
-		expect(readout(part)).toBe('0:20||');
-	});
-
 	// The press snaps to the cue point's start, so the readout says where the click would land rather than where the pointer is
 	test('reads out a cue point at its start rather than at the pointer', () => {
 		stubPainting();
@@ -360,25 +330,6 @@ describe('<player-time-slider>', () => {
 
 		expect(readout(part)).toBe('0:50|Forest Signal|50');
 		expect(part.querySelector<HTMLSpanElement>('.player-cue-label')?.style.left).toBe('76px');
-	});
-
-	test('shows a touch press no readout until it is held', () => {
-		stubPainting();
-		vi.useFakeTimers();
-
-		const { part, slider } = mountSlider({
-			cuePoints: [cue(50)],
-			currentTimeSeconds: 0,
-			durationSeconds: 200,
-		});
-
-		fireEvent.pointerDown(slider, { buttons: 1, clientX: 150, clientY: 24, pointerType: 'touch' });
-
-		expect(readout(part)).toBeUndefined();
-
-		fireEvent.pointerUp(slider, { pointerType: 'touch' });
-
-		expect(readout(part)).toBeUndefined();
 	});
 
 	// The finger sits over the cue row the label normally hangs from

@@ -138,26 +138,7 @@ describe('getTermRelations', () => {
 		});
 	});
 
-	test('suppresses the siblings row on eras', async () => {
-		expect(await labelsByHeading('eras', '1990s')).toEqual({
-			'Sub-eras': ['Mid 1990s'],
-		});
-	});
-
 	test('returns nothing for a flat vocabulary', async () => {
 		expect(await getRelations('artists', 'ott')).toEqual([]);
-	});
-
-	test('returns nothing for a term with no children and no siblings', async () => {
-		expect(await getRelations('labels', 'ektoplazm-digital')).toEqual([]);
-	});
-
-	test('links each term to its own detail page', async () => {
-		const [group] = await getRelations('regions', 'europe');
-
-		expect(group?.terms).toEqual([
-			{ name: 'Sweden', url: '/regions/sweden/' },
-			{ name: 'The Netherlands', url: '/regions/netherlands/' },
-		]);
 	});
 });

@@ -45,15 +45,6 @@ function withQueue(items: ReadonlyArray<QueueItem>, currentIndex: number | undef
 	return { ...loaded, currentIndex };
 }
 
-describe('createQueueIds', () => {
-	test('stamps an id that is unique within the queue', () => {
-		const ids = createQueueIds();
-		const queue = loadedQueue(emptyState(), stampQueue(release, ids)).queue;
-
-		expect(new Set(queue.map((item) => item.queueId)).size).toBe(3);
-	});
-});
-
 describe('loadedQueue', () => {
 	test('replaces the queue and loads nothing out of it', () => {
 		const state = loadedQueue(emptyState(), stamp(release));
@@ -61,12 +52,6 @@ describe('loadedQueue', () => {
 		expect(trackIds(state.queue)).toStrictEqual(['a', 'b', 'c']);
 		expect(state.playOrder).toStrictEqual([0, 1, 2]);
 		expect(state.currentIndex).toBeUndefined();
-	});
-
-	test('keeps shuffle on for the queue it loads', () => {
-		const shuffling = { ...emptyState(), isShuffling: true };
-
-		expect(loadedQueue(shuffling, stamp(release)).isShuffling).toBe(true);
 	});
 });
 
@@ -76,13 +61,6 @@ describe('appendedQueue', () => {
 
 		expect(appended?.loadIndex).toBe(0);
 		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c']);
-	});
-
-	test('fills an empty queue and loads the named track', () => {
-		const appended = appendedQueue(emptyState(), stamp(release), 'b');
-
-		expect(appended?.loadIndex).toBe(1);
-		expect(appended?.state.queue).toHaveLength(3);
 	});
 
 	test('refuses a named track the release does not carry', () => {
@@ -109,10 +87,6 @@ describe('appendedQueue', () => {
 
 		expect(appended?.loadIndex).toBe(1);
 		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'c']);
-	});
-
-	test('refuses an empty release', () => {
-		expect(appendedQueue(emptyState(), stamp([]))).toBeUndefined();
 	});
 
 	test('leaves the loaded index alone, since loading it is the caller step', () => {

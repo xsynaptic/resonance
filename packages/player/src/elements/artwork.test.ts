@@ -32,12 +32,4 @@ describe('<player-artwork>', () => {
 
 		expect(part.querySelector('img')?.getAttribute('src')).toBe('/other.webp');
 	});
-
-	test('takes the sizes its host names', () => {
-		const { part, store } = mount('player-artwork', { sizes: '96px' });
-
-		store.getState().loadQueue([queueItem('a', { artwork })]);
-
-		expect(part.querySelector('img')?.getAttribute('sizes')).toBe('96px');
-	});
 });

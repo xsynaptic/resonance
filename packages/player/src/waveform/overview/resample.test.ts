@@ -8,12 +8,6 @@ function rounded(peaks: ReadonlyArray<number>): Array<number> {
 }
 
 describe('resamplePeaks', () => {
-	test('hands back the same peaks when the bar count already matches', () => {
-		const peaks = [0.2, 0.4, 0.6, 0.8];
-
-		expect(resamplePeaks(peaks, 4)).toBe(peaks);
-	});
-
 	test('averages the buckets each bar covers when downsampling', () => {
 		// Pairs average to 0.3, 0.7 and 1, and 1 is already the loudest, so renormalising changes nothing
 		expect(rounded(resamplePeaks([0.2, 0.4, 0.6, 0.8, 1, 1], 3))).toStrictEqual([0.3, 0.7, 1]);

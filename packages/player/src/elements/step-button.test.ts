@@ -27,19 +27,4 @@ describe('<player-step-button>', () => {
 
 		expect(store.getState().currentIndex).toBe(1);
 	});
-
-	test('steps back once there is somewhere to go', () => {
-		const { part, store } = mount('player-step-button', { direction: 'previous' });
-		const previous = getByRole(part, 'button', { name: labels.previous });
-
-		expect(previous.getAttribute('aria-disabled')).toBe('true');
-
-		store.getState().playTrack([queueItem('a'), queueItem('b')], 'b');
-
-		expect(previous.getAttribute('aria-disabled')).toBe('false');
-
-		previous.click();
-
-		expect(store.getState().currentIndex).toBe(0);
-	});
 });

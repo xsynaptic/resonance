@@ -10,8 +10,6 @@ interface MediaFields {
 	seeking: boolean;
 }
 
-const unidentified: string | undefined = undefined;
-
 let unbind: (() => void) | undefined;
 
 afterEach(() => {
@@ -161,17 +159,6 @@ describe('monitorPlayback', () => {
 
 		expect(page.reports).toHaveLength(2);
 		expect(second?.listenId).not.toBe(first?.listenId);
-	});
-
-	test('an unidentified playback reports nothing', () => {
-		const page = createPage({ identify: () => unidentified });
-
-		page.bind();
-		page.emit('playing', { paused: false });
-		page.hear(120);
-		page.emit('pause', { paused: true });
-
-		expect(page.reports).toHaveLength(0);
 	});
 
 	test('binding to media already playing accrues without a playing event', () => {

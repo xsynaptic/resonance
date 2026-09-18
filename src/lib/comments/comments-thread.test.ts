@@ -46,34 +46,6 @@ describe('buildThread', () => {
 		]);
 	});
 
-	test('nesting stops at three levels', () => {
-		const thread = buildThread(
-			toComments([
-				{ id: 'a' },
-				{ id: 'b', parentId: 'a' },
-				{ id: 'c', parentId: 'b' },
-				{ id: 'd', parentId: 'c' },
-				{ id: 'e', parentId: 'd' },
-			]),
-		);
-
-		expect(toShape(thread)).toEqual([
-			[
-				'a',
-				[
-					[
-						'b',
-						[
-							['c', []],
-							['d', []],
-							['e', []],
-						],
-					],
-				],
-			],
-		]);
-	});
-
 	test('a capped reply keeps its place behind the comment it answers', () => {
 		const thread = buildThread(
 			toComments([

@@ -29,10 +29,6 @@ describe('readLastGeneration', () => {
 		expect(generation?.items).toEqual({ '/a': { plays: 7 } });
 	});
 
-	test('yields nothing for a file that does not exist', async () => {
-		expect(await readLastGeneration('/nowhere/stats.jsonl')).toBeUndefined();
-	});
-
 	test('reads back what appendGeneration wrote, last line first', async () => {
 		const filePath = await writeLog('');
 

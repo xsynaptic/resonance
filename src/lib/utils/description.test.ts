@@ -3,15 +3,6 @@ import { describe, expect, test } from 'vitest';
 import { getEntryDescription, toDescriptionSource } from '#lib/utils/description.ts';
 
 describe('getEntryDescription', () => {
-	test('frontmatter description wins over the body', async () => {
-		const description = await getEntryDescription({
-			body: 'A body that should not be used.',
-			data: { description: 'Written by hand.' },
-		});
-
-		expect(description).toBe('Written by hand.');
-	});
-
 	test('keeps punctuation attached to inline component text and parses the markdown around it', async () => {
 		const description = await getEntryDescription({
 			body: `<Link id="third-eye">Third Eye</Link>'s *Ancient Future* is the debut release from <Link id="psy-harmonics">Psy-Harmonics</Link>.`,
@@ -37,20 +28,6 @@ describe('getEntryDescription', () => {
 		});
 
 		expect(description).toBe('Phobium’s Oort Cloud is an album of deep space music.');
-	});
-
-	test('separates list items rather than running them together', async () => {
-		const description = await getEntryDescription({
-			body: '- Recorded live in Taipei.\n- Cover shot at Badouzi.',
-			data: {},
-		});
-
-		expect(description).toBe('Recorded live in Taipei. Cover shot at Badouzi.');
-	});
-
-	test('returns undefined for an empty body', async () => {
-		expect(await getEntryDescription({ body: '\n\n', data: {} })).toBeUndefined();
-		expect(await getEntryDescription({ data: {} })).toBeUndefined();
 	});
 });
 

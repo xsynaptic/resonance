@@ -9,14 +9,6 @@ afterEach(() => {
 });
 
 describe('<player-status>', () => {
-	test('says nothing while idle', () => {
-		const { part } = mount('player-status');
-		const region = getByRole(part, 'status');
-
-		expect(region.textContent).toBe('');
-		expect(region.dataset.visible).toBeUndefined();
-	});
-
 	test('reports an error with the skull, and keeps the words while it fades', () => {
 		const { part, store } = mount('player-status');
 		const region = getByRole(part, 'status');

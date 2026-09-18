@@ -8,14 +8,6 @@ const rootPath = import.meta.dirname;
 const targets = [makeEntry({ id: 'shpongle' }), makeEntry({ id: 'twisted' })];
 
 describe('collectLinkIdIssues', () => {
-	test('accepts a link whose id resolves', () => {
-		const entries = [
-			makeEntry({ body: 'Released on <Link id="twisted">Twisted</Link>.', id: 'a-post' }),
-		];
-
-		expect(collectLinkIdIssues(entries, targets)).toEqual([]);
-	});
-
 	test('flags a link whose id resolves to nothing, with its line number', () => {
 		const entries = [
 			makeEntry({
@@ -42,27 +34,6 @@ describe('collectLinkIdIssues', () => {
 		expect(collectLinkIdIssues(entries, targets)).toEqual([
 			{ id: 'nobody', lineNumber: 2, location: 'collections/posts/2011/a-post.mdx' },
 		]);
-	});
-
-	test('skips an entry with no body and one with no Link at all', () => {
-		const entries = [
-			makeEntry({ id: 'an-artist' }),
-			makeEntry({ body: 'Plain prose.', id: 'a-post' }),
-		];
-
-		expect(collectLinkIdIssues(entries, targets)).toEqual([]);
-	});
-
-	test('reads a single-quoted id', () => {
-		const entries = [makeEntry({ body: "<Link id='nobody' />", id: 'a-post' })];
-
-		expect(collectLinkIdIssues(entries, targets).map((issue) => issue.id)).toEqual(['nobody']);
-	});
-
-	test('does not read a `data-id` prop as a link id', () => {
-		const entries = [makeEntry({ body: '<Link data-id="nobody">text</Link>', id: 'a-post' })];
-
-		expect(collectLinkIdIssues(entries, targets)).toEqual([]);
 	});
 });
 

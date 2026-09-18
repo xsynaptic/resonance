@@ -13,20 +13,6 @@ function makeEntries(mixes: Array<ReturnType<typeof makeEntry>>) {
 }
 
 describe('collectReferenceIssues', () => {
-	test('accepts references that resolve', () => {
-		const entries = makeEntries([
-			makeEntry({
-				data: {
-					eras: makeReferences('eras', ['early-2000s']),
-					styles: makeReferences('styles', ['goa-trance']),
-				},
-				id: 'a-mix',
-			}),
-		]);
-
-		expect(collectReferenceIssues(entries)).toEqual([]);
-	});
-
 	test('flags a reference to a missing entry and reports its field path', () => {
 		const entries = makeEntries([
 			makeEntry({

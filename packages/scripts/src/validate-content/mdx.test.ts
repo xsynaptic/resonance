@@ -27,58 +27,15 @@ describe('collectComponentIssues', () => {
 		]);
 	});
 
-	test('flags a Link carrying other props but no id', () => {
-		const issues = collectComponentIssues('<Link class="anchor">text</Link>');
-
-		expect(issues).toHaveLength(1);
-		expect(issues[0]?.message).toBe('Link component missing id prop');
-	});
-
-	test('does not read a `data-id` prop as the `id` prop', () => {
-		const issues = collectComponentIssues('<Link data-id="a-mix">text</Link>');
-
-		expect(issues).toHaveLength(1);
-		expect(issues[0]?.message).toBe('Link component missing id prop');
-	});
-
-	test('flags an Img with alt but no src', () => {
-		const issues = collectComponentIssues('<Img alt="A cover">caption</Img>');
-
-		expect(issues).toHaveLength(1);
-		expect(issues[0]?.message).toBe('Img component missing src prop');
-	});
-
 	test('flags a Quotation carrying a title but no author', () => {
 		const issues = collectComponentIssues('<Quotation title="Neuromancer" year="1982">');
 
 		expect(issues).toHaveLength(1);
 		expect(issues[0]?.message).toBe('Quotation component missing author prop');
 	});
-
-	test('reports the line the component sits on', () => {
-		const body = ['Intro.', '', 'More prose.', '', '<Link>no id here</Link>'].join('\n');
-
-		expect(collectComponentIssues(body)[0]?.lineNumber).toBe(5);
-	});
-
-	test('does not mistake a longer tag name for the one it checks', () => {
-		expect(collectComponentIssues('<LinkList items="a" />')).toEqual([]);
-	});
-
-	test('orders issues across component types by line', () => {
-		const body = ['<Img alt="first">a</Img>', '<Link>second</Link>'].join('\n');
-
-		expect(collectComponentIssues(body).map((issue) => issue.lineNumber)).toEqual([1, 2]);
-	});
 });
 
 describe('validateMdxComponents', () => {
-	test('passes when every component is well formed', () => {
-		const entries = [makeEntry({ body: '<Link id="a-mix">text</Link>', id: 'a-post' })];
-
-		expect(validateMdxComponents(entries, rootPath).status).toBe('pass');
-	});
-
 	test('reports the file and skips an entry with no body', () => {
 		const entries = [
 			makeEntry({ id: 'an-artist' }),

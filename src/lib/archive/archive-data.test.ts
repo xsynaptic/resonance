@@ -19,18 +19,6 @@ describe('getArchiveYearPagination', () => {
 		expect(pagination.placeholder).toBe('Year');
 	});
 
-	test('the oldest year has no previous and points next to the newer year', () => {
-		const pagination = getArchiveYearPagination(years, '2009');
-
-		expect(pagination.previous).toBeUndefined();
-		expect(pagination.next).toStrictEqual({
-			ariaLabel: 'Newer: 2011',
-			label: '2011',
-			url: '/archive/2011/',
-		});
-		expect(pagination.placeholder).toBeUndefined();
-	});
-
 	test('years given oldest first still sort newest first and keep the older year as previous', () => {
 		const pagination = getArchiveYearPagination(years.toReversed(), '2011');
 

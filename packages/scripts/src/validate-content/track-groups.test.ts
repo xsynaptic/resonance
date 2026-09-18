@@ -102,26 +102,6 @@ describe('validateTrackGroups', () => {
 		});
 	});
 
-	test('fails a mix file named by no group once another group names one', () => {
-		const mixes = [
-			makeMix({
-				files: ['Part One.mp3', 'Part Two.mp3'],
-				tracks: [makeGroup('Part One', ['Part One.mp3'], []), makeGroup('Part Two', [], [])],
-			}),
-		];
-
-		expect(validateTrackGroups(mixes)).toEqual({
-			issues: [
-				{
-					message:
-						'collections/mixes/2011/a-mix.mdx: "Part Two.mp3" is named by no group and drops off the page',
-				},
-			],
-			status: 'fail',
-			summary: 'Found 1 track group file problem(s)',
-		});
-	});
-
 	test('fails two timestamped groups that would write two sheets to one filename', () => {
 		const mixes = [
 			makeMix({

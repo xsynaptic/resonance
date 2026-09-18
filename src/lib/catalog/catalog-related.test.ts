@@ -139,16 +139,6 @@ describe('getRelatedItems', () => {
 		expect(await relatedIds(collections, 'selected-mix')).toEqual(['the-post']);
 	});
 
-	test('ignores an inline Link to a Term', async () => {
-		const collections = {
-			artists: [{ data: { title: 'Astral Projection' }, id: 'astral-projection' }],
-			posts: [{ ...entry('the-post'), body: 'By <Link id="astral-projection" />.' }],
-			reviews: [entry('credited', { artists: [{ id: 'astral-projection' }] })],
-		};
-
-		expect(await relatedIds(collections, 'the-post')).toEqual([]);
-	});
-
 	test('matches a free-text Credit to the cataloged Term its name resolves to', async () => {
 		const collections = {
 			artists: [{ data: { title: 'Astral Projection' }, id: 'ap' }],

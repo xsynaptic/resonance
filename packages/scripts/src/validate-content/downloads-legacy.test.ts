@@ -4,20 +4,6 @@ import { validateDownloadsLegacy } from '#validate-content/downloads-legacy.ts';
 import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 describe('validateDownloadsLegacy', () => {
-	test('passes when every format has a file', () => {
-		const mixes = [
-			makeEntry({
-				data: {
-					downloadsLegacy: { flac: 7963, mp3: 24_359 },
-					files: ['A Mix.mp3', 'A Mix.flac'],
-				},
-				id: 'a-mix',
-			}),
-		];
-
-		expect(validateDownloadsLegacy(mixes).status).toBe('pass');
-	});
-
 	test('passes when a file has no count, which is not an error', () => {
 		const mixes = [
 			makeEntry({

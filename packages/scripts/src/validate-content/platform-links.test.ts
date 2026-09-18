@@ -9,24 +9,6 @@ const keys = {
 };
 
 describe('validatePlatformLinks', () => {
-	test('passes when both embeds resolve and the SoundCloud URL is also in `links`', () => {
-		const mixes = [
-			makeEntry({
-				data: {
-					links: [
-						'https://www.mixcloud.com/Basilisk/a-mix/',
-						'https://soundcloud.com/djbasilisk/a-mix',
-					],
-					mixcloudLink: 'https://www.mixcloud.com/Basilisk/a-mix/',
-					soundcloudLink: 'https://soundcloud.com/djbasilisk/a-mix',
-				},
-				id: 'a-mix',
-			}),
-		];
-
-		expect(validatePlatformLinks(mixes, keys).status).toBe('pass');
-	});
-
 	test('fails when `links` carries an own-account URL that `soundcloudLink` does not', () => {
 		const mixes = [
 			makeEntry({

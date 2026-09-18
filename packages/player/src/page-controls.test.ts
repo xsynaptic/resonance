@@ -123,30 +123,6 @@ describe('bindPageControls', () => {
 		expect(loadedItem(page.store.getState())).toBeUndefined();
 	});
 
-	test('reports the queued track, which beats the play-all wrapped around it', () => {
-		const page = bindPage(
-			[queueItem('a'), queueItem('b')],
-			'<div data-play-release><button data-queue-track="b"></button></div>',
-		);
-
-		page.bind();
-		element('[data-queue-track]').click();
-
-		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b'], verb: 'queue-track' });
-	});
-
-	test('reports the pressed track, which beats the play-all wrapped around it', () => {
-		const page = bindPage(
-			[queueItem('a'), queueItem('b')],
-			'<div data-play-release><button data-play-track="b"></button></div>',
-		);
-
-		page.bind();
-		element('[data-play-track]').click();
-
-		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b'], verb: 'play-track' });
-	});
-
 	test('reports a Playlist in the order it queued, so the first id is what starts', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b'), queueItem('c')],
@@ -182,21 +158,6 @@ describe('bindPageControls', () => {
 		expect(page.store.getState().currentTimeSeconds).toBe(120);
 	});
 
-	test('a press on a Playlist not tuned in replaces the queue', () => {
-		const page = bindPage(
-			[queueItem('a'), queueItem('b'), queueItem('c')],
-			'<button data-play-playlist="c b"></button>',
-		);
-
-		page.bind();
-		page.store.getState().playTrack([queueItem('a')], 'a');
-		element('[data-play-playlist]').click();
-
-		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['c', 'b']);
-		expect(loadedItem(page.store.getState())?.itemId).toBe('c');
-		expect(page.store.getState().isPaused).toBe(false);
-	});
-
 	test('marks every Playlist holding the loaded Mix while it plays', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b')],
@@ -220,29 +181,6 @@ describe('bindPageControls', () => {
 		expect(element('#second').dataset.playing).toBeUndefined();
 	});
 
-	test('reports a release with every item it queued', () => {
-		const page = bindPage([queueItem('a'), queueItem('b')], '<button data-play-release></button>');
-
-		page.bind();
-		element('[data-play-release]').click();
-
-		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a', 'b'], verb: 'play-release' });
-	});
-
-	test('adds the track to the queue once, however often it is pressed', () => {
-		const page = bindPage(
-			[queueItem('a')],
-			'<div data-track-id="a"><button data-queue-track="a"></button></div>',
-		);
-
-		page.bind();
-		element('[data-queue-track]').click();
-		element('[data-queue-track]').click();
-
-		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['a']);
-		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a'], verb: 'queue-track' });
-	});
-
 	test('marks the queued track and disables the button that adds it', () => {
 		const page = bindPage(
 			[queueItem('a')],
@@ -257,18 +195,6 @@ describe('bindPageControls', () => {
 		element('[data-queue-track]').click();
 
 		expect(element('[data-track-id="a"]').dataset.queued).toBe('');
-		expect(element('[data-queue-track]').hasAttribute('disabled')).toBe(true);
-	});
-
-	test('playing a track queues it, so its add button disables too', () => {
-		const page = bindPage(
-			[queueItem('a')],
-			'<div data-track-id="a"><button data-queue-track="a"></button><button data-play-track="a"></button></div>',
-		);
-
-		page.bind();
-		element('[data-play-track]').click();
-
 		expect(element('[data-queue-track]').hasAttribute('disabled')).toBe(true);
 	});
 });

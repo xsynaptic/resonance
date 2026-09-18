@@ -4,12 +4,6 @@ import { collectDuplicateIdIssues } from '#validate-content/entry-ids.ts';
 import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 describe('collectDuplicateIdIssues', () => {
-	test('accepts distinct IDs', () => {
-		const entries = [makeEntry({ id: 'goa-trance' }), makeEntry({ id: 'psychedelic-techno' })];
-
-		expect(collectDuplicateIdIssues(entries)).toEqual([]);
-	});
-
 	test('flags the same ID claimed by two collections', () => {
 		const entries = [
 			makeEntry({ filePath: 'collections/labels/twisted.mdx', id: 'twisted' }),

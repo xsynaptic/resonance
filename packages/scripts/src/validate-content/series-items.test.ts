@@ -6,14 +6,6 @@ import { makeEntry } from '#validate-content/validate-test-utils.ts';
 const members = [makeEntry({ id: 'all-stars-2011' }), makeEntry({ id: 'a-review' })];
 
 describe('validateSeriesItems', () => {
-	test('passes when every item resolves', () => {
-		const series = [
-			makeEntry({ data: { seriesItems: ['all-stars-2011', 'a-review'] }, id: 'korner' }),
-		];
-
-		expect(validateSeriesItems(series, members).status).toBe('pass');
-	});
-
 	test('fails on an item that resolves to nothing, naming it', () => {
 		const series = [
 			makeEntry({

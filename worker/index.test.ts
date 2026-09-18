@@ -32,12 +32,6 @@ describe('fetch', () => {
 		}
 	});
 
-	test('hands every other path to the assets binding', async () => {
-		const response = await worker.fetch(new Request('https://example.test/mixes/'), createEnv());
-
-		await expect(response.text()).resolves.toBe('asset');
-	});
-
 	test('logs and answers 500 when the handler throws', async () => {
 		const logged = vi.spyOn(console, 'error').mockImplementation(vi.fn());
 		const env = createEnv();

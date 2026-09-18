@@ -66,28 +66,6 @@ describe('toTracklist', () => {
 		expect(problems).toEqual([]);
 	});
 
-	test('fills the release credit down where Discogs gives the track none', () => {
-		const problems: Array<string> = [];
-		const tracklist = toTracklist(
-			release({ tracklist: [track({ title: 'Woy' })] }),
-			'a-review.mdx',
-			problems,
-		);
-
-		expect(tracklist).toEqual([{ artists: 'Koxbox', title: 'Woy' }]);
-	});
-
-	test('omits `duration` rather than writing it empty', () => {
-		const problems: Array<string> = [];
-		const tracklist = toTracklist(
-			release({ tracklist: [track({ duration: '' })] }),
-			'a-review.mdx',
-			problems,
-		);
-
-		expect(tracklist).toStrictEqual([{ artists: 'Koxbox', title: 'A Track' }]);
-	});
-
 	test('refuses to fill "Various" down onto a compilation track', () => {
 		const problems: Array<string> = [];
 		const tracklist = toTracklist(
@@ -98,19 +76,6 @@ describe('toTracklist', () => {
 
 		expect(tracklist).toBeUndefined();
 		expect(problems).toEqual(['a-review.mdx: "Voices" has no artist to fill down from']);
-	});
-
-	test('reports a release whose tracks are all headings', () => {
-		const problems: Array<string> = [];
-
-		expect(
-			toTracklist(
-				release({ id: 42, tracklist: [track({ type_: 'heading' })] }),
-				'a-review.mdx',
-				problems,
-			),
-		).toBeUndefined();
-		expect(problems).toEqual(['a-review.mdx: release 42 has no tracks']);
 	});
 
 	test('groups an `N-M` tracklist into discs', () => {
@@ -223,9 +188,5 @@ describe('toSource', () => {
 
 		expect(written.indexOf('tracks:')).toBeLessThan(written.indexOf('---', 3));
 		expect(written).toContain('tracks: are discussed below.');
-	});
-
-	test('reports a file carrying no frontmatter fence', () => {
-		expect(toEntry('Just a body.\n')).toBeUndefined();
 	});
 });

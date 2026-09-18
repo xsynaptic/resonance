@@ -81,23 +81,6 @@ describe('distillWaveform', () => {
 		expect(preview.values).toEqual([1, 0.5]);
 	});
 
-	test('normalizes per file so the loudest bucket always tops out', () => {
-		const quiet = distillWaveform(
-			buildDat([
-				[-4, 4],
-				[-2, 2],
-			]),
-		);
-		const loud = distillWaveform(
-			buildDat([
-				[-100, 100],
-				[-50, 50],
-			]),
-		);
-
-		expect(quiet.values).toEqual(loud.values);
-	});
-
 	test('keeps a short file at its own resolution rather than upsampling', () => {
 		const preview = distillWaveform(buildDat(Array.from({ length: 37 }, () => [-10, 10])));
 

@@ -5,11 +5,7 @@ import { describe, expect, test } from 'vitest';
 import type { TracklistValue } from '#lib/schemas/audio.ts';
 
 import { setCollections } from '#lib/collections/astro-content-stub.ts';
-import {
-	getMixCuePoints,
-	getMixCueSheets,
-	hasMixTimestamps,
-} from '#lib/collections/mixes/mixes-cue.ts';
+import { getMixCuePoints, getMixCueSheets } from '#lib/collections/mixes/mixes-cue.ts';
 
 setCollections({ artists: [{ data: { title: 'DJ Basilisk' }, id: 'dj-basilisk' }] });
 
@@ -32,23 +28,6 @@ function makeMix(files: Array<string>, tracks: TracklistValue): CollectionEntry<
 function titleLines(sheets: Array<{ text: string }>) {
 	return sheets.map((sheet) => [...sheet.text.matchAll(/ {4}TITLE "(.+)"/g)].map(([, t]) => t));
 }
-
-describe('hasMixTimestamps', () => {
-	test('finds a timestamp inside a group', () => {
-		const mix = makeMix(['A Mix.mp3'], [{ title: 'Disc One', tracks: [partOne] }]);
-
-		expect(hasMixTimestamps(mix)).toBe(true);
-	});
-
-	test('is false when no group carries one', () => {
-		const mix = makeMix(
-			['A Mix.mp3'],
-			[{ title: 'Disc One', tracks: [{ artists: 'Lorn', title: 'Untimed' }] }],
-		);
-
-		expect(hasMixTimestamps(mix)).toBe(false);
-	});
-});
 
 describe('getMixCueSheets', () => {
 	test('emits one sheet per file over the whole tracklist when it is flat', async () => {

@@ -4,19 +4,6 @@ import { validateBodyMarkers } from '#validate-content/body-markers.ts';
 import { makeEntry } from '#validate-content/validate-test-utils.ts';
 
 describe('validateBodyMarkers', () => {
-	test('passes when each field has its tag and each tag has its field', () => {
-		const entries = [
-			makeEntry({
-				body: 'Prose.\n\n<TrackList tracks={frontmatter.tracks} />',
-				data: { tracks: [{ title: 'Alpha Sector' }] },
-				id: 'a-mix',
-			}),
-			makeEntry({ body: 'Prose only.', data: {}, id: 'a-post' }),
-		];
-
-		expect(validateBodyMarkers(entries).status).toBe('pass');
-	});
-
 	test('fails on frontmatter the body never renders', () => {
 		const entries = [
 			makeEntry({

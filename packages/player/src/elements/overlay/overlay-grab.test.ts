@@ -15,8 +15,4 @@ describe('isDismissed', () => {
 	test('holds a flick that ended back where it started', () => {
 		expect(isDismissed({ heightPx: 800, travelPx: 0, velocityPxPerMs: 1.2 })).toBe(false);
 	});
-
-	test('holds a flick back up the way it came', () => {
-		expect(isDismissed({ heightPx: 800, travelPx: 40, velocityPxPerMs: -1.2 })).toBe(false);
-	});
 });

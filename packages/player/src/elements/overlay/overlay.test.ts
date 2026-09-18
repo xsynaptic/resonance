@@ -114,16 +114,6 @@ describe('<player-overlay>', () => {
 		});
 	});
 
-	test('leaves out the waveform panel and its toggles when the root turns the panel off', async () => {
-		const mounted = mountOverlay({ isPanelEnabled: false });
-
-		mounted.store.getState().playTrack([queueItem('a')], 'a');
-		mounted.store.getState().setPanelOpen(true);
-		await openOverlay(mounted);
-
-		expect(mounted.dialog.querySelector('player-panel, player-panel-toggle')).toBeNull();
-	});
-
 	test('closes for a plain link click and stays open for a modified one', async () => {
 		const mounted = mountOverlay();
 

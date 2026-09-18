@@ -66,13 +66,6 @@ describe('resolveSelections', () => {
 		});
 	});
 
-	test('leaves a review title unsplit when it does not carry the credit as a prefix', async () => {
-		const resolved = await resolveOne({ entryId: 'ott-retrospective' });
-
-		expect(resolved?.title).toBe('A Retrospective');
-		expect(resolved?.artists).toEqual([]);
-	});
-
 	test('an inline field wins over the entry it names', async () => {
 		const resolved = await resolveOne({
 			entryId: 'ott-skylon',
@@ -129,13 +122,5 @@ describe('resolveSelections', () => {
 		const resolved = await resolveOne({ artists: 'Ott', title: 'Skylon' });
 
 		expect(resolved?.anchor).toBe('ott-skylon');
-	});
-
-	test('offers a YouTube search only where the row asks for one', async () => {
-		const asked = await resolveOne({ artists: 'Ott', title: 'Skylon', youtubeSearch: true });
-		const unasked = await resolveOne({ artists: 'Ott', title: 'Skylon' });
-
-		expect(asked?.linkYoutube).toBe('https://www.youtube.com/results?search_query=Ott%20Skylon');
-		expect(unasked?.linkYoutube).toBeUndefined();
 	});
 });

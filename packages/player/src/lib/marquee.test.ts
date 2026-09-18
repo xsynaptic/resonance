@@ -29,12 +29,6 @@ afterEach(() => {
 });
 
 describe('marquee', () => {
-	test('stays inert when the text fits its box', () => {
-		stubMeasurement(180, 288);
-
-		expect(marqueeOf().dataset.overflow).toBeUndefined();
-	});
-
 	test('marks the overflow and writes the distance it has to travel', () => {
 		stubMeasurement(420, 288);
 

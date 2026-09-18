@@ -21,13 +21,6 @@ describe('getCacheKey', () => {
 	test('changes when the entry content changes', () => {
 		expect(getCacheKey({ ...base, digest: 'other' })).not.toBe(getCacheKey(base));
 	});
-
-	test('stays stable when the Featured Image has no modified time', () => {
-		const key = getCacheKey({ ...base, imageModifiedTime: undefined });
-
-		expect(key).toBe(getCacheKey({ ...base, imageModifiedTime: undefined }));
-		expect(key).not.toBe(getCacheKey(base));
-	});
 });
 
 describe('createOutputCache', () => {

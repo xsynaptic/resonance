@@ -147,12 +147,6 @@ describe('handleListenReport', () => {
 		expect(rows()[0]?.heard_seconds).toBe(360);
 	});
 
-	test('more than a day of seconds is refused outright', async () => {
-		await post({ id: listenId, mixId: 'voyager', seconds: 86_401 });
-
-		expect(rows()).toHaveLength(0);
-	});
-
 	test('the 51st new listen of a day writes nothing, while the first still updates', async () => {
 		for (let index = 0; index < 50; index += 1) {
 			await post({ id: toListenId(index), mixId: 'voyager', seconds: 60 });

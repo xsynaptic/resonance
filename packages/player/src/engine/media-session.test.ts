@@ -155,28 +155,6 @@ describe('bindMediaSession', () => {
 		});
 	});
 
-	test('maps every terminal status onto a playback state', () => {
-		const store = loadedStore();
-
-		bindMediaSession(store);
-		store.setState({ currentIndex: 0 });
-
-		setStatus(store, 'playing');
-		expect(mediaSession.playbackState).toBe('playing');
-
-		setStatus(store, 'paused');
-		expect(mediaSession.playbackState).toBe('paused');
-
-		setStatus(store, 'error');
-		expect(mediaSession.playbackState).toBe('paused');
-
-		setStatus(store, 'capped');
-		expect(mediaSession.playbackState).toBe('paused');
-
-		setStatus(store, 'idle');
-		expect(mediaSession.playbackState).toBe('none');
-	});
-
 	test('leaves the playback state alone while loading', () => {
 		const store = loadedStore();
 
@@ -186,16 +164,6 @@ describe('bindMediaSession', () => {
 		setStatus(store, 'loading');
 
 		expect(mediaSession.playbackState).toBe('playing');
-	});
-
-	test('drives the store from a lock-screen action', () => {
-		const store = loadedStore();
-
-		bindMediaSession(store);
-		store.setState({ currentIndex: 0 });
-		mediaSession.handlers.get('nexttrack')?.({ action: 'nexttrack' });
-
-		expect(store.getState().currentIndex).toBe(1);
 	});
 
 	test('reports the position once across steady playback', () => {

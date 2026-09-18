@@ -15,7 +15,7 @@ import { currentCue, loadedItem } from '#store/selectors.ts';
 // The resolved press, so a host reads the verb rather than re-deriving it from the DOM
 export interface ControlPress {
 	itemIds: Array<string>;
-	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track';
+	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track' | 'toggle-queue';
 }
 
 interface PageControlOptions {
@@ -91,6 +91,10 @@ export function bindPageControls(
 	};
 }
 
+function isTunedIn(stationIds: string, itemId: string | undefined): boolean {
+	return itemId !== undefined && stationIds.split(' ').includes(itemId);
+}
+
 function markCueRows(page: Document, { cueStartSeconds, itemId }: RowState): void {
 	for (const list of page.querySelectorAll<HTMLElement>('[data-cue-mix]')) {
 		const isLoaded = itemId !== undefined && list.dataset.cueMix === itemId;
@@ -107,6 +111,16 @@ function markCueRows(page: Document, { cueStartSeconds, itemId }: RowState): voi
 function markRows(page: Document, state: RowState): void {
 	markTrackRows(page, state);
 	markCueRows(page, state);
+	markStations(page, state);
+}
+
+function markStations(page: Document, { isPlaying, itemId }: RowState): void {
+	for (const station of page.querySelectorAll<HTMLElement>('[data-play-queue]')) {
+		station.toggleAttribute(
+			'data-playing',
+			isPlaying && isTunedIn(station.dataset.playQueue ?? '', itemId),
+		);
+	}
 }
 
 function markTrackRows(page: Document, { isPlaying, itemId, queuedIds }: RowState): void {
@@ -157,6 +171,12 @@ function pressControl(
 	items: Array<QueueItem>,
 ): ControlPress | undefined {
 	const { playQueue, playRelease, playTrack, queueTrack } = verbs;
+
+	if (playQueue !== undefined && isTunedIn(playQueue, loadedItem(state)?.itemId)) {
+		state.togglePaused();
+
+		return { itemIds: playQueue.split(' '), verb: 'toggle-queue' };
+	}
 
 	if (playQueue !== undefined) {
 		const station = stationItems(playQueue, items);

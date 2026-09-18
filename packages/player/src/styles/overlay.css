@@ -31,25 +31,8 @@
 	}
 }
 
-.player-overlay-grabber {
-	position: absolute;
-	inset-block-start: calc(var(--player-overlay-inset-top) / 2);
-	inset-inline-start: 50%;
-	inline-size: 2.5rem;
-	block-size: 0.25rem;
-	touch-action: none;
-	cursor: grab;
-	background-color: var(--player-drag-handle);
-	border-radius: 9999px;
-	translate: -50% 0;
-}
-
-.player-overlay[data-grabbing] .player-overlay-grabber {
-	cursor: grabbing;
-}
-
-.player-overlay-head,
-.player-overlay-body[data-layout='phone'] .player-overlay-art {
+.player-overlay-art,
+.player-overlay-art .player-artwork {
 	touch-action: none;
 }
 
@@ -64,7 +47,7 @@
 	block-size: 100%;
 	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
 		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
-	container-type: size;
+	container: player-overlay / size;
 	overflow: hidden;
 	background-color: var(--player-surface);
 }
@@ -76,7 +59,15 @@
 }
 
 .player-overlay-body[data-layout='phone'] .player-overlay-layout {
-	grid-template: 'artwork' minmax(0, 1fr) 'deck' auto / minmax(0, 1fr);
+	grid-template:
+		'artwork' minmax(
+			0,
+			calc(
+				min(100cqi, 40rem) + var(--player-overlay-inset-left) + var(--player-overlay-inset-right) -
+					var(--player-overlay-inset-top)
+			)
+		)
+		'deck' minmax(min-content, 1fr) / minmax(0, 1fr);
 	max-inline-size: 40rem;
 	margin-inline: auto;
 }
@@ -136,6 +127,45 @@
 
 .player-overlay-body[data-layout='phone'] .player-overlay-deck {
 	position: relative;
+	display: grid;
+	align-content: end;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-deck:has(.player-waveform-frame) {
+	grid-template-rows: auto minmax(
+			var(--player-waveform-height),
+			min(var(--player-panel-height), 100%)
+		);
+}
+
+@container player-overlay (orientation: landscape) {
+	.player-overlay-body[data-layout='phone'] .player-overlay-layout {
+		--player-overlay-cover-gap: 1.5rem;
+		--player-overlay-cover-size: min(
+			100cqb + var(--player-overlay-inset-top) + var(--player-overlay-inset-bottom),
+			50cqi,
+			900px
+		);
+
+		grid-template: 'artwork deck' minmax(0, 1fr) / auto minmax(0, 1fr);
+		column-gap: var(--player-overlay-cover-gap);
+		max-inline-size: none;
+	}
+
+	.player-overlay-body[data-layout='phone'] .player-overlay-art {
+		margin-block: calc(-1 * var(--player-overlay-inset-top))
+			calc(-1 * var(--player-overlay-inset-bottom));
+		margin-inline-end: 0;
+		container-type: normal;
+	}
+
+	.player-overlay-body[data-layout='phone'] .player-overlay-art .player-artwork {
+		inline-size: var(--player-overlay-cover-size);
+	}
+
+	.player-overlay-body[data-layout='phone'] .player-overlay-deck {
+		align-content: center;
+	}
 }
 
 .player-overlay-body[data-layout='phone'] .player-overlay-deck > player-panel > .player-panel {
@@ -143,6 +173,17 @@
 	inset-block-end: calc(100% + var(--player-gap));
 	inset-inline: calc(-1 * var(--player-overlay-inset-left))
 		calc(-1 * var(--player-overlay-inset-right));
+	grid-row: 1;
+}
+
+@container player-overlay (orientation: landscape) {
+	.player-overlay-body[data-layout='phone'] .player-overlay-deck > player-panel > .player-panel {
+		inset-block-end: calc(-1 * var(--player-overlay-inset-bottom));
+		inset-inline: calc(-1 * (var(--player-overlay-cover-size) + var(--player-overlay-cover-gap)))
+			calc(100% + var(--player-overlay-cover-gap));
+		grid-row: auto;
+		background-color: color-mix(in oklab, var(--player-panel-well) 85%, transparent);
+	}
 }
 
 .player-overlay-body[data-layout='columns'] .player-overlay-deck > player-panel > .player-panel {
@@ -199,6 +240,14 @@
 	padding-inline-end: 0;
 }
 
+@container player-overlay (orientation: landscape) {
+	.player-overlay-body[data-layout='phone']
+		.player-overlay-track
+		:is(.player-track-title, .player-track-empty) {
+		padding-inline-end: calc(2.5rem + var(--player-gap-tight));
+	}
+}
+
 .player-overlay-track .player-track-title {
 	font-size: var(--player-font-size-large);
 	line-height: 1.75rem;
@@ -215,6 +264,17 @@
 
 .player-overlay-scrub {
 	position: relative;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-scrub:has(.player-waveform-frame) {
+	display: grid;
+	grid-template-rows: minmax(0, 1fr);
+	contain-intrinsic-block-size: var(--player-waveform-height);
+	contain: size;
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-scrub .player-waveform {
+	block-size: 100%;
 }
 
 .player-overlay-controls {
@@ -317,7 +377,6 @@
 		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
 }
 
-/* The close shares the tab row, so the lists start at the top of the sheet */
 .player-overlay-sheet .player-overlay-tabs {
 	display: grid;
 	grid-template: 'tabs' auto 'list' minmax(0, 1fr) / minmax(0, 1fr);

@@ -159,6 +159,67 @@ describe('bindPageControls', () => {
 		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['c', 'a'], verb: 'play-queue' });
 	});
 
+	test('a press on the Station tuned in pauses and resumes in place', () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b'), queueItem('c')],
+			'<button data-play-queue="b c"></button>',
+		);
+
+		page.bind();
+		page.store.getState().playTrack([queueItem('a'), queueItem('b')], 'b');
+		page.store.getState().seek(120);
+		element('[data-play-queue]').click();
+
+		expect(page.store.getState().isPaused).toBe(true);
+		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['a', 'b']);
+		expect(loadedItem(page.store.getState())?.itemId).toBe('b');
+		expect(page.store.getState().currentTimeSeconds).toBe(120);
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b', 'c'], verb: 'toggle-queue' });
+
+		element('[data-play-queue]').click();
+
+		expect(page.store.getState().isPaused).toBe(false);
+		expect(page.store.getState().currentTimeSeconds).toBe(120);
+	});
+
+	test('a press on a Station not tuned in replaces the Playlist', () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b'), queueItem('c')],
+			'<button data-play-queue="c b"></button>',
+		);
+
+		page.bind();
+		page.store.getState().playTrack([queueItem('a')], 'a');
+		element('[data-play-queue]').click();
+
+		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['c', 'b']);
+		expect(loadedItem(page.store.getState())?.itemId).toBe('c');
+		expect(page.store.getState().isPaused).toBe(false);
+	});
+
+	test('marks every Station holding the loaded Mix while it plays', () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b')],
+			'<button data-play-queue="a b" id="first"></button><button data-play-queue="b" id="second"></button>',
+		);
+
+		page.bind();
+		element('#first').click();
+
+		expect(element('#first').dataset.playing).toBe('');
+		expect(element('#second').dataset.playing).toBeUndefined();
+
+		page.store.getState().next();
+
+		expect(element('#first').dataset.playing).toBe('');
+		expect(element('#second').dataset.playing).toBe('');
+
+		page.store.getState().togglePaused();
+
+		expect(element('#first').dataset.playing).toBeUndefined();
+		expect(element('#second').dataset.playing).toBeUndefined();
+	});
+
 	test('reports a release with every item it queued', () => {
 		const page = bindPage([queueItem('a'), queueItem('b')], '<button data-play-release></button>');
 

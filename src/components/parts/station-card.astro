@@ -14,7 +14,6 @@ const { priority = false, station } = Astro.props;
 ---
 
 <button
-	aria-label={formatStringTemplate(t('home.stations.play'), { title: station.title })}
 	class="group relative block aspect-square w-full cursor-pointer overflow-hidden rounded-lg bg-surface-700 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 	data-play-queue={station.items.map((item) => item.itemId).join(' ')}
 	type="button"
@@ -32,12 +31,24 @@ const { priority = false, station } = Astro.props;
 	<span class="absolute inset-0 bg-linear-to-t from-surface-950/90 via-surface-950/40 to-surface-950/10"></span>
 	<span class="absolute inset-0 flex items-center justify-center">
 		<span class="flex size-16 items-center justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-surface-950/50 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
-			<svg aria-hidden="true" class="ml-1 size-7 fill-current">
+			<svg aria-hidden="true" class="ml-1 size-7 fill-current group-data-playing:hidden">
 				<use href="#icon:play"></use>
+			</svg>
+			<svg aria-hidden="true" class="hidden size-7 fill-current group-data-playing:block">
+				<use href="#icon:pause"></use>
 			</svg>
 		</span>
 	</span>
-	<span class="absolute inset-x-0 bottom-0 p-4 font-display text-xl font-bold text-ink-50">
+	<span class="sr-only group-data-playing:hidden">
+		{formatStringTemplate(t('home.stations.play'), { title: station.title })}
+	</span>
+	<span class="sr-only hidden group-data-playing:inline">
+		{formatStringTemplate(t('home.stations.pause'), { title: station.title })}
+	</span>
+	<span
+		aria-hidden="true"
+		class="absolute inset-x-0 bottom-0 p-4 font-display text-xl font-bold text-ink-50"
+	>
 		{station.title}
 	</span>
 </button>

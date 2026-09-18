@@ -119,6 +119,7 @@ const strings = {
 	'home.stations.carouselLabel': 'stations',
 	'home.stations.heading': 'Listen Now',
 	'home.stations.lead': 'Pick a style and a playlist will load and start playing.',
+	'home.stations.pause': 'Pause {title}',
 	'home.stations.play': 'Play {title}',
 	'nav.breadcrumb.label': 'Breadcrumb',
 	'nav.footer.label': 'Explore',

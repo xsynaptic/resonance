@@ -36,12 +36,11 @@ const columnsMinHeightRem = 30;
 
 // The stylesheet's artwork caps for each layout; the phone cover is full bleed, so it takes no padding off
 const artworkSizes =
-	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh - 2rem, 900px), min(100vw, 60vh, 40rem)';
+	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh - 2rem, 900px), (orientation: landscape) min(50vw, 100vh, 900px), min(100vw, 60vh, 40rem)';
 
 const renderBody = template(
 	/* HTML */ `
 		<div class="player-overlay-body" data-layout="columns">
-			<div aria-hidden="true" class="player-overlay-grabber"></div>
 			<div class="player-overlay-layout">
 				<div class="player-overlay-art">
 					<player-artwork sizes="${artworkSizes}"></player-artwork>

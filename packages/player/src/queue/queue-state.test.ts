@@ -163,6 +163,13 @@ describe('removedAt', () => {
 	test('leaves the loaded track where it is when a later one goes', () => {
 		expect(removedAt(withQueue(release, 0), 2).currentIndex).toBe(0);
 	});
+
+	test('remaps a shuffled order rather than reshuffling it', () => {
+		const shuffling = { ...withQueue(release, 0), isShuffling: true, playOrder: [0, 2, 1] };
+		const state = removedAt(shuffling, 0);
+
+		expect(state.playOrder).toStrictEqual([1, 0]);
+	});
 });
 
 describe('movedItem', () => {

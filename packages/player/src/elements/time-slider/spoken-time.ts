@@ -1,7 +1,7 @@
 import { formatClock, formatTemplate } from '#lib/format.ts';
 
-// Kept per locale and seconds setting, since the slider speaks a new position every second
-const durationFormats = new Map<string, Intl.DurationFormat>();
+// The slider speaks a new position every second, so the formatters are built once
+let durationFormats: Record<'always' | 'auto', Intl.DurationFormat> | undefined;
 
 export function formatSpokenPosition(
 	template: string,
@@ -23,15 +23,14 @@ function durationFormat(
 	locale: string | undefined,
 	secondsDisplay: 'always' | 'auto',
 ): Intl.DurationFormat {
-	const key = `${locale ?? ''}:${secondsDisplay}`;
-	const cached = durationFormats.get(key);
-	if (cached) return cached;
+	if (durationFormats === undefined) {
+		durationFormats = {
+			always: new Intl.DurationFormat(locale, { secondsDisplay: 'always', style: 'long' }),
+			auto: new Intl.DurationFormat(locale, { secondsDisplay: 'auto', style: 'long' }),
+		};
+	}
 
-	const format = new Intl.DurationFormat(locale, { secondsDisplay, style: 'long' });
-
-	durationFormats.set(key, format);
-
-	return format;
+	return durationFormats[secondsDisplay];
 }
 
 function formatSpokenDuration(seconds: number, locale: string | undefined): string {

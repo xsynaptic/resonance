@@ -1311,28 +1311,6 @@ describe('queue persistence', () => {
 
 		localStorage.removeItem('player:v2:queue');
 	});
-
-	test('restores a queue stored before the item id rename', () => {
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({
-				currentIndex: 1,
-				currentTimeSeconds: 12,
-				isShuffling: false,
-				queue: release.map(({ itemId, ...rest }) => ({ ...rest, trackId: itemId })),
-			}),
-		);
-
-		const store = configured();
-
-		store.getState().hydrateQueue();
-
-		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
-		expect(store.getState().currentIndex).toBe(1);
-		expect(store.getState().currentTimeSeconds).toBe(12);
-
-		localStorage.removeItem('player:v2:queue');
-	});
 });
 
 describe('storage', () => {

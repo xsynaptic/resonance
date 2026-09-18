@@ -111,14 +111,15 @@ export function refreshedQueue(
 
 export function removedAt(state: QueueState, index: number): QueueState {
 	const queue = state.queue.filter((_, position) => position !== index);
-	const currentIndex = remainingIndex(state.currentIndex, index);
 
-	return ordered({
-		currentIndex,
+	return {
+		currentIndex: remainingIndex(state.currentIndex, index),
 		isShuffling: state.isShuffling,
-		orderAround: currentIndex,
+		playOrder: state.isShuffling
+			? remainingOrder(state.playOrder, index)
+			: identityOrder(queue.length),
 		queue,
-	});
+	};
 }
 
 export function shuffledQueue(state: QueueState, isShuffling: boolean): QueueState {
@@ -179,4 +180,10 @@ function remainingIndex(currentIndex: number | undefined, removed: number): numb
 	if (currentIndex === undefined || currentIndex === removed) return undefined;
 
 	return removed < currentIndex ? currentIndex - 1 : currentIndex;
+}
+
+function remainingOrder(playOrder: ReadonlyArray<number>, removed: number): Array<number> {
+	return playOrder
+		.filter((position) => position !== removed)
+		.map((position) => (position > removed ? position - 1 : position));
 }

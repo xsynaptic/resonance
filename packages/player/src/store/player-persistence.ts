@@ -9,7 +9,6 @@ import { isPanelZoom } from '#store/zoom-levels.ts';
 const mutedStorageKey = 'player:v1:muted';
 const panelOpenStorageKey = 'player:v1:panel-open';
 const panelZoomStorageKey = 'player:v1:panel-zoom';
-const retiredQueueStorageKey = 'player:v1:queue';
 const timeModeStorageKey = 'player:v1:time-mode';
 const volumeStorageKey = 'player:v1:volume';
 
@@ -103,7 +102,6 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			if (isQueueBound) return;
 
 			isQueueBound = true;
-			removeStored(retiredQueueStorageKey);
 			({ currentIndex: persistedIndex, queue: persistedQueue } = api.getState());
 
 			// Queue changes write straight away; the position drifting between them goes out on `pagehide`
@@ -210,7 +208,7 @@ function readStoredQueue(): StoredQueue | undefined {
 			currentTimeSeconds:
 				currentIndex === undefined ? 0 : storedTimeSeconds(parsed.currentTimeSeconds),
 			isShuffling: parsed.isShuffling === true,
-			queue: storedQueueItems(parsed.queue),
+			queue: parsed.queue,
 		};
 	} catch {
 		return undefined;
@@ -246,15 +244,6 @@ function storedQueueIndex(currentIndex: number | undefined, length: number): num
 	}
 
 	return currentIndex;
-}
-
-function storedQueueItems(queue: Array<QueuedItem>): Array<QueuedItem> {
-	return queue.map((item) => {
-		const { trackId, ...rest } = item as QueuedItem & { trackId?: string };
-		if (trackId === undefined) return item;
-
-		return { ...rest, itemId: trackId };
-	});
 }
 
 function storedTimeSeconds(currentTimeSeconds: number | undefined): number {

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { QueueCuePoint } from '#types.ts';
 
+import { holdDelayMs } from '#elements/time-slider/overview-scrub.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
@@ -137,6 +138,7 @@ afterEach(() => {
 	document.body.replaceChildren();
 	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
+	vi.useRealTimers();
 	delete document.documentElement.dataset.theme;
 });
 
@@ -360,8 +362,9 @@ describe('<player-time-slider>', () => {
 		expect(part.querySelector<HTMLSpanElement>('.player-cue-label')?.style.left).toBe('76px');
 	});
 
-	test('leaves the readout hidden for a touch pointer', () => {
+	test('shows a touch press no readout until it is held', () => {
 		stubPainting();
+		vi.useFakeTimers();
 
 		const { part, slider } = mountSlider({
 			cuePoints: [cue(50)],
@@ -369,14 +372,42 @@ describe('<player-time-slider>', () => {
 			durationSeconds: 200,
 		});
 
-		fireEvent.pointerMove(slider, { clientX: 150, clientY: 24, pointerType: 'touch' });
+		fireEvent.pointerDown(slider, { buttons: 1, clientX: 150, clientY: 24, pointerType: 'touch' });
 
 		expect(readout(part)).toBeUndefined();
 
-		fireEvent.pointerMove(slider, { clientX: 150, clientY: 24 });
-		fireEvent.pointerLeave(slider);
+		fireEvent.pointerUp(slider, { pointerType: 'touch' });
 
 		expect(readout(part)).toBeUndefined();
+	});
+
+	// The finger sits over the cue row the label normally hangs from
+	test('reads out a held touch drag above the waveform, where the release lands', () => {
+		stubPainting();
+		vi.useFakeTimers();
+
+		const { part, seeks, slider } = mountSlider({
+			cuePoints: [cue(50)],
+			currentTimeSeconds: 0,
+			durationSeconds: 200,
+		});
+		const label = part.querySelector<HTMLSpanElement>('.player-cue-label');
+
+		fireEvent.pointerDown(slider, { buttons: 1, clientX: 30, clientY: 24, pointerType: 'touch' });
+		vi.advanceTimersByTime(holdDelayMs);
+
+		expect(readout(part)).toBe('0:20||');
+
+		fireEvent.pointerMove(slider, { buttons: 1, clientX: 150, clientY: 24, pointerType: 'touch' });
+
+		expect(readout(part)).toBe('1:40|Forest Signal|50');
+		expect(label?.hasAttribute('data-above')).toBe(true);
+		expect(label?.style.top).toBe('0px');
+
+		fireEvent.pointerUp(slider, { pointerType: 'touch' });
+
+		expect(readout(part)).toBeUndefined();
+		expect(seeks()).toStrictEqual([100]);
 	});
 
 	// Nothing on the idle preview maps a pixel to a time, so it keeps the marker label and shows no clock

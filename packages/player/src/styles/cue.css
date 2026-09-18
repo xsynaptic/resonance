@@ -18,6 +18,15 @@
 	translate: -100%;
 }
 
+.player-cue-label[data-above] {
+	margin-top: 0;
+	translate: 0 calc(-100% - 0.25rem);
+}
+
+.player-cue-label[data-above][data-side='end'] {
+	translate: -100% calc(-100% - 0.25rem);
+}
+
 /* Mono reads a step larger than the sans beside it at the same size */
 .player-cue-time {
 	font-family: var(--player-font-mono);

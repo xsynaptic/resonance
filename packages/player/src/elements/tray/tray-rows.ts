@@ -6,11 +6,9 @@ import { placeWhen } from '#lib/place-when.ts';
 import { template } from '#lib/render.ts';
 
 interface RowEntry {
-	canReorder: boolean;
 	isCurrent: boolean;
 	isMovable: boolean;
 	item: QueuedItem;
-	kind: 'row';
 }
 
 interface RowPress {
@@ -19,20 +17,12 @@ interface RowPress {
 	queueId: string;
 }
 
-interface SectionEntry {
-	item: QueuedItem;
-	kind: 'section';
-}
-
 interface TrayChild {
 	node: HTMLLIElement;
-	update: (entry: TrayEntry) => void;
+	update: (entry: RowEntry) => void;
 }
 
-type TrayEntry = RowEntry | SectionEntry;
-
 interface TrayListView {
-	canReorder: boolean;
 	currentIndex: number | undefined;
 	queue: ReadonlyArray<QueuedItem>;
 }
@@ -49,8 +39,6 @@ const renderRow = template(
 	`,
 	HTMLLIElement,
 );
-
-const renderSection = template('<li class="player-tray-section"></li>', HTMLLIElement);
 
 const rowAttributes = { isCurrent: 'data-current' } as const satisfies Partial<
 	Record<keyof RowEntry, `data-${string}`>
@@ -69,11 +57,9 @@ export function rowPressAt(target: EventTarget | null): RowPress | undefined {
 }
 
 export function trayRows(list: HTMLElement, labels: PlayerLabels): (view: TrayListView) => void {
-	const reconcile = keyedChildren<TrayEntry, TrayChild>(list, {
-		create: (entry) =>
-			entry.kind === 'section' ? createSection() : createRow(entry.item.queueId, labels),
-		key: (entry) =>
-			entry.kind === 'section' ? `section:${entry.item.queueId}` : entry.item.queueId,
+	const reconcile = keyedChildren<RowEntry, TrayChild>(list, {
+		create: (entry) => createRow(entry.item.queueId, labels),
+		key: (entry) => entry.item.queueId,
 		update: (child, entry) => {
 			child.update(entry);
 		},
@@ -109,44 +95,20 @@ function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 	return {
 		node,
 		update: (entry) => {
-			if (entry.kind !== 'row') return;
-
 			node.toggleAttribute(rowAttributes.isCurrent, entry.isCurrent);
 			handle.disabled = !entry.isMovable;
 			name.textContent = entry.item.title;
 			artist.textContent = entry.item.artistLine;
 
-			placeWhen({ isShown: entry.canReorder, node: handle, parent: node, position: 'prepend' });
 			placeWhen({ isShown: entry.isCurrent, node: playing, parent: title, position: 'append' });
 		},
 	};
 }
 
-function createSection(): TrayChild {
-	const node = renderSection();
-
-	return {
-		node,
-		update: (entry) => {
-			if (entry.kind === 'section') node.textContent = entry.item.sectionLabel ?? '';
-		},
-	};
-}
-
-function trayEntries({ canReorder, currentIndex, queue }: TrayListView): Array<TrayEntry> {
-	const entries: Array<TrayEntry> = [];
-
-	for (const [index, item] of queue.entries()) {
-		if (item.sectionLabel !== undefined) entries.push({ item, kind: 'section' });
-
-		entries.push({
-			canReorder,
-			isCurrent: index === currentIndex,
-			isMovable: queue.length > 1,
-			item,
-			kind: 'row',
-		});
-	}
-
-	return entries;
+function trayEntries({ currentIndex, queue }: TrayListView): Array<RowEntry> {
+	return queue.map((item, index) => ({
+		isCurrent: index === currentIndex,
+		isMovable: queue.length > 1,
+		item,
+	}));
 }

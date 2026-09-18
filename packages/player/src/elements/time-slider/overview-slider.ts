@@ -155,8 +155,12 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 
 	// One rect for the whole press; the slider only ever sits in the sticky bar or the modal, so no scroll moves it
 	let pressRect: DOMRect | undefined;
+	// A touch shows no hover readout, so a held finger gets one of its own
+	let touch: PointerEvent | undefined;
 
 	const scrubToPointer = (event: PointerEvent): void => {
+		if (event.pointerType === 'touch') touch = event;
+
 		scrub.scrubSeconds = scrubSecondsAt(
 			{
 				durationSeconds,
@@ -166,6 +170,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			event,
 		);
 		overview.repaint();
+		if (touch !== undefined && scrub.isHeld) overview.showAbove(touch);
 	};
 
 	canvas.addEventListener(
@@ -177,6 +182,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			scrub.holdTimer = setTimeout(() => {
 				scrub.isHeld = true;
 				scrub.repaint?.();
+				if (touch !== undefined) overview.showAbove(touch);
 			}, holdDelayMs);
 		},
 		{ signal },
@@ -193,6 +199,8 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			type,
 			() => {
 				pressRect = undefined;
+				if (touch !== undefined) overview.showAbove(undefined);
+				touch = undefined;
 				commit();
 			},
 			{ signal },

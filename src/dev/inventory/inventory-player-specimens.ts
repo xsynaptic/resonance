@@ -109,14 +109,6 @@ export function pendingPanelQueue(items: ReadonlyArray<PlayerPayloadItem>): Arra
 	return items.slice(0, 1).map((item) => ({ ...item, itemId: 'inventory-panel-pending' }));
 }
 
-// A queue carrying any heading cannot shuffle
-export function sectioned(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
-	return items.map((item) => ({
-		...item,
-		sectionLabel: item.waveformOverview ? 'Measured peaks' : 'No measured peaks',
-	}));
-}
-
 export function withoutArtwork(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
 	return items.map(({ artwork: _artwork, ...item }) => item);
 }

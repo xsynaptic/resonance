@@ -4,11 +4,6 @@ export function identityOrder(length: number): Array<number> {
 	return Array.from({ length }, (_, index) => index);
 }
 
-// A queue whose items carry headings is a planned walk, and shuffling one destroys it
-export function isSectioned(items: ReadonlyArray<QueueItem>): boolean {
-	return items.some((item) => item.sectionLabel !== undefined);
-}
-
 // `undefined` at the end; a queue plays through once
 export function nextInOrder(
 	playOrder: ReadonlyArray<number>,

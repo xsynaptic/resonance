@@ -23,7 +23,7 @@ export interface PlayerActions {
 	hydrateQueue: () => void;
 	// Replaces the queue without touching the engine; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
-	// Refused on a sectioned queue, the way shuffle is; a shuffled play order moves with the item rather than reshuffling
+	// A shuffled play order moves with the item rather than reshuffling
 	moveItem: (from: number, to: number) => void;
 	next: () => void;
 	pause: () => void;

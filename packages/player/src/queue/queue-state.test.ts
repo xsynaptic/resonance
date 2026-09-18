@@ -14,13 +14,12 @@ import {
 	stampQueue,
 } from '#queue/queue-state.ts';
 
-function makeItem(itemId: string, sectionLabel?: string): QueueItem {
+function makeItem(itemId: string): QueueItem {
 	return {
 		artistLine: 'Nebula Drift',
 		itemId,
 		releaseTitle: 'Cosmic Drift',
 		title: `Track ${itemId}`,
-		...(sectionLabel === undefined ? {} : { sectionLabel }),
 	};
 }
 
@@ -64,11 +63,9 @@ describe('loadedQueue', () => {
 		expect(state.currentIndex).toBeUndefined();
 	});
 
-	test('drops shuffle for a sectioned queue', () => {
+	test('keeps shuffle on for the queue it loads', () => {
 		const shuffling = { ...emptyState(), isShuffling: true };
-		const sectioned = [makeItem('a', 'Side one'), makeItem('b')];
 
-		expect(loadedQueue(shuffling, stamp(sectioned)).isShuffling).toBe(false);
 		expect(loadedQueue(shuffling, stamp(release)).isShuffling).toBe(true);
 	});
 });

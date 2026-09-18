@@ -86,8 +86,6 @@ export interface QueueItem {
 	// Absent renders the title as plain text
 	releaseHref?: string;
 	releaseTitle: string;
-	// A heading the tray draws above this item; a queue carrying any of these cannot shuffle
-	sectionLabel?: string;
 	title: string;
 	// The whole tracklist, so a mix indexed in part can say where the index runs out
 	trackCount?: number;

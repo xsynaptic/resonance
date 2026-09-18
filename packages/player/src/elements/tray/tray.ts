@@ -8,15 +8,12 @@ import { createRowDrag } from '#elements/tray/row-drag.ts';
 import { rowPressAt, trayRows } from '#elements/tray/tray-rows.ts';
 import { bind } from '#lib/bind.ts';
 import { formatTemplate } from '#lib/format.ts';
-import { placeWhen } from '#lib/place-when.ts';
 import { template } from '#lib/render.ts';
-import { isSectioned } from '#queue/queue.ts';
 import { canMove } from '#queue/reorder.ts';
 
 interface TrayParts {
 	clear: HTMLButtonElement;
 	empty: HTMLElement;
-	header: HTMLElement;
 	list: HTMLUListElement;
 	shuffle: HTMLButtonElement;
 	status: HTMLElement;
@@ -53,7 +50,7 @@ export class PlayerTray extends PlayerElement {
 }
 
 function bindHeader(
-	{ clear, header, shuffle }: TrayParts,
+	{ clear, shuffle }: TrayParts,
 	{ labels, store }: PlayerContext,
 	signal: AbortSignal,
 ): void {
@@ -76,16 +73,8 @@ function bindHeader(
 	bind(
 		store,
 		selectShuffle,
-		({ isShuffling, queue }) => {
+		({ isShuffling }) => {
 			shuffle.setAttribute('aria-pressed', String(isShuffling));
-
-			// A sectioned queue cannot shuffle, so its button goes rather than sitting disabled
-			placeWhen({
-				isShown: !isSectioned(queue),
-				node: shuffle,
-				parent: header,
-				position: 'prepend',
-			});
 		},
 		signal,
 	);
@@ -121,7 +110,7 @@ function bindList(
 		({ currentIndex, queue }) => {
 			list.hidden = queue.length === 0;
 			empty.hidden = queue.length > 0;
-			render({ canReorder: !isSectioned(queue), currentIndex, queue });
+			render({ currentIndex, queue });
 		},
 		signal,
 	);
@@ -183,22 +172,21 @@ function indexOfQueued(queue: ReadonlyArray<QueuedItem>, queueId: string): numbe
 
 function renderTrayParts(): TrayParts {
 	const tray = renderTray();
-	const header = tray.querySelector<HTMLElement>('.player-tray-header');
 	const [shuffle, clear] = [...tray.querySelectorAll('button')];
 	const list = tray.querySelector('ul');
 	const [empty, status] = [...tray.querySelectorAll('p')];
 
-	if (!header || !shuffle || !clear || !list || !empty || !status) {
+	if (!shuffle || !clear || !list || !empty || !status) {
 		throw new Error('The tray template lost part of its markup');
 	}
 
-	return { clear, empty, header, list, shuffle, status, tray };
+	return { clear, empty, list, shuffle, status, tray };
 }
 
 function selectList(state: PlayerStore): Pick<PlayerStore, 'currentIndex' | 'queue'> {
 	return { currentIndex: state.currentIndex, queue: state.queue };
 }
 
-function selectShuffle(state: PlayerStore): Pick<PlayerStore, 'isShuffling' | 'queue'> {
-	return { isShuffling: state.isShuffling, queue: state.queue };
+function selectShuffle(state: PlayerStore): Pick<PlayerStore, 'isShuffling'> {
+	return { isShuffling: state.isShuffling };
 }

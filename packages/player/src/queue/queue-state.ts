@@ -1,6 +1,6 @@
 import type { QueuedItem, QueueItem } from '#types.ts';
 
-import { identityOrder, isSectioned, shuffledOrder } from '#queue/queue.ts';
+import { identityOrder, shuffledOrder } from '#queue/queue.ts';
 import { movedArray, movedIndex } from '#queue/reorder.ts';
 
 export type NextQueueId = () => string;
@@ -38,7 +38,7 @@ export function appendedQueue(
 			loadIndex: startIndex,
 			state: ordered({
 				currentIndex: state.currentIndex,
-				isShuffling: canShuffle(state, queue),
+				isShuffling: state.isShuffling,
 				orderAround: startIndex,
 				queue,
 			}),
@@ -72,7 +72,7 @@ export function loadedQueue(state: QueueState, items: ReadonlyArray<QueuedItem>)
 
 	return ordered({
 		currentIndex: undefined,
-		isShuffling: canShuffle(state, queue),
+		isShuffling: state.isShuffling,
 		orderAround: undefined,
 		queue,
 	});
@@ -154,11 +154,6 @@ function appended(
 			queue,
 		}),
 	};
-}
-
-// A sectioned queue lands unshuffled whatever the listener left the toggle on
-function canShuffle(state: QueueState, queue: ReadonlyArray<QueuedItem>): boolean {
-	return state.isShuffling && !isSectioned(queue);
 }
 
 function indexOfTrack(items: ReadonlyArray<QueueItem>, itemId: string): number | undefined {

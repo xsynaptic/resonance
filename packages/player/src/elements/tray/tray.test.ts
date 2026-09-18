@@ -4,7 +4,6 @@ import {
 	getByRole,
 	getByText,
 	queryAllByRole,
-	queryByRole,
 } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
@@ -142,24 +141,6 @@ describe('<player-tray>', () => {
 
 		expect(queryAllByRole(part, 'listitem')).toHaveLength(0);
 		expect(getByText(part, labels.empty).hidden).toBe(false);
-	});
-
-	test('draws a heading over each section, and drops shuffle and the handles', async () => {
-		const { part } = await mountTray([
-			queueItem('a', { sectionLabel: 'Darkpsy' }),
-			queueItem('b'),
-			queueItem('c', { sectionLabel: 'Forest' }),
-		]);
-
-		expect(getAllByRole(part, 'listitem').map((row) => row.textContent)).toStrictEqual([
-			'Darkpsy',
-			expect.stringContaining('Mix a'),
-			expect.stringContaining('Mix b'),
-			'Forest',
-			expect.stringContaining('Mix c'),
-		]);
-		expect(queryByRole(part, 'button', { name: labels.shuffle })).toBeNull();
-		expect(queryAllByRole(part, 'button', { name: labels.reorder })).toHaveLength(0);
 	});
 
 	test('shuffles an ordinary queue', async () => {

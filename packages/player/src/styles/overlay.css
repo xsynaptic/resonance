@@ -411,8 +411,7 @@
 	max-height: none;
 }
 
-.player-overlay-list
-	:is(.player-tray-header, .player-tray-item, .player-tray-section, .player-tray-empty) {
+.player-overlay-list :is(.player-tray-header, .player-tray-item, .player-tray-empty) {
 	padding-inline: 0;
 }
 

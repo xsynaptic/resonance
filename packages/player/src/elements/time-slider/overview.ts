@@ -22,6 +22,7 @@ export interface OverviewParts {
 export interface OverviewRendering {
 	current: () => undefined | WaveformRendering;
 	repaint: () => void;
+	showAbove: (pointer: Pointer | undefined) => void;
 }
 
 interface OverviewBinding {
@@ -29,6 +30,11 @@ interface OverviewBinding {
 	durationSeconds?: number | undefined;
 	paint: (rendering: WaveformRendering) => void;
 	signal: AbortSignal;
+}
+
+interface Pointer {
+	clientX: number;
+	clientY: number;
 }
 
 const sliderAttributes = [
@@ -49,13 +55,18 @@ export function bindOverview(
 	const { canvas } = parts;
 	let rendering: undefined | WaveformRendering;
 	let shown: OverviewReadout | undefined;
+	let isShownAbove = false;
 
-	const show = (readout: OverviewReadout | undefined): void => {
-		if (isSameReadout(shown, readout)) return;
+	const show = (readout: OverviewReadout | undefined, isAbove = false): void => {
+		if (isShownAbove === isAbove && isSameReadout(shown, readout)) return;
 
 		shown = readout;
-		writeReadout(parts, readout, rendering?.ratio ?? 1);
+		isShownAbove = isAbove;
+		writeReadout(parts, readout, { isAbove, ratio: rendering?.ratio ?? 1 });
 	};
+	// A fresh rect every call, since the in-flow preview scrolls with the page
+	const readoutAt = (pointer: Pointer): OverviewReadout | undefined =>
+		readoutAtPointer({ durationSeconds, rect: canvas.getBoundingClientRect(), rendering }, pointer);
 	const repaint = (): void => {
 		if (rendering === undefined) rendering = prepareRendering(canvas, input.overview, input);
 		if (rendering !== undefined) paint(rendering);
@@ -73,13 +84,7 @@ export function bindOverview(
 		(event) => {
 			if (event.pointerType === 'touch') return;
 
-			// A fresh rect every move, since the in-flow preview scrolls with the page
-			show(
-				readoutAtPointer(
-					{ durationSeconds, rect: canvas.getBoundingClientRect(), rendering },
-					event,
-				),
-			);
+			show(readoutAt(event));
 		},
 		{ signal },
 	);
@@ -99,7 +104,16 @@ export function bindOverview(
 		{ once: true },
 	);
 
-	return { current: () => rendering, repaint };
+	return {
+		current: () => rendering,
+		repaint,
+		showAbove: (pointer) => {
+			// A hold timer can outlive the binding it was started under
+			if (signal.aborted) return;
+
+			show(pointer === undefined ? undefined : readoutAt(pointer), true);
+		},
+	};
 }
 
 export function bindOverviewPreview(
@@ -123,16 +137,17 @@ export function bindOverviewPreview(
 function writeReadout(
 	{ artist, label, time, title }: OverviewParts,
 	readout: OverviewReadout | undefined,
-	ratio: number,
+	{ isAbove, ratio }: { isAbove: boolean; ratio: number },
 ): void {
 	label.hidden = readout === undefined;
 	if (readout === undefined) return;
 
+	label.toggleAttribute('data-above', isAbove);
 	artist.textContent = readout.cuePoint?.artistLine ?? '';
 	time.textContent = readout.seconds === undefined ? '' : formatClock(readout.seconds);
 	title.textContent = readout.cuePoint?.title ?? '';
 	label.dataset.side = readout.side;
 	label.style.setProperty('--player-cue-room', `${String(readout.room / ratio)}px`);
 	label.style.left = `${String(readout.x / ratio)}px`;
-	label.style.top = `${String(readout.y / ratio)}px`;
+	label.style.top = isAbove ? '0px' : `${String(readout.y / ratio)}px`;
 }

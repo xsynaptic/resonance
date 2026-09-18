@@ -16,7 +16,7 @@ import {
 	shuffledQueue,
 	stampQueue,
 } from '#queue/queue-state.ts';
-import { isSectioned, toDurationSeconds } from '#queue/queue.ts';
+import { toDurationSeconds } from '#queue/queue.ts';
 import { canMove } from '#queue/reorder.ts';
 
 type QueueActions = Pick<
@@ -112,7 +112,7 @@ export function createQueueActions({
 
 		moveItem: (from, to) => {
 			const state = queueState();
-			if (isSectioned(state.queue) || !canMove(state.queue.length, from, to)) return;
+			if (!canMove(state.queue.length, from, to)) return;
 
 			set(movedItem(state, from, to));
 		},
@@ -160,7 +160,6 @@ export function createQueueActions({
 
 		toggleShuffle: () => {
 			const state = queueState();
-			if (isSectioned(state.queue)) return;
 
 			set(shuffledQueue(state, !state.isShuffling));
 		},

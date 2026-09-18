@@ -66,16 +66,6 @@
 	text-align: center;
 }
 
-.player-tray-section {
-	padding: 0.5rem 0.75rem 0.25rem;
-	font-size: var(--player-font-size-small);
-	font-weight: 600;
-	line-height: 1rem;
-	color: var(--player-meta);
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-}
-
 .player-tray-item {
 	position: relative;
 	display: flex;

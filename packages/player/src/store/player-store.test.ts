@@ -347,21 +347,6 @@ describe('shuffle', () => {
 		expect(store.getState().isShuffling).toBe(false);
 		expect(store.getState().playOrder).toStrictEqual([0, 1, 2]);
 	});
-
-	test('is unavailable while a sectioned queue is loaded, however it was left', () => {
-		const store = configured();
-
-		store.getState().playTrack(release, 'a');
-		store.getState().toggleShuffle();
-		expect(store.getState().isShuffling).toBe(true);
-
-		store.getState().loadQueue([{ ...makeItem('d'), sectionLabel: 'Darkpsy' }, makeItem('e')]);
-		expect(store.getState().isShuffling).toBe(false);
-		expect(store.getState().playOrder).toStrictEqual([0, 1]);
-
-		store.getState().toggleShuffle();
-		expect(store.getState().isShuffling).toBe(false);
-	});
 });
 
 describe('queue editing', () => {
@@ -482,15 +467,6 @@ describe('moveItem', () => {
 			'a',
 			'b',
 		]);
-	});
-
-	test('refuses to reorder a sectioned queue', () => {
-		const store = configured();
-
-		store.getState().loadQueue(release.map((item) => ({ ...item, sectionLabel: 'Section' })));
-		store.getState().moveItem(0, 2);
-
-		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
 	});
 
 	test('refuses an index outside the queue', () => {

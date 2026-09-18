@@ -10,90 +10,92 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 ### Content
 
-**Entry**: A single piece of authored content in a collection, sourced from one MDX file. _Avoid_: document, record, node, item (reserve "item" for catalog rows).
+**Entry**: A single piece of authored content in a Collection. _Avoid_: document, record, node, item (reserved for Catalog Items).
 
-**Collection**: A named set of Entries sharing one schema. A difference of length, tone, or subject is a Theme at most, and usually nothing at all. _Avoid_: content type, post type, model.
+**Collection**: A named set of Entries sharing one schema. A difference of length, tone, or subject is a Theme at most. _Avoid_: content type, post type, model.
 
-**Draft**: An Entry withheld from the site. Drafts here are complete pieces awaiting review, not stubs. _Avoid_: unpublished, hidden, private.
+**Draft**: An Entry withheld from the site: a complete piece awaiting Triage, not a stub. _Avoid_: unpublished, hidden, private.
 
-**Mix**: A recorded DJ set published as an Entry, carrying a Tracklist and downloadable audio. The central noun of the project; most other collections exist to describe, group, or connect the music in one. _Avoid_: session, podcast, episode.
+**Mix**: A recorded DJ set published as an Entry, with a Tracklist and downloadable audio. The central noun of the project. _Avoid_: session, podcast, episode.
 
-**Tracklist**: The ordered sequence of Tracks in a Mix. Its timestamps, where available, are load-bearing: they drive Cue Sheet generation. _Avoid_: playlist, setlist.
+**Tracklist**: The ordered sequence of Tracks in a Mix, timestamped where known. _Avoid_: playlist, setlist.
 
-**Track**: One piece of music inside a Tracklist, carrying its own Credits to Artists and Labels. A Track is never an Entry of its own. _Avoid_: song, tune, cut.
+**Track**: One piece of music in a Tracklist, carrying its own Credits. Never an Entry. _Avoid_: song, tune, cut.
 
-**Cue Sheet**: A downloadable index of a Mix's Tracklist, generated from its timestamps so a player can seek between Tracks. _Avoid_: chapters, markers, index.
+**Cue Sheet**: A downloadable index of a Mix's Tracklist that lets a player seek between Tracks. _Avoid_: chapters, markers, index.
 
-**Release**: A published audio work by someone else (an album, EP, or compilation). A Release is what a Review is about, described by fields on the Review, and is never an Entry in its own right. A Mix is never a Release, though both are Works. _Avoid_: record, album, product.
+**Release**: A published audio work by someone else (an album, EP, or compilation). The subject of a Review, never an Entry. _Avoid_: record, album, product.
 
-**Review**: An Entry appraising one Release. The Review is the writing and the Release is its subject; the two carry separate dates because a Release can predate its Review by years. _Avoid_: critique, writeup.
+**Review**: An Entry appraising one Release. The Review is the writing; the Release is its subject. _Avoid_: critique, writeup.
 
-**Work**: The role a Mix or a Release plays wherever the site presents music rather than writing about it: a title set as a cited work, a Credit before it, Labels and a year beneath, a Related carousel after. A role rather than a Collection: a Mix plays it as an Entry, a Release plays it as fields on a Review, and nothing else does. _Avoid_: release (for the pair), record, album, product.
+**Work**: The role a Mix or a Release plays wherever the site presents music rather than writing about it. A role, not a Collection. _Avoid_: release (for the pair), record, album, product.
 
-**Post**: An Entry in the editorial stream. Everything written that is not a Mix, Review, or Page is a Post, whatever its shape: a quotation, a chart, a gallery of cover art, an essay. Shape lives in the body, in which MDX components the Entry reaches for, and carries no metadata. _Avoid_: article, blog post, note.
+**Post**: An Entry in the editorial stream: anything written that is not a Mix, Review, or Page, whatever its shape. _Avoid_: article, blog post, note.
 
-**Page**: A standalone Entry outside the editorial stream (about, colophon). Unlike other collections its URL mirrors its position in the file system. _Avoid_: static page.
+**Page**: A standalone Entry outside the editorial stream, such as about or colophon. _Avoid_: static page.
 
-**Theme**: What an Entry is about. Any Entry in the editorial stream may carry Themes, and a Theme is the only vocabulary that answers this question. There was once a parallel Format vocabulary for what shape an Entry took, removed on 2026-09-13 because its schema was identical to a Theme's and shape turned out to need no metadata at all. Do not reintroduce it: a shape that needs fields is a Collection, and a shape that needs none needs nothing. _Avoid_: tag, category, subject, topic.
+**Theme**: What an Entry in the editorial stream is about, and the only vocabulary for it; shape is not a Theme. _Avoid_: tag, category, subject, topic, format.
 
-**Graphic Design**: The Theme for visual work made rather than written about: cover art for a Release, layout, and whatever else comes. Named wider than the cover art that fills it today, so photo galleries and other design work join it without a rename. It was a Collection, then the `album-artwork` Format, before landing here. _Avoid_: album artwork, design, artwork, cover, sleeve.
+**Graphic Design**: The Theme for visual work made rather than written about, such as cover art and layout. _Avoid_: album artwork, design, artwork, cover, sleeve.
 
-**Selections**: A curated, ranked roundup of Releases or Tracks, held as a `selections` array in frontmatter and rendered by the `<Selections>` MDX tag. A Post may also hold its roundup as prose. Selections is a field and a tag, never a vocabulary: it was a Collection, then a Format, and is now neither. _Avoid_: list, roundup.
+**Selections**: A curated, ranked pick of Releases, Tracks, or Entries within a Post or Page. A field, never a vocabulary. _Avoid_: list, roundup.
 
-**Charts**: The Theme for the periodic rankings posted to forums and blogs through the late 2000s, a snapshot of a moment. The annual retrospectives are not Charts; the Essential Selections Series gathers those, because what separates them is standing rather than subject.
+**Charts**: The Theme for periodic rankings posted to forums and blogs, each a snapshot of its moment. Annual retrospectives are not Charts; they form a Series.
 
-**Ephemera**: Printed material documented rather than authored (a scanned flyer, a postcard, a ticket). Nothing today. What separates it from Graphic Design is provenance, not medium: someone else made it, and where the copy came from is part of the record. Those provenance fields are what would make it a Collection; short of them it is a Post like any other. _Avoid_: scans, memorabilia, artifacts.
+**Ephemera**: Printed material documented rather than authored, such as a flyer, postcard, or ticket. It differs from Graphic Design by provenance: someone else made it. _Avoid_: scans, memorabilia, artifacts.
 
 **Featured Image**: The single image representing an Entry in listings, page headers, and social previews. _Avoid_: hero, cover, thumbnail.
 
-**Series**: An ordered, hand-curated sequence of Entries that may span Collections. Unlike a Term it is a reading order rather than a classification, and the Series owns its membership instead of being discovered from its members. _Avoid_: collection, playlist, set.
+**Series**: An ordered, hand-curated sequence of Entries that may span Collections: a reading order, not a classification. _Avoid_: collection, playlist, set.
 
-**Station**: A hand-picked, ordered set of Mixes offered on the homepage as a play button in a carousel, which fills the Playlist and starts playing when pressed. Content, held in the content repository's `data/stations.yaml`: a title, an optional Featured Image, and the Mixes by id as `stationItems`. Not an Entry or a Collection: the homepage reads the file directly, and a Station carries no id. Decided 2026-09-14. _Avoid_: playlist (that is the queue), channel, series, mixtape.
+### Listening
 
-**Listen**: One play of one Mix on this site in which at least 30 seconds of audio actually advanced. Buffering, seeking, and a paused tab add nothing; re-hearing a passage after scrubbing back does. A pause and resume stay one Listen, and playing a Mix again after it ends opens another. The 30 seconds is the industry's stream rule, and it is what keeps a skim through a Station from counting. **Listening time** is the sum of those advancing seconds. Decided 2026-09-16; the mechanism is in `.claude/reference/usage.md` under "Listening stats". _Avoid_: play (Mixcloud's and SoundCloud's unit, counted on their own surfaces by their own rule), stream (the file server's byte-based credit), view, hit.
+**Playlist**: A curated, ordered set of Mixes that replaces the Queue when played. Not an Entry. _Avoid_: station, channel, series, mixtape, queue.
+
+**Queue**: The Mixes the player plays next, in order, which a visitor adds to and reorders. _Avoid_: playlist, up next, list.
+
+**Listen**: One play of one Mix on this site in which at least 30 seconds of audio actually advanced. **Listening time** is the sum of those seconds. _Avoid_: play (Mixcloud's and SoundCloud's unit), stream (the file server's byte count), view, hit.
 
 ### Vocabulary and reference
 
-**Term**: An Entry that exists to gather other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Theme, or Series. _Avoid_: taxonomy (a vocabulary is a set of Terms), category, keyword.
-
-Terms come in two idioms whose reference syntax is inverted, each written for its common case: a Controlled Vocabulary reference is a slug, because the list is short and known; an Open Vocabulary reference is a name, because most names will never be cataloged.
+**Term**: An Entry that gathers other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Theme, or Series. _Avoid_: taxonomy, category, keyword.
 
 **Controlled Vocabulary**: A Term collection where nothing exists outside the list, so every reference must resolve: Styles, Regions, Eras, Themes. _Avoid_: taxonomy, enum, closed list.
 
-**Open Vocabulary**: A Term collection naming an unbounded real world, most of which will never be cataloged: Artists and Labels. A reference is written as the name itself, and links when that name matches a cataloged Term. Name the Term outright when the bare name would miss it, or find the wrong one. _Avoid_: taxonomy, freeform, loose reference.
+**Open Vocabulary**: A Term collection naming an unbounded real world, most of it uncataloged: Artists and Labels. A reference is a name that links only when cataloged. _Avoid_: taxonomy, freeform, loose reference.
 
-**Credit**: A single Artist or Label as named on an Entry or a Track. The unit an Open Vocabulary reference is written in, so it links only where the name is cataloged. _Avoid_: ref, loose reference, freeform.
+**Credit**: A single Artist or Label as named on an Entry or a Track. _Avoid_: ref, loose reference, freeform.
 
-**Artist**: A person or act that made music, a Mix, or a visual work. An Open Vocabulary Term. _Avoid_: act, performer, musician, project.
+**Artist**: A person or act that made music, a Mix, or a visual work. _Avoid_: act, performer, musician, project.
 
-**Project**: A musical act or side project ("his side project Segment", Kaya Project). An Artist's `projects` are the acts it belongs to, the inverse of its `members`. _Avoid_: using it for anything you made or oversaw.
+**Project**: A musical act or side project an Artist belongs to. _Avoid_: using it for anything you made or oversaw.
 
-**Label**: A record label that put out a Release or a Mix. An Open Vocabulary Term, hierarchical, so a sub-label nests under its parent. _Avoid_: imprint, publisher.
+**Label**: A record label that put out a Release or a Mix. A sub-label nests under its parent. _Avoid_: imprint, publisher.
 
-**Style**: A genre of electronic music. Genres relate as a network, but the model simplifies them to a hierarchy. _Avoid_: genre, sound, tag.
+**Style**: A genre of electronic music, modeled as a hierarchy. _Avoid_: genre, sound, tag.
 
 **Region**: Where the music comes from, not where the writing was done. Hierarchical. _Avoid_: country, place, location, origin.
 
-**Era**: The period the music belongs to (Mid 1990s, Early 2000s), which is the music's own time and not the Entry's publication date. Hierarchical. _Avoid_: period, decade, time, year.
+**Era**: The period the music belongs to (Mid 1990s, Early 2000s), not the Entry's publication date. Hierarchical. _Avoid_: period, decade, time, year.
 
-**Term Index**: The map from a Term to every Catalog Item referencing it. Hierarchical Terms roll their descendants' items up, so a parent's Detail Page shows everything beneath it. _Avoid_: taxonomy data, lookup. Index is a data structure here and nowhere else; a page is never an index.
+**Term Index**: The map from a Term to every Catalog Item referencing it, descendants included. _Avoid_: taxonomy data, lookup; a page is never an index.
 
-**Appearance**: A Term credited on a Track or a Selection row rather than on the Entry itself. Weaker evidence than authorship, and kept in its own index and its own section so the two never mix. An Entry is never also an Appearance of the same Term. _Avoid_: mention, reference.
+**Appearance**: A Term credited on a Track or a Selection rather than on the Entry itself: weaker evidence than authorship. _Avoid_: mention, reference.
 
 ### Projection
 
-**Catalog**: The unified cross-collection view of every user-facing Entry reduced to one common shape, used for listing, sorting, and pagination. _Avoid_: index, registry, manifest.
+**Catalog**: Every user-facing Entry across Collections, reduced to one common shape for listing, sorting, and pagination. _Avoid_: index, registry, manifest.
 
-**Catalog Item**: One Entry projected into the flat shape a card renders. _Avoid_: card, row, record, entry.
+**Catalog Item**: One Entry in the Catalog's shape. _Avoid_: card, row, record, entry.
 
-Every page is one of two shapes, and its layout is named for the shape. The two cover the whole site, so reaching for a third name means the shape was misread.
+Every page is one of two shapes:
 
-**Detail Page**: The page for a single subject. A Term's Detail Page is still a Detail Page even though most of it is a paginated listing: the Term is the subject and the listing is what the Term has to say. _Avoid_: single, permalink, archive.
+**Detail Page**: The page for a single subject, including a Term's paginated listing. _Avoid_: single, permalink, archive.
 
-**List Page**: A paginated listing of many Entries with no subject of its own. Listing a Collection's Entries and listing a vocabulary's Terms are the same shape. _Avoid_: archive, index, feed, stream.
+**List Page**: A paginated listing of many Entries with no subject of its own. _Avoid_: archive, index, feed, stream.
 
 ### Provenance
 
-**Extraction**: The generation of the content tree from the WordPress dump. It set frontmatter shape until handover on 2026-09-03, after which the tracked tree became the record; a re-Extraction would overwrite it. _Avoid_: import, migration, sync.
+**Extraction**: The generation of the content tree from the WordPress dump. The tracked tree, not the dump, is the record. _Avoid_: import, migration, sync.
 
-**Triage**: The manual pass over Drafts in the tracked content repository, un-prefixing what should publish, with git behind it. _Avoid_: cleanup, review, curation.
+**Triage**: The manual pass over Drafts deciding what publishes. _Avoid_: cleanup, review, curation.

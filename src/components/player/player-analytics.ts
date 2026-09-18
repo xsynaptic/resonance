@@ -14,7 +14,7 @@ interface PlayerGate {
 type PlayerState = ReturnType<ReturnType<typeof createPlayerStore>['getState']>;
 
 const origins = {
-	'play-queue': 'station',
+	'play-playlist': 'playlist',
 	'play-release': 'release',
 	'play-track': 'mix',
 } as const;
@@ -52,7 +52,7 @@ export function bindPlayerAnalytics(store: ReturnType<typeof createPlayerStore>)
 }
 
 export function trackControlPress({ itemIds, verb }: ControlPress): void {
-	if (isSuppressed || verb === 'toggle-queue') return;
+	if (isSuppressed || verb === 'toggle-playlist') return;
 
 	// Every other verb plays from the top of what it queued, so the first id is the Mix that starts
 	const mix = itemIds[0];

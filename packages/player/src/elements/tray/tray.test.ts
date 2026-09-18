@@ -50,7 +50,7 @@ async function mountTray(items: Array<QueueItem> = threeItems) {
 
 async function openQueue() {
 	const mounted = mount('player-queue-button');
-	const trigger = getByRole(mounted.part, 'button', { name: labels.queue });
+	const trigger = getByRole(mounted.part, 'button', { name: labels.addToQueue });
 
 	mounted.store.getState().loadQueue(threeItems);
 	trigger.click();
@@ -114,7 +114,7 @@ describe('<player-queue-button> with its tray', () => {
 		vi.stubGlobal('reportError', reportError);
 
 		const { part, store } = mount('player-queue-button');
-		const trigger = getByRole(part, 'button', { name: labels.queue });
+		const trigger = getByRole(part, 'button', { name: labels.addToQueue });
 
 		store.getState().loadQueue([queueItem('a')]);
 		trigger.click();

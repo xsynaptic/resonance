@@ -156,14 +156,14 @@ describe('<player-overlay>', () => {
 		).toBe('false');
 	});
 
-	test('offers only the Playlist for an item without cue points', async () => {
+	test('offers only the Queue for an item without cue points', async () => {
 		const mounted = mountOverlay();
 
 		mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
 		await openOverlay(mounted);
 
 		expect(getAllByRole(mounted.dialog, 'tab').map((tab) => tab.textContent)).toStrictEqual([
-			labels.playlist,
+			labels.queue,
 		]);
 		expect(getAllByRole(mounted.dialog, 'listitem')).toHaveLength(2);
 	});
@@ -177,24 +177,24 @@ describe('the overlay tabs', () => {
 		await openOverlay(mounted);
 
 		const tracklist = getByRole(mounted.dialog, 'tab', { name: labels.tracklist });
-		const playlist = getByRole(mounted.dialog, 'tab', { name: labels.playlist });
+		const queue = getByRole(mounted.dialog, 'tab', { name: labels.queue });
 
 		tracklist.focus();
 		fireEvent.keyDown(tracklist, { key: 'ArrowRight' });
 
-		expect(document.activeElement).toBe(playlist);
-		expect(playlist.getAttribute('aria-selected')).toBe('true');
+		expect(document.activeElement).toBe(queue);
+		expect(queue.getAttribute('aria-selected')).toBe('true');
 		expect(tracklist.tabIndex).toBe(-1);
 
-		fireEvent.keyDown(playlist, { key: 'ArrowRight' });
+		fireEvent.keyDown(queue, { key: 'ArrowRight' });
 
 		expect(document.activeElement).toBe(tracklist);
 
 		fireEvent.keyDown(tracklist, { key: 'End' });
 
-		expect(document.activeElement).toBe(playlist);
+		expect(document.activeElement).toBe(queue);
 
-		fireEvent.keyDown(playlist, { key: 'Home' });
+		fireEvent.keyDown(queue, { key: 'Home' });
 
 		expect(document.activeElement).toBe(tracklist);
 	});
@@ -207,9 +207,7 @@ describe('the overlay tabs', () => {
 		getByRole(mounted.dialog, 'button', { name: /Middle/ }).focus();
 		mounted.store.getState().next();
 
-		expect(document.activeElement).toBe(
-			getByRole(mounted.dialog, 'tab', { name: labels.playlist }),
-		);
+		expect(document.activeElement).toBe(getByRole(mounted.dialog, 'tab', { name: labels.queue }));
 	});
 });
 

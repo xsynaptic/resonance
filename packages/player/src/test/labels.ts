@@ -1,13 +1,14 @@
 import type { PlayerLabels } from '#types.ts';
 
 export const labels = {
+	addToQueue: 'Add to queue',
 	capped: 'Daily limit reached',
 	clearQueue: 'Clear',
 	close: 'Close',
 	empty: 'Queue is empty',
 	error: 'Playback error',
 	expand: 'Expand',
-	lists: 'Tracklist and Playlist',
+	lists: 'Tracklist and Queue',
 	loading: 'Loading',
 	moved: 'Moved to position {position} of {total}',
 	mute: 'Mute',
@@ -15,7 +16,6 @@ export const labels = {
 	nowPlaying: 'Nothing playing',
 	pause: 'Pause',
 	play: 'Play',
-	playlist: 'Playlist',
 	previous: 'Previous',
 	queue: 'Queue',
 	removeFromQueue: 'Remove',

@@ -23,4 +23,4 @@ export const mixcloudStatsPath = './packages/content/data/mixcloud-stats.jsonl';
 export const soundcloudStatsPath = './packages/content/data/soundcloud-stats.jsonl';
 
 // Hand-edited, unlike the generated files beside it
-export const stationsDataPath = './packages/content/data/stations.yaml';
+export const playlistsDataPath = './packages/content/data/playlists.yaml';

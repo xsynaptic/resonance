@@ -15,7 +15,7 @@ import { currentCue, loadedItem } from '#store/selectors.ts';
 // The resolved press, so a host reads the verb rather than re-deriving it from the DOM
 export interface ControlPress {
 	itemIds: Array<string>;
-	verb: 'play-queue' | 'play-release' | 'play-track' | 'queue-track' | 'toggle-queue';
+	verb: 'play-playlist' | 'play-release' | 'play-track' | 'queue-track' | 'toggle-playlist';
 }
 
 interface PageControlOptions {
@@ -91,8 +91,8 @@ export function bindPageControls(
 	};
 }
 
-function isTunedIn(stationIds: string, itemId: string | undefined): boolean {
-	return itemId !== undefined && stationIds.split(' ').includes(itemId);
+function isTunedIn(playlistIds: string, itemId: string | undefined): boolean {
+	return itemId !== undefined && playlistIds.split(' ').includes(itemId);
 }
 
 function markCueRows(page: Document, { cueStartSeconds, itemId }: RowState): void {
@@ -108,19 +108,19 @@ function markCueRows(page: Document, { cueStartSeconds, itemId }: RowState): voi
 	}
 }
 
+function markPlaylists(page: Document, { isPlaying, itemId }: RowState): void {
+	for (const playlist of page.querySelectorAll<HTMLElement>('[data-play-playlist]')) {
+		playlist.toggleAttribute(
+			'data-playing',
+			isPlaying && isTunedIn(playlist.dataset.playPlaylist ?? '', itemId),
+		);
+	}
+}
+
 function markRows(page: Document, state: RowState): void {
 	markTrackRows(page, state);
 	markCueRows(page, state);
-	markStations(page, state);
-}
-
-function markStations(page: Document, { isPlaying, itemId }: RowState): void {
-	for (const station of page.querySelectorAll<HTMLElement>('[data-play-queue]')) {
-		station.toggleAttribute(
-			'data-playing',
-			isPlaying && isTunedIn(station.dataset.playQueue ?? '', itemId),
-		);
-	}
+	markPlaylists(page, state);
 }
 
 function markTrackRows(page: Document, { isPlaying, itemId, queuedIds }: RowState): void {
@@ -164,26 +164,33 @@ function payloadReader(page: Document): () => Array<QueueItem> | undefined {
 	};
 }
 
+function playlistItems(ids: string, items: ReadonlyArray<QueueItem>): Array<QueueItem> {
+	return ids
+		.split(' ')
+		.map((itemId) => items.find((item) => item.itemId === itemId))
+		.filter((item) => item !== undefined);
+}
+
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
 function pressControl(
 	state: PlayerStore,
 	verbs: DOMStringMap,
 	items: Array<QueueItem>,
 ): ControlPress | undefined {
-	const { playQueue, playRelease, playTrack, queueTrack } = verbs;
+	const { playPlaylist, playRelease, playTrack, queueTrack } = verbs;
 
-	if (playQueue !== undefined && isTunedIn(playQueue, loadedItem(state)?.itemId)) {
+	if (playPlaylist !== undefined && isTunedIn(playPlaylist, loadedItem(state)?.itemId)) {
 		state.togglePaused();
 
-		return { itemIds: playQueue.split(' '), verb: 'toggle-queue' };
+		return { itemIds: playPlaylist.split(' '), verb: 'toggle-playlist' };
 	}
 
-	if (playQueue !== undefined) {
-		const station = stationItems(playQueue, items);
+	if (playPlaylist !== undefined) {
+		const playlist = playlistItems(playPlaylist, items);
 
-		state.playQueue(station);
+		state.playQueue(playlist);
 
-		return { itemIds: station.map((item) => item.itemId), verb: 'play-queue' };
+		return { itemIds: playlist.map((item) => item.itemId), verb: 'play-playlist' };
 	}
 
 	if (queueTrack) {
@@ -213,11 +220,4 @@ function selectRowState(state: PlayerStore): RowState {
 		itemId: loadedItem(state)?.itemId,
 		queuedIds: state.queue.map((item) => item.itemId).join(' '),
 	};
-}
-
-function stationItems(ids: string, items: ReadonlyArray<QueueItem>): Array<QueueItem> {
-	return ids
-		.split(' ')
-		.map((itemId) => items.find((item) => item.itemId === itemId))
-		.filter((item) => item !== undefined);
 }

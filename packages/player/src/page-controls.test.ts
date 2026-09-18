@@ -147,60 +147,60 @@ describe('bindPageControls', () => {
 		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b'], verb: 'play-track' });
 	});
 
-	test('reports a station in the order it queued, so the first id is what starts', () => {
+	test('reports a Playlist in the order it queued, so the first id is what starts', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b'), queueItem('c')],
-			'<button data-play-queue="c a"></button>',
+			'<button data-play-playlist="c a"></button>',
 		);
 
 		page.bind();
-		element('[data-play-queue]').click();
+		element('[data-play-playlist]').click();
 
-		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['c', 'a'], verb: 'play-queue' });
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['c', 'a'], verb: 'play-playlist' });
 	});
 
-	test('a press on the Station tuned in pauses and resumes in place', () => {
+	test('a press on the Playlist tuned in pauses and resumes in place', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b'), queueItem('c')],
-			'<button data-play-queue="b c"></button>',
+			'<button data-play-playlist="b c"></button>',
 		);
 
 		page.bind();
 		page.store.getState().playTrack([queueItem('a'), queueItem('b')], 'b');
 		page.store.getState().seek(120);
-		element('[data-play-queue]').click();
+		element('[data-play-playlist]').click();
 
 		expect(page.store.getState().isPaused).toBe(true);
 		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['a', 'b']);
 		expect(loadedItem(page.store.getState())?.itemId).toBe('b');
 		expect(page.store.getState().currentTimeSeconds).toBe(120);
-		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b', 'c'], verb: 'toggle-queue' });
+		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['b', 'c'], verb: 'toggle-playlist' });
 
-		element('[data-play-queue]').click();
+		element('[data-play-playlist]').click();
 
 		expect(page.store.getState().isPaused).toBe(false);
 		expect(page.store.getState().currentTimeSeconds).toBe(120);
 	});
 
-	test('a press on a Station not tuned in replaces the Playlist', () => {
+	test('a press on a Playlist not tuned in replaces the queue', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b'), queueItem('c')],
-			'<button data-play-queue="c b"></button>',
+			'<button data-play-playlist="c b"></button>',
 		);
 
 		page.bind();
 		page.store.getState().playTrack([queueItem('a')], 'a');
-		element('[data-play-queue]').click();
+		element('[data-play-playlist]').click();
 
 		expect(page.store.getState().queue.map((item) => item.itemId)).toEqual(['c', 'b']);
 		expect(loadedItem(page.store.getState())?.itemId).toBe('c');
 		expect(page.store.getState().isPaused).toBe(false);
 	});
 
-	test('marks every Station holding the loaded Mix while it plays', () => {
+	test('marks every Playlist holding the loaded Mix while it plays', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b')],
-			'<button data-play-queue="a b" id="first"></button><button data-play-queue="b" id="second"></button>',
+			'<button data-play-playlist="a b" id="first"></button><button data-play-playlist="b" id="second"></button>',
 		);
 
 		page.bind();
@@ -229,7 +229,7 @@ describe('bindPageControls', () => {
 		expect(page.onPress).toHaveBeenCalledWith({ itemIds: ['a', 'b'], verb: 'play-release' });
 	});
 
-	test('adds the track to the playlist once, however often it is pressed', () => {
+	test('adds the track to the queue once, however often it is pressed', () => {
 		const page = bindPage(
 			[queueItem('a')],
 			'<div data-track-id="a"><button data-queue-track="a"></button></div>',

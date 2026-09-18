@@ -8,6 +8,7 @@ export const seekSeconds = 15;
 // Serialized into the bar's JSON script rather than imported by the host script, which would ship the whole strings table
 export function getPlayerLabels(): PlayerLabels {
 	return {
+		addToQueue: t('player.addToQueue'),
 		capped: t('player.capped'),
 		clearQueue: t('player.clearQueue'),
 		close: t('player.close'),
@@ -22,7 +23,6 @@ export function getPlayerLabels(): PlayerLabels {
 		nowPlaying: t('player.nowPlaying'),
 		pause: t('player.pause'),
 		play: t('player.play'),
-		playlist: t('player.playlist'),
 		previous: t('player.previous'),
 		queue: t('player.queue'),
 		removeFromQueue: t('player.removeFromQueue'),

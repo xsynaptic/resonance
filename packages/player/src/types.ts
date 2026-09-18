@@ -6,6 +6,7 @@ export interface PlaybackError {
 export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported';
 
 export interface PlayerLabels {
+	addToQueue: string;
 	capped: string;
 	clearQueue: string;
 	close: string;
@@ -21,7 +22,6 @@ export interface PlayerLabels {
 	nowPlaying: string;
 	pause: string;
 	play: string;
-	playlist: string;
 	previous: string;
 	queue: string;
 	removeFromQueue: string;

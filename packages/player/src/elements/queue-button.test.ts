@@ -11,7 +11,7 @@ afterEach(() => {
 describe('<player-queue-button>', () => {
 	test('toggles the tray and reports it expanded', () => {
 		const { part, store } = mount('player-queue-button');
-		const button = getByRole(part, 'button', { name: labels.queue });
+		const button = getByRole(part, 'button', { name: labels.addToQueue });
 
 		expect(button.getAttribute('aria-expanded')).toBe('false');
 

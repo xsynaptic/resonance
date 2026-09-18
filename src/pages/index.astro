@@ -5,9 +5,9 @@ import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import HomeSection from '#components/sections/section-home.astro';
-import StationsSection from '#components/sections/section-stations.astro';
+import PlaylistsSection from '#components/sections/section-playlists.astro';
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
-import { getStations } from '#lib/collections/stations/stations-data.ts';
+import { getPlaylists } from '#lib/collections/playlists/playlists-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { buildAuthorSchema, buildWebSiteSchema } from '#lib/utils/seo-structured-data.ts';
 
@@ -20,7 +20,7 @@ const catalog = await getCatalog();
 const mixItems = catalog.byCollection('mixes').filter(hasFeaturedImage).slice(0, 4);
 const reviewItems = catalog.byCollection('reviews').filter(hasFeaturedImage).slice(0, 4);
 const postItems = catalog.byCollection('posts').filter(hasFeaturedImage).slice(0, 4);
-const stations = await getStations();
+const playlists = await getPlaylists();
 ---
 
 <MainSite openGraphId={openGraphHomeId} schemas={[buildWebSiteSchema(), buildAuthorSchema()]}>
@@ -28,7 +28,7 @@ const stations = await getStations();
 		<h1 class="title-main">{t('home.intro.title')}</h1>
 		<p class="mt-2 content-measure text-ink-300">{t('home.intro.description')}</p>
 	</section>
-	{stations.length > 0 ? <StationsSection stations={stations} /> : undefined}
+	{playlists.length > 0 ? <PlaylistsSection playlists={playlists} /> : undefined}
 	<HomeSection collection="mixes" items={mixItems} priority={true} />
 	<HomeSection collection="reviews" items={reviewItems} />
 	<HomeSection collection="posts" items={postItems} />

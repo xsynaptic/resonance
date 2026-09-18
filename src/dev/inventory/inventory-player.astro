@@ -97,7 +97,7 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-bar mini, overlay off"
-		note="<code>isOverlayEnabled</code> set to <code>false</code> on the root. With no expand button the mini bar keeps the Playlist, whose tray spans the bar and opens above it. At 32rem and at 320px."
+		note="<code>isOverlayEnabled</code> set to <code>false</code> on the root. With no expand button the mini bar keeps the Queue, whose tray spans the bar and opens above it. At 32rem and at 320px."
 		source="packages/player/src/elements/player-root.ts"
 	>
 		<div class="flex flex-col gap-4 pt-96">
@@ -119,7 +119,7 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-overlay-content phone"
-		note="The overlay's body in a 390x844 frame, outside its dialog, in the phone layout: artwork, the title with the artist and clock, the waveform, the transport, and buttons for the Tracklist, the waveform panel and the Playlist, each list opening as its own full-screen dialog. The layout comes from the body's measured size, so a frame shows what a viewport of that size would."
+		note="The overlay's body in a 390x844 frame, outside its dialog, in the phone layout: artwork, the title with the artist and clock, the waveform, the transport, and buttons for the Tracklist, the waveform panel and the Queue, each list opening as its own full-screen dialog. The layout comes from the body's measured size, so a frame shows what a viewport of that size would."
 		source="packages/player/src/elements/overlay/"
 	>
 		<player-root
@@ -143,7 +143,7 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-overlay-content columns"
-		note="A 900x800 frame. From 40rem wide and 30rem tall, two columns: the artwork capped at 40% of the width, at the overlay's height and at 900px, and the deck beside it. The transport row ends in the waveform panel toggle and volume; only the Tracklist or Playlist scrolls."
+		note="A 900x800 frame. From 40rem wide and 30rem tall, two columns: the artwork capped at 40% of the width, at the overlay's height and at 900px, and the deck beside it. The transport row ends in the waveform panel toggle and volume; only the Tracklist or Queue scrolls."
 		source="packages/player/src/player.css"
 	>
 		<player-root
@@ -256,7 +256,7 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-bar idle"
-		note="Queued with nothing loaded, where Add to Playlist leaves the bar. The waveform is the track Play would start, drawn inert; only Play is live."
+		note="Queued with nothing loaded, where Add to Queue leaves the bar. The waveform is the track Play would start, drawn inert; only Play is live."
 		source="packages/player/src/store/selectors.ts"
 	>
 		<player-root class="player block" data-inventory-queue="idle">

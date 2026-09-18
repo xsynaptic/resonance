@@ -31,7 +31,7 @@ export class PlayerQueueButton extends PlayerElement {
 		const opened = supersede(signal);
 
 		this.appendOnce(control);
-		trigger.setAttribute('aria-label', labels.queue);
+		trigger.setAttribute('aria-label', labels.addToQueue);
 		trigger.replaceChildren(cloneIcon('queue'));
 		bindPreload({ preload: trayModule.preload, store, trigger }, signal);
 		bindDismiss(

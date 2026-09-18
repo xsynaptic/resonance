@@ -10,7 +10,7 @@ interface Props {
 const { itemId } = Astro.props;
 
 // One button carries both verbs, so focus survives the swap; the island's row state picks which shows
-// The queue half only adds; a Mix comes off the Playlist in the tray
+// The queue half only adds; a Mix comes off the Queue in the tray
 ---
 
 <div data-nosnippet data-pagefind-ignore data-track-id={itemId}>
@@ -29,6 +29,6 @@ const { itemId } = Astro.props;
 				{t('player.pause')}
 			</span>
 		</Button>
-		<Button data-queue-track={itemId}>{t('player.queue')}</Button>
+		<Button data-queue-track={itemId}>{t('player.addToQueue')}</Button>
 	</ButtonSplit>
 </div>

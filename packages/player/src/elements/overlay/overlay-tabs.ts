@@ -6,7 +6,7 @@ import { placeWhen } from '#lib/place-when.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { displayedItem } from '#store/selectors.ts';
 
-type OverlayList = 'playlist' | 'tracklist';
+type OverlayList = 'queue' | 'tracklist';
 
 interface TabParts {
 	buttons: Record<OverlayList, HTMLButtonElement>;
@@ -23,8 +23,8 @@ const renderTab = template(
 	HTMLButtonElement,
 );
 
-const withTracklist: ReadonlyArray<OverlayList> = ['tracklist', 'playlist'];
-const playlistOnly: ReadonlyArray<OverlayList> = ['playlist'];
+const withTracklist: ReadonlyArray<OverlayList> = ['tracklist', 'queue'];
+const queueOnly: ReadonlyArray<OverlayList> = ['queue'];
 
 let idCount = 0;
 
@@ -36,7 +36,7 @@ export function bindTabs(
 	const tablist = requireChild(tabs, '[role="tablist"]', HTMLElement);
 	const panel = requireChild(tabs, '[role="tabpanel"]', HTMLElement);
 	const id = overlayId();
-	const buttons = { playlist: renderTab(), tracklist: renderTab() } satisfies Record<
+	const buttons = { queue: renderTab(), tracklist: renderTab() } satisfies Record<
 		OverlayList,
 		HTMLButtonElement
 	>;
@@ -64,9 +64,9 @@ export function bindTabs(
 	};
 
 	panel.id = `${id}-panel`;
-	tablist.append(buttons.playlist);
+	tablist.append(buttons.queue);
 
-	for (const list of ['playlist', 'tracklist'] as const) {
+	for (const list of ['queue', 'tracklist'] as const) {
 		const button = buttons[list];
 
 		button.id = `${id}-${list}`;
@@ -110,7 +110,7 @@ function applyTabs(
 		position: 'prepend',
 	});
 
-	for (const list of ['playlist', 'tracklist'] as const) {
+	for (const list of ['queue', 'tracklist'] as const) {
 		buttons[list].setAttribute('aria-selected', String(list === shown));
 		buttons[list].tabIndex = list === shown ? 0 : -1;
 	}
@@ -147,7 +147,7 @@ function renderList(list: OverlayList): HTMLElement {
 }
 
 function selectLists(state: PlayerStore): ReadonlyArray<OverlayList> {
-	return (displayedItem(state)?.cuePoints?.length ?? 0) > 0 ? withTracklist : playlistOnly;
+	return (displayedItem(state)?.cuePoints?.length ?? 0) > 0 ? withTracklist : queueOnly;
 }
 
 function selectTabs(state: PlayerStore): TabsView {
@@ -155,5 +155,5 @@ function selectTabs(state: PlayerStore): TabsView {
 }
 
 function shownList(lists: ReadonlyArray<OverlayList>, chosen: OverlayList): OverlayList {
-	return lists.includes(chosen) ? chosen : 'playlist';
+	return lists.includes(chosen) ? chosen : 'queue';
 }

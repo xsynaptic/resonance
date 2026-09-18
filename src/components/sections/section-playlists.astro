@@ -1,0 +1,33 @@
+---
+import type { Playlist } from '#lib/collections/playlists/playlists-data.ts';
+
+import Carousel from '#components/parts/carousel.astro';
+import PlaylistCard from '#components/parts/playlist-card.astro';
+import PlayerPayload from '#components/player/player-payload.astro';
+import { t } from '#lib/i18n/i18n-strings.ts';
+
+interface Props {
+	playlists: Array<Playlist>;
+}
+
+const { playlists } = Astro.props;
+
+const items = [
+	...new Map(
+		playlists.flatMap((playlist) => playlist.items).map((item) => [item.itemId, item]),
+	).values(),
+];
+---
+
+<section class="mb-12">
+	<h2 class="mb-4 heading-section">{t('home.playlists.heading')}</h2>
+	<p class="mb-4 text-ink-300">{t('home.playlists.lead')}</p>
+	<Carousel label={t('home.playlists.carouselLabel')}>
+		{playlists.map((playlist, index) => (
+			<li>
+				<PlaylistCard playlist={playlist} priority={index === 0} />
+			</li>
+		))}
+	</Carousel>
+	<PlayerPayload items={items} />
+</section>

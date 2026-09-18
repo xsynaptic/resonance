@@ -29,21 +29,27 @@ const { playlist, priority = false } = Astro.props;
 				{...(priority ? { priority: true } : {})}
 			/>
 		) : undefined}
-		<span class="absolute inset-0 bg-highlight-700 mix-blend-multiply"></span>
+		<span class="absolute inset-0 bg-highlight-700 mix-blend-multiply transition group-hover:bg-highlight-600 group-focus-visible:bg-highlight-600"></span>
 		<span class="absolute inset-0 bg-linear-to-t from-highlight-950/90 via-highlight-950/20 to-transparent"></span>
 		<span class="absolute inset-0 flex items-center justify-center">
-			<span class="flex size-16 items-center justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-highlight-950/60 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
-				<svg aria-hidden="true" class="ml-1 size-7 fill-current group-data-playing:hidden">
+			<span class="flex size-16 items-center @max-[275px]:size-12 justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-highlight-950/60 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
+				<svg
+					aria-hidden="true"
+					class="ml-1 size-7 fill-current group-data-playing:hidden @max-[275px]:ml-0.5 @max-[275px]:size-5"
+				>
 					<use href="#icon:play"></use>
 				</svg>
-				<svg aria-hidden="true" class="hidden size-7 fill-current group-data-playing:block">
+				<svg
+					aria-hidden="true"
+					class="hidden size-7 fill-current group-data-playing:block @max-[275px]:size-5"
+				>
 					<use href="#icon:pause"></use>
 				</svg>
 			</span>
 		</span>
 		<span
 			aria-hidden="true"
-			class="absolute inset-x-0 bottom-0 p-3 font-display text-xl font-bold text-highlight-300"
+			class="absolute inset-x-0 bottom-0 p-3 text-center font-display text-xl font-bold text-highlight-400 @max-[275px]:text-base transition group-hover:text-highlight-300 group-focus-visible:text-highlight-300"
 		>
 			{playlist.title}
 		</span>

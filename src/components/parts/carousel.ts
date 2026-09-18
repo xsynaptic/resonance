@@ -81,13 +81,12 @@ function getScrollTarget(track: HTMLElement, isForward: boolean): number {
 	const step = getScrollStep(track);
 	const maxScroll = track.scrollWidth - track.clientWidth;
 
+	// Wraps only at the true end; a half-step threshold goes negative when the overflow is under half a screen
 	if (isForward) {
-		return track.scrollLeft > maxScroll - step / 2
-			? 0
-			: Math.min(maxScroll, track.scrollLeft + step);
+		return track.scrollLeft >= maxScroll - 1 ? 0 : Math.min(maxScroll, track.scrollLeft + step);
 	}
 
-	return track.scrollLeft < step / 2 ? maxScroll : Math.max(0, track.scrollLeft - step);
+	return track.scrollLeft <= 1 ? maxScroll : Math.max(0, track.scrollLeft - step);
 }
 
 if (!customElements.get('carousel-slides')) {

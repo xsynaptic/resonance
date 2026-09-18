@@ -24,7 +24,7 @@ const items = [
 	<p class="mb-4 text-ink-300">{t('home.playlists.lead')}</p>
 	<Carousel label={t('home.playlists.carouselLabel')}>
 		{playlists.map((playlist, index) => (
-			<li>
+			<li class="@container">
 				<PlaylistCard playlist={playlist} priority={index === 0} />
 			</li>
 		))}

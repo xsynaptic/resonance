@@ -15,6 +15,9 @@ node_modules/
 *-debug.log*
 astro-build.jsonl
 
+# macOS
+.DS_Store
+
 # environment variables
 .env
 .env.*
@@ -25,11 +28,9 @@ astro-build.jsonl
 .dev.vars
 .dev.vars.*
 
-# certs
+# deploy details
 deploy/certs
-
-# macOS
-.DS_Store
+deploy/nginx/sites-enabled/*.conf
 
 # local editor / tooling
 .claude/reference

@@ -6,11 +6,9 @@ import { preloadWhenQueued } from '#lib/preload-when-queued.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 const item = {
-	albumLoudness: {},
 	artistLine: 'Nebula Drift',
 	durationMs: 180_000,
 	itemId: 'a',
-	loudness: {},
 	releaseTitle: 'Cosmic Drift',
 	title: 'Track a',
 } satisfies QueueItem;

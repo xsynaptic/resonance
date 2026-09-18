@@ -1,6 +1,7 @@
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
+import { canSetVolume } from '#lib/can-set-volume.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, template } from '#lib/render.ts';
@@ -14,10 +15,10 @@ interface PopoverParts {
 
 const hoverQuery = '(hover: hover)';
 
-const popoverAttributes = { isOpen: 'data-open' } as const satisfies Record<
-	string,
-	`data-${string}`
->;
+const popoverAttributes = {
+	isMuteOnly: 'data-mute-only',
+	isOpen: 'data-open',
+} as const satisfies Record<string, `data-${string}`>;
 
 const renderControl = template(
 	/* HTML */ `
@@ -46,11 +47,14 @@ export class PlayerVolumePopover extends PlayerElement {
 		const hover = matchMedia(hoverQuery);
 		let level = selectLevel(store.getState());
 
+		const isMuteOnly = (): boolean => hover.matches || !canSetVolume();
+
 		const render = (): void => {
 			control.toggleAttribute(popoverAttributes.isOpen, this.#isOpen);
-			muteButton.hidden = hover.matches;
+			control.toggleAttribute(popoverAttributes.isMuteOnly, !canSetVolume());
+			muteButton.hidden = isMuteOnly();
 
-			if (hover.matches) {
+			if (isMuteOnly()) {
 				trigger.setAttribute('aria-label', muteLabel(level, labels));
 				trigger.removeAttribute('aria-expanded');
 				return;
@@ -69,7 +73,7 @@ export class PlayerVolumePopover extends PlayerElement {
 		trigger.addEventListener(
 			'click',
 			() => {
-				if (hover.matches) store.getState().toggleMuted();
+				if (isMuteOnly()) store.getState().toggleMuted();
 				else setOpen(!this.#isOpen);
 			},
 			{ signal },

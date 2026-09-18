@@ -13,11 +13,9 @@ let fake = createMockEngine();
 
 function makeItem(id: string): QueueItem {
 	return {
-		albumLoudness: {},
 		artistLine: 'Nebula Drift',
 		durationMs: 180_000,
 		itemId: id,
-		loudness: {},
 		releaseHref: '/releases/cosmic-drift',
 		releaseTitle: 'Cosmic Drift',
 		title: `Track ${id}`,
@@ -93,24 +91,8 @@ describe('playTrack', () => {
 
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledWith({
-				gain: 1,
 				resumeAtSeconds: 0,
 				src: 'https://api.test/tracks/b/stream',
-			});
-		});
-	});
-
-	test('hands the engine the gain the loaded item measures at', async () => {
-		const store = configured();
-		const loudness = { integratedLufs: -12, truePeakDbtp: -2 };
-
-		store.getState().playTrack([{ ...makeItem('hot'), albumLoudness: loudness, loudness }], 'hot');
-
-		await vi.waitFor(() => {
-			expect(fake.engine.load).toHaveBeenCalledWith({
-				gain: 10 ** (-4 / 20),
-				resumeAtSeconds: 0,
-				src: 'https://api.test/tracks/hot/stream',
 			});
 		});
 	});
@@ -776,7 +758,6 @@ describe('engine errors', () => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		});
 		expect(fake.engine.load).toHaveBeenCalledWith({
-			gain: 1,
 			resumeAtSeconds: 0,
 			src: 'https://api.test/b',
 		});
@@ -1020,7 +1001,7 @@ describe('volume', () => {
 		localStorage.removeItem('player:v1:volume');
 	});
 
-	test('mutes without touching the level, silencing the engine meanwhile', () => {
+	test('mutes through the engine without touching the level it holds', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
@@ -1028,10 +1009,12 @@ describe('volume', () => {
 
 		store.getState().toggleMuted();
 		expect(store.getState()).toMatchObject({ isMuted: true, volume: 0.7 });
-		expect(fake.engine.setVolume).toHaveBeenLastCalledWith(0);
+		expect(fake.engine.setMuted).toHaveBeenLastCalledWith(true);
+		expect(fake.engine.setVolume).toHaveBeenLastCalledWith(0.7);
 
 		store.getState().toggleMuted();
 		expect(store.getState()).toMatchObject({ isMuted: false, volume: 0.7 });
+		expect(fake.engine.setMuted).toHaveBeenLastCalledWith(false);
 		expect(fake.engine.setVolume).toHaveBeenLastCalledWith(0.7);
 	});
 
@@ -1246,7 +1229,6 @@ describe('queue persistence', () => {
 
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledWith({
-				gain: 1,
 				resumeAtSeconds: 42,
 				src: 'https://api.test/tracks/b/stream',
 			});

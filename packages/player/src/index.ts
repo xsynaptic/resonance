@@ -16,6 +16,5 @@ export type {
 	QueueArtwork,
 	QueueCuePoint,
 	QueueItem,
-	QueueLoudness,
 	StreamResolution,
 } from '#types.ts';

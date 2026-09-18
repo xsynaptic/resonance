@@ -16,10 +16,8 @@ import {
 
 function makeItem(itemId: string, sectionLabel?: string): QueueItem {
 	return {
-		albumLoudness: {},
 		artistLine: 'Nebula Drift',
 		itemId,
-		loudness: {},
 		releaseTitle: 'Cosmic Drift',
 		title: `Track ${itemId}`,
 		...(sectionLabel === undefined ? {} : { sectionLabel }),

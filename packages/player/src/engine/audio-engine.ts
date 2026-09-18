@@ -2,7 +2,7 @@ import type { PlaybackErrorStage } from '#types.ts';
 
 import { createAudioGraph } from '#engine/audio-graph.ts';
 
-// An element inside the graph: the element keeps progressive streaming and native seeking, the graph adds gain and the tap
+// Playback is the element's own, which keeps progressive streaming and native seeking; a context is built only for a visualizer
 export interface AudioEngine {
 	analyser(): AnalyserNode | undefined;
 	canPlay(type: string): boolean;
@@ -13,10 +13,12 @@ export interface AudioEngine {
 	outputDelay(): number;
 	pause(): void;
 	play(): Promise<void>;
-	// Builds the graph inside the gesture, before the stream URL's await moves execution out of it
+	// Resumes a context the dev oscilloscope may have built; without one it does nothing
 	prepare(): void;
 	reset(): void;
 	seek(seconds: number): void;
+	// iOS makes `volume` read-only and honours `muted` alone
+	setMuted(isMuted: boolean): void;
 	setVolume(volume: number): void;
 }
 
@@ -32,7 +34,6 @@ export interface AudioEngineCallbacks {
 export type CreateAudioEngine = (callbacks: AudioEngineCallbacks) => AudioEngine;
 
 interface AudioLoadRequest {
-	gain: number;
 	// Resumes a restored queue where it left off; the element takes it only once metadata has landed
 	resumeAtSeconds: number;
 	src: string;
@@ -41,7 +42,7 @@ interface AudioLoadRequest {
 export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine {
 	const audio = new Audio();
 
-	// Without a CORS-approved response the graph outputs silence by spec
+	// The analyser's context outputs silence without a CORS-approved response
 	audio.crossOrigin = 'anonymous';
 	audio.preload = 'auto';
 
@@ -49,7 +50,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 
 	let pendingResumeAtSeconds: number | undefined;
 
-	// Bumped by every reset, so a play still waiting on the graph cannot start the next track
+	// Bumped by every reset, so a play still resolving cannot start the next track
 	let generation = 0;
 
 	// Set while the pause a reset causes is still queued, since it lands after the next load has begun
@@ -93,7 +94,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	async function play(): Promise<void> {
 		const startedIn = generation;
 
-		graph.ensure();
 		await graph.resume();
 		if (startedIn !== generation || callbacks.isPaused()) return;
 
@@ -112,9 +112,8 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		canPlay: (type) => audio.canPlayType(type) !== '',
 		currentTime: () => audio.currentTime,
 		element: audio,
-		async load({ gain, resumeAtSeconds, src }) {
+		async load({ resumeAtSeconds, src }) {
 			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;
-			graph.setGain(gain);
 
 			audio.src = src;
 			audio.load();
@@ -130,7 +129,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		},
 		play,
 		prepare: () => {
-			graph.ensure();
 			void graph.resume();
 		},
 		// Dropping the source stops the old track downloading against the next; an empty `src` would raise an error event instead
@@ -147,7 +145,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			pendingResumeAtSeconds = undefined;
 			audio.currentTime = seconds;
 		},
-		setVolume: graph.setVolume,
+		setMuted: (isMuted) => {
+			audio.muted = isMuted;
+		},
+		setVolume: (volume) => {
+			audio.volume = volume;
+		},
 	};
 }
 

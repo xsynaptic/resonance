@@ -4,9 +4,8 @@ import type { AudioEngine, AudioEngineCallbacks, CreateAudioEngine } from '#engi
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlaybackErrorStage, PlayerStatus, QueuedItem, StreamResolution } from '#types.ts';
 
-import { normalizationGain } from '#engine/playback-gain.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { audibleVolume, isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
+import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
 
 // Nothing worth resuming stays in the engine after any of these
 const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
@@ -21,7 +20,6 @@ export interface PlaybackController {
 	pause: () => void;
 	play: () => void;
 	seek: (seconds: number) => void;
-	// Hands the engine silence while muted, leaving the stored level alone
 	syncVolume: () => void;
 	// Whatever resolve is in flight answers into nothing rather than reloading what was dropped
 	unload: () => void;
@@ -59,7 +57,7 @@ export function createPlaybackController(
 		engine = createEngine(
 			toEngineCallbacks({ api, onError: onEngineError, onPlaying: onEnginePlaying }),
 		);
-		engine.setVolume(audibleVolume(get()));
+		syncLevel(engine, get());
 
 		return engine;
 	}
@@ -98,7 +96,7 @@ export function createPlaybackController(
 		shouldAutoplay: boolean,
 		{ isRetry = false, resumeAtSeconds = 0 }: LoadOptions = {},
 	): void {
-		const { isShuffling, queue, urls } = get();
+		const { queue, urls } = get();
 		const item = queue[index];
 		if (!item || urls === undefined) return;
 
@@ -117,7 +115,6 @@ export function createPlaybackController(
 
 		void streamIntoEngine({
 			engine: activeEngine,
-			gain: normalizationGain(item, isShuffling),
 			isCurrent: () => loading === attempt,
 			onDeclined: (status) => {
 				set({ isPaused: true, status });
@@ -162,7 +159,7 @@ export function createPlaybackController(
 		},
 
 		syncVolume() {
-			engine?.setVolume(audibleVolume(get()));
+			if (engine) syncLevel(engine, get());
 		},
 
 		unload() {
@@ -239,7 +236,6 @@ function pressOutcome(state: PlayerStore, loadedQueueId: string | undefined): Pr
 // The asynchronous half of a load, which runs outside the gesture and may answer for an attempt that has since been dropped
 async function streamIntoEngine({
 	engine,
-	gain,
 	isCurrent,
 	onDeclined,
 	onFail,
@@ -247,7 +243,6 @@ async function streamIntoEngine({
 	stream,
 }: {
 	engine: AudioEngine;
-	gain: number;
 	isCurrent: () => boolean;
 	// Neither is retried: a re-resolve answers the same, and so does the browser for the same format
 	onDeclined: (status: 'capped' | 'unplayable') => void;
@@ -270,12 +265,20 @@ async function streamIntoEngine({
 			return;
 		}
 
-		await engine.load({ gain, resumeAtSeconds: readPosition(), src: resolution.url });
+		await engine.load({ resumeAtSeconds: readPosition(), src: resolution.url });
 	} catch {
 		if (!isCurrent()) return;
 
 		onFail();
 	}
+}
+
+function syncLevel(
+	engine: AudioEngine,
+	{ isMuted, volume }: Pick<PlayerStore, 'isMuted' | 'volume'>,
+): void {
+	engine.setMuted(isMuted);
+	engine.setVolume(volume);
 }
 
 // Every report but `onError` and `onPlaying` is a state write; the retry policy is the caller's

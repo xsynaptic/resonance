@@ -9,7 +9,7 @@ const seekThresholdSeconds = 0.5;
 const catchUpPerFrame = 0.06;
 
 export interface ScrollClock {
-	// Audible seconds: the element's clock less what the graph and the device still hold
+	// Audible seconds: the element's clock less the device's output buffer
 	// `frameMs` is the rAF timestamp: presentation time, not when the callback ran
 	read: (frameMs: number, isPlaying: boolean) => number;
 	stop: () => void;

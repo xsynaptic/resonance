@@ -7,17 +7,14 @@ const graphMock = vi.hoisted(() => ({ resume: vi.fn() }));
 vi.mock('#engine/audio-graph.ts', () => ({
 	createAudioGraph: () => ({
 		analyser: vi.fn(),
-		ensure: vi.fn(),
 		outputDelay: () => 0,
 		resume: graphMock.resume,
-		setGain: vi.fn(),
-		setVolume: vi.fn(),
 	}),
 }));
 
 import { createAudioEngine } from '#engine/audio-engine.ts';
 
-const request = { gain: 1, resumeAtSeconds: 0, src: 'https://api.test/a' };
+const request = { resumeAtSeconds: 0, src: 'https://api.test/a' };
 
 let isPaused = false;
 let resume = Promise.withResolvers<boolean>();

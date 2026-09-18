@@ -248,7 +248,6 @@ function storedQueueIndex(currentIndex: number | undefined, length: number): num
 	return currentIndex;
 }
 
-// A queue stored before the 2026-09-16 rename carries `trackId`; droppable once those queues have aged out
 function storedQueueItems(queue: Array<QueuedItem>): Array<QueuedItem> {
 	return queue.map((item) => {
 		const { trackId, ...rest } = item as QueuedItem & { trackId?: string };

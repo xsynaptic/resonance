@@ -22,7 +22,7 @@ import { collectArchives, previewVersion } from '#audio/waveforms.ts';
 const previewExtension = '.json';
 const tmpExtension = '.tmp';
 
-// A v1 preview is 2000 buckets of 0..255; rejecting it here is what stops the old shape reaching a page
+// Rejecting a stale preview shape here is what stops it reaching a page
 const PreviewSchema = z.object({
 	seconds: z.number(),
 	values: z.number().array(),

@@ -20,7 +20,6 @@ export interface PlayerPayloadItem extends QueueItem {
 	streamUrl: string;
 }
 
-// A mix has no album above it, so the lock screen's album line repeats the mix title
 export async function getMixQueueItem(
 	entry: CollectionEntry<'mixes'>,
 	artistLine: string,
@@ -32,12 +31,10 @@ export async function getMixQueueItem(
 	const cuePoints = await getMixCuePoints(entry);
 
 	return {
-		albumLoudness: audio.loudness,
 		archiveUrl: audio.archiveUrl,
 		artistLine,
 		durationMs: audio.seconds * 1000,
 		itemId: entry.id,
-		loudness: audio.loudness,
 		releaseHref: getContentPath('mixes', entry.id),
 		releaseTitle: entry.data.title,
 		streamUrl: audio.streamUrl,

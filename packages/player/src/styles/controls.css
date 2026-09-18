@@ -42,6 +42,11 @@
 	display: flex;
 }
 
+/* Where `volume` is read-only the trigger is the mute button; `none` also takes the dead slider out of the tab order */
+.player-volume[data-mute-only] .player-volume-panel {
+	display: none;
+}
+
 @media (hover: hover) {
 	.player-volume:hover {
 		z-index: 1;

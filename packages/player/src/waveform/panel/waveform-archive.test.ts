@@ -20,7 +20,7 @@ function header(): ArrayBuffer {
 }
 
 function itemFor(itemId: string): QueueItem {
-	return { albumLoudness: {}, artistLine: '', itemId, loudness: {}, releaseTitle: '', title: '' };
+	return { artistLine: '', itemId, releaseTitle: '', title: '' };
 }
 
 function rangeOf(init: RequestInit | undefined): string | undefined {

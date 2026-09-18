@@ -4,6 +4,12 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { labels } from '#test/labels.ts';
 import { mount } from '#test/mount.ts';
 
+const volumeMock = vi.hoisted(() => ({ canSet: true }));
+
+vi.mock('#lib/can-set-volume.ts', () => ({
+	canSetVolume: () => volumeMock.canSet,
+}));
+
 function controlOf(part: HTMLElement): HTMLElement {
 	const control = part.querySelector<HTMLElement>('.player-volume');
 	if (!control) throw new Error('The popover rendered no control');
@@ -34,6 +40,7 @@ function stubHover(canHover: boolean) {
 afterEach(() => {
 	document.body.replaceChildren();
 	vi.unstubAllGlobals();
+	volumeMock.canSet = true;
 });
 
 describe('<player-volume-popover>', () => {
@@ -115,6 +122,23 @@ describe('<player-volume-popover>', () => {
 		root.remove();
 		document.body.append(root);
 
+		expect(controlOf(part).dataset.open).toBeUndefined();
+	});
+
+	test('gives up the slider and mutes from the trigger where volume is read-only', () => {
+		volumeMock.canSet = false;
+		stubHover(false);
+
+		const { part, store } = mount('player-volume-popover');
+		const trigger = getByRole(part, 'button', { name: labels.mute });
+
+		expect(getAllByRole(part, 'button')).toHaveLength(1);
+		expect(controlOf(part).dataset.muteOnly).toBe('');
+		expect(trigger.hasAttribute('aria-expanded')).toBe(false);
+
+		trigger.click();
+
+		expect(store.getState().isMuted).toBe(true);
 		expect(controlOf(part).dataset.open).toBeUndefined();
 	});
 

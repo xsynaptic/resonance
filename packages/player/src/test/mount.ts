@@ -41,10 +41,8 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 // No duration unless a test names one, so the clock can be seen waiting on metadata
 export function queueItem(itemId: string, overrides: Partial<QueueItem> = {}): QueueItem {
 	return {
-		albumLoudness: {},
 		artistLine: 'Forest Signal',
 		itemId,
-		loudness: {},
 		releaseTitle: 'Winter Transmissions',
 		title: `Mix ${itemId}`,
 		...overrides,

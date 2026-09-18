@@ -50,11 +50,9 @@ describe('currentCue', () => {
 
 		store.getState().loadQueue([
 			{
-				albumLoudness: {},
 				artistLine: 'Nebula Drift',
 				cuePoints,
 				itemId: 'a',
-				loudness: {},
 				releaseTitle: 'Cosmic Drift',
 				title: 'Mix',
 			},

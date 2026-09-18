@@ -1,4 +1,3 @@
-import type { StreamLoudness } from '@xsynaptic/shared/schemas';
 import type { z } from 'zod';
 
 import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
@@ -11,7 +10,6 @@ import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
 	archiveUrl: string;
-	loudness: StreamLoudness;
 	peaks: Array<number>;
 	seconds: number;
 	streamUrl: string;
@@ -72,7 +70,6 @@ async function buildIndex(): Promise<MixAudioIndex> {
 
 		const audio = {
 			archiveUrl: `${waveformBaseUrl}${encodeURIComponent(waveform.archive)}`,
-			loudness: stream.loudness,
 			peaks: waveform.peaks,
 			seconds: waveform.seconds,
 			streamUrl: `${streamBaseUrl}${encodeURIComponent(stream.stream)}`,

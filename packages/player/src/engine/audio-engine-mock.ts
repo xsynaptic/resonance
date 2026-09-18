@@ -21,6 +21,7 @@ export function createMockEngine() {
 		seek: vi.fn((seconds: number) => {
 			time = seconds;
 		}),
+		setMuted: vi.fn(),
 		setVolume: vi.fn(),
 	};
 

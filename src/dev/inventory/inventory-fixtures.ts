@@ -84,12 +84,10 @@ const iconIds: Array<IconId> = [
 // No `waveformOverview`, so the seek bar falls back to its range input
 // Both URLs point at this page, so nothing plays and the panel finds no archive
 const itemWithoutPeaks: PlayerPayloadItem = {
-	albumLoudness: {},
 	archiveUrl: '/inventory/#player',
 	artistLine: 'A Hand-Built Fixture',
 	durationMs: 2_400_000,
 	itemId: 'inventory-no-peaks',
-	loudness: {},
 	releaseTitle: 'Inventory Sample',
 	streamUrl: '/inventory/#player',
 	title: 'A Mix With No Measured Peaks',

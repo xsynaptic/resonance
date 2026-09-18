@@ -1,4 +1,4 @@
-// Follows the `player:v2:queue` naming; set to `1` by hand, once per browser
+// Set by hand, once per browser; there is no UI for it
 const optOutKey = 'stats:v1:opt-out';
 
 // A browser that refuses storage has set nothing, so a throw reads as not opted out

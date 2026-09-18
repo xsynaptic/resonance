@@ -76,7 +76,6 @@ export interface QueuedItem extends QueueItem {
 }
 
 export interface QueueItem {
-	albumLoudness: QueueLoudness;
 	artistLine: string;
 	// Ascending by width
 	artwork?: ReadonlyArray<QueueArtwork>;
@@ -84,7 +83,6 @@ export interface QueueItem {
 	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	durationMs?: number;
 	itemId: string;
-	loudness: QueueLoudness;
 	// Absent renders the title as plain text
 	releaseHref?: string;
 	releaseTitle: string;
@@ -95,12 +93,6 @@ export interface QueueItem {
 	trackCount?: number;
 	// Normalized 0..1 peak per bucket; absent falls back to a range input
 	waveformOverview?: ReadonlyArray<number>;
-}
-
-// Either value missing plays at unity
-export interface QueueLoudness {
-	integratedLufs?: number;
-	truePeakDbtp?: number;
 }
 
 // `type` is a MIME type with codecs, probed before loading; absent skips the probe

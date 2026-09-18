@@ -43,10 +43,8 @@ function createFakeMediaSession(): FakeMediaSession {
 
 function makeItem(itemId: string): QueueItem {
 	return {
-		albumLoudness: {},
 		artistLine: 'Nebula Drift',
 		itemId,
-		loudness: {},
 		releaseTitle: 'Cosmic Drift',
 		title: `Track ${itemId}`,
 	};

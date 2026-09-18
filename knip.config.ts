@@ -3,8 +3,6 @@
 import type { KnipConfig } from 'knip';
 
 export default {
-	// Agent tooling and scratch, not project source
-	ignore: ['.claude/**'],
 	// knip reads `compilerOptions.types` entries as package names, not relative paths
 	ignoreUnresolved: ['../worker-configuration.d.ts'],
 	workspaces: {

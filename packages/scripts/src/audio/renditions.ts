@@ -14,7 +14,7 @@ import { measureLoudness } from '#audio/loudness.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
-const concurrency = 3;
+const concurrency = 1;
 const renditionExtension = '.mp4';
 const tmpExtension = '.mp4.tmp';
 
@@ -24,13 +24,13 @@ const renditionPattern = /^(?<base>.+)\.[0-9a-f]{12}\.mp4$/;
 // Chrome clamps decoded samples before the page can attenuate them, so the file itself has to decode under this
 const ceilingDbtp = -1;
 
-// Room left for Opus overshoot on the first encode; nine full mixes overshot 0 to 1.6 dB
-const seedMarginDb = 1.5;
+// Only seeds the measuring encode, which then reports the real overshoot; the value costs nothing but its own pass
+const nominalOvershootDb = 1;
 
-// Overshoot drifts up to 0.2 dB as the gain changes, so a correction aims that far under the ceiling
-const correctionMarginDb = 0.2;
+// Overshoot drifts up to 0.2 dB as the gain moves, so the solve aims that far under the ceiling
+const solveMarginDb = 0.2;
 
-// Every trial mix landed within two; a third miss means material unlike anything measured
+// Not in the args hash: a third pass changes no byte of a file that landed in two
 const maxPasses = 3;
 
 // Source tags carried over, matched case-insensitively; everything else is dropped
@@ -81,9 +81,8 @@ const encoderArgsHash = crypto
 			...keptTags,
 			gainFilter(0),
 			ceilingDbtp,
-			seedMarginDb,
-			correctionMarginDb,
-			maxPasses,
+			nominalOvershootDb,
+			solveMarginDb,
 		].join(' '),
 	)
 	.digest('hex')
@@ -118,7 +117,7 @@ export async function collectRenditions(streamsPath: string): Promise<Map<string
 }
 
 // 128kbps Opus .mp4 streaming renditions per source (FLAC preferred, MP3 fallback)
-// Each decodes at or under the true-peak ceiling: a linear gain seeded from the source, verified by decoding, corrected on a miss
+// Each decodes at or under the true-peak ceiling: one encode measures the codec's overshoot, a second lands on it, a third covers drift
 // Incremental: skips outputs newer than their source and stamped with the current encoder args hash
 // Atomic: encodes to a tmp file then renames onto the hashed name
 export async function generateRenditions(options: RenditionsOptions): Promise<void> {
@@ -163,7 +162,7 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	});
 }
 
-// The manifest carries these to the player, so its normalization works from what it will actually decode
+// Provenance in the manifest; nothing reads them at runtime
 // A rendition without them predates the verified encode
 export async function readRenditionLoudness(output: string): Promise<StreamLoudness | undefined> {
 	const tags = await readRenditionTags(output);
@@ -187,29 +186,52 @@ async function encode(job: RenditionJob, streamsPath: string): Promise<string> {
 		.filter(([key]) => keptTags.has(key.toLowerCase()))
 		.flatMap(([key, value]) => ['-metadata', `${key}=${value}`]);
 
-	let gainDb = roundDb(Math.min(0, ceilingDbtp - source.truePeakDbtp - seedMarginDb));
+	let gainDb = roundDb(Math.min(0, ceilingDbtp - source.truePeakDbtp - nominalOvershootDb));
+	let decoded = await encodeAndMeasure({ gainDb, source: job.source, tagArgs, tmp });
+	let pass = 1;
 
-	for (let pass = 1; pass <= maxPasses; pass += 1) {
-		// -f mp4 is explicit because the .tmp suffix hides the container format
-		await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${job.source} -af ${gainFilter(gainDb)} ${encoderArgs} ${tagArgs} -f mp4 ${tmp}`;
+	// The seed only measures the overshoot, so the correction always runs once, then only on a miss
+	while (pass === 1 || decoded.truePeakDbtp > ceilingDbtp) {
+		// Overshoot rides on whatever gain produced it, so the correction accumulates
+		const solvedGainDb = roundDb(
+			Math.min(0, gainDb + ceilingDbtp - solveMarginDb - decoded.truePeakDbtp),
+		);
 
-		const decoded = await measureLoudness(tmp);
+		if (solvedGainDb === gainDb) break;
 
-		if (decoded.truePeakDbtp <= ceilingDbtp) {
-			const name = await land(job, streamsPath, { ...decoded, gainDb, pass });
+		if (pass === maxPasses) {
+			await fs.rm(tmp, { force: true });
 
-			return `${name} (gain ${String(gainDb)} dB, pass ${String(pass)}, ${String(decoded.truePeakDbtp)} dBTP, ${String(decoded.integratedLufs)} LUFS)`;
+			throw new Error(
+				`${job.base}: decoded ${String(decoded.truePeakDbtp)} dBTP above the ${String(ceilingDbtp)} dBTP ceiling after ${String(maxPasses)} passes`,
+			);
 		}
 
-		// Accumulates, since overshoot rides on top of whatever gain produced it
-		gainDb = roundDb(gainDb + ceilingDbtp - decoded.truePeakDbtp - correctionMarginDb);
+		gainDb = solvedGainDb;
+		decoded = await encodeAndMeasure({ gainDb, source: job.source, tagArgs, tmp });
+		pass += 1;
 	}
 
-	await fs.rm(tmp, { force: true });
+	const verified = { ...decoded, gainDb, pass };
 
-	throw new Error(
-		`${job.base}: decoded true peak still above ${String(ceilingDbtp)} dBTP after ${String(maxPasses)} passes`,
-	);
+	return report(await land(job, streamsPath, verified), verified);
+}
+
+// -f mp4 is explicit because the .tmp suffix hides the container format
+async function encodeAndMeasure({
+	gainDb,
+	source,
+	tagArgs,
+	tmp,
+}: {
+	gainDb: number;
+	source: string;
+	tagArgs: Array<string>;
+	tmp: string;
+}): Promise<StreamLoudness> {
+	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${source} -af ${gainFilter(gainDb)} ${encoderArgs} ${tagArgs} -f mp4 ${tmp}`;
+
+	return measureLoudness(tmp);
 }
 
 // Float end to end, so neither the gain nor the 48k resample can clip before the codec sees the signal
@@ -298,6 +320,10 @@ async function readRenditionTags(output: string): Promise<Record<string, string>
 		}
 		return {};
 	}
+}
+
+function report(name: string, verified: VerifiedEncode): string {
+	return `${name} (gain ${String(verified.gainDb)} dB, pass ${String(verified.pass)}, ${String(verified.truePeakDbtp)} dBTP, ${String(verified.integratedLufs)} LUFS)`;
 }
 
 function roundDb(value: number): number {

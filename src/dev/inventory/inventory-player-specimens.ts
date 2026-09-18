@@ -40,8 +40,11 @@ export const createSilentEngine: CreateAudioEngine = (callbacks) => {
 		seek: (seconds) => {
 			currentTimeSeconds = seconds;
 		},
+		setMuted: () => {
+			// Nothing sounds, so nothing to silence
+		},
 		setVolume: () => {
-			// No gain stage to drive
+			// No element to drive
 		},
 	};
 };

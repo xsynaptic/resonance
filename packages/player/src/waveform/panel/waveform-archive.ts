@@ -9,8 +9,7 @@ const eightBitFlag = 1;
 // About 47 seconds of audio and 16 KB on the wire, so one window is one or two requests
 const chunkPairs = 8192;
 
-// A mix is 1.8 MB of pairs; four covers any plausible working set
-const cacheLimit = 4;
+const cacheLimit = 2;
 
 // `want` runs every frame, so without a wait an offline panel asks for a failed chunk sixty times a second
 const retryBaseMs = 2000;

@@ -1,20 +1,13 @@
 import type { PlaybackErrorStage } from '#types.ts';
 
-import { createAudioGraph } from '#engine/audio-graph.ts';
-
-// Playback is the element's own, which keeps progressive streaming and native seeking; a context is built only for a visualizer
+// Playback is the element's own, which keeps progressive streaming and native seeking
 export interface AudioEngine {
-	analyser(): AnalyserNode | undefined;
 	canPlay(type: string): boolean;
 	currentTime(): number;
 	element: HTMLMediaElement;
 	load(request: AudioLoadRequest): Promise<void>;
-	// How far the element's clock runs ahead of the sound, which is the device's buffer
-	outputDelay(): number;
 	pause(): void;
 	play(): Promise<void>;
-	// Resumes a context the dev oscilloscope may have built; without one it does nothing
-	prepare(): void;
 	reset(): void;
 	seek(seconds: number): void;
 	// iOS makes `volume` read-only and honours `muted` alone
@@ -42,16 +35,11 @@ interface AudioLoadRequest {
 export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine {
 	const audio = new Audio();
 
-	// The analyser's context outputs silence without a CORS-approved response
+	// Matches the preconnect's `crossorigin`, so the stream reuses that connection
 	audio.crossOrigin = 'anonymous';
 	audio.preload = 'auto';
 
-	const graph = createAudioGraph(audio);
-
 	let pendingResumeAtSeconds: number | undefined;
-
-	// Bumped by every reset, so a play still resolving cannot start the next track
-	let generation = 0;
 
 	// Set while the pause a reset causes is still queued, since it lands after the next load has begun
 	let isSilencing = false;
@@ -92,11 +80,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	});
 
 	async function play(): Promise<void> {
-		const startedIn = generation;
-
-		await graph.resume();
-		if (startedIn !== generation || callbacks.isPaused()) return;
-
 		try {
 			await audio.play();
 		} catch (error) {
@@ -108,7 +91,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	}
 
 	return {
-		analyser: graph.analyser,
 		canPlay: (type) => audio.canPlayType(type) !== '',
 		currentTime: () => audio.currentTime,
 		element: audio,
@@ -123,17 +105,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			callbacks.onStatus('loading');
 			await play();
 		},
-		outputDelay: graph.outputDelay,
 		pause: () => {
 			audio.pause();
 		},
 		play,
-		prepare: () => {
-			void graph.resume();
-		},
 		// Dropping the source stops the old track downloading against the next; an empty `src` would raise an error event instead
 		reset: () => {
-			generation += 1;
 			pendingResumeAtSeconds = undefined;
 			isSilencing = !audio.paused;
 			audio.pause();

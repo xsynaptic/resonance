@@ -13,14 +13,10 @@ export interface PlayerActions {
 	clearQueue: () => void;
 	// Accepts the host's resolvers and nothing else; an unchanged object writes nothing
 	configure: (config: { urls: PlayerUrls | undefined }) => void;
-	// Read inside a rAF loop rather than subscribed to
-	getAnalyser: () => AnalyserNode | undefined;
-	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; also rAF-only
+	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; read inside a rAF loop rather than subscribed to
 	getCurrentTime: () => number | undefined;
 	// Created on the first load, so an observer waits for it
 	getMediaElement: () => HTMLMediaElement | undefined;
-	// Seconds the element's clock runs ahead of the sound
-	getOutputDelay: () => number;
 	// The root hydrates each store once, however often it reconnects
 	hydratePreferences: () => void;
 	// Positioned, with nothing loaded and nothing playing

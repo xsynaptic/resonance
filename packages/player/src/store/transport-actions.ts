@@ -8,10 +8,8 @@ import { restartThresholdSeconds } from '#store/selectors.ts';
 
 type TransportActions = Pick<
 	PlayerActions,
-	| 'getAnalyser'
 	| 'getCurrentTime'
 	| 'getMediaElement'
-	| 'getOutputDelay'
 	| 'next'
 	| 'pause'
 	| 'play'
@@ -33,10 +31,8 @@ export function createTransportActions({
 	const { getState: get, setState: set } = api;
 
 	return {
-		getAnalyser: playback.analyser,
 		getCurrentTime: playback.currentTime,
 		getMediaElement: playback.mediaElement,
-		getOutputDelay: playback.outputDelay,
 		// At the end of the play order, stop without wrapping
 		next: () => {
 			const { currentIndex, playOrder } = get();

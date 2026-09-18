@@ -11,11 +11,9 @@ import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
 const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
 
 export interface PlaybackController {
-	analyser: () => AnalyserNode | undefined;
 	currentTime: () => number | undefined;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
 	mediaElement: () => HTMLMediaElement | undefined;
-	outputDelay: () => number;
 	// Clears the intent, which stops a load short of playing wherever it has got to
 	pause: () => void;
 	play: () => void;
@@ -106,7 +104,6 @@ export function createPlaybackController(
 
 		// Silenced before the next track resolves, so nothing on screen disagrees with what is heard
 		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.reset();
-		if (shouldAutoplay) activeEngine.prepare();
 
 		const attempt: LoadAttempt = { isRetry };
 
@@ -141,11 +138,9 @@ export function createPlaybackController(
 	}
 
 	return {
-		analyser: () => engine?.analyser(),
 		currentTime: () => engine?.currentTime(),
 		loadIndex,
 		mediaElement: () => engine?.element,
-		outputDelay: () => engine?.outputDelay() ?? 0,
 
 		pause: () => {
 			set(pausedState(get().status));

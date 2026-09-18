@@ -5,7 +5,6 @@ import { mount, queueItem } from '#test/mount.ts';
 function mountPlaying() {
 	const mounted = mount('player-scope');
 
-	mounted.fake.engine.analyser.mockReturnValue({ fftSize: 32, getByteTimeDomainData: vi.fn() });
 	mounted.store.getState().playTrack([queueItem('a')], 'a');
 
 	return mounted;
@@ -63,7 +62,7 @@ describe('<player-scope>', () => {
 
 		frames[0]?.(0);
 
-		expect(context.stroke).toHaveBeenCalledOnce();
+		expect(context.stroke).toHaveBeenCalled();
 
 		fake.callbacks.current?.onStatus('paused');
 

@@ -60,7 +60,6 @@ interface PanelLoop {
 
 interface PanelViewOptions {
 	archive: PanelArchive;
-	clock: ScrollClock;
 	item: QueueItem | undefined;
 	parts: PanelParts;
 	pxPerSecond: number;
@@ -69,7 +68,6 @@ interface PanelViewOptions {
 
 export function createPanelView({
 	archive,
-	clock,
 	item,
 	parts,
 	pxPerSecond,
@@ -89,7 +87,7 @@ export function createPanelView({
 		drag: createPanelDrag({
 			canDrag: () => store.getState().currentIndex !== undefined,
 			onSeek: (seconds) => {
-				store.getState().seek(clock.toElementSeconds(seconds));
+				store.getState().seek(seconds);
 			},
 			panel: parts.panel,
 			pxPerSecond,

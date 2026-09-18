@@ -2,22 +2,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { AudioEngineCallbacks } from '#engine/audio-engine.ts';
 
-const graphMock = vi.hoisted(() => ({ resume: vi.fn() }));
-
-vi.mock('#engine/audio-graph.ts', () => ({
-	createAudioGraph: () => ({
-		analyser: vi.fn(),
-		outputDelay: () => 0,
-		resume: graphMock.resume,
-	}),
-}));
-
 import { createAudioEngine } from '#engine/audio-engine.ts';
 
 const request = { resumeAtSeconds: 0, src: 'https://api.test/a' };
 
 let isPaused = false;
-let resume = Promise.withResolvers<boolean>();
 let media: ReturnType<typeof spyOnMedia>;
 
 function createCallbacks(): AudioEngineCallbacks {
@@ -41,8 +30,6 @@ function spyOnMedia() {
 
 beforeEach(() => {
 	isPaused = false;
-	resume = Promise.withResolvers<boolean>();
-	graphMock.resume.mockImplementation(() => resume.promise);
 	media = spyOnMedia();
 });
 
@@ -51,25 +38,6 @@ afterEach(() => {
 });
 
 describe('audio engine', () => {
-	test('plays once the graph resumes while playback is still intended', async () => {
-		const loaded = createAudioEngine(createCallbacks()).load(request);
-
-		resume.resolve(true);
-		await loaded;
-
-		expect(media.play).toHaveBeenCalledOnce();
-	});
-
-	test('a pause while the graph resumes leaves the element paused', async () => {
-		const loaded = createAudioEngine(createCallbacks()).load(request);
-
-		isPaused = true;
-		resume.resolve(true);
-		await loaded;
-
-		expect(media.play).not.toHaveBeenCalled();
-	});
-
 	// The browser rejects the pending promise itself when a pause lands on it
 	test('a pause during the element play leaves it paused and reports no failure', async () => {
 		const callbacks = createCallbacks();
@@ -83,7 +51,6 @@ describe('audio engine', () => {
 		const engine = createAudioEngine(callbacks);
 		const loaded = engine.load(request);
 
-		resume.resolve(true);
 		await vi.waitFor(() => {
 			expect(media.play).toHaveBeenCalledOnce();
 		});
@@ -97,17 +64,6 @@ describe('audio engine', () => {
 		expect(media.pause.mock.invocationCallOrder[0]).toBeGreaterThan(
 			media.play.mock.invocationCallOrder[0] ?? Infinity,
 		);
-	});
-
-	test('a play still waiting on the graph when the track is reset never starts', async () => {
-		const engine = createAudioEngine(createCallbacks());
-		const loaded = engine.load(request);
-
-		engine.reset();
-		resume.resolve(true);
-		await loaded;
-
-		expect(media.play).not.toHaveBeenCalled();
 	});
 
 	test('the pause a reset causes goes unreported, and a later one is reported', () => {

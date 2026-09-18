@@ -9,14 +9,11 @@ import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 type SpecimenStore = ReturnType<typeof createPlayerStore>;
 
-const silentAnalyser: AnalyserNode | undefined = undefined;
-
-// A browser refuses an audio graph outside a gesture, so the specimens stand at the engine seam instead
+// A browser refuses playback outside a gesture, so the specimens stand at the engine seam instead
 export const createSilentEngine: CreateAudioEngine = (callbacks) => {
 	let currentTimeSeconds = 0;
 
 	return {
-		analyser: () => silentAnalyser,
 		canPlay: () => true,
 		currentTime: () => currentTimeSeconds,
 		element: document.createElement('audio'),
@@ -25,15 +22,10 @@ export const createSilentEngine: CreateAudioEngine = (callbacks) => {
 
 			return Promise.resolve();
 		},
-		// No graph, so nothing stands between the clock and the sound
-		outputDelay: () => 0,
 		pause: () => {
 			callbacks.onStatus('paused');
 		},
 		play: () => Promise.resolve(),
-		prepare: () => {
-			// No graph to build
-		},
 		reset: () => {
 			currentTimeSeconds = 0;
 		},

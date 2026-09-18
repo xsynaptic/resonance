@@ -58,7 +58,6 @@ export function connectPanelSurface(
 	const parts = renderPanelParts(panel, labels);
 	const clock = createScrollClock({
 		elementTime: store.getState().getCurrentTime,
-		outputDelay: store.getState().getOutputDelay,
 		subscribeTime: subscribeStoreTime(store),
 	});
 	let archive = openPanelArchive(undefined, undefined);
@@ -71,7 +70,6 @@ export function connectPanelSurface(
 		view?.drag.stop();
 		view = createPanelView({
 			archive,
-			clock,
 			item: source.item,
 			parts,
 			pxPerSecond: source.pxPerSecond,

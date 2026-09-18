@@ -29,7 +29,7 @@ export const waveformBaseUrl = import.meta.env.DEV
 // Dev serves audio locally, so only a build has a remote host worth connecting to early
 export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).origin;
 
-// Opt-in even in dev: the scope routes the element through a Web Audio graph production never builds
+// Opt-in even in dev until the scope's design settles
 export const isPlayerScopeEnabled = import.meta.env.DEV && PLAYER_SCOPE_ENABLED;
 
 // Listen counts render unflagged; listening time waits until the numbers are worth showing

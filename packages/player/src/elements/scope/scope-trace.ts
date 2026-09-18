@@ -1,49 +1,57 @@
-import { bucketBounds } from '#lib/bucket-bounds.ts';
 import { observeResize } from '#lib/observe-resize.ts';
 
+export type FillColumns = (frameMs: number, columns: ScopeColumns) => void;
+
+interface ScopeColumns {
+	count: number;
+	// Columns before this one draw as heard, the rest as still to come
+	heardCount: number;
+	// Each column's span runs from -1 to 1, up positive
+	highest: Float32Array;
+	lowest: Float32Array;
+}
+
 interface ScopeSize {
-	columns: number;
 	height: number;
 	ratio: number;
 	width: number;
 }
 
-export function traceSignal(
+export function traceScope(
 	canvas: HTMLCanvasElement,
-	analyser: AnalyserNode,
+	fillColumns: FillColumns,
 	signal: AbortSignal,
 ): void {
 	const context = canvas.getContext('2d');
 	if (!context) return;
 
-	const samples = new Uint8Array(analyser.fftSize);
-
 	// Read once: getPropertyValue forces a style recalc, and this loop runs at the display's refresh rate
-	const traceStyle = getComputedStyle(canvas).getPropertyValue('--player-waveform-played');
+	const style = getComputedStyle(canvas);
+	const heardStyle = style.getPropertyValue('--player-waveform-played');
+	const comingStyle = style.getPropertyValue('--player-waveform-base');
 
 	// Measured on resize rather than per frame, where reading either would force a layout 60 times a second
-	const size: ScopeSize = { columns: 0, height: 0, ratio: 1, width: 0 };
+	const size: ScopeSize = { height: 0, ratio: 1, width: 0 };
+	const columns: ScopeColumns = {
+		count: 0,
+		heardCount: 0,
+		highest: new Float32Array(0),
+		lowest: new Float32Array(0),
+	};
 	let frame = 0;
 
-	const render = (): void => {
-		frame = requestAnimationFrame(render);
-
-		analyser.getByteTimeDomainData(samples);
-
+	const strokeColumns = (from: number, to: number, strokeStyle: string): void => {
 		const thickness = 1 / size.ratio;
+		const centre = size.height / 2;
 
-		context.clearRect(0, 0, size.width, size.height);
-		context.lineWidth = thickness;
-		context.strokeStyle = traceStyle;
+		context.strokeStyle = strokeStyle;
 		context.beginPath();
 
-		for (let column = 0; column < size.columns; column += 1) {
-			const { highest, lowest } = columnRange(samples, column, size.columns);
-
+		for (let column = from; column < to; column += 1) {
 			// Half a device pixel over, so a one-pixel stroke lands on the column rather than straddling two
 			const x = (column + 0.5) * thickness;
-			const top = (lowest / 128) * (size.height / 2);
-			const bottom = (highest / 128) * (size.height / 2);
+			const top = centre - (columns.highest[column] ?? 0) * centre;
+			const bottom = centre - (columns.lowest[column] ?? 0) * centre;
 
 			// Silence has no span of its own, and the centre line still has to be drawn
 			const span = Math.max(bottom - top, thickness);
@@ -55,10 +63,23 @@ export function traceSignal(
 		context.stroke();
 	};
 
+	const render = (frameMs: number): void => {
+		frame = requestAnimationFrame(render);
+
+		fillColumns(frameMs, columns);
+
+		context.clearRect(0, 0, size.width, size.height);
+		context.lineWidth = 1 / size.ratio;
+		strokeColumns(0, columns.heardCount, heardStyle);
+		if (columns.heardCount < columns.count) {
+			strokeColumns(columns.heardCount, columns.count, comingStyle);
+		}
+	};
+
 	// A scope with no columns is hidden by a container query, and a hidden document presents no frames
 	const restart = (): void => {
 		cancelAnimationFrame(frame);
-		frame = size.columns > 0 && !document.hidden ? requestAnimationFrame(render) : 0;
+		frame = columns.count > 0 && !document.hidden ? requestAnimationFrame(render) : 0;
 	};
 
 	// Reassigning width resets the transform, so size first and then set it
@@ -66,8 +87,10 @@ export function traceSignal(
 		size.ratio = window.devicePixelRatio || 1;
 		size.width = canvas.clientWidth;
 		size.height = canvas.clientHeight;
-		size.columns = Math.floor(size.width * size.ratio);
-		canvas.width = Math.max(1, size.columns);
+		columns.count = Math.floor(size.width * size.ratio);
+		columns.highest = new Float32Array(columns.count);
+		columns.lowest = new Float32Array(columns.count);
+		canvas.width = Math.max(1, columns.count);
 		canvas.height = Math.max(1, Math.floor(size.height * size.ratio));
 		context.setTransform(size.ratio, 0, 0, size.ratio, 0, 0);
 
@@ -85,20 +108,4 @@ export function traceSignal(
 		},
 		{ once: true },
 	);
-}
-
-function columnRange(samples: Uint8Array, column: number, columns: number) {
-	const { end, start } = bucketBounds(samples.length, column, columns);
-
-	let lowest = 255;
-	let highest = 0;
-
-	for (let index = start; index < end; index += 1) {
-		const sample = samples[index] ?? 128;
-
-		if (sample < lowest) lowest = sample;
-		if (sample > highest) highest = sample;
-	}
-
-	return { highest, lowest };
 }

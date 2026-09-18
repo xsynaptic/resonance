@@ -79,7 +79,7 @@
 		"knip": "^6.35.1",
 		"lefthook": "^2.1.14",
 		"markdown-it": "^15.0.2",
-		"prettier": "^3.9.6",
+		"prettier": "^3.9.7",
 		"prettier-plugin-astro": "^1.0.0",
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"sanitize-html": "^2.17.7",

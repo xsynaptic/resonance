@@ -1,16 +1,22 @@
 import chalk from 'chalk';
 
 export interface DeployConfig {
+	fileServerConfigOwner: string;
+	fileServerConfigPath: string;
 	filesUrl: string;
 	remoteHost: string;
 	siteUrl: string;
+	stagingPath: string;
 }
 
-// Only what varies; the remote paths are fixed and live beside the code that uses them
+// The box's own layout, read from the environment so the repo never names its paths or accounts
 const requiredEnv = {
+	fileServerConfigOwner: 'DEPLOY_FILE_SERVER_CONFIG_OWNER',
+	fileServerConfigPath: 'DEPLOY_FILE_SERVER_CONFIG_PATH',
 	filesUrl: 'FILES_URL',
 	remoteHost: 'DEPLOY_REMOTE_HOST',
 	siteUrl: 'DEPLOY_SITE_URL',
+	stagingPath: 'DEPLOY_STAGING_PATH',
 } as const;
 
 // Every wrangler call reads these; without them it falls back to OAuth, whose refresh is not scriptable
@@ -20,8 +26,11 @@ const exampleEnv = [
 	'  deploy/.env:',
 	'    CLOUDFLARE_ACCOUNT_ID=<account-id>',
 	'    CLOUDFLARE_API_TOKEN=<token with Workers Scripts:Edit, Workers Routes:Edit, D1:Edit>',
+	'    DEPLOY_FILE_SERVER_CONFIG_OWNER=<user>:<group>',
+	'    DEPLOY_FILE_SERVER_CONFIG_PATH=<absolute path to the live config directory>',
 	'    DEPLOY_REMOTE_HOST=<ssh-host-alias>',
 	'    DEPLOY_SITE_URL=https://resonance.<account>.workers.dev/',
+	'    DEPLOY_STAGING_PATH=<absolute path to the staging directory>',
 	'  .env:',
 	'    FILES_URL=https://files.djbasilisk.com/',
 ];

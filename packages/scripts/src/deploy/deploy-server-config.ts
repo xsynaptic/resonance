@@ -6,11 +6,6 @@ import type { DeployConfig } from '#deploy/deploy-config.ts';
 import { rsyncTo, sshExec } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain } from '#shared/utils.ts';
 
-// Remote server layout; the vhost beside this already names that box's IP and paths
-const stagingPath = '<staging-path>';
-const nginxSitesPath = '<nginx-sites-path>';
-const nginxSitesOwner = '<user>:<group>';
-
 interface DeployServerConfigOptions {
 	config: DeployConfig;
 	dryRun?: boolean;
@@ -18,18 +13,20 @@ interface DeployServerConfigOptions {
 }
 
 // Staging prunes, or a vhost renamed here is pushed live again from the copy left behind
-// The apply never --delete, since the-other-vhost.conf shares the live directory with us
+// The apply never --delete, since other sites share the live directory with us
 export async function deployServerConfig(options: DeployServerConfigOptions): Promise<void> {
 	const { config, dryRun = false, rootPath } = options;
 
 	await ensureSshKeychain();
 
 	const deployDir = path.join(rootPath, 'deploy');
-	const { remoteHost } = config;
+	const { fileServerConfigPath, remoteHost, stagingPath } = config;
 
 	console.log(chalk.blue('Deploying server config...'));
 	console.log(
-		chalk.gray(`  nginx: ${deployDir}/nginx/sites-enabled/ -> ${remoteHost}:${nginxSitesPath}/`),
+		chalk.gray(
+			`  nginx: ${deployDir}/nginx/sites-enabled/ -> ${remoteHost}:${fileServerConfigPath}/`,
+		),
 	);
 	console.log(chalk.gray(`  stats: ${deployDir}/stats/ -> ${remoteHost}:/usr/local/bin/`));
 	console.log(chalk.gray(`  units: ${deployDir}/systemd/ -> ${remoteHost}:/etc/systemd/system/`));
@@ -38,6 +35,7 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 
 	const start = Date.now();
 
+	// The vhosts are gitignored, so this directory is local-only and absent from a fresh clone
 	await rsyncTo(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
 		archive: 'av',
 		config,
@@ -56,7 +54,7 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 		dryRun,
 	});
 
-	await sshExec(config, applyNginxSites(), { dryRun });
+	await sshExec(config, applyNginxSites(config), { dryRun });
 
 	// Separate from nginx so a failure in one does not strand the other half-applied
 	// `daemon-reload` picks up unit edits; the timer is enabled once by hand on first provision
@@ -73,7 +71,8 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 	console.log(chalk.green(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`));
 }
 
-function applyNginxSites(): string {
+function applyNginxSites(config: DeployConfig): string {
+	const { fileServerConfigOwner, fileServerConfigPath, stagingPath } = config;
 	const stagedPath = `${stagingPath}/nginx/sites-enabled`;
 
 	return [
@@ -81,20 +80,20 @@ function applyNginxSites(): string {
 		`backup=$(mktemp -d)`,
 		`for staged in ${stagedPath}/*; do`,
 		`  name=$(basename "$staged")`,
-		`  live="${nginxSitesPath}/$name"`,
+		`  live="${fileServerConfigPath}/$name"`,
 		`  if [ -e "$live" ]; then sudo cp -a "$live" "$backup/$name"; fi`,
 		`done`,
-		`sudo rsync -av --chown=${nginxSitesOwner} ${stagedPath}/ ${nginxSitesPath}/`,
+		`sudo rsync -av --chown=${fileServerConfigOwner} ${stagedPath}/ ${fileServerConfigPath}/`,
 		`if sudo nginx -t; then`,
 		`  sudo systemctl reload nginx`,
 		`  sudo rm -rf "$backup"`,
 		`else`,
 		`  for staged in ${stagedPath}/*; do`,
 		`    name=$(basename "$staged")`,
-		`    live="${nginxSitesPath}/$name"`,
+		`    live="${fileServerConfigPath}/$name"`,
 		`    if [ -e "$backup/$name" ]; then sudo mv "$backup/$name" "$live"; else sudo rm -f "$live"; fi`,
 		`  done`,
-		`  echo "nginx -t failed; ${nginxSitesPath} rolled back, nginx untouched"`,
+		`  echo "nginx -t failed; ${fileServerConfigPath} rolled back, nginx untouched"`,
 		`  sudo nginx -t`,
 		`  exit 1`,
 		`fi`,

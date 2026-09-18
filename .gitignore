@@ -30,7 +30,7 @@ astro-build.jsonl
 
 # deploy details
 deploy/certs
-deploy/nginx/sites-enabled/*.conf
+deploy/nginx/
 
 # local editor / tooling
 .claude/reference

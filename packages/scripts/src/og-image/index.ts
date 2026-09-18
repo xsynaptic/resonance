@@ -14,7 +14,6 @@ import { getBuiltEntries } from '#og-image/built-entries.ts';
 import { createCardRenderer, resolveFeaturedImagePath } from '#og-image/generate.ts';
 import { createOutputCache, getCacheKey } from '#og-image/output-cache.ts';
 
-// Rendering is CPU-bound and each entry decodes its own image, so one bound serves both
 const concurrency = 12;
 
 interface CardCache {

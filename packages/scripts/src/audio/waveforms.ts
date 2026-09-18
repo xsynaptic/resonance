@@ -8,7 +8,7 @@ import { collectHashedOutputs } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
-const concurrency = 3;
+const concurrency = 6;
 const archiveExtension = '.dat';
 const previewExtension = '.json';
 const tmpExtension = '.tmp';

@@ -14,7 +14,7 @@ import { measureLoudness } from '#audio/loudness.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
-const concurrency = 1;
+const concurrency = 3;
 const renditionExtension = '.mp4';
 const tmpExtension = '.mp4.tmp';
 

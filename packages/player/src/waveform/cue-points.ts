@@ -4,7 +4,7 @@ import type { QueueCuePoint } from '#types.ts';
 const columnsApart = 2;
 
 // Past this share of the width a label opens leftward, ending over its cue point
-const openEndFrom = 2 / 3;
+const openEndFrom = 0.6;
 
 export interface BarGrid {
 	bar: number;

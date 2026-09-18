@@ -14,29 +14,38 @@ const { playlist, priority = false } = Astro.props;
 ---
 
 <button
-	class="group relative block aspect-square w-full cursor-pointer overflow-hidden rounded-lg bg-surface-700 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
+	class="group block w-full cursor-pointer rounded-lg border border-surface-700 bg-surface-600 p-2 text-left focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-highlight-500"
 	data-play-playlist={playlist.items.map((item) => item.itemId).join(' ')}
 	type="button"
 >
-	{playlist.image ? (
-		<MediaImage
-			alt=""
-			class="absolute inset-0 h-full w-full object-cover"
-			path={playlist.image}
-			sizes="auto, (min-width: 80rem) 288px, (min-width: 40rem) 50vw, 100vw"
-			width={300}
-			{...(priority ? { priority: true } : {})}
-		/>
-	) : undefined}
-	<span class="absolute inset-0 bg-linear-to-t from-surface-950/90 via-surface-950/40 to-surface-950/10"></span>
-	<span class="absolute inset-0 flex items-center justify-center">
-		<span class="flex size-16 items-center justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-surface-950/50 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
-			<svg aria-hidden="true" class="ml-1 size-7 fill-current group-data-playing:hidden">
-				<use href="#icon:play"></use>
-			</svg>
-			<svg aria-hidden="true" class="hidden size-7 fill-current group-data-playing:block">
-				<use href="#icon:pause"></use>
-			</svg>
+	<span class="media-frame relative isolate block aspect-3/2 w-full overflow-hidden rounded-xs">
+		{playlist.image ? (
+			<MediaImage
+				alt=""
+				class="absolute inset-0 h-full w-full object-cover contrast-125 grayscale"
+				path={playlist.image}
+				sizes="auto, (min-width: 80rem) 288px, (min-width: 40rem) 50vw, 100vw"
+				width={300}
+				{...(priority ? { priority: true } : {})}
+			/>
+		) : undefined}
+		<span class="absolute inset-0 bg-highlight-700 mix-blend-multiply"></span>
+		<span class="absolute inset-0 bg-linear-to-t from-highlight-950/90 via-highlight-950/20 to-transparent"></span>
+		<span class="absolute inset-0 flex items-center justify-center">
+			<span class="flex size-16 items-center justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-highlight-950/60 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
+				<svg aria-hidden="true" class="ml-1 size-7 fill-current group-data-playing:hidden">
+					<use href="#icon:play"></use>
+				</svg>
+				<svg aria-hidden="true" class="hidden size-7 fill-current group-data-playing:block">
+					<use href="#icon:pause"></use>
+				</svg>
+			</span>
+		</span>
+		<span
+			aria-hidden="true"
+			class="absolute inset-x-0 bottom-0 p-3 font-display text-xl font-bold text-highlight-300"
+		>
+			{playlist.title}
 		</span>
 	</span>
 	<span class="sr-only group-data-playing:hidden">
@@ -44,11 +53,5 @@ const { playlist, priority = false } = Astro.props;
 	</span>
 	<span class="sr-only hidden group-data-playing:inline">
 		{formatStringTemplate(t('home.playlists.pause'), { title: playlist.title })}
-	</span>
-	<span
-		aria-hidden="true"
-		class="absolute inset-x-0 bottom-0 p-4 font-display text-xl font-bold text-ink-50"
-	>
-		{playlist.title}
 	</span>
 </button>

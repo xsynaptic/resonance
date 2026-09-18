@@ -166,16 +166,29 @@ describe('<player-overlay>', () => {
 		).toBe('false');
 	});
 
-	test('offers only the Queue for an item without cue points', async () => {
+	test('holds the Tracklist tab disabled for an item without cue points', async () => {
 		const mounted = mountOverlay();
 
 		mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
 		await openOverlay(mounted);
 
+		const queue = getByRole(mounted.dialog, 'tab', { name: labels.queue });
+
 		expect(getAllByRole(mounted.dialog, 'tab').map((tab) => tab.textContent)).toStrictEqual([
+			labels.tracklist,
 			labels.queue,
 		]);
+		expect(getByRole(mounted.dialog, 'tab', { name: labels.tracklist })).toHaveProperty(
+			'disabled',
+			true,
+		);
+		expect(queue.getAttribute('aria-selected')).toBe('true');
 		expect(getAllByRole(mounted.dialog, 'listitem')).toHaveLength(2);
+
+		queue.focus();
+		fireEvent.keyDown(queue, { key: 'ArrowLeft' });
+
+		expect(document.activeElement).toBe(queue);
 	});
 });
 

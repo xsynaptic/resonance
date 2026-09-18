@@ -38,7 +38,7 @@
 	--player-waveform-scrub: var(--color-ink-400);
 	--player-panel-wave: var(--color-ink-100);
 	--player-panel-wave-peak: var(--color-ink-900);
-	--player-panel-ghost: var(--color-ink-400);
+	--player-panel-ghost: var(--color-highlight-600);
 	--player-panel-grid: var(--color-surface-600);
 	--player-panel-ends: var(--color-surface-300);
 	--player-panel-cue: var(--color-ink-100);

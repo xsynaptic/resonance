@@ -3,12 +3,13 @@
 	box-sizing: border-box;
 	width: 100%;
 	max-width: none;
-	height: 100dvh;
+	height: 100svh;
 	max-height: none;
 	padding: 0;
 	margin: 0;
-	overflow: hidden;
+	overflow: clip;
 	color: var(--player-title);
+	touch-action: none;
 	background-color: var(--player-surface);
 	border: 0;
 }
@@ -174,6 +175,7 @@
 	inset-inline: calc(-1 * var(--player-overlay-inset-left))
 		calc(-1 * var(--player-overlay-inset-right));
 	grid-row: 1;
+	background-color: var(--player-panel-well);
 }
 
 @container player-overlay (orientation: landscape) {
@@ -354,6 +356,10 @@
 	outline-offset: 0;
 }
 
+.player-overlay-tab:disabled {
+	color: var(--player-control-inert);
+}
+
 .player-overlay-tab[aria-selected='true'] {
 	color: var(--player-title);
 	border-bottom-color: var(--player-control-active);
@@ -394,6 +400,8 @@
 
 .player-overlay-sheet .player-overlay-list {
 	grid-area: list;
+	margin-inline: calc(-1 * var(--player-overlay-inset-left))
+		calc(-1 * var(--player-overlay-inset-right));
 }
 
 .player-overlay-list .player-tray {
@@ -413,6 +421,16 @@
 
 .player-overlay-list :is(.player-tray-header, .player-tray-item, .player-tray-empty) {
 	padding-inline: 0;
+}
+
+.player-overlay-sheet
+	.player-overlay-list
+	:is(.player-tray-header, .player-tray-empty, .player-overlay-tracklist) {
+	margin-inline: var(--player-overlay-inset-left) var(--player-overlay-inset-right);
+}
+
+.player-overlay-sheet .player-overlay-list .player-tray-item {
+	padding-inline: var(--player-overlay-inset-left) var(--player-overlay-inset-right);
 }
 
 .player-overlay-tracklist {

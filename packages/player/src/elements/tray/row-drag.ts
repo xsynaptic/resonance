@@ -1,7 +1,7 @@
 import { dropIndex, movedIndex } from '#queue/reorder.ts';
 
 const autoScrollMarginPx = 32;
-const autoScrollStepPx = 10;
+const autoScrollPxPerSecond = 600;
 
 const dragAttributes = { isDragging: 'data-dragging' } as const satisfies Record<
 	string,
@@ -19,12 +19,15 @@ interface DragSession {
 	controller: AbortController;
 	frame: number | undefined;
 	from: number;
+	lastFrameTime: number | undefined;
 	// Row centres in the list's content box, so scrolling never invalidates them
 	midpoints: Array<number>;
 	pointerId: number;
 	pointerY: number;
 	rowHeight: number;
 	rows: Array<HTMLElement>;
+	scroller: HTMLElement | undefined;
+	scrollRange: number;
 	startContentY: number;
 	to: number;
 }
@@ -53,17 +56,25 @@ export function createRowDrag(
 		paintSession(list, session);
 	}
 
-	function tick(): void {
+	function tick(time: number): void {
 		const list = getList();
 		if (!list || !session) return;
 
-		const step = scrollStep(list, session.pointerY);
-		if (step !== 0) {
-			list.scrollTop += step;
-			paintSession(list, session);
-		}
+		const elapsed = session.lastFrameTime === undefined ? 0 : time - session.lastFrameTime;
 
+		session.lastFrameTime = time;
 		session.frame = requestAnimationFrame(tick);
+
+		const { scroller } = session;
+		if (!scroller) return;
+
+		const step =
+			scrollDirection(scroller, session.pointerY) * autoScrollPxPerSecond * (elapsed / 1000);
+		const scrollTop = Math.min(Math.max(scroller.scrollTop + step, 0), session.scrollRange);
+		if (scrollTop === scroller.scrollTop) return;
+
+		scroller.scrollTop = scrollTop;
+		paintSession(list, session);
 	}
 
 	function finish(shouldCommit: boolean): void {
@@ -105,7 +116,7 @@ export function createRowDrag(
 			if (!opened) return;
 
 			event.currentTarget.setPointerCapture(event.pointerId);
-			list.addEventListener('scroll', paint, { signal: opened.controller.signal });
+			opened.scroller?.addEventListener('scroll', paint, { signal: opened.controller.signal });
 
 			session = opened;
 			opened.frame = requestAnimationFrame(tick);
@@ -144,6 +155,7 @@ function openSession(list: HTMLElement, event: RowPointer, from: number): DragSe
 
 	const listTop = list.getBoundingClientRect().top;
 	const { scrollTop } = list;
+	const scroller = scrollerOf(list);
 
 	row.toggleAttribute(dragAttributes.isDragging, true);
 
@@ -151,6 +163,7 @@ function openSession(list: HTMLElement, event: RowPointer, from: number): DragSe
 		controller: new AbortController(),
 		frame: undefined,
 		from,
+		lastFrameTime: undefined,
 		midpoints: rows.map((node) => {
 			const rect = node.getBoundingClientRect();
 
@@ -160,6 +173,8 @@ function openSession(list: HTMLElement, event: RowPointer, from: number): DragSe
 		pointerY: event.clientY,
 		rowHeight: row.getBoundingClientRect().height,
 		rows,
+		scroller,
+		scrollRange: scroller ? scroller.scrollHeight - scroller.clientHeight : 0,
 		startContentY: event.clientY - listTop + scrollTop,
 		to: from,
 	};
@@ -180,11 +195,24 @@ function paintSession(list: HTMLElement, session: DragSession): void {
 	}
 }
 
-function scrollStep(list: HTMLElement, pointerY: number): number {
-	const rect = list.getBoundingClientRect();
+function scrollDirection(scroller: HTMLElement, pointerY: number): number {
+	const rect = scroller.getBoundingClientRect();
 
-	if (pointerY - rect.top < autoScrollMarginPx) return -autoScrollStepPx;
-	if (rect.bottom - pointerY < autoScrollMarginPx) return autoScrollStepPx;
+	if (pointerY - rect.top < autoScrollMarginPx) return -1;
+	if (rect.bottom - pointerY < autoScrollMarginPx) return 1;
 
 	return 0;
+}
+
+// The overlay lifts the list's height cap, so an ancestor scrolls there instead
+function scrollerOf(list: HTMLElement): HTMLElement | undefined {
+	for (let node: HTMLElement | null = list; node; node = node.parentElement) {
+		const { overflowY } = getComputedStyle(node);
+
+		if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
+			return node;
+		}
+	}
+
+	return undefined;
 }

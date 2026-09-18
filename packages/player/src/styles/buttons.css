@@ -117,6 +117,7 @@
 
 .player-seek-button {
 	color: color-mix(in oklab, var(--player-control) 80%, var(--player-surface));
+	user-select: none;
 }
 
 @media (hover: hover) {

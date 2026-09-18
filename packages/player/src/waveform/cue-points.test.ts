@@ -22,8 +22,8 @@ describe('layoutCuePoints', () => {
 		expect(cuePoint?.x).toBe(298);
 	});
 
-	test('opens labels rightward over the first two thirds and leftward past that', () => {
-		const placed = layoutCuePoints([cue(0), cue(66), cue(67)], 100, grid);
+	test('opens labels rightward over the first 60% and leftward past that', () => {
+		const placed = layoutCuePoints([cue(0), cue(59), cue(60)], 100, grid);
 
 		expect(placed.map((cuePoint) => cuePoint.side)).toEqual(['start', 'start', 'end']);
 	});

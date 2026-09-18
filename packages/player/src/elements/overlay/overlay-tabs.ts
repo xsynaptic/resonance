@@ -2,16 +2,10 @@ import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 
 import { bind } from '#lib/bind.ts';
-import { placeWhen } from '#lib/place-when.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { displayedItem } from '#store/selectors.ts';
 
 type OverlayList = 'queue' | 'tracklist';
-
-interface TabParts {
-	buttons: Record<OverlayList, HTMLButtonElement>;
-	tablist: HTMLElement;
-}
 
 interface TabsView {
 	itemId: string | undefined;
@@ -48,7 +42,7 @@ export function bindTabs(
 		const wasFocused = tabs.contains(document.activeElement);
 		const key = shown === 'tracklist' ? `tracklist:${view.itemId ?? ''}` : shown;
 
-		applyTabs({ buttons, tablist }, view.lists, shown);
+		applyTabs(buttons, view.lists, shown);
 		panel.setAttribute('aria-labelledby', buttons[shown].id);
 
 		if (key !== shownKey) {
@@ -64,7 +58,7 @@ export function bindTabs(
 	};
 
 	panel.id = `${id}-panel`;
-	tablist.append(buttons.queue);
+	tablist.append(buttons.tracklist, buttons.queue);
 
 	for (const list of ['queue', 'tracklist'] as const) {
 		const button = buttons[list];
@@ -99,16 +93,11 @@ export function bindTabs(
 }
 
 function applyTabs(
-	{ buttons, tablist }: TabParts,
+	buttons: Record<OverlayList, HTMLButtonElement>,
 	lists: ReadonlyArray<OverlayList>,
 	shown: OverlayList,
 ): void {
-	placeWhen({
-		isShown: lists.includes('tracklist'),
-		node: buttons.tracklist,
-		parent: tablist,
-		position: 'prepend',
-	});
+	buttons.tracklist.disabled = !lists.includes('tracklist');
 
 	for (const list of ['queue', 'tracklist'] as const) {
 		buttons[list].setAttribute('aria-selected', String(list === shown));

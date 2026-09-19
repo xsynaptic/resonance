@@ -61,6 +61,8 @@ export function bindMediaSession(
 
 		if (item?.queueId !== boundQueueId) {
 			boundQueueId = item?.queueId;
+			// A switch mid-play passes only through loading, so the next track's start would read as no change
+			boundState = undefined;
 			reported = undefined;
 			setMetadata(item);
 		}

@@ -314,9 +314,10 @@ describe('transport', () => {
 	test('ignores a delta while no duration is known', () => {
 		const store = configured();
 
-		store.getState().playTrack(release, 'a');
+		const { durationMs: _durationMs, ...unmeasured } = makeItem('a');
+
+		store.getState().playTrack([unmeasured], 'a');
 		fake.callbacks.current?.onTime(10);
-		fake.callbacks.current?.onDuration(undefined);
 		store.getState().seekBy(30);
 
 		expect(store.getState().currentTimeSeconds).toBe(10);

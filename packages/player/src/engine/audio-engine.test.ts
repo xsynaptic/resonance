@@ -110,6 +110,17 @@ describe('audio engine', () => {
 		expect(callbacks.onTime).toHaveBeenCalled();
 	});
 
+	test('a stream without a finite length reports no duration over the queue one', () => {
+		const callbacks = createCallbacks();
+
+		void createAudioEngine(callbacks).load(request);
+
+		const [element] = media.load.mock.contexts as Array<HTMLMediaElement>;
+
+		element?.dispatchEvent(new Event('loadedmetadata'));
+		expect(callbacks.onDuration).not.toHaveBeenCalled();
+	});
+
 	test('unloading drops the source so the old track stops downloading', () => {
 		const engine = createAudioEngine(createCallbacks());
 

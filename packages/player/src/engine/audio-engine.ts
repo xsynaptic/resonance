@@ -17,7 +17,7 @@ export interface AudioEngine {
 
 export interface AudioEngineCallbacks {
 	isPaused: () => boolean;
-	onDuration: (durationSeconds: number | undefined) => void;
+	onDuration: (durationSeconds: number) => void;
 	onEnded: () => void;
 	onError: (stage: PlaybackErrorStage) => void;
 	onStatus: (status: 'loading' | 'paused' | 'playing') => void;
@@ -51,7 +51,8 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		callbacks.onTime(audio.currentTime);
 	});
 	audio.addEventListener('loadedmetadata', () => {
-		callbacks.onDuration(Number.isFinite(audio.duration) ? audio.duration : undefined);
+		// A stream served without a length keeps the queue's duration, which the lock screen needs for its controls
+		if (Number.isFinite(audio.duration)) callbacks.onDuration(audio.duration);
 
 		if (pendingResumeAtSeconds === undefined) return;
 

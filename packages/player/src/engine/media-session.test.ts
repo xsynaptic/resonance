@@ -174,6 +174,22 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toMatchObject({ init: { title: 'Track a' } });
 	});
 
+	test('sets the metadata again when a switch mid-play starts the next track', () => {
+		const store = loadedStore();
+
+		bindMediaSession(store);
+		store.setState({ currentIndex: 0 });
+		setStatus(store, 'playing');
+		store.setState({ currentIndex: 1, status: 'loading' });
+
+		const switched = mediaSession.metadata;
+
+		setStatus(store, 'playing');
+
+		expect(mediaSession.metadata).not.toBe(switched);
+		expect(mediaSession.metadata).toMatchObject({ init: { title: 'Track b' } });
+	});
+
 	test('leaves the playback state alone while loading', () => {
 		const store = loadedStore();
 

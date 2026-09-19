@@ -125,7 +125,7 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toBe(null);
 	});
 
-	test('hands over renditions up to 512px, smallest first', () => {
+	test('hands over only the widest rendition up to 512px', () => {
 		const store = loadedStore();
 		const [first] = store.getState().queue;
 		if (!first) throw new Error('The queue loaded nothing');
@@ -147,11 +147,7 @@ describe('bindMediaSession', () => {
 
 		expect(mediaSession.metadata).toMatchObject({
 			init: {
-				artwork: [
-					{ sizes: '120x120', src: '/artwork-120.webp', type: 'image/webp' },
-					{ sizes: '240x240', src: '/artwork-240.webp', type: 'image/webp' },
-					{ sizes: '512x512', src: '/artwork-512.webp', type: 'image/webp' },
-				],
+				artwork: [{ sizes: '512x512', src: '/artwork-512.webp', type: 'image/webp' }],
 			},
 		});
 	});

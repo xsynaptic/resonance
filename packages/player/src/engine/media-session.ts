@@ -207,17 +207,23 @@ function setMetadata(item: QueuedItem | undefined): void {
 		return;
 	}
 
+	const artwork = (item.artwork ?? []).findLast(
+		({ width }) => width <= mediaSessionArtworkMaxWidth,
+	);
+
 	navigator.mediaSession.metadata = new MediaMetadata({
 		album: item.releaseTitle,
 		artist: item.artistLine,
-		// Gecko ignores `sizes` and takes the first that decodes; artwork is ascending by width, so the smallest leads
-		artwork: (item.artwork ?? [])
-			.filter(({ width }) => width <= mediaSessionArtworkMaxWidth)
-			.map(({ src, type, width }) => ({
-				sizes: `${String(width)}x${String(width)}`,
-				src,
-				...(type === undefined ? {} : { type }),
-			})),
+		artwork:
+			artwork === undefined
+				? []
+				: [
+						{
+							sizes: `${String(artwork.width)}x${String(artwork.width)}`,
+							src: artwork.src,
+							...(artwork.type === undefined ? {} : { type: artwork.type }),
+						},
+					],
 		title: item.title,
 	});
 }

@@ -5,7 +5,7 @@
 	max-width: none;
 	height: 100lvh;
 	max-height: none;
-	padding: 0 0 calc(100lvh - 100svh);
+	padding: 0 0 calc(100lvh - 100dvh);
 	margin: 0;
 	overflow: clip;
 	color: var(--player-title);
@@ -154,9 +154,10 @@
 	}
 
 	.player-overlay-body[data-layout='phone'] .player-overlay-art {
+		place-items: center;
 		margin-block: calc(-1 * var(--player-overlay-inset-top))
 			calc(-1 * var(--player-overlay-inset-bottom));
-		margin-inline-end: 0;
+		margin-inline: calc(env(safe-area-inset-left) - var(--player-overlay-inset-left)) 0;
 		container-type: normal;
 	}
 
@@ -380,7 +381,7 @@
 	flex-direction: column;
 	gap: var(--player-gap);
 	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
-		calc(var(--player-overlay-inset-bottom) + 100lvh - 100svh) var(--player-overlay-inset-left);
+		calc(var(--player-overlay-inset-bottom) + 100lvh - 100dvh) var(--player-overlay-inset-left);
 }
 
 .player-overlay-sheet .player-overlay-tabs {
@@ -407,6 +408,7 @@
 .player-overlay-list .player-tray {
 	position: static;
 	width: auto;
+	max-height: none;
 	margin: 0;
 	overflow: visible;
 	background-color: transparent;
@@ -415,8 +417,10 @@
 	box-shadow: none;
 }
 
+/* Left a scroll container, it swallows the touch pan meant for the list around it */
 .player-overlay-list .player-tray-list {
 	max-height: none;
+	overflow: visible;
 }
 
 .player-overlay-list :is(.player-tray-header, .player-tray-item, .player-tray-empty) {

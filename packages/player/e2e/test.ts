@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import type { PlaybackDiagnostic } from '@xsynaptic/player';
 
 import { test as base, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
@@ -53,6 +54,7 @@ interface Observed {
 interface PlayerSnapshot {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
+	diagnostics: Array<PlaybackDiagnostic>;
 	element: ElementSnapshot | undefined;
 	isPaused: boolean;
 	playbackError: undefined | { itemId: string; stage: string };
@@ -172,6 +174,7 @@ function readPlayer(page: Page): Promise<PlayerSnapshot> {
 		return {
 			currentIndex: state.currentIndex,
 			currentTimeSeconds: state.currentTimeSeconds,
+			diagnostics: playerPage.diagnostics,
 			element: element && {
 				currentSrc: element.currentSrc,
 				currentTime: element.currentTime,

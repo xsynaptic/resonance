@@ -17,6 +17,13 @@ test('a missing stream ends in error after one re-resolve', async ({
 
 	await expect(page.getByRole('status').filter({ hasText: labels.error })).toBeVisible();
 	expect(await harness.read()).toMatchObject({ resolveCount: 2, status: 'error' });
+
+	const { diagnostics } = await harness.read();
+
+	expect(diagnostics).toContainEqual(
+		expect.objectContaining({ code: expect.any(Number), isRetry: true, kind: 'media-error' }),
+	);
+	expect(diagnostics).not.toContainEqual(expect.objectContaining({ kind: 'retry-recovered' }));
 });
 
 test('a retry after a failed load resumes from the restored position', async ({
@@ -40,9 +47,12 @@ test('a retry after a failed load resumes from the restored position', async ({
 	await page.getByRole('button', { exact: true, name: labels.play }).click();
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'playing' });
 
-	const { element, resolveCount } = await harness.read();
+	const { diagnostics, element, resolveCount } = await harness.read();
 
 	expect(resolveCount).toBe(2);
+	expect(diagnostics).toContainEqual(
+		expect.objectContaining({ isRetry: true, kind: 'retry-recovered', stage: expect.any(String) }),
+	);
 	expect(Math.abs((element?.currentTime ?? 0) - saved)).toBeLessThan(3);
 	expect(await harness.requests()).toContainEqual(expect.objectContaining({ status: 404 }));
 });

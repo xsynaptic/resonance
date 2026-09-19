@@ -31,13 +31,11 @@ test('a press held 8000ms before the player binds is refused by WebKit', async (
 	await harness.waitForBind();
 
 	await expect
-		.poll(() =>
-			page.evaluate(() => {
-				const diagnostic = window.playerPage?.store.getState().diagnostic;
+		.poll(async () => {
+			const { diagnostics } = await harness.read();
 
-				return diagnostic?.kind === 'play-rejected' ? diagnostic.name : undefined;
-			}),
-		)
-		.toBe('NotAllowedError');
+			return diagnostics;
+		})
+		.toContainEqual(expect.objectContaining({ kind: 'play-rejected', name: 'NotAllowedError' }));
 	expect(await harness.read()).toMatchObject({ isPaused: true, status: 'paused' });
 });

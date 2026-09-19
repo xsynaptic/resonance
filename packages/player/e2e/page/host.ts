@@ -1,4 +1,10 @@
-import type { createPlayerStore, PlayerUrls, QueueItem, StreamResolution } from '@xsynaptic/player';
+import type {
+	createPlayerStore,
+	PlaybackDiagnostic,
+	PlayerUrls,
+	QueueItem,
+	StreamResolution,
+} from '@xsynaptic/player';
 
 import {
 	controlSelector,
@@ -11,6 +17,7 @@ import { fixtureOrigin, seekSeconds } from '#e2e/constants.ts';
 import { labels } from '#test/labels.ts';
 
 interface PlayerPage {
+	diagnostics: Array<PlaybackDiagnostic>;
 	readonly resolveCount: number;
 	store: ReturnType<typeof createPlayerStore>;
 }
@@ -143,8 +150,18 @@ holding.abort();
 bindPageControls(playerStore, document);
 bindMediaSession(playerStore, seekSeconds);
 
+// The store keeps only the latest; the site sends every one, so a spec reads them all
+const diagnostics: Array<PlaybackDiagnostic> = [];
+
+playerStore.subscribe((state, previous) => {
+	if (!state.diagnostic || state.diagnostic === previous.diagnostic) return;
+
+	diagnostics.push(state.diagnostic);
+});
+
 Object.defineProperty(window, 'playerPage', {
 	value: {
+		diagnostics,
 		get resolveCount() {
 			return resolveCount;
 		},

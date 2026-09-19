@@ -69,7 +69,17 @@ async function getArtwork(mediaPath: string | undefined): Promise<Array<QueueArt
 				width,
 			});
 
-			return { src: rendition.src, width };
+			const type = getMimeType(rendition.options.format);
+
+			return { src: rendition.src, width, ...(type === undefined ? {} : { type }) };
 		}),
 	);
+}
+
+function getMimeType(format: string | undefined): string | undefined {
+	if (format === undefined) return undefined;
+	if (format === 'jpg') return 'image/jpeg';
+	if (format === 'svg') return 'image/svg+xml';
+
+	return `image/${format}`;
 }

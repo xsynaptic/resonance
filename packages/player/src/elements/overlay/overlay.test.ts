@@ -40,7 +40,7 @@ afterEach(() => {
 });
 
 describe('<player-overlay>', () => {
-	test('opens on expand with close focused, and closes from close and from the dialog dropping open', async () => {
+	test('opens on expand, and closes from close and from the dialog dropping open', async () => {
 		const mounted = mountOverlay();
 
 		mounted.store.getState().loadQueue([queueItem('a'), queueItem('b')]);
@@ -48,7 +48,6 @@ describe('<player-overlay>', () => {
 		const close = await openOverlay(mounted);
 
 		expect(mounted.dialog.open).toBe(true);
-		expect(document.activeElement).toBe(close);
 
 		close.click();
 
@@ -225,7 +224,7 @@ describe('the overlay tabs', () => {
 });
 
 describe('the overlay sheet', () => {
-	test('raises the tabs over the phone layout and closes back to its button', async () => {
+	test('raises the tabs over the phone layout, focused on the sheet, and closes', async () => {
 		vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
 			new DOMRect(0, 0, 390, 844),
 		);
@@ -242,6 +241,7 @@ describe('the overlay sheet', () => {
 		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: labels.lists });
 
 		expect(sheet).toHaveProperty('open', true);
+		expect(document.activeElement).toBe(sheet);
 		expect(getByRole(sheet, 'tab', { name: labels.tracklist }).getAttribute('aria-selected')).toBe(
 			'true',
 		);
@@ -251,6 +251,38 @@ describe('the overlay sheet', () => {
 
 		expect(sheet).toHaveProperty('open', false);
 		expect(mounted.store.getState().isOverlayOpen).toBe(true);
-		expect(document.activeElement).toBe(opener);
+	});
+
+	test('dismisses on a drag down the header row and reopens in place', async () => {
+		vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+			new DOMRect(0, 0, 390, 844),
+		);
+
+		const mounted = mountOverlay();
+
+		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
+		await openOverlay(mounted);
+
+		const opener = getByRole(mounted.dialog, 'button', { name: labels.lists });
+
+		opener.click();
+
+		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: labels.lists });
+		const tablist = getByRole(sheet, 'tablist');
+
+		fireEvent.pointerDown(tablist, { button: 0, clientY: 100, pointerId: 1 });
+		fireEvent.pointerMove(tablist, { clientY: 400, pointerId: 1 });
+
+		expect(sheet.style.translate).toBe('0 300px');
+
+		vi.spyOn(globalThis, 'matchMedia').mockReturnValue({ matches: true } as MediaQueryList);
+		fireEvent.pointerUp(tablist, { clientY: 400, pointerId: 1 });
+
+		expect(sheet).toHaveProperty('open', false);
+		expect(mounted.store.getState().isOverlayOpen).toBe(true);
+
+		opener.click();
+
+		expect(sheet.style.translate).toBe('');
 	});
 });

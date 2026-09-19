@@ -29,19 +29,14 @@ export function bindSheets(
 		'click',
 		() => {
 			dialog.showModal();
+			// Safari reads a script focus after a tap as keyboard focus, so a control focused here draws a ring
+			dialog.focus();
 		},
 		{ signal },
 	);
 	close.setAttribute('aria-label', labels.close);
 	close.append(cloneIcon('closeLarge'));
 	close.addEventListener('click', closeSheet, { signal });
-	dialog.addEventListener(
-		'close',
-		() => {
-			if (opener.isConnected) opener.focus();
-		},
-		{ signal },
-	);
 
 	return { close, closeSheet, dialog };
 }

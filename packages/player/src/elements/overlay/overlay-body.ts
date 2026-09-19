@@ -20,6 +20,7 @@ interface BodyParts {
 	next: HTMLElement;
 	previous: HTMLElement;
 	sheets: HTMLElement;
+	tablist: HTMLElement;
 	tabs: HTMLElement;
 }
 
@@ -82,7 +83,7 @@ const renderBody = template(
 							type="button"
 						></button
 						><player-panel-toggle></player-panel-toggle>
-						<dialog class="player-overlay-sheet">
+						<dialog class="player-overlay-sheet" tabindex="-1">
 							<button
 								class="player-button player-button-icon player-overlay-close"
 								type="button"
@@ -133,13 +134,20 @@ export function connectOverlayBody(
 	);
 	bindTabs(parts.tabs, context, signal);
 	host.append(parts.body);
-	bindOverlayGrab(
-		{
-			body: parts.body,
-			onDismiss: () => {
-				store.getState().setOverlayOpen(false);
+	if (root.isArtworkEnabled) {
+		bindOverlayGrab(
+			{
+				onDismiss: () => {
+					store.getState().setOverlayOpen(false);
+				},
+				region: parts.art,
+				sheet: parts.body.closest('dialog') ?? parts.body,
 			},
-		},
+			signal,
+		);
+	}
+	bindOverlayGrab(
+		{ onDismiss: sheet.closeSheet, region: parts.tablist, sheet: sheet.dialog },
 		signal,
 	);
 	bindLayout(
@@ -163,12 +171,8 @@ export function connectOverlayBody(
 		},
 		signal,
 	);
-
-	// A first open lands here after the dialog opened with nothing to focus; outside a dialog it takes no focus
-	if (host.closest('dialog[open]')) parts.close.focus();
 }
 
-// Measured rather than queried in CSS, since a layout change moves the tabs and has to close an open sheet
 function bindLayout(
 	body: HTMLElement,
 	apply: (layout: OverlayLayout) => void,
@@ -182,7 +186,7 @@ function bindLayout(
 		if (width === 0) return;
 
 		const layout = layoutFor(width, height);
-		// Re-placing the tabs would blur whatever holds focus and drop the list's scroll position
+
 		if (layout === applied) return;
 
 		applied = layout;
@@ -192,7 +196,6 @@ function bindLayout(
 	measure();
 }
 
-// The client router leaves a modified click, another target and a download to the browser, which keeps this page
 function isLeavingPage(event: LinkClick): boolean {
 	if (isModifiedClick(event)) return false;
 
@@ -221,6 +224,7 @@ function renderBodyParts(): BodyParts {
 	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
 	const head = requireChild(body, '.player-overlay-head', HTMLElement);
 	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);
+	const tablist = requireChild(body, '.player-overlay-tablist', HTMLElement);
 	const tabs = requireChild(body, '.player-overlay-tabs', HTMLElement);
 	const [previous, next] = [...body.querySelectorAll('player-step-button')];
 
@@ -232,5 +236,5 @@ function renderBodyParts(): BodyParts {
 		...controls.querySelectorAll<HTMLElement>(':scope > :not(.player-transport)'),
 	];
 
-	return { art, body, close, columnsOnly, head, next, previous, sheets, tabs };
+	return { art, body, close, columnsOnly, head, next, previous, sheets, tablist, tabs };
 }

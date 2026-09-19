@@ -59,6 +59,7 @@ export interface PlayerUrls {
 // One square rendition; `width` is its size in pixels
 export interface QueueArtwork {
 	src: string;
+	type?: string;
 	width: number;
 }
 

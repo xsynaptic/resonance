@@ -138,6 +138,7 @@ describe('bindMediaSession', () => {
 					...first,
 					artwork: [120, 240, 512, 900, 1800].map((width) => ({
 						src: `/artwork-${String(width)}.webp`,
+						type: 'image/webp',
 						width,
 					})),
 				},
@@ -147,12 +148,34 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toMatchObject({
 			init: {
 				artwork: [
-					{ sizes: '120x120', src: '/artwork-120.webp' },
-					{ sizes: '240x240', src: '/artwork-240.webp' },
-					{ sizes: '512x512', src: '/artwork-512.webp' },
+					{ sizes: '120x120', src: '/artwork-120.webp', type: 'image/webp' },
+					{ sizes: '240x240', src: '/artwork-240.webp', type: 'image/webp' },
+					{ sizes: '512x512', src: '/artwork-512.webp', type: 'image/webp' },
 				],
 			},
 		});
+	});
+
+	test('sets the metadata again on every start of playback', () => {
+		const store = loadedStore();
+
+		bindMediaSession(store);
+		store.setState({ currentIndex: 0 });
+
+		const loaded = mediaSession.metadata;
+
+		setStatus(store, 'playing');
+		const started = mediaSession.metadata;
+
+		setStatus(store, 'paused');
+
+		expect(mediaSession.metadata).toBe(started);
+
+		setStatus(store, 'playing');
+
+		expect(started).not.toBe(loaded);
+		expect(mediaSession.metadata).not.toBe(started);
+		expect(mediaSession.metadata).toMatchObject({ init: { title: 'Track a' } });
 	});
 
 	test('leaves the playback state alone while loading', () => {

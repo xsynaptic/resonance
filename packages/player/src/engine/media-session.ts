@@ -72,6 +72,9 @@ export function bindMediaSession(
 
 		if (playbackState !== boundState) {
 			boundState = playbackState;
+
+			if (playbackState === 'playing') setMetadata(item);
+
 			navigator.mediaSession.playbackState = playbackState;
 		}
 
@@ -161,7 +164,6 @@ function didSetHandler(
 	}
 }
 
-// The platform advances the position itself while playing, so the last report projects forward and only a discontinuity is worth sending
 function hasLeftProjection(
 	reported: ReportedPosition | undefined,
 	position: Required<MediaPositionState>,
@@ -184,7 +186,6 @@ function playbackStateFor(status: PlayerStatus): MediaSessionPlaybackState {
 	return 'paused';
 }
 
-// The platform throws on a position past the duration
 function positionStateFor({
 	currentTimeSeconds,
 	durationSeconds,
@@ -212,9 +213,10 @@ function setMetadata(item: QueuedItem | undefined): void {
 		// Gecko ignores `sizes` and takes the first that decodes; artwork is ascending by width, so the smallest leads
 		artwork: (item.artwork ?? [])
 			.filter(({ width }) => width <= mediaSessionArtworkMaxWidth)
-			.map(({ src, width }) => ({
+			.map(({ src, type, width }) => ({
 				sizes: `${String(width)}x${String(width)}`,
 				src,
+				...(type === undefined ? {} : { type }),
 			})),
 		title: item.title,
 	});

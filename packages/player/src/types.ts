@@ -43,7 +43,7 @@ export interface PlayerLabels {
 	zoomOut: string;
 }
 
-// `capped` and `unplayable` are terminal like `error`, but nothing failed: the resolver or the browser declined
+// `capped` and `unplayable` are terminal like `error`: the resolver declined, or a load failed on a type the browser's probe had rejected
 export type PlayerStatus =
 	'capped' | 'error' | 'idle' | 'loading' | 'paused' | 'playing' | 'unplayable';
 

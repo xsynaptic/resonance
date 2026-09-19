@@ -10,6 +10,8 @@ import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
 // Nothing worth resuming stays in the engine after any of these
 const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
 
+const unplayableState = { isPaused: true, status: 'unplayable' } satisfies Partial<PlayerStore>;
+
 export interface PlaybackController {
 	currentTime: () => number | undefined;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
@@ -26,6 +28,7 @@ export interface PlaybackController {
 // One trip through resolve-then-load, so a late answer can be recognized as stale
 interface LoadAttempt {
 	isRetry: boolean;
+	isTypeDeclined: boolean;
 }
 
 interface LoadOptions {
@@ -64,7 +67,9 @@ export function createPlaybackController(
 	function onEngineError(stage: PlaybackErrorStage): void {
 		const { currentIndex, currentTimeSeconds, isPaused } = get();
 
-		if (currentIndex !== undefined && loading && !loading.isRetry) {
+		const isUnplayable = stage === 'unsupported' && loading?.isTypeDeclined === true;
+
+		if (!isUnplayable && currentIndex !== undefined && loading && !loading.isRetry) {
 			loadIndex(currentIndex, !isPaused, {
 				isRetry: true,
 				resumeAtSeconds: currentTimeSeconds,
@@ -72,7 +77,7 @@ export function createPlaybackController(
 			return;
 		}
 
-		fail(stage);
+		fail(stage, isUnplayable);
 	}
 
 	// A load that reached playback closes its attempt chain, so a later failure earns a re-resolve of its own
@@ -81,11 +86,11 @@ export function createPlaybackController(
 	}
 
 	// The element and the play promise can both report one failure; clearing the attempt makes the second a no-op
-	function fail(stage: PlaybackErrorStage): void {
+	function fail(stage: PlaybackErrorStage, isUnplayable = false): void {
 		if (loading === undefined) return;
 
 		loading = undefined;
-		set(errorState(get(), stage));
+		set(isUnplayable ? unplayableState : errorState(get(), stage));
 	}
 
 	// The synchronous half of a load: everything autoplay policy requires to happen inside the gesture
@@ -105,16 +110,17 @@ export function createPlaybackController(
 		// Silenced before the next track resolves, so nothing on screen disagrees with what is heard
 		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.reset();
 
-		const attempt: LoadAttempt = { isRetry };
+		const attempt: LoadAttempt = { isRetry, isTypeDeclined: false };
 
 		loading = attempt;
 		loadedQueueId = item.queueId;
 
 		void streamIntoEngine({
+			attempt,
 			engine: activeEngine,
 			isCurrent: () => loading === attempt,
-			onDeclined: (status) => {
-				set({ isPaused: true, status });
+			onCapped: () => {
+				set({ isPaused: true, status: 'capped' });
 			},
 			onFail: () => {
 				fail('resolve');
@@ -230,17 +236,19 @@ function pressOutcome(state: PlayerStore, loadedQueueId: string | undefined): Pr
 
 // The asynchronous half of a load, which runs outside the gesture and may answer for an attempt that has since been dropped
 async function streamIntoEngine({
+	attempt,
 	engine,
 	isCurrent,
-	onDeclined,
+	onCapped,
 	onFail,
 	readPosition,
 	stream,
 }: {
+	attempt: LoadAttempt;
 	engine: AudioEngine;
 	isCurrent: () => boolean;
-	// Neither is retried: a re-resolve answers the same, and so does the browser for the same format
-	onDeclined: (status: 'capped' | 'unplayable') => void;
+	// Not retried: a re-resolve answers the same
+	onCapped: () => void;
 	onFail: () => void;
 	// Read once the stream resolves, since a seek while it resolved moved the store and not the element
 	readPosition: () => number;
@@ -251,13 +259,12 @@ async function streamIntoEngine({
 		if (!isCurrent()) return;
 
 		if (resolution.status === 'capped') {
-			onDeclined('capped');
+			onCapped();
 			return;
 		}
 
 		if (resolution.type !== undefined && !engine.canPlay(resolution.type)) {
-			onDeclined('unplayable');
-			return;
+			attempt.isTypeDeclined = true;
 		}
 
 		await engine.load({ resumeAtSeconds: readPosition(), src: resolution.url });

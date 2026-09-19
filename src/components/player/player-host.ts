@@ -15,7 +15,8 @@ interface PlayerBarConfig {
 	stylesheetUrl: string;
 }
 
-const streamType = 'audio/mp4; codecs="opus"';
+// The MP4 sample entry code, capital included; Safari answers the lowercase spelling with an empty string
+const streamType = 'audio/mp4; codecs="Opus"';
 
 // Both URLs come from the payload, so neither resolver touches the network
 const urls: PlayerUrls = {

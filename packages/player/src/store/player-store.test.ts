@@ -422,13 +422,33 @@ describe('engine errors', () => {
 		expect(resolved).toStrictEqual(['a']);
 	});
 
-	test('stops at a format the browser cannot play without loading or re-resolving', async () => {
+	test('loads a type the probe declined, and plays it when the probe was wrong', async () => {
+		const store = withResolver(({ itemId }) =>
+			Promise.resolve({
+				status: 'ok',
+				type: 'audio/mp4; codecs="Opus"',
+				url: `https://api.test/tracks/${itemId}/stream`,
+			}),
+		);
+		fake.engine.canPlay.mockReturnValue(false);
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+		fake.callbacks.current?.onStatus('playing');
+
+		expect(fake.engine.canPlay).toHaveBeenCalledWith('audio/mp4; codecs="Opus"');
+		expect(store.getState().status).toBe('playing');
+	});
+
+	test('an unsupported failure on a declined type is unplayable, without a re-resolve', async () => {
 		const resolved: Array<string> = [];
 		const store = withResolver(({ itemId }) => {
 			resolved.push(itemId);
 			return Promise.resolve({
 				status: 'ok',
-				type: 'audio/mp4; codecs="opus"',
+				type: 'audio/x-unplayable',
 				url: `https://api.test/tracks/${itemId}/stream`,
 			});
 		});
@@ -436,12 +456,34 @@ describe('engine errors', () => {
 
 		store.getState().playTrack(release, 'a');
 		await vi.waitFor(() => {
-			expect(store.getState().status).toBe('unplayable');
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		});
+		fake.callbacks.current?.onError('unsupported');
 
-		expect(fake.engine.canPlay).toHaveBeenCalledWith('audio/mp4; codecs="opus"');
-		expect(fake.engine.load).not.toHaveBeenCalled();
+		expect(store.getState().status).toBe('unplayable');
+		expect(store.getState().isPaused).toBe(true);
 		expect(resolved).toStrictEqual(['a']);
+	});
+
+	test('an unsupported failure on a type the probe accepted still earns its re-resolve', async () => {
+		const store = withResolver(({ itemId }) =>
+			Promise.resolve({
+				status: 'ok',
+				type: 'audio/mp4; codecs="Opus"',
+				url: `https://api.test/tracks/${itemId}/stream`,
+			}),
+		);
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+		fake.callbacks.current?.onError('unsupported');
+
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
+		});
+		expect(store.getState().status).not.toBe('unplayable');
 	});
 
 	test('drops a resolve that lands after the listener moved on', async () => {
@@ -657,6 +699,10 @@ describe('play intent', () => {
 				return Promise.resolve(resolution);
 			});
 			fake.engine.canPlay.mockReturnValue(false);
+			fake.engine.load.mockImplementation(() => {
+				fake.callbacks.current?.onError('unsupported');
+				return Promise.resolve();
+			});
 
 			store.getState().playTrack(release, 'a');
 			await vi.waitFor(() => {

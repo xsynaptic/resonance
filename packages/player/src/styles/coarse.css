@@ -35,8 +35,6 @@
 
 	.player-overlay-tab,
 	.player-overlay-list {
-		/* stylelint-disable-next-line property-no-vendor-prefix -- the player stylesheet ships unprefixed and iOS Safari needs the prefix */
-		-webkit-user-select: none;
 		user-select: none;
 	}
 

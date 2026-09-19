@@ -131,6 +131,8 @@ export default defineConfig({
 	vite: {
 		build: {
 			assetsInlineLimit: 1024,
+			// Astro sets `target: 'esnext'`, which `cssTarget` inherits, so Lightning CSS would add no prefixes
+			cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari16.4', 'ios16.4'],
 		},
 		plugins: [tailwindcss()],
 	},

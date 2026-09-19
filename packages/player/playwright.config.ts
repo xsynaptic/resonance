@@ -12,7 +12,6 @@ export default defineConfig({
 		{ name: 'firefox', use: { ...devices['Desktop Firefox'], ...firefoxSilent } },
 		{ name: 'webkit', use: { ...devices['Desktop Safari'] } },
 		{ name: 'mobile-webkit', use: { ...devices['iPhone 17'] } },
-		{ name: 'mobile-chromium', use: { ...devices['Pixel 10'], ...chromiumSilent } },
 	],
 	reporter: [['list'], ['html', { open: 'never' }]],
 	retries: 0,

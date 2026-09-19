@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { test as base, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
-import { fixtureOrigin, seekSeconds } from '#e2e/constants.ts';
+import { fixtureOrigin } from '#e2e/constants.ts';
 import { labels } from '#test/labels.ts';
 
 export { expect } from '@playwright/test';
@@ -32,6 +32,7 @@ interface Harness {
 		parameters?: Record<string, number | string>,
 		options?: { isBound?: boolean },
 	) => Promise<void>;
+	press: (control: BarControl) => Promise<void>;
 	read: () => Promise<PlayerSnapshot>;
 	requests: () => Promise<Array<LoggedRequest>>;
 	waitForBind: () => Promise<void>;
@@ -91,6 +92,38 @@ function observeAudio(): void {
 		Audio: { value: audioProxy },
 		playerObserved: { value: observed },
 	});
+}
+
+async function pressInBar(page: Page, control: BarControl): Promise<void> {
+	const bar = page.getByRole('region', { name: labels.nowPlaying });
+
+	if (control !== 'clearQueue') {
+		await bar.getByRole('button', { exact: true, name: labels[control] }).click();
+		return;
+	}
+
+	await bar.getByRole('button', { exact: true, name: labels.addToQueue }).click();
+	await bar.getByRole('button', { exact: true, name: labels.clearQueue }).click();
+}
+
+async function pressInOverlay(page: Page, control: BarControl): Promise<void> {
+	const overlay = page.getByRole('dialog', { name: labels.nowPlaying });
+
+	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+
+	if (control === 'clearQueue') {
+		await overlay.getByRole('button', { exact: true, name: labels.lists }).click();
+		await page
+			.getByRole('dialog', { name: labels.lists })
+			.getByRole('button', { exact: true, name: labels.clearQueue })
+			.click();
+		await expect(overlay).toBeHidden();
+		return;
+	}
+
+	await overlay.getByRole('button', { exact: true, name: labels[control] }).click();
+	await overlay.getByRole('button', { exact: true, name: labels.close }).click();
+	await expect(overlay).toBeHidden();
 }
 
 function readAudioState(page: Page): Promise<unknown> {
@@ -187,7 +220,7 @@ export const test = base.extend<{ consoleGuard: ConsoleGuard; harness: Harness }
 		{ auto: true },
 	],
 
-	harness: async ({ page }, use, testInfo) => {
+	harness: async ({ isMobile, page }, use, testInfo) => {
 		const run = randomUUID();
 
 		await page.addInitScript(observeAudio);
@@ -205,6 +238,7 @@ export const test = base.extend<{ consoleGuard: ConsoleGuard; harness: Harness }
 
 				if (isBound) await waitForBind(page);
 			},
+			press: (control) => (isMobile ? pressInOverlay(page, control) : pressInBar(page, control)),
 			read: () => readPlayer(page),
 			requests: async () => {
 				const response = await fetch(`${fixtureOrigin}/log?run=${run}`);
@@ -243,29 +277,4 @@ export async function expectAdvancing(
 			{ timeout },
 		)
 		.toBeGreaterThan(pastSeconds);
-}
-
-export async function pressBarControl(page: Page, control: BarControl): Promise<void> {
-	const name = control === 'clearQueue' ? labels.addToQueue : labels[control];
-	const button = page.getByRole('button', { exact: true, name });
-
-	if (!(await button.isVisible())) {
-		await page.evaluate(
-			({ action, seconds }) => {
-				const state = window.playerPage?.store.getState();
-				if (!state) throw new Error('The player is not bound');
-
-				if (action === 'seekForward') state.seekBy(seconds);
-				else state[action]();
-			},
-			{ action: control, seconds: seekSeconds },
-		);
-		return;
-	}
-
-	await button.click();
-
-	if (control === 'clearQueue') {
-		await page.getByRole('button', { exact: true, name: labels.clearQueue }).click();
-	}
 }

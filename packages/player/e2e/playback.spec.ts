@@ -1,5 +1,5 @@
 import { seekSeconds } from '#e2e/constants.ts';
-import { expect, expectAdvancing, pressBarControl, test } from '#e2e/test.ts';
+import { expect, expectAdvancing, test } from '#e2e/test.ts';
 import { labels } from '#test/labels.ts';
 
 test('a press on a page control plays', async ({ harness, page }) => {
@@ -54,7 +54,7 @@ test('seek forward moves by the seek step and keeps playing', async ({ harness, 
 	const before = await harness.read();
 	const beforeSeconds = before.element?.currentTime ?? 0;
 
-	await pressBarControl(page, 'seekForward');
+	await harness.press('seekForward');
 	await expectAdvancing(harness, beforeSeconds + seekSeconds - 1);
 
 	const landed = await harness.read();
@@ -72,7 +72,7 @@ test('next moves to the second row and plays it', async ({ harness, page }) => {
 
 	// A press on an empty queue loads the whole payload, so the second row is already queued
 	await expect(page.getByRole('button', { name: 'Queue short' })).toBeDisabled();
-	await pressBarControl(page, 'next');
+	await harness.press('next');
 
 	await expect
 		.poll(() => harness.read())
@@ -110,7 +110,7 @@ test('clearing the queue while playing leaves it idle, not paused', async ({ har
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expectAdvancing(harness, 1);
 
-	await pressBarControl(page, 'clearQueue');
+	await harness.press('clearQueue');
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'idle' });
 
 	// The pause a reset causes lands late; it must not overwrite `idle`

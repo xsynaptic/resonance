@@ -8,13 +8,16 @@ const run = promisify(execFile);
 
 const fixturesDirectory = path.join(import.meta.dirname, '.fixtures');
 
-// Stream copy keeps the real encoder's bytes; a synthetic file through Safari automation has given a false positive before
+// Real music, not a synthetic tone, which has given a false positive through Safari automation before
 const cuts = [
 	{ name: 'long.mp4', seconds: 60 },
 	{ name: 'short.mp4', seconds: 6 },
 ] as const;
 
 const cutStartSeconds = 600;
+
+// WebKit has no output mute and a zero volume exempts it from autoplay policy, so the file itself is quiet
+const attenuationDb = -60;
 
 const names = [...cuts.map(({ name }) => name), 'art.png'];
 
@@ -45,10 +48,18 @@ async function cutAudio(source: string, name: string, seconds: number): Promise<
 		'-t',
 		String(seconds),
 		'-vn',
-		'-c',
-		'copy',
+		'-af',
+		`volume=${String(attenuationDb)}dB`,
+		'-c:a',
+		'libopus',
+		'-b:a',
+		'128k',
 		'-movflags',
 		'+faststart',
+		'-fflags',
+		'+bitexact',
+		'-flags:a',
+		'+bitexact',
 		path.join(fixturesDirectory, name),
 	]);
 }

@@ -66,7 +66,15 @@ test('garbage bytes end in error after one re-resolve', async ({ harness, page }
 	});
 });
 
-test('the lowercase probe spelling still plays the real file', async ({ harness, page }) => {
+test('the lowercase probe spelling still plays the real file', async ({
+	harness,
+	page,
+}, testInfo) => {
+	test.skip(
+		!webkitProjects.has(testInfo.project.name),
+		'Only WebKit declines the lowercase spelling',
+	);
+
 	await harness.open({ type: 'lowercase' });
 	await page.getByRole('button', { name: 'Play long' }).click();
 

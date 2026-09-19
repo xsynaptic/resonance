@@ -29,7 +29,7 @@ const playlists = await getPlaylists();
 		<p class="mt-2 content-measure text-ink-300">{t('home.intro.description')}</p>
 	</section>
 	{playlists.length > 0 ? <PlaylistsSection playlists={playlists} /> : undefined}
-	<HomeSection collection="mixes" items={mixItems} priority={true} />
+	<HomeSection collection="mixes" items={mixItems} />
 	<HomeSection collection="reviews" items={reviewItems} />
 	<HomeSection collection="posts" items={postItems} />
 </MainSite>

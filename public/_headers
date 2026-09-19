@@ -23,9 +23,14 @@
   ! Cache-Control
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-# The loader and the UI bundle keep stable names, and the bundle loads on every page
-# Ten minutes is what pagefind-entry.json can afford; it names a shard hash the next deploy deletes
+# The loader, worker, wasm and UI bundle keep stable names but change only on a Pagefind upgrade
+# Revalidating after a stale hit bounds an upgrade's old-loader-meets-new-index window to one page view
 /pagefind/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Ten minutes is what the entry file can afford; it names a shard hash the next deploy deletes
+/pagefind/pagefind-entry.json
   ! Cache-Control
   Cache-Control: public, max-age=600
 
@@ -48,6 +53,10 @@
   Cache-Control: public, max-age=2592000
 
 /apple-touch-icon.png
+  ! Cache-Control
+  Cache-Control: public, max-age=2592000
+
+/patterns/*
   ! Cache-Control
   Cache-Control: public, max-age=2592000
 

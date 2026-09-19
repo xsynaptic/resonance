@@ -10,10 +10,9 @@ import { t } from '#lib/i18n/i18n-strings.ts';
 interface Props {
 	collection: 'mixes' | 'posts' | 'reviews';
 	items: Array<ContentCatalogItem>;
-	priority?: boolean | undefined;
 }
 
-const { collection, items, priority = false } = Astro.props;
+const { collection, items } = Astro.props;
 ---
 
 <section class="mb-12">
@@ -24,8 +23,8 @@ const { collection, items, priority = false } = Astro.props;
 		</Anchor>
 	</div>
 	<ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-		{items.map((item, index) => (
-			<EntryCardItem item={item} priority={priority && index === 0} />
+		{items.map((item) => (
+			<EntryCardItem item={item} />
 		))}
 	</ul>
 </section>

@@ -23,9 +23,9 @@ const items = [
 	<h2 class="mb-4 heading-section">{t('home.playlists.heading')}</h2>
 	<p class="mb-4 text-ink-300">{t('home.playlists.lead')}</p>
 	<Carousel label={t('home.playlists.carouselLabel')}>
-		{playlists.map((playlist, index) => (
+		{playlists.map((playlist) => (
 			<li class="@container">
-				<PlaylistCard playlist={playlist} priority={index === 0} />
+				<PlaylistCard playlist={playlist} />
 			</li>
 		))}
 	</Carousel>

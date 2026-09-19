@@ -7,10 +7,9 @@ import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	playlist: Playlist;
-	priority?: boolean | undefined;
 }
 
-const { playlist, priority = false } = Astro.props;
+const { playlist } = Astro.props;
 ---
 
 <button
@@ -26,7 +25,6 @@ const { playlist, priority = false } = Astro.props;
 				path={playlist.image}
 				sizes="auto, (min-width: 80rem) 288px, (min-width: 40rem) 50vw, 100vw"
 				width={300}
-				{...(priority ? { priority: true } : {})}
 			/>
 		) : undefined}
 		<span class="absolute inset-0 bg-highlight-700 mix-blend-multiply transition group-hover:bg-highlight-600 group-focus-visible:bg-highlight-600"></span>

@@ -12,6 +12,7 @@ let media: ReturnType<typeof spyOnMedia>;
 function createCallbacks(): AudioEngineCallbacks {
 	return {
 		isPaused: () => isPaused,
+		onDiagnostic: vi.fn(),
 		onDuration: vi.fn(),
 		onEnded: vi.fn(),
 		onError: vi.fn(),
@@ -119,6 +120,50 @@ describe('audio engine', () => {
 
 		element?.dispatchEvent(new Event('loadedmetadata'));
 		expect(callbacks.onDuration).not.toHaveBeenCalled();
+	});
+
+	describe('stall watchdog', () => {
+		beforeEach(() => {
+			vi.useFakeTimers();
+		});
+
+		afterEach(() => {
+			vi.useRealTimers();
+		});
+
+		test('reports a load that never plays once, however often it waits again', async () => {
+			const callbacks = createCallbacks();
+
+			await createAudioEngine(callbacks).load(request);
+
+			const [element] = media.load.mock.contexts as Array<HTMLMediaElement>;
+
+			vi.advanceTimersByTime(19_999);
+			expect(callbacks.onDiagnostic).not.toHaveBeenCalled();
+
+			vi.advanceTimersByTime(1);
+			element?.dispatchEvent(new Event('waiting'));
+			vi.advanceTimersByTime(40_000);
+
+			expect(callbacks.onDiagnostic).toHaveBeenCalledOnce();
+			expect(callbacks.onDiagnostic).toHaveBeenCalledWith(
+				expect.objectContaining({ hasPlayed: false, kind: 'stall' }),
+			);
+		});
+
+		test('stays quiet when playback starts first', async () => {
+			const callbacks = createCallbacks();
+
+			await createAudioEngine(callbacks).load(request);
+
+			const [element] = media.load.mock.contexts as Array<HTMLMediaElement>;
+
+			vi.advanceTimersByTime(10_000);
+			element?.dispatchEvent(new Event('playing'));
+			vi.advanceTimersByTime(40_000);
+
+			expect(callbacks.onDiagnostic).not.toHaveBeenCalled();
+		});
 	});
 
 	test('unloading drops the source so the old track stops downloading', () => {

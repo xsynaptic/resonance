@@ -190,6 +190,29 @@ describe('bindMediaSession', () => {
 		expect(mediaSession.metadata).toMatchObject({ init: { title: 'Track b' } });
 	});
 
+	test('sets the metadata once more when playback is underway', () => {
+		const store = loadedStore();
+
+		bindMediaSession(store);
+		store.setState({ currentIndex: 0, currentTimeSeconds: 600 });
+		setStatus(store, 'playing');
+
+		const started = mediaSession.metadata;
+
+		store.setState({ currentTimeSeconds: 601 });
+
+		expect(mediaSession.metadata).toBe(started);
+
+		store.setState({ currentTimeSeconds: 602 });
+		const resent = mediaSession.metadata;
+
+		store.setState({ currentTimeSeconds: 610 });
+
+		expect(resent).not.toBe(started);
+		expect(mediaSession.metadata).toBe(resent);
+		expect(resent).toMatchObject({ init: { title: 'Track a' } });
+	});
+
 	test('leaves the playback state alone while loading', () => {
 		const store = loadedStore();
 

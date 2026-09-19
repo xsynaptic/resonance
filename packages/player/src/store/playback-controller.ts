@@ -2,8 +2,15 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { AudioEngine, AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlaybackErrorStage, PlayerStatus, QueuedItem, StreamResolution } from '#types.ts';
+import type {
+	EngineDiagnostic,
+	PlaybackErrorStage,
+	PlayerStatus,
+	QueuedItem,
+	StreamResolution,
+} from '#types.ts';
 
+import { snapshotMedia } from '#engine/audio-engine.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
 
@@ -24,6 +31,8 @@ export interface PlaybackController {
 	// Whatever resolve is in flight answers into nothing rather than reloading what was dropped
 	unload: () => void;
 }
+
+type Diagnostics = ReturnType<typeof createDiagnostics>;
 
 // One trip through resolve-then-load, so a late answer can be recognized as stale
 interface LoadAttempt {
@@ -52,11 +61,13 @@ export function createPlaybackController(
 	// By queue id rather than by index, which a removal or a reorder shifts under the loaded track
 	let loadedQueueId: string | undefined;
 
+	const diagnostics = createDiagnostics(api, () => loading);
+
 	function ensureEngine(): AudioEngine {
 		if (engine) return engine;
 
 		engine = createEngine(
-			toEngineCallbacks({ api, onError: onEngineError, onPlaying: onEnginePlaying }),
+			toEngineCallbacks({ api, diagnostics, onError: onEngineError, onPlaying: onEnginePlaying }),
 		);
 		syncLevel(engine, get());
 
@@ -70,6 +81,7 @@ export function createPlaybackController(
 		const isUnplayable = stage === 'unsupported' && loading?.isTypeDeclined === true;
 
 		if (!isUnplayable && currentIndex !== undefined && loading && !loading.isRetry) {
+			diagnostics.retrying(stage);
 			loadIndex(currentIndex, !isPaused, {
 				isRetry: true,
 				resumeAtSeconds: currentTimeSeconds,
@@ -82,6 +94,7 @@ export function createPlaybackController(
 
 	// A load that reached playback closes its attempt chain, so a later failure earns a re-resolve of its own
 	function onEnginePlaying(): void {
+		if (engine) diagnostics.playing(engine.element);
 		if (loading) loading.isRetry = false;
 	}
 
@@ -168,6 +181,31 @@ export function createPlaybackController(
 			loading = undefined;
 			loadedQueueId = undefined;
 			set({ currentTimeSeconds: 0, isPaused: true, status: 'idle' });
+		},
+	};
+}
+
+// Every kind happens with a track loaded, so a report without one has nothing to pin it to
+function createDiagnostics(api: StoreApi<PlayerStore>, attempt: () => LoadAttempt | undefined) {
+	let retriedStage: PlaybackErrorStage | undefined;
+
+	function report(diagnostic: EngineDiagnostic): void {
+		const itemId = loadedItem(api.getState())?.itemId;
+		if (itemId === undefined) return;
+
+		api.setState({ diagnostic: { ...diagnostic, isRetry: attempt()?.isRetry ?? false, itemId } });
+	}
+
+	return {
+		// Read before the attempt chain closes, while the attempt still says it is the re-resolve
+		playing: (element: HTMLMediaElement) => {
+			if (retriedStage === undefined || attempt()?.isRetry !== true) return;
+
+			report({ ...snapshotMedia(element), kind: 'retry-recovered', stage: retriedStage });
+		},
+		report,
+		retrying: (stage: PlaybackErrorStage) => {
+			retriedStage = stage;
 		},
 	};
 }
@@ -283,13 +321,15 @@ function syncLevel(
 	engine.setVolume(volume);
 }
 
-// Every report but `onError` and `onPlaying` is a state write; the retry policy is the caller's
+// Every report but `onDiagnostic`, `onError` and `onPlaying` is a state write; the retry policy is the caller's
 function toEngineCallbacks({
 	api,
+	diagnostics,
 	onError,
 	onPlaying,
 }: {
 	api: StoreApi<PlayerStore>;
+	diagnostics: Diagnostics;
 	onError: (stage: PlaybackErrorStage) => void;
 	onPlaying: () => void;
 }): AudioEngineCallbacks {
@@ -297,6 +337,7 @@ function toEngineCallbacks({
 
 	return {
 		isPaused: () => get().isPaused,
+		onDiagnostic: diagnostics.report,
 		onDuration: (durationSeconds) => {
 			set({ durationSeconds });
 		},

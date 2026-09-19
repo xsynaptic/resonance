@@ -17,6 +17,7 @@ export type { PlayerStore, PlayerStoreOptions } from '#store/player-types.ts';
 const initialPlayerState: PlayerState = {
 	currentIndex: undefined,
 	currentTimeSeconds: 0,
+	diagnostic: undefined,
 	durationSeconds: undefined,
 	isMuted: false,
 	isOverlayOpen: false,

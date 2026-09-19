@@ -3,15 +3,22 @@ type AnalyticsEvent =
 	| 'cue-sheet-download'
 	| 'player-chunk-error'
 	| 'player-error'
+	| 'player-media-error'
 	| 'player-overlay-open'
 	| 'player-panel-open'
 	| 'player-play'
+	| 'player-play-rejected'
 	| 'player-queue-add'
+	| 'player-retry-recovered'
+	| 'player-stall'
 	| 'search-open'
 	| 'search-query';
 
 // The Umami script is rendered under PROD only, so this reaches nothing anywhere else
-export function trackEvent(name: AnalyticsEvent, data?: Record<string, number | string>): void {
+export function trackEvent(
+	name: AnalyticsEvent,
+	data?: Record<string, boolean | number | string>,
+): void {
 	window.umami?.track(name, data);
 }
 

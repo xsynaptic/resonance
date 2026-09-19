@@ -1,4 +1,4 @@
-import type { PlaybackErrorStage } from '#types.ts';
+import type { EngineDiagnostic, PlaybackErrorStage } from '#types.ts';
 
 // Playback is the element's own, which keeps progressive streaming and native seeking
 export interface AudioEngine {
@@ -17,12 +17,16 @@ export interface AudioEngine {
 
 export interface AudioEngineCallbacks {
 	isPaused: () => boolean;
+	onDiagnostic?: (diagnostic: EngineDiagnostic) => void;
 	onDuration: (durationSeconds: number) => void;
 	onEnded: () => void;
 	onError: (stage: PlaybackErrorStage) => void;
 	onStatus: (status: 'loading' | 'paused' | 'playing') => void;
 	onTime: (currentTimeSeconds: number) => void;
 }
+
+// A healthy mobile start takes a few seconds
+const stallAfterMs = 20_000;
 
 export type CreateAudioEngine = (callbacks: AudioEngineCallbacks) => AudioEngine;
 
@@ -44,6 +48,8 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	// Set while the pause a reset causes is still queued, since it lands after the next load has begun
 	let isSilencing = false;
 
+	const watchdog = createStallWatchdog(audio, (diagnostic) => callbacks.onDiagnostic?.(diagnostic));
+
 	audio.addEventListener('timeupdate', () => {
 		// Loading zeroes the clock, which is not where a resuming load is headed
 		if (pendingResumeAtSeconds !== undefined) return;
@@ -63,12 +69,18 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		callbacks.onEnded();
 	});
 	audio.addEventListener('error', () => {
+		watchdog.clear();
+
+		// Before `onError`, so the store holds the browser's own words by the time the status turns
+		callbacks.onDiagnostic?.(mediaErrorDiagnostic(audio));
 		callbacks.onError(errorStage(audio.error));
 	});
 	audio.addEventListener('waiting', () => {
+		watchdog.arm();
 		callbacks.onStatus('loading');
 	});
 	audio.addEventListener('playing', () => {
+		watchdog.played();
 		callbacks.onStatus('playing');
 	});
 	audio.addEventListener('pause', () => {
@@ -77,6 +89,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			return;
 		}
 
+		watchdog.clear();
 		callbacks.onStatus('paused');
 	});
 
@@ -84,6 +97,12 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		try {
 			await audio.play();
 		} catch (error) {
+			if (error instanceof DOMException && error.name === 'AbortError') return;
+
+			// A refused element never fires `pause`, so nothing else would stand the watchdog down
+			watchdog.clear();
+			callbacks.onDiagnostic?.(playRejectedDiagnostic(audio, error));
+
 			// Only an autoplay refusal is the promise's to report; a media failure already came through the error event, and AbortError is a superseding load
 			if (!(error instanceof DOMException) || error.name !== 'NotAllowedError') return;
 
@@ -97,6 +116,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		element: audio,
 		async load({ resumeAtSeconds, src }) {
 			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;
+			watchdog.restart();
 
 			audio.src = src;
 			audio.load();
@@ -104,6 +124,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			if (callbacks.isPaused()) return;
 
 			callbacks.onStatus('loading');
+			watchdog.arm();
 			await play();
 		},
 		pause: () => {
@@ -113,6 +134,7 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		// Dropping the source stops the old track downloading against the next; an empty `src` would raise an error event instead
 		reset: () => {
 			pendingResumeAtSeconds = undefined;
+			watchdog.clear();
 			isSilencing = !audio.paused;
 			audio.pause();
 			audio.removeAttribute('src');
@@ -132,6 +154,75 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 	};
 }
 
+export function snapshotMedia(element: HTMLMediaElement) {
+	return {
+		networkState: element.networkState,
+		positionSeconds: element.currentTime,
+		readyState: element.readyState,
+	};
+}
+
+// Safari before 16.4 has no `userActivation`, which is reported as absent rather than as spent
+function activationState() {
+	return 'userActivation' in navigator
+		? { isActivationLive: navigator.userActivation.isActive }
+		: {};
+}
+
+function bufferedAhead(element: HTMLMediaElement): number {
+	const { buffered, currentTime } = element;
+
+	for (let index = 0; index < buffered.length; index++) {
+		if (buffered.start(index) <= currentTime && currentTime <= buffered.end(index)) {
+			return buffered.end(index) - currentTime;
+		}
+	}
+
+	return 0;
+}
+
+// Reports once per load and never touches status
+function createStallWatchdog(
+	element: HTMLMediaElement,
+	onStall: (diagnostic: EngineDiagnostic) => void,
+) {
+	let hasPlayed = false;
+	let hasReported = false;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+
+	function clear(): void {
+		clearTimeout(timer);
+		timer = undefined;
+	}
+
+	return {
+		arm: () => {
+			if (timer !== undefined || hasReported) return;
+
+			timer = setTimeout(() => {
+				timer = undefined;
+				hasReported = true;
+				onStall({
+					...snapshotMedia(element),
+					bufferedAheadSeconds: bufferedAhead(element),
+					hasPlayed,
+					kind: 'stall',
+				});
+			}, stallAfterMs);
+		},
+		clear,
+		played: () => {
+			hasPlayed = true;
+			clear();
+		},
+		restart: () => {
+			hasPlayed = false;
+			hasReported = false;
+			clear();
+		},
+	};
+}
+
 // Chrome answers MEDIA_ERR_SRC_NOT_SUPPORTED for a missing object as well as an unplayable codec
 function errorStage(error: MediaError | null): PlaybackErrorStage {
 	switch (error?.code) {
@@ -145,4 +236,25 @@ function errorStage(error: MediaError | null): PlaybackErrorStage {
 			return 'network';
 		}
 	}
+}
+
+function mediaErrorDiagnostic(element: HTMLMediaElement): EngineDiagnostic {
+	const { error } = element;
+
+	return {
+		...snapshotMedia(element),
+		...(error ? { code: error.code } : {}),
+		kind: 'media-error',
+		message: error?.message ?? '',
+	};
+}
+
+function playRejectedDiagnostic(element: HTMLMediaElement, error: unknown): EngineDiagnostic {
+	return {
+		...snapshotMedia(element),
+		...activationState(),
+		kind: 'play-rejected',
+		message: error instanceof Error ? error.message : String(error),
+		name: error instanceof Error ? error.name : 'unknown',
+	};
 }

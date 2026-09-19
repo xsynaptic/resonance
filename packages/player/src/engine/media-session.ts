@@ -11,6 +11,9 @@ const mediaSessionArtworkMaxWidth = 512;
 // Firefox on Android re-requests Android audio focus on every position report, so one is owed only where the platform is wrong
 const positionToleranceSeconds = 2;
 
+// Firefox on Android drops metadata sent before the element counts as audible, and resends none when its controller reactivates
+const metadataResendSeconds = 2;
+
 interface ReportedPosition {
 	atMilliseconds: number;
 	duration: number;
@@ -32,6 +35,7 @@ export function bindMediaSession(
 	let boundQueueId: string | undefined;
 	let boundState: MediaSessionPlaybackState | undefined;
 	let reported: ReportedPosition | undefined;
+	let resendFromSeconds: number | undefined;
 
 	const reportPosition = (state: PlayerStore, playbackState: MediaSessionPlaybackState): void => {
 		const position = positionStateFor(state);
@@ -74,10 +78,19 @@ export function bindMediaSession(
 
 		if (playbackState !== boundState) {
 			boundState = playbackState;
+			resendFromSeconds = undefined;
 
-			if (playbackState === 'playing') setMetadata(item);
+			if (playbackState === 'playing') {
+				resendFromSeconds = state.currentTimeSeconds;
+				setMetadata(item);
+			}
 
 			navigator.mediaSession.playbackState = playbackState;
+		}
+
+		if (isResendDue(resendFromSeconds, state.currentTimeSeconds)) {
+			resendFromSeconds = undefined;
+			setMetadata(item);
 		}
 
 		reportPosition(state, playbackState);
@@ -179,6 +192,12 @@ function hasLeftProjection(
 	return (
 		Math.abs(position.position - (reported.position + elapsedSeconds)) > positionToleranceSeconds
 	);
+}
+
+function isResendDue(fromSeconds: number | undefined, currentSeconds: number): boolean {
+	if (fromSeconds === undefined) return false;
+
+	return Math.abs(currentSeconds - fromSeconds) >= metadataResendSeconds;
 }
 
 function playbackStateFor(status: PlayerStatus): MediaSessionPlaybackState {

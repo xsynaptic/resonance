@@ -1,3 +1,14 @@
+// Reported beside the statuses, never in place of one
+export type EngineDiagnostic = MediaSnapshot &
+	(
+		| { bufferedAheadSeconds: number; hasPlayed: boolean; kind: 'stall' }
+		| { code?: number; kind: 'media-error'; message: string }
+		| { isActivationLive?: boolean; kind: 'play-rejected'; message: string; name: string }
+		| { kind: 'retry-recovered'; stage: PlaybackErrorStage }
+	);
+
+export type PlaybackDiagnostic = EngineDiagnostic & { isRetry: boolean; itemId: string };
+
 export interface PlaybackError {
 	itemId: string;
 	stage: PlaybackErrorStage;
@@ -98,3 +109,9 @@ export interface QueueItem {
 export type StreamResolution = { status: 'capped' } | { status: 'ok'; type?: string; url: string };
 
 export type SubscribeTime = (onTime: (currentTimeSeconds: number) => void) => () => void;
+
+interface MediaSnapshot {
+	networkState: number;
+	positionSeconds: number;
+	readyState: number;
+}

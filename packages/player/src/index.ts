@@ -8,6 +8,8 @@ export { createPlayerStore, playerStore } from '#store/player-store.ts';
 export type { PlayerStoreOptions } from '#store/player-store.ts';
 export { loadedItem } from '#store/selectors.ts';
 export type {
+	EngineDiagnostic,
+	PlaybackDiagnostic,
 	PlaybackError,
 	PlaybackErrorStage,
 	PlayerLabels,

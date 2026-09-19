@@ -1,5 +1,6 @@
 import type { CreateAudioEngine } from '#engine/audio-engine.ts';
 import type {
+	PlaybackDiagnostic,
 	PlaybackError,
 	PlayerStatus,
 	PlayerTimeMode,
@@ -66,6 +67,8 @@ export interface PlayerState {
 	// Index into `queue`, not `playOrder`
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
+	// A fresh object per report, so its identity marks each one; never persisted
+	diagnostic: PlaybackDiagnostic | undefined;
 	durationSeconds: number | undefined;
 	// Beside `volume` rather than a volume of zero, so an unmute after a reload returns to the level
 	isMuted: boolean;

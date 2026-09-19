@@ -1,4 +1,9 @@
-import type { ControlPress, createPlayerStore, PlayerStatus } from '@xsynaptic/player';
+import type {
+	ControlPress,
+	createPlayerStore,
+	PlaybackDiagnostic,
+	PlayerStatus,
+} from '@xsynaptic/player';
 
 import { LazyModuleError, loadedItem } from '@xsynaptic/player';
 
@@ -25,15 +30,26 @@ const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 
 // Read once, since none of the three can change while the document is open
 const isSuppressed = import.meta.env.DEV || navigator.doNotTrack === '1' || isOptedOut();
 
+// Umami caps a string at 500
+const messageLength = 200;
+
+const browserVersion = describeBrowser(navigator.userAgent);
+
 export function bindPlayerAnalytics(store: ReturnType<typeof createPlayerStore>): () => void {
 	if (isSuppressed) return doNothing;
 
 	const connection = new AbortController();
 
 	let gate = selectGate(store.getState());
+	let diagnostic = store.getState().diagnostic;
 
 	// Selected and compared rather than read straight, since `currentTimeSeconds` moves about four times a second
 	const unsubscribe = store.subscribe((state) => {
+		if (state.diagnostic !== diagnostic) {
+			diagnostic = state.diagnostic;
+			if (diagnostic) trackDiagnostic(diagnostic);
+		}
+
 		const next = selectGate(state);
 		if (isSameGate(gate, next)) return;
 
@@ -66,6 +82,26 @@ export function trackControlPress({ itemIds, verb }: ControlPress): void {
 	trackEvent('player-play', { mix, origin: origins[verb] });
 }
 
+// Parsed rather than sent raw: versions are what gets grouped by, and the full string is needless entropy
+function describeBrowser(userAgent: string): string {
+	const browser = matchVersion(userAgent, [
+		['Edge', /Edg(?:A|iOS)?\/(\d+)\.(\d+)/],
+		['Firefox', /(?:Firefox|FxiOS)\/(\d+)\.(\d+)/],
+		['Chrome', /(?:Chrome|CriOS)\/(\d+)\.(\d+)/],
+		['Safari', /Version\/(\d+)\.(\d+).*Safari/],
+	]);
+	if (browser === undefined) return 'other';
+
+	const system = matchVersion(userAgent, [
+		['iOS', /(?:iPhone|iPad|iPod).*? OS (\d+)_(\d+)/],
+		['Android', /Android (\d+)(?:\.(\d+))?/],
+		['Windows', /Windows NT (\d+)\.(\d+)/],
+		['macOS', /Mac OS X (\d+)[._](\d+)/],
+	]);
+
+	return `${browser} / ${system ?? 'other'}`;
+}
+
 function doNothing(): void {
 	// Nothing was bound, so there is nothing to unbind
 }
@@ -76,6 +112,20 @@ function isSameGate(left: PlayerGate, right: PlayerGate): boolean {
 		left.isPanelOpen === right.isPanelOpen &&
 		left.status === right.status
 	);
+}
+
+function matchVersion(
+	userAgent: string,
+	families: ReadonlyArray<readonly [string, RegExp]>,
+): string | undefined {
+	for (const [family, pattern] of families) {
+		const [, major, minor] = pattern.exec(userAgent) ?? [];
+		if (major === undefined) continue;
+
+		return minor === undefined ? `${family} ${major}` : `${family} ${major}.${minor}`;
+	}
+
+	return undefined;
 }
 
 function selectGate(state: PlayerState): PlayerGate {
@@ -91,6 +141,18 @@ function trackChunkError(event: ErrorEvent): void {
 	if (!(error instanceof LazyModuleError)) return;
 
 	trackEvent('player-chunk-error', { chunk: error.chunk, reason: error.reason });
+}
+
+function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void {
+	const data: Record<string, boolean | number | string> = {
+		...fields,
+		mix: itemId,
+		version: browserVersion,
+	};
+
+	if ('message' in fields) data.message = fields.message.slice(0, messageLength);
+
+	trackEvent(`player-${kind}`, data);
 }
 
 function trackPlaybackError(state: PlayerState): void {

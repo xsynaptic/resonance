@@ -24,6 +24,8 @@ function makeItem(id: string): QueueItem {
 
 const release = [makeItem('a'), makeItem('b'), makeItem('c')];
 
+const mediaSnapshot = { networkState: 2, positionSeconds: 0, readyState: 0 };
+
 interface StoredQueueRecord {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
@@ -34,6 +36,18 @@ function configured(): StoreApi<PlayerStore> {
 	return withResolver(({ itemId }) =>
 		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${itemId}/stream` }),
 	);
+}
+
+async function failIntoRetry(store: StoreApi<PlayerStore>): Promise<void> {
+	store.getState().playTrack(release, 'a');
+	await vi.waitFor(() => {
+		expect(fake.engine.load).toHaveBeenCalledTimes(1);
+	});
+
+	fake.callbacks.current?.onError('network');
+	await vi.waitFor(() => {
+		expect(fake.engine.load).toHaveBeenCalledTimes(2);
+	});
 }
 
 // The position drifting between queue changes goes out on `pagehide`
@@ -547,6 +561,63 @@ describe('engine errors', () => {
 		});
 
 		expect(fake.engine.load).not.toHaveBeenCalled();
+	});
+});
+
+describe('diagnostics', () => {
+	test('stamps each report with the loaded item and whether its attempt is the re-resolve', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		fake.callbacks.current?.onDiagnostic?.({
+			...mediaSnapshot,
+			kind: 'media-error',
+			message: 'gone',
+		});
+		expect(store.getState().diagnostic).toMatchObject({ isRetry: false, itemId: 'a' });
+
+		fake.callbacks.current?.onError('network');
+		fake.callbacks.current?.onDiagnostic?.({
+			...mediaSnapshot,
+			bufferedAheadSeconds: 0,
+			hasPlayed: false,
+			kind: 'stall',
+		});
+		expect(store.getState().diagnostic).toMatchObject({
+			isRetry: true,
+			itemId: 'a',
+			kind: 'stall',
+		});
+	});
+
+	test('a re-resolve that reaches playback reports the failure it recovered from', async () => {
+		const store = configured();
+
+		await failIntoRetry(store);
+		fake.callbacks.current?.onStatus('playing');
+
+		expect(store.getState().diagnostic).toMatchObject({
+			isRetry: true,
+			kind: 'retry-recovered',
+			stage: 'network',
+		});
+
+		// Playing again later is not a second recovery
+		const recovered = store.getState().diagnostic;
+
+		fake.callbacks.current?.onStatus('paused');
+		fake.callbacks.current?.onStatus('playing');
+		expect(store.getState().diagnostic).toBe(recovered);
+	});
+
+	test('a re-resolve that fails as well reports no recovery', async () => {
+		const store = configured();
+
+		await failIntoRetry(store);
+		fake.callbacks.current?.onError('network');
+
+		expect(store.getState().status).toBe('error');
+		expect(store.getState().diagnostic).toBeUndefined();
 	});
 });
 

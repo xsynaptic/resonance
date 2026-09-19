@@ -54,12 +54,22 @@ const isActive = variant === 'header' && isActiveNavigationItem(item, pathname);
 		</a>
 	) : undefined}
 	{triggerType === 'button' ? (
-		<button class={parts.link} type="button">
+		<button
+			aria-expanded="false"
+			class:list={[parts.link, 'flex cursor-pointer items-center']}
+			data-nav-toggle
+			type="button"
+		>
 			{item.title}
+			<span class={parts.toggle}>
+				<svg aria-hidden="true" class={parts.icon}>
+					<use href={`#icon:${parts.chevron}`} />
+				</svg>
+			</span>
 		</button>
 	) : undefined}
 	{triggerType === 'span' ? <span class={parts.link}>{item.title}</span> : undefined}
-	{hasChildren ? (
+	{hasChildren && triggerType !== 'button' ? (
 		<button
 			aria-expanded="false"
 			aria-label={getNavigationItemAriaLabel(item)}

@@ -2,18 +2,20 @@ import { siteTitle } from '@xsynaptic/shared/constants';
 import { FILES_URL, LISTENING_TIME_ENABLED, PLAYER_SCOPE_ENABLED } from 'astro:env/server';
 
 export const site = {
-	description: 'Mixes, reviews, and selections from DJ Basilisk.',
+	description: 'Long-form mixes, reviews, and writing on electronic music by DJ Basilisk.',
 	title: siteTitle,
 } as const;
 
-// Curated for the Person node's `sameAs`, kept separate from the navigation's `rel="me"` links
+// Footer order, which is also the order of the Person node's `sameAs`
 export const identityLinks = [
-	'https://www.facebook.com/dj.basilisk',
-	'https://www.instagram.com/djbasilisk',
-	'https://www.mixcloud.com/basilisk/',
-	'https://soundcloud.com/djbasilisk',
-	'https://www.threads.com/@djbasilisk',
-	'https://x.com/djbasilisk',
+	{ title: 'SoundCloud', url: 'https://soundcloud.com/djbasilisk' },
+	{ title: 'Mixcloud', url: 'https://www.mixcloud.com/basilisk/' },
+	{ title: 'Facebook', url: 'https://www.facebook.com/dj.basilisk' },
+	{ title: 'Instagram', url: 'https://www.instagram.com/djbasilisk' },
+	{ title: 'Threads', url: 'https://www.threads.com/@djbasilisk' },
+	{ title: 'Bluesky', url: 'https://bsky.app/profile/djbasilisk.com' },
+	{ title: 'Bandcamp', url: 'https://bandcamp.com/djbasilisk' },
+	{ title: 'X', url: 'https://x.com/djbasilisk' },
 ] as const;
 
 export const downloadBaseUrl = new URL('artifacts/', FILES_URL).href;

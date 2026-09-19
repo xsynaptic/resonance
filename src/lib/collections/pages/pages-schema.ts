@@ -25,6 +25,8 @@ export function getPageSchemas(
 			title: entry.data.title,
 			url: props.url,
 		}),
-		...(isPersonProfile ? [buildAuthorSchema({ sameAs: identityLinks })] : []),
+		...(isPersonProfile
+			? [buildAuthorSchema({ sameAs: identityLinks.map((link) => link.url) })]
+			: []),
 	];
 }

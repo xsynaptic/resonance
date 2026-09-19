@@ -15,11 +15,12 @@ import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 
 interface Props {
+	description: string;
 	page: Page<CollectionEntry<'posts'>>;
 	title: string;
 }
 
-const { page, title } = Astro.props;
+const { description, page, title } = Astro.props;
 
 const posts = await Promise.all(
 	page.data.map(async (entry) => {
@@ -31,9 +32,7 @@ const posts = await Promise.all(
 
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas =
-	page.currentPage === 1
-		? buildCollectionGraph({ description: undefined, title, url: pageUrl })
-		: undefined;
+	page.currentPage === 1 ? buildCollectionGraph({ description, title, url: pageUrl }) : undefined;
 ---
 
 <MainSite
@@ -42,7 +41,7 @@ const schemas =
 	schemas={schemas}
 	title={title}
 >
-	<ListPageTitle title={title} />
+	<ListPageTitle description={description} title={title} />
 	{posts.map(({ Content, entry }) => (
 		<SectionPostExcerpt
 			date={entry.data.dateCreated}

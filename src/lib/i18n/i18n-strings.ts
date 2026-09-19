@@ -30,19 +30,35 @@ const strings = {
 	'carousel.previous': 'Previous {label}',
 	'collection.archive.description': 'Everything on this site by the year it was published.',
 	'collection.archive.title': 'Archive',
+	'collection.artists.description':
+		'Artists with their own page here, each gathering the reviews and mixes that feature their work.',
 	'collection.artists.title': 'Artists',
+	'collection.eras.description':
+		'When the music was made, often decades before it was written about here.',
 	'collection.eras.title': 'Eras',
+	'collection.labels.description':
+		'The record labels behind the releases reviewed and the mixes published here.',
 	'collection.labels.title': 'Labels',
 	'collection.mixes.description':
 		'Studio mixes and live recordings under various aliases, primarily DJ Basilisk (psytrance, techno, progressive house, downtempo, and more) and in the 2010s, Synaptic FX (more contemporary house, nu-disco, and a little trance).',
 	'collection.mixes.title': 'Mixes',
+	'collection.posts.description':
+		'Essays, interviews, charts, and notes on electronic music culture, from the Ektoplazm years to the present.',
 	'collection.posts.title': 'Posts',
+	'collection.regions.description':
+		'Where the music comes from, from Detroit and the Benelux to Israel and Japan.',
 	'collection.regions.title': 'Regions',
 	'collection.reviews.description':
 		'Reviews authored as long ago as the early 2000s, with many more published from 2019 onward. My original style was to unpack a release in great detail; more recently I am mainly interested in introducing the releases and tracks that are most worth your time, so the format has become far more focused and precise. Browse around, or dive into individual artists, labels, and styles, where you will also find connections to the many mixes hosted on this site.',
 	'collection.reviews.title': 'Reviews',
+	'collection.series.description':
+		'Ordered sequences of mixes and posts, meant to be followed from the start.',
 	'collection.series.title': 'Series',
+	'collection.styles.description':
+		'The styles of electronic music covered here, arranged as a family tree. Each gathers its mixes, reviews, and posts.',
 	'collection.styles.title': 'Styles',
+	'collection.themes.description':
+		'What the writing is about, from charts and interviews to graphic design.',
 	'collection.themes.title': 'Themes',
 	'comments.error.challenge': 'The challenge did not pass. Please reload the page and try again.',
 	'comments.error.entryMissing': 'That entry does not exist.',
@@ -97,7 +113,7 @@ const strings = {
 	'embed.youtube.title': 'YouTube player',
 	'footer.about.aboutLink': 'read on',
 	'footer.about.body':
-		', a veteran DJ and record label owner. Mixes, charts, reviews, and articles on psytrance, techno, house, IDM, electro, ambient, and adjacent genres. For more information,',
+		', a DJ, curator, and founder of the Ektoplazm label group. Long-form mixes, reviews, and writing on psytrance, techno, house, IDM, electro, ambient, and adjacent genres. For more information,',
 	'footer.about.lead': 'An electronic music resource operated by',
 	'footer.about.profileLink': 'Basilisk',
 	'footer.astro': 'Astro',
@@ -106,10 +122,11 @@ const strings = {
 	'footer.feed': 'RSS',
 	'footer.poweredBy': 'Powered by',
 	'footer.recentMixes.heading': 'Recent Mixes',
-	'footer.support.lead': 'Support this work through',
-	'footer.support.link': 'Patreon',
+	'footer.source': 'Source code',
+	'footer.support.lead': 'Support',
+	'footer.support.link': 'Ektoplazm on Patreon',
 	'home.intro.description': `Mixes, reviews, charts, and articles on psytrance, techno, house, IDM, electro, breaks, ambient, and adjacent realms of electronic music culture. My focus in the 2020s is primarily mixcraft: profiling specific styles and movements and exploring the manifold possibilities of harmonic, cross-genre mixing, often in unusually long and involved forms. I'm based in Taiwan and available for bookings worldwide.`,
-	'home.intro.title': 'Rhizomatic explorations of electronic music since 1999',
+	'home.intro.title': 'Rhizomatic explorations of electronic music since 2001',
 	'home.mixes.heading': 'Latest Mixes',
 	'home.mixes.link': 'All mixes',
 	'home.playlists.carouselLabel': 'playlists',
@@ -122,7 +139,7 @@ const strings = {
 	'home.reviews.heading': 'Latest Reviews',
 	'home.reviews.link': 'All reviews',
 	'nav.breadcrumb.label': 'Breadcrumb',
-	'nav.footer.label': 'Explore',
+	'nav.footer.label': 'Elsewhere',
 	'nav.primary.label': 'Primary',
 	'nav.submenu.label': '{title} submenu',
 	'notFound.body': 'The page you are looking for does not exist or has moved.',

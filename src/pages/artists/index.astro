@@ -3,4 +3,8 @@ import TermList from '#layouts/term-list.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 ---
 
-<TermList collection="artists" title={t('collection.artists.title')} />
+<TermList
+	collection="artists"
+	description={t('collection.artists.description')}
+	title={t('collection.artists.title')}
+/>

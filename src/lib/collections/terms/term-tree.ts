@@ -8,6 +8,7 @@ import { getTermHierarchy, isHierarchical } from '#lib/collections/terms/hierarc
 // `sortKey` is set only where alphabetical order is wrong for the vocabulary; see `getEraSortKey`
 export interface DirectoryTerm {
 	children?: Array<DirectoryTerm>;
+	id: string;
 	sortKey?: string;
 	title: string;
 	url: string;
@@ -24,6 +25,7 @@ export async function getDirectoryTerms(
 		const sortKey = collection === 'eras' ? getEraSortKey(id) : undefined;
 
 		return {
+			id,
 			title,
 			url: getContentPath(collection, id),
 			...(sortKey === undefined ? {} : { sortKey }),

@@ -1,28 +1,39 @@
 ---
-import type { TitledCollectionKey } from '#lib/utils/terms.ts';
+import type { TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 
 import MainSite from '#components/main/main-site.astro';
 import ListPageTitle from '#components/parts/list-page-title.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
+import { getTermCollection } from '#lib/collections/terms/term-data.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
 import { getOpenGraphId } from '#lib/utils/seo.ts';
 
 interface Props {
-	collection: TitledCollectionKey;
+	collection: TermCollectionKey;
+	description: string;
+	hasCounts?: boolean;
 	title: string;
 }
 
-const { collection, title } = Astro.props;
+const { collection, description, hasCounts = false, title } = Astro.props;
 
 const terms = await getDirectoryTerms(collection);
 
+async function getCounts() {
+	const { entries } = await getTermCollection(collection);
+
+	return new Map(entries.map((entry) => [entry.id, entry.data._entryCount ?? 0]));
+}
+
+const counts = hasCounts ? await getCounts() : undefined;
+
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
-const schemas = buildCollectionGraph({ description: undefined, title, url: pageUrl });
+const schemas = buildCollectionGraph({ description, title, url: pageUrl });
 ---
 
 <MainSite openGraphId={getOpenGraphId('index', collection)} schemas={schemas} title={title}>
-	<ListPageTitle title={title} />
-	<TermDirectory terms={terms} />
+	<ListPageTitle description={description} title={title} />
+	<TermDirectory counts={counts} terms={terms} />
 </MainSite>

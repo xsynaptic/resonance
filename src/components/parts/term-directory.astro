@@ -10,12 +10,13 @@ interface InitialGroup {
 }
 
 interface Props {
+	counts?: Map<string, number> | undefined;
 	terms: Array<DirectoryTerm>;
 }
 
 const groupingMinimum = 20;
 
-const { terms } = Astro.props;
+const { counts, terms } = Astro.props;
 
 // Decompose so an accented name files under its base letter instead of a bucket of its own
 function getInitial(title: string) {
@@ -62,7 +63,7 @@ const groups = getInitialGroups();
 	{groups.map((group) => (
 		<section class:list={['mb-6', group.initial === undefined ? undefined : 'break-inside-avoid']}>
 			{group.initial === undefined ? undefined : <ListGroupHeading label={group.initial} />}
-			<DirectoryBranch terms={group.terms} />
+			<DirectoryBranch counts={counts} terms={group.terms} />
 		</section>
 	))}
 </div>

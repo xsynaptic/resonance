@@ -106,7 +106,7 @@ const fontFamilies = [
 
 function toDirectoryTerms(terms: Array<LinkedName>) {
 	return terms.flatMap((term) =>
-		term.url === undefined ? [] : [{ title: term.name, url: term.url }],
+		term.url === undefined ? [] : [{ id: term.url, title: term.name, url: term.url }],
 	);
 }
 

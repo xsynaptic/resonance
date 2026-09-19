@@ -5,18 +5,24 @@ import Anchor from '#components/parts/anchor.astro';
 import DirectoryBranch from '#components/parts/term-directory-branch.astro';
 
 interface Props {
+	counts?: Map<string, number> | undefined;
 	nested?: boolean | undefined;
 	terms: Array<DirectoryTerm>;
 }
 
-const { nested = false, terms } = Astro.props;
+const { counts, nested = false, terms } = Astro.props;
 ---
 
 <ul class:list={[nested ? 'border-l border-surface-400 pl-3' : undefined]}>
 	{terms.map((term) => (
 		<li class:list={[!nested && term.children ? 'break-inside-avoid' : undefined]}>
 			<Anchor href={term.url}>{term.title}</Anchor>
-			{term.children ? <DirectoryBranch nested={true} terms={term.children} /> : undefined}
+			{counts?.get(term.id) ? (
+				<span class="ml-1 text-sm text-ink-500 tabular-nums">{counts.get(term.id)}</span>
+			) : undefined}
+			{term.children ? (
+				<DirectoryBranch counts={counts} nested={true} terms={term.children} />
+			) : undefined}
 		</li>
 	))}
 </ul>

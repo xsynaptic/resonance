@@ -10,4 +10,8 @@ export const getStaticPaths = createPostListPaths;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 ---
 
-<PostList title={t('collection.posts.title')} {...Astro.props} />
+<PostList
+	description={t('collection.posts.description')}
+	title={t('collection.posts.title')}
+	{...Astro.props}
+/>

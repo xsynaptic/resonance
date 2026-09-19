@@ -54,6 +54,12 @@ export default getConfig(
 			},
 		},
 		{
+			files: ['packages/player/e2e/**/*', 'packages/player/playwright.config.ts'],
+			languageOptions: {
+				globals: { ...globals.node, ...globals.browser },
+			},
+		},
+		{
 			// Prettier formats the `/* HTML */` literals these elements render from; the rule reindents what it just laid out
 			files: ['packages/player/src/elements/**/*.ts'],
 			rules: {

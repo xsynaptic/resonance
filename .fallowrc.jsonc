@@ -5,6 +5,8 @@
 		"src/dev/inventory/inventory-og-image.ts",
 		"src/dev/audio/stream-rendition.ts",
 		"src/dev/audio/waveform-archive.ts",
+		"packages/player/e2e/fixture-server.ts",
+		"packages/player/e2e/page/host.ts",
 	],
 	// The player host imports the reporter dynamically, which fallow does not follow and knip does
 	"dynamicallyLoaded": [

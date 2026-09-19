@@ -11,6 +11,7 @@
 		"fix-content": "mdxlint-content packages/content --fix --root-path=$PWD",
 		"prepare": "wrangler types",
 		"test": "vitest",
+		"test-e2e": "pnpm -F @xsynaptic/player test-e2e",
 		"audio-validate": "pnpm -F @xsynaptic/scripts audio-validate",
 		"audio-renditions": "pnpm -F @xsynaptic/scripts audio-renditions",
 		"audio-manifest": "pnpm -F @xsynaptic/scripts audio-manifest",

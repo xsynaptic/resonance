@@ -12,9 +12,17 @@
 		"./player.css": "./src/player.css"
 	},
 	"imports": {
+		"#e2e/*": "./e2e/*",
 		"#*": "./src/*"
+	},
+	"scripts": {
+		"test-e2e": "node e2e/cut-fixtures.ts \"$INIT_CWD/packages/content/streams\" && playwright test"
 	},
 	"dependencies": {
 		"zustand": "^5.0.15"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.63.0",
+		"vite": "^8.3.0"
 	}
 }

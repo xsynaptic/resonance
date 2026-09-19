@@ -30,6 +30,10 @@ export default {
 			// `react` is the tsconfig's `jsxImportSource` for MDX typings; only the root's `@types/react` is installed
 			ignoreDependencies: ['mdxlint', 'react'],
 		},
+		'packages/player': {
+			entry: ['e2e/fixture-server.ts', 'e2e/page/host.ts'],
+			ignoreDependencies: ['vite'],
+		},
 		'packages/scripts': {
 			ignoreBinaries: ['audiowaveform', 'ffmpeg', 'ffprobe', 'ssh-add'],
 			ignoreDependencies: ['@fontsource/.+', '@types/react', 'react'],

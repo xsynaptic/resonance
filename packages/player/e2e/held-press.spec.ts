@@ -2,27 +2,42 @@ import { heldPressAttribute } from '@xsynaptic/player/constants';
 
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
 
-const webkitProjects = new Set(['mobile-webkit', 'webkit']);
+// Chromium and Firefox let any later `play()` through once the page has been clicked, so only WebKit can refuse a late replay
+test.skip(({ browserName }) => browserName !== 'webkit', 'Only WebKit expires the gesture');
 
-for (const bindDelay of [1500, 4000, 8000]) {
-	test(`a press held ${String(bindDelay)}ms before the player binds is replayed and plays`, async ({
-		harness,
-		page,
-	}, testInfo) => {
-		test.fail(
-			bindDelay === 8000 && webkitProjects.has(testInfo.project.name),
-			'WebKit refuses a play() this long after the click; see .claude/tasks-backlog/player-held-press.md',
-		);
+test('a press held 1500ms before the player binds is replayed and plays', async ({
+	harness,
+	page,
+}) => {
+	await harness.open({ bindDelay: 1500 }, { isBound: false });
 
-		await harness.open({ bindDelay }, { isBound: false });
+	const press = page.getByRole('button', { name: 'Play long' });
 
-		const press = page.getByRole('button', { name: 'Play long' });
+	await press.click();
+	await expect(press).toHaveAttribute(heldPressAttribute);
 
-		await press.click();
-		await expect(press).toHaveAttribute(heldPressAttribute);
+	await harness.waitForBind();
+	await expect(press).not.toHaveAttribute(heldPressAttribute);
+	await expectAdvancing(harness, 1);
+});
 
-		await harness.waitForBind();
-		await expect(press).not.toHaveAttribute(heldPressAttribute);
-		await expectAdvancing(harness, 1);
-	});
-}
+// Known bug, see .claude/tasks-backlog/player-held-press.md; once fixed this turns red and becomes a spec that plays
+test('a press held 8000ms before the player binds is refused by WebKit', async ({
+	harness,
+	page,
+}) => {
+	await harness.open({ bindDelay: 8000 }, { isBound: false });
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await harness.waitForBind();
+
+	await expect
+		.poll(() =>
+			page.evaluate(() => {
+				const diagnostic = window.playerPage?.store.getState().diagnostic;
+
+				return diagnostic?.kind === 'play-rejected' ? diagnostic.name : undefined;
+			}),
+		)
+		.toBe('NotAllowedError');
+	expect(await harness.read()).toMatchObject({ isPaused: true, status: 'paused' });
+});

@@ -42,7 +42,7 @@ deploy/nginx/
 # content lives within a private repo; no trailing slash, so the worktree symlink matches too
 /packages/content
 
-# tesing
+# testing
 packages/player/e2e/.fixtures/
 test-results/
 playwright-report/

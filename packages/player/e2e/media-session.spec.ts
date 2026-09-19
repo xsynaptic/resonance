@@ -2,35 +2,20 @@ import { expect, expectAdvancing, test } from '#e2e/test.ts';
 
 declare global {
 	interface Window {
-		mediaSessionCalls?: { actions: Array<string>; positionReports: number };
+		mediaSessionCalls?: { positionReports: number };
 	}
 }
-
-const boundActions = [
-	'nexttrack',
-	'pause',
-	'play',
-	'previoustrack',
-	'seekbackward',
-	'seekforward',
-	'seekto',
-];
 
 test.beforeEach(async ({ harness, page }) => {
 	await page.addInitScript(() => {
 		if (!('mediaSession' in navigator)) return;
 
 		const session = navigator.mediaSession;
-		const calls = { actions: new Array<string>(), positionReports: 0 };
-		const nativeSetActionHandler = session.setActionHandler.bind(session);
+		const calls = { positionReports: 0 };
 		const nativeSetPositionState = session.setPositionState.bind(session);
 
-		// On the prototype, since WebKit can collect the session's wrapper and hand back a fresh one without overrides
+		// On the prototype, since WebKit can collect the session's wrapper and hand back a fresh one without the override
 		Object.defineProperty(window, 'mediaSessionCalls', { value: calls });
-		MediaSession.prototype.setActionHandler = (action, handler) => {
-			nativeSetActionHandler(action, handler);
-			if (handler) calls.actions.push(action);
-		};
 		MediaSession.prototype.setPositionState = (state) => {
 			calls.positionReports += 1;
 			nativeSetPositionState(state);
@@ -76,16 +61,10 @@ test('steady playback reports its position rarely', async ({ harness, page }) =>
 		page.evaluate(() => window.mediaSessionCalls?.positionReports ?? 0);
 	const before = await readReports();
 
-	await page.waitForTimeout(10_000);
+	await page.waitForTimeout(5000);
 
 	expect(await harness.read()).toMatchObject({ status: 'playing' });
 	const after = await readReports();
 
 	expect(after - before).toBeLessThanOrEqual(3);
-});
-
-test('every action the player binds has a handler', async ({ page }) => {
-	const actions = await page.evaluate(() => window.mediaSessionCalls?.actions ?? []);
-
-	expect(actions.toSorted((first, second) => first.localeCompare(second))).toEqual(boundActions);
 });

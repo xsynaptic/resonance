@@ -11,6 +11,8 @@ export default getConfig(
 				'**/.cache/**/*',
 				'**/.wrangler/**/*',
 				'**/dist/**/*',
+				'**/playwright-report/**/*',
+				'**/test-results/**/*',
 				'packages/content/{archive,collections}/**/*',
 				'**/worker-configuration.d.ts',
 			],

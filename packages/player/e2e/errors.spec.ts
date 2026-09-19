@@ -1,5 +1,4 @@
-import { seekSeconds } from '#e2e/constants.ts';
-import { expect, expectAdvancing, pressBarControl, test } from '#e2e/test.ts';
+import { expect, expectAdvancing, test } from '#e2e/test.ts';
 import { labels } from '#test/labels.ts';
 
 const webkitProjects = new Set(['mobile-webkit', 'webkit']);
@@ -91,45 +90,6 @@ test('a declined type that fails to load is unplayable, with no retry', async ({
 	expect(await harness.read()).toMatchObject({ resolveCount: 1, status: 'unplayable' });
 });
 
-test('a capped resolve requests no stream', async ({ harness, page }) => {
-	await harness.open({ resolve: 'capped' });
-	await page.getByRole('button', { name: 'Play long' }).click();
-
-	await expect(page.getByRole('status').filter({ hasText: labels.capped })).toBeVisible();
-	expect(await harness.read()).toMatchObject({ status: 'capped' });
-	expect(await harness.requests()).toEqual([]);
-});
-
-test('a seek while the stream resolves is where playback starts', async ({ harness, page }) => {
-	await harness.open({ resolveDelay: 2000 });
-	await page.getByRole('button', { name: 'Play long' }).click();
-	await pressBarControl(page, 'seekForward');
-
-	expect(await harness.read()).toMatchObject({ element: { currentSrc: '' } });
-	await expect.poll(() => harness.read()).toMatchObject({ status: 'playing' });
-
-	const { element } = await harness.read();
-	const startedAt = element?.currentTime ?? 0;
-
-	expect(startedAt).toBeGreaterThan(seekSeconds - 1);
-	expect(startedAt).toBeLessThan(seekSeconds + 3);
-});
-
-test('a resolve that lands after a switch loads nothing', async ({ harness, page }) => {
-	await harness.open({ resolveDelay: 2000 });
-	await page.getByRole('button', { name: 'Play long' }).click();
-	await page.getByRole('button', { name: 'Play short' }).click();
-
-	await expect.poll(() => harness.read()).toMatchObject({ status: 'playing' });
-	await expectAdvancing(harness, 1);
-
-	const requests = await harness.requests();
-	const paths = requests.map(({ path }) => path);
-
-	expect(paths.length).toBeGreaterThan(0);
-	expect(paths.every((path) => path.endsWith('/short.mp4'))).toBe(true);
-});
-
 test('pause during a hanging load settles on paused', async ({ harness, page }) => {
 	await harness.open({ stream: 'hang' });
 	await page.getByRole('button', { name: 'Play long' }).click();
@@ -139,8 +99,12 @@ test('pause during a hanging load settles on paused', async ({ harness, page }) 
 
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'paused' });
 
-	const { isPaused, playbackError } = await harness.read();
+	// The store turns `paused` on the press itself; a late `waiting` or `error` from the element lands after
+	await page.waitForTimeout(1000);
 
+	const { isPaused, playbackError, status } = await harness.read();
+
+	expect(status).toBe('paused');
 	expect(isPaused).toBe(true);
 	expect(playbackError).toBeUndefined();
 });

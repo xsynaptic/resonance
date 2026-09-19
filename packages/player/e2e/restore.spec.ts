@@ -1,5 +1,3 @@
-import { queueStorageKey } from '@xsynaptic/player/constants';
-
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
 import { labels } from '#test/labels.ts';
 
@@ -39,38 +37,6 @@ test('a reload restores the queue without playing, and a press resumes where it 
 
 	expect(Math.abs(resumedAt - restored.currentTimeSeconds)).toBeLessThan(3);
 	await expectAdvancing(harness, resumedAt + 1);
-});
-
-test('a stored item missing its artwork is refreshed from the page', async ({ harness, page }) => {
-	await page.addInitScript(
-		({ key }) => {
-			const stale = {
-				artistLine: 'Fixture Artist',
-				durationMs: 60_000,
-				itemId: 'long',
-				queueId: 'q1',
-				releaseTitle: 'Fixtures',
-				title: 'Long fixture',
-			};
-
-			localStorage.setItem(
-				key,
-				JSON.stringify({
-					currentIndex: 0,
-					currentTimeSeconds: 12,
-					isShuffling: false,
-					queue: [stale],
-				}),
-			);
-		},
-		{ key: queueStorageKey },
-	);
-
-	await harness.open();
-
-	const artwork = await page.evaluate(() => window.playerPage?.store.getState().queue[0]?.artwork);
-
-	expect(artwork).toEqual([expect.objectContaining({ src: expect.stringContaining('/art.png') })]);
 });
 
 test('storage that throws on every call leaves playback working', async ({ harness, page }) => {

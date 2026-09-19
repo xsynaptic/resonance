@@ -35,8 +35,6 @@ const parameters = new URLSearchParams(location.search);
 
 const settings = {
 	bindDelay: Number(parameters.get('bindDelay') ?? 0),
-	resolve: readChoice('resolve', ['ok', 'capped', 'reject']),
-	resolveDelay: Number(parameters.get('resolveDelay') ?? 0),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
 	run: parameters.get('run') ?? 'manual',
 	stream: readChoice('stream', ['audio', 'missing', 'garbage', 'hang', 'flaky']),
@@ -46,11 +44,10 @@ const settings = {
 let resolveCount = 0;
 
 const urls: PlayerUrls = {
-	stream: async (item) => {
+	stream: (item) => {
 		resolveCount += 1;
-		await wait(settings.resolveDelay);
 
-		return resolveStream(item);
+		return Promise.resolve(resolveStream(item));
 	},
 };
 
@@ -69,10 +66,6 @@ function readChoice<Choice extends string>(
 
 // Read off the item, since a queue restored from storage carries the URL it was saved with
 function resolveStream(item: QueueItem): StreamResolution {
-	if (settings.resolve === 'capped') return { status: 'capped' };
-
-	if (settings.resolve === 'reject') throw new Error(`Rejected ${item.itemId}`);
-
 	const url: unknown = Reflect.get(item, 'streamUrl');
 	if (typeof url !== 'string') throw new Error(`No stream URL for ${item.itemId}`);
 

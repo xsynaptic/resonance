@@ -79,6 +79,20 @@ describe('monitorPlayback', () => {
 		expect(page.reports.map((report) => report.heardSeconds)).toEqual([40]);
 	});
 
+	test('a seek shorter than the step cap adds nothing when no timeupdate resyncs it', () => {
+		const page = createPage();
+
+		page.bind();
+		page.emit('playing', { paused: false });
+		page.hear(40);
+		page.emit('seeking', { seeking: true });
+		page.emit('seeked', { currentTime: 41.5, seeking: false });
+		page.emit('timeupdate', { currentTime: 41.7 });
+		page.emit('pause', { paused: true });
+
+		expect(page.reports.map((report) => report.heardSeconds)).toEqual([40]);
+	});
+
 	test('an unflagged jump adds nothing, forward or back', () => {
 		const page = createPage();
 
@@ -119,6 +133,26 @@ describe('monitorPlayback', () => {
 		page.emit('pause', { paused: true });
 
 		expect(page.reports.map((report) => report.heardSeconds)).toEqual([35]);
+	});
+
+	test('a playback the identify hook declines is never reported', () => {
+		let itemId: string | undefined = 'voyager';
+		const page = createPage({ identify: () => itemId });
+
+		page.bind();
+		page.emit('playing', { paused: false });
+		page.hear(40);
+		page.emit('pause', { paused: true });
+		page.emit('emptied');
+
+		expect(page.reports.map((report) => report.heardSeconds)).toEqual([40]);
+
+		itemId = undefined;
+		page.emit('playing', { paused: false });
+		page.hear(60);
+		page.emit('pause', { paused: true });
+
+		expect(page.reports.map((report) => report.heardSeconds)).toEqual([40]);
 	});
 
 	test('emptied closes the listen, and the next play opens another', () => {

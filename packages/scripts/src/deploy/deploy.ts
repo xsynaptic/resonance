@@ -292,7 +292,7 @@ async function smoke(): Promise<void> {
 		return;
 	}
 	console.log(chalk.blue('Running the smoke suite...'));
-	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm test-smoke`;
+	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm test-e2e-smoke`;
 }
 
 try {

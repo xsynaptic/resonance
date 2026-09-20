@@ -21,6 +21,11 @@ const migration = readFileSync(
 	'utf8',
 );
 
+// SHA-256 of `test-salt2026-09-16198.51.100.7test-agent`, computed outside this suite
+const visitorDigest = 'bf0c7a38da97567a9219f12bf3dfc8e5d3276dcdeb7ba82c94f63cfb833c2e36';
+const visitorDigestWithoutAgent =
+	'bade776ed2907f3ebec617354fb7d45cf1d516c5dd62ff301aa8dba33b06df37';
+
 const defaultHeaders: Record<string, string> = {
 	'cf-connecting-ip': '198.51.100.7',
 	'sec-fetch-site': 'same-origin',
@@ -213,6 +218,16 @@ describe('handleListenReport', () => {
 		}
 
 		expect(rows()).toHaveLength(0);
+	});
+
+	test('the visitor is a digest of the salt, the day, the client IP and the user agent', async () => {
+		await post({ id: listenId, mixId: 'voyager', seconds: 300 });
+
+		expect(rows()[0]?.visitor).toBe(visitorDigest);
+
+		await post({ id: toListenId(2), mixId: 'voyager', seconds: 300 }, { 'user-agent': undefined });
+
+		expect(rows().find((row) => row.id === toListenId(2))?.visitor).toBe(visitorDigestWithoutAgent);
 	});
 
 	test('a missing salt throws rather than hashing against the literal `undefined`', async () => {

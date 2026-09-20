@@ -50,4 +50,20 @@ describe('fetch', () => {
 		await expect(response.json()).resolves.toEqual({ message: t('comments.error.unexpected') });
 		expect(logged).toHaveBeenCalledOnce();
 	});
+
+	test('logs and still answers 204 when the listen handler throws', async () => {
+		const logged = vi.spyOn(console, 'error').mockImplementation(vi.fn());
+		const env = createEnv();
+
+		env.IP_SALT = '';
+
+		const response = await worker.fetch(
+			new Request('https://example.test/api/listen', { body: '{}', method: 'POST' }),
+			env,
+		);
+
+		expect(response.status).toBe(204);
+		await expect(response.text()).resolves.toBe('');
+		expect(logged).toHaveBeenCalledOnce();
+	});
 });

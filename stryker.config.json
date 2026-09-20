@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+	"packageManager": "pnpm",
+	"testRunner": "vitest",
+	"plugins": ["@stryker-mutator/vitest-runner"],
+	"coverageAnalysis": "perTest",
+	"mutate": ["worker/**/*.ts", "packages/playback-stats/src/**/*.ts", "!**/*.test.ts"],
+	"ignorePatterns": [
+		"**",
+		"!package.json",
+		"!tsconfig.json",
+		"!vitest.config.ts",
+		"!worker/**",
+		"!packages/playback-stats/**",
+		"!migrations/stats/**",
+		"!src/lib/i18n/**",
+		"!src/lib/astro-env-stub.ts",
+		"!src/lib/collections/astro-content-stub.ts"
+	],
+	"tempDirName": ".cache/stryker-tmp",
+	"reporters": ["progress", "clear-text", "html", "json"],
+	"clearTextReporter": { "allowColor": false, "maxTestsToLog": 2 },
+	"htmlReporter": { "fileName": ".cache/stryker/mutation-report.html" },
+	"jsonReporter": { "fileName": ".cache/stryker/mutation-report.json" }
+}

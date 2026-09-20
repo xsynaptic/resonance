@@ -64,6 +64,10 @@ The collections were generated once from a WordPress dump and are hand-authored 
 
 `pnpm check` and `pnpm fix` are the gate; both call into `lefthook.yml`, which lists what each one runs and in what order. `check` is green end to end; anything it reports is yours. `pnpm install` syncs the lefthook `pre-push` hook, which runs the same `check` group before every push.
 
-`pnpm test-e2e` runs the player in real browsers, on demand and outside `check`; it needs the content repository and `ffmpeg`, and is worth running after a change under `packages/player/src/engine/`, `store/` or `page-controls.ts`.
+Two Playwright suites, both on demand and outside `check`, both needing the content repository and `ffmpeg`. Everything under `test-e2e-*` is one of them; `pnpm test-e2e` on its own is not a script.
 
-`pnpm test-smoke` runs the site smoke suite (`tests/e2e/`) against `dist/` so `pnpm build` must be run first; it needs the content repository and `ffmpeg` too, and stays outside `check`, since `deploy-site` runs it after the build (`--skip-smoke` opts out). `pnpm test-smoke-prod` points the same suite at `PROD_SERVER_URL`.
+`pnpm test-e2e-player` runs the player in isolation (`packages/player/e2e/`, its own config and harness page) across four browsers, and is worth running after a change under `packages/player/src/engine/`, `store/` or `page-controls.ts`. From inside `packages/player` the same suite is `pnpm test-e2e`, unprefixed because the package is already the scope.
+
+`pnpm test-e2e-smoke` runs the site suite (`tests/e2e/`, root config) against `dist/`, so `pnpm build` must be run first. `deploy-site` runs it after the build and `--skip-smoke` opts out, which is why the suite keeps the smoke name. `pnpm test-e2e-smoke-prod` points it at `PROD_SERVER_URL`.
+
+The site suite reads its audio fixture from `packages/player/e2e/.fixtures/`, so both `test-e2e-smoke` scripts cut the player's fixtures first.

@@ -19,7 +19,6 @@ export default defineConfig({
 	use: {
 		baseURL: `http://localhost:${String(pagePort)}`,
 		trace: 'retain-on-failure',
-		video: 'retain-on-failure',
 	},
 	webServer: [
 		{

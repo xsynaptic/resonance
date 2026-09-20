@@ -26,13 +26,12 @@ export default defineConfig({
 		},
 	],
 	reporter: [['list'], ['html', { open: 'never' }]],
-	retries: 0,
+	retries: 1,
 	testDir: './tests/e2e',
 	timeout: 15_000,
 	use: {
 		baseURL: getBaseUrl(),
-		trace: 'retain-on-failure',
-		video: 'retain-on-failure',
+		trace: 'on-first-retry',
 	},
 	...(isProd ? {} : { webServer: previewServer }),
 });

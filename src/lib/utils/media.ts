@@ -4,7 +4,7 @@ import { mediaLqipPath } from '@xsynaptic/shared/constants';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-// Frontmatter media paths are relative to packages/content/media (e.g. 2017/01/x.jpg)
+// Frontmatter media paths are relative to packages/content/media (e.g. 2017/x.jpg)
 const mediaRoot = '/packages/content/media';
 
 // Patterns must be literals; astro:assets only optimizes statically-analyzable image paths

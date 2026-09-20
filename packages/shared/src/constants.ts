@@ -15,10 +15,11 @@ export const openGraphManifestFile = 'manifest.json';
 // The card every page without one of its own falls back to
 export const openGraphDefaultId = 'index-default';
 
-export const openGraphHomeId = 'index-home';
+// Platforms cache a card by URL forever; renaming this is what makes them refetch
+export const openGraphHomeId = 'homepage';
 
 // Resolved against `packages/content/media`, like a Featured Image in frontmatter
-export const openGraphHomeImageId = '2019/05/synaptic-fx-round-1.jpg';
+export const openGraphHomeImageId = '2019/synaptic-fx-round-1.jpg';
 
 // Written by the sitemap-lastmod deploy step, read back when the Astro config loads
 export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';

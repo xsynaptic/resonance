@@ -46,7 +46,7 @@ A `ready` document can still hold settled items. Those carry their disposition i
 
 `packages/content` is a **separate private repository**, nested here and gitignored whole. Read `packages/content/AGENTS.md` before creating or editing anything under it, and open it as its own project for sustained content work so those rules load automatically. Because the directory is ignored here, `git clean -xdf` in this repo deletes it outright, its own `.git` included.
 
-The extractor that generated the collections is archived in `backups/wp-extract-2026-09-03.zip`. Re-running it wipes the collection directories and re-emits, so if the dump is ever run again it goes onto a branch and is merged by hand. See `.claude/reference/wordpress-origins.md`.
+The collections were generated once from a WordPress dump and are hand-authored since; nothing regenerates them. The migration archive and what is in it: `.claude/reference/wordpress-origins.md`.
 
 - Drafts are `_`-prefixed and skipped by the `[^_]*` glob loader, so they never enter the data store.
 - Schemas import `z` from `'zod'`, **not** `'astro:content'` (deprecated in Astro 7).

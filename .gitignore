@@ -49,6 +49,3 @@ playwright-report/
 
 # database backups (large, not for VCS)
 backups/
-
-# temporary machinery: the legacy download recount, kept until launch confirms the numbers
-packages/scripts/src/backfill/

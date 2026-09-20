@@ -34,3 +34,24 @@ test('the current page is the only one marked', async ({ page }) => {
 		'aria-current',
 	);
 });
+
+test('a header link navigates client-side and the chrome survives the swap', async ({ page }) => {
+	await visit(page, routes.mixesIndex);
+
+	// A window property dies with its document, where a `load` count races the URL assertion on a slow host
+	await page.evaluate(() => Object.assign(window, { survivesSwap: true }));
+
+	await page
+		.getByRole('navigation', { name: t('nav.primary.label') })
+		.getByRole('link', { exact: true, name: postsTitle })
+		.click();
+
+	await expect(page).toHaveURL(routes.postsIndex);
+	expect(
+		await page.evaluate(() => 'survivesSwap' in window),
+		'the swap reloaded the document',
+	).toBe(true);
+
+	await page.getByRole('button', { name: t('search.toggle.label') }).click();
+	await expect(page.locator('pagefind-input input')).toBeVisible();
+});

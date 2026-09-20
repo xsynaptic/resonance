@@ -44,8 +44,9 @@ deploy/nginx/
 
 # testing
 packages/player/e2e/.fixtures/
-test-results/
-playwright-report/
+packages/player/playwright-report/
+packages/player/test-results/
+temp/
 
 # database backups (large, not for VCS)
 backups/

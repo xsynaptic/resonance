@@ -68,6 +68,6 @@ Two Playwright suites, both on demand and outside `check`, both needing the cont
 
 `pnpm test-e2e-player` runs the player in isolation (`packages/player/e2e/`, its own config and harness page) across four browsers, and is worth running after a change under `packages/player/src/engine/`, `store/` or `page-controls.ts`. From inside `packages/player` the same suite is `pnpm test-e2e`, unprefixed because the package is already the scope.
 
-`pnpm test-e2e-smoke` runs the site suite (`tests/e2e/`, root config) against `dist/`, so `pnpm build` must be run first. `deploy-site` runs it after the build and `--skip-smoke` opts out, which is why the suite keeps the smoke name. `pnpm test-e2e-smoke-prod` points it at `PROD_SERVER_URL`.
+`pnpm test-e2e-smoke` runs the site suite (`tests/e2e/`, root config) against `dist/`, so `pnpm build` must be run first. `deploy-site` runs it after the build and `--skip-smoke` opts out, which is why the suite keeps the smoke name. `pnpm test-e2e-smoke-prod` points it at the live site, which `PROD_SERVER_URL` overrides.
 
 The site suite reads its audio fixture from `packages/player/e2e/.fixtures/`, so both `test-e2e-smoke` scripts cut the player's fixtures first.

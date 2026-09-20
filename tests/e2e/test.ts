@@ -30,6 +30,9 @@ const streamType = 'audio/mp4; codecs="opus"';
 
 const allowedHost = new URL(getBaseUrl()).host;
 
+// Cloudflare edge-injects a beacon the off-host route answers empty; Chromium fails its SRI check, WebKit its MIME check
+const blockedResourcePattern = /static\.cloudflareinsights\.com/;
+
 let audioFixture: Buffer | undefined;
 
 // One range from a start, the only shape a media element asks for
@@ -81,7 +84,7 @@ export const test = base.extend<{
 	consoleGuard: [
 		async ({ page }, use) => {
 			const errors: Array<string> = [];
-			const allowed: Array<RegExp> = [];
+			const allowed: Array<RegExp> = [blockedResourcePattern];
 
 			page.on('console', (message) => {
 				if (message.type() === 'error') errors.push(message.text());

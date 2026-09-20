@@ -5,6 +5,9 @@ export const localUrl = `http://localhost:${String(localPort)}`;
 
 export const isProd = process.env.TEST_ENV === 'prod';
 
+// Must match `DEPLOY_SITE_URL` in `.env`, which the deploy config reads as its site URL
+const prodUrl = 'https://djbasilisk.com';
+
 export const audioFixturePath = path.join(
 	import.meta.dirname,
 	'../../packages/player/e2e/.fixtures/long.mp4',
@@ -20,14 +23,9 @@ export const routes = {
 	archiveIndex: '/archive/',
 	mixesIndex: '/mixes/',
 	mixesIndexPage2: '/mixes/2/',
+	postsIndex: '/posts/',
 } as const;
 
 export function getBaseUrl(): string {
-	if (!isProd) return localUrl;
-
-	const prodUrl = process.env.PROD_SERVER_URL;
-
-	if (!prodUrl) throw new Error('PROD_SERVER_URL is required when TEST_ENV=prod');
-
-	return prodUrl;
+	return isProd ? (process.env.PROD_SERVER_URL ?? prodUrl) : localUrl;
 }

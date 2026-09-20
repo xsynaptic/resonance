@@ -13,6 +13,7 @@ const previewServer = {
 export default defineConfig({
 	fullyParallel: true,
 	maxFailures: 3,
+	outputDir: './temp/playwright-results',
 	projects: [
 		{
 			name: 'chromium',
@@ -25,13 +26,13 @@ export default defineConfig({
 			use: { ...devices['Desktop Safari'] },
 		},
 	],
-	reporter: [['list'], ['html', { open: 'never' }]],
-	retries: 1,
+	reporter: [['list'], ['html', { open: 'never', outputFolder: './temp/playwright-report' }]],
+	retries: 0,
 	testDir: './tests/e2e',
 	timeout: 15_000,
 	use: {
 		baseURL: getBaseUrl(),
-		trace: 'on-first-retry',
+		trace: 'retain-on-failure',
 	},
 	...(isProd ? {} : { webServer: previewServer }),
 });

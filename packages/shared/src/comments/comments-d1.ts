@@ -11,7 +11,7 @@ const idPattern = /^[a-z0-9-]{1,64}$/i;
 
 export const commentStatusSchema = z.enum(['approved', 'pending', 'rejected', 'spam']);
 
-// Every column of `migrations/0001-comments.sql`; consumers `pick` the ones they select
+// Every column of `migrations/comments/0001-comments.sql`; consumers `pick` the ones they select
 export const commentRowSchema = z.object({
 	author: z.string(),
 	author_email: z.string().nullable(),

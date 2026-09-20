@@ -18,13 +18,15 @@
 			"binding": "DB",
 			"database_name": "resonance-comments",
 			"database_id": "fe64fcc6-cdb6-492d-a897-84f5ab6e9af4",
+			// Explicit, so the walk stops here instead of recursing into every sibling database
+			"migrations_dir": "migrations/comments",
 		},
 		// A separate database, so a stats mistake cannot reach the only copy of the comments
 		{
 			"binding": "STATS",
 			"database_name": "resonance-stats",
 			"database_id": "b6c39628-b0c4-4796-a64f-4081a83a92a2",
-			"migrations_dir": "migrations-stats",
+			"migrations_dir": "migrations/stats",
 		},
 	],
 }

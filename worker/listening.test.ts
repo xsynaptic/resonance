@@ -17,7 +17,7 @@ interface ListenRow {
 
 // A `URL` here would be the Workers one, which Node's `readFileSync` does not accept
 const migration = readFileSync(
-	path.join(import.meta.dirname, '../migrations-stats/0001-listens.sql'),
+	path.join(import.meta.dirname, '../migrations/stats/0001-listens.sql'),
 	'utf8',
 );
 

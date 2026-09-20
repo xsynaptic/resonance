@@ -23,6 +23,7 @@
 }
 
 @media (hover: hover) {
+	/* fallow-ignore-next-line code-duplication -- the hover twin has to stay under @media (hover: hover) */
 	.button-x:hover:not(:disabled) {
 		--button-sheen: color-mix(in srgb, var(--color-surface-200) 50%, transparent);
 

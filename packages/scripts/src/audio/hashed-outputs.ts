@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
 export async function collectHashedOutputs(
 	directoryPath: string,
@@ -33,4 +34,17 @@ export async function collectHashedOutputs(
 	}
 
 	return outputs;
+}
+
+// The previous hash is unreachable the moment this one lands; the deploy leg reaps its remote twin
+export async function landHashedOutput(
+	file: string,
+	directoryPath: string,
+	{ existing, name }: { existing: string | undefined; name: string },
+): Promise<void> {
+	await fs.rename(file, path.join(directoryPath, name));
+
+	if (existing !== undefined && existing !== name) {
+		await fs.rm(path.join(directoryPath, existing), { force: true });
+	}
 }

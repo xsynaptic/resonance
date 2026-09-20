@@ -2,7 +2,7 @@ import type { QueueCuePoint } from '#types.ts';
 import type { PlacedCuePoint } from '#waveform/cue-points.ts';
 import type { WaveformRendering } from '#waveform/overview/overview-render.ts';
 
-import { cuePointAtPointer } from '#elements/time-slider/overview-scrub.ts';
+import { cuePointAtPointer, pointerRatio } from '#elements/time-slider/overview-scrub.ts';
 import { labelPlacement, placedCueAt } from '#waveform/cue-points.ts';
 
 // Where the label is anchored, in device pixels; `seconds` is absent where nothing maps a pixel to a time
@@ -48,7 +48,7 @@ export function readoutAtPointer(
 	if (placed !== undefined)
 		return coveringReadout(rendering, placed.cuePoint.startSeconds, placed.x);
 
-	const ratio = Math.min(1, Math.max(0, (pointer.clientX - rect.left) / rect.width));
+	const ratio = pointerRatio(rect, pointer);
 
 	return coveringReadout(rendering, ratio * durationSeconds, Math.round(ratio * rendering.width));
 }

@@ -10,6 +10,7 @@ import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
 import { renderFeedContent } from '#lib/feed/feed-render.ts';
 import { getEntryDescription } from '#lib/utils/description.ts';
+import { byDateCreatedDescending } from '#lib/utils/entries.ts';
 
 export async function getFeedItems(site: URL) {
 	const [mixes, posts, reviews] = await Promise.all([
@@ -19,7 +20,7 @@ export async function getFeedItems(site: URL) {
 	]);
 
 	const entries = [...mixes, ...posts, ...reviews]
-		.sort((first, second) => second.data.dateCreated.getTime() - first.data.dateCreated.getTime())
+		.sort(byDateCreatedDescending)
 		.slice(0, feedItemCount);
 
 	return await Promise.all(entries.map((entry) => toFeedItem(entry, site)));

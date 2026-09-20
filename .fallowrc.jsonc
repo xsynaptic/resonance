@@ -57,7 +57,7 @@
 		],
 	},
 	"duplicates": {
-		"minTokens": 40,
+		"minTokens": 30,
 		// A threshold of zero means no limit; this fails on any clone group
 		"threshold": 0.01,
 		"ignore": ["src/dev/**", "tests/e2e/test.ts"],

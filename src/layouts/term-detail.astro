@@ -80,11 +80,11 @@ const schemas = isFirstPage
 ---
 
 <MainSite
+	description={description}
 	noIndex={!isFirstPage}
 	openGraphId={getOpenGraphId(term.collection, term.id)}
 	schemas={schemas}
 	title={term.data.title}
-	{...(description ? { description } : {})}
 >
 	{imageHeroId ? (
 		<SectionDetailHero

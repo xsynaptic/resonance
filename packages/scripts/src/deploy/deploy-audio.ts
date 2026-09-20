@@ -52,6 +52,12 @@ interface DerivedLeg {
 	transferred: RegExp;
 }
 
+interface LegSync {
+	config: DeployConfig;
+	dryRun: boolean;
+	extraFlags: Array<string>;
+}
+
 const derivedLegs: Array<DerivedLeg> = [
 	{
 		excludes: rsyncExcludes,
@@ -123,11 +129,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 			),
 		);
 
-		const output = await rsyncTo(
-			`${localPath}/`,
-			`${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
-			{ archive: 'av', config, dryRun, excludes: leg.excludes, extraFlags: rsyncFlags },
-		);
+		const output = await rsyncLeg(leg, localPath, { config, dryRun, extraFlags: rsyncFlags });
 
 		derived[leg.key] = parseTransferred(output, leg.transferred);
 	}
@@ -149,6 +151,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 export async function reapDerivedAudio(options: DeployAudioOptions): Promise<void> {
 	const { config, dryRun = false, rootPath } = options;
 
+	// fallow-ignore-next-line code-duplication -- a loop header and a guard; the upload warns on a missing leg, this skips it
 	for (const leg of derivedLegs) {
 		const localPath = path.join(rootPath, leg.localDir);
 
@@ -157,17 +160,11 @@ export async function reapDerivedAudio(options: DeployAudioOptions): Promise<voi
 		console.log(chalk.blue(`Reaping superseded ${leg.label.toLowerCase()}...`));
 		if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
-		const output = await rsyncTo(
-			`${localPath}/`,
-			`${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
-			{
-				archive: 'av',
-				config,
-				dryRun,
-				excludes: leg.excludes,
-				extraFlags: [...rsyncFlags, '--delete'],
-			},
-		);
+		const output = await rsyncLeg(leg, localPath, {
+			config,
+			dryRun,
+			extraFlags: [...rsyncFlags, '--delete'],
+		});
 
 		console.log(
 			chalk.green(`Reaped ${String(countDeleted(output))} superseded ${leg.label.toLowerCase()}`),
@@ -190,4 +187,19 @@ function parseTransferred(output: string, pattern: RegExp): Array<string> {
 		.split('\n')
 		.map((line) => line.trim())
 		.filter((line) => !line.startsWith('deleting ') && pattern.test(line));
+}
+
+// The reap deletes against the same destination and excludes the upload wrote through
+function rsyncLeg(
+	leg: DerivedLeg,
+	localPath: string,
+	{ config, dryRun, extraFlags }: LegSync,
+): Promise<string> {
+	return rsyncTo(`${localPath}/`, `${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`, {
+		archive: 'av',
+		config,
+		dryRun,
+		excludes: leg.excludes,
+		extraFlags,
+	});
 }

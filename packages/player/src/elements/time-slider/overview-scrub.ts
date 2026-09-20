@@ -105,12 +105,16 @@ export function pixelAt(
 	return Math.round(Math.min(1, Math.max(0, seconds / durationSeconds)) * width);
 }
 
+export function pointerRatio(rect: DOMRect, pointer: { clientX: number }): number {
+	return Math.min(1, Math.max(0, (pointer.clientX - rect.left) / rect.width));
+}
+
 // A press over a cue point lands on its start, so a drag across one snaps to it
 export function scrubSecondsAt(
 	{ durationSeconds, rect, rendering }: ScrubTarget,
 	pointer: { clientX: number; clientY: number },
 ): number {
-	const ratio = Math.min(1, Math.max(0, (pointer.clientX - rect.left) / rect.width));
+	const ratio = pointerRatio(rect, pointer);
 
 	return (
 		cuePointAtPointer(rendering, rect, pointer)?.cuePoint.startSeconds ?? ratio * durationSeconds

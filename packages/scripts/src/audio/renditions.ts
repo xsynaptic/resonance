@@ -9,7 +9,7 @@ import { $ } from 'zx';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { collectHashedOutputs } from '#audio/hashed-outputs.ts';
+import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
 import { measureLoudness } from '#audio/loudness.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
@@ -288,12 +288,7 @@ async function land(
 
 	const name = `${job.base}.${await hashFile(tagged)}${renditionExtension}`;
 
-	await fs.rename(tagged, path.join(streamsPath, name));
-
-	// The previous hash is unreachable the moment this one lands; the stream leg reaps its remote twin
-	if (job.existing !== undefined && job.existing !== name) {
-		await fs.rm(path.join(streamsPath, job.existing), { force: true });
-	}
+	await landHashedOutput(tagged, streamsPath, { existing: job.existing, name });
 
 	return name;
 }

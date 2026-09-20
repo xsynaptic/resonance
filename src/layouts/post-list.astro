@@ -30,6 +30,7 @@ const posts = await Promise.all(
 	}),
 );
 
+// fallow-ignore-next-line code-duplication -- a first-page ternary around buildCollectionGraph, which is the shared part
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas =
 	page.currentPage === 1 ? buildCollectionGraph({ description, title, url: pageUrl }) : undefined;

@@ -34,12 +34,12 @@ const relatedItems = await getRelatedItems(entry.id);
 ---
 
 <MainSite
+	description={description}
 	openGraphId={openGraphId}
 	openGraphType="article"
 	publishedTime={entry.data.dateCreated}
 	schemas={schemas}
 	title={entry.data.title}
-	{...(description ? { description } : {})}
 >
 	<article data-pagefind-body>
 		<SearchThumbnail path={imageFeaturedId} />

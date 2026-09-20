@@ -24,7 +24,7 @@ import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
-	description?: string;
+	description?: string | undefined;
 	noIndex?: boolean;
 	openGraphId?: string;
 	openGraphType?: 'article' | 'website';
@@ -34,7 +34,7 @@ interface Props {
 }
 
 const {
-	description = site.description,
+	description: descriptionProp,
 	noIndex = false,
 	openGraphId,
 	openGraphType = 'website',
@@ -42,6 +42,9 @@ const {
 	schemas,
 	title,
 } = Astro.props;
+
+// An excerpt can come back empty, and the layouts pass it through as it is
+const description = descriptionProp || site.description;
 const pageTitle = title
 	? formatStringTemplate(t('site.pageTitle'), { siteTitle: site.title, title })
 	: site.title;

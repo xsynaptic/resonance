@@ -9,6 +9,13 @@ export type LinkableEntry = CollectionEntry<(typeof linkableCollections)[number]
 
 let slugMapPromise: Promise<Map<string, LinkableEntry>> | undefined;
 
+export function byDateCreatedDescending(
+	first: { data: { dateCreated: Date } },
+	second: { data: { dateCreated: Date } },
+): number {
+	return second.data.dateCreated.getTime() - first.data.dateCreated.getTime();
+}
+
 export async function getEntryBySlug(slug: string): Promise<LinkableEntry | undefined> {
 	const slugMap = await getSlugMap();
 	const entry = slugMap.get(slug);

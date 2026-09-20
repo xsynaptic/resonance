@@ -1,7 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
 
-import { getContentPath } from '@xsynaptic/shared/routing';
-
 import type { TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { StringKey } from '#lib/i18n/i18n-strings.ts';
@@ -10,6 +8,7 @@ import type { LinkedName } from '#lib/utils/terms.ts';
 import { getTermHierarchy, isHierarchical } from '#lib/collections/terms/hierarchy.ts';
 import { getTermCollection } from '#lib/collections/terms/term-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
+import { toLinkedName } from '#lib/utils/terms.ts';
 
 export interface TermRelationGroup {
 	heading: string;
@@ -48,10 +47,7 @@ export async function getTermRelations(
 			.filter((entry) => entry !== undefined)
 			.filter((entry) => (entry.data._entryCount ?? 0) > 0)
 			.sort(byEntryCount)
-			.map((entry) => ({
-				name: entry.data.title,
-				url: getContentPath(collection, entry.id),
-			}));
+			.map((entry) => toLinkedName(collection, entry));
 
 		return { heading: t(heading), terms };
 	}

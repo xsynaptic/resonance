@@ -82,10 +82,7 @@ export async function resolveTermLinks(
 
 	const entries = await getEntries(references);
 
-	return entries.map((entry) => ({
-		name: entry.data.title,
-		url: getContentPath(collection, entry.id),
-	}));
+	return entries.map((entry) => toLinkedName(collection, entry));
 }
 
 // A track's artists may be a single credit or an array of them; resolution takes an array either way
@@ -94,6 +91,13 @@ export function toCreditArray(
 ): Array<CreditValue> {
 	if (value === undefined) return [];
 	return Array.isArray(value) ? value : [value];
+}
+
+export function toLinkedName(
+	collection: TitledCollectionKey,
+	entry: { data: { title: string }; id: string },
+): LinkedName {
+	return { name: entry.data.title, url: getContentPath(collection, entry.id) };
 }
 
 async function buildSlugs(collection: TitledCollectionKey): Promise<Map<string, string>> {

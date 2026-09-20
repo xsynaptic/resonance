@@ -4,7 +4,7 @@ import { $ } from 'zx';
 
 import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { collectHashedOutputs } from '#audio/hashed-outputs.ts';
+import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
 
@@ -190,12 +190,7 @@ async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 
 	const name = `${job.base}.${await hashFile(tmp)}${archiveExtension}`;
 
-	await fs.rename(tmp, path.join(cacheDir, name));
-
-	// The previous hash is unreachable the moment this one lands; the waveform leg reaps its remote twin
-	if (job.existing !== undefined && job.existing !== name) {
-		await fs.rm(path.join(cacheDir, job.existing), { force: true });
-	}
+	await landHashedOutput(tmp, cacheDir, { existing: job.existing, name });
 
 	return name;
 }

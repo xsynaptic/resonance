@@ -33,11 +33,11 @@ const schemas =
 ---
 
 <MainSite
+	description={metaDescription}
 	noIndex={page.currentPage > 1}
 	openGraphId={getOpenGraphId('index', collection)}
 	schemas={schemas}
 	title={title}
-	{...(metaDescription ? { description: metaDescription } : {})}
 >
 	<ListPageTitle title={title} {...(description ? { description } : {})} />
 	<EntryCardGroups groupByYear={groupByYear} items={page.data} meta={['subtitle']} />

@@ -31,12 +31,12 @@ const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 ---
 
 <MainSite
+	description={description}
 	openGraphId={getOpenGraphId(entry.collection, entry.id)}
 	openGraphType="article"
 	publishedTime={date}
 	schemas={schemas}
 	title={entry.data.title}
-	{...(description ? { description } : {})}
 >
 	{imageHeroId ? (
 		<SectionDetailHero

@@ -1,6 +1,8 @@
 import type { QueueCuePoint } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
+import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
+
 import type { CreditValue } from '#lib/schemas/credits.ts';
 
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
@@ -79,17 +81,6 @@ export async function getMixCueSheets(
 // Shared by the endpoint and the layout so the two cannot disagree about which mixes offer a download
 export function hasMixTimestamps(entry: CollectionEntry<'mixes'>): boolean {
 	return toFlatTracks(entry.data.tracks).some((track) => track.timestamp !== undefined);
-}
-
-// The fractional part is hundredths of a second, matching the schema's `HH:MM:SS.dd`
-export function parseTimestampSeconds(timestamp: string): number | undefined {
-	const match = /^(\d+):(\d+):(\d+)(?:\.(\d{1,2}))?$/.exec(timestamp);
-	if (!match) return undefined;
-
-	const [, hours = '0', minutes = '0', seconds = '0', fraction] = match;
-	const hundredths = fraction === undefined ? 0 : Number(fraction.padEnd(2, '0'));
-
-	return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds) + hundredths / 100;
 }
 
 async function joinArtists(credits: Array<CreditValue> | undefined): Promise<string | undefined> {

@@ -89,7 +89,7 @@ describe('buildTrackGroupRows', () => {
 
 	test('offers a cue slug only where a group has both timestamps and files', async () => {
 		const timed = await buildTrackGroupRows(
-			{ files: ['a-mix.flac'], tracks: [{ timestamp: '00:00:00', title: 'First' }] },
+			{ files: ['a-mix.flac'], tracks: [{ timestamp: '00:00:00.00', title: 'First' }] },
 			'a-mix',
 		);
 		const untimed = await buildTrackGroupRows(

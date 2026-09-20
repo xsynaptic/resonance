@@ -32,48 +32,54 @@ function makeTracks(timestamps: Array<string | undefined>) {
 
 describe('collectTimestampIssues', () => {
 	test('accepts two tracks sharing a cue point', () => {
-		expect(collectTimestampIssues([makeMix(['00:07:51', '00:07:51'])])).toEqual([]);
+		expect(collectTimestampIssues([makeMix(['00:07:51.00', '00:07:51.00'])])).toEqual([]);
 	});
 
 	test('flags a second tracklist restarting at zero, which is the merge failure', () => {
 		const issues = collectTimestampIssues([
-			makeMix(['00:00:00', '00:41:12', '00:00:00'], 'collections/mixes/2011/a-mix.mdx'),
+			makeMix(['00:00:00.00', '00:41:12.00', '00:00:00.00'], 'collections/mixes/2011/a-mix.mdx'),
 		]);
 
 		expect(issues).toEqual([
 			{
-				detail: 'Track 3 "Track 3" at 00:00:00 follows track 2 at 00:41:12',
+				detail: 'Track 3 "Track 3" at 00:00:00.00 follows track 2 at 00:41:12.00',
 				location: 'collections/mixes/2011/a-mix.mdx',
 			},
 		]);
 	});
 
 	test('compares against the previous timed track, skipping untimed ones between', () => {
-		expect(collectTimestampIssues([makeMix(['00:41:12', undefined, '00:07:51'])])).toEqual([
-			{ detail: 'Track 3 "Track 3" at 00:07:51 follows track 1 at 00:41:12', location: 'a-mix' },
+		expect(collectTimestampIssues([makeMix(['00:41:12.00', undefined, '00:07:51.00'])])).toEqual([
+			{
+				detail: 'Track 3 "Track 3" at 00:07:51.00 follows track 1 at 00:41:12.00',
+				location: 'a-mix',
+			},
 		]);
 	});
 
 	test('accepts a second group restarting at zero, which is its own file', () => {
 		expect(
-			collectTimestampIssues([makeGroupedMix([['00:00:00', '00:41:12'], ['00:00:00']])]),
+			collectTimestampIssues([makeGroupedMix([['00:00:00.00', '00:41:12.00'], ['00:00:00.00']])]),
 		).toEqual([]);
 	});
 
 	test('flags an out-of-order pair inside a group, numbered from that group', () => {
 		expect(
 			collectTimestampIssues([
-				makeGroupedMix([['00:41:12'], ['00:00:00', '00:41:12', '00:07:51']]),
+				makeGroupedMix([['00:41:12.00'], ['00:00:00.00', '00:41:12.00', '00:07:51.00']]),
 			]),
 		).toEqual([
-			{ detail: 'Track 3 "Track 3" at 00:07:51 follows track 2 at 00:41:12', location: 'a-mix' },
+			{
+				detail: 'Track 3 "Track 3" at 00:07:51.00 follows track 2 at 00:41:12.00',
+				location: 'a-mix',
+			},
 		]);
 	});
 
-	test('compares fractional seconds rather than string order', () => {
-		expect(collectTimestampIssues([makeMix(['00:07:51.5', '00:07:51.25'])])).toEqual([
+	test('compares hundredths rather than whole seconds', () => {
+		expect(collectTimestampIssues([makeMix(['00:07:51.50', '00:07:51.25'])])).toEqual([
 			{
-				detail: 'Track 2 "Track 2" at 00:07:51.25 follows track 1 at 00:07:51.5',
+				detail: 'Track 2 "Track 2" at 00:07:51.25 follows track 1 at 00:07:51.50',
 				location: 'a-mix',
 			},
 		]);

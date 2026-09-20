@@ -1,9 +1,9 @@
+import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
+
 import type { ContentEntry } from '#shared/astro-content.ts';
 
 import { isGroupedTracklist } from '#shared/entries.ts';
 import { toValidationResult } from '#validate-content/validation-result.ts';
-
-const timestampRegex = /^(\d{2}):([0-5]\d):([0-5]\d)(?:\.(\d{1,2}))?$/;
 
 interface TimedTrack {
 	position: number;
@@ -79,7 +79,7 @@ function collectTimedTracks(tracks: Array<unknown>): Array<TimedTrack> {
 
 		if (typeof timestamp !== 'string') continue;
 
-		const seconds = toSeconds(timestamp);
+		const seconds = parseTimestampSeconds(timestamp);
 
 		if (seconds === undefined) continue;
 
@@ -92,17 +92,6 @@ function collectTimedTracks(tracks: Array<unknown>): Array<TimedTrack> {
 	}
 
 	return timed;
-}
-
-// The schema validates shape, so anything reaching here parses; an unparseable value is skipped
-function toSeconds(timestamp: string): number | undefined {
-	const match = timestampRegex.exec(timestamp);
-
-	if (!match) return undefined;
-
-	const [, hours = '0', minutes = '0', seconds = '0', fraction = '0'] = match;
-
-	return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds) + Number(`0.${fraction}`);
 }
 
 function toTrackGroups(entry: ContentEntry): Array<Array<unknown>> {

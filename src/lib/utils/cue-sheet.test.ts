@@ -19,7 +19,7 @@ describe('buildCueSheet', () => {
 			performer: 'DJ Basilisk',
 			title: 'Uroboros 1',
 			tracks: [
-				{ performer: 'Lorn', timestamp: '00:00:00', title: 'All Directions Are the Same' },
+				{ performer: 'Lorn', timestamp: '00:00:00.00', title: 'All Directions Are the Same' },
 				{ performer: 'O Yuki Conjugate', timestamp: '00:03:54.46', title: 'Black Magic Box' },
 			],
 		});
@@ -45,15 +45,16 @@ describe('buildCueSheet', () => {
 
 	test.each([
 		['00:03:54.46', '03:54:34'],
-		['00:57:15.5', '57:15:37'],
-		['01:02:14', '62:14:00'],
+		['00:37:32.24', '37:32:18'],
+		['00:57:15.50', '57:15:37'],
+		['01:02:14.00', '62:14:00'],
 	])('converts %s to %s', (timestamp, expected) => {
 		expect(indexOf(timestamp)).toBe(expected);
 	});
 
 	test('emits three-digit track numbers rather than truncating', () => {
 		const tracks = Array.from({ length: 132 }, (_, position) => ({
-			timestamp: `00:00:${String(position).padStart(2, '0')}`,
+			timestamp: `00:${String(Math.floor(position / 60)).padStart(2, '0')}:${String(position % 60).padStart(2, '0')}.00`,
 			title: `Track ${String(position + 1)}`,
 		}));
 
@@ -64,9 +65,9 @@ describe('buildCueSheet', () => {
 		const sheet = buildCueSheet({
 			fileName: 'mix.flac',
 			tracks: [
-				{ timestamp: '00:00:00', title: 'First' },
+				{ timestamp: '00:00:00.00', title: 'First' },
 				{ title: 'Layered, no start point' },
-				{ timestamp: '00:05:00', title: 'Second' },
+				{ timestamp: '00:05:00.00', title: 'Second' },
 			],
 		});
 
@@ -78,7 +79,7 @@ describe('buildCueSheet', () => {
 		const sheet = buildCueSheet({
 			fileName: 'mix.flac',
 			performer: 'The "Band"',
-			tracks: [{ performer: 'A "Name"', timestamp: '00:00:00', title: 'A "Title"' }],
+			tracks: [{ performer: 'A "Name"', timestamp: '00:00:00.00', title: 'A "Title"' }],
 		});
 
 		expect(sheet).toContain('PERFORMER "The Band"');
@@ -89,7 +90,7 @@ describe('buildCueSheet', () => {
 	test('omits header lines whose source is absent', () => {
 		const sheet = buildCueSheet({
 			fileName: 'mix.flac',
-			tracks: [{ timestamp: '00:00:00', title: 'Track' }],
+			tracks: [{ timestamp: '00:00:00.00', title: 'Track' }],
 		});
 
 		expect(sheet.startsWith('FILE ')).toBe(true);
@@ -98,7 +99,7 @@ describe('buildCueSheet', () => {
 	});
 
 	test('declares MP3 for an mp3 file and WAVE for anything else', () => {
-		const options = { tracks: [{ timestamp: '00:00:00', title: 'Track' }] };
+		const options = { tracks: [{ timestamp: '00:00:00.00', title: 'Track' }] };
 
 		expect(buildCueSheet({ ...options, fileName: 'mix.mp3' })).toContain('FILE "mix.mp3" MP3');
 		expect(buildCueSheet({ ...options, fileName: 'mix.flac' })).toContain('FILE "mix.flac" WAVE');

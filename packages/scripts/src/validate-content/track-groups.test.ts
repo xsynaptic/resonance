@@ -23,7 +23,7 @@ describe('validateTrackGroups', () => {
 		const mixes = [
 			makeMix({
 				files: ['A Mix.mp3'],
-				tracks: [{ timestamp: '00:00:00', title: 'Track 1' }],
+				tracks: [{ timestamp: '00:00:00.00', title: 'Track 1' }],
 			}),
 		];
 

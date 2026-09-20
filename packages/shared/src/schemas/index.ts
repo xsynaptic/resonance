@@ -20,3 +20,5 @@ export type {
 	MixWaveformsDocument,
 	StreamLoudness,
 } from '#schemas/mix-audio.ts';
+
+export { parseTimestampSeconds, TimestampSchema } from '#schemas/timestamp.ts';

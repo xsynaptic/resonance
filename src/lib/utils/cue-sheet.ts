@@ -1,3 +1,5 @@
+import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
+
 // A cue sheet is a seek index for a long mix: a header, then one TRACK entry per timestamped track
 // Pure string work, no content imports, so the format is testable on its own
 // Callers supply the tracklist as-is; entries without a usable timestamp are dropped here
@@ -49,16 +51,15 @@ export function buildCueSheet({ date, fileName, performer, title, tracks }: CueS
 }
 
 // Cue time is MM:SS:FF with no hours field and frames at 75/second, so hours fold into minutes
-// The fractional part of an input timestamp is hundredths of a second, not frames
 function formatCueTime(timestamp: string): string | undefined {
-	const match = /^(\d+):(\d+):(\d+)(?:\.(\d{1,2}))?$/.exec(timestamp);
-	if (!match) return undefined;
+	const parsed = parseTimestampSeconds(timestamp);
 
-	const [, hours = '0', minutes = '0', seconds = '0', fraction] = match;
+	if (parsed === undefined) return undefined;
 
-	const total = Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
-	const hundredths = fraction === undefined ? 0 : Number(fraction.padEnd(2, '0'));
-	const frames = Math.floor((hundredths * framesPerSecond) / 100);
+	// Rounding recovers the exact hundredths; the raw float leaves `.24` a frame short
+	const hundredths = Math.round(parsed * 100);
+	const total = Math.floor(hundredths / 100);
+	const frames = Math.floor(((hundredths % 100) * framesPerSecond) / 100);
 
 	return [Math.floor(total / 60), total % 60, frames]
 		.map((part) => String(part).padStart(2, '0'))

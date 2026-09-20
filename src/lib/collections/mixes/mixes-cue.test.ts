@@ -9,8 +9,8 @@ import { getMixCuePoints, getMixCueSheets } from '#lib/collections/mixes/mixes-c
 
 setCollections({ artists: [{ data: { title: 'DJ Basilisk' }, id: 'dj-basilisk' }] });
 
-const partOne = { artists: 'Lorn', timestamp: '00:00:00', title: 'All Directions Are the Same' };
-const partTwo = { artists: 'O Yuki Conjugate', timestamp: '00:00:00', title: 'Black Magic Box' };
+const partOne = { artists: 'Lorn', timestamp: '00:00:00.00', title: 'All Directions Are the Same' };
+const partTwo = { artists: 'O Yuki Conjugate', timestamp: '00:00:00.00', title: 'Black Magic Box' };
 
 function fileLines(sheets: Array<{ text: string }>) {
 	return sheets.map((sheet) => /FILE (.+) \w+\r\n/.exec(sheet.text)?.[1]);

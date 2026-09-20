@@ -1,8 +1,9 @@
+import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
+
 import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
 import type { TrackGroup } from '#lib/utils/track-groups.ts';
 
-import { parseTimestampSeconds } from '#lib/collections/mixes/mixes-cue.ts';
 import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
 
 export interface TrackGroupRows {

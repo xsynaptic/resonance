@@ -1,15 +1,9 @@
+import { TimestampSchema } from '@xsynaptic/shared/schemas';
 import { reference } from 'astro:content';
 import { z } from 'zod';
 
 import { CreditSchema, LabelCreditSchema } from '#lib/schemas/credits.ts';
 import { contentBaseSchema, termFields, termFieldsShared } from '#lib/schemas/index.ts';
-
-// Timestamps drive cue sheet generation, so the shape is enforced rather than warned about
-// Minutes and seconds must be in range; hours carry the overflow
-// A failed parse is a build error naming the entry and field
-const TimestampSchema = z.string().regex(/^\d{2}:[0-5]\d:[0-5]\d(\.\d{1,2})?$/, {
-	message: 'Use HH:MM:SS or HH:MM:SS.dd, with minutes and seconds under 60',
-});
 
 const TrackSchema = z
 	.object({

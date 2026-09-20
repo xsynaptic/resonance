@@ -10,11 +10,8 @@ const concurrency = 8;
 
 const mediaDir = 'packages/content/media';
 
-// Mirrors the glob in `src/lib/utils/media.ts`; the app never resolves the WordPress `-WxH` derivatives
-const mediaPatterns = [
-	'**/*.{avif,jpeg,jpg,png,webp}',
-	'!**/*-[0-9][0-9]*x[0-9][0-9]*.{avif,jpeg,jpg,png,webp}',
-];
+// Mirrors the glob in `src/lib/utils/media.ts`
+const mediaPattern = '**/*.{avif,jpeg,jpg,png,webp}';
 
 // Pixel budget rather than an edge, so the grid tracks the aspect ratio; 1024 is 32x32 on a square cover
 const lqipPixelCount = 1024;
@@ -45,7 +42,7 @@ export async function generateLqip(rootPath: string): Promise<void> {
 	const mediaPath = path.join(rootPath, mediaDir);
 	const outputPath = path.resolve(rootPath, mediaLqipPath);
 
-	const files = await glob(mediaPatterns, { cwd: mediaPath });
+	const files = await glob(mediaPattern, { cwd: mediaPath });
 	const cached = await loadCache(outputPath);
 
 	const entries: Record<string, LqipEntry> = {};

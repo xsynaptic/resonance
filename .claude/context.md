@@ -96,6 +96,4 @@ Every page is one of two shapes:
 
 ### Provenance
 
-**Extraction**: The generation of the content tree from the WordPress dump. The tracked tree, not the dump, is the record. _Avoid_: import, migration, sync.
-
 **Triage**: The manual pass over Drafts deciding what publishes. _Avoid_: cleanup, review, curation.

@@ -30,7 +30,6 @@ class CommentsSection extends HTMLElement {
 
 		this.#restoreDetails();
 		this.#showNoticeFromQuery();
-		this.#scrollToLegacyPermalink();
 
 		for (const button of this.querySelectorAll<HTMLElement>('[data-reply]')) {
 			button.hidden = false;
@@ -221,16 +220,6 @@ class CommentsSection extends HTMLElement {
 		}
 
 		saveStoredDetails(details);
-	}
-
-	// WordPress permalinks point at `#comment-<n>`, while the imported rows carry a `wp-` prefix
-	#scrollToLegacyPermalink() {
-		const legacyId = /^#comment-(\d+)$/.exec(location.hash)?.[1];
-
-		if (legacyId === undefined) return;
-		if (document.querySelector(location.hash)) return;
-
-		document.querySelector<HTMLElement>(`#comment-wp-${legacyId}`)?.scrollIntoView();
 	}
 
 	#setSubmitDisabled(form: HTMLFormElement, isDisabled: boolean) {

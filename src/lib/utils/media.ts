@@ -8,12 +8,8 @@ import path from 'node:path';
 const mediaRoot = '/packages/content/media';
 
 // Patterns must be literals; astro:assets only optimizes statically-analyzable image paths
-// Re-pulling the WordPress uploads brings back the `-WxH` derivatives; excluding them keeps 1.2 GB of unused assets out of the build
 const mediaImages = import.meta.glob<{ default: ImageMetadata }>(
-	[
-		'/packages/content/media/**/*.{avif,jpeg,jpg,png,webp}',
-		'!/packages/content/media/**/*-[0-9][0-9]*x[0-9][0-9]*.{avif,jpeg,jpg,png,webp}',
-	],
+	'/packages/content/media/**/*.{avif,jpeg,jpg,png,webp}',
 	{ eager: true },
 );
 

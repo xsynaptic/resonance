@@ -15,13 +15,6 @@ export function getIdsByCollection(entries: Array<Pick<ContentEntry, 'collection
 	return idsByCollection;
 }
 
-// The schema rejects a mixed array, so the first element settles the shape for all of them
-export function isGroupedTracklist(values: Array<unknown>): boolean {
-	const [first] = values;
-
-	return first !== null && typeof first === 'object' && 'tracks' in first;
-}
-
 // Old slugs the entry still answers to, which `generate-redirects` turns into rules
 export function toFormerIds(entry: { data: Record<string, unknown> }): Array<string> {
 	const formerIds: unknown = entry.data.formerIds;

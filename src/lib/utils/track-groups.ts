@@ -1,3 +1,5 @@
+import { isGroupedTracklist } from '@xsynaptic/shared/tracklist';
+
 import type { TrackGroupValue, TracklistValue, TrackValue } from '#lib/schemas/audio.ts';
 
 export interface TrackGroup {
@@ -15,14 +17,7 @@ export function toFlatTracks(tracks: TracklistValue | undefined): Array<TrackVal
 export function toTrackGroups(tracks: TracklistValue | undefined): Array<TrackGroup> {
 	if (!tracks || tracks.length === 0) return [];
 
-	// The schema rejects a mixed array, so the first element settles the shape for all of them
-	if (!isGrouped(tracks)) return [{ tracks }];
+	if (!isGroupedTracklist<TrackGroupValue>(tracks)) return [{ tracks }];
 
 	return tracks;
-}
-
-function isGrouped(tracks: TracklistValue): tracks is Array<TrackGroupValue> {
-	const [first] = tracks;
-
-	return first !== undefined && 'tracks' in first;
 }

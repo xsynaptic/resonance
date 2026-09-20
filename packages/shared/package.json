@@ -15,7 +15,8 @@
 		"./routing": "./src/routing.ts",
 		"./schemas": "./src/schemas/index.ts",
 		"./sitemap": "./src/sitemap.ts",
-		"./stats": "./src/stats.ts"
+		"./stats": "./src/stats.ts",
+		"./tracklist": "./src/tracklist.ts"
 	},
 	"dependencies": {
 		"zod": "^4.6.5"

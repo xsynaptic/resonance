@@ -1,8 +1,8 @@
 import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
+import { isGroupedTracklist } from '@xsynaptic/shared/tracklist';
 
 import type { ContentEntry } from '#shared/astro-content.ts';
 
-import { isGroupedTracklist } from '#shared/entries.ts';
 import { toValidationResult } from '#validate-content/validation-result.ts';
 
 interface TimedTrack {

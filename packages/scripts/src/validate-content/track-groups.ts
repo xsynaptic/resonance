@@ -1,7 +1,8 @@
+import { isGroupedTracklist } from '@xsynaptic/shared/tracklist';
+
 import type { ContentEntry } from '#shared/astro-content.ts';
 import type { LocatedIssue } from '#validate-content/validation-result.ts';
 
-import { isGroupedTracklist } from '#shared/entries.ts';
 import { toLocatedValidationResult } from '#validate-content/validation-result.ts';
 
 interface TrackGroup {

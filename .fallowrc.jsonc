@@ -60,8 +60,7 @@
 		"minTokens": 40,
 		// A threshold of zero means no limit; this fails on any clone group
 		"threshold": 0.01,
-		// The Inventory renders the same Specimens repeatedly on purpose
-		"ignore": ["src/dev/**"],
+		"ignore": ["src/dev/**", "tests/e2e/test.ts"],
 	},
 	"boundaries": {
 		"zones": [

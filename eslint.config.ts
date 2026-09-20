@@ -56,9 +56,17 @@ export default getConfig(
 			},
 		},
 		{
-			files: ['packages/player/e2e/**/*', 'packages/player/playwright.config.ts'],
+			files: [
+				'tests/e2e/**/*',
+				'packages/player/e2e/**/*',
+				'packages/player/playwright.config.ts',
+				'playwright.config.ts',
+			],
 			languageOptions: {
 				globals: { ...globals.node, ...globals.browser },
+			},
+			rules: {
+				'unicorn/prefer-global-this': 'off',
 			},
 		},
 		{

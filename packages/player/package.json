@@ -16,7 +16,8 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test-e2e": "node e2e/cut-fixtures.ts \"$INIT_CWD/packages/content/streams\" && playwright test"
+		"cut-fixtures": "node e2e/cut-fixtures.ts ../content/streams",
+		"test-e2e": "pnpm cut-fixtures && playwright test"
 	},
 	"dependencies": {
 		"zustand": "^5.0.15"

@@ -55,12 +55,14 @@ const { values } = parseArgs({
 		'dry-run': { default: false, type: 'boolean' },
 		'skip-build': { default: false, type: 'boolean' },
 		'skip-check': { default: false, type: 'boolean' },
+		'skip-smoke': { default: false, type: 'boolean' },
 	},
 });
 
 const isDryRun = values['dry-run'];
 const isSkipBuild = values['skip-build'];
 const isSkipCheck = values['skip-check'];
+const isSkipSmoke = values['skip-smoke'];
 
 const warnOnlySteps: Array<WarnOnlyStep> = [];
 
@@ -283,6 +285,16 @@ function recordStep(label: string, status: StepStatus): void {
 	warnOnlySteps.push({ label, status });
 }
 
+// Runs in a dry run too, since it reads the build and touches nothing remote
+async function smoke(): Promise<void> {
+	if (isSkipSmoke) {
+		console.log(chalk.yellow('Skipping smoke suite'));
+		return;
+	}
+	console.log(chalk.blue('Running the smoke suite...'));
+	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm test-smoke`;
+}
+
 try {
 	// Fail fast: a deploy must never publish a page whose download links are dead
 	const validatedFiles = await validateAudio({ rootPath });
@@ -308,6 +320,7 @@ try {
 
 	await check();
 	await build();
+	await smoke();
 
 	// Audio before site: new pages must never go live while their files are still uploading
 	const uploaded = await deployAudio({ config, dryRun: isDryRun, rootPath });

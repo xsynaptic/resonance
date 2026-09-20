@@ -12,6 +12,8 @@
 		"prepare": "wrangler types",
 		"test": "vitest",
 		"test-e2e": "pnpm -F @xsynaptic/player test-e2e",
+		"test-smoke": "pnpm -F @xsynaptic/player cut-fixtures && playwright test",
+		"test-smoke-prod": "pnpm -F @xsynaptic/player cut-fixtures && TEST_ENV=prod node --env-file-if-exists=.env node_modules/@playwright/test/cli.js test",
 		"audio-validate": "pnpm -F @xsynaptic/scripts audio-validate",
 		"audio-renditions": "pnpm -F @xsynaptic/scripts audio-renditions",
 		"audio-manifest": "pnpm -F @xsynaptic/scripts audio-manifest",
@@ -40,6 +42,7 @@
 		"validate-content": "astro sync && pnpm -F @xsynaptic/scripts validate-content"
 	},
 	"imports": {
+		"#e2e/*": "./tests/e2e/*",
 		"#worker/*": "./worker/*",
 		"#*": "./src/*"
 	},
@@ -56,6 +59,7 @@
 		"@astrojs/rss": "^4.0.19",
 		"@astrojs/sitemap": "^3.7.4",
 		"@pagefind/component-ui": "^1.5.2",
+		"@playwright/test": "^1.63.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"@testing-library/dom": "^10.4.2",
 		"@types/node": "^24.13.5",

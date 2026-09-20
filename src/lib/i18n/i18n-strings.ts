@@ -125,8 +125,9 @@ const strings = {
 	'footer.source': 'Source code',
 	'footer.support.lead': 'Support',
 	'footer.support.link': 'Ektoplazm on Patreon',
-	'home.intro.description': `Mixes, reviews, charts, and articles on psytrance, techno, house, IDM, electro, breaks, ambient, and adjacent realms of electronic music culture. My focus in the 2020s is primarily mixcraft: profiling specific styles and movements and exploring the manifold possibilities of harmonic, cross-genre mixing, often in unusually long and involved forms. I'm based in Taiwan and available for bookings worldwide.`,
-	'home.intro.title': 'Rhizomatic explorations of electronic music since 2001',
+	'home.intro.description':
+		'Electronic music often rewards deep listening, and much of it deserves a longer life than the industry typically affords. My focus is mixcraft: long, carefully sequenced journeys that profile distinct styles, scenes, and eras, crossing genres through harmonic mixing and drawing on decades of rigorous collecting and esoteric thought. Alongside the mixes presented here I review the releases most worth your time and write about the platforms and archives that keep this music in circulation. Psytrance, techno, house, IDM, electro, ambient, and the territory between and around them all, from Canada to Taiwan.',
+	'home.intro.title': 'Deep explorations of electronic music since 2001',
 	'home.mixes.heading': 'Latest Mixes',
 	'home.mixes.link': 'All mixes',
 	'home.playlists.carouselLabel': 'playlists',

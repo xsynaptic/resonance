@@ -1,46 +1,29 @@
 {
-	// Mirrors the entries and ignores in knip.config.ts, which carries the reasons
-	"entry": [
-		"src/dev/inventory/inventory.astro",
-		"src/dev/inventory/inventory-og-image.ts",
-		"src/dev/audio/stream-rendition.ts",
-		"src/dev/audio/waveform-archive.ts",
-		"packages/player/e2e/fixture-server.ts",
-		"packages/player/e2e/page/host.ts",
-	],
-	// The player host imports the reporter dynamically, which fallow does not follow and knip does
-	"dynamicallyLoaded": [
-		"src/components/mdx/**/*.astro",
-		"src/components/player/player-analytics.ts",
-		"src/components/player/player-stats.ts",
-	],
+	// Boundary and cycle checks only cover reachable files; MDX components are reached by auto-import
+	"dynamicallyLoaded": ["src/components/mdx/**/*.astro"],
 	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],
-	"ignoreDependencies": [
-		"@testing-library/dom",
-		"@types/react",
-		"@fontsource/fira-sans",
-		"@fontsource/manrope",
-		"@xsynaptic/stylelint-config",
-		"eslint-plugin-jsx-a11y",
-		"mdxlint",
-		"react",
-	],
-	"ignoreDependencyOverrides": [
-		{ "package": "fallow-type-aware", "source": "pnpm-workspace.yaml" },
-	],
 	"rules": {
+		// Dead code and dependency hygiene belong to knip
+		"unused-files": "off",
+		"unused-exports": "off",
+		"unused-types": "off",
+		"unused-enum-members": "off",
+		"unused-class-members": "off",
+		"unused-dependencies": "off",
+		"unused-dev-dependencies": "off",
+		"unused-optional-dependencies": "off",
+		"unlisted-dependencies": "off",
+		"unresolved-imports": "off",
+		"duplicate-exports": "off",
+		"type-only-dependencies": "off",
+		"test-only-dependencies": "off",
 		"dev-dependencies-in-production": "off",
+		"unused-dependency-overrides": "off",
+		"misconfigured-dependency-overrides": "off",
 		"css-token-drift": "error",
 		"css-duplicate-block": "error",
 		"css-broken-reference": "error",
 	},
-	"overrides": [
-		{
-			// An element's accessors are reached through `HTMLElementTagNameMap`, which the class member check cannot follow
-			"files": ["packages/player/src/elements/**"],
-			"rules": { "unused-class-members": "off" },
-		},
-	],
 	"health": {
 		// Zero disables CRAP, which fallow otherwise estimates without coverage data
 		"maxCrap": 0,

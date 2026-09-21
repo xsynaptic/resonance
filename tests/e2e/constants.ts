@@ -5,8 +5,8 @@ export const localUrl = `http://localhost:${String(localPort)}`;
 
 export const isProd = process.env.TEST_ENV === 'prod';
 
-// Must match `DEPLOY_SITE_URL` in `.env`, which the deploy config reads as its site URL
-const prodUrl = 'https://djbasilisk.com';
+// Must match the site URL fallback in astro.config.ts
+const prodUrl = 'https://djbasilisk.com/';
 
 export const audioFixturePath = path.join(
 	import.meta.dirname,

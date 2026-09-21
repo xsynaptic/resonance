@@ -91,7 +91,7 @@ The site is static, served from Cloudflare Workers static assets, with one small
 2. Streaming renditions and waveform generation
 3. Download, Mixcloud, and SoundCloud stats pulls
 4. D1 backup and comment snapshot
-5. The full quality gate (ESLint, Stylelint, Prettier, types, knip, Vitest, `astro check`)
+5. The full quality gate (ESLint, Stylelint, Prettier, types, knip, fallow, Vitest, `astro check`)
 6. Redirects and sitemap `lastmod` generation
 7. LQIP generation and the Astro production build
 8. OG image generation

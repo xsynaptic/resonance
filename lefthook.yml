@@ -29,7 +29,7 @@ check:
                   run: tsc --noEmit -p worker
           - name: unused
             run: knip
-          # Dead code stays with knip, which already encodes fallow's false positives
+          # Dead code stays with knip; fallow's unused-code rules are off in .fallowrc.jsonc
           - name: dupes
             run: fallow dupes --quiet
           # Health prints its report even at zero findings, so output shows only on failure
@@ -38,8 +38,8 @@ check:
           # `fallow health --css` never exits non-zero; audit is what gates the css-* rules
           - name: styling
             run: fallow audit --gate all --quiet
-          - name: boundaries
-            run: fallow dead-code --boundary-violations --quiet
+          - name: architecture
+            run: fallow dead-code --boundary-violations --circular-deps --quiet
           - name: test
             run: vitest run
 
@@ -74,5 +74,5 @@ fix:
       run: out=$(fallow health --complexity --quiet 2>&1) || { printf '%s\n' "$out"; exit 1; }
     - name: styling
       run: fallow audit --gate all --quiet
-    - name: boundaries
-      run: fallow dead-code --boundary-violations --quiet
+    - name: architecture
+      run: fallow dead-code --boundary-violations --circular-deps --quiet

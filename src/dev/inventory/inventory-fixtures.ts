@@ -156,6 +156,7 @@ export async function getInventoryFixtures() {
 		styles,
 		themes,
 		vocabulary,
+		youtubeUrl: await sampleYouTubeUrl(),
 	};
 }
 
@@ -412,4 +413,16 @@ async function sampleTerms(
 		.sort((first, second) => first.name.localeCompare(second.name));
 
 	return limit === undefined ? terms : terms.slice(0, limit);
+}
+
+async function sampleYouTubeUrl(): Promise<string | undefined> {
+	const posts = await getCollection('posts');
+
+	for (const post of posts) {
+		const match = /<YouTube url="([^"]+)"/.exec(post.body ?? '');
+
+		if (match?.[1]) return match[1];
+	}
+
+	return undefined;
 }

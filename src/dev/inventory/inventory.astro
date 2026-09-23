@@ -5,10 +5,10 @@ import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
 
-import EmbedFrame from '#components/embed/embed-frame.astro';
 import EmbedMixcloud from '#components/embed/embed-mixcloud.astro';
 import EmbedSoundcloud from '#components/embed/embed-soundcloud.astro';
 import MainSite from '#components/main/main-site.astro';
+import EmbedYoutube from '#components/mdx/embed-youtube.astro';
 import ImgGroup from '#components/mdx/img-group.astro';
 import Img from '#components/mdx/img.astro';
 import Quotation from '#components/mdx/quotation.astro';
@@ -43,6 +43,7 @@ import PlayerSection from '#dev/inventory/inventory-player.astro';
 import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
 import Section from '#dev/inventory/inventory-section.astro';
 import Specimen from '#dev/inventory/inventory-specimen.astro';
+import Variant from '#dev/inventory/inventory-variant.astro';
 import { getArchiveYearPagination } from '#lib/archive/archive-data.ts';
 import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import { getPagination } from '#lib/utils/pagination.ts';
@@ -73,23 +74,23 @@ const {
 	styles,
 	themes,
 	vocabulary,
+	youtubeUrl,
 } = await getInventoryFixtures();
 
 // Hand-kept mirror of the Section titles below, which the nav links to by derived anchor
 const sectionTitles = [
 	'Foundations',
 	'Prose',
+	'Content blocks',
 	'Buttons, icons and dividers',
 	'Credits and terms',
 	'Cards and listings',
 	'Detail pages',
 	'Media',
-	'Open Graph',
 	'Audio',
 	'Player',
-	'Content blocks',
+	'Open Graph',
 	'Empty states',
-	'Utilities',
 ];
 
 const hasHero = !Astro.url.pathname.replace(/\/$/, '').endsWith('/no-hero');
@@ -164,9 +165,7 @@ const inlineSelection: SelectionValue = {
 		/>
 	) : undefined}
 	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
-		Real components on real content, injected under <code>astro dev</code> only. The header is in
-		its
-		{hasHero ? 'overlay' : 'normal'} variant:{' '}
+		The header is in its {hasHero ? 'overlay' : 'normal'} variant:{' '}
 		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
 			{hasHero ? 'drop the hero band' : 'restore the hero band'}
 		</Anchor>{' '}
@@ -182,13 +181,10 @@ const inlineSelection: SelectionValue = {
 			</a>
 		))}
 	</nav>
-	<Section
-		note="The header, navigation, search toggle and footer have no specimens: this page renders inside MainSite, so they are already on screen."
-		title="Foundations"
-	>
+	<Section title="Foundations">
 		<Specimen
 			name="Colour tokens"
-			note="Every token theme.css defines, including steps the site never uses."
+			note="Includes steps the site never uses."
 			source="src/styles/main/parts/theme.css"
 		>
 			<div class="flex flex-col gap-5">
@@ -226,7 +222,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Heading roles"
-			note="Roles, not a type scale. Outside prose a level carries no styling of its own; a heading takes the class for the role it plays."
+			note="Roles, not a type scale; outside prose a heading level carries no styling."
 			source="src/styles/main/components/headings.css"
 		>
 			<div class="space-y-3">
@@ -239,7 +235,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Link roles"
-			note="Every context claims its links first, so the bare anchor is a fallback no page reaches for. Tab through for the focus treatment."
+			note="Tab through for the focus treatment."
 			source="src/styles/main/parts/base.css"
 		>
 			<div class="space-y-2">
@@ -268,103 +264,222 @@ const inlineSelection: SelectionValue = {
 				</p>
 			</div>
 		</Specimen>
+		<Specimen
+			name="pattern-maze-*"
+			note="--pattern-maze-opacity and --pattern-maze-size are the knobs, defaulting to 0.2 and 60px."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<div class="pattern-maze-surface-300 rounded-md bg-surface-800 p-5">
+				The header and footer bands both sit on this.
+			</div>
+		</Specimen>
+		<Specimen name="content-measure" source="src/styles/main/parts/utilities.css">
+			<p class="content-measure">
+				This paragraph stops at 50rem however wide the column around it gets, which keeps an
+				introduction readable on a large screen without pulling it out of the grid.
+			</p>
+		</Specimen>
+		<Specimen
+			name="content-bleed / content-bleed-inset"
+			note="Visible under 640px."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<div class="content-bleed bg-surface-700 content-bleed-inset py-3 sm:px-3">
+				Bled and inset together, so this text stays on the column while the band behind it runs to
+				the edge.
+			</div>
+			<div class="content-bleed mt-2 bg-surface-600 py-3 text-center">Bled on its own.</div>
+		</Specimen>
 	</Section>
-	<Section
-		note="Hand-rolled, not @tailwindcss/typography. The sample is MDX run through the site's own markdown pipeline."
-		title="Prose"
-	>
+	<Section title="Prose">
 		<Specimen name=".prose-x" source="src/styles/main/components/prose.css">
 			<div class="prose-x">
 				<ProseSample />
 			</div>
 		</Specimen>
+	</Section>
+	<Section title="Content blocks">
+		<Specimen name="Img" note="Below 40rem a float stacks." source="src/components/mdx/img.astro">
+			<Variant label="align='right' size='small'">
+				<div class="prose-x content-measure">
+					{imagePaths[0] ? <Img align="right" size="small" src={imagePaths[0]} /> : undefined}
+					<Quotation author="Erik Davis" title="Hedonic Tantra" year="2004">
+						Whether or not Goa is the core source of rave spirituality, the freak colony has grown
+						into a spiritual origin, a source. But this does not make it simply another myth.
+					</Quotation>
+					<p>
+						A paragraph after the quotation runs beside the image until it clears the bottom edge,
+						then takes the full measure again. It needs to be long enough to wrap beneath the float,
+						which is the case a single quotation never shows: body copy continuing past a small
+						illustration rather than ending beside it. The float is capped at half the column and at
+						the width of its source, so a narrow original never stretches to fill its size. Past the
+						bottom edge the lines lengthen back to the full column, which is the point of a float:
+						the image illustrates a passage without claiming a whole row of the page. Two full lines
+						down here are what show the measure returning, because a single short line below the
+						float could as easily be the paragraph ending where the image happens to end.
+					</p>
+				</div>
+			</Variant>
+			<Variant label="align='left' size='medium', captioned">
+				<div class="prose-x content-measure">
+					{imagePaths[1] ? (
+						<Img align="left" size="medium" src={imagePaths[1]}>
+							A caption wraps to the width of the image it sits under.
+						</Img>
+					) : undefined}
+					<Quotation author="Goa Gil">
+						We're delving to the same place and trying to bring the same thing forth, but with the
+						technology of the 21st century.
+					</Quotation>
+					<p>
+						On the left the float pushes body copy toward the right edge, and the gap sits on its
+						inline end instead. A caption travels with the frame, so it takes the same width as the
+						image above it. Once the text passes the bottom of the figure it returns to the full
+						measure, and the entry contains the float however short the copy beside it runs. The
+						caption counts toward the height the copy has to clear, so a captioned float holds a
+						narrow column of text beside it for longer than a bare image of the same size. Short
+						copy beside a tall figure is the common case in older Posts, where one paragraph
+						introduces a record sleeve and the next begins below it, so the specimen runs long
+						enough to show both. Below the figure these last lines run the full column again. A
+						float with nothing after it would leave that case untested, which is why the paragraph
+						keeps going past the caption.
+					</p>
+				</div>
+			</Variant>
+			<Variant label="no align, captioned">
+				<div class="prose-x">
+					{heroPath ? (
+						<Img src={heroPath}>A caption, written as the tag's children.</Img>
+					) : undefined}
+				</div>
+			</Variant>
+		</Specimen>
 		<Specimen
-			name="Img"
-			note="<code>align='right' size='small'</code> beside a quotation, the shape a short quoted Post takes. The quotation sits beside the float; the paragraph after it wraps beneath. Below 40rem the image stacks at its own size."
-			source="src/components/mdx/img.astro"
+			name="ImgGroup"
+			note="Columns follow the image count: 4, then 3, then 2."
+			source="src/components/mdx/img-group.astro"
 		>
-			<div class="prose-x content-measure">
-				{imagePaths[0] ? <Img align="right" size="small" src={imagePaths[0]} /> : undefined}
-				<Quotation author="Erik Davis" title="Hedonic Tantra" year="2004">
-					Whether or not Goa is the core source of rave spirituality, the freak colony has grown
-					into a spiritual origin, a source. But this does not make it simply another myth.
-				</Quotation>
-				<p>
-					A paragraph after the quotation runs beside the image until it clears the bottom edge,
-					then takes the full measure again. It needs to be long enough to wrap beneath the float,
-					which is the case a single quotation never shows: body copy continuing past a small
-					illustration rather than ending beside it. The float is capped at half the column and at
-					the width of its source, so a narrow original never stretches to fill its size. Past the
-					bottom edge the lines lengthen back to the full column, which is the point of a float: the
-					image illustrates a passage without claiming a whole row of the page. Two full lines down
-					here are what show the measure returning, because a single short line below the float
-					could as easily be the paragraph ending where the image happens to end.
-				</p>
+			<div class="prose-x">
+				<ImgGroup imageCount={imagePaths.length}>
+					{imagePaths.map((path) => (
+						<Img src={path} />
+					))}
+				</ImgGroup>
 			</div>
 		</Specimen>
 		<Specimen
-			name="Img"
-			note="<code>align='left' size='medium'</code> with a caption. The quotation beside it is a formatting context of its own, so its rule sits clear of the image rather than running behind it."
-			source="src/components/mdx/img.astro"
+			name="Quotation"
+			note="<code>url</code> links the title and sets <code>cite</code>."
+			source="src/components/mdx/quotation.astro"
 		>
-			<div class="prose-x content-measure">
-				{imagePaths[1] ? (
-					<Img align="left" size="medium" src={imagePaths[1]}>
-						A caption wraps to the width of the image it sits under.
-					</Img>
-				) : undefined}
-				<Quotation author="Goa Gil">
-					We're delving to the same place and trying to bring the same thing forth, but with the
-					technology of the 21st century.
-				</Quotation>
-				<p>
-					On the left the float pushes body copy toward the right edge, and the gap sits on its
-					inline end instead. A caption travels with the frame, so it takes the same width as the
-					image above it. Once the text passes the bottom of the figure it returns to the full
-					measure, and the entry contains the float however short the copy beside it runs. The
-					caption counts toward the height the copy has to clear, so a captioned float holds a
-					narrow column of text beside it for longer than a bare image of the same size. Short copy
-					beside a tall figure is the common case in older Posts, where one paragraph introduces a
-					record sleeve and the next begins below it, so the specimen runs long enough to show both.
-					Below the figure these last lines run the full column again. A float with nothing after it
-					would leave that case untested, which is why the paragraph keeps going past the caption.
-				</p>
-			</div>
+			<Variant label="author, title, year, url">
+				<div class="prose-x">
+					<Quotation
+						author="Erik Davis"
+						title="Hedonic Tantra"
+						url="/inventory/#content-blocks"
+						year="2004"
+					>
+						Whether or not Goa is the core source of rave spirituality, the freak colony has grown
+						into a spiritual origin, a source.
+					</Quotation>
+				</div>
+			</Variant>
+			<Variant label="author alone">
+				<div class="prose-x">
+					<Quotation author="Goa Gil">
+						We're delving to the same place and trying to bring the same thing forth.
+					</Quotation>
+				</div>
+			</Variant>
+		</Specimen>
+		<Specimen
+			name="TrackList"
+			note="Numeral and time columns appear from 40rem; a Mix's <code>timestamp</code> never renders."
+			source="src/components/mdx/track-list.astro"
+		>
+			<Variant label="from a Mix">
+				<div class="prose-x">
+					<TrackList tracks={mix?.tracks.slice(0, 6)} />
+				</div>
+			</Variant>
+			<Variant label="grouped, hand-built; the filenames are fictional">
+				<div class="prose-x">
+					<TrackList tracks={groupedTracks} />
+				</div>
+			</Variant>
+		</Specimen>
+		<Specimen name="Selections" source="src/components/mdx/selections.astro">
+			<Variant label="order='unordered' (default)">
+				<div class="prose-x">
+					<Selections items={unorderedSelections} />
+				</div>
+			</Variant>
+			<Variant label="order='ordered'">
+				<div class="prose-x">
+					<Selections items={orderedSelections} order="ordered" />
+				</div>
+			</Variant>
+			<Variant label="order='countdown'">
+				<div class="prose-x">
+					<Selections items={countdownSelections} order="countdown" />
+				</div>
+			</Variant>
+			<Variant label="every field inline, no entryId">
+				<div class="prose-x">
+					<Selections items={[inlineSelection]} />
+				</div>
+			</Variant>
+		</Specimen>
+		<Specimen name="YouTube" source="src/components/mdx/embed-youtube.astro">
+			{youtubeUrl ? <EmbedYoutube url={youtubeUrl} /> : undefined}
+		</Specimen>
+		<Specimen name="Mixcloud" source="src/components/embed/embed-mixcloud.astro">
+			{mixcloudUrl ? (
+				<>
+					<Variant label="default">
+						<EmbedMixcloud url={mixcloudUrl} />
+					</Variant>
+					<Variant label="mini">
+						<EmbedMixcloud mini url={mixcloudUrl} />
+					</Variant>
+				</>
+			) : undefined}
+		</Specimen>
+		<Specimen name="Soundcloud" source="src/components/embed/embed-soundcloud.astro">
+			{soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}
 		</Specimen>
 	</Section>
-	<Section
-		note="One component renders both tags; the <code>as</code> prop is the only difference."
-		title="Buttons, icons and dividers"
-	>
-		<Specimen
-			name="Button"
-			note="The first row passes <code>as</code>, the second takes the default tag."
-			source="src/components/parts/button.astro"
-		>
-			<div class="flex flex-wrap items-center gap-4">
-				<Button as="a" href="/mixes/">
-					standard
-				</Button>
-				<Button as="a" href="/mixes/" icon="download">
-					standard, icon
-				</Button>
-				<Button as="a" href="/mixes/" variant="small">
-					small
-				</Button>
-				<Button as="a" href="/mixes/" icon="youtube" variant="small">
-					small, icon
-				</Button>
-			</div>
-			<div class="mt-4 flex flex-wrap items-center gap-4">
-				<Button>standard</Button>
-				<Button icon="download">standard, icon</Button>
-				<Button variant="small">small</Button>
-				<Button disabled>disabled</Button>
-			</div>
+	<Section title="Buttons, icons and dividers">
+		<Specimen name="Button" source="src/components/parts/button.astro">
+			<Variant label="as='a'">
+				<div class="flex flex-wrap items-center gap-4">
+					<Button as="a" href="/mixes/">
+						standard
+					</Button>
+					<Button as="a" href="/mixes/" icon="download">
+						standard, icon
+					</Button>
+					<Button as="a" href="/mixes/" variant="small">
+						small
+					</Button>
+					<Button as="a" href="/mixes/" icon="youtube" variant="small">
+						small, icon
+					</Button>
+				</div>
+			</Variant>
+			<Variant label="button (default)">
+				<div class="flex flex-wrap items-center gap-4">
+					<Button>standard</Button>
+					<Button icon="download">standard, icon</Button>
+					<Button variant="small">small</Button>
+					<Button disabled>disabled</Button>
+				</div>
+			</Variant>
 		</Specimen>
 		<Specimen
 			name="ButtonSplit"
-			note="A primary action with secondary ones attached. A lone child is left rounded at both ends, so the wrapper costs nothing when the secondary is absent."
+			note="A lone child keeps both ends rounded."
 			source="src/components/parts/button-split.astro"
 		>
 			<div class="flex flex-wrap items-center gap-4">
@@ -385,7 +500,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="Icon sprite"
-			note="A symbol shows up here once its id is in the fixtures."
+			note="A symbol shows once its id is in the fixtures."
 			source="src/components/main/main-sprites.astro"
 		>
 			<div class="flex flex-wrap gap-4">
@@ -399,11 +514,7 @@ const inlineSelection: SelectionValue = {
 				))}
 			</div>
 		</Specimen>
-		<Specimen
-			name="DividedItem"
-			note="A glyph after every item, dropped on the last. Each item supplies its own separator, so one row can mix them."
-			source="src/components/parts/divided-item.astro"
-		>
+		<Specimen name="DividedItem" source="src/components/parts/divided-item.astro">
 			<div class="flex flex-col gap-2">
 				<div class="flex flex-wrap gap-x-1">
 					<DividedItem as="span">dividerContent=&quot;dot&quot; (default)</DividedItem>
@@ -439,10 +550,7 @@ const inlineSelection: SelectionValue = {
 			</div>
 		</Specimen>
 	</Section>
-	<Section
-		note="A credit with no url is either free text or an id that did not resolve; both stay plain instead of failing."
-		title="Credits and terms"
-	>
+	<Section title="Credits and terms">
 		<Specimen name="LinkedNameText" source="src/components/parts/linked-name-text.astro">
 			<div class="flex flex-wrap items-center gap-4">
 				<LinkedNameText name={mixedCredits[0]?.name ?? 'Linked'} url={mixedCredits[0]?.url} />
@@ -450,11 +558,7 @@ const inlineSelection: SelectionValue = {
 				<LinkedNameText name="Unlinked, no url" />
 			</div>
 		</Specimen>
-		<Specimen
-			name="LinkedNameList"
-			note="Slash-separated, for label and artist credits in dense rows."
-			source="src/components/parts/linked-name-list.astro"
-		>
+		<Specimen name="LinkedNameList" source="src/components/parts/linked-name-list.astro">
 			<LinkedNameList names={mixedCredits} />
 		</Specimen>
 		<Specimen name="TermLinks" source="src/components/parts/term-links.astro">
@@ -464,34 +568,22 @@ const inlineSelection: SelectionValue = {
 				<TermLinks heading="Artists" terms={mixedCredits} />
 			</div>
 		</Specimen>
-		<Specimen
-			name="TermDirectory"
-			note="Buckets by initial itself, so terms arrive in any order. Only roots are bucketed, so the threshold counts roots, not terms."
-			source="src/components/parts/term-directory.astro"
-		>
-			<TermDirectory terms={vocabularyTerms} />
-		</Specimen>
-		<Specimen
-			name="TermDirectory"
-			note="Under twenty terms the headings drop and the list flows through the same columns."
-		>
-			<TermDirectory terms={shortVocabularyTerms} />
-		</Specimen>
-		<Specimen
-			name="TermDirectory"
-			note="Hierarchical vocabularies nest: a child sits under its parent, not beside it under its own initial."
-			source="src/components/parts/term-directory-branch.astro"
-		>
-			<TermDirectory terms={regionTree} />
+		<Specimen name="TermDirectory" source="src/components/parts/term-directory.astro">
+			<Variant label="20+ roots, bucketed by initial">
+				<TermDirectory terms={vocabularyTerms} />
+			</Variant>
+			<Variant label="under 20, no headings">
+				<TermDirectory terms={shortVocabularyTerms} />
+			</Variant>
+			<Variant label="hierarchical, children nest under their parent">
+				<TermDirectory terms={regionTree} />
+			</Variant>
 		</Specimen>
 	</Section>
-	<Section
-		note="A List Page from the top down, then the two bands that reuse the same card elsewhere."
-		title="Cards and listings"
-	>
+	<Section title="Cards and listings">
 		<Specimen
 			name="EntryCard"
-			note="Always square, so a grid mixing collections lines up, and the frame keeps its shape when the original is missing. A Review italicises the work half of its title, and a Term or Archive page names the collection in place of the subtitle, and a Related carousel names it before the subtitle."
+			note="The frame keeps its square when the image is missing."
 			source="src/components/parts/entry-card.astro"
 		>
 			{card ? (
@@ -547,14 +639,14 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="ListGroupHeading"
-			note="The <code>heading-group</code> role: a run on a list page, an initial in TermDirectory, or a year under groupByYear."
+			note="The <code>heading-group</code> role."
 			source="src/components/parts/list-group-heading.astro"
 		>
 			<ListGroupHeading label={String(new Date().getFullYear())} />
 		</Specimen>
 		<Specimen
 			name="SectionPostExcerpt"
-			note="The body truncates at the <code>More</code> fold; the continue link appears only if something followed it."
+			note="Truncates at the <code>More</code> fold."
 			source="src/components/sections/section-post-excerpt.astro"
 		>
 			{excerpt ? (
@@ -565,7 +657,7 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="PaginationSelect"
-			note="Page 3 of 8, then years without and with a current year. The counter becomes a select once the custom element upgrades; with no counter and no links, nothing shows until then."
+			note="The counter becomes a select once the custom element upgrades."
 			source="src/components/parts/pagination-select.astro"
 		>
 			<div class="flex flex-col gap-4">
@@ -579,58 +671,50 @@ const inlineSelection: SelectionValue = {
 		</Specimen>
 		<Specimen
 			name="SectionRelated"
-			note="Wraps Carousel, a scroll-snap track that works unenhanced; the custom element adds the chevrons."
+			note="Chevrons arrive with the custom element; the track scrolls without it."
 			source="src/components/sections/section-related.astro"
 		>
 			<SectionRelated items={relatedItems} />
 		</Specimen>
 	</Section>
-	<Section
-		note="SectionDetailHero is at the top of this page, in MainSite's hero slot, the only place it renders at full bleed."
-		title="Detail pages"
-	>
+	<Section note="SectionDetailHero is the band at the top of this page." title="Detail pages">
 		<Specimen name="Breadcrumbs" source="src/components/parts/breadcrumbs.astro">
 			<Breadcrumbs trail={breadcrumbTrail} />
 		</Specimen>
 		<Specimen
 			name="SectionDetailHeader"
-			note="Bare, the way a term detail page uses it."
 			source="src/components/sections/section-detail-header.astro"
 		>
-			<SectionDetailHeader title="A title on its own" />
-		</Specimen>
-		<Specimen name="SectionDetailHeader" note="With a breadcrumb trail.">
-			<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title="Under a vocabulary" />
-		</Specimen>
-		<Specimen
-			name="SectionDetailHeader"
-			note="Five styles go in and three come out: the header takes the first three, the coda carries the whole list."
-		>
-			<SectionDetailHeader
-				date={new Date()}
-				kind={{ name: 'Mixes', url: '/mixes/' }}
-				styles={styles}
-				title={{ credit: { name: 'An Alias' }, title: 'A Mix' }}
-			/>
-		</Specimen>
-		<Specimen
-			name="SectionDetailHeader"
-			note="The Credit splits off the title and the Release title is set as a cited work."
-		>
-			{review ? (
+			<Variant label="bare">
+				<SectionDetailHeader title="A title on its own" />
+			</Variant>
+			<Variant label="breadcrumb trail">
+				<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title="Under a vocabulary" />
+			</Variant>
+			<Variant label="five styles in, three shown">
 				<SectionDetailHeader
-					date={review.date}
-					kind={{ name: 'Reviews', url: '/reviews/' }}
-					labels={review.labels}
-					releaseYear={review.releaseYear}
-					styles={styles.slice(0, 1)}
-					title={review.work}
+					date={new Date()}
+					kind={{ name: 'Mixes', url: '/mixes/' }}
+					styles={styles}
+					title={{ credit: { name: 'An Alias' }, title: 'A Mix' }}
 				/>
-			) : undefined}
+			</Variant>
+			<Variant label="Review, cited Release">
+				{review ? (
+					<SectionDetailHeader
+						date={review.date}
+						kind={{ name: 'Reviews', url: '/reviews/' }}
+						labels={review.labels}
+						releaseYear={review.releaseYear}
+						styles={styles.slice(0, 1)}
+						title={review.work}
+					/>
+				) : undefined}
+			</Variant>
 		</Specimen>
 		<Specimen
 			name="SectionCoda"
-			note="Every row inside returns undefined on an empty array, so the box appears only if something came back."
+			note="Renders only when a row returns something."
 			source="src/components/sections/section-coda.astro"
 		>
 			<SectionCoda>
@@ -639,86 +723,81 @@ const inlineSelection: SelectionValue = {
 			</SectionCoda>
 		</Specimen>
 	</Section>
-	<Section
-		note="Originals are gitignored, so a specimen renders nothing when the file is missing rather than failing the build."
-		title="Media"
-	>
+	<Section note="Originals are gitignored; a missing file renders nothing." title="Media">
 		<Specimen
 			name="MediaImage"
-			note="Never upscales: the requested width is capped at the original's, around 600px for most source artwork."
+			note="Never upscales past the original."
 			source="src/components/parts/media-image.astro"
 		>
 			{heroPath ? <MediaImage alt="" path={heroPath} width={400} /> : undefined}
 		</Specimen>
 		<Specimen
 			name="media-frame"
-			note="The placeholder every framed image sits on, shown empty; in use the LQIP covers it until the image decodes."
+			note="Shown empty; the LQIP covers it in use."
 			source="src/styles/main/parts/utilities.css"
 		>
 			<div class="media-frame aspect-square w-40 rounded-xs"></div>
 		</Specimen>
-		<Specimen
-			name="MediaFeatured"
-			note="The mounted plate a Featured Image sits on."
-			source="src/components/parts/media-featured.astro"
-		>
+		<Specimen name="MediaFeatured" source="src/components/parts/media-featured.astro">
 			{review?.image ? <MediaFeatured alt={review.title} path={review.image} /> : undefined}
 		</Specimen>
+	</Section>
+	<Section title="Audio">
 		<Specimen
-			name="Img"
-			note="Its children are the caption, which wraps the image in a figure; with none it emits the image alone."
-			source="src/components/mdx/img.astro"
+			name="AudioLinks"
+			note="The Queued state is set by the site host, so it shows on a Mix Detail Page only."
+			source="src/components/parts/audio-links.astro"
 		>
-			<div class="prose-x">
-				{heroPath ? <Img src={heroPath}>A caption, written as the tag's children.</Img> : undefined}
-			</div>
+			<Variant label="with PlayerControls">
+				{mix?.queueItem ? (
+					<AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links}>
+						<PlayerControls itemId={mix.queueItem.itemId} />
+					</AudioLinks>
+				) : undefined}
+			</Variant>
+			<Variant label="with cueSlug">
+				{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
+			</Variant>
+			<Variant label="no cueSlug">{mix ? <AudioLinks files={mix.files} /> : undefined}</Variant>
+			<Variant label="links only">
+				<AudioLinks links={mix?.links} />
+			</Variant>
 		</Specimen>
 		<Specimen
-			name="Quotation"
-			note="A standalone quotation with its attribution as markup rather than a second blockquote paragraph. Only <code>author</code> is required; <code>url</code> links the title and sets <code>cite</code> on the blockquote."
-			source="src/components/mdx/quotation.astro"
+			name="AudioCounts"
+			note="Only downloads is real data."
+			source="src/components/parts/audio-counts.astro"
 		>
-			<div class="prose-x">
-				<Quotation author="Erik Davis" title="Hedonic Tantra" year="2004">
-					Whether or not Goa is the core source of rave spirituality, the freak colony has grown
-					into a spiritual origin, a source. But this does not make it simply another myth.
-				</Quotation>
-			</div>
-		</Specimen>
-		<Specimen
-			name="Quotation"
-			note="Author alone, which is what an uncited interview line carries."
-		>
-			<div class="prose-x">
-				<Quotation author="Goa Gil">
-					We're delving to the same place and trying to bring the same thing forth, but with the
-					technology of the 21st century.
-				</Quotation>
-			</div>
-		</Specimen>
-		<Specimen
-			name="ImgGroup"
-			note="The column count comes from the image count, preferring 4, then 3, then 2."
-			source="src/components/mdx/img-group.astro"
-		>
-			<div class="prose-x">
-				<ImgGroup imageCount={imagePaths.length}>
-					{imagePaths.map((path) => (
-						<Img src={path} />
-					))}
-				</ImgGroup>
-			</div>
+			<Variant label="fixtures">
+				{mix ? (
+					<AudioCounts
+						downloads={mix.downloads}
+						listeningSeconds={2400}
+						listens={642}
+						mixcloudPlays={38_216}
+						soundcloudPlays={9412}
+						streams={1204}
+					/>
+				) : undefined}
+			</Variant>
+			<Variant label="singulars">
+				<AudioCounts
+					downloads={1}
+					listeningSeconds={3600}
+					listens={1}
+					mixcloudPlays={1}
+					soundcloudPlays={1}
+					streams={1}
+				/>
+			</Variant>
 		</Specimen>
 	</Section>
+	<PlayerSection items={playerItems} labels={playerLabels} seekSeconds={seekSeconds} />
 	<Section
-		note="The 1200×630 cards behind every <code>og:image</code>, drawn per request from the current <code>element.tsx</code>, so editing the template and reloading is the iteration loop. Shown at half size."
+		note="Drawn per request from <code>element.tsx</code>, so edit and reload. Half size."
 		title="Open Graph"
 	>
-		<Specimen
-			name="Cards"
-			note="One per layout: no cover, cover on the right, and the longest title in each, where the type drops to 56px and the clamp bites."
-			source="packages/scripts/src/og-image/element.tsx"
-		>
+		<Specimen name="Cards" source="packages/scripts/src/og-image/element.tsx">
 			{openGraphCards.length > 0 ? (
 				<ul class="grid gap-6 sm:grid-cols-2">
 					{openGraphCards.map((card) => (
@@ -741,142 +820,10 @@ const inlineSelection: SelectionValue = {
 			)}
 		</Specimen>
 	</Section>
-	<Section title="Audio">
-		<Specimen
-			name="AudioLinks"
-			note="The rows a Mix Detail Page renders: the play controls alone on the first, in the orange variant, and the links and downloads wrapping on the second. Once the Mix is queued the second half reads Queued at the same width, disabled; the site host sets that row state, so it shows on a mix page rather than here."
-			source="src/components/parts/audio-links.astro"
-		>
-			{mix?.queueItem ? (
-				<AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links}>
-					<PlayerControls itemId={mix.queueItem.itemId} />
-				</AudioLinks>
-			) : undefined}
-		</Specimen>
-		<Specimen
-			name="AudioLinks"
-			note="Without the slot, which is how a tracklist group renders its own files. A mix carrying timestamps gets a CUE half attached to each download."
-		>
-			{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
-		</Specimen>
-		<Specimen
-			name="AudioLinks"
-			note="The same files without <code>cueSlug</code>, which is how a mix with no timestamps renders."
-		>
-			{mix ? <AudioLinks files={mix.files} /> : undefined}
-		</Specimen>
-		<Specimen
-			name="AudioLinks"
-			note="Links but no files. Handed neither, it renders nothing at all, which is under Empty states."
-		>
-			<AudioLinks links={mix?.links} />
-		</Specimen>
-		<Specimen
-			name="AudioCounts"
-			note="One figure per mix, never a sum. Only downloads carries real data here; the rest are fixtures."
-			source="src/components/parts/audio-counts.astro"
-		>
-			{mix ? (
-				<AudioCounts
-					downloads={mix.downloads}
-					listeningSeconds={2400}
-					listens={642}
-					mixcloudPlays={38_216}
-					soundcloudPlays={9412}
-					streams={1204}
-				/>
-			) : undefined}
-		</Specimen>
-		<Specimen name="AudioCounts" note="A single of each, to check the pluralisation.">
-			<AudioCounts
-				downloads={1}
-				listeningSeconds={3600}
-				listens={1}
-				mixcloudPlays={1}
-				soundcloudPlays={1}
-				streams={1}
-			/>
-		</Specimen>
-		<Specimen
-			name="EmbedFrame"
-			note="The shared frame both third-party players sit in, here with an aspect ratio instead of a fixed height."
-			source="src/components/embed/embed-frame.astro"
-		>
-			<EmbedFrame
-				aspectRatio="16 / 9"
-				feedHref="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-				feedLabel="Watch on YouTube"
-				src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-				title="Embed frame sample"
-			/>
-		</Specimen>
-		<Specimen name="EmbedMixcloud" source="src/components/embed/embed-mixcloud.astro">
-			{mixcloudUrl ? <EmbedMixcloud url={mixcloudUrl} /> : undefined}
-		</Specimen>
-		<Specimen name="EmbedMixcloud" note="mini: the single-row player.">
-			{mixcloudUrl ? <EmbedMixcloud mini url={mixcloudUrl} /> : undefined}
-		</Specimen>
-		<Specimen name="EmbedSoundcloud" source="src/components/embed/embed-soundcloud.astro">
-			{soundcloudUrl ? <EmbedSoundcloud url={soundcloudUrl} /> : undefined}
-		</Specimen>
-	</Section>
-	<PlayerSection items={playerItems} labels={playerLabels} seekSeconds={seekSeconds} />
-	<Section
-		note="The MDX tags an author writes in a body, wrapped in .prose-x as they are in production."
-		title="Content blocks"
-	>
-		<Specimen
-			name="TrackList"
-			note="The numeral and time columns appear from 40rem up. A time is a track's own <code>duration</code>; a mix's <code>timestamp</code> is Cue Sheet data and never renders."
-			source="src/components/mdx/track-list.astro"
-		>
-			<div class="prose-x">
-				<TrackList tracks={mix?.tracks.slice(0, 6)} />
-			</div>
-		</Specimen>
-		<Specimen
-			name="TrackList"
-			note="The grouped form, hand-built: no mix in the corpus is split across audio files. The filenames are fictional, so those download buttons dangle."
-		>
-			<div class="prose-x">
-				<TrackList tracks={groupedTracks} />
-			</div>
-		</Specimen>
-		<Specimen
-			name="Selections"
-			note='order="unordered" (the default): no rank, tight rows.'
-			source="src/components/mdx/selections.astro"
-		>
-			<div class="prose-x">
-				<Selections items={unorderedSelections} />
-			</div>
-		</Specimen>
-		<Specimen name="Selections" note='order="ordered": ranked 1 upward.'>
-			<div class="prose-x">
-				<Selections items={orderedSelections} order="ordered" />
-			</div>
-		</Specimen>
-		<Specimen
-			name="Selections"
-			note='order="countdown": authored best-first, revealed best-last, counting N down to 1.'
-		>
-			<div class="prose-x">
-				<Selections items={countdownSelections} order="countdown" />
-			</div>
-		</Specimen>
-		<Specimen name="Selections" note="Every field written inline, no entryId behind it.">
-			<div class="prose-x">
-				<Selections items={[inlineSelection]} />
-			</div>
-		</Specimen>
-	</Section>
-	<Section
-		note="The dashed frame belongs to this page, not to the components inside it."
-		title="Empty states"
-	>
+	<Section title="Empty states">
 		<Specimen
 			name="Components that render nothing"
-			note="TermLinks, SectionRelated, Selections and TrackList handed an empty array, AudioLinks handed neither links nor files. All five return <code>undefined</code>."
+			note="TermLinks, SectionRelated, Selections and TrackList handed an empty array, AudioLinks handed nothing; each returns <code>undefined</code>. The dashed frame is this page's."
 		>
 			<div class="rounded-sm border border-dashed border-ink-700 p-4">
 				<TermLinks heading="Styles" terms={[]} />
@@ -885,41 +832,6 @@ const inlineSelection: SelectionValue = {
 				<TrackList tracks={[]} />
 				<AudioLinks />
 			</div>
-		</Specimen>
-	</Section>
-	<Section
-		note="Two more are on screen rather than in a box: entry-grid lays out the EntryCard specimen, and content-wide is the column this page sits in."
-		title="Utilities"
-	>
-		<Specimen
-			name="pattern-maze-*"
-			note="The value names the colour; --pattern-maze-opacity and --pattern-maze-size are the knobs, defaulting to 0.2 and 60px."
-			source="src/styles/main/parts/utilities.css"
-		>
-			<div class="pattern-maze-surface-300 rounded-md bg-surface-800 p-5">
-				The header and footer bands both sit on this.
-			</div>
-		</Specimen>
-		<Specimen
-			name="content-measure"
-			note="Caps a run of text at the prose measure without centring it."
-			source="src/styles/main/parts/utilities.css"
-		>
-			<p class="content-measure">
-				This paragraph stops at 50rem however wide the column around it gets, which keeps an
-				introduction readable on a large screen without pulling it out of the grid.
-			</p>
-		</Specimen>
-		<Specimen
-			name="content-bleed / content-bleed-inset"
-			note="<code>content-bleed</code> negates the page gutter and <code>content-bleed-inset</code> puts it back as padding. Narrow the viewport under 640px to see it."
-			source="src/styles/main/parts/utilities.css"
-		>
-			<div class="content-bleed bg-surface-700 content-bleed-inset py-3 sm:px-3">
-				Bled and inset together, so this text stays on the column while the band behind it runs to
-				the edge.
-			</div>
-			<div class="content-bleed mt-2 bg-surface-600 py-3 text-center">Bled on its own.</div>
 		</Specimen>
 	</Section>
 </MainSite>

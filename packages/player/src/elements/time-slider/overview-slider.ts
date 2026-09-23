@@ -1,5 +1,6 @@
 import type { StoreApi } from 'zustand/vanilla';
 
+import type { KeyScrub } from '#elements/time-slider/overview-scrub.ts';
 import type {
 	OverviewInput,
 	OverviewParts,
@@ -47,6 +48,13 @@ interface ScrubGesture {
 	overview: OverviewRendering;
 	preview: (seconds: number | undefined) => void;
 	scrub: Scrub;
+	seek: (seconds: number) => void;
+}
+
+interface SliderKeys {
+	commit: () => void;
+	hold: (seconds: number) => void;
+	position: () => KeyScrub | undefined;
 	seek: (seconds: number) => void;
 }
 
@@ -125,6 +133,34 @@ export function bindOverviewSlider(
 			overview.repaint();
 		},
 		signal,
+	);
+}
+
+export function bindSliderKeys(element: HTMLElement, keys: SliderKeys, signal: AbortSignal): void {
+	element.addEventListener(
+		'keydown',
+		(event) => {
+			const position = keys.position();
+			const seconds = position && keyScrubSeconds(event, position);
+			if (seconds === undefined) return;
+
+			event.preventDefault();
+
+			if (!event.repeat) {
+				keys.seek(seconds);
+				return;
+			}
+
+			keys.hold(seconds);
+		},
+		{ signal },
+	);
+	element.addEventListener(
+		'keyup',
+		(event) => {
+			if (isSliderKey(event.key)) keys.commit();
+		},
+		{ signal },
 	);
 }
 
@@ -218,19 +254,23 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			{ signal },
 		);
 	}
-	canvas.addEventListener(
-		'keydown',
-		(event) => {
-			scrubToKey(gesture, event);
+	bindSliderKeys(
+		canvas,
+		{
+			commit,
+			hold: (seconds) => {
+				scrub.scrubSeconds = seconds;
+				scrub.isHeld = true;
+				overview.repaint();
+			},
+			position: () => ({
+				currentSeconds: scrub.currentSeconds,
+				durationSeconds,
+				scrubSeconds: scrub.scrubSeconds,
+			}),
+			seek: gesture.seek,
 		},
-		{ signal },
-	);
-	canvas.addEventListener(
-		'keyup',
-		(event) => {
-			if (isSliderKey(event.key)) commit();
-		},
-		{ signal },
+		signal,
 	);
 }
 
@@ -278,27 +318,6 @@ function markSlider(canvas: HTMLCanvasElement, { durationSeconds, labels }: Slid
 	canvas.setAttribute('aria-valuemin', '0');
 	canvas.setAttribute('role', 'slider');
 	canvas.tabIndex = 0;
-}
-
-function scrubToKey(gesture: ScrubGesture, event: KeyboardEvent): void {
-	const { durationSeconds, overview, scrub, seek } = gesture;
-	const seconds = keyScrubSeconds(event, {
-		currentSeconds: scrub.currentSeconds,
-		durationSeconds,
-		scrubSeconds: scrub.scrubSeconds,
-	});
-	if (seconds === undefined) return;
-
-	event.preventDefault();
-
-	if (!event.repeat) {
-		seek(seconds);
-		return;
-	}
-
-	scrub.scrubSeconds = seconds;
-	scrub.isHeld = true;
-	overview.repaint();
 }
 
 function selectMediaElement(state: PlayerStore): HTMLMediaElement | undefined {

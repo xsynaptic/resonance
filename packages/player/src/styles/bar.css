@@ -3,6 +3,7 @@
 	--player-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
 	--player-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
 	--player-inset-bottom: env(safe-area-inset-bottom);
+	--player-progress-space: calc(var(--player-progress-height) + 2px);
 
 	position: relative;
 	padding: var(--player-padding-block-start) var(--player-inset-right)
@@ -28,13 +29,59 @@
 	display: none;
 }
 
-.player-progress::before {
+.player-progress-track {
+	position: absolute;
+	inset-block-end: calc(100% - var(--player-progress-space));
+	inset-inline: 0;
+	box-sizing: content-box;
+	block-size: var(--player-progress-height);
+	background-color: var(--player-waveform-base);
+	background-image: var(--player-progress-buffered, none);
+	background-repeat: no-repeat;
+	border-block: 1px solid var(--player-bar-border);
+	transition: block-size var(--player-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-progress-track {
+		transition-duration: 1ms;
+	}
+}
+
+.player-progress:focus-visible {
+	outline: var(--player-focus-width) solid transparent;
+}
+
+.player-progress:focus-visible > .player-progress-track {
+	outline: var(--player-focus-width) solid var(--player-focus-ring);
+}
+
+.player-progress:is(:focus-visible, [data-scrubbing]) > .player-progress-track {
+	block-size: var(--player-progress-height-active);
+}
+
+@media (hover: hover) {
+	.player-progress[role='slider']:hover > .player-progress-track {
+		block-size: var(--player-progress-height-active);
+	}
+}
+
+.player-progress-track::before {
 	position: absolute;
 	inset: 0;
 	content: '';
-	background-color: var(--player-waveform-played);
+	background-color: var(--player-progress-played);
 	transform-origin: left;
 	scale: var(--player-progress, 0) 1;
+}
+
+.player-progress[data-scrubbing] > .player-progress-track::after {
+	position: absolute;
+	inset-block: 0;
+	inset-inline: calc(var(--player-progress-scrub-from) * 100%)
+		calc((1 - var(--player-progress-scrub-to)) * 100%);
+	content: '';
+	background-color: var(--player-waveform-scrub);
 }
 
 .player-bar-grid {
@@ -160,6 +207,7 @@
 		--player-layout: 'transport info expand' auto / auto minmax(0, 1fr) auto;
 
 		block-size: auto;
+		padding-block-start: var(--player-progress-space);
 	}
 
 	.player-bar-grid:not(:has(> player-overlay-toggle)) {
@@ -175,8 +223,12 @@
 		inset-block-start: -1px;
 		inset-inline: 0;
 		display: block;
-		block-size: 2px;
-		pointer-events: none;
+		block-size: calc(var(--player-padding-block) + var(--player-progress-space));
+		touch-action: pan-y;
+	}
+
+	.player-progress[role='slider'] {
+		cursor: pointer;
 	}
 
 	.player-bar > player-panel > .player-panel,

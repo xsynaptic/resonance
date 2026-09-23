@@ -47,6 +47,19 @@
 		}
 	}
 
+	@container (width < 26rem) {
+		.player-progress {
+			block-size: calc(
+				var(--player-padding-block) + var(--player-progress-space) -
+					(var(--player-hit-target) - var(--player-button-size-primary)) / 2
+			);
+		}
+
+		.player-bar-grid .player-track-title::before {
+			inset-block-start: calc((var(--player-hit-target) - var(--player-button-size-primary)) / -2);
+		}
+	}
+
 	/* A touch drags the cover down to close; the clipped X stays for screen readers and keyboard focus */
 	.player-overlay-body[data-layout='phone']:has(.player-overlay-art .player-artwork)
 		> .player-overlay-close:not(:focus-visible) {

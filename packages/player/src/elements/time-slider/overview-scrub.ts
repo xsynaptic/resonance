@@ -13,7 +13,7 @@ const hitMarginPx = 4;
 // A click seeks without drawing the scrub; only a press held past this shows where the release will land
 export const holdDelayMs = 150;
 
-interface KeyScrub {
+export interface KeyScrub {
 	currentSeconds: number;
 	durationSeconds: number;
 	scrubSeconds: number | undefined;

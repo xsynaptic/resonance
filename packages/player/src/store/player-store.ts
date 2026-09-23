@@ -29,6 +29,7 @@ const initialPlayerState: PlayerState = {
 	playbackError: undefined,
 	playOrder: [],
 	queue: [],
+	scrubPreviewSeconds: undefined,
 	status: 'idle',
 	timeMode: 'elapsed',
 	urls: undefined,

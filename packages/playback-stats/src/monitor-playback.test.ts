@@ -85,8 +85,9 @@ describe('monitorPlayback', () => {
 		page.bind();
 		page.emit('playing', { paused: false });
 		page.hear(40);
-		page.emit('seeking', { seeking: true });
-		page.emit('seeked', { currentTime: 41.5, seeking: false });
+		page.emit('seeking', { currentTime: 41.5, seeking: true });
+		page.emit('timeupdate', { seeking: false });
+		page.emit('seeked');
 		page.emit('timeupdate', { currentTime: 41.7 });
 		page.emit('pause', { paused: true });
 

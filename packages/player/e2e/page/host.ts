@@ -28,6 +28,14 @@ declare global {
 	}
 }
 
+const cued = {
+	cuePoints: [{ artistLine: 'Cue Artist', startSeconds: 20, title: 'Cue Title' }],
+	waveformOverview: Array.from(
+		{ length: 64 },
+		(_, index) => 0.3 + 0.5 * Math.abs(Math.sin(index / 5)),
+	),
+};
+
 const fixtures = {
 	long: { durationMs: 60_000, title: 'Long fixture' },
 	short: { durationMs: 6000, title: 'Short fixture' },
@@ -42,6 +50,7 @@ const parameters = new URLSearchParams(location.search);
 
 const settings = {
 	bindDelay: Number(parameters.get('bindDelay') ?? 0),
+	isCued: parameters.has('cued'),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
 	run: parameters.get('run') ?? 'manual',
 	stream: readChoice('stream', ['audio', 'missing', 'garbage', 'hang', 'flaky']),
@@ -102,6 +111,7 @@ function writePayload(): void {
 		releaseTitle: 'Fixtures',
 		streamUrl: streamUrl(itemId),
 		title: fixtures[itemId].title,
+		...(settings.isCued ? cued : {}),
 	}));
 	const payload = document.createElement('div');
 

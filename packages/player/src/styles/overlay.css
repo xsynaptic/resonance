@@ -102,8 +102,12 @@
 	line-height: 1.25rem;
 }
 
-.player-overlay-track .player-time {
+.player-overlay-track :is(.player-time, .player-scrub-readout-clock) {
 	line-height: 1.25rem;
+}
+
+.player-scrub-readout {
+	display: none;
 }
 
 .player-overlay-scrub {
@@ -187,6 +191,15 @@
 .player-overlay-tab[aria-selected='true'] {
 	color: var(--player-title);
 	border-bottom-color: var(--player-control-active);
+}
+
+.player-overlay-tabs > player-queue-actions > .player-queue-actions {
+	justify-content: flex-end;
+	padding-inline: var(--player-row-inset);
+}
+
+.player-overlay-tabs > player-queue-actions .player-tray-action {
+	justify-content: flex-end;
 }
 
 .player-overlay-list {
@@ -325,9 +338,11 @@
 		background-color: var(--player-panel-well);
 	}
 
+	/* Its glyph rather than its box meets the inset, as the Queue rows' buttons do */
 	.player-overlay-close {
-		width: var(--player-button-size-large);
-		height: var(--player-button-size-large);
+		width: var(--player-button-size-small);
+		height: var(--player-button-size-small);
+		margin-inline-end: -0.5rem;
 	}
 
 	/* Centred in a header row's height, so it holds still as the sheet's header row opens over it */
@@ -335,7 +350,7 @@
 		position: absolute;
 		inset-block-start: calc(
 			var(--player-overlay-inset-top) +
-				(var(--player-hit-target) - var(--player-button-size-large)) / 2
+				(var(--player-hit-target) - var(--player-button-size-small)) / 2
 		);
 		inset-inline-end: var(--player-overlay-inset-right);
 		z-index: var(--player-z-raised);
@@ -343,7 +358,7 @@
 
 	.player-overlay-close svg {
 		inline-size: auto;
-		block-size: 1.25rem;
+		block-size: 1rem;
 	}
 
 	/* The cover can sit under it, and a busy one swallows a bare glyph */
@@ -355,6 +370,64 @@
 		padding-inline-end: 0;
 	}
 
+	.player-overlay-track {
+		position: relative;
+	}
+
+	.player-scrub-readout {
+		position: absolute;
+		inset: 0;
+		display: block;
+		visibility: hidden;
+		pointer-events: none;
+		opacity: 0;
+		transition:
+			opacity var(--player-transition),
+			visibility var(--player-transition);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.player-scrub-readout {
+			transition-duration: 1ms;
+		}
+	}
+
+	player-scrub-readout[data-held] > .player-scrub-readout {
+		visibility: visible;
+		opacity: 1;
+	}
+
+	.player-scrub-readout > span {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		background-color: var(--player-surface);
+	}
+
+	player-scrub-readout:not([data-track])
+		:is(.player-scrub-readout-title, .player-scrub-readout-meta) {
+		visibility: hidden;
+	}
+
+	.player-scrub-readout-title {
+		font-size: var(--player-font-size-large);
+		font-weight: 500;
+		line-height: 1.75rem;
+		color: var(--player-cue-artist);
+	}
+
+	.player-scrub-readout-meta {
+		margin-inline-end: var(--player-clock-width);
+		font-size: var(--player-font-size);
+		line-height: 1.25rem;
+		color: var(--player-cue-title);
+	}
+
+	.player-scrub-readout-clock {
+		color: var(--player-clock-hover);
+	}
+
 	.player-overlay-scrub:has(.player-waveform-frame) {
 		display: grid;
 		grid-template-rows: minmax(0, 1fr);
@@ -364,6 +437,10 @@
 
 	.player-overlay-scrub .player-waveform {
 		block-size: 100%;
+	}
+
+	.player-cue-label[data-above] {
+		display: none;
 	}
 
 	.player-overlay-controls {
@@ -408,8 +485,9 @@
 			background-color: color-mix(in oklab, var(--player-panel-well) 85%, transparent);
 		}
 
-		.player-overlay-track :is(.player-track-title, .player-track-empty) {
-			padding-inline-end: calc(var(--player-button-size-large) + var(--player-gap-tight));
+		.player-overlay-track
+			:is(.player-track-title, .player-track-empty, .player-scrub-readout-title) {
+			padding-inline-end: calc(var(--player-button-size-small) + var(--player-gap-tight));
 		}
 	}
 }

@@ -45,6 +45,7 @@ export interface PlayerActions {
 	seekBy: (deltaSeconds: number) => void;
 	setOverlayOpen: (isOpen: boolean) => void;
 	setPanelOpen: (isOpen: boolean) => void;
+	setScrubPreview: (seconds: number | undefined) => void;
 	setTrayOpen: (isOpen: boolean) => void;
 	// Clamped into 0..1; a level above zero ends a mute
 	setVolume: (volume: number) => void;
@@ -82,6 +83,7 @@ export interface PlayerState {
 	// A permutation of queue indices
 	playOrder: Array<number>;
 	queue: Array<QueuedItem>;
+	scrubPreviewSeconds: number | undefined;
 	status: PlayerStatus;
 	// A listener preference rather than playback state, so it is persisted beside the volume
 	timeMode: PlayerTimeMode;

@@ -46,3 +46,45 @@ test('a sheet dismissed by a drag reopens on screen', async ({ harness, page }) 
 	await expect(sheet).toBeInViewport({ ratio: 0.9 });
 	expect(await sheet.evaluate((element) => element.style.translate)).toBe('');
 });
+
+test('a touch held on the waveform swaps the title block to the Track under it', async ({
+	harness,
+	page,
+}) => {
+	const overlay = page.getByRole('dialog', { name: labels.nowPlaying });
+	const slider = overlay.getByRole('slider', { name: labels.seek });
+	const readout = overlay.locator('.player-scrub-readout');
+	const bubble = overlay.locator('.player-cue-label');
+
+	await harness.open({ cued: 1 });
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await expect(slider).not.toHaveAttribute('aria-valuemax', '0');
+
+	const box = await slider.boundingBox();
+	if (!box) throw new Error('The waveform has no box to press');
+
+	// Low on the strip, clear of the cue row a press would snap to
+	const touch = {
+		bubbles: true,
+		buttons: 1,
+		clientX: box.x + box.width * 0.75,
+		clientY: box.y + box.height * 0.75,
+		isPrimary: true,
+		pointerId: 1,
+		pointerType: 'touch',
+	};
+
+	await slider.dispatchEvent('pointerdown', touch);
+	await expect(readout).toBeVisible();
+
+	const seconds = Number(await slider.getAttribute('aria-valuenow'));
+
+	await expect(readout).toHaveText(`Cue TitleCue Artist0:${String(seconds)}`);
+	await expect(bubble).toHaveAttribute('data-above');
+	await expect(bubble).toBeHidden();
+
+	await slider.dispatchEvent('pointerup', { ...touch, buttons: 0 });
+	await expect(readout).toBeHidden();
+	await expect(overlay.getByText('Long fixture')).toBeVisible();
+});

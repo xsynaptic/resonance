@@ -15,6 +15,7 @@ type PreferenceActions = Pick<
 	| 'hydratePreferences'
 	| 'setOverlayOpen'
 	| 'setPanelOpen'
+	| 'setScrubPreview'
 	| 'setTrayOpen'
 	| 'setVolume'
 	| 'toggleMuted'
@@ -77,6 +78,14 @@ export function createPreferenceActions({
 			if (get().isPanelOpen === isOpen) return;
 
 			set({ isPanelOpen: isOpen });
+		},
+
+		setScrubPreview: (seconds) => {
+			const scrubPreviewSeconds = seconds === undefined ? undefined : Math.floor(seconds);
+
+			if (get().scrubPreviewSeconds === scrubPreviewSeconds) return;
+
+			set({ scrubPreviewSeconds });
 		},
 
 		setTrayOpen: (isOpen) => {

@@ -987,6 +987,22 @@ describe('panel state', () => {
 	});
 });
 
+describe('scrub preview', () => {
+	test('writes once per whole second a held finger crosses', () => {
+		const store = configured();
+		const written: Array<number | undefined> = [];
+
+		store.subscribe((state) => {
+			written.push(state.scrubPreviewSeconds);
+		});
+		for (const seconds of [65.2, 65.9, 66.1, undefined, undefined]) {
+			store.getState().setScrubPreview(seconds);
+		}
+
+		expect(written).toStrictEqual([65, 66, undefined]);
+	});
+});
+
 describe('queue persistence', () => {
 	test('writes the queue as it changes, and clears it when the queue empties', () => {
 		const store = configured();

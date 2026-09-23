@@ -361,6 +361,31 @@ describe('<player-time-slider>', () => {
 		expect(seeks()).toStrictEqual([100]);
 	});
 
+	// 30 px is 20s and 151 px is 100.67s of a 200s mix, written as the whole second a listener reads
+	test('writes a held touch to the store in whole seconds and clears it on release', () => {
+		stubPainting();
+		vi.useFakeTimers();
+
+		const { slider, store } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
+		const preview = () => store.getState().scrubPreviewSeconds;
+
+		fireEvent.pointerDown(slider, { buttons: 1, clientX: 30, clientY: 24, pointerType: 'touch' });
+
+		expect(preview()).toBeUndefined();
+
+		vi.advanceTimersByTime(holdDelayMs);
+
+		expect(preview()).toBe(20);
+
+		fireEvent.pointerMove(slider, { buttons: 1, clientX: 151, clientY: 24, pointerType: 'touch' });
+
+		expect(preview()).toBe(100);
+
+		fireEvent.pointerUp(slider, { pointerType: 'touch' });
+
+		expect(preview()).toBeUndefined();
+	});
+
 	// Nothing on the idle preview maps a pixel to a time, so it keeps the marker label and shows no clock
 	test('reads out a cue point without a time on the idle preview', () => {
 		stubPainting();

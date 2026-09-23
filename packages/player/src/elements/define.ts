@@ -19,6 +19,7 @@ import { PlayerRoot } from '#elements/player-root.ts';
 import { PlayerProgress } from '#elements/progress.ts';
 import { PlayerQueueButton } from '#elements/queue-button.ts';
 import { PlayerScope } from '#elements/scope/scope.ts';
+import { PlayerScrubReadout } from '#elements/scrub-readout.ts';
 import { PlayerSeekButton } from '#elements/seek-button.ts';
 import { PlayerStatusRegion } from '#elements/status.ts';
 import { PlayerStepButton } from '#elements/step-button.ts';
@@ -46,6 +47,7 @@ declare global {
 		'player-queue-button': PlayerQueueButton;
 		'player-root': PlayerRoot;
 		'player-scope': PlayerScope;
+		'player-scrub-readout': PlayerScrubReadout;
 		'player-seek-button': PlayerButtonPart;
 		'player-status': PlayerStatusRegion;
 		'player-step-button': PlayerButtonPart;
@@ -77,6 +79,7 @@ const playerElements = [
 	['player-volume-slider', PlayerVolumeSlider],
 	['player-volume-popover', PlayerVolumePopover],
 	['player-scope', PlayerScope],
+	['player-scrub-readout', PlayerScrubReadout],
 	['player-time-slider', PlayerTimeSlider],
 	['player-panel', PlayerPanel],
 	['player-overlay', PlayerOverlay],

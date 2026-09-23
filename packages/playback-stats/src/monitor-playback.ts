@@ -90,7 +90,6 @@ export function monitorPlayback(media: PlaybackMedia, options: PlaybackOptions):
 	);
 	media.addEventListener('timeupdate', onTimeUpdate, { signal });
 	media.addEventListener('seeking', onSeek, { signal });
-	media.addEventListener('seeked', onSeek, { signal });
 	media.addEventListener('pause', report, { signal });
 	media.addEventListener('ended', closeListen, { signal });
 	// `load()` swaps the source, which is how a player changes track

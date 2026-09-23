@@ -45,6 +45,7 @@ interface ScrubGesture {
 	commit: () => void;
 	durationSeconds: number;
 	overview: OverviewRendering;
+	preview: (seconds: number | undefined) => void;
 	scrub: Scrub;
 	seek: (seconds: number) => void;
 }
@@ -61,6 +62,9 @@ export function bindOverviewSlider(
 		paint: createSliderPaint(canvas, input, scrub),
 		signal,
 	});
+	const preview = (seconds: number | undefined): void => {
+		store.getState().setScrubPreview(seconds);
+	};
 	const seek = (seconds: number): void => {
 		store.getState().seek(seconds);
 	};
@@ -71,6 +75,7 @@ export function bindOverviewSlider(
 		'abort',
 		() => {
 			scrub.repaint = undefined;
+			preview(undefined);
 		},
 		{ once: true },
 	);
@@ -94,6 +99,7 @@ export function bindOverviewSlider(
 				},
 				durationSeconds,
 				overview,
+				preview,
 				scrub,
 				seek,
 			},
@@ -151,13 +157,19 @@ export function resetScrub(scrub: Scrub): void {
 }
 
 function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
-	const { canvas, commit, durationSeconds, overview, scrub } = gesture;
+	const { canvas, commit, durationSeconds, overview, preview, scrub } = gesture;
 
 	// One rect for the whole press; the slider only ever sits in the sticky bar or the modal, so no scroll moves it
 	let pressRect: DOMRect | undefined;
 	// A touch shows no hover readout, so a held finger gets one of its own
 	let touch: PointerEvent | undefined;
 
+	const showHeld = (pointer: PointerEvent | undefined): void => {
+		if (signal.aborted) return;
+
+		overview.showAbove(pointer);
+		preview(pointer === undefined ? undefined : scrub.scrubSeconds);
+	};
 	const scrubToPointer = (event: PointerEvent): void => {
 		if (event.pointerType === 'touch') touch = event;
 
@@ -170,7 +182,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			event,
 		);
 		overview.repaint();
-		if (touch !== undefined && scrub.isHeld) overview.showAbove(touch);
+		if (touch !== undefined && scrub.isHeld) showHeld(touch);
 	};
 
 	canvas.addEventListener(
@@ -182,7 +194,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			scrub.holdTimer = setTimeout(() => {
 				scrub.isHeld = true;
 				scrub.repaint?.();
-				if (touch !== undefined) overview.showAbove(touch);
+				if (touch !== undefined) showHeld(touch);
 			}, holdDelayMs);
 		},
 		{ signal },
@@ -199,7 +211,7 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 			type,
 			() => {
 				pressRect = undefined;
-				if (touch !== undefined) overview.showAbove(undefined);
+				if (touch !== undefined) showHeld(undefined);
 				touch = undefined;
 				commit();
 			},

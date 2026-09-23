@@ -12,6 +12,7 @@ import { readPxProperty } from '#lib/read-px-property.ts';
 import { requireChild, requireChildren, template } from '#lib/render.ts';
 
 interface BodyParts {
+	actions: HTMLElement;
 	art: HTMLElement;
 	body: HTMLDivElement;
 	close: HTMLButtonElement;
@@ -57,6 +58,7 @@ const renderBody = template(
 							<div class="player-track-meta">
 								<player-artist-line></player-artist-line><player-time></player-time>
 							</div>
+							<player-scrub-readout></player-scrub-readout>
 						</div>
 					</div>
 					<player-panel></player-panel>
@@ -164,12 +166,14 @@ export function connectOverlayBody(
 				parts.body.prepend(parts.close);
 				sheet.dialog.append(parts.tabs);
 				parts.header.append(sheet.close);
+				parts.header.after(parts.actions);
 				return;
 			}
 
 			sheet.closeSheetNow();
 			sheet.dialog.append(sheet.close);
 			parts.head.prepend(parts.close);
+			parts.header.append(parts.actions);
 			parts.sheets.before(parts.tabs);
 		},
 		signal,
@@ -222,6 +226,7 @@ function layoutFor(width: number, height: number): OverlayLayout {
 
 function renderBodyParts(): BodyParts {
 	const body = renderBody();
+	const actions = requireChild(body, 'player-queue-actions', HTMLElement);
 	const art = requireChild(body, '.player-overlay-art', HTMLElement);
 	const close = requireChild(body, '.player-overlay-close', HTMLButtonElement);
 	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
@@ -235,5 +240,5 @@ function renderBodyParts(): BodyParts {
 		...controls.querySelectorAll<HTMLElement>(':scope > :not(.player-transport)'),
 	];
 
-	return { art, body, close, columnsOnly, head, header, next, previous, sheets, tabs };
+	return { actions, art, body, close, columnsOnly, head, header, next, previous, sheets, tabs };
 }

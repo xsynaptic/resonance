@@ -59,7 +59,7 @@ export default defineConfig({
 		{
 			cssVariable: '--font-archivo',
 			name: 'Archivo',
-			provider: fontProviders.fontsource(),
+			provider: fontProviders.google(),
 			styles: ['normal', 'italic'],
 			weights: ['400 700'],
 		},

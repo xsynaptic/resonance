@@ -6,12 +6,14 @@ import type { PanelParts, PanelView } from '#waveform/panel/panel-view.ts';
 import { defineOnce } from '#elements/define-once.ts';
 import { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
 import { bind } from '#lib/bind.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, requireChildren, template } from '#lib/render.ts';
 import { loadedItem } from '#store/selectors.ts';
 import { subscribeStoreTime } from '#store/subscribe-time.ts';
 import { toCueSlot } from '#waveform/panel/cue-rider.ts';
+import { createPanelDrag } from '#waveform/panel/panel-drag.ts';
 import {
 	createPanelView,
+	isPanelMoving,
 	openPanelArchive,
 	paintPanelFrame,
 	startPanelLoop,
@@ -60,23 +62,44 @@ export function connectPanelSurface(
 		elementTime: store.getState().getCurrentTime,
 		subscribeTime: subscribeStoreTime(store),
 	});
+	const drag = createPanelDrag({
+		canDrag: () => store.getState().currentIndex !== undefined,
+		onSeek: (seconds) => {
+			store.getState().seek(seconds);
+		},
+		panel: parts.panel,
+		pxPerSecond: () => store.getState().panelPxPerSecond,
+		signal,
+	});
 	let archive = openPanelArchive(undefined, undefined);
 	let source: PanelSource | undefined;
 	let view: PanelView | undefined;
 
+	const wake = startPanelLoop({
+		onFrame: (frameMs, insetPx) => {
+			if (view) paintPanelFrame({ archive, clock, drag, frameMs, insetPx, store, view });
+
+			return isPanelMoving(store.getState(), drag, view);
+		},
+		onResize: () => {
+			view?.canvas.resize();
+		},
+		parts,
+		signal,
+	});
+
 	const rebuild = (): void => {
 		if (source === undefined) return;
 
-		view?.drag.stop();
 		view = createPanelView({
 			archive,
 			item: source.item,
 			parts,
 			pxPerSecond: source.pxPerSecond,
-			store,
 		});
 
 		if (parts.canvas.clientWidth > 0) view.canvas.resize();
+		wake();
 	};
 
 	bind(
@@ -93,24 +116,15 @@ export function connectPanelSurface(
 		signal,
 	);
 
-	startPanelLoop({
-		onFrame: (frameMs, insetPx) => {
-			if (view) paintPanelFrame({ archive, clock, frameMs, insetPx, store, view });
-		},
-		onResize: () => {
-			view?.canvas.resize();
-		},
-		parts,
-		signal,
-	});
-
+	const unsubscribeStore = store.subscribe(wake);
 	const unsubscribeTheme = subscribeTheme(rebuild);
 
+	parts.panel.addEventListener('pointerdown', wake, { signal });
 	signal.addEventListener(
 		'abort',
 		() => {
+			unsubscribeStore();
 			unsubscribeTheme();
-			view?.drag.stop();
 			clock.stop();
 		},
 		{ once: true },
@@ -119,14 +133,12 @@ export function connectPanelSurface(
 
 function renderPanelParts(panel: HTMLElement, labels: PlayerLabels): PanelParts {
 	const surface = renderSurface();
-	const canvas = surface.querySelector('canvas');
-	const context = canvas?.getContext('2d');
-	const ghost = surface.querySelector<HTMLElement>('.player-panel-ghost');
-	const [parked, arriving] = [...surface.querySelectorAll('p')].map((slot) => toCueSlot(slot));
+	const canvas = requireChild(surface, 'canvas', HTMLCanvasElement);
+	const context = canvas.getContext('2d');
+	const ghost = requireChild(surface, '.player-panel-ghost', HTMLElement);
+	const [parked, arriving] = requireChildren(surface, 'p', 2, HTMLParagraphElement);
 
-	if (!canvas || !context || !ghost || !parked || !arriving) {
-		throw new Error('The panel surface found no 2d context or lost part of its template');
-	}
+	if (!context) throw new Error('The panel surface found no 2d context');
 
 	for (const note of surface.querySelectorAll('.player-panel-now-note')) {
 		note.textContent = labels.timestampsPartial;
@@ -137,7 +149,14 @@ function renderPanelParts(panel: HTMLElement, labels: PlayerLabels): PanelParts 
 	panel.setAttribute('role', 'group');
 	panel.replaceChildren(...surface.children);
 
-	return { arriving, canvas, context, ghost, panel, parked };
+	return {
+		arriving: toCueSlot(arriving),
+		canvas,
+		context,
+		ghost,
+		panel,
+		parked: toCueSlot(parked),
+	};
 }
 
 function selectPanelSource(state: PlayerStore): PanelSource {

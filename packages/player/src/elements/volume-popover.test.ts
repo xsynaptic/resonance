@@ -60,7 +60,7 @@ describe('<player-volume-popover>', () => {
 		expect(store.getState().volume).toBe(1);
 	});
 
-	test('comes back closed after a reconnect', () => {
+	test('comes back closed after a reconnect', async () => {
 		stubHover(false);
 
 		const { part, root } = mount('player-volume-popover');
@@ -70,9 +70,22 @@ describe('<player-volume-popover>', () => {
 		expect(controlOf(part).dataset.open).toBe('');
 
 		root.remove();
+		await Promise.resolve();
 		document.body.append(root);
 
 		expect(controlOf(part).dataset.open).toBeUndefined();
+	});
+
+	test('stays open across a move within one task', () => {
+		stubHover(false);
+
+		const { part, root } = mount('player-volume-popover');
+
+		getByRole(part, 'button', { name: labels.volume }).click();
+		document.documentElement.append(root);
+		document.body.append(root);
+
+		expect(controlOf(part).dataset.open).toBe('');
 	});
 
 	test('gives up the slider and mutes from the trigger where volume is read-only', () => {

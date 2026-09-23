@@ -91,6 +91,28 @@ describe('<player-panel>', () => {
 		expect(reportError).toHaveBeenCalledWith(offline);
 	});
 
+	test('a drag that spans a track change still seeks and lets go', async () => {
+		stubContext();
+
+		const mounted = mountPanel();
+
+		await openPanel(mounted);
+
+		const panel = mounted.part.querySelector<HTMLElement>('.player-panel');
+		if (!panel) throw new Error('The panel rendered no surface');
+
+		const pointer = { bubbles: true, button: 0, pointerId: 1 };
+
+		panel.setPointerCapture = vi.fn();
+		panel.dispatchEvent(new PointerEvent('pointerdown', { ...pointer, clientX: 500 }));
+		panel.dispatchEvent(new PointerEvent('pointermove', { ...pointer, clientX: 400 }));
+		mounted.store.getState().next();
+		panel.dispatchEvent(new PointerEvent('pointerup', { ...pointer, clientX: 400 }));
+
+		expect(panel.dataset.dragging).toBeUndefined();
+		expect(mounted.store.getState().currentTimeSeconds).toBeGreaterThan(0);
+	});
+
 	test('stops zooming at the last level without dropping focus', async () => {
 		stubContext();
 

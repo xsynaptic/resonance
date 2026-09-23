@@ -95,6 +95,22 @@ describe('appendedQueue', () => {
 		expect(appended?.state.currentIndex).toBe(1);
 		expect(appended?.loadIndex).toBe(3);
 	});
+
+	test('keeps a shuffled order and puts every appended track at its end', () => {
+		const shuffling = { ...withQueue(release, 2), isShuffling: true, playOrder: [2, 0, 1] };
+		const appended = appendedQueue(shuffling, stamp([makeItem('d'), makeItem('e')]));
+
+		expect(appended?.loadIndex).toBe(3);
+		expect(appended?.state.playOrder).toStrictEqual([2, 0, 1, 3, 4]);
+	});
+
+	test('puts a named track at the end of a shuffled order', () => {
+		const shuffling = { ...withQueue(release, 2), isShuffling: true, playOrder: [2, 0, 1] };
+		const appended = appendedQueue(shuffling, stamp([makeItem('d'), makeItem('e')]), 'e');
+
+		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c', 'e']);
+		expect(appended?.state.playOrder).toStrictEqual([2, 0, 1, 3]);
+	});
 });
 
 describe('refreshedQueue', () => {

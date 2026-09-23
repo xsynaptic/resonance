@@ -1,5 +1,6 @@
 import type { QueueCuePoint } from '#types.ts';
 
+import { requireChild } from '#lib/render.ts';
 import { cueIndexAt } from '#waveform/cue-points.ts';
 
 // Where a label parks once its boundary has swept past, and how far it trails that boundary on the way in
@@ -119,10 +120,9 @@ export function createCueRider({
 	};
 }
 
-export function toCueSlot(root: HTMLElement | null): CueSlot | undefined {
-	const artist = root?.querySelector<HTMLElement>('.player-panel-now-artist');
-	const title = root?.querySelector<HTMLElement>('.player-panel-now-title');
-	if (!root || !artist || !title) return undefined;
+export function toCueSlot(root: HTMLElement): CueSlot {
+	const artist = requireChild(root, '.player-panel-now-artist', HTMLElement);
+	const title = requireChild(root, '.player-panel-now-title', HTMLElement);
 
 	return { artist, clip: NaN, opacity: NaN, root, title, written: NaN, x: NaN };
 }

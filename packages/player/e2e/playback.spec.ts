@@ -113,7 +113,7 @@ test('clearing the queue while playing leaves it idle, not paused', async ({ har
 	await harness.press('clearQueue');
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'idle' });
 
-	// The pause a reset causes lands late; it must not overwrite `idle`
+	// Anything the element reports after the reset must not overwrite `idle`
 	await page.waitForTimeout(1000);
 
 	// `currentSrc` keeps the old URL after a reset in every engine; the attribute and the network state are what clear
@@ -139,4 +139,24 @@ test('switching rows mid-play ends playing, not stranded on a stale pause', asyn
 		.toMatchObject({ element: { currentSrc: expect.stringContaining('/short.mp4') } });
 	await expectAdvancing(harness, 1);
 	expect(await harness.read()).toMatchObject({ isPaused: false, status: 'playing' });
+});
+
+test('an outside pause after switching rows mid-play reads as paused', async ({
+	harness,
+	page,
+}) => {
+	await harness.open();
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await expectAdvancing(harness, 1);
+
+	await page.getByRole('button', { name: 'Play short' }).click();
+	await expect
+		.poll(() => harness.read())
+		.toMatchObject({ element: { currentSrc: expect.stringContaining('/short.mp4') } });
+	await expectAdvancing(harness, 1);
+
+	await page.evaluate(() => window.playerPage?.store.getState().getMediaElement()?.pause());
+
+	await expect.poll(() => harness.read()).toMatchObject({ isPaused: true, status: 'paused' });
+	await expect(page.getByRole('button', { exact: true, name: labels.play })).toBeVisible();
 });

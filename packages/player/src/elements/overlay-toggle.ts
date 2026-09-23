@@ -5,7 +5,7 @@ import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
 import { bindPreload } from '#lib/bind-preload.ts';
 import { renderIconButton } from '#lib/icon-button.ts';
 
-export const PlayerOverlayToggle = buttonPart({
+export const PlayerOverlayToggle = buttonPart(() => ({
 	apply: (button, isEmpty: boolean) => {
 		button.disabled = isEmpty;
 	},
@@ -25,7 +25,7 @@ export const PlayerOverlayToggle = buttonPart({
 		return button;
 	},
 	select: isQueueEmpty,
-});
+}));
 
 function isQueueEmpty(state: PlayerStore): boolean {
 	return state.queue.length === 0;

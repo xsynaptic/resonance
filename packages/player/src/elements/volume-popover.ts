@@ -1,11 +1,11 @@
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { muteLabel, selectLevel } from '#elements/volume-level.ts';
 import { bind } from '#lib/bind.ts';
 import { canSetVolume } from '#lib/can-set-volume.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { muteLabel, selectLevel } from '#store/volume-level.ts';
 
 interface PopoverParts {
 	control: HTMLDivElement;
@@ -24,7 +24,7 @@ const renderControl = template(
 	/* HTML */ `
 		<div class="player-volume">
 			<button class="player-button player-button-icon" type="button"></button>
-			<div class="player-volume-panel">
+			<div class="player-popover player-volume-panel">
 				<player-volume-slider></player-volume-slider><player-mute-button></player-mute-button>
 			</div>
 		</div>

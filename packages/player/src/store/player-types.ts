@@ -22,7 +22,7 @@ export interface PlayerActions {
 	hydratePreferences: () => void;
 	// Positioned, with nothing loaded and nothing playing
 	hydrateQueue: () => void;
-	// Replaces the queue without touching the engine; nothing plays until a gesture asks
+	// Replaces the queue and unloads whatever played; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
 	// A shuffled play order moves with the item rather than reshuffling
 	moveItem: (from: number, to: number) => void;
@@ -32,8 +32,6 @@ export interface PlayerActions {
 	play: () => void;
 	playAt: (index: number) => void;
 	playQueue: (items: ReadonlyArray<QueueItem>) => void;
-	// Empty queue plays from the top; a running queue appends every track and jumps to the first appended
-	playRelease: (releaseItems: ReadonlyArray<QueueItem>) => void;
 	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
 	playTrack: (releaseItems: ReadonlyArray<QueueItem>, itemId: string) => void;
 	previous: () => void;
@@ -50,7 +48,6 @@ export interface PlayerActions {
 	setTrayOpen: (isOpen: boolean) => void;
 	// Clamped into 0..1; a level above zero ends a mute
 	setVolume: (volume: number) => void;
-	stop: () => void;
 	// Unmuting a level of zero lands at a quarter, so the press is never answered with silence
 	toggleMuted: () => void;
 	toggleOverlay: () => void;

@@ -29,6 +29,8 @@ const mediaSnapshot = { networkState: 2, positionSeconds: 0, readyState: 0 };
 interface StoredQueueRecord {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
+	isShuffling: boolean;
+	playOrder: Array<number>;
 	queue: Array<{ itemId: string }>;
 }
 
@@ -48,6 +50,13 @@ async function failIntoRetry(store: StoreApi<PlayerStore>): Promise<void> {
 	await vi.waitFor(() => {
 		expect(fake.engine.load).toHaveBeenCalledTimes(2);
 	});
+}
+
+function hidePage(): void {
+	const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+
+	document.dispatchEvent(new Event('visibilitychange'));
+	visibility.mockRestore();
 }
 
 // The position drifting between queue changes goes out on `pagehide`
@@ -248,11 +257,25 @@ describe('queue editing', () => {
 		expect(fake.engine.reset).toHaveBeenCalled();
 	});
 
+	test('replacing the queue while playing unloads the engine and leaves it idle', () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		fake.callbacks.current?.onStatus('playing');
+		store.getState().loadQueue([makeItem('x')]);
+
+		expect(fake.engine.reset).toHaveBeenCalled();
+		expect(store.getState()).toMatchObject({
+			currentIndex: undefined,
+			isPaused: true,
+			status: 'idle',
+		});
+	});
+
 	test('gives every enqueued item an id, including a second copy of the same track', () => {
 		const store = configured();
 
-		store.getState().loadQueue(release);
-		store.getState().playRelease(release);
+		store.getState().loadQueue([...release, ...release]);
 
 		const ids = store.getState().queue.map((item) => item.queueId);
 
@@ -339,9 +362,10 @@ describe('transport', () => {
 
 	test.each([
 		[
-			'a stop',
+			'the end of the play order',
 			(store: StoreApi<PlayerStore>) => {
-				store.getState().stop();
+				store.getState().playAt(2);
+				store.getState().next();
 			},
 		],
 		[
@@ -359,6 +383,36 @@ describe('transport', () => {
 		fake.callbacks.current?.onStatus('paused');
 
 		expect(store.getState().status).toBe('idle');
+	});
+});
+
+describe('resume', () => {
+	test('a press on a load paused while it resolved reads as loading until the element answers', async () => {
+		const { answer, store } = pendingResolver();
+
+		store.getState().playTrack(release, 'a');
+		store.getState().pause();
+		store.getState().play();
+
+		expect(store.getState()).toMatchObject({ isPaused: false, status: 'loading' });
+
+		answer('a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledOnce();
+		});
+	});
+
+	test('a press on a loaded pause leaves the status to the element', async () => {
+		const store = configured();
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledOnce();
+		});
+		fake.callbacks.current?.onStatus('paused');
+		store.getState().play();
+
+		expect(store.getState()).toMatchObject({ isPaused: false, status: 'paused' });
 	});
 });
 
@@ -1025,6 +1079,28 @@ describe('queue persistence', () => {
 		localStorage.removeItem('player:v2:queue');
 	});
 
+	test('restarts a restored track past the threshold rather than stepping back', () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().playTrack(release, 'b');
+		first.getState().seek(42);
+		leavePage();
+
+		fake = createMockEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+		second.getState().previous();
+
+		expect(second.getState().currentIndex).toBe(1);
+		expect(second.getState().currentTimeSeconds).toBe(0);
+		expect(fake.engine.load).not.toHaveBeenCalled();
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
 	test('stamps a restored queue with fresh ids rather than the ones it was stored with', () => {
 		const first = configured();
 
@@ -1081,6 +1157,122 @@ describe('queue persistence', () => {
 		second.getState().hydrateQueue();
 
 		expect(second.getState().queue).toHaveLength(1);
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	// Earlier stores in this file still listen, so a first flush settles whatever they hold unsaved
+	test('leaves a queue another tab saved when a store that never moved unloads', () => {
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().loadQueue(release);
+
+		fake = createMockEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+		leavePage();
+		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: [makeItem('y')] }));
+		leavePage();
+
+		expect(storedQueue()?.queue.map((item) => item.itemId)).toStrictEqual(['y']);
+
+		second.getState().seek(30);
+		leavePage();
+
+		expect(storedQueue()?.currentTimeSeconds).toBe(30);
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('flushes the position when the page goes hidden', () => {
+		const store = configured();
+
+		store.getState().hydrateQueue();
+		store.getState().playTrack(release, 'b');
+		store.getState().seek(42);
+		hidePage();
+
+		expect(storedQueue()?.currentTimeSeconds).toBe(42);
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('writes a shuffle toggle straight away, and a reload keeps its order', () => {
+		const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+		const first = configured();
+
+		first.getState().hydrateQueue();
+		first.getState().loadQueue([...release, makeItem('d')]);
+		first.getState().toggleShuffle();
+
+		const { playOrder } = first.getState();
+
+		expect(storedQueue()).toMatchObject({ isShuffling: true, playOrder });
+
+		random.mockReturnValue(0.99);
+		fake = createMockEngine();
+
+		const second = configured();
+
+		second.getState().hydrateQueue();
+
+		expect(second.getState().playOrder).toStrictEqual(playOrder);
+
+		random.mockRestore();
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('reshuffles a stored order that is not a permutation of the queue', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({ isShuffling: true, playOrder: [0, 0, 1], queue: release }),
+		);
+
+		const store = configured();
+
+		store.getState().hydrateQueue();
+
+		expect(store.getState().playOrder.toSorted((left, right) => left - right)).toStrictEqual([
+			0, 1, 2,
+		]);
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('drops a malformed stored item and follows the loaded one past it', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({
+				currentIndex: 2,
+				currentTimeSeconds: 42,
+				queue: [makeItem('a'), { itemId: 5 }, makeItem('c')],
+			}),
+		);
+
+		const store = configured();
+
+		store.getState().hydrateQueue();
+
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'c']);
+		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
+
+		localStorage.removeItem('player:v2:queue');
+	});
+
+	test('ignores a stored index that is not a whole number', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({ currentIndex: 1.5, currentTimeSeconds: 42, queue: release }),
+		);
+
+		const store = configured();
+
+		store.getState().hydrateQueue();
+
+		expect(store.getState()).toMatchObject({ currentIndex: undefined, currentTimeSeconds: 0 });
 
 		localStorage.removeItem('player:v2:queue');
 	});
@@ -1164,6 +1356,21 @@ describe('storage', () => {
 			vi.useRealTimers();
 			localStorage.removeItem('player:v1:volume');
 			localStorage.removeItem('player:v2:queue');
+		}
+	});
+
+	test('flushes a pending volume when the page goes hidden', () => {
+		vi.useFakeTimers();
+		localStorage.removeItem('player:v1:volume');
+
+		try {
+			configured().getState().setVolume(0.3);
+			hidePage();
+
+			expect(localStorage.getItem('player:v1:volume')).toBe('0.3');
+		} finally {
+			vi.useRealTimers();
+			localStorage.removeItem('player:v1:volume');
 		}
 	});
 

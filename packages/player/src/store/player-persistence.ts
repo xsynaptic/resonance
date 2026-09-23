@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerTimeMode, QueuedItem } from '#types.ts';
+import type { PlayerTimeMode, QueuedItem, QueueItem } from '#types.ts';
 
 import { queueStorageKey } from '#constants.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
@@ -35,12 +35,12 @@ interface StoredPreferences {
 	volume: number | undefined;
 }
 
-// What a reload puts back: the items, which one was loaded, and how far into it
 interface StoredQueue {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
 	isShuffling: boolean;
-	queue: Array<QueuedItem>;
+	playOrder: Array<number> | undefined;
+	queue: Array<QueueItem>;
 }
 
 export const inertPersistence: PlayerPersistence = {
@@ -69,6 +69,10 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 	let isQueueBound = false;
 	let persistedQueue: Array<QueuedItem> = [];
 	let persistedIndex: number | undefined;
+	let persistedOrder: Array<number> = [];
+
+	// A tab leaving with a queue it never touched would overwrite whatever another tab saved since
+	let hasUnsavedPosition = false;
 
 	function flushVolume(): void {
 		if (volumeWriteTimer !== undefined) clearTimeout(volumeWriteTimer);
@@ -83,7 +87,9 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 
 	// An empty store writes nothing, so a tab unloading idle never deletes a queue another tab saved
 	function writeQueue(): void {
-		const { currentIndex, currentTimeSeconds, isShuffling, queue } = api.getState();
+		const { currentIndex, currentTimeSeconds, isShuffling, playOrder, queue } = api.getState();
+
+		hasUnsavedPosition = false;
 		if (queue.length === 0) return;
 
 		writeStored(
@@ -92,9 +98,14 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 				currentIndex,
 				currentTimeSeconds,
 				isShuffling,
+				playOrder,
 				queue,
 			} satisfies StoredQueue),
 		);
+	}
+
+	function flushPosition(): void {
+		if (hasUnsavedPosition) writeQueue();
 	}
 
 	return {
@@ -102,22 +113,36 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			if (isQueueBound) return;
 
 			isQueueBound = true;
-			({ currentIndex: persistedIndex, queue: persistedQueue } = api.getState());
+			({
+				currentIndex: persistedIndex,
+				playOrder: persistedOrder,
+				queue: persistedQueue,
+			} = api.getState());
 
-			// Queue changes write straight away; the position drifting between them goes out on `pagehide`
-			api.subscribe(() => {
-				const { currentIndex, queue } = api.getState();
-				if (queue === persistedQueue && currentIndex === persistedIndex) return;
+			// Queue changes write straight away; the position drifting between them goes out when the page is left
+			api.subscribe((state, previous) => {
+				const { currentIndex, playOrder, queue } = state;
+
+				if (state.currentTimeSeconds !== previous.currentTimeSeconds) hasUnsavedPosition = true;
+
+				if (
+					queue === persistedQueue &&
+					currentIndex === persistedIndex &&
+					playOrder === persistedOrder
+				) {
+					return;
+				}
 
 				const hasEmptied = queue.length === 0 && persistedQueue.length > 0;
 
 				persistedQueue = queue;
 				persistedIndex = currentIndex;
+				persistedOrder = playOrder;
 
 				if (hasEmptied) removeStored(queueStorageKey);
 				else writeQueue();
 			});
-			window.addEventListener('pagehide', writeQueue);
+			onPageLeft(flushPosition);
 		},
 
 		persistMuted(isMuted) {
@@ -142,7 +167,7 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			if (!isFlushBound) {
 				isFlushBound = true;
 				// The tab can close inside the delay, so a pending write goes out on the way
-				window.addEventListener('pagehide', flushVolume);
+				onPageLeft(flushVolume);
 			}
 
 			if (volumeWriteTimer !== undefined) return;
@@ -159,6 +184,33 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 		}),
 		readQueue: readStoredQueue,
 	};
+}
+
+function isPermutation(value: unknown, length: number): value is Array<number> {
+	if (!Array.isArray(value) || value.length !== length) return false;
+
+	const indices = new Set(value);
+
+	return (
+		indices.size === length &&
+		[...indices].every((index) => Number.isSafeInteger(index) && index >= 0 && index < length)
+	);
+}
+
+function isStoredItem(value: unknown): value is QueueItem {
+	if (typeof value !== 'object' || value === null) return false;
+
+	return ['artistLine', 'itemId', 'releaseTitle', 'title'].every(
+		(key) => typeof Reflect.get(value, key) === 'string',
+	);
+}
+
+// Mobile browsers kill a backgrounded tab without `pagehide`, so going hidden flushes too
+function onPageLeft(flush: () => void): void {
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'hidden') flush();
+	});
+	window.addEventListener('pagehide', flush);
 }
 
 // Reaching for `localStorage` throws where the getter does: Safari with cookies blocked, a sandboxed iframe
@@ -198,17 +250,23 @@ function readStoredQueue(): StoredQueue | undefined {
 	if (stored === undefined) return undefined;
 
 	try {
-		const parsed = JSON.parse(stored) as Partial<StoredQueue>;
-		if (!Array.isArray(parsed.queue) || parsed.queue.length === 0) return undefined;
+		const parsed = JSON.parse(stored) as Partial<Record<keyof StoredQueue, unknown>>;
+		if (!Array.isArray(parsed.queue)) return undefined;
 
-		const currentIndex = storedQueueIndex(parsed.currentIndex, parsed.queue.length);
+		const queue = parsed.queue.filter((item) => isStoredItem(item));
+		if (queue.length === 0) return undefined;
+
+		const currentIndex = storedQueueIndex(parsed.queue, parsed.currentIndex, queue);
+		const isShuffling = parsed.isShuffling === true;
 
 		return {
 			currentIndex,
 			currentTimeSeconds:
 				currentIndex === undefined ? 0 : storedTimeSeconds(parsed.currentTimeSeconds),
-			isShuffling: parsed.isShuffling === true,
-			queue: parsed.queue,
+			isShuffling,
+			playOrder:
+				isShuffling && isPermutation(parsed.playOrder, queue.length) ? parsed.playOrder : undefined,
+			queue,
 		};
 	} catch {
 		return undefined;
@@ -238,15 +296,19 @@ function removeStored(key: string): void {
 	}
 }
 
-function storedQueueIndex(currentIndex: number | undefined, length: number): number | undefined {
-	if (typeof currentIndex !== 'number' || currentIndex < 0 || currentIndex >= length) {
-		return undefined;
-	}
+function storedQueueIndex(
+	stored: ReadonlyArray<unknown>,
+	currentIndex: unknown,
+	queue: ReadonlyArray<QueueItem>,
+): number | undefined {
+	if (typeof currentIndex !== 'number' || !Number.isSafeInteger(currentIndex)) return undefined;
 
-	return currentIndex;
+	const item = stored[currentIndex];
+
+	return isStoredItem(item) ? queue.indexOf(item) : undefined;
 }
 
-function storedTimeSeconds(currentTimeSeconds: number | undefined): number {
+function storedTimeSeconds(currentTimeSeconds: unknown): number {
 	if (typeof currentTimeSeconds !== 'number' || !Number.isFinite(currentTimeSeconds)) return 0;
 
 	return Math.max(0, currentTimeSeconds);

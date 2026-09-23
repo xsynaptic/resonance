@@ -1,7 +1,6 @@
 const dismissHeightShare = 0.25;
 const flickPxPerMs = 0.5;
 const flickWindowMs = 100;
-const exitMs = 200;
 
 const grabAttributes = { isGrabbing: 'data-grabbing' } as const satisfies Record<
 	string,
@@ -30,22 +29,14 @@ export function bindOverlayGrab(
 	let lastAtMs = 0;
 	let travelPx = 0;
 	let velocityPxPerMs = 0;
-	let exit: Animation | undefined;
 
 	function show(offsetPx: number): void {
 		sheet.style.translate = offsetPx === 0 ? '' : `0 ${String(offsetPx)}px`;
 	}
 
 	function settle(): void {
-		exit?.cancel();
-		exit = undefined;
 		sheet.toggleAttribute(grabAttributes.isGrabbing, false);
 		show(0);
-	}
-
-	function dismiss(): void {
-		onDismiss();
-		settle();
 	}
 
 	function onPointerDown(event: PointerEvent): void {
@@ -100,16 +91,9 @@ export function bindOverlayGrab(
 			return;
 		}
 
-		if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-			dismiss();
-			return;
-		}
-
-		exit = sheet.animate(
-			{ opacity: 0, translate: '0 100%' },
-			{ duration: exitMs, easing: 'cubic-bezier(0, 0, 0.2, 1)', fill: 'forwards' },
-		);
-		exit.addEventListener('finish', dismiss, { once: true });
+		onDismiss();
+		// The dialog's exit carries on from the offset the drag left; a sheet nothing slides away springs back
+		if (sheet.getAnimations().length === 0) show(0);
 	}
 
 	signal.addEventListener('abort', settle, { once: true });

@@ -29,6 +29,7 @@ export function bindTabs(
 ): void {
 	const tablist = requireChild(tabs, '[role="tablist"]', HTMLElement);
 	const panel = requireChild(tabs, '[role="tabpanel"]', HTMLElement);
+	const actions = requireChild(tabs, 'player-queue-actions', HTMLElement);
 	const id = overlayId();
 	const buttons = { queue: renderTab(), tracklist: renderTab() } satisfies Record<
 		OverlayList,
@@ -43,6 +44,7 @@ export function bindTabs(
 		const key = shown === 'tracklist' ? `tracklist:${view.itemId ?? ''}` : shown;
 
 		applyTabs(buttons, view.lists, shown);
+		actions.hidden = shown !== 'queue';
 		panel.setAttribute('aria-labelledby', buttons[shown].id);
 
 		if (key !== shownKey) {

@@ -5,11 +5,11 @@ import { bindOverlayGrab } from '#elements/overlay/overlay-grab.ts';
 import { bindSheets } from '#elements/overlay/overlay-sheets.ts';
 import { bindTabs } from '#elements/overlay/overlay-tabs.ts';
 import { PlayerTracklist } from '#elements/overlay/tracklist.ts';
+import { placeSeekButtons } from '#elements/place-seek-buttons.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { observeResize } from '#lib/observe-resize.ts';
-import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
 import { readPxProperty } from '#lib/read-px-property.ts';
-import { requireChild, template } from '#lib/render.ts';
+import { requireChild, requireChildren, template } from '#lib/render.ts';
 
 interface BodyParts {
 	art: HTMLElement;
@@ -17,10 +17,10 @@ interface BodyParts {
 	close: HTMLButtonElement;
 	columnsOnly: Array<HTMLElement>;
 	head: HTMLElement;
+	header: HTMLElement;
 	next: HTMLElement;
 	previous: HTMLElement;
 	sheets: HTMLElement;
-	tablist: HTMLElement;
 	tabs: HTMLElement;
 }
 
@@ -73,7 +73,10 @@ const renderBody = template(
 						><player-volume-popover></player-volume-popover>
 					</div>
 					<div class="player-overlay-tabs">
-						<div class="player-overlay-tablist" role="tablist"></div>
+						<div class="player-header">
+							<div class="player-overlay-tablist" role="tablist"></div>
+							<player-queue-actions></player-queue-actions>
+						</div>
 						<div class="player-overlay-list" role="tabpanel"></div>
 					</div>
 					<div class="player-overlay-sheets" hidden>
@@ -147,7 +150,7 @@ export function connectOverlayBody(
 		);
 	}
 	bindOverlayGrab(
-		{ onDismiss: sheet.closeSheet, region: parts.tablist, sheet: sheet.dialog },
+		{ onDismiss: sheet.closeSheet, region: parts.header, sheet: sheet.dialog },
 		signal,
 	);
 	bindLayout(
@@ -160,11 +163,11 @@ export function connectOverlayBody(
 			if (layout === 'phone') {
 				parts.body.prepend(parts.close);
 				sheet.dialog.append(parts.tabs);
-				parts.tabs.append(sheet.close);
+				parts.header.append(sheet.close);
 				return;
 			}
 
-			sheet.closeSheet();
+			sheet.closeSheetNow();
 			sheet.dialog.append(sheet.close);
 			parts.head.prepend(parts.close);
 			parts.sheets.before(parts.tabs);
@@ -223,18 +226,14 @@ function renderBodyParts(): BodyParts {
 	const close = requireChild(body, '.player-overlay-close', HTMLButtonElement);
 	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
 	const head = requireChild(body, '.player-overlay-head', HTMLElement);
+	const header = requireChild(body, '.player-header', HTMLElement);
 	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);
-	const tablist = requireChild(body, '.player-overlay-tablist', HTMLElement);
 	const tabs = requireChild(body, '.player-overlay-tabs', HTMLElement);
-	const [previous, next] = [...body.querySelectorAll('player-step-button')];
-
-	if (!previous || !next) {
-		throw new Error('The overlay body template lost its step buttons');
-	}
+	const [previous, next] = requireChildren(body, 'player-step-button', 2, HTMLElement);
 
 	const columnsOnly = [
 		...controls.querySelectorAll<HTMLElement>(':scope > :not(.player-transport)'),
 	];
 
-	return { art, body, close, columnsOnly, head, next, previous, sheets, tablist, tabs };
+	return { art, body, close, columnsOnly, head, header, next, previous, sheets, tabs };
 }

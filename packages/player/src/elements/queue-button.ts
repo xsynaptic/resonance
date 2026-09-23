@@ -17,8 +17,26 @@ interface QueueParts {
 	trigger: HTMLButtonElement;
 }
 
+interface TrayOpening {
+	control: HTMLElement;
+	store: StoreApi<PlayerStore>;
+	title: string;
+}
+
 const renderControl = template(
 	'<div class="player-queue"><button class="player-button player-button-icon" type="button"></button></div>',
+	HTMLDivElement,
+);
+
+const renderPopover = template(
+	/* HTML */ `
+		<div class="player-popover player-queue-popover">
+			<div class="player-header">
+				<span class="player-header-title"></span><player-queue-actions></player-queue-actions>
+			</div>
+			<player-tray></player-tray>
+		</div>
+	`,
 	HTMLDivElement,
 );
 
@@ -31,7 +49,7 @@ export class PlayerQueueButton extends PlayerElement {
 		const opened = supersede(signal);
 
 		this.appendOnce(control);
-		trigger.setAttribute('aria-label', labels.addToQueue);
+		trigger.setAttribute('aria-label', labels.queue);
 		trigger.replaceChildren(cloneIcon('queue'));
 		bindPreload({ preload: trayModule.preload, store, trigger }, signal);
 		bindDismiss(
@@ -52,7 +70,7 @@ export class PlayerQueueButton extends PlayerElement {
 					opened.cancel();
 					if (!isOpen) return;
 
-					void openTray(control, store, opened.next());
+					void openTray({ control, store, title: labels.queue }, opened.next());
 				},
 				button: trigger,
 				press: (state) => {
@@ -71,8 +89,7 @@ function isTrayOpen(state: PlayerStore): boolean {
 }
 
 async function openTray(
-	control: HTMLElement,
-	store: StoreApi<PlayerStore>,
+	{ control, store, title }: TrayOpening,
 	signal: AbortSignal,
 ): Promise<void> {
 	try {
@@ -85,13 +102,14 @@ async function openTray(
 
 	if (signal.aborted) return;
 
-	const tray = document.createElement('player-tray');
+	const popover = renderPopover();
 
-	control.prepend(tray);
+	requireChild(popover, '.player-header-title', HTMLElement).textContent = title;
+	control.prepend(popover);
 	signal.addEventListener(
 		'abort',
 		() => {
-			tray.remove();
+			popover.remove();
 		},
 		{ once: true },
 	);

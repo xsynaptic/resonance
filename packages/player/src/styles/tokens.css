@@ -1,6 +1,7 @@
 :root {
 	--player-surface: #0a0a0a;
 	--player-panel-well: #000;
+	--player-artwork-well: #000;
 	--player-popover: #171717;
 	--player-hover: #262626;
 	--player-border: #262626;
@@ -56,8 +57,11 @@
 	--player-fader-cap: #525252;
 	--player-fader-cap-hover: #737373;
 	--player-volume-level: 100%;
+	--player-gap-wide: 3rem;
 	--player-gap: 0.75rem;
 	--player-gap-tight: 0.5rem;
+	--player-gap-small: 0.25rem;
+	--player-row-inset: var(--player-gap-tight);
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
 	--player-padding-block-start: var(--player-padding-block);
@@ -66,13 +70,26 @@
 	--player-panel-height: 7.5rem;
 	--player-waveform-height: 3rem;
 	--player-waveform-height-bar: 3.5rem;
+	--player-waveform-aspect-ratio: 3.5;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
 	--player-font-size-large: 1.25rem;
 	--player-font-family: inherit;
 	--player-font-mono: ui-monospace, menlo, consolas, monospace;
+	--player-button-size: 2rem;
+	--player-button-size-small: 1.5rem;
+	--player-button-size-large: 2.5rem;
+	--player-button-size-primary: 2.25rem;
+	--player-button-size-hero: 3.5rem;
+	--player-hit-target: 2.75rem;
+	--player-focus-width: 2px;
+	--player-focus-offset: 0;
 	--player-radius: 0.25rem;
 	--player-radius-large: 0.375rem;
-	--player-transition: 100ms cubic-bezier(0.4, 0, 0.2, 1);
+	--player-ease: cubic-bezier(0.4, 0, 0.2, 1);
+	--player-transition: 100ms var(--player-ease);
+	--player-duration-slow: 200ms;
+	--player-transition-slow: var(--player-duration-slow) var(--player-ease);
+	--player-z-raised: 1;
 	--player-shadow-popover: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
 }

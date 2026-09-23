@@ -21,7 +21,7 @@ const renderButton = template(
 	HTMLButtonElement,
 );
 
-export const PlayerPlayButton = buttonPart({
+export const PlayerPlayButton = buttonPart(() => ({
 	apply: (button, view: PlayButtonView, labels) => {
 		button.disabled = view.isDisabled;
 		button.setAttribute('aria-label', view.isPaused ? labels.play : labels.pause);
@@ -34,7 +34,7 @@ export const PlayerPlayButton = buttonPart({
 	},
 	render: renderButton,
 	select: selectPlayButton,
-});
+}));
 
 function selectPlayButton(state: PlayerStore): PlayButtonView {
 	return {

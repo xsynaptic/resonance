@@ -49,7 +49,7 @@ async function mountTray(items: Array<QueueItem> = threeItems) {
 
 async function openQueue() {
 	const mounted = mount('player-queue-button');
-	const trigger = getByRole(mounted.part, 'button', { name: labels.addToQueue });
+	const trigger = getByRole(mounted.part, 'button', { name: labels.queue });
 
 	mounted.store.getState().loadQueue(threeItems);
 	trigger.click();
@@ -88,6 +88,20 @@ describe('<player-queue-button> with its tray', () => {
 		expect(store.getState().isTrayOpen).toBe(true);
 	});
 
+	test('heads the tray with Shuffle, which reads pressed while on, and Clear', async () => {
+		const { part, store } = await openQueue();
+		const shuffle = getByRole(part, 'button', { name: labels.shuffle });
+
+		shuffle.click();
+
+		expect(store.getState().isShuffling).toBe(true);
+		expect(shuffle.getAttribute('aria-pressed')).toBe('true');
+
+		getByRole(part, 'button', { name: labels.clearQueue }).click();
+
+		expect(store.getState().queue).toHaveLength(0);
+	});
+
 	test('closes on a click outside it and on Escape, handing focus back to the trigger', async () => {
 		const { part, store, trigger } = await openQueue();
 
@@ -113,7 +127,7 @@ describe('<player-queue-button> with its tray', () => {
 		vi.stubGlobal('reportError', reportError);
 
 		const { part, store } = mount('player-queue-button');
-		const trigger = getByRole(part, 'button', { name: labels.addToQueue });
+		const trigger = getByRole(part, 'button', { name: labels.queue });
 
 		store.getState().loadQueue([queueItem('a')]);
 		trigger.click();
@@ -128,7 +142,7 @@ describe('<player-queue-button> with its tray', () => {
 
 describe('<player-tray>', () => {
 	test('removes a row, and shows the empty message once the queue is cleared', async () => {
-		const { part } = await mountTray();
+		const { part, store } = await mountTray();
 
 		getAllByRole(part, 'button', { name: labels.removeFromQueue })[1]?.click();
 
@@ -137,7 +151,7 @@ describe('<player-tray>', () => {
 			expect.stringContaining('Mix c'),
 		]);
 
-		getByRole(part, 'button', { name: labels.clearQueue }).click();
+		store.getState().clearQueue();
 
 		expect(queryAllByRole(part, 'listitem')).toHaveLength(0);
 		expect(getByText(part, labels.empty).hidden).toBe(false);

@@ -20,13 +20,6 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	'<',
 	String.raw`\u003c`,
 );
-
-// Each variation is nothing but tokens on the wrapper, which the renderer reads when it paints
-const waveformVariations = [
-	{ className: undefined, label: '2px bar, 1px gap, 1px radius (the default)' },
-	{ className: 'inventory-waveform-square', label: '2px bar, 1px gap, no radius' },
-	{ className: 'inventory-waveform-chunky', label: '3px bar, 1px gap, 1px radius' },
-];
 ---
 
 <Section
@@ -41,20 +34,11 @@ const waveformVariations = [
 		<InventoryPalette />
 	</Specimen>
 	<Specimen
-		name="player-bar full"
-		note="From a 52rem bar, three rows: transport and toggles, the title line, the waveform. The Mix's artwork runs the bar's full height at 120px, the one size every tier shows. The tier comes from the bar's own width through a container query, never the viewport, and every tier is one DOM."
+		name="player-bar"
+		note="From a 40rem bar, three rows: transport and toggles, the title line, the waveform. The Mix's artwork runs the bar's full height at 120px, the one size every tier shows. The tier comes from the bar's own width through a container query, never the viewport, and every tier is one DOM."
 		source="packages/player/src/elements/player-bar.ts"
 	>
 		<player-root class="player block" data-inventory-queue="bar">
-			<player-bar></player-bar>
-		</player-root>
-	</Specimen>
-	<Specimen
-		name="player-bar compact"
-		note="From 40rem to 52rem, the same two rows beside the same 120px artwork, with the scope dropped out; ±30s stay."
-		source="packages/player/src/player.css"
-	>
-		<player-root class="player block max-w-3xl" data-inventory-queue="bar">
 			<player-bar></player-bar>
 		</player-root>
 	</Specimen>
@@ -63,28 +47,14 @@ const waveformVariations = [
 		note="An item with no Featured Image, or an image that fails to load, collapses the column. The bar keeps its height, so switching items never shifts it."
 		source="packages/player/src/elements/artwork.ts"
 	>
-		<div class="flex flex-col gap-4">
-			<player-root class="player block" data-inventory-queue="no-artwork">
-				<player-bar></player-bar>
-			</player-root>
-			<player-root class="player block max-w-3xl" data-inventory-queue="no-artwork">
-				<player-bar></player-bar>
-			</player-root>
-		</div>
-	</Specimen>
-	<Specimen
-		name="player-bar artwork off"
-		note="<code>isArtworkEnabled</code> set to <code>false</code> on the root, for a host that wants no artwork whatever its items carry."
-		source="packages/player/src/elements/player-root.ts"
-	>
-		<player-root class="player block" data-inventory-artwork="off" data-inventory-queue="bar">
+		<player-root class="player block" data-inventory-queue="no-artwork">
 			<player-bar></player-bar>
 		</player-root>
 	</Specimen>
 	<Specimen
-		name="player-bar mini"
-		note="Below a 40rem bar: play, the title and expand, in a 32rem column and again at 320px. Everything else lives in the overlay. Expand on any bar in this section opens the real modal overlay on that root's store; its close button or Escape closes it."
-		source="packages/player/src/player.css"
+		name="player-bar narrow, mini"
+		note="From 26rem to 40rem the artwork drops and the rest holds, shown at 32rem. Below 26rem the mini bar keeps play, the title line and expand, with a 2px progress hairline along its top edge, shown at 320px with a title and artist too long for it: they march, hover or focus pauses them, and <code>prefers-reduced-motion</code> stops them and restores the ellipsis. Expand on any bar in this section opens the real modal overlay on that root's store; its close button or Escape closes it."
+		source="packages/player/src/styles/bar.css"
 	>
 		<div class="flex flex-col gap-4">
 			<player-root class="player block max-w-lg" data-inventory-queue="bar">
@@ -97,17 +67,10 @@ const waveformVariations = [
 	</Specimen>
 	<Specimen
 		name="player-bar mini, overlay off"
-		note="<code>isOverlayEnabled</code> set to <code>false</code> on the root. With no expand button the mini bar keeps the Queue, whose tray spans the bar and opens above it. At 32rem and at 320px."
+		note="<code>isOverlayEnabled</code> set to <code>false</code> on the root. With no expand button the mini bar keeps the Queue, whose tray spans the bar and opens above it."
 		source="packages/player/src/elements/player-root.ts"
 	>
-		<div class="flex flex-col gap-4 pt-96">
-			<player-root
-				class="player block max-w-lg"
-				data-inventory-overlay="off"
-				data-inventory-queue="bar"
-			>
-				<player-bar></player-bar>
-			</player-root>
+		<div class="pt-96">
 			<player-root
 				class="player block max-w-xs"
 				data-inventory-overlay="off"
@@ -152,57 +115,6 @@ const waveformVariations = [
 		>
 			<player-overlay-content></player-overlay-content>
 		</player-root>
-	</Specimen>
-	<Specimen
-		name="player-overlay-content desktop"
-		note="The columns layout at the Inventory's full width, where the deck stops at 64rem."
-		source="packages/player/src/player.css"
-	>
-		<player-root
-			class="player block h-200 max-w-full border border-surface-400"
-			data-inventory-queue="overlay"
-		>
-			<player-overlay-content></player-overlay-content>
-		</player-root>
-	</Specimen>
-	<Specimen
-		name="player-title, player-artist-line marquee"
-		note="A title and an artist too long for the info window. Hover or focus pauses it; <code>prefers-reduced-motion</code> stops it and restores the ellipsis."
-		source="packages/player/src/lib/marquee.ts"
-	>
-		<player-root class="player block" data-inventory-queue="marquee">
-			<player-bar></player-bar>
-		</player-root>
-	</Specimen>
-	<Specimen
-		name="player-time remaining"
-		note="A toggle button, seeded a third of the way in: elapsed or remaining, persisted under <code>player:v1:time-mode</code>."
-		source="packages/player/src/elements/time.ts"
-	>
-		<player-root class="player block" data-inventory-queue="remaining">
-			<player-bar></player-bar>
-		</player-root>
-	</Specimen>
-	<Specimen
-		name="player-time-slider variations"
-		note="The bar count comes from the box, so a variation is nothing but <code>--player-waveform-bar</code>, <code>-gap</code> and <code>-radius</code> on a wrapper. Each is shown full width and again in a 24rem column, seeded a third of the way in."
-		source="packages/player/src/elements/time-slider/time-slider.ts"
-	>
-		<div class="flex flex-col gap-6">
-			{waveformVariations.map((variation) => (
-				<div class={variation.className}>
-					<p class="mb-2 font-mono text-xs text-ink-600">{variation.label}</p>
-					<player-root class="player block" data-inventory-queue="bar">
-						<div class="bg-surface-900 px-4 py-2.5">
-							<player-time-slider class="block" />
-						</div>
-						<div class="mt-2 max-w-96 bg-surface-900 px-4 py-2.5">
-							<player-time-slider class="block" />
-						</div>
-					</player-root>
-				</div>
-			))}
-		</div>
 	</Specimen>
 	<Specimen
 		name="player-volume-popover"
@@ -465,35 +377,36 @@ const waveformVariations = [
 
 		store.getState().seek((store.getState().durationSeconds ?? 0) / 3);
 		if (openPanelQueues.has(queue)) store.getState().setPanelOpen(true);
-		else if (queue === 'remaining') store.setState({ timeMode: 'remaining' });
 	}
 
-	// Properties land before the tags are defined, which is the order the site's host script takes
-	function setUpSpecimens(): void {
-		const source = document.querySelector('#inventory-player')?.textContent;
+	// Only this page sets properties before the tags are defined or the page is swapped in, so it alone exercises `upgradeProperty`
+	function setUpSpecimens(page: Document): void {
+		const source = page.querySelector('#inventory-player')?.textContent;
 		if (!source) return;
 
 		const { items, labels, seekSeconds } = JSON.parse(source) as SpecimenData;
 
-		for (const root of document.querySelectorAll('player-root')) {
+		for (const root of page.querySelectorAll('player-root')) {
 			const queue = root.dataset.inventoryQueue;
-			if (queue === undefined) continue;
+			if (queue === undefined || root.store) continue;
 
 			const store = createSpecimenStore(queue);
 			const urls = specimenUrls(items, queue);
 
-			root.isArtworkEnabled = root.dataset.inventoryArtwork !== 'off';
 			root.isOverlayEnabled = root.dataset.inventoryOverlay !== 'off';
 			root.labels = labels;
 			root.seekSeconds = seekSeconds;
 			root.store = store;
 			root.urls = urls;
 
-			if (unqueued.has(queue)) continue;
+			if (!unqueued.has(queue)) {
+				store.getState().configure({ urls });
+				store.getState().loadQueue(specimenItems(items, queue));
+				seedSpecimen(store, queue);
+			}
 
-			store.getState().configure({ urls });
-			store.getState().loadQueue(specimenItems(items, queue));
-			seedSpecimen(store, queue);
+			// A first visit by soft navigation lands after the host defined the tags, so each root connected storeless
+			if (root.isConnected) root.replaceWith(root);
 		}
 
 		definePlayerElements();
@@ -516,5 +429,8 @@ const waveformVariations = [
 		return queuedUrls(items);
 	}
 
-	setUpSpecimens();
+	setUpSpecimens(document);
+	document.addEventListener('astro:before-swap', ({ newDocument }) => {
+		setUpSpecimens(newDocument);
+	});
 </script>

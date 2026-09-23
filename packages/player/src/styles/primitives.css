@@ -1,0 +1,66 @@
+.player-popover {
+	background-color: var(--player-popover);
+	border: 1px solid var(--player-border);
+	border-radius: var(--player-radius-large);
+	box-shadow: var(--player-shadow-popover);
+	animation-name: player-popover-in;
+	animation-duration: var(--player-duration-slow);
+	animation-timing-function: var(--player-ease);
+	animation-fill-mode: both;
+}
+
+@keyframes player-popover-in {
+	from {
+		opacity: 0;
+		transform: translateY(var(--player-gap-small));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-popover {
+		animation: none;
+	}
+}
+
+.player-header {
+	display: flex;
+	flex-shrink: 0;
+	gap: var(--player-gap);
+	align-items: center;
+	min-block-size: var(--player-hit-target);
+	padding-inline: var(--player-row-inset);
+	border-bottom: 1px solid var(--player-border);
+}
+
+.player-header-title {
+	margin-inline-end: auto;
+	font-size: var(--player-font-size);
+	font-weight: 500;
+	line-height: 1.25rem;
+	color: var(--player-title);
+}
+
+.player-queue-actions {
+	display: flex;
+	gap: var(--player-gap);
+}
+
+/* A row's ring sits inside it, since the scroller around it clips anything drawn outside */
+:is(.player-tray-item, .player-overlay-cue) {
+	--player-focus-offset: calc(-1 * var(--player-focus-width));
+
+	padding-inline: var(--player-row-inset);
+	transition: background-color var(--player-transition);
+}
+
+@media (hover: hover) {
+	.player-tray-item:hover,
+	.player-overlay-cue:enabled:hover {
+		background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+	}
+}
+
+.player-tray-item:focus-within,
+.player-overlay-cue:focus-visible {
+	background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+}

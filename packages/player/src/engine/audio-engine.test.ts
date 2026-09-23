@@ -78,7 +78,8 @@ describe('audio engine', () => {
 		expect(callbacks.onStatus).toHaveBeenLastCalledWith('paused');
 	});
 
-	test('the pause a reset causes goes unreported, and a later one is reported', () => {
+	// A reset's own pause never arrives, since its `load()` drops the queued event
+	test('the first pause after a reset of a playing element is reported', () => {
 		vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockReturnValue(false);
 
 		const callbacks = createCallbacks();
@@ -87,9 +88,6 @@ describe('audio engine', () => {
 		engine.reset();
 
 		const [element] = media.pause.mock.contexts as Array<HTMLMediaElement>;
-
-		element?.dispatchEvent(new Event('pause'));
-		expect(callbacks.onStatus).not.toHaveBeenCalled();
 
 		element?.dispatchEvent(new Event('pause'));
 		expect(callbacks.onStatus).toHaveBeenCalledWith('paused');

@@ -3,7 +3,7 @@ import type { PlayerLabels, QueuedItem } from '#types.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { keyedChildren } from '#lib/keyed-children.ts';
 import { placeWhen } from '#lib/place-when.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, requireChildren, template } from '#lib/render.ts';
 
 interface RowEntry {
 	isCurrent: boolean;
@@ -72,14 +72,10 @@ export function trayRows(list: HTMLElement, labels: PlayerLabels): (view: TrayLi
 
 function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 	const node = renderRow();
-	const [handle, pick, remove] = [...node.querySelectorAll('button')];
-	const title = node.querySelector('.player-tray-title');
-	const name = node.querySelector('.player-tray-name');
-	const artist = node.querySelector('.player-tray-artist');
-
-	if (!handle || !pick || !remove || !title || !name || !artist) {
-		throw new Error('The tray row template lost part of its markup');
-	}
+	const [handle, pick, remove] = requireChildren(node, 'button', 3, HTMLButtonElement);
+	const title = requireChild(node, '.player-tray-title', HTMLElement);
+	const name = requireChild(node, '.player-tray-name', HTMLElement);
+	const artist = requireChild(node, '.player-tray-artist', HTMLElement);
 
 	const playing = cloneIcon('playing');
 

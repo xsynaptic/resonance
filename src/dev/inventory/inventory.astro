@@ -744,7 +744,7 @@ const inlineSelection: SelectionValue = {
 	<Section title="Audio">
 		<Specimen
 			name="AudioLinks"
-			note="The row a Mix Detail Page renders: the play controls take the leading slot, the links and downloads follow, and the whole thing wraps as one list."
+			note="The rows a Mix Detail Page renders: the play controls alone on the first, in the orange variant, and the links and downloads wrapping on the second. Once the Mix is queued the second half reads Queued at the same width, disabled; the site host sets that row state, so it shows on a mix page rather than here."
 			source="src/components/parts/audio-links.astro"
 		>
 			{mix?.queueItem ? (

@@ -13,7 +13,7 @@ import {
 } from '#elements/time-slider/overview-slider.ts';
 import { bindOverviewPreview } from '#elements/time-slider/overview.ts';
 import { bind } from '#lib/bind.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, template } from '#lib/render.ts';
 import { supersede } from '#lib/supersede.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { displayedItem, isLoaded } from '#store/selectors.ts';
@@ -129,30 +129,17 @@ function bindRange(range: HTMLInputElement, { labels, store }: PlayerContext, si
 
 function renderSliderParts(): SliderParts {
 	const frame = renderFrame();
-	const canvas = frame.querySelector('canvas');
-	const label = frame.querySelector<HTMLSpanElement>('.player-cue-label');
-
-	if (!canvas || !label) {
-		throw new Error('The time slider template lost its canvas or its cue label');
-	}
+	const label = requireChild(frame, '.player-cue-label', HTMLSpanElement);
 
 	return {
-		artist: requireLabelSpan(label, 'player-cue-artist'),
-		canvas,
+		artist: requireChild(label, '.player-cue-artist', HTMLSpanElement),
+		canvas: requireChild(frame, 'canvas', HTMLCanvasElement),
 		frame,
 		label,
 		range: renderRange(),
-		time: requireLabelSpan(label, 'player-cue-time'),
-		title: requireLabelSpan(label, 'player-cue-title'),
+		time: requireChild(label, '.player-cue-time', HTMLSpanElement),
+		title: requireChild(label, '.player-cue-title', HTMLSpanElement),
 	};
-}
-
-function requireLabelSpan(label: HTMLSpanElement, className: string): HTMLSpanElement {
-	const span = label.querySelector<HTMLSpanElement>(`.${className}`);
-
-	if (!span) throw new Error(`The cue label lost its ${className} span`);
-
-	return span;
 }
 
 function selectRange(state: PlayerStore) {

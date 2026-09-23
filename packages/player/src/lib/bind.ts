@@ -16,12 +16,17 @@ export function bind<Selected>(
 
 	apply(applied);
 
+	// Zustand runs its listeners in a bare `forEach`, so one that throws would starve every later subscriber
 	const unsubscribe = store.subscribe((state) => {
-		const selected = select(state);
-		if (shallow(selected, applied)) return;
+		try {
+			const selected = select(state);
+			if (shallow(selected, applied)) return;
 
-		applied = selected;
-		apply(selected);
+			applied = selected;
+			apply(selected);
+		} catch (error) {
+			reportError(error);
+		}
 	});
 
 	signal.addEventListener('abort', unsubscribe, { once: true });

@@ -15,7 +15,7 @@ import { currentCue, loadedItem } from '#store/selectors.ts';
 // The resolved press, so a host reads the verb rather than re-deriving it from the DOM
 export interface ControlPress {
 	itemIds: Array<string>;
-	verb: 'play-playlist' | 'play-release' | 'play-track' | 'queue-track' | 'toggle-playlist';
+	verb: 'play-playlist' | 'play-track' | 'queue-track' | 'toggle-playlist';
 }
 
 interface PageControlOptions {
@@ -177,7 +177,7 @@ function pressControl(
 	verbs: DOMStringMap,
 	items: Array<QueueItem>,
 ): ControlPress | undefined {
-	const { playPlaylist, playRelease, playTrack, queueTrack } = verbs;
+	const { playPlaylist, playTrack, queueTrack } = verbs;
 
 	if (playPlaylist !== undefined && isTunedIn(playPlaylist, loadedItem(state)?.itemId)) {
 		state.togglePaused();
@@ -199,17 +199,11 @@ function pressControl(
 		return { itemIds: [queueTrack], verb: 'queue-track' };
 	}
 
-	if (playTrack) {
-		state.playTrack(items, playTrack);
+	if (!playTrack) return undefined;
 
-		return { itemIds: [playTrack], verb: 'play-track' };
-	}
+	state.playTrack(items, playTrack);
 
-	if (playRelease === undefined) return undefined;
-
-	state.playRelease(items);
-
-	return { itemIds: items.map((item) => item.itemId), verb: 'play-release' };
+	return { itemIds: [playTrack], verb: 'play-track' };
 }
 
 // Intent rather than sound, matching the bar's play button

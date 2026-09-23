@@ -15,10 +15,6 @@
 	align-items: center;
 	padding: var(--player-gap-tight);
 	margin-bottom: var(--player-gap-tight);
-	background-color: var(--player-popover);
-	border: 1px solid var(--player-border);
-	border-radius: var(--player-radius);
-	box-shadow: var(--player-shadow-popover);
 	translate: -50%;
 }
 
@@ -49,13 +45,13 @@
 
 @media (hover: hover) {
 	.player-volume:hover {
-		z-index: 1;
+		z-index: var(--player-z-raised);
 	}
 }
 
 .player-volume:focus-within,
 .player-volume[data-open] {
-	z-index: 1;
+	z-index: var(--player-z-raised);
 }
 
 .player-volume-slider {
@@ -150,7 +146,7 @@
 
 .player-seek:disabled {
 	cursor: default;
-	opacity: 0.5;
+	opacity: 0.4;
 }
 
 .player-waveform {
@@ -165,11 +161,6 @@
 .player-waveform-inert {
 	touch-action: auto;
 	cursor: default;
-}
-
-.player-waveform:focus-visible {
-	outline: 2px solid var(--player-focus-ring);
-	outline-offset: 2px;
 }
 
 .player-waveform-frame {

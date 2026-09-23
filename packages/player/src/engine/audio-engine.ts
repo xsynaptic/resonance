@@ -45,9 +45,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 
 	let pendingResumeAtSeconds: number | undefined;
 
-	// Set while the pause a reset causes is still queued, since it lands after the next load has begun
-	let isSilencing = false;
-
 	const watchdog = createStallWatchdog(audio, (diagnostic) => callbacks.onDiagnostic?.(diagnostic));
 
 	audio.addEventListener('timeupdate', () => {
@@ -84,11 +81,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		callbacks.onStatus('playing');
 	});
 	audio.addEventListener('pause', () => {
-		if (isSilencing) {
-			isSilencing = false;
-			return;
-		}
-
 		watchdog.clear();
 		callbacks.onStatus('paused');
 	});
@@ -135,7 +127,6 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		reset: () => {
 			pendingResumeAtSeconds = undefined;
 			watchdog.clear();
-			isSilencing = !audio.paused;
 			audio.pause();
 			audio.removeAttribute('src');
 			audio.load();

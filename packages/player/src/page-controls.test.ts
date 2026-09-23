@@ -64,7 +64,7 @@ describe('bindPageControls', () => {
 	test('a track control beats the play-all wrapped around it, queueing without playing', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b')],
-			'<div data-play-release><button data-queue-track="b"></button></div>',
+			'<div data-play-playlist="a b"><button data-queue-track="b"></button></div>',
 		);
 
 		page.bind();

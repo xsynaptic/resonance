@@ -11,7 +11,7 @@ interface PanelToggleView {
 	isOpen: boolean;
 }
 
-export const PlayerPanelToggle = buttonPart({
+export const PlayerPanelToggle = buttonPart(() => ({
 	apply: (button, view: PanelToggleView) => {
 		button.disabled = view.isDisabled;
 		button.setAttribute('aria-pressed', String(view.isOpen));
@@ -26,7 +26,7 @@ export const PlayerPanelToggle = buttonPart({
 	},
 	render: () => renderIconButton('player-panel-toggle'),
 	select: selectPanelToggle,
-});
+}));
 
 function selectPanelToggle(state: PlayerStore): PanelToggleView {
 	return { isDisabled: !isLoaded(state), isOpen: state.isPanelOpen };

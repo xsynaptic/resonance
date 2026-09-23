@@ -2,7 +2,7 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { cloneIcon } from '#lib/icons.ts';
-import { template } from '#lib/render.ts';
+import { requireChildren, template } from '#lib/render.ts';
 import { stepPanelZoom } from '#store/zoom-levels.ts';
 
 interface ZoomParts {
@@ -65,8 +65,7 @@ export class PlayerPanelZoom extends PlayerElement {
 
 function renderZoomParts(): ZoomParts {
 	const control = renderControl();
-	const [zoomOut, zoomIn] = control.querySelectorAll('button');
-	if (!zoomOut || !zoomIn) throw new Error('The panel zoom template lost its buttons');
+	const [zoomOut, zoomIn] = requireChildren(control, 'button', 2, HTMLButtonElement);
 
 	return { control, zoomIn, zoomOut };
 }

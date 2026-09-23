@@ -8,14 +8,12 @@ import { createRowDrag } from '#elements/tray/row-drag.ts';
 import { rowPressAt, trayRows } from '#elements/tray/tray-rows.ts';
 import { bind } from '#lib/bind.ts';
 import { formatTemplate } from '#lib/format.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, requireChildren, template } from '#lib/render.ts';
 import { canMove } from '#queue/reorder.ts';
 
 interface TrayParts {
-	clear: HTMLButtonElement;
 	empty: HTMLElement;
 	list: HTMLUListElement;
-	shuffle: HTMLButtonElement;
 	status: HTMLElement;
 	tray: HTMLDivElement;
 }
@@ -23,10 +21,6 @@ interface TrayParts {
 const renderTray = template(
 	/* HTML */ `
 		<div class="player-tray">
-			<div class="player-tray-header">
-				<button class="player-tray-action" type="button"></button
-				><button class="player-tray-action" type="button"></button>
-			</div>
 			<ul class="player-tray-list"></ul>
 			<p class="player-tray-empty"></p>
 			<p aria-live="polite" class="player-tray-status" role="status"></p>
@@ -43,41 +37,9 @@ export class PlayerTray extends PlayerElement {
 		const parts = this.#parts;
 
 		this.appendOnce(parts.tray);
-		bindHeader(parts, context, signal);
 		bindList(parts, context, signal);
 		bindReorder(parts, context, signal);
 	}
-}
-
-function bindHeader(
-	{ clear, shuffle }: TrayParts,
-	{ labels, store }: PlayerContext,
-	signal: AbortSignal,
-): void {
-	shuffle.textContent = labels.shuffle;
-	clear.textContent = labels.clearQueue;
-	shuffle.addEventListener(
-		'click',
-		() => {
-			store.getState().toggleShuffle();
-		},
-		{ signal },
-	);
-	clear.addEventListener(
-		'click',
-		() => {
-			store.getState().clearQueue();
-		},
-		{ signal },
-	);
-	bind(
-		store,
-		selectShuffle,
-		({ isShuffling }) => {
-			shuffle.setAttribute('aria-pressed', String(isShuffling));
-		},
-		signal,
-	);
 }
 
 function bindList(
@@ -172,21 +134,11 @@ function indexOfQueued(queue: ReadonlyArray<QueuedItem>, queueId: string): numbe
 
 function renderTrayParts(): TrayParts {
 	const tray = renderTray();
-	const [shuffle, clear] = [...tray.querySelectorAll('button')];
-	const list = tray.querySelector('ul');
-	const [empty, status] = [...tray.querySelectorAll('p')];
+	const [empty, status] = requireChildren(tray, 'p', 2, HTMLParagraphElement);
 
-	if (!shuffle || !clear || !list || !empty || !status) {
-		throw new Error('The tray template lost part of its markup');
-	}
-
-	return { clear, empty, list, shuffle, status, tray };
+	return { empty, list: requireChild(tray, 'ul', HTMLUListElement), status, tray };
 }
 
 function selectList(state: PlayerStore): Pick<PlayerStore, 'currentIndex' | 'queue'> {
 	return { currentIndex: state.currentIndex, queue: state.queue };
-}
-
-function selectShuffle(state: PlayerStore): Pick<PlayerStore, 'isShuffling'> {
-	return { isShuffling: state.isShuffling };
 }

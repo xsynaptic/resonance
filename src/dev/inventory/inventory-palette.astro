@@ -5,7 +5,10 @@ const ramps = ['surface', 'ink', 'accent', 'highlight', 'flair'];
 const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 
 const tokenGroups = [
-	{ label: 'Surface', tokens: ['surface', 'panel-well', 'popover', 'hover', 'border'] },
+	{
+		label: 'Surface',
+		tokens: ['surface', 'panel-well', 'artwork-well', 'popover', 'hover', 'border'],
+	},
 	{ label: 'Text', tokens: ['title', 'meta', 'hint'] },
 	{ label: 'Clock', tokens: ['clock', 'clock-hover'] },
 	{
@@ -140,6 +143,37 @@ const tokenGroups = [
 		}
 	}
 
+	function bindPalette(palette: HTMLElement): void {
+		const count = palette.querySelector<HTMLElement>('[data-palette-count]');
+		const output = palette.querySelector<HTMLElement>('[data-palette-output]');
+		const reset = palette.querySelector('[data-palette-reset]');
+		if (!count || !output || !reset) return;
+
+		const selects = [...palette.querySelectorAll<HTMLSelectElement>('select[data-palette-token]')];
+		const parts = { count, output, selects };
+		let picks = readPicks();
+
+		readDefaults(selects);
+		applyPicks(parts, picks);
+
+		palette.addEventListener('change', (event) => {
+			const select = event.target;
+			if (!(select instanceof HTMLSelectElement)) return;
+
+			const token = select.dataset.paletteToken;
+			if (token === undefined) return;
+
+			const { [token]: _previous, ...rest } = picks;
+
+			picks = select.value === '' ? rest : { ...rest, [token]: select.value };
+			applyPicks(parts, picks);
+		});
+		reset.addEventListener('click', () => {
+			picks = {};
+			applyPicks(parts, picks);
+		});
+	}
+
 	// Each token's computed colour matched back to the ramp step it resolves to, read before any pick lands
 	function readDefaults(selects: Array<HTMLSelectElement>): void {
 		const styles = getComputedStyle(document.documentElement);
@@ -168,35 +202,15 @@ const tokenGroups = [
 
 	function setUpPalette(): void {
 		const palette = document.querySelector<HTMLElement>('[data-inventory-palette]');
-		const count = palette?.querySelector<HTMLElement>('[data-palette-count]');
-		const output = palette?.querySelector<HTMLElement>('[data-palette-output]');
-		const reset = palette?.querySelector('[data-palette-reset]');
-		if (!palette || !count || !output || !reset) return;
+		if (!palette || boundPalettes.has(palette)) return;
 
-		const selects = [...palette.querySelectorAll<HTMLSelectElement>('select[data-palette-token]')];
-		const parts = { count, output, selects };
-		let picks = readPicks();
-
-		readDefaults(selects);
-		applyPicks(parts, picks);
-
-		palette.addEventListener('change', (event) => {
-			const select = event.target;
-			if (!(select instanceof HTMLSelectElement)) return;
-
-			const token = select.dataset.paletteToken;
-			if (token === undefined) return;
-
-			const { [token]: _previous, ...rest } = picks;
-
-			picks = select.value === '' ? rest : { ...rest, [token]: select.value };
-			applyPicks(parts, picks);
-		});
-		reset.addEventListener('click', () => {
-			picks = {};
-			applyPicks(parts, picks);
-		});
+		boundPalettes.add(palette);
+		bindPalette(palette);
 	}
 
+	// The router runs this module once, so a soft navigation back brings a fresh palette with nothing bound
+	const boundPalettes = new WeakSet<HTMLElement>();
+
 	setUpPalette();
+	document.addEventListener('astro:page-load', setUpPalette);
 </script>

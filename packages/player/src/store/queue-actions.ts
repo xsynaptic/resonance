@@ -26,20 +26,12 @@ type QueueActions = Pick<
 	| 'loadQueue'
 	| 'moveItem'
 	| 'playQueue'
-	| 'playRelease'
 	| 'playTrack'
 	| 'queueTrack'
 	| 'refreshQueue'
 	| 'removeAt'
 	| 'toggleShuffle'
 >;
-
-// Leaves the engine to the next gesture
-const nothingLoaded = {
-	currentTimeSeconds: 0,
-	durationSeconds: undefined,
-	status: 'idle',
-} satisfies Partial<PlayerStore>;
 
 export function createQueueActions({
 	api,
@@ -89,12 +81,17 @@ export function createQueueActions({
 
 			// A page that queued something before this ran keeps what it queued
 			if (stored && get().queue.length === 0) {
-				const restored = loadedQueue(queueState(), stamped(stored.queue));
+				const restored = {
+					...loadedQueue(queueState(), stamped(stored.queue)),
+					currentIndex: stored.currentIndex,
+				};
 				const item =
 					stored.currentIndex === undefined ? undefined : stored.queue[stored.currentIndex];
 
 				set({
-					...shuffledQueue({ ...restored, currentIndex: stored.currentIndex }, stored.isShuffling),
+					...(stored.playOrder === undefined
+						? shuffledQueue(restored, stored.isShuffling)
+						: { ...restored, isShuffling: true, playOrder: stored.playOrder }),
 					currentTimeSeconds: stored.currentTimeSeconds,
 					durationSeconds: toDurationSeconds(item),
 					status: 'idle',
@@ -107,7 +104,8 @@ export function createQueueActions({
 		loadQueue: (items) => {
 			if (items.length === 0) return;
 
-			set({ ...loadedQueue(queueState(), stamped(items)), ...nothingLoaded });
+			playback.unload();
+			set({ ...loadedQueue(queueState(), stamped(items)), durationSeconds: undefined });
 		},
 
 		moveItem: (from, to) => {
@@ -122,10 +120,6 @@ export function createQueueActions({
 
 			get().clearQueue();
 			enqueue(items);
-		},
-
-		playRelease: (releaseItems) => {
-			enqueue(releaseItems);
 		},
 
 		playTrack: (releaseItems, itemId) => {

@@ -14,7 +14,6 @@ import { readPxProperty } from '#lib/read-px-property.ts';
 import { createCueRider } from '#waveform/panel/cue-rider.ts';
 import { createGhostMarker } from '#waveform/panel/ghost-marker.ts';
 import { createPanelCanvas } from '#waveform/panel/panel-canvas.ts';
-import { createPanelDrag } from '#waveform/panel/panel-drag.ts';
 import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
 const noCuePoints: ReadonlyArray<QueueCuePoint> = [];
@@ -34,10 +33,8 @@ export interface PanelParts {
 	parked: CueSlot;
 }
 
-// The archive and the clock outlive it
 export interface PanelView {
 	canvas: PanelCanvas;
-	drag: PanelDrag;
 	marker: GhostMarker;
 	rider: CueRider;
 }
@@ -45,6 +42,7 @@ export interface PanelView {
 interface PanelFrame {
 	archive: PanelArchive;
 	clock: ScrollClock;
+	drag: PanelDrag;
 	frameMs: number;
 	insetPx: number;
 	store: StoreApi<PlayerStore>;
@@ -52,7 +50,7 @@ interface PanelFrame {
 }
 
 interface PanelLoop {
-	onFrame: (frameMs: number, insetPx: number) => void;
+	onFrame: (frameMs: number, insetPx: number) => boolean;
 	onResize: () => void;
 	parts: Pick<PanelParts, 'canvas' | 'panel'>;
 	signal: AbortSignal;
@@ -63,7 +61,6 @@ interface PanelViewOptions {
 	item: QueueItem | undefined;
 	parts: PanelParts;
 	pxPerSecond: number;
-	store: StoreApi<PlayerStore>;
 }
 
 export function createPanelView({
@@ -71,7 +68,6 @@ export function createPanelView({
 	item,
 	parts,
 	pxPerSecond,
-	store,
 }: PanelViewOptions): PanelView {
 	const cuePoints = item?.cuePoints ?? noCuePoints;
 
@@ -84,14 +80,6 @@ export function createPanelView({
 			pxPerSecond,
 			readArchive: () => archive.current,
 		}),
-		drag: createPanelDrag({
-			canDrag: () => store.getState().currentIndex !== undefined,
-			onSeek: (seconds) => {
-				store.getState().seek(seconds);
-			},
-			panel: parts.panel,
-			pxPerSecond,
-		}),
 		marker: createGhostMarker(parts.ghost, pxPerSecond),
 		rider: createCueRider({
 			arriving: parts.arriving,
@@ -101,6 +89,20 @@ export function createPanelView({
 			trackCount: item?.trackCount ?? cuePoints.length,
 		}),
 	};
+}
+
+export function isPanelMoving(
+	state: PlayerStore,
+	drag: PanelDrag,
+	view: PanelView | undefined,
+): boolean {
+	if (!view) return false;
+
+	return (
+		state.status === 'playing' ||
+		drag.targetSeconds() !== undefined ||
+		view.canvas.isAwaitingArchive()
+	);
 }
 
 // One slot per opening, so an answer landing after the panel moved on lands where nothing reads it
@@ -123,6 +125,7 @@ export function openPanelArchive(
 export function paintPanelFrame({
 	archive,
 	clock,
+	drag,
 	frameMs,
 	insetPx,
 	store,
@@ -132,12 +135,12 @@ export function paintPanelFrame({
 	const isPlaying = state.status === 'playing';
 	// Read every frame even while a drag overrides it, so the clock keeps its own elapsed time honest
 	const clockSeconds = clock.read(frameMs, isPlaying);
-	const targetSeconds = view.drag.targetSeconds();
+	const targetSeconds = drag.targetSeconds();
 	const currentTimeSeconds = targetSeconds ?? clockSeconds;
 	const durationSeconds = state.durationSeconds ?? archiveDurationSeconds(archive.current);
 	const windowStartSeconds = currentTimeSeconds - view.canvas.windowSeconds() / 2;
 
-	view.drag.showing(currentTimeSeconds, durationSeconds);
+	drag.showing(currentTimeSeconds, durationSeconds);
 	// A stopped track has no live position to mark, so the ghost would only double the playhead
 	view.marker.place(
 		targetSeconds === undefined || !isPlaying ? undefined : clockSeconds - targetSeconds,
@@ -148,22 +151,26 @@ export function paintPanelFrame({
 }
 
 // A container query can hide the panel without removing it, which leaves nothing to draw
-export function startPanelLoop({ onFrame, onResize, parts, signal }: PanelLoop): void {
+export function startPanelLoop({ onFrame, onResize, parts, signal }: PanelLoop): () => void {
+	// Zero while nothing is scheduled; `requestAnimationFrame` never hands out zero
 	let frame = 0;
 	let insetPx = 0;
+	let isShown = false;
 
 	const render = (frameMs: number): void => {
-		frame = requestAnimationFrame(render);
-		if (document.hidden) return;
+		frame = 0;
+		if (!document.hidden && !onFrame(frameMs, insetPx)) return;
 
-		onFrame(frameMs, insetPx);
+		frame = requestAnimationFrame(render);
 	};
 
 	observeResize(
 		parts.canvas,
 		() => {
 			cancelAnimationFrame(frame);
-			if (parts.canvas.clientWidth === 0) return;
+			frame = 0;
+			isShown = parts.canvas.clientWidth > 0;
+			if (!isShown) return;
 
 			onResize();
 			insetPx = readPxProperty(getComputedStyle(parts.panel), '--player-panel-inset-left', 0);
@@ -178,6 +185,12 @@ export function startPanelLoop({ onFrame, onResize, parts, signal }: PanelLoop):
 		},
 		{ once: true },
 	);
+
+	return () => {
+		if (frame !== 0 || !isShown || signal.aborted) return;
+
+		frame = requestAnimationFrame(render);
+	};
 }
 
 // The archive header's own length, for before the element has announced a duration

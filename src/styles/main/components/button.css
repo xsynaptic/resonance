@@ -4,9 +4,9 @@
 	display: inline-flex;
 	align-items: center;
 	font-weight: 700;
-	color: var(--color-ink-200);
+	color: var(--button-ink, var(--color-ink-200));
 	cursor: pointer;
-	background-color: var(--color-surface-400);
+	background-color: var(--button-fill, var(--color-surface-400));
 	background-image: linear-gradient(to top, transparent, var(--button-sheen));
 	background-repeat: no-repeat;
 	border-radius: var(--radius-sm);
@@ -16,19 +16,25 @@
 }
 
 .button-x:focus-visible {
-	--button-sheen: color-mix(in srgb, var(--color-surface-200) 50%, transparent);
+	--button-sheen: var(
+		--button-sheen-hover,
+		color-mix(in srgb, var(--color-surface-200) 50%, transparent)
+	);
 
-	color: var(--color-ink-100);
-	background-color: var(--color-surface-300);
+	color: var(--button-ink, var(--color-ink-100));
+	background-color: var(--button-fill-hover, var(--color-surface-300));
 }
 
 @media (hover: hover) {
 	/* fallow-ignore-next-line code-duplication -- the hover twin has to stay under @media (hover: hover) */
 	.button-x:hover:not(:disabled) {
-		--button-sheen: color-mix(in srgb, var(--color-surface-200) 50%, transparent);
+		--button-sheen: var(
+			--button-sheen-hover,
+			color-mix(in srgb, var(--color-surface-200) 50%, transparent)
+		);
 
-		color: var(--color-ink-100);
-		background-color: var(--color-surface-300);
+		color: var(--button-ink, var(--color-ink-100));
+		background-color: var(--button-fill-hover, var(--color-surface-300));
 	}
 }
 
@@ -58,18 +64,28 @@
 	flex-shrink: 0;
 	width: calc(var(--spacing) * 4);
 	height: calc(var(--spacing) * 4);
-	color: var(--color-highlight-400);
+	color: var(--button-ink, var(--color-highlight-400));
 	transition: color 150ms var(--default-transition-timing-function);
 }
 
 .button-x:focus-visible .button-icon {
-	color: var(--color-highlight-300);
+	color: var(--button-ink, var(--color-highlight-300));
 }
 
 @media (hover: hover) {
 	.button-x:hover:not(:disabled) .button-icon {
-		color: var(--color-highlight-300);
+		color: var(--button-ink, var(--color-highlight-300));
 	}
+}
+
+/* Dark ink throughout, since light ink on this orange fails contrast */
+.button-highlight {
+	--button-divider: var(--color-highlight-700);
+	--button-fill: var(--color-highlight-500);
+	--button-fill-hover: var(--color-highlight-400);
+	--button-ink: var(--color-surface-950);
+	--button-sheen: color-mix(in srgb, var(--color-highlight-300) 50%, transparent);
+	--button-sheen-hover: color-mix(in srgb, var(--color-highlight-200) 50%, transparent);
 }
 
 /* `display` here would otherwise beat the UA sheet's [hidden] rule */
@@ -89,18 +105,18 @@
 }
 
 .button-split > :not(:first-child) {
-	color: var(--color-ink-500);
-	border-inline-start: 1px solid var(--color-surface-600);
+	color: var(--button-ink, var(--color-ink-500));
+	border-inline-start: 1px solid var(--button-divider, var(--color-surface-600));
 	border-start-start-radius: 0;
 	border-end-start-radius: 0;
 }
 
 .button-split > :not(:first-child):focus-visible {
-	color: var(--color-ink-100);
+	color: var(--button-ink, var(--color-ink-100));
 }
 
 @media (hover: hover) {
 	.button-split > :not(:first-child):hover:not(:disabled) {
-		color: var(--color-ink-100);
+		color: var(--button-ink, var(--color-ink-100));
 	}
 }

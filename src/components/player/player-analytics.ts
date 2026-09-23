@@ -20,7 +20,6 @@ type PlayerState = ReturnType<ReturnType<typeof createPlayerStore>['getState']>;
 
 const origins = {
 	'play-playlist': 'playlist',
-	'play-release': 'release',
 	'play-track': 'mix',
 } as const;
 

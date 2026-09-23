@@ -1,7 +1,6 @@
 export interface PanelDrag {
 	// What the last frame drew: where the next drag starts, and what it is clamped against
 	showing(timeSeconds: number, durationSeconds: number | undefined): void;
-	stop(): void;
 	// The position the drag is holding, overriding the clock until the pointer is let go
 	targetSeconds(): number | undefined;
 }
@@ -11,7 +10,8 @@ interface PanelDragOptions {
 	canDrag: () => boolean;
 	onSeek: (seconds: number) => void;
 	panel: HTMLElement;
-	pxPerSecond: number;
+	pxPerSecond: () => number;
+	signal: AbortSignal;
 }
 
 // Dragging the waveform moves it with the finger, so pulling right walks back through the mix
@@ -20,6 +20,7 @@ export function createPanelDrag({
 	onSeek,
 	panel,
 	pxPerSecond,
+	signal,
 }: PanelDragOptions): PanelDrag {
 	let shownTimeSeconds = 0;
 	let shownDurationSeconds: number | undefined;
@@ -45,7 +46,7 @@ export function createPanelDrag({
 	function onPointerMove(event: PointerEvent): void {
 		if (event.pointerId !== pointerId) return;
 
-		const targetSeconds = dragFromSeconds - (event.clientX - dragFromX) / pxPerSecond;
+		const targetSeconds = dragFromSeconds - (event.clientX - dragFromX) / pxPerSecond();
 
 		dragToSeconds = Math.min(shownDurationSeconds ?? Infinity, Math.max(0, targetSeconds));
 	}
@@ -61,21 +62,15 @@ export function createPanelDrag({
 		panel.toggleAttribute('data-dragging', false);
 	}
 
-	panel.addEventListener('pointercancel', onPointerEnd);
-	panel.addEventListener('pointerdown', onPointerDown);
-	panel.addEventListener('pointermove', onPointerMove);
-	panel.addEventListener('pointerup', onPointerEnd);
+	panel.addEventListener('pointercancel', onPointerEnd, { signal });
+	panel.addEventListener('pointerdown', onPointerDown, { signal });
+	panel.addEventListener('pointermove', onPointerMove, { signal });
+	panel.addEventListener('pointerup', onPointerEnd, { signal });
 
 	return {
 		showing(timeSeconds, durationSeconds) {
 			shownTimeSeconds = timeSeconds;
 			shownDurationSeconds = durationSeconds;
-		},
-		stop() {
-			panel.removeEventListener('pointercancel', onPointerEnd);
-			panel.removeEventListener('pointerdown', onPointerDown);
-			panel.removeEventListener('pointermove', onPointerMove);
-			panel.removeEventListener('pointerup', onPointerEnd);
 		},
 		targetSeconds: () => dragToSeconds,
 	};

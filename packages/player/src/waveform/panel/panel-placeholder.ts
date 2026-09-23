@@ -33,15 +33,23 @@ export function createPanelPlaceholder() {
 		frame: (input: PlaceholderInput) => {
 			openingSinceMs = input.isArchiveOpening ? (openingSinceMs ?? input.frameMs) : undefined;
 
-			const spans = pendingSpans(input, openingSinceMs).filter(
+			const pending = pendingSpans(input, openingSinceMs);
+			const isPending = pending.length > 0;
+			const spans = pending.filter(
 				(span) => input.frameMs - span.sinceMs >= placeholderDelayMs && input.isDrawn(span),
 			);
 
 			if (reducedMotion.matches || spans.length === 0) {
-				return { phase: 0, repaintKey: spans.map((span) => span.key).join(','), spans };
+				return {
+					isPending,
+					phase: 0,
+					repaintKey: spans.map((span) => span.key).join(','),
+					spans,
+				};
 			}
 
 			return {
+				isPending,
 				phase: input.frameMs / placeholderPeriodMs,
 				repaintKey: String(input.frameMs),
 				spans,

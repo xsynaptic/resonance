@@ -174,6 +174,7 @@ const strings = {
 	'player.play': 'Play',
 	'player.previous': 'Previous',
 	'player.queue': 'Queue',
+	'player.queued': 'Queued',
 	'player.removeFromQueue': 'Remove from the queue',
 	'player.reorder': 'Reorder in the queue',
 	'player.seek': 'Seek',

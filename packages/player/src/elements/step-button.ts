@@ -1,10 +1,7 @@
 import type { PlayerStore } from '#store/player-types.ts';
 
-import { playerContext } from '#elements/player-context.ts';
-import { PlayerElement } from '#elements/player-element.ts';
-import { bindButton } from '#lib/bind-button.ts';
+import { buttonPart } from '#elements/button-part.ts';
 import { renderIconButton } from '#lib/icon-button.ts';
-import { cloneIcon } from '#lib/icons.ts';
 import { canStepBack, canStepForward } from '#store/selectors.ts';
 
 type StepDirection = keyof typeof stepSelectors;
@@ -14,36 +11,26 @@ const stepSelectors = {
 	previous: canStepBack,
 } as const satisfies Record<'next' | 'previous', (state: PlayerStore) => boolean>;
 
-export class PlayerStepButton extends PlayerElement {
-	readonly #button = renderIconButton('player-step-button');
+export const PlayerStepButton = buttonPart((element) => {
+	const direction = readDirection(element);
+	const canStep = stepSelectors[direction];
 
-	protected connect(signal: AbortSignal): void {
-		const { labels, store } = playerContext(this);
-		const direction = readDirection(this);
-		const button = this.#button;
+	return {
+		// `aria-disabled` rather than `disabled`, which would drop focus to the page on the last step
+		apply: (button, isEnabled: boolean) => {
+			button.setAttribute('aria-disabled', String(!isEnabled));
+		},
+		icon: direction,
+		label: direction,
+		press: (state) => {
+			if (!canStep(state)) return;
 
-		this.appendOnce(button);
-		button.setAttribute('aria-label', labels[direction]);
-		button.replaceChildren(cloneIcon(direction));
-		bindButton(
-			{
-				apply: (isEnabled) => {
-					button.setAttribute('aria-disabled', String(!isEnabled));
-				},
-				button,
-				// `aria-disabled` rather than `disabled`, since a press that leaves nothing to step to would drop focus to the page
-				press: (state) => {
-					if (!stepSelectors[direction](state)) return;
-
-					state[direction]();
-				},
-				select: stepSelectors[direction],
-				store,
-			},
-			signal,
-		);
-	}
-}
+			state[direction]();
+		},
+		render: () => renderIconButton('player-step-button'),
+		select: canStep,
+	};
+});
 
 function readDirection(element: Element): StepDirection {
 	const direction = element.getAttribute('direction');

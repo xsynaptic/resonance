@@ -15,7 +15,7 @@ const { itemId } = Astro.props;
 
 <div data-nosnippet data-pagefind-ignore data-track-id={itemId}>
 	<ButtonSplit>
-		<Button data-play-track={itemId}>
+		<Button data-play-track={itemId} variant="highlight">
 			<span class="player-controls-play">
 				<svg aria-hidden="true" class="button-icon">
 					<use href="#icon:play"></use>
@@ -29,6 +29,11 @@ const { itemId } = Astro.props;
 				{t('player.pause')}
 			</span>
 		</Button>
-		<Button data-queue-track={itemId}>{t('player.addToQueue')}</Button>
+		<Button data-queue-track={itemId} variant="highlight">
+			<span class="player-controls-queue">
+				<span class="player-controls-add">{t('player.addToQueue')}</span>
+				<span class="player-controls-queued">{t('player.queued')}</span>
+			</span>
+		</Button>
 	</ButtonSplit>
 </div>

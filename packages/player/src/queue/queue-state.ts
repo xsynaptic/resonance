@@ -142,16 +142,16 @@ function appended(
 	items: ReadonlyArray<QueuedItem>,
 ): { loadIndex: number; state: QueueState } {
 	const loadIndex = state.queue.length;
-	const queue = [...state.queue, ...items];
+	const added = items.map((_, offset) => loadIndex + offset);
 
 	return {
 		loadIndex,
-		state: ordered({
+		state: {
 			currentIndex: state.currentIndex,
 			isShuffling: state.isShuffling,
-			orderAround: loadIndex,
-			queue,
-		}),
+			playOrder: [...state.playOrder, ...added],
+			queue: [...state.queue, ...items],
+		},
 	};
 }
 

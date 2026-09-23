@@ -15,6 +15,7 @@ const noSamples = new Int8Array(0);
 
 export interface PanelCanvas {
 	fadeFromPx(): number;
+	isAwaitingArchive(): boolean;
 	resize(): void;
 	scroll(windowStartSeconds: number, durationSeconds: number | undefined, frameMs: number): void;
 	// The span the panel shows at its current width, which the playhead sits in the middle of
@@ -54,9 +55,11 @@ export function createPanelCanvas({
 	let paintedWindowStartSeconds = NaN;
 	let paintedChunks = -1;
 	let paintedPlaceholders = '';
+	let isAwaitingArchive = false;
 
 	return {
 		fadeFromPx: () => fadeFromPx,
+		isAwaitingArchive: () => isAwaitingArchive,
 
 		// Reassigning width resets the backing store, so size first and let the next frame paint
 		resize() {
@@ -97,6 +100,8 @@ export function createPanelCanvas({
 					toSeconds: windowStartSeconds + windowSeconds,
 				},
 			});
+
+			isAwaitingArchive = pending.isPending;
 
 			// Sub-pixel geometry, so the only frame worth skipping is one where nothing moved, landed or travelled
 			if (

@@ -18,13 +18,22 @@ interface ButtonPart<Selected> {
 	select: (state: PlayerStore) => Selected;
 }
 
-export function buttonPart<Selected>(part: ButtonPart<Selected>): new () => PlayerElement {
-	return class extends PlayerElement {
-		readonly #button = part.render();
+export abstract class PlayerButtonPart extends PlayerElement {}
+
+// Called at every connect, so a part can read attributes that a constructor cannot see yet
+export function buttonPart<Selected>(
+	readPart: (element: HTMLElement) => ButtonPart<Selected>,
+): new () => PlayerButtonPart {
+	return class extends PlayerButtonPart {
+		#button: HTMLButtonElement | undefined;
 
 		protected connect(signal: AbortSignal): void {
+			const part = readPart(this);
 			const context = playerContext(this);
 			const { labels, store } = context;
+
+			if (this.#button === undefined) this.#button = part.render();
+
 			const button = this.#button;
 
 			this.appendOnce(button);

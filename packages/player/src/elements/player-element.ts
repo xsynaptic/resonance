@@ -22,9 +22,17 @@ export abstract class PlayerElement extends HTMLElement {
 		// Chrome and Firefox move the router's persisted bar with `moveBefore`, which keeps every binding
 	}
 
+	// Safari's router has no `moveBefore`, so it disconnects and reconnects the persisted bar twice per swap in one task
 	disconnectedCallback(): void {
-		this.#connection?.abort();
-		this.#connection = undefined;
+		const connection = this.#connection;
+		if (!connection) return;
+
+		queueMicrotask(() => {
+			if (this.isConnected || this.#connection !== connection) return;
+
+			connection.abort();
+			this.#connection = undefined;
+		});
 	}
 
 	protected appendOnce(child: Element): void {

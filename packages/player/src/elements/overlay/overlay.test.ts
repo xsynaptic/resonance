@@ -1,4 +1,4 @@
-import { fireEvent, getAllByRole, getByRole } from '@testing-library/dom';
+import { fireEvent, getAllByRole, getByRole, queryByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
@@ -52,7 +52,9 @@ describe('<player-overlay>', () => {
 		close.click();
 
 		expect(mounted.store.getState().isOverlayOpen).toBe(false);
-		expect(mounted.dialog.open).toBe(false);
+		await vi.waitFor(() => {
+			expect(mounted.dialog.open).toBe(false);
+		});
 		expect(mounted.dialog.childElementCount).toBe(0);
 
 		mounted.toggle.click();
@@ -60,6 +62,7 @@ describe('<player-overlay>', () => {
 		await Promise.resolve();
 
 		expect(mounted.store.getState().isOverlayOpen).toBe(false);
+		expect(mounted.dialog.childElementCount).toBe(0);
 	});
 
 	test('closes once the queue empties', async () => {
@@ -68,10 +71,28 @@ describe('<player-overlay>', () => {
 		mounted.store.getState().loadQueue([queueItem('a')]);
 		await openOverlay(mounted);
 		getByRole(mounted.dialog, 'button', { name: labels.clearQueue }).click();
-		await Promise.resolve();
+
+		await vi.waitFor(() => {
+			expect(mounted.dialog.open).toBe(false);
+			expect(mounted.store.getState().isOverlayOpen).toBe(false);
+		});
+	});
+
+	test('slides out on Escape through the store, and a reopen mid-exit stays open', async () => {
+		const mounted = mountOverlay();
+
+		mounted.store.getState().loadQueue([queueItem('a')]);
+		await openOverlay(mounted);
+		mounted.dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
 
 		expect(mounted.store.getState().isOverlayOpen).toBe(false);
-		expect(mounted.dialog.open).toBe(false);
+		expect(mounted.dialog.open).toBe(true);
+
+		mounted.toggle.click();
+		await new Promise((resolve) => setTimeout(resolve, 20));
+
+		expect(mounted.dialog.open).toBe(true);
+		expect(mounted.dialog.childElementCount).toBe(1);
 	});
 
 	test('closes and reports the failure when its body fails to arrive', async () => {
@@ -211,6 +232,19 @@ describe('the overlay tabs', () => {
 		expect(document.activeElement).toBe(tracklist);
 	});
 
+	test('carry Shuffle and Clear in their row only while the Queue shows', async () => {
+		const mounted = mountOverlay();
+
+		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
+		await openOverlay(mounted);
+
+		expect(queryByRole(mounted.dialog, 'button', { name: labels.shuffle })).toBeNull();
+
+		getByRole(mounted.dialog, 'tab', { name: labels.queue }).click();
+
+		expect(getByRole(mounted.dialog, 'button', { name: labels.shuffle })).toBeDefined();
+	});
+
 	test('keep focus when the Tracklist goes with a focused cue', async () => {
 		const mounted = mountOverlay();
 
@@ -249,7 +283,9 @@ describe('the overlay sheet', () => {
 
 		getByRole(sheet, 'button', { name: labels.close }).click();
 
-		expect(sheet).toHaveProperty('open', false);
+		await vi.waitFor(() => {
+			expect(sheet).toHaveProperty('open', false);
+		});
 		expect(mounted.store.getState().isOverlayOpen).toBe(true);
 	});
 
@@ -275,10 +311,13 @@ describe('the overlay sheet', () => {
 
 		expect(sheet.style.translate).toBe('0 300px');
 
-		vi.spyOn(globalThis, 'matchMedia').mockReturnValue({ matches: true } as MediaQueryList);
 		fireEvent.pointerUp(tablist, { clientY: 400, pointerId: 1 });
 
-		expect(sheet).toHaveProperty('open', false);
+		expect(sheet.style.translate).toBe('0 300px');
+
+		await vi.waitFor(() => {
+			expect(sheet).toHaveProperty('open', false);
+		});
 		expect(mounted.store.getState().isOverlayOpen).toBe(true);
 
 		opener.click();

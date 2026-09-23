@@ -12,12 +12,3 @@
 .inventory-volume-open .player-volume-panel {
 	display: flex;
 }
-
-/* What the waveform's pitch tokens do, against the shipping default */
-.inventory-waveform-square {
-	--player-waveform-radius: 0;
-}
-
-.inventory-waveform-chunky {
-	--player-waveform-bar: 3px;
-}

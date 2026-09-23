@@ -1,7 +1,6 @@
 import type { PlayerLabels } from '#types.ts';
 
 export const labels = {
-	addToQueue: 'Add to queue',
 	capped: 'Daily limit reached',
 	clearQueue: 'Clear',
 	close: 'Close',

@@ -11,26 +11,18 @@
 	.player-button-small::before,
 	.player-tray-handle::before {
 		position: absolute;
-		inset: calc((2.75rem - 100%) / -2);
+		inset: calc((var(--player-hit-target) - 100%) / -2);
 		content: '';
 	}
 
 	.player-transport {
-		gap: 0.75rem;
-	}
-
-	.player-tray-header {
-		padding-block: 0;
+		gap: var(--player-gap);
 	}
 
 	.player-tray-action {
 		justify-content: center;
-		min-inline-size: 2.75rem;
-		min-block-size: 2.75rem;
-	}
-
-	.player-overlay-tab {
-		min-block-size: 2.75rem;
+		min-inline-size: var(--player-hit-target);
+		min-block-size: var(--player-hit-target);
 	}
 
 	.player-overlay-tab,
@@ -44,7 +36,7 @@
 
 	.player-track-title::before {
 		position: absolute;
-		inset-block: calc((2.75rem - 100%) / -2);
+		inset-block: calc((var(--player-hit-target) - 100%) / -2);
 		inset-inline: 0;
 		content: '';
 	}
@@ -52,6 +44,20 @@
 	@container (width >= 26rem) {
 		.player-bar-grid .player-track-title::before {
 			inset-block: calc(var(--player-gap-tight) / -2);
+		}
+	}
+
+	/* A touch drags the cover down to close; the clipped X stays for screen readers and keyboard focus */
+	.player-overlay-body[data-layout='phone']:has(.player-overlay-art .player-artwork)
+		> .player-overlay-close:not(:focus-visible) {
+		clip-path: inset(50%);
+	}
+
+	@container player-overlay (orientation: landscape) {
+		.player-overlay-body[data-layout='phone']:has(.player-overlay-art .player-artwork)
+			.player-overlay-track
+			:is(.player-track-title, .player-track-empty) {
+			padding-inline-end: 0;
 		}
 	}
 }

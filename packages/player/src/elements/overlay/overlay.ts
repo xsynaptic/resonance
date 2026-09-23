@@ -3,6 +3,7 @@ import type { PlayerStore } from '#store/player-types.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
+import { dialogExit } from '#lib/dialog-exit.ts';
 import { template } from '#lib/render.ts';
 
 const renderDialog = template('<dialog class="player-overlay"></dialog>', HTMLDialogElement);
@@ -14,9 +15,23 @@ export class PlayerOverlay extends PlayerElement {
 		const { labels, store } = playerContext(this);
 		const dialog = this.#dialog;
 
-		const close = (): void => {
+		const closeNow = (): void => {
 			dialog.replaceChildren();
 			if (dialog.open) dialog.close();
+		};
+		const exit = dialogExit(
+			dialog,
+			{
+				onClosed: closeNow,
+				onRequest: () => {
+					store.getState().setOverlayOpen(false);
+				},
+			},
+			signal,
+		);
+		const close = (): void => {
+			exit.cancel();
+			closeNow();
 		};
 
 		this.appendOnce(dialog);
@@ -39,9 +54,12 @@ export class PlayerOverlay extends PlayerElement {
 			store,
 			isOverlayShown,
 			(isShown) => {
-				close();
-				if (!isShown) return;
+				if (!isShown) {
+					exit.slide();
+					return;
+				}
 
+				close();
 				dialog.showModal();
 				dialog.append(document.createElement('player-overlay-content'));
 			},

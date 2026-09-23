@@ -1,0 +1,16 @@
+:is(
+	.player-button,
+	.player-overlay-cue,
+	.player-overlay-tab,
+	.player-seek,
+	.player-time,
+	.player-track-title,
+	.player-tray-action,
+	.player-tray-handle,
+	.player-tray-pick,
+	.player-volume-slider,
+	.player-waveform
+):focus-visible {
+	outline: var(--player-focus-width) solid var(--player-focus-ring);
+	outline-offset: var(--player-focus-offset);
+}

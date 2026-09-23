@@ -17,7 +17,6 @@ type TransportActions = Pick<
 	| 'previous'
 	| 'seek'
 	| 'seekBy'
-	| 'stop'
 	| 'togglePaused'
 >;
 
@@ -40,7 +39,7 @@ export function createTransportActions({
 
 			const upcoming = nextInOrder(playOrder, currentIndex);
 			if (upcoming === undefined) {
-				get().stop();
+				playback.unload();
 				return;
 			}
 
@@ -56,12 +55,13 @@ export function createTransportActions({
 		},
 
 		previous: () => {
-			const { currentIndex, playOrder } = get();
+			const { currentIndex, currentTimeSeconds, playOrder } = get();
 			if (currentIndex === undefined) return;
 
 			const back = previousInOrder(playOrder, currentIndex);
+			const elapsedSeconds = playback.currentTime() ?? currentTimeSeconds;
 
-			if (back === undefined || (playback.currentTime() ?? 0) > restartThresholdSeconds) {
+			if (back === undefined || elapsedSeconds > restartThresholdSeconds) {
 				get().seek(0);
 				return;
 			}
@@ -80,8 +80,6 @@ export function createTransportActions({
 
 			get().seek(Math.min(durationSeconds, Math.max(0, currentTimeSeconds + deltaSeconds)));
 		},
-
-		stop: playback.unload,
 
 		togglePaused: () => {
 			if (get().isPaused) {

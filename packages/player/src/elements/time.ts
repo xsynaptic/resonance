@@ -1,9 +1,7 @@
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerTimeMode } from '#types.ts';
 
-import { playerContext } from '#elements/player-context.ts';
-import { PlayerElement } from '#elements/player-element.ts';
-import { bindButton } from '#lib/bind-button.ts';
+import { buttonPart } from '#elements/button-part.ts';
 import { bind } from '#lib/bind.ts';
 import { formatClock } from '#lib/format.ts';
 import { template } from '#lib/render.ts';
@@ -20,14 +18,9 @@ const renderButton = template(
 	HTMLButtonElement,
 );
 
-export class PlayerTime extends PlayerElement {
-	readonly #button = renderButton();
-
-	protected connect(signal: AbortSignal): void {
-		const { labels, store } = playerContext(this);
-		const button = this.#button;
-
-		this.appendOnce(button);
+export const PlayerTime = buttonPart(() => ({
+	apply: applyTime,
+	connect: (button, { store }, signal) => {
 		bind(
 			store,
 			selectClock,
@@ -36,24 +29,15 @@ export class PlayerTime extends PlayerElement {
 			},
 			signal,
 		);
-		// The seek surface announces the position, so the button is named for what it does
-		button.setAttribute('aria-label', labels.toggleTimeMode);
-		bindButton(
-			{
-				apply: (view) => {
-					applyTime(button, view);
-				},
-				button,
-				press: (state) => {
-					state.toggleTimeMode();
-				},
-				select: selectTime,
-				store,
-			},
-			signal,
-		);
-	}
-}
+	},
+	// The seek surface announces the position, so the button is named for what it does
+	label: 'toggleTimeMode',
+	press: (state) => {
+		state.toggleTimeMode();
+	},
+	render: renderButton,
+	select: selectTime,
+}));
 
 function applyTime(button: HTMLButtonElement, view: TimeView): void {
 	button.disabled = view.isDisabled;

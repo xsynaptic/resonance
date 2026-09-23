@@ -51,11 +51,9 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 
 // Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
 export async function backupIfStale(options: BackupIfStaleOptions): Promise<StepStatus> {
-	const statuses: Array<StepStatus> = [];
-
-	for (const databaseName of databaseNames) {
-		statuses.push(await backupOne(databaseName, options));
-	}
+	const statuses = await Array.fromAsync(databaseNames, (databaseName) =>
+		backupOne(databaseName, options),
+	);
 
 	if (statuses.includes('warned')) return 'warned';
 	if (statuses.includes('ok')) return 'ok';

@@ -5,7 +5,7 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { formatClock } from '#lib/format.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, requireChildren, template } from '#lib/render.ts';
 import { currentCue, displayedItem, isLoaded } from '#store/selectors.ts';
 
 interface CueRow {
@@ -85,12 +85,8 @@ function applyMarks(rows: ReadonlyArray<CueRow>, marks: MarksView): void {
 
 function renderCue(cue: QueueCuePoint): CueRow {
 	const node = renderRow();
-	const button = node.querySelector('button');
-	const [time, artist, title] = [...node.querySelectorAll('span')];
-
-	if (!button || !time || !artist || !title) {
-		throw new Error('The tracklist row template lost part of its markup');
-	}
+	const button = requireChild(node, 'button', HTMLButtonElement);
+	const [time, artist, title] = requireChildren(node, 'span', 3, HTMLSpanElement);
 
 	cueOfButton.set(button, cue);
 	time.textContent = formatClock(cue.startSeconds);

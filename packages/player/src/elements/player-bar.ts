@@ -1,8 +1,8 @@
 import type { PlayerRoot } from '#elements/player-root.ts';
 
+import { placeSeekButtons } from '#elements/place-seek-buttons.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
-import { placeSeekButtons } from '#lib/place-seek-buttons.ts';
 import { template } from '#lib/render.ts';
 
 type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'isScopeEnabled';
@@ -10,7 +10,7 @@ type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'i
 const renderBar = template(
 	/* HTML */ `
 		<section class="player-bar">
-			<player-panel></player-panel>
+			<player-progress></player-progress><player-panel></player-panel>
 			<div class="player-bar-grid">
 				<player-artwork></player-artwork>
 				<div class="player-transport">

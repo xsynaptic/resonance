@@ -92,19 +92,33 @@ afterEach(() => {
 });
 
 describe('bindMediaSession', () => {
-	test('registers the transport actions the lock screen offers', () => {
+	test.each<[MediaSessionAction, Omit<MediaSessionActionDetails, 'action'>, Partial<PlayerStore>]>([
+		['play', {}, { isPaused: false, status: 'loading' }],
+		['pause', {}, { isPaused: true }],
+		['previoustrack', {}, { currentIndex: 0, currentTimeSeconds: 0 }],
+		['nexttrack', {}, { currentIndex: 1 }],
+		['seekbackward', { seekOffset: 10 }, { currentTimeSeconds: 90 }],
+		['seekforward', { seekOffset: 10 }, { currentTimeSeconds: 110 }],
+		['seekto', { seekTime: 42 }, { currentTimeSeconds: 42 }],
+	])('a lock screen %s drives the store', (action, details, expected) => {
 		const store = loadedStore();
-		const unbind = bindMediaSession(store);
 
-		expect([...mediaSession.handlers.keys()]).toStrictEqual([
-			'play',
-			'pause',
-			'previoustrack',
-			'nexttrack',
-			'seekbackward',
-			'seekforward',
-			'seekto',
-		]);
+		bindMediaSession(store);
+		store.setState({
+			currentIndex: 0,
+			currentTimeSeconds: 100,
+			durationSeconds: 600,
+			isPaused: false,
+		});
+		mediaSession.handlers.get(action)?.({ action, ...details });
+
+		expect(store.getState()).toMatchObject(expected);
+	});
+
+	test('clears every handler it set when unbound', () => {
+		const unbind = bindMediaSession(loadedStore());
+
+		expect(mediaSession.handlers.size).toBeGreaterThan(0);
 
 		unbind();
 		expect(mediaSession.handlers.size).toBe(0);

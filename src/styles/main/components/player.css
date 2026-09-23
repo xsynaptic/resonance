@@ -3,6 +3,7 @@
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
 	--player-surface: var(--color-surface-800);
 	--player-panel-well: var(--color-surface-700);
+	--player-artwork-well: var(--color-surface-900);
 	--player-popover: var(--color-surface-900);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
@@ -68,4 +69,18 @@ player-root[data-empty] .player-bar {
 [data-track-id][data-playing] .player-controls-play,
 [data-track-id]:not([data-playing]) .player-controls-pause {
 	display: none;
+}
+
+.player-controls-queue {
+	display: grid;
+}
+
+.player-controls-add,
+.player-controls-queued {
+	grid-area: 1 / 1;
+}
+
+[data-track-id][data-queued] .player-controls-add,
+[data-track-id]:not([data-queued]) .player-controls-queued {
+	visibility: hidden;
 }

@@ -18,8 +18,6 @@
 
 .player-button:focus-visible {
 	color: var(--player-control-hover);
-	outline: 2px solid var(--player-focus-ring);
-	outline-offset: 0;
 }
 
 .player-button:disabled,
@@ -29,14 +27,14 @@
 }
 
 .player-button-icon {
-	width: 2rem;
-	height: 2rem;
+	width: var(--player-button-size);
+	height: var(--player-button-size);
 }
 
 .player-button-small {
 	flex-shrink: 0;
-	width: 1.5rem;
-	height: 1.5rem;
+	width: var(--player-button-size-small);
+	height: var(--player-button-size-small);
 }
 
 .player-button-icon:disabled,
@@ -49,8 +47,8 @@
 
 .player-button-primary {
 	position: relative;
-	width: 2.25rem;
-	height: 2.25rem;
+	width: var(--player-button-size-primary);
+	height: var(--player-button-size-primary);
 	color: var(--player-play-glyph);
 	background-color: var(--player-play-fill);
 	border-radius: 9999px;
@@ -133,6 +131,20 @@
 .player-transport {
 	display: flex;
 	flex-shrink: 0;
-	gap: 0.25rem;
+	gap: var(--player-gap-small);
 	align-items: center;
+}
+
+.player-button-icon[aria-expanded='true'] {
+	color: var(--player-control-active);
+}
+
+@media (hover: hover) {
+	.player-button-icon[aria-expanded='true']:hover {
+		color: var(--player-control-active-hover);
+	}
+}
+
+.player-button-icon[aria-expanded='true']:focus-visible {
+	color: var(--player-control-active-hover);
 }

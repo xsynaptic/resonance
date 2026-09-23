@@ -24,10 +24,22 @@
 	right: env(safe-area-inset-right);
 }
 
+.player-progress {
+	display: none;
+}
+
+.player-progress::before {
+	position: absolute;
+	inset: 0;
+	content: '';
+	background-color: var(--player-waveform-played);
+	transform-origin: left;
+	scale: var(--player-progress, 0) 1;
+}
+
 .player-bar-grid {
-	--player-layout: 'transport info scope panel volume queue expand' auto
-		'seek seek seek seek seek seek seek' minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto
-		auto;
+	--player-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
+		minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto;
 	--player-waveform-height: var(--player-waveform-height-bar);
 
 	display: grid;
@@ -39,20 +51,25 @@
 	);
 }
 
-@container (width < 52rem) {
-	.player-bar-grid {
-		--player-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
-			minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto;
+.player-bar-grid .player-scope {
+	display: none;
+	grid-area: scope;
+}
+
+@container (width >= 52rem) {
+	.player-bar-grid:has(> player-scope) {
+		--player-layout: 'transport info scope panel volume queue expand' auto
+			'seek seek seek seek seek seek seek' minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto
+			auto;
 	}
 
 	.player-bar-grid .player-scope {
-		display: none;
+		display: block;
 	}
 }
 
 .player-artwork {
 	object-fit: cover;
-	border: 1px solid var(--player-border);
 }
 
 /* Full-bleed from under the bar's top border to its foot, beside the grid rows and never the panel */
@@ -62,7 +79,6 @@
 	left: env(safe-area-inset-left);
 	inline-size: var(--player-artwork-size);
 	block-size: var(--player-artwork-size);
-	border: 0;
 }
 
 .player-bar-grid:has(.player-artwork) {
@@ -93,10 +109,6 @@
 .player-bar-grid player-time-slider > :is(.player-waveform-frame, .player-seek) {
 	grid-area: seek;
 	min-block-size: var(--player-waveform-height);
-}
-
-.player-bar-grid .player-scope {
-	grid-area: scope;
 }
 
 .player-bar-grid .player-panel-toggle {
@@ -130,6 +142,18 @@
 	}
 }
 
+/* Too narrow for the tray to hang from its button without running off the left edge, so it spans the bar */
+@container (width < 30rem) {
+	.player-bar-grid .player-queue {
+		position: static;
+	}
+
+	.player-bar-grid .player-queue-popover {
+		left: 0;
+		width: auto;
+	}
+}
+
 /* Mini: play, the title, the clock and expand; scoped to the grid and the bar's own panel, since the overlay's dialog sits in this container too */
 @container (width < 26rem) {
 	.player-bar-grid {
@@ -146,13 +170,13 @@
 		padding-left: 0;
 	}
 
-	.player-bar-grid:not(:has(> player-overlay-toggle)) .player-queue {
-		position: static;
-	}
-
-	.player-bar-grid:not(:has(> player-overlay-toggle)) .player-tray {
-		left: 0;
-		width: auto;
+	.player-progress {
+		position: absolute;
+		inset-block-start: -1px;
+		inset-inline: 0;
+		display: block;
+		block-size: 2px;
+		pointer-events: none;
 	}
 
 	.player-bar > player-panel > .player-panel,

@@ -20,6 +20,7 @@ const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 
 const unplayableState = { isPaused: true, status: 'unplayable' } satisfies Partial<PlayerStore>;
 
 export interface PlaybackController {
+	// `undefined` unless the engine holds the loaded item, since a restored queue stands where the element does not
 	currentTime: () => number | undefined;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
 	mediaElement: () => HTMLMediaElement | undefined;
@@ -36,6 +37,7 @@ type Diagnostics = ReturnType<typeof createDiagnostics>;
 
 // One trip through resolve-then-load, so a late answer can be recognized as stale
 interface LoadAttempt {
+	hasSource: boolean;
 	isRetry: boolean;
 	isTypeDeclined: boolean;
 }
@@ -123,7 +125,7 @@ export function createPlaybackController(
 		// Silenced before the next track resolves, so nothing on screen disagrees with what is heard
 		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.reset();
 
-		const attempt: LoadAttempt = { isRetry, isTypeDeclined: false };
+		const attempt: LoadAttempt = { hasSource: false, isRetry, isTypeDeclined: false };
 
 		loading = attempt;
 		loadedQueueId = item.queueId;
@@ -148,7 +150,7 @@ export function createPlaybackController(
 		if (press === 'ignore') return;
 
 		if (press === 'resume') {
-			set({ isPaused: false });
+			set(resumedState(loading));
 			void ensureEngine().play();
 			return;
 		}
@@ -157,7 +159,7 @@ export function createPlaybackController(
 	}
 
 	return {
-		currentTime: () => engine?.currentTime(),
+		currentTime: () => heldTime(engine, get(), loadedQueueId),
 		loadIndex,
 		mediaElement: () => engine?.element,
 
@@ -221,6 +223,16 @@ function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
 	} satisfies Partial<PlayerStore>;
 }
 
+function heldTime(
+	engine: AudioEngine | undefined,
+	state: PlayerStore,
+	loadedQueueId: string | undefined,
+): number | undefined {
+	if (loadedItem(state)?.queueId !== loadedQueueId) return undefined;
+
+	return engine?.currentTime();
+}
+
 function isSwitch(loadedQueueId: string | undefined, queueId: string): boolean {
 	return loadedQueueId !== undefined && loadedQueueId !== queueId;
 }
@@ -272,6 +284,13 @@ function pressOutcome(state: PlayerStore, loadedQueueId: string | undefined): Pr
 	return 'resume';
 }
 
+// A load paused while it resolved has nothing in the element to report `playing` or `waiting`
+function resumedState(attempt: LoadAttempt | undefined): Partial<PlayerStore> {
+	if (attempt?.hasSource === false) return { isPaused: false, status: 'loading' };
+
+	return { isPaused: false };
+}
+
 // The asynchronous half of a load, which runs outside the gesture and may answer for an attempt that has since been dropped
 async function streamIntoEngine({
 	attempt,
@@ -305,6 +324,7 @@ async function streamIntoEngine({
 			attempt.isTypeDeclined = true;
 		}
 
+		attempt.hasSource = true;
 		await engine.load({ resumeAtSeconds: readPosition(), src: resolution.url });
 	} catch {
 		if (!isCurrent()) return;

@@ -104,7 +104,7 @@ async function pressInBar(page: Page, control: BarControl): Promise<void> {
 		return;
 	}
 
-	await bar.getByRole('button', { exact: true, name: labels.addToQueue }).click();
+	await bar.getByRole('button', { exact: true, name: labels.queue }).click();
 	await bar.getByRole('button', { exact: true, name: labels.clearQueue }).click();
 }
 
@@ -124,7 +124,8 @@ async function pressInOverlay(page: Page, control: BarControl): Promise<void> {
 	}
 
 	await overlay.getByRole('button', { exact: true, name: labels[control] }).click();
-	await overlay.getByRole('button', { exact: true, name: labels.close }).click();
+	// A touch device hides the floating Close behind the cover's swipe, so Escape is the way out every project has
+	await page.keyboard.press('Escape');
 	await expect(overlay).toBeHidden();
 }
 

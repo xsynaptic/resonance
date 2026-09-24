@@ -5,6 +5,7 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { formatClock } from '#lib/format.ts';
+import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, requireChildren, template } from '#lib/render.ts';
 import { currentCue, displayedItem, isLoaded } from '#store/selectors.ts';
 
@@ -27,8 +28,9 @@ const renderRow = template(
 	/* HTML */ `
 		<li>
 			<button class="player-overlay-cue" type="button">
-				<span class="player-overlay-cue-time"></span><span class="player-overlay-cue-artist"></span
-				><span class="player-overlay-cue-title"></span>
+				<span class="player-overlay-cue-time"></span
+				><span class="player-overlay-cue-head"><span class="player-overlay-cue-title"></span></span
+				><span class="player-overlay-cue-artist"></span>
 			</button>
 		</li>
 	`,
@@ -86,8 +88,11 @@ function applyMarks(rows: ReadonlyArray<CueRow>, marks: MarksView): void {
 function renderCue(cue: QueueCuePoint): CueRow {
 	const node = renderRow();
 	const button = requireChild(node, 'button', HTMLButtonElement);
-	const [time, artist, title] = requireChildren(node, 'span', 3, HTMLSpanElement);
+	const [time, head, title, artist] = requireChildren(node, 'span', 4, HTMLSpanElement);
+	const playing = cloneIcon('playing');
 
+	playing.classList.add('player-row-playing');
+	head.append(playing);
 	cueOfButton.set(button, cue);
 	time.textContent = formatClock(cue.startSeconds);
 	title.textContent = cue.title;

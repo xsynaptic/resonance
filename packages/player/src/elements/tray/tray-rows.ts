@@ -2,7 +2,6 @@ import type { PlayerLabels, QueuedItem } from '#types.ts';
 
 import { cloneIcon } from '#lib/icons.ts';
 import { keyedChildren } from '#lib/keyed-children.ts';
-import { placeWhen } from '#lib/place-when.ts';
 import { requireChild, requireChildren, template } from '#lib/render.ts';
 
 interface RowEntry {
@@ -79,6 +78,8 @@ function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 
 	const playing = cloneIcon('playing');
 
+	playing.classList.add('player-row-playing');
+	title.append(playing);
 	node.dataset.queueId = queueId;
 	handle.setAttribute('aria-label', labels.reorder);
 	handle.append(cloneIcon('dragHandle'));
@@ -95,8 +96,6 @@ function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 			handle.disabled = !entry.isMovable;
 			name.textContent = entry.item.title;
 			artist.textContent = entry.item.artistLine;
-
-			placeWhen({ isShown: entry.isCurrent, node: playing, parent: title, position: 'append' });
 		},
 	};
 }

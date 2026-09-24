@@ -14,6 +14,7 @@ import {
 	bufferedKey,
 	bufferedSpans,
 	holdDelayMs,
+	isPastCancel,
 	isSliderKey,
 	keyScrubSeconds,
 	pixelAt,
@@ -88,7 +89,6 @@ export function bindOverviewSlider(
 		{ once: true },
 	);
 
-	// Nothing to scrub across until the element announces how long the track runs
 	if (durationSeconds !== undefined) {
 		bindScrub(
 			{
@@ -207,16 +207,13 @@ function bindScrub(gesture: ScrubGesture, signal: AbortSignal): void {
 		preview(pointer === undefined ? undefined : scrub.scrubSeconds);
 	};
 	const scrubToPointer = (event: PointerEvent): void => {
+		const rect = pressRect ?? canvas.getBoundingClientRect();
+
 		if (event.pointerType === 'touch') touch = event;
 
-		scrub.scrubSeconds = scrubSecondsAt(
-			{
-				durationSeconds,
-				rect: pressRect ?? canvas.getBoundingClientRect(),
-				rendering: overview.current(),
-			},
-			event,
-		);
+		scrub.scrubSeconds = isPastCancel(rect, event)
+			? undefined
+			: scrubSecondsAt({ durationSeconds, rect, rendering: overview.current() }, event);
 		overview.repaint();
 		if (touch !== undefined && scrub.isHeld) showHeld(touch);
 	};

@@ -64,3 +64,13 @@
 .player-overlay-cue:focus-visible {
 	background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
 }
+
+.player-row-playing {
+	visibility: hidden;
+	flex-shrink: 0;
+	color: var(--player-current-icon);
+}
+
+:is(.player-tray-item[data-current], .player-overlay-cue[aria-current='true']) .player-row-playing {
+	visibility: visible;
+}

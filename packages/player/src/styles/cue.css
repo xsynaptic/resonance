@@ -1,5 +1,6 @@
 .player-cue-label {
 	position: absolute;
+	z-index: var(--player-z-raised);
 	max-width: min(var(--player-cue-label-max), var(--player-cue-room, 100%));
 	padding: 0.125rem 0.375rem;
 	margin-top: calc(var(--player-cue-size) / 2 + 0.25rem);

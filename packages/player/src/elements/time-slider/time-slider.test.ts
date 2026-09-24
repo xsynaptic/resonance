@@ -69,7 +69,6 @@ function painted(theme: keyof typeof themes) {
 	return [base, played];
 }
 
-// The readout's three spans, as a listener reads them left to right
 function readout(part: HTMLElement): string | undefined {
 	const label = part.querySelector<HTMLSpanElement>('.player-cue-label');
 
@@ -384,6 +383,34 @@ describe('<player-time-slider>', () => {
 		fireEvent.pointerUp(slider, { pointerType: 'touch' });
 
 		expect(preview()).toBeUndefined();
+	});
+
+	test('cancels a scrub dragged far off the waveform and resumes it on return', () => {
+		stubPainting();
+		vi.useFakeTimers();
+
+		const { part, seeks, slider, store } = mountSlider({
+			cuePoints: [cue(50)],
+			currentTimeSeconds: 0,
+			durationSeconds: 200,
+		});
+		const preview = () => store.getState().scrubPreviewSeconds;
+
+		fireEvent.pointerDown(slider, { buttons: 1, clientX: 150, clientY: 24, pointerType: 'touch' });
+		vi.advanceTimersByTime(holdDelayMs);
+		fireEvent.pointerMove(slider, { buttons: 1, clientX: 150, clientY: 97, pointerType: 'touch' });
+
+		expect(preview()).toBeUndefined();
+		expect(readout(part)).toBeUndefined();
+
+		fireEvent.pointerMove(slider, { buttons: 1, clientX: 30, clientY: 90, pointerType: 'touch' });
+
+		expect(preview()).toBe(20);
+
+		fireEvent.pointerMove(slider, { buttons: 1, clientX: 30, clientY: -49, pointerType: 'touch' });
+		fireEvent.pointerUp(slider, { pointerType: 'touch' });
+
+		expect(seeks()).toStrictEqual([]);
 	});
 
 	// Nothing on the idle preview maps a pixel to a time, so it keeps the marker label and shows no clock

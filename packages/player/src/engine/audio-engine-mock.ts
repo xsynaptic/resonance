@@ -20,6 +20,9 @@ export function createMockEngine() {
 		}),
 		setMuted: vi.fn(),
 		setVolume: vi.fn(),
+		silence: vi.fn(() => {
+			time = 0;
+		}),
 	};
 
 	const createEngine: CreateAudioEngine = (given) => {

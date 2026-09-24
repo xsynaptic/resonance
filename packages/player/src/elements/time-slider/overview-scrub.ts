@@ -7,8 +7,9 @@ import { cuePointAt } from '#waveform/cue-points.ts';
 const arrowStepSeconds = 5;
 const pageStepSeconds = 60;
 
-// In CSS pixels: the 0.25rem a pointer can miss a cue point's edge by
 const hitMarginPx = 4;
+
+const cancelDistancePx = 48;
 
 // A click seeks without drawing the scrub; only a press held past this shows where the release will land
 export const holdDelayMs = 150;
@@ -39,7 +40,6 @@ export function bufferedKey(spans: ReadonlyArray<WaveformSpan>): string {
 	return spans.map(({ fromPx, toPx }) => `${String(fromPx)}-${String(toPx)}`).join(',');
 }
 
-// Every range the element holds, not only the furthest end
 export function bufferedSpans(
 	ranges: TimeRanges | undefined,
 	durationSeconds: number | undefined,
@@ -75,6 +75,13 @@ export function cuePointAtPointer(
 			y: ((pointer.clientY - rect.top) * rendering.height) / rect.height,
 		},
 		rendering.cuePointSize / 2 + hitMarginPx * rendering.ratio,
+	);
+}
+
+export function isPastCancel(rect: DOMRect, pointer: { clientY: number }): boolean {
+	return (
+		pointer.clientY < rect.top - cancelDistancePx ||
+		pointer.clientY > rect.bottom + cancelDistancePx
 	);
 }
 
@@ -121,7 +128,6 @@ export function scrubSecondsAt(
 	);
 }
 
-// The keys `role="slider"` contracts for; anything else falls through to the page
 function keyTarget(
 	key: string,
 	currentTimeSeconds: number,

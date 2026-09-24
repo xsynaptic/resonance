@@ -195,11 +195,7 @@
 
 .player-overlay-tabs > player-queue-actions > .player-queue-actions {
 	justify-content: flex-end;
-	padding-inline: var(--player-row-inset);
-}
-
-.player-overlay-tabs > player-queue-actions .player-tray-action {
-	justify-content: flex-end;
+	padding: var(--player-gap-tight) var(--player-row-inset);
 }
 
 .player-overlay-list {
@@ -234,8 +230,8 @@
 .player-overlay-cue {
 	display: grid;
 	grid-template:
-		'time artist' auto
-		'time title' auto / var(--player-clock-width) minmax(0, 1fr);
+		'time title' auto
+		'time artist' auto / var(--player-clock-width) minmax(0, 1fr);
 	column-gap: var(--player-gap-tight);
 	width: 100%;
 	padding-block: var(--player-gap-tight);
@@ -251,26 +247,33 @@
 	color: var(--player-clock);
 }
 
-.player-overlay-cue-artist {
-	grid-area: artist;
+.player-overlay-cue-head {
+	display: flex;
+	grid-area: title;
+	gap: var(--player-gap-small);
+	align-items: baseline;
+}
+
+.player-overlay-cue-title {
+	min-width: 0;
 	font-size: var(--player-font-size);
 	font-weight: 500;
 	line-height: 1.25rem;
 	color: var(--player-title);
 }
 
-.player-overlay-cue-title {
-	grid-area: title;
+.player-overlay-cue-artist {
+	grid-area: artist;
 	font-size: var(--player-font-size-small);
 	line-height: 1rem;
 	color: var(--player-meta);
 }
 
-.player-overlay-cue[aria-current='true'] .player-overlay-cue-artist {
+.player-overlay-cue[aria-current='true'] .player-overlay-cue-title {
 	color: var(--player-cue-artist);
 }
 
-.player-overlay-cue[aria-current='true'] .player-overlay-cue-title {
+.player-overlay-cue[aria-current='true'] .player-overlay-cue-artist {
 	color: var(--player-cue-title);
 }
 
@@ -356,9 +359,13 @@
 		z-index: var(--player-z-raised);
 	}
 
+	player-queue-actions + .player-overlay-close {
+		margin-inline-start: -0.375rem;
+	}
+
 	.player-overlay-close svg {
 		inline-size: auto;
-		block-size: 1rem;
+		block-size: 0.875rem;
 	}
 
 	/* The cover can sit under it, and a busy one swallows a bare glyph */

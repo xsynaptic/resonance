@@ -6,10 +6,8 @@ import { expect, test, visit } from '#e2e/test.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface HostObserved {
-	audio: HTMLAudioElement | undefined;
-	audioCount: number;
+	audios: Array<{ audio: HTMLAudioElement; playCalls: number }>;
 	mediaSessionActions: Record<string, boolean>;
-	playCalls: number;
 }
 
 declare global {
@@ -48,7 +46,7 @@ async function expectBarIsPlaying(page: Page): Promise<void> {
 
 	const host = await readHost(page);
 
-	expect(host.audioCount).toBe(1);
+	expect(host.audioCount).toBe(2);
 	expect(host.metadataTitle).toBeTruthy();
 	expect(host.mediaSessionActions).toMatchObject({ pause: true, play: true });
 }
@@ -60,23 +58,21 @@ async function observe(page: Page, playbackRate = 1): Promise<void> {
 // The player suite's `observeAudio`, plus what the host hands Media Session, which the API will not read back
 function observeHost(playbackRate: number): void {
 	const observed: HostObserved = {
-		audio: undefined,
-		audioCount: 0,
+		audios: [],
 		mediaSessionActions: {},
-		playCalls: 0,
 	};
 	const audioProxy = new Proxy(window.Audio, {
 		construct(target, argumentsList: ConstructorParameters<typeof Audio>) {
 			const audio = Reflect.construct(target, argumentsList);
 			const nativePlay = audio.play.bind(audio);
+			const entry = { audio, playCalls: 0 };
 
 			// Loading a resource resets `playbackRate` to `defaultPlaybackRate`, which the engine does after this
 			audio.defaultPlaybackRate = playbackRate;
 			audio.playbackRate = playbackRate;
-			observed.audio = audio;
-			observed.audioCount += 1;
+			observed.audios.push(entry);
 			audio.play = () => {
-				observed.playCalls += 1;
+				entry.playCalls += 1;
 
 				return nativePlay();
 			};
@@ -124,13 +120,14 @@ function readHost(page: Page) {
 		if (!observed) throw new Error('The Audio observer was not installed');
 
 		const metadata = 'mediaSession' in navigator ? navigator.mediaSession.metadata : undefined;
+		const playing = observed.audios.find(({ audio }) => !audio.paused);
 
 		return {
-			audioCount: observed.audioCount,
-			currentTime: observed.audio?.currentTime ?? 0,
+			audioCount: observed.audios.length,
+			currentTime: playing?.audio.currentTime ?? 0,
 			mediaSessionActions: observed.mediaSessionActions,
 			metadataTitle: metadata?.title,
-			playCalls: observed.playCalls,
+			playCalls: playing?.playCalls ?? 0,
 		};
 	});
 }

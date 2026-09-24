@@ -38,6 +38,9 @@ export const createSilentEngine: CreateAudioEngine = (callbacks) => {
 		setVolume: () => {
 			// No element to drive
 		},
+		silence: () => {
+			currentTimeSeconds = 0;
+		},
 	};
 };
 

@@ -3,7 +3,7 @@ import type { PlayerStore } from '#store/player-types.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
-import { formatClock } from '#lib/format.ts';
+import { formatModeClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { loadedItem } from '#store/selectors.ts';
 import { cueIndexAt } from '#waveform/cue-points.ts';
@@ -70,7 +70,7 @@ function selectReadout(state: PlayerStore): ReadoutView | undefined {
 
 	const cuePoints = item.cuePoints ?? [];
 	const cuePoint = cuePoints[cueIndexAt(cuePoints, seconds)];
-	const clock = formatClock(seconds);
+	const clock = formatModeClock(seconds, state);
 
 	if (cuePoint === undefined) {
 		return { clock, isTrack: false, meta: item.artistLine, title: item.title };

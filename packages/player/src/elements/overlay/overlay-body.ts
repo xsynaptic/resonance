@@ -22,6 +22,7 @@ interface BodyParts {
 	next: HTMLElement;
 	previous: HTMLElement;
 	sheets: HTMLElement;
+	tablist: HTMLElement;
 	tabs: HTMLElement;
 }
 
@@ -30,11 +31,17 @@ type LinkClick = Pick<
 	'altKey' | 'button' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'target'
 >;
 
+interface OverlayFit {
+	isActionsInHeader: boolean;
+	layout: OverlayLayout;
+}
+
 type OverlayLayout = 'columns' | 'phone';
 
 // Rem, so the switch follows the reader's font size as a media query would
 const columnsMinWidthRem = 40;
 const columnsMinHeightRem = 30;
+const headerActionsMinWidthRem = 30;
 
 // The stylesheet's artwork caps for each layout; the phone cover is full bleed, so it takes no padding off
 const artworkSizes =
@@ -157,24 +164,28 @@ export function connectOverlayBody(
 	);
 	bindLayout(
 		parts.body,
-		(layout) => {
-			parts.body.dataset.layout = layout;
-			parts.sheets.hidden = layout === 'columns';
-			for (const control of parts.columnsOnly) control.hidden = layout !== 'columns';
+		{
+			actions: (isActionsInHeader) => {
+				if (isActionsInHeader) parts.tablist.after(parts.actions);
+				else parts.header.after(parts.actions);
+			},
+			layout: (layout) => {
+				parts.body.dataset.layout = layout;
+				parts.sheets.hidden = layout === 'columns';
+				for (const control of parts.columnsOnly) control.hidden = layout !== 'columns';
 
-			if (layout === 'phone') {
-				parts.body.prepend(parts.close);
-				sheet.dialog.append(parts.tabs);
-				parts.header.append(sheet.close);
-				parts.header.after(parts.actions);
-				return;
-			}
+				if (layout === 'phone') {
+					parts.body.prepend(parts.close);
+					sheet.dialog.append(parts.tabs);
+					parts.header.append(sheet.close);
+					return;
+				}
 
-			sheet.closeSheetNow();
-			sheet.dialog.append(sheet.close);
-			parts.head.prepend(parts.close);
-			parts.header.append(parts.actions);
-			parts.sheets.before(parts.tabs);
+				sheet.closeSheetNow();
+				sheet.dialog.append(sheet.close);
+				parts.head.prepend(parts.close);
+				parts.sheets.before(parts.tabs);
+			},
 		},
 		signal,
 	);
@@ -182,25 +193,38 @@ export function connectOverlayBody(
 
 function bindLayout(
 	body: HTMLElement,
-	apply: (layout: OverlayLayout) => void,
+	apply: { actions: (isActionsInHeader: boolean) => void; layout: (layout: OverlayLayout) => void },
 	signal: AbortSignal,
 ): void {
-	let applied: OverlayLayout | undefined;
+	let applied: OverlayFit | undefined;
 
 	const measure = (): void => {
 		const { height, width } = body.getBoundingClientRect();
 
 		if (width === 0) return;
 
-		const layout = layoutFor(width, height);
+		const fit = fitFor(width, height);
 
-		if (layout === applied) return;
+		if (fit.layout !== applied?.layout) apply.layout(fit.layout);
+		if (fit.isActionsInHeader !== applied?.isActionsInHeader) apply.actions(fit.isActionsInHeader);
 
-		applied = layout;
-		apply(layout);
+		applied = fit;
 	};
 	observeResize(body, measure, signal);
 	measure();
+}
+
+function fitFor(width: number, height: number): OverlayFit {
+	const remPixels = readPxProperty(getComputedStyle(document.documentElement), 'font-size', 16);
+	const layout =
+		width >= columnsMinWidthRem * remPixels && height >= columnsMinHeightRem * remPixels
+			? 'columns'
+			: 'phone';
+
+	return {
+		isActionsInHeader: layout === 'columns' || width >= headerActionsMinWidthRem * remPixels,
+		layout,
+	};
 }
 
 function isLeavingPage(event: LinkClick): boolean {
@@ -216,14 +240,6 @@ function isModifiedClick(event: LinkClick): boolean {
 	return event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 }
 
-function layoutFor(width: number, height: number): OverlayLayout {
-	const remPixels = readPxProperty(getComputedStyle(document.documentElement), 'font-size', 16);
-
-	return width >= columnsMinWidthRem * remPixels && height >= columnsMinHeightRem * remPixels
-		? 'columns'
-		: 'phone';
-}
-
 function renderBodyParts(): BodyParts {
 	const body = renderBody();
 	const actions = requireChild(body, 'player-queue-actions', HTMLElement);
@@ -233,6 +249,7 @@ function renderBodyParts(): BodyParts {
 	const head = requireChild(body, '.player-overlay-head', HTMLElement);
 	const header = requireChild(body, '.player-header', HTMLElement);
 	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);
+	const tablist = requireChild(body, '.player-overlay-tablist', HTMLElement);
 	const tabs = requireChild(body, '.player-overlay-tabs', HTMLElement);
 	const [previous, next] = requireChildren(body, 'player-step-button', 2, HTMLElement);
 
@@ -240,5 +257,18 @@ function renderBodyParts(): BodyParts {
 		...controls.querySelectorAll<HTMLElement>(':scope > :not(.player-transport)'),
 	];
 
-	return { actions, art, body, close, columnsOnly, head, header, next, previous, sheets, tabs };
+	return {
+		actions,
+		art,
+		body,
+		close,
+		columnsOnly,
+		head,
+		header,
+		next,
+		previous,
+		sheets,
+		tablist,
+		tabs,
+	};
 }

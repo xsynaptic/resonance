@@ -33,26 +33,32 @@
 	display: inline-flex;
 	gap: 0.375rem;
 	align-items: center;
-	padding-block: var(--player-gap-small);
-	font-size: var(--player-font-size);
-	line-height: 1.25rem;
+	padding: 0.125rem 0.625rem;
+	font-size: var(--player-font-size-small);
+	line-height: 1rem;
 	color: var(--player-meta);
-	border-radius: var(--player-radius);
-	transition: color var(--player-transition);
+	border: 1px solid var(--player-border);
+	border-radius: 9999px;
+	transition:
+		color var(--player-transition),
+		border-color var(--player-transition);
 }
 
 @media (hover: hover) {
 	.player-tray-action:hover {
 		color: var(--player-meta-hover);
+		border-color: currentcolor;
 	}
 }
 
 .player-tray-action:focus-visible {
 	color: var(--player-meta-hover);
+	border-color: currentcolor;
 }
 
 .player-tray-action[aria-pressed='true'] {
 	color: var(--player-control-active);
+	border-color: currentcolor;
 }
 
 .player-tray-empty {
@@ -75,7 +81,7 @@
 .player-tray-item[data-dragging] {
 	z-index: var(--player-z-raised);
 	background-color: var(--player-hover);
-	box-shadow: 0 8px 10px -6px rgb(0 0 0 / 40%);
+	box-shadow: 0 8px 10px -6px rgb(0 0 0 / 25%);
 }
 
 /* The glyphs rather than the buttons meet the row inset */
@@ -132,7 +138,7 @@
 .player-tray-title {
 	display: flex;
 	gap: var(--player-gap-small);
-	align-items: center;
+	align-items: baseline;
 	font-size: var(--player-font-size);
 	font-weight: 500;
 	line-height: 1.25rem;
@@ -156,11 +162,6 @@
 
 .player-tray-item[data-current] .player-tray-artist {
 	color: var(--player-current-meta);
-}
-
-.player-tray-item[data-current] .player-tray-title svg {
-	flex-shrink: 0;
-	color: var(--player-current-icon);
 }
 
 .player-tray-status {

@@ -28,12 +28,12 @@
 }
 
 @media (hover: hover) {
-	.player-volume:hover .player-volume-panel {
+	.player-volume:is(:hover, :focus-within) .player-volume-panel {
 		display: flex;
 	}
 }
 
-.player-volume:focus-within .player-volume-panel,
+.player-volume:has(:focus-visible) .player-volume-panel,
 .player-volume[data-open] .player-volume-panel {
 	display: flex;
 }
@@ -44,12 +44,12 @@
 }
 
 @media (hover: hover) {
-	.player-volume:hover {
+	.player-volume:is(:hover, :focus-within) {
 		z-index: var(--player-z-raised);
 	}
 }
 
-.player-volume:focus-within,
+.player-volume:has(:focus-visible),
 .player-volume[data-open] {
 	z-index: var(--player-z-raised);
 }

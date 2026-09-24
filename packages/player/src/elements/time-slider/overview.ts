@@ -2,6 +2,7 @@ import type { OverviewReadout } from '#elements/time-slider/overview-readout.ts'
 import type { OverviewCues, WaveformRendering } from '#waveform/overview/overview-render.ts';
 
 import { isSameReadout, readoutAtPointer } from '#elements/time-slider/overview-readout.ts';
+import { isPastCancel } from '#elements/time-slider/overview-scrub.ts';
 import { formatClock } from '#lib/format.ts';
 import { observeResize } from '#lib/observe-resize.ts';
 import { paintWaveform, prepareRendering } from '#waveform/overview/overview-render.ts';
@@ -26,7 +27,6 @@ export interface OverviewRendering {
 }
 
 interface OverviewBinding {
-	// The span the bar scrubs across; without one the readout has no time to show
 	durationSeconds?: number | undefined;
 	paint: (rendering: WaveformRendering) => void;
 	signal: AbortSignal;
@@ -65,8 +65,12 @@ export function bindOverview(
 		writeReadout(parts, readout, { isAbove, ratio: rendering?.ratio ?? 1 });
 	};
 	// A fresh rect every call, since the in-flow preview scrolls with the page
-	const readoutAt = (pointer: Pointer): OverviewReadout | undefined =>
-		readoutAtPointer({ durationSeconds, rect: canvas.getBoundingClientRect(), rendering }, pointer);
+	const readoutAt = (pointer: Pointer): OverviewReadout | undefined => {
+		const rect = canvas.getBoundingClientRect();
+		if (isPastCancel(rect, pointer)) return undefined;
+
+		return readoutAtPointer({ durationSeconds, rect, rendering }, pointer);
+	};
 	const repaint = (): void => {
 		if (rendering === undefined) rendering = prepareRendering(canvas, input.overview, input);
 		if (rendering !== undefined) paint(rendering);

@@ -13,6 +13,7 @@ export interface AudioEngine {
 	// iOS makes `volume` read-only and honours `muted` alone
 	setMuted(isMuted: boolean): void;
 	setVolume(volume: number): void;
+	silence(): void;
 }
 
 export interface AudioEngineCallbacks {
@@ -37,23 +38,32 @@ interface AudioLoadRequest {
 }
 
 export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine {
-	const audio = new Audio();
+	const elements = [createElement(), createElement()] as const;
 
-	// Matches the preconnect's `crossorigin`, so the stream reuses that connection
-	audio.crossOrigin = 'anonymous';
-	audio.preload = 'auto';
-
+	let [audio] = elements;
+	let isSparePrimed = false;
+	let parked: HTMLAudioElement | undefined;
 	let pendingResumeAtSeconds: number | undefined;
 
-	const watchdog = createStallWatchdog(audio, (diagnostic) => callbacks.onDiagnostic?.(diagnostic));
+	const watchdog = createStallWatchdog(() => audio, callbacks);
+	const listen = (type: keyof HTMLMediaElementEventMap, handler: () => void): void => {
+		listenWhileCurrent({ current: () => audio, elements, handler, type });
+	};
 
-	audio.addEventListener('timeupdate', () => {
+	function unpark(): void {
+		if (parked === undefined) return;
+
+		empty(parked);
+		parked = undefined;
+	}
+
+	listen('timeupdate', () => {
 		// Loading zeroes the clock, which is not where a resuming load is headed
 		if (pendingResumeAtSeconds !== undefined) return;
 
 		callbacks.onTime(audio.currentTime);
 	});
-	audio.addEventListener('loadedmetadata', () => {
+	listen('loadedmetadata', () => {
 		// A stream served without a length keeps the queue's duration, which the lock screen needs for its controls
 		if (Number.isFinite(audio.duration)) callbacks.onDuration(audio.duration);
 
@@ -62,54 +72,38 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		audio.currentTime = pendingResumeAtSeconds;
 		pendingResumeAtSeconds = undefined;
 	});
-	audio.addEventListener('ended', () => {
+	listen('ended', () => {
 		callbacks.onEnded();
 	});
-	audio.addEventListener('error', () => {
+	listen('error', () => {
 		watchdog.clear();
 
 		// Before `onError`, so the store holds the browser's own words by the time the status turns
 		callbacks.onDiagnostic?.(mediaErrorDiagnostic(audio));
 		callbacks.onError(errorStage(audio.error));
 	});
-	audio.addEventListener('waiting', () => {
+	listen('waiting', () => {
 		watchdog.arm();
 		callbacks.onStatus('loading');
 	});
-	audio.addEventListener('playing', () => {
+	listen('playing', () => {
 		watchdog.played();
+		unpark();
 		callbacks.onStatus('playing');
 	});
-	audio.addEventListener('pause', () => {
+	listen('pause', () => {
 		watchdog.clear();
 		callbacks.onStatus('paused');
 	});
 
-	async function play(): Promise<void> {
-		try {
-			await audio.play();
-		} catch (error) {
-			if (isDomException(error, 'AbortError')) return;
-
-			// A refused element never fires `pause`, so nothing else would stand the watchdog down
-			watchdog.clear();
-
-			// A failed source already sent `media-error`; `play-rejected` stays for refusals
-			if (isDomException(error, 'NotSupportedError')) return;
-
-			callbacks.onDiagnostic?.(playRejectedDiagnostic(audio, error));
-
-			// Only an autoplay refusal is the promise's to report; a media failure already came through the error event, and AbortError is a superseding load
-			if (!isDomException(error, 'NotAllowedError')) return;
-
-			callbacks.onStatus('paused');
-		}
-	}
+	const play = (): Promise<void> => playElement(audio, { callbacks, watchdog });
 
 	return {
 		canPlay: (type) => audio.canPlayType(type) !== '',
 		currentTime: () => audio.currentTime,
-		element: audio,
+		get element() {
+			return audio;
+		},
 		async load({ resumeAtSeconds, src }) {
 			pendingResumeAtSeconds = resumeAtSeconds > 0 ? resumeAtSeconds : undefined;
 			watchdog.restart();
@@ -121,19 +115,25 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 
 			callbacks.onStatus('loading');
 			watchdog.arm();
-			await play();
+
+			const started = play();
+
+			if (!isSparePrimed) {
+				isSparePrimed = true;
+				void prime(otherOf(elements, audio));
+			}
+
+			await started;
 		},
 		pause: () => {
 			audio.pause();
 		},
 		play,
-		// Dropping the source stops the old track downloading against the next; an empty `src` would raise an error event instead
 		reset: () => {
 			pendingResumeAtSeconds = undefined;
 			watchdog.clear();
-			audio.pause();
-			audio.removeAttribute('src');
-			audio.load();
+			unpark();
+			empty(audio);
 		},
 		// A seek during the load wins over the offset the load was given
 		seek: (seconds) => {
@@ -141,10 +141,18 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 			audio.currentTime = seconds;
 		},
 		setMuted: (isMuted) => {
-			audio.muted = isMuted;
+			for (const element of elements) element.muted = isMuted;
 		},
 		setVolume: (volume) => {
-			audio.volume = volume;
+			for (const element of elements) element.volume = volume;
+		},
+		silence: () => {
+			pendingResumeAtSeconds = undefined;
+			watchdog.clear();
+			unpark();
+			audio.pause();
+			parked = audio;
+			audio = otherOf(elements, audio);
 		},
 	};
 }
@@ -176,10 +184,20 @@ function bufferedAhead(element: HTMLMediaElement): number {
 	return 0;
 }
 
+function createElement(): HTMLAudioElement {
+	const element = new Audio();
+
+	// Matches the preconnect's `crossorigin`, so the stream reuses that connection
+	element.crossOrigin = 'anonymous';
+	element.preload = 'auto';
+
+	return element;
+}
+
 // Reports once per load and never touches status
 function createStallWatchdog(
-	element: HTMLMediaElement,
-	onStall: (diagnostic: EngineDiagnostic) => void,
+	current: () => HTMLMediaElement,
+	{ onDiagnostic }: Pick<AudioEngineCallbacks, 'onDiagnostic'>,
 ) {
 	let hasPlayed = false;
 	let hasReported = false;
@@ -197,7 +215,9 @@ function createStallWatchdog(
 			timer = setTimeout(() => {
 				timer = undefined;
 				hasReported = true;
-				onStall({
+				const element = current();
+
+				onDiagnostic?.({
 					...snapshotMedia(element),
 					bufferedAheadSeconds: bufferedAhead(element),
 					hasPlayed,
@@ -216,6 +236,13 @@ function createStallWatchdog(
 			clear();
 		},
 	};
+}
+
+// Dropping the source stops the old track downloading against the next; an empty `src` would raise an error event instead
+function empty(element: HTMLMediaElement): void {
+	element.pause();
+	element.removeAttribute('src');
+	element.load();
 }
 
 // Chrome answers MEDIA_ERR_SRC_NOT_SUPPORTED for a missing object as well as an unplayable codec
@@ -237,6 +264,24 @@ function isDomException(error: unknown, name: string) {
 	return error instanceof DOMException && error.name === name;
 }
 
+function listenWhileCurrent({
+	current,
+	elements,
+	handler,
+	type,
+}: {
+	current: () => HTMLMediaElement;
+	elements: ReadonlyArray<HTMLMediaElement>;
+	handler: () => void;
+	type: keyof HTMLMediaElementEventMap;
+}): void {
+	for (const element of elements) {
+		element.addEventListener(type, (event) => {
+			if (event.currentTarget === current()) handler();
+		});
+	}
+}
+
 function mediaErrorDiagnostic(element: HTMLMediaElement): EngineDiagnostic {
 	const { error } = element;
 
@@ -248,6 +293,37 @@ function mediaErrorDiagnostic(element: HTMLMediaElement): EngineDiagnostic {
 	};
 }
 
+function otherOf(
+	elements: readonly [HTMLAudioElement, HTMLAudioElement],
+	element: HTMLAudioElement,
+): HTMLAudioElement {
+	return element === elements[0] ? elements[1] : elements[0];
+}
+
+async function playElement(
+	element: HTMLMediaElement,
+	{ callbacks, watchdog }: { callbacks: AudioEngineCallbacks; watchdog: { clear: () => void } },
+): Promise<void> {
+	try {
+		await element.play();
+	} catch (error) {
+		if (isDomException(error, 'AbortError')) return;
+
+		// A refused element never fires `pause`, so nothing else would stand the watchdog down
+		watchdog.clear();
+
+		// A failed source already sent `media-error`; `play-rejected` stays for refusals
+		if (isDomException(error, 'NotSupportedError')) return;
+
+		callbacks.onDiagnostic?.(playRejectedDiagnostic(element, error));
+
+		// Only an autoplay refusal is the promise's to report; a media failure already came through the error event, and AbortError is a superseding load
+		if (!isDomException(error, 'NotAllowedError')) return;
+
+		callbacks.onStatus('paused');
+	}
+}
+
 function playRejectedDiagnostic(element: HTMLMediaElement, error: unknown): EngineDiagnostic {
 	return {
 		...snapshotMedia(element),
@@ -256,4 +332,11 @@ function playRejectedDiagnostic(element: HTMLMediaElement, error: unknown): Engi
 		message: error instanceof Error ? error.message : String(error),
 		name: error instanceof Error ? error.name : 'unknown',
 	};
+}
+
+async function prime(element: HTMLMediaElement): Promise<void> {
+	const started = element.play();
+
+	element.pause();
+	await Promise.allSettled([started]);
 }

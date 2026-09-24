@@ -32,19 +32,19 @@ function slots(part: HTMLElement): Array<string> {
 }
 
 describe('<player-scrub-readout>', () => {
-	test('shows the covering Track and the elapsed clock at the scrub position', () => {
+	test("shows the covering Track and the scrub position in the clock's own mode", () => {
 		const { part, store } = mountReadout();
 
-		store.getState().toggleTimeMode();
 		store.getState().setScrubPreview(100);
 
 		expect(part.dataset.held).toBeDefined();
 		expect(part.dataset.track).toBeDefined();
 		expect(slots(part)).toStrictEqual(['Aurora', 'Night Ferry', '1:40']);
 
+		store.getState().toggleTimeMode();
 		store.getState().setScrubPreview(130);
 
-		expect(slots(part)).toStrictEqual(['Untitled', '', '2:10']);
+		expect(slots(part)).toStrictEqual(['Untitled', '', '-1:10']);
 	});
 
 	test('keeps the Mix on the text lines before the first Track starts', () => {

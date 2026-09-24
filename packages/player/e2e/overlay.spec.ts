@@ -61,6 +61,8 @@ test('a touch held on the waveform swaps the title block to the Track under it',
 	await page.getByRole('button', { exact: true, name: labels.expand }).click();
 	await expect(slider).not.toHaveAttribute('aria-valuemax', '0');
 
+	await expect.poll(() => overlay.evaluate((element) => element.getAnimations().length)).toBe(0);
+
 	const box = await slider.boundingBox();
 	if (!box) throw new Error('The waveform has no box to press');
 

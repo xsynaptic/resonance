@@ -2,6 +2,7 @@
 	.player-button-icon,
 	.player-button-primary,
 	.player-button-small,
+	.player-tray-action,
 	.player-tray-handle {
 		position: relative;
 	}
@@ -9,6 +10,7 @@
 	.player-button-icon::before,
 	.player-button-primary::before,
 	.player-button-small::before,
+	.player-tray-action::before,
 	.player-tray-handle::before {
 		position: absolute;
 		inset: calc((var(--player-hit-target) - 100%) / -2);
@@ -17,12 +19,6 @@
 
 	.player-transport {
 		gap: var(--player-gap);
-	}
-
-	.player-tray-action {
-		justify-content: center;
-		min-inline-size: var(--player-hit-target);
-		min-block-size: var(--player-hit-target);
 	}
 
 	.player-overlay-tab,

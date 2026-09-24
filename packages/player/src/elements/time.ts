@@ -3,7 +3,7 @@ import type { PlayerTimeMode } from '#types.ts';
 
 import { buttonPart } from '#elements/button-part.ts';
 import { bind } from '#lib/bind.ts';
-import { formatClock } from '#lib/format.ts';
+import { formatModeClock } from '#lib/format.ts';
 import { template } from '#lib/render.ts';
 
 interface TimeView {
@@ -48,11 +48,8 @@ function applyTime(button: HTMLButtonElement, view: TimeView): void {
 // Bound apart from the button's attributes, since only the text moves on every tick
 function selectClock(state: PlayerStore): string {
 	if (state.durationSeconds === undefined) return emptyClock;
-	if (state.timeMode === 'remaining') {
-		return formatClock(state.currentTimeSeconds - state.durationSeconds);
-	}
 
-	return formatClock(state.currentTimeSeconds);
+	return formatModeClock(state.currentTimeSeconds, state);
 }
 
 function selectTime(state: PlayerStore): TimeView {

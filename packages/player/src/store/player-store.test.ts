@@ -741,7 +741,7 @@ describe('play intent', () => {
 
 		store.getState().playTrack(release, 'b');
 
-		expect(fake.engine.reset).toHaveBeenCalledOnce();
+		expect(fake.engine.silence).toHaveBeenCalledOnce();
 		expect(fake.engine.load).toHaveBeenCalledTimes(1);
 		expect(store.getState().status).toBe('loading');
 	});

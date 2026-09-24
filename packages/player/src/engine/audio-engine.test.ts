@@ -44,16 +44,20 @@ describe('audio engine', () => {
 		const callbacks = createCallbacks();
 		const pendingPlay = Promise.withResolvers<undefined>();
 
-		media.play.mockReturnValue(pendingPlay.promise);
-		media.pause.mockImplementation(() => {
+		const engine = createAudioEngine(callbacks);
+		const playing = engine.element;
+
+		media.play.mockReturnValueOnce(pendingPlay.promise);
+		media.pause.mockImplementation(function (this: HTMLMediaElement) {
+			if (this !== playing) return;
+
 			pendingPlay.reject(new DOMException('Interrupted by a call to pause()', 'AbortError'));
 		});
 
-		const engine = createAudioEngine(callbacks);
 		const loaded = engine.load(request);
 
 		await vi.waitFor(() => {
-			expect(media.play).toHaveBeenCalledOnce();
+			expect(media.play).toHaveBeenCalled();
 		});
 
 		isPaused = true;
@@ -61,10 +65,8 @@ describe('audio engine', () => {
 		await loaded;
 
 		expect(callbacks.onError).not.toHaveBeenCalled();
-		expect(media.play).toHaveBeenCalledOnce();
-		expect(media.pause.mock.invocationCallOrder[0]).toBeGreaterThan(
-			media.play.mock.invocationCallOrder[0] ?? Infinity,
-		);
+		expect(media.play.mock.contexts.filter((context) => context === playing)).toHaveLength(1);
+		expect(media.pause.mock.contexts.at(-1)).toBe(playing);
 	});
 
 	test('an autoplay refusal reports a pause rather than a failure', async () => {
@@ -172,6 +174,29 @@ describe('audio engine', () => {
 
 			expect(callbacks.onDiagnostic).not.toHaveBeenCalled();
 		});
+	});
+
+	test('a switch keeps the old element loaded and quiet until the next one plays', async () => {
+		const callbacks = createCallbacks();
+		const engine = createAudioEngine(callbacks);
+		const outgoing = engine.element;
+
+		await engine.load(request);
+		engine.silence();
+
+		const incoming = engine.element;
+
+		await engine.load({ resumeAtSeconds: 0, src: 'https://api.test/b' });
+		outgoing.dispatchEvent(new Event('pause'));
+
+		expect(incoming).not.toBe(outgoing);
+		expect(outgoing.getAttribute('src')).toBe(request.src);
+		expect(callbacks.onStatus).not.toHaveBeenCalledWith('paused');
+
+		incoming.dispatchEvent(new Event('playing'));
+
+		expect(outgoing.hasAttribute('src')).toBe(false);
+		expect(incoming.getAttribute('src')).toBe('https://api.test/b');
 	});
 
 	test('unloading drops the source so the old track stops downloading', () => {

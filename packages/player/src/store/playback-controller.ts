@@ -123,7 +123,7 @@ export function createPlaybackController(
 		const activeEngine = ensureEngine();
 
 		// Silenced before the next track resolves, so nothing on screen disagrees with what is heard
-		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.reset();
+		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.silence();
 
 		const attempt: LoadAttempt = { hasSource: false, isRetry, isTypeDeclined: false };
 

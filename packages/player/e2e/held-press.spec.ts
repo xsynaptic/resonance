@@ -21,7 +21,7 @@ test('a press held 1500ms before the player binds is replayed and plays', async 
 	await expectAdvancing(harness, 1);
 });
 
-// Known bug, see .claude/tasks-backlog/player-held-press.md; once fixed this turns red and becomes a spec that plays
+// Pins a known bug; a fix turns this red, and it becomes a spec that plays
 test('a press held 8000ms before the player binds is refused by WebKit', async ({
 	harness,
 	page,

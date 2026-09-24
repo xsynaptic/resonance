@@ -295,6 +295,12 @@ async function smoke(): Promise<void> {
 	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm test-e2e-smoke`;
 }
 
+// The build lets a broken id through as unlinked text or a dropped item, so this is the only gate
+async function validate(): Promise<void> {
+	console.log(chalk.blue('Validating content...'));
+	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm validate-content`;
+}
+
 try {
 	// Fail fast: a deploy must never publish a page whose download links are dead
 	const validatedFiles = await validateAudio({ rootPath });
@@ -318,6 +324,7 @@ try {
 	// Before the build, so moderating here reaches the same deploy
 	await promptPendingComments(pending);
 
+	await validate();
 	await check();
 	await build();
 	await smoke();

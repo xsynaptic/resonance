@@ -11,7 +11,6 @@ const authorHrefCases: Array<[string, string | undefined]> = [
 	['javascript:alert(1)', undefined],
 ];
 
-// Fixture cases from `.claude/tasks/comment-markdown-spec.md`, which is the contract
 const injectionCases: Array<[string, string]> = [
 	['hello <script>alert(1)</script>', '<p>hello &lt;script&gt;alert(1)&lt;/script&gt;</p>'],
 	['<img src=x onerror=alert(1)>', '<p>&lt;img src=x onerror=alert(1)&gt;</p>'],

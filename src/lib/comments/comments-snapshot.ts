@@ -39,7 +39,7 @@ async function readRows(): Promise<Array<ApprovedComment>> {
 
 		return commentsSnapshotSchema.parse(document).rows;
 	} catch (error) {
-		const message = `No usable comment snapshot at ${snapshotPath} (${String(error)}); run \`pnpm comments-pull\``;
+		const message = `No usable comment snapshot at ${snapshotPath} (${String(error)}); run \`pnpm scripts comments-pull\``;
 
 		if (import.meta.env.PROD) throw new Error(message, { cause: error });
 

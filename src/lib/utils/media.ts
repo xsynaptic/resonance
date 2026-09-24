@@ -25,7 +25,7 @@ export function getMediaImage(mediaPath: string): ImageMetadata | undefined {
 	return image.default;
 }
 
-// Written by `pnpm lqip` before each build and gitignored, so a fresh checkout has none
+// Written by `pnpm scripts lqip` before each build and gitignored, so a fresh checkout has none
 // Missing or unreadable degrades to no placeholder rather than failing the build
 function loadLqipEntries(): Record<string, { lqip: string }> {
 	try {

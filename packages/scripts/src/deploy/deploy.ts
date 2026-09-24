@@ -79,7 +79,7 @@ async function build(): Promise<void> {
 	await $({ cwd: rootPath, stdio: 'inherit' })`pnpm build`;
 }
 
-// `astro check` is all of the gate `pnpm build` carries; lint, vitest and knip only run here
+// `pnpm build` carries none of the gate, so this is the only type check a deploy runs
 // Placed after the pulls so it checks the same content the build will read
 async function check(): Promise<void> {
 	if (isSkipBuild || isSkipCheck) {

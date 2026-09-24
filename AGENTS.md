@@ -1,73 +1,63 @@
 # Resonance
 
-An Astro 7 port of [djbasilisk.com](https://djbasilisk.com), a DJ and electronic music site migrated off WordPress.
+An Astro 7 port of [djbasilisk.com](https://djbasilisk.com), a DJ and electronic music site that used to run on WordPress.
 
-Builds on [**spectralcodex**](https://github.com/xsynaptic/spectralcodex). When unsure how to structure something, copy the pattern from there rather than inventing a parallel one. See also: [astro-lab](https://github.com/xsynaptic/astro-lab) (the `@xsynaptic/*` toolkit, consumed from npm).
+It builds on [spectralcodex](https://github.com/xsynaptic/spectralcodex): when you're unsure how to structure something, copy the pattern from there. The `@xsynaptic/*` packages come from [astro-lab](https://github.com/xsynaptic/astro-lab) via npm.
 
-Project vocabulary is binding and defined in `.claude/context.md`. Read it before naming anything or writing user-facing copy.
+Read `.claude/context.md` before naming anything or writing user-facing copy; its vocabulary is binding.
 
-A line earns its place in this file by changing what an agent does.
+Add a line to this file only if it changes what an agent does.
 
 ## Documents under `.claude/`
 
-Every document under `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` carries a `status` in frontmatter. Read it before treating anything in the body as work:
+Documents in `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` carry a `status` in frontmatter. Check it before treating anything in the body as work.
 
-| `status`    | Means                                                              |
-| ----------- | ------------------------------------------------------------------ |
-| `ready`     | Open work, actionable now                                          |
-| `deferred`  | Real, and decided against doing now; the reason is in the document |
-| `wontfix`   | Decided against outright                                           |
-| `draft`     | A brief or spec, not yet decided                                   |
-| `done`      | A record of finished work, kept for its measurements and reasoning |
-| `reference` | A map of how something is, not work                                |
+| `status`    | Means                                                  |
+| ----------- | ------------------------------------------------------ |
+| `ready`     | Open work, actionable now                              |
+| `deferred`  | Real, but put off; the document says why               |
+| `wontfix`   | Decided against                                        |
+| `draft`     | A brief or spec, not yet decided                       |
+| `done`      | Finished work, kept for its measurements and reasoning |
+| `reference` | How something works now; not work                      |
 
-**Only `ready` is live work.** An item under any other status has already been through Xander, so reporting it back as a finding costs a review cycle and returns nothing. If evidence contradicts a decision, say which measurement changed rather than re-raising the item.
-
-A `ready` document can still hold settled items. Those carry their disposition inline, as **Deferred**, **Wontfix** or **Decided, do not re-raise**, and the same rule applies to them.
+**Only `ready` is live work.** Everything else has already been through Xander, so raising it again as a finding wastes a review cycle. If new evidence contradicts a decision, name the measurement that changed. Settled items inside a `ready` document are marked inline (**Deferred**, **Wontfix**, **Decided, do not re-raise**) and get the same treatment.
 
 ## Conventions
 
-- Imports use Node `#*` subpaths and **must carry the explicit extension** (`#lib/site.ts`). Extensionless `#` imports do not resolve under this config. The `#*` imports map is per package and does not cascade; every package defines its own. A relative import inside a package is a mistake, including for a sibling file. The root package adds a second pattern, `#worker/*`, because `worker/` sits outside `src/`.
-- A module touching `window` or any other browser global belongs under `src/components/**` or in a package. `eslint.config.ts` scopes browser globals to those paths, so browser code written under `src/lib/**` passes `astro check` and then fails `pnpm check` on `unicorn/prefer-global-this` and `unicorn/no-optional-chaining-on-undeclared-variable`. `src/lib/**` is build-time and server code.
+- Imports use the Node `#*` subpaths with an explicit extension (`#lib/site.ts`); extensionless ones don't resolve. Each package defines its own `#*` map, and every import within a package goes through it, sibling files included.
+- Code that touches `window` or any other browser global goes under `src/components/**` or in a package; `src/lib/**` is build-time and server code. ESLint only allows browser globals in those paths, so browser code in `src/lib/**` passes `astro check` and then fails `pnpm check`.
 
 ## Styling
 
-- Tailwind v4 is the base for anything new. Where its syntax turns arcane, or the class is not already in the main CSS output, write vanilla CSS.
-- Utilities inline by default. A rule in `src/styles/main/components/<component>.css` (registered in `main.css` under `layer(components)`) is for what cannot sit on the element: content not authored here (MDX, pagefind, maplibre), structural and state selectors, pseudo-elements carrying `content`, values with no theme step.
-- A decoration applied like a utility typically becomes a `@utility` in `parts/utilities.css`.
-- No `<style>` blocks (they bundle into the same file, sit outside the cascade layers, and stop at the component's own template); `main-stylesheet.astro` is the one `is:inline` exception (FOUC guard).
-- A hook class carries only what the stylesheet targets and shares a descriptive prefix or short-form representing the target. Avoid Microformat prefixes (`p-`, `h-`, `u-`, `dt-`, `e-`).
-- **A class family's root name should stay greppable**, so it can be found and replaced without reading every hit.
-- Stylesheets read tokens as `var(--…)`; `@apply` where it replaces a media query or composes a project `@utility`.
-- Stacking order is `--z-index-*` applied as `z-*` utilities or `var()`.
-- Every `hover:` on a focusable element has its `focus-visible:` twin. A stylesheet `:hover` sits under `@media (hover: hover)`, as Tailwind's `hover:` does; its `:focus-visible` partner stays outside it.
+- Tailwind v4 for anything new, with utilities on the element. Drop to vanilla CSS when the Tailwind syntax gets arcane or the class isn't already in the main CSS output.
+- A component stylesheet (`src/styles/main/components/<component>.css`, registered in `main.css` under `layer(components)`) holds only what can't sit on the element: markup authored elsewhere (MDX, pagefind, maplibre), structural and state selectors, pseudo-elements carrying `content`, and values with no theme step.
+- A decoration used like a utility usually becomes an `@utility` in `parts/utilities.css`.
+- Components carry no `<style>` blocks: they bundle into one file, sit outside the cascade layers, and only reach their own template. `main-stylesheet.astro` is the one `is:inline` exception, as a FOUC guard.
+- A hook class carries only what the stylesheet targets. Its family shares a prefix naming the target, with a root name you can grep to find and replace the whole family. Stay clear of Microformat prefixes (`p-`, `h-`, `u-`, `dt-`, `e-`).
+- Stylesheets read tokens with `var(--…)` and use `@apply` only to replace a media query or compose a project `@utility`. Stacking order comes from `--z-index-*`, as `z-*` utilities or `var()`.
+- Every `hover:` on a focusable element gets a matching `focus-visible:`. In a stylesheet, `:hover` goes under `@media (hover: hover)` (as Tailwind's `hover:` does) and its `:focus-visible` partner stays outside it.
 
 ## Content
 
-`packages/content` is a **separate private repository**, nested here and gitignored whole. Read `packages/content/AGENTS.md` before creating or editing anything under it, and open it as its own project for sustained content work so those rules load automatically. Because the directory is ignored here, `git clean -xdf` in this repo deletes it outright, its own `.git` included.
+`packages/content` is a **separate private repository**, nested here and gitignored as a whole. Read `packages/content/AGENTS.md` before touching anything in it, and open it as its own project for longer content work so its rules load. Since it's ignored, `git clean -xdf` here deletes it, `.git` and all.
 
-The collections were generated once from a WordPress dump and are hand-authored since; nothing regenerates them. The migration archive and what is in it: `.claude/reference/wordpress-origins.md`.
+The collections were generated once from a WordPress dump and have been edited by hand since; nothing regenerates them. `.claude/reference/wordpress-origins.md` covers the migration archive.
 
-- Drafts are `_`-prefixed and skipped by the `[^_]*` glob loader, so they never enter the data store.
-- Schemas import `z` from `'zod'`, **not** `'astro:content'` (deprecated in Astro 7).
-- Adding a component to `autoImport()` in the Astro config means adding its props to `MDXProvidedComponents` in `packages/content/global.d.ts` too.
+- Schemas import `z` from `'zod'`; the `'astro:content'` export is deprecated in Astro 7.
+- A component added to `autoImport()` in the Astro config also needs its props in `MDXProvidedComponents` (`packages/content/global.d.ts`).
+- **Selections** live in a Post's or Page's `selections` frontmatter and render through the `<Selections>` MDX tag. A selection's `entryId` (a mix, review or post, by bare slug) fills every field the selection leaves unset, review body included, so a row can be one line; inline fields win.
+- **Artists and labels are Credits** (`src/lib/schemas/credits.ts`), which work the other way round from every other vocabulary (those use Astro `reference()`): a bare string is free text that links only if its slug matches a cataloged term, and `{ id, name? }` must resolve but only `console.warn`s when it doesn't.
 
-**Selections** (a curated, ranked roundup) are a `selections` array in a Post's or Page's frontmatter, rendered by the `<Selections>` MDX tag: data in frontmatter, presentation on the tag. A selection's `entryId` names a mix, review, or post by bare slug and fills in every field the selection leaves unset, the review's body included, so a complete row can be one line and inline fields always win. See `src/lib/collections/selections/selections-resolve.ts`.
+## Build and checks
 
-**Artists and labels are Credits** (`src/lib/schemas/credits.ts`), inverting the usual convention: a bare `string` is free text that links only when its slugified name matches a cataloged term, while `{ id, name? }` must resolve and only `console.warn`s when it does not. Every other vocabulary uses Astro `reference()`.
+`pnpm build` wraps `astro build` in the steps it needs; run alone, `astro build` renders every media image without its LQIP placeholder. The build doesn't type-check; `pnpm check` does.
 
-## Build
+The root `package.json` holds entry points only. Every script in `packages/scripts`, build steps included, runs on its own as `pnpm scripts <name>` (`pnpm scripts og-image --clear-cache`).
 
-`pnpm build` is a pipeline, not a synonym for `astro build`: LQIP placeholders (incrementally cached in `.cache/media-lqip.json`), `astro check`, redirects, sitemap lastmod, the build, then OG images. Calling `astro build` directly skips all of it, and every media image renders without its placeholder.
+`pnpm check` and `pnpm fix` are the gate, defined in `lefthook.yml`. `check` is green end to end, so anything it reports is yours.
 
-## Quality gate
+The two Playwright suites run on demand, outside `check`, and both need the content repository and `ffmpeg`:
 
-`pnpm check` and `pnpm fix` are the gate; both call into `lefthook.yml`, which lists what each one runs and in what order. `check` is green end to end; anything it reports is yours. `pnpm install` syncs the lefthook `pre-push` hook, which runs the same `check` group before every push.
-
-Two Playwright suites, both on demand and outside `check`, both needing the content repository and `ffmpeg`. Everything under `test-e2e-*` is one of them; `pnpm test-e2e` on its own is not a script.
-
-`pnpm test-e2e-player` runs the player in isolation (`packages/player/e2e/`, its own config and harness page) across four browsers, and is worth running after a change under `packages/player/src/engine/`, `store/` or `page-controls.ts`. From inside `packages/player` the same suite is `pnpm test-e2e`, unprefixed because the package is already the scope.
-
-`pnpm test-e2e-smoke` runs the site suite (`tests/e2e/`, root config) against `dist/`, so `pnpm build` must be run first. `deploy-site` runs it after the build and `--skip-smoke` opts out, which is why the suite keeps the smoke name. `pnpm test-e2e-smoke-prod` points it at the live site, which `PROD_SERVER_URL` overrides.
-
-The site suite reads its audio fixture from `packages/player/e2e/.fixtures/`, so both `test-e2e-smoke` scripts cut the player's fixtures first.
+- `pnpm test-e2e-player` tests the player in isolation across four browsers. Run it after changing anything under `packages/player/src/engine/`, `store/` or `page-controls.ts`.
+- `pnpm test-e2e-smoke` tests the site against `dist/`, so build first. `deploy-site` runs it after its build (`--skip-smoke` opts out), and `pnpm test-e2e-smoke-prod` points it at the live site.

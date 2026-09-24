@@ -15,9 +15,12 @@ export const pagefindResultTemplate = `<script type="text/pagefind-template">
 		</div>
 		{{/if}}
 		<div class="pf-result-content">
-			<p class="pf-result-title">
-				<a class="pf-result-link" href="{{ meta.url | default(url) | safeUrl }}">{{ meta.title }}</a>
-			</p>
+			<div class="flex items-baseline justify-between gap-2">
+				<p class="pf-result-title">
+					<a class="pf-result-link" href="{{ meta.url | default(url) | safeUrl }}">{{ meta.title }}</a>
+				</p>
+				{{#if meta.kind}}<span class="shrink-0 rounded-sm border border-surface-500 px-1.5 text-xs leading-5 font-medium text-ink-500">{{ meta.kind }}</span>{{/if}}
+			</div>
 			{{#if excerpt}}<p class="pf-result-excerpt">{{+ excerpt +}}</p>{{/if}}
 		</div>
 	</div>

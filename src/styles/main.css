@@ -5,6 +5,7 @@
 
 @source './main/**/*.css';
 @source '../components/**/*.astro';
+@source '../components/search/search-result-template.ts';
 @source '../layouts/**/*.astro';
 @source '../pages/**/*.astro';
 

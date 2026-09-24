@@ -42,7 +42,7 @@ const relatedItems = await getRelatedItems(entry.id);
 	title={entry.data.title}
 >
 	<article data-pagefind-body>
-		<SearchThumbnail path={imageFeaturedId} />
+		<SearchThumbnail kind={kind.name} path={imageFeaturedId} />
 		<SectionDetailHeader
 			date={entry.data.dateCreated}
 			kind={kind}

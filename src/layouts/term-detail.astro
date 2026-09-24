@@ -96,7 +96,10 @@ const schemas = isFirstPage
 	) : undefined}
 	<div class="mb-6" {...(isFirstPage ? { 'data-pagefind-body': '' } : {})}>
 		{isFirstPage ? (
-			<SearchThumbnail path={getImageFeaturedId(term.data.imageFeatured)} />
+			<SearchThumbnail
+				kind={t(`collection.${term.collection}.title`)}
+				path={getImageFeaturedId(term.data.imageFeatured)}
+			/>
 		) : undefined}
 		{imageHeroId ? undefined : (
 			<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={term.data.title} />

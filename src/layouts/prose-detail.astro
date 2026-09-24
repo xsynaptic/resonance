@@ -49,7 +49,7 @@ const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 		/>
 	) : undefined}
 	<article data-pagefind-body>
-		<SearchThumbnail path={imageFeaturedId} />
+		<SearchThumbnail kind={kind?.name} path={imageFeaturedId} />
 		{imageHeroId ? undefined : (
 			<div class="mb-4 content-measure">
 				<SectionDetailHeader date={date} kind={kind} styles={styles} title={entry.data.title} />

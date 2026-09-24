@@ -4,10 +4,11 @@ import { getImage } from 'astro:assets';
 import { getMediaImage } from '#lib/utils/media.ts';
 
 interface Props {
+	kind?: string | undefined;
 	path?: string | undefined;
 }
 
-const { path } = Astro.props;
+const { kind, path } = Astro.props;
 
 // Pagefind renders result thumbnails at 64×48 (4:3) via `--pf-image-width` / `--pf-image-height`
 const thumbnailWidth = 64;
@@ -30,6 +31,7 @@ const thumbnails = image
 	: undefined;
 ---
 
+{kind ? <meta content={kind} data-pagefind-meta="kind[content]" /> : undefined}
 {thumbnails ? (
 	<Fragment>
 		<meta content={thumbnails[0]?.src} data-pagefind-meta="image[content]" />

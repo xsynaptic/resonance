@@ -18,7 +18,7 @@ export const openGraphDefaultId = 'index-default';
 // Platforms cache a card by URL forever; renaming this is what makes them refetch
 export const openGraphHomeId = 'homepage';
 
-// Resolved against `packages/content/media`, like a Featured Image in frontmatter
+// Resolved against the content package's `media/`, like a Featured Image in frontmatter
 export const openGraphHomeImageId = '2019/synaptic-fx-round-1.jpg';
 
 // Written by the sitemap-lastmod deploy step, read back when the Astro config loads
@@ -33,6 +33,6 @@ export const siteTagline = 'Mixcraft, reviews, and writing on electronic music s
 // Incremental LQIP cache, written before the build and read back when a media image renders
 export const mediaLqipPath = './.cache/media-lqip.json';
 
-// Streaming metadata and waveforms
-export const mixStreamsPath = './packages/content/data/mix-streams.json';
-export const mixWaveformsPath = './packages/content/data/mix-waveforms.json';
+// Streaming metadata and waveforms, relative to the content package
+export const mixStreamsPath = 'data/mix-streams.json';
+export const mixWaveformsPath = 'data/mix-waveforms.json';

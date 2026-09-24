@@ -31,6 +31,11 @@ export default defineConfig({
 	devToolbar: { enabled: false },
 	env: {
 		schema: {
+			CONTENT_DATA_PATH: envField.string({
+				access: 'public',
+				context: 'server',
+				default: 'packages/content',
+			}),
 			FILES_URL: envField.string({
 				access: 'public',
 				context: 'server',

@@ -16,12 +16,13 @@ import {
 	fetchAccountTracks,
 	resolveAccountUrn,
 } from '#platform-stats/soundcloud-api.ts';
+import { contentDataPath } from '#shared/content-path.ts';
 
 // Written as an array to match the Mixcloud sweep, so a second account is a one-line edit
 const accounts = ['djbasilisk'];
 
 const freshnessHours = 24;
-export const soundcloudStatsPath = 'packages/content/data/soundcloud-stats.jsonl';
+export const soundcloudStatsPath = `${contentDataPath}/data/soundcloud-stats.jsonl`;
 
 interface Credentials {
 	clientId: string;

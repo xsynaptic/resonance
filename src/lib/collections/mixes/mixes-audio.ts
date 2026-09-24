@@ -2,6 +2,7 @@ import type { z } from 'zod';
 
 import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
 import { MixStreamsDocumentSchema, MixWaveformsDocumentSchema } from '@xsynaptic/shared/schemas';
+import { CONTENT_DATA_PATH } from 'astro:env/server';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -53,8 +54,8 @@ export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undef
 
 async function buildIndex(): Promise<MixAudioIndex> {
 	const [streams, waveforms] = await Promise.all([
-		readDocument(mixStreamsPath, MixStreamsDocumentSchema),
-		readDocument(mixWaveformsPath, MixWaveformsDocumentSchema),
+		readDocument(path.join(CONTENT_DATA_PATH, mixStreamsPath), MixStreamsDocumentSchema),
+		readDocument(path.join(CONTENT_DATA_PATH, mixWaveformsPath), MixWaveformsDocumentSchema),
 	]);
 
 	const index: MixAudioIndex = { archives: new Set(), byFile: new Map(), streams: new Set() };

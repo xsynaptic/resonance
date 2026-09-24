@@ -43,7 +43,7 @@ The centrepiece of the site. Mixes run anywhere from one to eight hours, so the 
 - A year-by-year archive across mixes, reviews, and posts
 - Related content from a hand-rolled weighted scorer on [Hugo's model](https://gohugo.io/content-management/related-content/), pooled across collections and weighing shared credits, styles, and hand-authored links
 - Content validation, redirect generation from former slugs, and linting via [mdxlint](https://github.com/remcohaszing/mdxlint)
-- Content lives in its own private repository, nested into the workspace
+- Content lives in its own private repository, nested into the workspace; without it, set `CONTENT_DATA_PATH=packages/content-demo` in `.env` to build with demo content instead
 
 ### Comments
 

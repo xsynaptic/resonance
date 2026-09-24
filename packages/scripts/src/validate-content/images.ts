@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 import type { ContentEntry } from '#shared/astro-content.ts';
@@ -8,7 +8,7 @@ import { extractImageFeaturedIds } from '#shared/images.ts';
 import { findComponentTags, getTagProp } from '#validate-content/component-tags.ts';
 import { toValidationResult } from '#validate-content/validation-result.ts';
 
-// Media paths are relative to packages/content/media and are plain strings, not Astro assets
+// Media paths are relative to the content package's `media/` and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image
 const imageExtensions = /\.(avif|gif|jpe?g|png|webp)$/i;
 
@@ -81,7 +81,7 @@ function collectMediaFiles(mediaPath: string): Set<string> {
 		}
 	}
 
-	walk(mediaPath, '');
+	if (existsSync(mediaPath)) walk(mediaPath, '');
 
 	return files;
 }

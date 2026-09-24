@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { contentDataPath } from '#shared/content-path.ts';
 import { getGitFileDates } from '#sitemap-lastmod/git-file-dates.ts';
 
 // Collections such as `comments` and `downloads` are generated, carrying no file to date
@@ -87,7 +88,7 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 }
 
 function resolvePaths(options: SitemapLastmodOptions) {
-	const contentPathRelative = options.contentPath ?? 'packages/content';
+	const contentPathRelative = options.contentPath ?? contentDataPath;
 
 	return {
 		contentPathAbs: path.resolve(options.rootPath, contentPathRelative),

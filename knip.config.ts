@@ -3,6 +3,8 @@
 import type { KnipConfig } from 'knip';
 
 export default {
+	// Read by the content loader through `CONTENT_DATA_PATH`, never imported
+	ignoreFiles: ['packages/content-demo/**'],
 	// knip reads `compilerOptions.types` entries as package names, not relative paths
 	ignoreUnresolved: ['../worker-configuration.d.ts'],
 	workspaces: {

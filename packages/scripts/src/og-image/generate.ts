@@ -9,6 +9,7 @@ import type { OpenGraphEntry } from '#og-image/types.ts';
 
 import { featuredImageSize, getOpenGraphElement } from '#og-image/element.tsx';
 import { loadOpenGraphFonts } from '#og-image/fonts.ts';
+import { contentDataPath } from '#shared/content-path.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 
 // The 8 MiB default evicts glyphs mid-run once a few faces and sizes are in play
@@ -18,7 +19,7 @@ const glyphCacheBytes = 64 * 1024 * 1024;
 const jpegQuality = 90;
 
 // Frontmatter Featured Image paths are relative to this, matching `src/lib/utils/media.ts`
-const mediaRoot = 'packages/content/media';
+const mediaRoot = `${contentDataPath}/media`;
 
 export interface ProcessedImage {
 	data: Buffer;

@@ -6,9 +6,11 @@ import pLimit from 'p-limit';
 import sharp from 'sharp';
 import { glob } from 'zx';
 
+import { contentDataPath } from '#shared/content-path.ts';
+
 const concurrency = 8;
 
-const mediaDir = 'packages/content/media';
+const mediaDir = `${contentDataPath}/media`;
 
 // Mirrors the glob in `src/lib/utils/media.ts`
 const mediaPattern = '**/*.{avif,jpeg,jpg,png,webp}';

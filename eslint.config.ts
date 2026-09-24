@@ -14,6 +14,7 @@ export default getConfig(
 				'**/playwright-report/**/*',
 				'**/test-results/**/*',
 				'packages/content/{archive,collections}/**/*',
+				'packages/content-demo/collections/**/*',
 				'**/worker-configuration.d.ts',
 			],
 		},

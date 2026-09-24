@@ -10,6 +10,7 @@ import {
 	isFresh,
 	readLastGeneration,
 } from '#platform-stats/platform-stats-file.ts';
+import { contentDataPath } from '#shared/content-path.ts';
 
 // Mixcloud's public REST API: no key, no auth, no registration
 // An account sweep returns the whole catalog, so never fetch per mix
@@ -18,7 +19,7 @@ const apiBaseUrl = 'https://api.mixcloud.com';
 const pageLimit = 100;
 
 const freshnessHours = 24;
-export const mixcloudStatsPath = 'packages/content/data/mixcloud-stats.jsonl';
+export const mixcloudStatsPath = `${contentDataPath}/data/mixcloud-stats.jsonl`;
 
 interface Cloudcast {
 	item: StatsItem;

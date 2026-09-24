@@ -8,6 +8,7 @@ import { mixcloudStatsPath } from '#platform-stats/mixcloud-stats.ts';
 import { readGenerationKeys } from '#platform-stats/platform-stats-file.ts';
 import { soundcloudStatsPath } from '#platform-stats/soundcloud-stats.ts';
 import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { contentDataPath } from '#shared/content-path.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 import { validateBodyMarkers } from '#validate-content/body-markers.ts';
 import { validateCredits } from '#validate-content/credits.ts';
@@ -49,7 +50,7 @@ const audioCollections = ['mixes', 'reviews'];
 const markerCollections = ['mixes', 'pages', 'posts', 'reviews'];
 
 // Frontmatter media paths are relative to this directory; mirrors `mediaRoot` in lib/utils/media.ts
-const mediaPath = 'packages/content/media';
+const mediaPath = `${contentDataPath}/media`;
 
 const rootPath = findWorkspaceRoot();
 

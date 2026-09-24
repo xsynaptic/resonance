@@ -18,6 +18,7 @@ import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-path
 import { collectAudioSources } from '#audio/audio-sources.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
 import { collectArchives, previewVersion } from '#audio/waveforms.ts';
+import { contentDataPath } from '#shared/content-path.ts';
 
 const previewExtension = '.json';
 const tmpExtension = '.tmp';
@@ -46,8 +47,8 @@ interface ManifestOptions {
 export async function generateAudioManifest(options: ManifestOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	const streamsOutputPath = path.resolve(rootPath, mixStreamsPath);
-	const waveformsOutputPath = path.resolve(rootPath, mixWaveformsPath);
+	const streamsOutputPath = path.resolve(rootPath, contentDataPath, mixStreamsPath);
+	const waveformsOutputPath = path.resolve(rootPath, contentDataPath, mixWaveformsPath);
 
 	const { incomplete, sourceCount, streamEntries, waveformEntries } =
 		await collectManifestEntries(rootPath);
@@ -84,8 +85,12 @@ export async function readManifestFiles(
 	rootPath: string,
 ): Promise<{ archives: Array<string>; streams: Array<string> }> {
 	const [streams, waveforms] = await Promise.all([
-		readManifest(rootPath, mixStreamsPath, MixStreamsDocumentSchema),
-		readManifest(rootPath, mixWaveformsPath, MixWaveformsDocumentSchema),
+		readManifest(rootPath, path.join(contentDataPath, mixStreamsPath), MixStreamsDocumentSchema),
+		readManifest(
+			rootPath,
+			path.join(contentDataPath, mixWaveformsPath),
+			MixWaveformsDocumentSchema,
+		),
 	]);
 
 	return {

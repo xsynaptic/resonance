@@ -3,13 +3,14 @@ import { sitemapLastmodPath } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
 import { parseArgs } from 'node:util';
 
+import { contentDataPath } from '#shared/content-path.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 import { generateSitemapLastmod } from '#sitemap-lastmod/index.ts';
 
 const { values } = parseArgs({
 	args: process.argv.slice(2),
 	options: {
-		'content-path': { default: 'packages/content', type: 'string' },
+		'content-path': { default: contentDataPath, type: 'string' },
 		'output-path': { default: sitemapLastmodPath, type: 'string' },
 		'site-url': { type: 'string' },
 	},

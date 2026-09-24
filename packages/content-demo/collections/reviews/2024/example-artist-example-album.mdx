@@ -1,0 +1,28 @@
+---
+title: Example Artist - Example Album
+dateCreated: 2024-02-01
+labels:
+  - id: example-label
+regions:
+  - europe
+styles:
+  - techno
+eras:
+  - 2020s
+artists:
+  - id: example-artist
+rating: 80
+releaseTitle: Example Album
+releaseYear: "2024"
+tracks:
+  - artists: Example Artist
+    title: Opening
+    duration: "6:00"
+  - artists: Example Artist
+    title: Closing
+    duration: "7:30"
+---
+
+A placeholder review of an album by <Link id="example-artist">Example Artist</Link> on <Link id="example-label">Example Label</Link>.
+
+<TrackList tracks={frontmatter.tracks} />

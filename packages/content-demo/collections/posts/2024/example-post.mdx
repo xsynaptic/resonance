@@ -1,0 +1,24 @@
+---
+title: Example Post
+dateCreated: 2024-04-01
+description: A placeholder post with a short list of selections.
+themes:
+  - toolkit
+styles:
+  - techno
+selections:
+  - entryId: example-artist-example-album
+  - entryId: example-mix
+  - artists: Another Artist
+    title: Another Album
+    description: A selection written inline, with no entry behind it.
+    labels:
+      - Another Label
+    year: "2024"
+---
+
+A placeholder post. The text above the break shows in listings.
+
+<More />
+
+<Selections items={frontmatter.selections} order="countdown" />

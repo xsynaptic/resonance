@@ -248,18 +248,20 @@
 }
 
 .player-overlay-cue-head {
-	display: flex;
 	grid-area: title;
-	gap: var(--player-gap-small);
-	align-items: baseline;
+	font-size: var(--player-font-size);
+	line-height: 1.25rem;
 }
 
 .player-overlay-cue-title {
-	min-width: 0;
-	font-size: var(--player-font-size);
 	font-weight: 500;
-	line-height: 1.25rem;
 	color: var(--player-title);
+}
+
+.player-overlay-cue-head > .player-row-playing {
+	display: inline;
+	margin-inline-start: var(--player-gap-small);
+	vertical-align: baseline;
 }
 
 .player-overlay-cue-artist {

@@ -19,6 +19,10 @@
 	--pf-border-radius: var(--radius-sm);
 }
 
+pagefind-modal {
+	display: contents;
+}
+
 /* The frame is 64x48 and keeps its size with no image, so the maze stands in behind whatever loads */
 .pf-result-image {
 	position: relative;

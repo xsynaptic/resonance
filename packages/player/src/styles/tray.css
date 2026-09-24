@@ -36,12 +36,12 @@
 	padding: 0.125rem 0.625rem;
 	font-size: var(--player-font-size-small);
 	line-height: 1rem;
-	color: var(--player-meta);
-	border: 1px solid var(--player-border);
+	color: var(--player-pill-text);
+	background-color: var(--player-pill);
+	border: 1px solid var(--player-pill-border);
 	border-radius: 9999px;
-	transition:
-		color var(--player-transition),
-		border-color var(--player-transition);
+	transition: var(--player-transition);
+	transition-property: color, background-color, border-color;
 }
 
 @media (hover: hover) {
@@ -58,6 +58,7 @@
 
 .player-tray-action[aria-pressed='true'] {
 	color: var(--player-control-active);
+	background-color: color-mix(in oklab, var(--player-control-active) 20%, var(--player-pill));
 	border-color: currentcolor;
 }
 
@@ -81,7 +82,7 @@
 .player-tray-item[data-dragging] {
 	z-index: var(--player-z-raised);
 	background-color: var(--player-hover);
-	box-shadow: 0 8px 10px -6px rgb(0 0 0 / 25%);
+	box-shadow: 0 8px 10px -6px rgb(0 0 0 / 20%);
 }
 
 /* The glyphs rather than the buttons meet the row inset */

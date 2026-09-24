@@ -5,6 +5,9 @@
 	--player-popover: #171717;
 	--player-hover: #262626;
 	--player-border: #262626;
+	--player-pill: #171717;
+	--player-pill-border: #404040;
+	--player-pill-text: #d4d4d4;
 
 	/* Darker than the surface, so the bar reads as a lip over the page rather than a panel edge */
 	--player-bar-border: #000;

@@ -7,6 +7,9 @@
 	--player-popover: var(--color-surface-900);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
+	--player-pill: var(--color-surface-700);
+	--player-pill-border: var(--color-surface-600);
+	--player-pill-text: var(--color-ink-500);
 	--player-bar-border: var(--color-surface-950);
 	--player-title: var(--color-ink-200);
 	--player-meta: var(--color-ink-600);

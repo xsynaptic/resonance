@@ -8,6 +8,8 @@ const run = promisify(execFile);
 
 const fixturesDirectory = path.join(import.meta.dirname, '.fixtures');
 
+const defaultSource = path.join(import.meta.dirname, '../../content/streams');
+
 // Real music, not a synthetic tone, which has given a false positive through Safari automation before
 const cuts = [
 	{ name: 'long.mp4', seconds: 60 },
@@ -64,11 +66,7 @@ async function cutAudio(source: string, name: string, seconds: number): Promise<
 	]);
 }
 
-async function cutFixtures(sourceArgument: string | undefined): Promise<void> {
-	if (sourceArgument === undefined) {
-		throw new Error('Usage: node e2e/cut-fixtures.ts <rendition.mp4 | directory of renditions>');
-	}
-
+async function cutFixtures(sourceArgument: string): Promise<void> {
 	const source = await resolveSource(sourceArgument);
 
 	await mkdir(fixturesDirectory, { recursive: true });
@@ -93,5 +91,5 @@ async function resolveSource(source: string): Promise<string> {
 }
 
 if (names.some((name) => !existsSync(path.join(fixturesDirectory, name)))) {
-	await cutFixtures(process.argv[2]);
+	await cutFixtures(process.argv[2] ?? defaultSource);
 }

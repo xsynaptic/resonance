@@ -16,7 +16,7 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"cut-fixtures": "node e2e/cut-fixtures.ts ../content/streams",
+		"cut-fixtures": "node e2e/cut-fixtures.ts",
 		"test-e2e": "pnpm cut-fixtures && playwright test"
 	},
 	"dependencies": {

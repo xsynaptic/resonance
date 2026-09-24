@@ -48,7 +48,6 @@
 		"@tailwindcss/vite": "^4.3.3",
 		"@testing-library/dom": "^10.4.2",
 		"@types/node": "^24.13.6",
-		"@types/react": "^19.3.0",
 		"@types/sanitize-html": "^2.16.1",
 		"@xsynaptic/astro-build-logger": "^1.1.0",
 		"@xsynaptic/astro-font-devtools": "^1.0.2",

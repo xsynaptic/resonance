@@ -19,8 +19,8 @@ export default {
 				'src/dev/audio/waveform-archive.ts',
 			],
 			ignoreDependencies: [
-				// Types only, for `packages/content`'s MDX typings, which name React's JSX types
-				'@types/react',
+				// Loaded by `astro check` in `lefthook.yml`, which knip does not trace to the package
+				'@astrojs/check',
 				// Indirect peer of `@xsynaptic/eslint-config`'s getAstroConfig({ a11y: 'strict' })
 				'eslint-plugin-jsx-a11y',
 			],
@@ -29,7 +29,7 @@ export default {
 			// The content scripts delegate to root via `pnpm -w run`, which knip reads as a binary
 			ignoreBinaries: ['check-content', 'content-schemas', 'fix-content', 'validate-content'],
 			// Enables knip's MDX plugin here; there is no `astro` devDep to do it
-			// `react` is the tsconfig's `jsxImportSource` for MDX typings; only the root's `@types/react` is installed
+			// `react` is the tsconfig's `jsxImportSource` for MDX typings; only `@types/react` is installed
 			ignoreDependencies: ['mdxlint', 'react'],
 		},
 		'packages/player': {

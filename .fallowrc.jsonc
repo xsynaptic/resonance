@@ -1,7 +1,7 @@
 {
 	// Boundary and cycle checks only cover reachable files; MDX components are reached by auto-import
 	"dynamicallyLoaded": ["src/components/mdx/**/*.astro"],
-	"ignorePatterns": ["packages/scripts/src/validate-content/fixtures/**"],
+	"ignorePatterns": ["packages/content-demo", "packages/scripts/src/validate-content/fixtures/**"],
 	"rules": {
 		// Dead code and dependency hygiene belong to knip
 		"unused-files": "off",

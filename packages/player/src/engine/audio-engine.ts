@@ -89,14 +89,18 @@ export function createAudioEngine(callbacks: AudioEngineCallbacks): AudioEngine 
 		try {
 			await audio.play();
 		} catch (error) {
-			if (error instanceof DOMException && error.name === 'AbortError') return;
+			if (isDomException(error, 'AbortError')) return;
 
 			// A refused element never fires `pause`, so nothing else would stand the watchdog down
 			watchdog.clear();
+
+			// A failed source already sent `media-error`; `play-rejected` stays for refusals
+			if (isDomException(error, 'NotSupportedError')) return;
+
 			callbacks.onDiagnostic?.(playRejectedDiagnostic(audio, error));
 
 			// Only an autoplay refusal is the promise's to report; a media failure already came through the error event, and AbortError is a superseding load
-			if (!(error instanceof DOMException) || error.name !== 'NotAllowedError') return;
+			if (!isDomException(error, 'NotAllowedError')) return;
 
 			callbacks.onStatus('paused');
 		}
@@ -227,6 +231,10 @@ function errorStage(error: MediaError | null): PlaybackErrorStage {
 			return 'network';
 		}
 	}
+}
+
+function isDomException(error: unknown, name: string) {
+	return error instanceof DOMException && error.name === name;
 }
 
 function mediaErrorDiagnostic(element: HTMLMediaElement): EngineDiagnostic {

@@ -27,9 +27,9 @@
 		"stats-pull": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/stats-pull.cli.ts",
 		"deploy-site": "NODE_ENV=production tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy.ts",
 		"content-schemas": "tsx ./src/content-schemas/index.ts",
-		"generate-redirects": "astro sync --root ../.. && tsx ./src/generate-redirects/index.ts",
+		"generate-redirects": "astro sync --root=../.. && tsx ./src/generate-redirects/index.ts",
 		"og-image": "tsx --env-file-if-exists=../../.env ./src/og-image/index.cli.ts",
-		"sitemap-lastmod": "astro sync --root ../.. && tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/sitemap-lastmod/index.cli.ts",
+		"sitemap-lastmod": "astro sync --root=../.. && tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/sitemap-lastmod/index.cli.ts",
 		"mixcloud-stats": "tsx --env-file-if-exists=../../.env ./src/platform-stats/mixcloud-stats.cli.ts",
 		"soundcloud-stats": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/platform-stats/soundcloud-stats.cli.ts",
 		"validate-content": "tsx --env-file-if-exists=../../.env ./src/validate-content/index.ts"

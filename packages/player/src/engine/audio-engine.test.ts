@@ -78,6 +78,16 @@ describe('audio engine', () => {
 		expect(callbacks.onStatus).toHaveBeenLastCalledWith('paused');
 	});
 
+	test('a failed source reports no play rejection', async () => {
+		const callbacks = createCallbacks();
+
+		media.play.mockRejectedValue(new DOMException('No supported source', 'NotSupportedError'));
+
+		await createAudioEngine(callbacks).load(request);
+
+		expect(callbacks.onDiagnostic).not.toHaveBeenCalled();
+	});
+
 	// A reset's own pause never arrives, since its `load()` drops the queued event
 	test('the first pause after a reset of a playing element is reported', () => {
 		vi.spyOn(HTMLMediaElement.prototype, 'paused', 'get').mockReturnValue(false);

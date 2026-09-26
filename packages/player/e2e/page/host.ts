@@ -1,16 +1,12 @@
 import type {
-	createPlayerStore,
 	PlaybackDiagnostic,
+	PlayerStoreApi,
 	PlayerUrls,
 	QueueItem,
 	StreamResolution,
 } from '@xsynaptic/player';
 
-import {
-	controlSelector,
-	heldPressAttribute,
-	heldPressSelector,
-} from '@xsynaptic/player/constants';
+import { holdPresses } from '@xsynaptic/player/boot';
 import '@xsynaptic/player/player.css';
 
 import { fixtureOrigin, seekSeconds } from '#e2e/constants.ts';
@@ -19,7 +15,7 @@ import { labels } from '#test/labels.ts';
 interface PlayerPage {
 	diagnostics: Array<PlaybackDiagnostic>;
 	readonly resolveCount: number;
-	store: ReturnType<typeof createPlayerStore>;
+	store: PlayerStoreApi;
 }
 
 declare global {
@@ -122,48 +118,27 @@ function writePayload(): void {
 
 writePayload();
 
-const holding = new AbortController();
-
-document.addEventListener(
-	'click',
-	(event) => {
-		if (!(event.target instanceof Element)) return;
-
-		const pressed = event.target.closest(controlSelector);
-		if (!pressed) return;
-
-		document.querySelector(heldPressSelector)?.removeAttribute(heldPressAttribute);
-		pressed.toggleAttribute(heldPressAttribute, true);
-	},
-	{ capture: true, signal: holding.signal },
-);
+const presses = holdPresses(document);
 
 await wait(settings.bindDelay);
 
-const { bindMediaSession, bindPageControls, definePlayerElements, playerStore } =
+const { bindMediaSession, bindPageControls, createPlayer, createPlayerStore } =
 	await import('@xsynaptic/player');
 
-definePlayerElements();
+const store = createPlayerStore();
 
-const root = document.createElement('player-root');
+document
+	.querySelector('[data-player-host]')
+	?.append(createPlayer({ labels, seekSeconds, store, urls }));
 
-root.className = 'player';
-root.toggleAttribute('is-primary', true);
-root.labels = labels;
-root.seekSeconds = seekSeconds;
-root.store = playerStore;
-root.urls = urls;
-root.append(document.createElement('player-bar'));
-document.querySelector('[data-player-host]')?.append(root);
-
-holding.abort();
-bindPageControls(playerStore, document);
-bindMediaSession(playerStore, seekSeconds);
+bindPageControls(store, document);
+presses.release();
+bindMediaSession(store);
 
 // The store keeps only the latest; the site sends every one, so a spec reads them all
 const diagnostics: Array<PlaybackDiagnostic> = [];
 
-playerStore.subscribe((state, previous) => {
+store.subscribe((state, previous) => {
 	if (!state.diagnostic || state.diagnostic === previous.diagnostic) return;
 
 	diagnostics.push(state.diagnostic);
@@ -175,6 +150,6 @@ Object.defineProperty(window, 'playerPage', {
 		get resolveCount() {
 			return resolveCount;
 		},
-		store: playerStore,
+		store,
 	} satisfies PlayerPage,
 });

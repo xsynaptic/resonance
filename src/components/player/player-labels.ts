@@ -1,7 +1,6 @@
 import type { PlayerLabels } from '@xsynaptic/player';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { formatStringTemplate } from '#lib/utils/text.ts';
 
 export const seekSeconds = 15;
 
@@ -27,8 +26,8 @@ export function getPlayerLabels(): PlayerLabels {
 		removeFromQueue: t('player.removeFromQueue'),
 		reorder: t('player.reorder'),
 		seek: t('player.seek'),
-		seekBack: formatStringTemplate(t('player.seekBack'), { seconds: seekSeconds }),
-		seekForward: formatStringTemplate(t('player.seekForward'), { seconds: seekSeconds }),
+		seekBack: t('player.seekBack'),
+		seekForward: t('player.seekForward'),
 		seekPosition: t('player.seekPosition'),
 		shuffle: t('player.shuffle'),
 		timestampsPartial: t('player.timestampsPartial'),

@@ -35,7 +35,7 @@ afterEach(() => {
 describe('preloadWhenQueued', () => {
 	test('waits for a queue, then preloads once when the page is idle', () => {
 		const idle = stubIdle();
-		const store = createPlayerStore();
+		const store = createPlayerStore({ isPersistent: false });
 		const preload = vi.fn();
 
 		preloadWhenQueued(store, preload);
@@ -55,7 +55,7 @@ describe('preloadWhenQueued', () => {
 
 	test('a queue already restored schedules at once, and unbinding before idle cancels it', () => {
 		const idle = stubIdle();
-		const store = createPlayerStore();
+		const store = createPlayerStore({ isPersistent: false });
 		const preload = vi.fn();
 
 		store.getState().loadQueue([item]);

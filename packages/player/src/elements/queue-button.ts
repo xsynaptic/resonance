@@ -1,6 +1,4 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
@@ -19,7 +17,7 @@ interface QueueParts {
 
 interface TrayOpening {
 	control: HTMLElement;
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 	title: string;
 }
 

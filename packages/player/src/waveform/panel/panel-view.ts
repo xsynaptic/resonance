@@ -1,6 +1,4 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerUrls, QueueCuePoint, QueueItem } from '#types.ts';
 import type { CueRider, CueSlot } from '#waveform/panel/cue-rider.ts';
 import type { GhostMarker } from '#waveform/panel/ghost-marker.ts';
@@ -45,7 +43,7 @@ interface PanelFrame {
 	drag: PanelDrag;
 	frameMs: number;
 	insetPx: number;
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 	view: PanelView;
 }
 

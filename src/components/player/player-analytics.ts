@@ -1,8 +1,9 @@
 import type {
 	ControlPress,
-	createPlayerStore,
 	PlaybackDiagnostic,
 	PlayerStatus,
+	PlayerStore,
+	PlayerStoreApi,
 } from '@xsynaptic/player';
 
 import { LazyModuleError, loadedItem } from '@xsynaptic/player';
@@ -15,8 +16,6 @@ interface PlayerGate {
 	isPanelOpen: boolean;
 	status: PlayerStatus;
 }
-
-type PlayerState = ReturnType<ReturnType<typeof createPlayerStore>['getState']>;
 
 const origins = {
 	'play-playlist': 'playlist',
@@ -37,7 +36,7 @@ const browserVersion = describeBrowser(navigator.userAgent);
 // iOS 26 opens any Home Screen site as a web app, where WebKit's lock-screen audio bugs live
 const isStandalone = matchMedia('(display-mode: standalone)').matches;
 
-export function bindPlayerAnalytics(store: ReturnType<typeof createPlayerStore>): () => void {
+export function bindPlayerAnalytics(store: PlayerStoreApi): () => void {
 	if (isSuppressed) return doNothing;
 
 	const connection = new AbortController();
@@ -130,7 +129,7 @@ function matchVersion(
 	return undefined;
 }
 
-function selectGate(state: PlayerState): PlayerGate {
+function selectGate(state: PlayerStore): PlayerGate {
 	return {
 		isOverlayOpen: state.isOverlayOpen,
 		isPanelOpen: state.isPanelOpen,
@@ -158,7 +157,7 @@ function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void 
 	trackEvent(`player-${kind}`, data);
 }
 
-function trackPlaybackError(state: PlayerState): void {
+function trackPlaybackError(state: PlayerStore): void {
 	const { playbackError } = state;
 	const data: Record<string, string> = { status: state.status };
 	const itemId = loadedItem(state)?.itemId;
@@ -169,7 +168,7 @@ function trackPlaybackError(state: PlayerState): void {
 	trackEvent('player-error', data);
 }
 
-function trackTransitions(previous: PlayerGate, next: PlayerGate, state: PlayerState): void {
+function trackTransitions(previous: PlayerGate, next: PlayerGate, state: PlayerStore): void {
 	if (next.isPanelOpen && !previous.isPanelOpen) trackEvent('player-panel-open');
 	if (next.isOverlayOpen && !previous.isOverlayOpen) trackEvent('player-overlay-open');
 	if (next.status !== previous.status && terminalStatuses.has(next.status)) {

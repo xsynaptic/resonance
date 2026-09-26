@@ -1,13 +1,11 @@
-import type { StoreApi } from 'zustand/vanilla';
-
 import type { PlayerRoot } from '#elements/player-root.ts';
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 
 export interface PlayerContext {
 	labels: PlayerLabels;
 	root: PlayerRoot;
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 }
 
 // Thrown rather than skipped, so a tag placed outside a root fails where it was placed

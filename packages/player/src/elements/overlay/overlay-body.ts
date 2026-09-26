@@ -125,8 +125,7 @@ export function connectOverlayBody(
 		for (const part of parts.body.querySelectorAll('player-panel, player-panel-toggle'))
 			part.remove();
 	}
-	if (root.seekSeconds !== undefined)
-		placeSeekButtons(parts.previous, parts.next, root.seekSeconds);
+	placeSeekButtons(parts.previous, parts.next, store.getState().seekSeconds);
 
 	parts.close.setAttribute('aria-label', labels.close);
 	parts.close.append(cloneIcon('closeLarge'));

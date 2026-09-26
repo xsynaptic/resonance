@@ -2,7 +2,12 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import { createStore } from 'zustand/vanilla';
 
-import type { PlayerState, PlayerStore, PlayerStoreOptions } from '#store/player-types.ts';
+import type {
+	PlayerState,
+	PlayerStore,
+	PlayerStoreApi,
+	PlayerStoreOptions,
+} from '#store/player-types.ts';
 
 import { createAudioEngine } from '#engine/audio-engine.ts';
 import { createPlaybackController } from '#store/playback-controller.ts';
@@ -12,7 +17,7 @@ import { createQueueActions } from '#store/queue-actions.ts';
 import { createTransportActions } from '#store/transport-actions.ts';
 import { panelZoomDefault } from '#store/zoom-levels.ts';
 
-export type { PlayerStore, PlayerStoreOptions } from '#store/player-types.ts';
+export type { PlayerStore, PlayerStoreApi, PlayerStoreOptions } from '#store/player-types.ts';
 
 const initialPlayerState: PlayerState = {
 	currentIndex: undefined,
@@ -30,28 +35,45 @@ const initialPlayerState: PlayerState = {
 	playOrder: [],
 	queue: [],
 	scrubPreviewSeconds: undefined,
+	seekSeconds: 10,
 	status: 'idle',
 	timeMode: 'elapsed',
 	urls: undefined,
 	volume: 1,
 };
 
-// The action groups reach each other through `get()`, so they compose as one flat dispatch table
-export function createPlayerStore(options?: PlayerStoreOptions): StoreApi<PlayerStore> {
-	const createEngine = options?.createEngine ?? createAudioEngine;
+export function createPlayerStore(options?: PlayerStoreOptions): PlayerStoreApi {
+	return createWritablePlayerStore(options);
+}
 
-	return createStore<PlayerStore>()((_set, _get, api) => {
+// The action groups reach each other through `get()`, so they compose as one flat dispatch table
+export function createWritablePlayerStore(options?: PlayerStoreOptions): StoreApi<PlayerStore> {
+	const createEngine = options?.createEngine ?? createAudioEngine;
+	const hydrationSteps: Array<() => void> = [];
+
+	const store = createStore<PlayerStore>()((_set, _get, api) => {
 		const persistence =
 			options?.isPersistent === false ? inertPersistence : createPlayerPersistence(api);
 		const playback = createPlaybackController(api, createEngine);
+		const { hydratePreferences, ...preferenceActions } = createPreferenceActions({
+			api,
+			persistence,
+			playback,
+		});
+		const { hydrateQueue, ...queueActions } = createQueueActions({ api, persistence, playback });
+
+		hydrationSteps.push(hydratePreferences, hydrateQueue);
 
 		return {
 			...initialPlayerState,
-			...createPreferenceActions({ api, persistence, playback }),
-			...createQueueActions({ api, persistence, playback }),
+			...preferenceActions,
+			...queueActions,
 			...createTransportActions({ api, playback }),
 		};
 	});
-}
 
-export const playerStore = createPlayerStore();
+	// Inside the initializer `get()` is empty and its return overwrites any `set`
+	for (const hydrate of hydrationSteps) hydrate();
+
+	return store;
+}

@@ -1,6 +1,4 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 
 import { bind } from '#lib/bind.ts';
 
@@ -9,7 +7,7 @@ interface ButtonBinding<Selected> {
 	button: HTMLButtonElement;
 	press: (state: PlayerStore) => void;
 	select: (state: PlayerStore) => Selected;
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 }
 
 export function bindButton<Selected>(binding: ButtonBinding<Selected>, signal: AbortSignal): void {

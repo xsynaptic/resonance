@@ -12,7 +12,6 @@ const unmuteVolume = 0.25;
 type PreferenceActions = Pick<
 	PlayerActions,
 	| 'configure'
-	| 'hydratePreferences'
 	| 'setOverlayOpen'
 	| 'setPanelOpen'
 	| 'setScrubPreview'
@@ -34,7 +33,7 @@ export function createPreferenceActions({
 	api: StoreApi<PlayerStore>;
 	persistence: PlayerPersistence;
 	playback: PlaybackController;
-}): PreferenceActions {
+}): PreferenceActions & { hydratePreferences: () => void } {
 	const { getState: get, setState: set } = api;
 
 	function applyVolume({ isMuted, volume }: Pick<PlayerState, 'isMuted' | 'volume'>): void {
@@ -48,10 +47,10 @@ export function createPreferenceActions({
 	}
 
 	return {
-		configure: ({ urls }) => {
-			if (get().urls === urls) return;
+		configure: ({ seekSeconds = get().seekSeconds, urls = get().urls }) => {
+			if (get().seekSeconds === seekSeconds && get().urls === urls) return;
 
-			set({ urls });
+			set({ seekSeconds, urls });
 		},
 
 		hydratePreferences: () => {
@@ -64,8 +63,6 @@ export function createPreferenceActions({
 			if (panelPxPerSecond !== undefined) set({ panelPxPerSecond });
 			if (timeMode !== undefined) set({ timeMode });
 			if (volume !== undefined) set({ volume: clampVolume(volume) });
-
-			playback.syncVolume();
 		},
 
 		setOverlayOpen: (isOpen) => {

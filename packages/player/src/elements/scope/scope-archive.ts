@@ -1,7 +1,5 @@
-import type { StoreApi } from 'zustand/vanilla';
-
 import type { FillColumns } from '#elements/scope/scope-trace.ts';
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerUrls, QueueItem } from '#types.ts';
 import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
@@ -16,7 +14,7 @@ const fullScale = 128;
 interface ArchiveTrace {
 	item: QueueItem | undefined;
 	resolveArchive: PlayerUrls['archive'];
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 	windowSeconds: number;
 }
 

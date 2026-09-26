@@ -22,7 +22,6 @@ import { canMove } from '#queue/reorder.ts';
 type QueueActions = Pick<
 	PlayerActions,
 	| 'clearQueue'
-	| 'hydrateQueue'
 	| 'loadQueue'
 	| 'moveItem'
 	| 'playQueue'
@@ -41,7 +40,7 @@ export function createQueueActions({
 	api: StoreApi<PlayerStore>;
 	persistence: PlayerPersistence;
 	playback: PlaybackController;
-}): QueueActions {
+}): QueueActions & { hydrateQueue: () => void } {
 	const { getState: get, setState: set } = api;
 
 	const nextQueueId = createQueueIds();
@@ -76,11 +75,11 @@ export function createQueueActions({
 			set({ currentIndex: undefined, durationSeconds: undefined, playOrder: [], queue: [] });
 		},
 
+		// Positioned, with nothing loaded and nothing playing
 		hydrateQueue: () => {
 			const stored = persistence.readQueue();
 
-			// A page that queued something before this ran keeps what it queued
-			if (stored && get().queue.length === 0) {
+			if (stored) {
 				const restored = {
 					...loadedQueue(queueState(), stamped(stored.queue)),
 					currentIndex: stored.currentIndex,

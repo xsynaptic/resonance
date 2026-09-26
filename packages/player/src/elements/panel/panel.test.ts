@@ -14,10 +14,12 @@ vi.mock('#waveform/panel/waveform-archive.ts', () => ({
 function mountPanel() {
 	const mounted = mount('player-panel');
 
-	mounted.root.urls = {
-		archive: ({ itemId }) => Promise.resolve(`https://api.test/${itemId}.dat`),
-		stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
-	};
+	mounted.store.getState().configure({
+		urls: {
+			archive: ({ itemId }) => Promise.resolve(`https://api.test/${itemId}.dat`),
+			stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
+		},
+	});
 	mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
 
 	return mounted;

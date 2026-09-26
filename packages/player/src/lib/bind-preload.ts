@@ -1,12 +1,10 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStoreApi } from '#store/player-types.ts';
 
 import { preloadWhenQueued } from '#lib/preload-when-queued.ts';
 
 interface Preloadable {
 	preload: () => void;
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 	trigger: HTMLElement;
 }
 

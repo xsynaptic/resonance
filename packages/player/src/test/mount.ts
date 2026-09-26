@@ -3,7 +3,7 @@ import type { PlayerUrls, QueueItem } from '#types.ts';
 
 import { definePlayerElements } from '#elements/define.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
-import { createPlayerStore } from '#store/player-store.ts';
+import { createWritablePlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
 const testUrls: PlayerUrls = {
@@ -16,7 +16,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	options: Partial<
 		Pick<
 			PlayerRoot,
-			'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'isScopeEnabled' | 'seekSeconds'
+			'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'isScopeEnabled' | 'labels'
 		>
 	> = {},
 ) {
@@ -24,17 +24,19 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	definePlayerElements();
 
 	const fake = createMockEngine();
-	const store = createPlayerStore({ createEngine: fake.createEngine, isPersistent: false });
+	const store = createWritablePlayerStore({
+		createEngine: fake.createEngine,
+		isPersistent: false,
+	});
 	const root = document.createElement('player-root');
 	const part = document.createElement(tag);
 
 	for (const [name, value] of Object.entries(attributes)) part.setAttribute(name, value);
 
-	Object.assign(root, options);
-	root.className = 'player';
+	store.getState().configure({ urls: testUrls });
 	root.labels = labels;
+	Object.assign(root, options);
 	root.store = store;
-	root.urls = testUrls;
 	root.append(part);
 	document.body.append(root);
 

@@ -1,4 +1,5 @@
 import { buttonPart } from '#elements/button-part.ts';
+import { formatTemplate } from '#lib/format.ts';
 import { renderIconButton } from '#lib/icon-button.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { isLoaded } from '#store/selectors.ts';
@@ -10,10 +11,12 @@ export const PlayerSeekButton = buttonPart((element) => {
 		apply: (button, isTrackLoaded: boolean) => {
 			button.disabled = !isTrackLoaded;
 		},
-		connect: (button) => {
+		connect: (button, { labels }) => {
+			const label = seconds < 0 ? labels.seekBack : labels.seekForward;
+
+			button.setAttribute('aria-label', formatTemplate(label, { seconds: Math.abs(seconds) }));
 			button.replaceChildren(seekIcon(seconds));
 		},
-		label: seconds < 0 ? 'seekBack' : 'seekForward',
 		press: (state) => {
 			state.seekBy(seconds);
 		},

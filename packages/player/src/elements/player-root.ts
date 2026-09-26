@@ -1,7 +1,5 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerLabels, PlayerStatus, PlayerUrls } from '#types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
+import type { PlayerLabels, PlayerStatus } from '#types.ts';
 
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
@@ -21,8 +19,6 @@ const rootAttributes = {
 	isPaused: 'data-paused',
 	isWaiting: 'data-waiting',
 } as const satisfies Record<Exclude<keyof RootView, 'status'>, `data-${string}`>;
-
-const hydratedStores = new WeakSet<StoreApi<PlayerStore>>();
 
 export class PlayerRoot extends PlayerElement {
 	get isArtworkEnabled(): boolean {
@@ -64,30 +60,12 @@ export class PlayerRoot extends PlayerElement {
 		this.#labels = labels;
 	}
 
-	get seekSeconds(): number | undefined {
-		return this.#seekSeconds;
-	}
-
-	set seekSeconds(seekSeconds: number | undefined) {
-		this.#seekSeconds = seekSeconds;
-	}
-
-	get store(): StoreApi<PlayerStore> | undefined {
+	get store(): PlayerStoreApi | undefined {
 		return this.#store;
 	}
 
-	set store(store: StoreApi<PlayerStore> | undefined) {
+	set store(store: PlayerStoreApi | undefined) {
 		this.#store = store;
-	}
-
-	get urls(): PlayerUrls | undefined {
-		return this.#urls;
-	}
-
-	set urls(urls: PlayerUrls | undefined) {
-		this.#urls = urls;
-
-		if (this.isConnected) this.#store?.getState().configure({ urls });
 	}
 
 	#isArtworkEnabled = true;
@@ -98,11 +76,7 @@ export class PlayerRoot extends PlayerElement {
 
 	#labels: PlayerLabels | undefined;
 
-	#seekSeconds: number | undefined;
-
-	#store: StoreApi<PlayerStore> | undefined;
-
-	#urls: PlayerUrls | undefined;
+	#store: PlayerStoreApi | undefined;
 
 	protected connect(signal: AbortSignal): void {
 		this.upgradeProperty('isArtworkEnabled');
@@ -110,20 +84,11 @@ export class PlayerRoot extends PlayerElement {
 		this.upgradeProperty('isPanelEnabled');
 		this.upgradeProperty('isScopeEnabled');
 		this.upgradeProperty('labels');
-		this.upgradeProperty('seekSeconds');
 		this.upgradeProperty('store');
-		this.upgradeProperty('urls');
 
 		const store = this.#store;
 		if (!store) throw new Error('<player-root> connected without a store');
 
-		if (!hydratedStores.has(store)) {
-			hydratedStores.add(store);
-			store.getState().hydratePreferences();
-			store.getState().hydrateQueue();
-		}
-
-		store.getState().configure({ urls: this.#urls });
 		bind(
 			store,
 			selectRoot,
@@ -132,7 +97,6 @@ export class PlayerRoot extends PlayerElement {
 			},
 			signal,
 		);
-		if (this.hasAttribute('is-primary')) bindPrimary(store, signal);
 	}
 }
 
@@ -142,18 +106,6 @@ function applyRoot(root: HTMLElement, view: RootView): void {
 	root.toggleAttribute(rootAttributes.isMuted, view.isMuted);
 	root.toggleAttribute(rootAttributes.isPaused, view.isPaused);
 	root.toggleAttribute(rootAttributes.isWaiting, view.isWaiting);
-}
-
-// The document's own bar answers the router; a specimen root does not
-function bindPrimary(store: StoreApi<PlayerStore>, signal: AbortSignal): void {
-	// Without `moveBefore` the router moves the persisted bar out and back, which drops the dialog's modal state
-	document.addEventListener(
-		'astro:before-preparation',
-		() => {
-			store.getState().setOverlayOpen(false);
-		},
-		{ signal },
-	);
 }
 
 function selectRoot(state: PlayerStore): RootView {

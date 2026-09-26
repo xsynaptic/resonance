@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 
 import { PlayerRoot } from '#elements/player-root.ts';
 import { createPlayerStore } from '#store/player-store.ts';
@@ -31,16 +31,6 @@ describe('<player-root>', () => {
 		store.getState().toggleMuted();
 
 		expect(root.dataset.muted).toBe('');
-	});
-
-	test('hydrates its store once however often it reconnects', () => {
-		const { root, store } = mount('player-time');
-		const hydratePreferences = vi.spyOn(store.getState(), 'hydratePreferences');
-
-		root.remove();
-		document.body.append(root);
-
-		expect(hydratePreferences).not.toHaveBeenCalled();
 	});
 
 	test('takes a store handed to it before its tag was defined', () => {

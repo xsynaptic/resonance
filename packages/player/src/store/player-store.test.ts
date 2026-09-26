@@ -6,7 +6,7 @@ import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
-import { createPlayerStore } from '#store/player-store.ts';
+import { createPlayerStore, createWritablePlayerStore } from '#store/player-store.ts';
 
 // Replaced per test, so nothing a store did survives into the next one
 let fake = createMockEngine();
@@ -34,9 +34,11 @@ interface StoredQueueRecord {
 	queue: Array<{ itemId: string }>;
 }
 
-function configured(): StoreApi<PlayerStore> {
-	return withResolver(({ itemId }) =>
-		Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${itemId}/stream` }),
+function configured(isPersistent = false): StoreApi<PlayerStore> {
+	return withResolver(
+		({ itemId }) =>
+			Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${itemId}/stream` }),
+		isPersistent,
 	);
 }
 
@@ -81,12 +83,16 @@ function pendingResolver() {
 	};
 }
 
+function persisted(): StoreApi<PlayerStore> {
+	return configured(true);
+}
+
 function storedQueue(): null | StoredQueueRecord {
 	return JSON.parse(localStorage.getItem('player:v2:queue') ?? 'null') as null | StoredQueueRecord;
 }
 
-function withResolver(stream: PlayerUrls['stream']): StoreApi<PlayerStore> {
-	const store = createPlayerStore({ createEngine: fake.createEngine });
+function withResolver(stream: PlayerUrls['stream'], isPersistent = false): StoreApi<PlayerStore> {
+	const store = createWritablePlayerStore({ createEngine: fake.createEngine, isPersistent });
 
 	store.getState().configure({
 		urls: {
@@ -901,15 +907,14 @@ describe('volume', () => {
 		vi.useFakeTimers();
 
 		try {
-			const store = configured();
+			const store = persisted();
 
 			store.getState().setVolume(0.3);
 			store.getState().toggleMuted();
 			vi.runAllTimers();
 
-			const reloaded = configured();
+			const reloaded = persisted();
 
-			reloaded.getState().hydratePreferences();
 			expect(reloaded.getState()).toMatchObject({ isMuted: true, volume: 0.3 });
 
 			reloaded.getState().toggleMuted();
@@ -923,14 +928,13 @@ describe('volume', () => {
 });
 
 describe('time mode', () => {
-	test('persists the choice and restores it on hydrate', () => {
-		configured().getState().toggleTimeMode();
+	test('persists the choice and restores it on reload', () => {
+		persisted().getState().toggleTimeMode();
 
 		expect(localStorage.getItem('player:v1:time-mode')).toBe('remaining');
 
-		const restored = configured();
+		const restored = persisted();
 
-		restored.getState().hydratePreferences();
 		expect(restored.getState().timeMode).toBe('remaining');
 
 		localStorage.removeItem('player:v1:time-mode');
@@ -939,9 +943,8 @@ describe('time mode', () => {
 	test('ignores a stored value that is not a mode', () => {
 		localStorage.setItem('player:v1:time-mode', 'sideways');
 
-		const store = configured();
+		const store = persisted();
 
-		store.getState().hydratePreferences();
 		expect(store.getState().timeMode).toBe('elapsed');
 
 		localStorage.removeItem('player:v1:time-mode');
@@ -949,27 +952,25 @@ describe('time mode', () => {
 });
 
 describe('panel state', () => {
-	test('persists the open state and restores it on hydrate', () => {
-		configured().getState().togglePanel();
+	test('persists the open state and restores it on reload', () => {
+		persisted().getState().togglePanel();
 
 		expect(localStorage.getItem('player:v1:panel-open')).toBe('true');
 
-		const restored = configured();
+		const restored = persisted();
 
-		restored.getState().hydratePreferences();
 		expect(restored.getState().isPanelOpen).toBe(true);
 
 		localStorage.removeItem('player:v1:panel-open');
 	});
 
-	test('persists the zoom step and restores it on hydrate', () => {
-		configured().getState().zoomPanel(1);
+	test('persists the zoom step and restores it on reload', () => {
+		persisted().getState().zoomPanel(1);
 
 		expect(localStorage.getItem('player:v1:panel-zoom')).toBe('105');
 
-		const restored = configured();
+		const restored = persisted();
 
-		restored.getState().hydratePreferences();
 		expect(restored.getState().panelPxPerSecond).toBe(105);
 
 		localStorage.removeItem('player:v1:panel-zoom');
@@ -978,9 +979,8 @@ describe('panel state', () => {
 	test('ignores a stored zoom that is not a step on the ladder', () => {
 		localStorage.setItem('player:v1:panel-zoom', '83');
 
-		const store = configured();
+		const store = persisted();
 
-		store.getState().hydratePreferences();
 		expect(store.getState().panelPxPerSecond).toBe(70);
 
 		localStorage.removeItem('player:v1:panel-zoom');
@@ -1005,9 +1005,8 @@ describe('scrub preview', () => {
 
 describe('queue persistence', () => {
 	test('writes the queue as it changes, and clears it when the queue empties', () => {
-		const store = configured();
+		const store = persisted();
 
-		store.getState().hydrateQueue();
 		store.getState().playTrack(release, 'b');
 
 		expect(storedQueue()?.queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
@@ -1018,9 +1017,8 @@ describe('queue persistence', () => {
 	});
 
 	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
-		const store = configured();
+		persisted();
 
-		store.getState().hydrateQueue();
 		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: release }));
 		leavePage();
 
@@ -1030,34 +1028,29 @@ describe('queue persistence', () => {
 	});
 
 	test('clears a restored queue once it is emptied', () => {
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().loadQueue(release);
 
 		fake = createMockEngine();
 
-		const second = configured();
+		const second = persisted();
 
-		second.getState().hydrateQueue();
 		second.getState().clearQueue();
 
 		expect(localStorage.getItem('player:v2:queue')).toBeNull();
 	});
 
 	test('restores the queue and its position without loading anything', () => {
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().playTrack(release, 'b');
 		first.getState().seek(42);
 		leavePage();
 
 		fake = createMockEngine();
 
-		const second = configured();
-
-		second.getState().hydrateQueue();
+		const second = persisted();
 
 		const state = second.getState();
 
@@ -1071,18 +1064,16 @@ describe('queue persistence', () => {
 	});
 
 	test('loads a restored track at the stored position on the first press', async () => {
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().playTrack(release, 'b');
 		first.getState().seek(42);
 		leavePage();
 
 		fake = createMockEngine();
 
-		const second = configured();
+		const second = persisted();
 
-		second.getState().hydrateQueue();
 		second.getState().togglePaused();
 
 		await vi.waitFor(() => {
@@ -1096,18 +1087,16 @@ describe('queue persistence', () => {
 	});
 
 	test('restarts a restored track past the threshold rather than stepping back', () => {
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().playTrack(release, 'b');
 		first.getState().seek(42);
 		leavePage();
 
 		fake = createMockEngine();
 
-		const second = configured();
+		const second = persisted();
 
-		second.getState().hydrateQueue();
 		second.getState().previous();
 
 		expect(second.getState().currentIndex).toBe(1);
@@ -1118,16 +1107,14 @@ describe('queue persistence', () => {
 	});
 
 	test('stamps a restored queue with fresh ids rather than the ones it was stored with', () => {
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().loadQueue(release);
 
 		fake = createMockEngine();
 
-		const second = configured();
+		const second = persisted();
 
-		second.getState().hydrateQueue();
 		second.getState().playTrack([makeItem('d')], 'd');
 
 		const ids = second.getState().queue.map((item) => item.queueId);
@@ -1148,9 +1135,7 @@ describe('queue persistence', () => {
 			}),
 		);
 
-		const store = configured();
-
-		store.getState().hydrateQueue();
+		const store = persisted();
 
 		expect(store.getState().queue).toHaveLength(3);
 		expect(store.getState().currentIndex).toBeUndefined();
@@ -1159,36 +1144,16 @@ describe('queue persistence', () => {
 		localStorage.removeItem('player:v2:queue');
 	});
 
-	test('keeps what a page queued before the restore ran', () => {
-		const first = configured();
-
-		first.getState().hydrateQueue();
-		first.getState().loadQueue(release);
-
-		fake = createMockEngine();
-
-		const second = configured();
-
-		second.getState().loadQueue([makeItem('x')]);
-		second.getState().hydrateQueue();
-
-		expect(second.getState().queue).toHaveLength(1);
-
-		localStorage.removeItem('player:v2:queue');
-	});
-
 	// Earlier stores in this file still listen, so a first flush settles whatever they hold unsaved
 	test('leaves a queue another tab saved when a store that never moved unloads', () => {
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().loadQueue(release);
 
 		fake = createMockEngine();
 
-		const second = configured();
+		const second = persisted();
 
-		second.getState().hydrateQueue();
 		leavePage();
 		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: [makeItem('y')] }));
 		leavePage();
@@ -1204,9 +1169,8 @@ describe('queue persistence', () => {
 	});
 
 	test('flushes the position when the page goes hidden', () => {
-		const store = configured();
+		const store = persisted();
 
-		store.getState().hydrateQueue();
 		store.getState().playTrack(release, 'b');
 		store.getState().seek(42);
 		hidePage();
@@ -1218,9 +1182,8 @@ describe('queue persistence', () => {
 
 	test('writes a shuffle toggle straight away, and a reload keeps its order', () => {
 		const random = vi.spyOn(Math, 'random').mockReturnValue(0);
-		const first = configured();
+		const first = persisted();
 
-		first.getState().hydrateQueue();
 		first.getState().loadQueue([...release, makeItem('d')]);
 		first.getState().toggleShuffle();
 
@@ -1231,9 +1194,7 @@ describe('queue persistence', () => {
 		random.mockReturnValue(0.99);
 		fake = createMockEngine();
 
-		const second = configured();
-
-		second.getState().hydrateQueue();
+		const second = persisted();
 
 		expect(second.getState().playOrder).toStrictEqual(playOrder);
 
@@ -1247,9 +1208,7 @@ describe('queue persistence', () => {
 			JSON.stringify({ isShuffling: true, playOrder: [0, 0, 1], queue: release }),
 		);
 
-		const store = configured();
-
-		store.getState().hydrateQueue();
+		const store = persisted();
 
 		expect(store.getState().playOrder.toSorted((left, right) => left - right)).toStrictEqual([
 			0, 1, 2,
@@ -1268,9 +1227,7 @@ describe('queue persistence', () => {
 			}),
 		);
 
-		const store = configured();
-
-		store.getState().hydrateQueue();
+		const store = persisted();
 
 		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'c']);
 		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
@@ -1284,9 +1241,7 @@ describe('queue persistence', () => {
 			JSON.stringify({ currentIndex: 1.5, currentTimeSeconds: 42, queue: release }),
 		);
 
-		const store = configured();
-
-		store.getState().hydrateQueue();
+		const store = persisted();
 
 		expect(store.getState()).toMatchObject({ currentIndex: undefined, currentTimeSeconds: 0 });
 
@@ -1299,9 +1254,7 @@ describe('queue persistence', () => {
 			JSON.stringify({ currentIndex: 0, currentTimeSeconds: 0, queue: release }),
 		);
 
-		const store = configured();
-
-		store.getState().hydrateQueue();
+		const store = persisted();
 
 		expect(store.getState().isShuffling).toBe(false);
 
@@ -1321,11 +1274,8 @@ describe('storage', () => {
 		});
 
 		try {
-			const store = configured();
+			const store = persisted();
 
-			expect(() => {
-				store.getState().hydratePreferences();
-			}).not.toThrow();
 			expect(() => {
 				store.getState().setVolume(0.3);
 			}).not.toThrow();
@@ -1356,9 +1306,6 @@ describe('storage', () => {
 		try {
 			const store = createPlayerStore({ createEngine: fake.createEngine, isPersistent: false });
 
-			store.getState().hydratePreferences();
-			store.getState().hydrateQueue();
-
 			expect(store.getState().volume).toBe(1);
 			expect(store.getState().queue).toHaveLength(0);
 
@@ -1380,7 +1327,7 @@ describe('storage', () => {
 		localStorage.removeItem('player:v1:volume');
 
 		try {
-			configured().getState().setVolume(0.3);
+			persisted().getState().setVolume(0.3);
 			hidePage();
 
 			expect(localStorage.getItem('player:v1:volume')).toBe('0.3');
@@ -1395,7 +1342,7 @@ describe('storage', () => {
 		localStorage.removeItem('player:v1:volume');
 
 		try {
-			const store = configured();
+			const store = persisted();
 			const setItem = vi.spyOn(localStorage, 'setItem');
 
 			for (const volume of [0.1, 0.2, 0.3, 0.4]) store.getState().setVolume(volume);

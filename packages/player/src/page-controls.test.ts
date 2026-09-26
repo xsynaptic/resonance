@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import type { PageControls } from '#page-controls.ts';
 import type { PlayerUrls, QueueItem } from '#types.ts';
 
 import { heldPressAttribute } from '#constants.ts';
@@ -9,15 +10,15 @@ import { createPlayerStore } from '#store/player-store.ts';
 import { loadedItem } from '#store/selectors.ts';
 import { queueItem } from '#test/mount.ts';
 
-let unbind: (() => void) | undefined;
+let pageControls: PageControls | undefined;
 
 const urls: PlayerUrls = {
 	stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
 };
 
 afterEach(() => {
-	unbind?.();
-	unbind = undefined;
+	pageControls?.unbind();
+	pageControls = undefined;
 	document.body.replaceChildren();
 });
 
@@ -34,7 +35,7 @@ function bindPage(items: Array<QueueItem>, controls: string) {
 
 	return {
 		bind: () => {
-			unbind = bindPageControls(store, document, { onPress });
+			pageControls = bindPageControls(store, document, { onPress });
 		},
 		onPress,
 		store,
@@ -74,7 +75,7 @@ describe('bindPageControls', () => {
 		expect(loadedItem(page.store.getState())).toBeUndefined();
 	});
 
-	test('refreshes the queue from the payload on binding and after a soft navigation', () => {
+	test('refreshes the queue from the payload on binding and on a refresh', () => {
 		const page = bindPage([queueItem('a', { title: 'New' })], '');
 
 		page.store.getState().loadQueue([queueItem('a', { title: 'Old' })]);
@@ -85,12 +86,12 @@ describe('bindPageControls', () => {
 		element('[data-player-payload]').dataset.playerPayload = JSON.stringify([
 			queueItem('a', { title: 'Newer' }),
 		]);
-		document.dispatchEvent(new Event('astro:after-swap'));
+		pageControls?.refresh();
 
 		expect(page.store.getState().queue[0]?.title).toBe('Newer');
 	});
 
-	test('marks the loaded track on the page, and again on the page swapped in', () => {
+	test('marks the loaded track on the page, and again after a refresh', () => {
 		const page = bindPage(
 			[queueItem('a'), queueItem('b')],
 			'<button data-play-track="a"></button><div data-track-id="a"></div><div data-track-id="b"></div>',
@@ -104,7 +105,7 @@ describe('bindPageControls', () => {
 
 		element('[data-track-id="a"]').remove();
 		document.body.insertAdjacentHTML('beforeend', '<div data-track-id="a" id="swapped"></div>');
-		document.dispatchEvent(new Event('astro:after-swap'));
+		pageControls?.refresh();
 
 		expect(element('#swapped').dataset.loaded).toBe('');
 
@@ -117,7 +118,7 @@ describe('bindPageControls', () => {
 		const page = bindPage([queueItem('a')], '<button data-play-track="a"></button>');
 
 		page.bind();
-		unbind?.();
+		pageControls?.unbind();
 		element('[data-play-track]').click();
 
 		expect(loadedItem(page.store.getState())).toBeUndefined();

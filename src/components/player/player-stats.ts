@@ -1,5 +1,5 @@
 import type { PlaybackReport } from '@xsynaptic/playback-stats';
-import type { createPlayerStore } from '@xsynaptic/player';
+import type { PlayerStoreApi } from '@xsynaptic/player';
 
 import { monitorPlayback } from '@xsynaptic/playback-stats';
 
@@ -9,7 +9,7 @@ import { isOptedOut } from '#components/player/player-opt-out.ts';
 const minimumSeconds = 30;
 
 export function bindPlayerStats(
-	store: ReturnType<typeof createPlayerStore>,
+	store: PlayerStoreApi,
 	identify: () => string | undefined,
 ): () => void {
 	if (import.meta.env.DEV || navigator.doNotTrack === '1' || isOptedOut()) return doNothing;

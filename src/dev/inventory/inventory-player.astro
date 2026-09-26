@@ -30,29 +30,29 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		source="packages/player/src/elements/player-bar.ts"
 	>
 		<Variant label="full width">
-			<player-root class="player block" data-inventory-queue="bar">
+			<player-root class="block" data-inventory-queue="bar">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="no artwork">
-			<player-root class="player block" data-inventory-queue="no-artwork">
+			<player-root class="block" data-inventory-queue="no-artwork">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="32rem, artwork dropped">
-			<player-root class="player block max-w-lg" data-inventory-queue="bar">
+			<player-root class="block max-w-lg" data-inventory-queue="bar">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="320px mini, marquee (reduced motion restores the ellipsis)">
-			<player-root class="player block max-w-xs" data-inventory-queue="marquee">
+			<player-root class="block max-w-xs" data-inventory-queue="marquee">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="320px mini, isOverlayEnabled=false: the Queue replaces Expand">
 			<div class="pt-96">
 				<player-root
-					class="player block max-w-xs"
+					class="block max-w-xs"
 					data-inventory-overlay="off"
 					data-inventory-queue="marquee"
 				>
@@ -67,29 +67,29 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		source="packages/player/src/store/selectors.ts"
 	>
 		<Variant label="idle: queued, nothing loaded">
-			<player-root class="player block" data-inventory-queue="idle">
+			<player-root class="block" data-inventory-queue="idle">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="empty: nothing queued, hidden on the site">
 			<div class="inventory-player-empty">
-				<player-root class="player block" data-inventory-queue="empty">
+				<player-root class="block" data-inventory-queue="empty">
 					<player-bar></player-bar>
 				</player-root>
 			</div>
 		</Variant>
 		<Variant label="error: the stream rejects">
-			<player-root class="player block" data-inventory-queue="error">
+			<player-root class="block" data-inventory-queue="error">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="loading, held; a press cancels">
-			<player-root class="player block" data-inventory-queue="loading">
+			<player-root class="block" data-inventory-queue="loading">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
 		<Variant label="panel pending: the archive never answers">
-			<player-root class="player block" data-inventory-queue="panel">
+			<player-root class="block" data-inventory-queue="panel">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
@@ -101,7 +101,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	>
 		<Variant label="390x844 phone">
 			<player-root
-				class="player block h-211 w-97.5 max-w-full border border-surface-400"
+				class="block h-211 w-97.5 max-w-full border border-surface-400"
 				data-inventory-queue="overlay"
 			>
 				<player-overlay-content></player-overlay-content>
@@ -109,7 +109,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</Variant>
 		<Variant label="844x390 phone landscape">
 			<player-root
-				class="player block h-97.5 w-211 max-w-full border border-surface-400"
+				class="block h-97.5 w-211 max-w-full border border-surface-400"
 				data-inventory-queue="overlay"
 			>
 				<player-overlay-content></player-overlay-content>
@@ -117,7 +117,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</Variant>
 		<Variant label="900x800 columns">
 			<player-root
-				class="player block h-200 w-225 max-w-full border border-surface-400"
+				class="block h-200 w-225 max-w-full border border-surface-400"
 				data-inventory-queue="overlay"
 			>
 				<player-overlay-content></player-overlay-content>
@@ -132,7 +132,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		<Variant label="default">
 			<div class="pt-36">
 				<player-root
-					class="player inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
+					class="inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
 					data-inventory-queue="volume"
 				>
 					<player-volume-popover></player-volume-popover>
@@ -142,7 +142,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		<Variant label="muted at 30%">
 			<div class="pt-36">
 				<player-root
-					class="player inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
+					class="inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
 					data-inventory-queue="muted"
 				>
 					<player-volume-popover></player-volume-popover>
@@ -156,7 +156,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		source="packages/player/src/elements/tray/"
 	>
 		<div class="pt-96">
-			<player-root class="player block" data-inventory-queue="tray">
+			<player-root class="block" data-inventory-queue="tray">
 				<player-bar></player-bar>
 			</player-root>
 		</div>
@@ -168,7 +168,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	>
 		<Variant label="cued and paused">
 			<player-root
-				class="player relative flex flex-wrap items-center gap-4 bg-surface-900 py-2.5 pr-4"
+				class="relative flex flex-wrap items-center gap-4 bg-surface-900 py-2.5 pr-4"
 				data-inventory-queue="bar"
 			>
 				<player-artwork></player-artwork>
@@ -197,7 +197,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</Variant>
 		<Variant label="resolver rejects">
 			<player-root
-				class="player relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
 				data-inventory-queue="error"
 			>
 				<player-play-button></player-play-button>
@@ -212,7 +212,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</Variant>
 		<Variant label="empty store">
 			<player-root
-				class="player flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				class="flex items-center gap-4 bg-surface-900 px-4 py-2.5"
 				data-inventory-queue="empty"
 			>
 				<player-play-button></player-play-button>
@@ -227,7 +227,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		source="packages/player/src/elements/time-slider/"
 	>
 		<Variant label="panel open, archive pending; hover a cue dot for its label">
-			<player-root class="player relative bg-surface-900 pb-2.5" data-inventory-queue="panel">
+			<player-root class="relative bg-surface-900 pb-2.5" data-inventory-queue="panel">
 				<player-panel class="block"></player-panel>
 				<div class="flex items-center gap-4 px-4 pt-2.5">
 					<player-play-button></player-play-button>
@@ -241,7 +241,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</Variant>
 		<Variant label="idle, the inert preview">
 			<player-root
-				class="player relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
 				data-inventory-queue="idle"
 			>
 				<player-play-button></player-play-button>
@@ -250,7 +250,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</Variant>
 		<Variant label="no peaks, the range input fallback">
 			<player-root
-				class="player relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
+				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
 				data-inventory-queue="no-peaks"
 			>
 				<player-play-button></player-play-button>
@@ -271,7 +271,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 </Section>
 <script id="inventory-player" is:inline set:html={specimenData} type="application/json"></script>
 <script>
-	import type { PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
+	import type { PlayerLabels, PlayerStoreApi, PlayerUrls, QueueItem } from '@xsynaptic/player';
 
 	import { createPlayerStore, definePlayerElements } from '@xsynaptic/player';
 
@@ -296,14 +296,12 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		seekSeconds: number;
 	}
 
-	type SpecimenStore = ReturnType<typeof createPlayerStore>;
-
 	// Roots that show a control rather than an item hold no queue
 	const unqueued = new Set(['empty', 'muted', 'volume']);
 
 	const openPanelQueues = new Set(['palette', 'panel']);
 
-	function createSpecimenStore(queue: string): SpecimenStore {
+	function createSpecimenStore(queue: string): PlayerStoreApi {
 		const store = createPlayerStore({
 			createEngine: queue === 'loading' ? createLoadingEngine : createSilentEngine,
 			isPersistent: false,
@@ -318,7 +316,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	}
 
 	// The error and loading roots play, so the rejection and the held load are what they show
-	function seedSpecimen(store: SpecimenStore, queue: string): void {
+	function seedSpecimen(store: PlayerStoreApi, queue: string): void {
 		if (queue === 'idle') return;
 		if (queue === 'error' || queue === 'loading') {
 			store.getState().playAt(0);
@@ -351,12 +349,10 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 			root.isOverlayEnabled = root.dataset.inventoryOverlay !== 'off';
 			root.labels = labels;
-			root.seekSeconds = seekSeconds;
 			root.store = store;
-			root.urls = urls;
+			store.getState().configure({ seekSeconds, urls });
 
 			if (!unqueued.has(queue)) {
-				store.getState().configure({ urls });
 				store.getState().loadQueue(specimenItems(items, queue));
 				seedSpecimen(store, queue);
 			}

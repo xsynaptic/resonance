@@ -1,13 +1,6 @@
-import type {
-	CreateAudioEngine,
-	createPlayerStore,
-	PlayerUrls,
-	QueueItem,
-} from '@xsynaptic/player';
+import type { CreateAudioEngine, PlayerStoreApi, PlayerUrls, QueueItem } from '@xsynaptic/player';
 
 import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
-
-type SpecimenStore = ReturnType<typeof createPlayerStore>;
 
 // A browser refuses playback outside a gesture, so the specimens stand at the engine seam instead
 export const createSilentEngine: CreateAudioEngine = (callbacks) => {
@@ -59,7 +52,7 @@ export const createLoadingEngine: CreateAudioEngine = (callbacks) => ({
 });
 
 // Cued and paused, as a listener leaves it; the ring belongs to the loading specimen alone
-export function cueFirstPaused(store: SpecimenStore): void {
+export function cueFirstPaused(store: PlayerStoreApi): void {
 	store.getState().playAt(0);
 	store.getState().pause();
 }

@@ -15,7 +15,7 @@ const volumeStorageKey = 'player:v1:volume';
 const volumeWriteDelayMs = 250;
 
 export interface PlayerPersistence {
-	// Bound on connect rather than at module load, because the store is also imported where there is no window
+	// Bound after the stored queue lands, so restoring it writes nothing back
 	bindQueue: () => void;
 	persistMuted: (isMuted: boolean) => void;
 	persistPanelOpen: (isOpen: boolean) => void;

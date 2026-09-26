@@ -4,12 +4,14 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';
 
+const store = vi.hoisted(() => ({}));
+
 const elements = vi.hoisted(() => ({
 	bindMediaSession: vi.fn(),
-	bindPageControls: vi.fn(),
-	definePlayerElements: vi.fn(),
+	bindPageControls: vi.fn(() => ({ refresh: vi.fn(), unbind: vi.fn() })),
+	createPlayer: vi.fn(() => document.createElement('player-root')),
+	createPlayerStore: vi.fn(() => store),
 	loadedItem: vi.fn(),
-	playerStore: {},
 }));
 
 // Bound for real under `NODE_ENV=production`, where `import.meta.env.DEV` stops short-circuiting it
@@ -59,34 +61,26 @@ describe('startPlayer', () => {
 	test('a press before idle loads the player at once and is held for the page controls', async () => {
 		vi.stubGlobal('requestIdleCallback', () => 0);
 		mountPage({ hasPayload: true });
-
-		let rootAtDefine: Element | null | undefined;
-
-		elements.definePlayerElements.mockImplementation(() => {
-			rootAtDefine = document.querySelector('player-root');
-		});
 		startPlayer();
 		await settle();
 
-		expect(elements.definePlayerElements).not.toHaveBeenCalled();
+		expect(elements.createPlayer).not.toHaveBeenCalled();
 
 		control('[data-play-track] span').click();
 
 		await vi.waitFor(() => {
-			expect(elements.bindPageControls).toHaveBeenCalledWith(elements.playerStore, document, {
+			expect(elements.bindPageControls).toHaveBeenCalledWith(store, document, {
 				onPress: analytics.trackControlPress,
 			});
 		});
-		const root = control(
-			'[data-player-host] > player-root[is-primary]',
-		) as HTMLElementTagNameMap['player-root'];
 
-		expect(rootAtDefine).toBeNull();
-		expect(elements.bindMediaSession).toHaveBeenCalledWith(elements.playerStore, 30);
-		expect(stats.bindPlayerStats).toHaveBeenCalledWith(elements.playerStore, expect.any(Function));
-		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(elements.playerStore);
-		expect(root.store).toBe(elements.playerStore);
-		expect(root.querySelector(':scope > player-bar')).not.toBeNull();
+		expect(elements.createPlayer).toHaveBeenCalledWith(
+			expect.objectContaining({ isScopeEnabled: false, seekSeconds: 30, store }),
+		);
+		expect(document.querySelector('[data-player-host] > player-root')).not.toBeNull();
+		expect(elements.bindMediaSession).toHaveBeenCalledWith(store);
+		expect(stats.bindPlayerStats).toHaveBeenCalledWith(store, expect.any(Function));
+		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(store);
 		expect(control('[data-play-track]').hasAttribute(heldPressAttribute)).toBe(true);
 	});
 
@@ -100,14 +94,14 @@ describe('startPlayer', () => {
 		startPlayer();
 		await settle();
 
-		expect(elements.definePlayerElements).not.toHaveBeenCalled();
+		expect(elements.createPlayer).not.toHaveBeenCalled();
 
 		document.body.insertAdjacentHTML('afterbegin', '<div data-player-payload="[]"></div>');
 		startPlayer();
 		startPlayer();
 
 		await vi.waitFor(() => {
-			expect(elements.definePlayerElements).toHaveBeenCalledOnce();
+			expect(elements.createPlayer).toHaveBeenCalledOnce();
 		});
 		expect(elements.bindMediaSession).toHaveBeenCalledOnce();
 	});

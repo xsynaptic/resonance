@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { createPlayerStore } from '#store/player-store.ts';
+import { createWritablePlayerStore } from '#store/player-store.ts';
 import { canStepBack, currentCue, restartThresholdSeconds } from '#store/selectors.ts';
 
 function stateAt(
@@ -8,7 +8,7 @@ function stateAt(
 	currentTimeSeconds: number,
 	playOrder: Array<number>,
 ) {
-	const store = createPlayerStore();
+	const store = createWritablePlayerStore({ isPersistent: false });
 
 	store.setState({ currentIndex, currentTimeSeconds, playOrder });
 
@@ -32,7 +32,7 @@ describe('currentCue', () => {
 	];
 
 	function cuedState(currentIndex: number | undefined, currentTimeSeconds: number) {
-		const store = createPlayerStore();
+		const store = createWritablePlayerStore({ isPersistent: false });
 
 		store.getState().loadQueue([
 			{

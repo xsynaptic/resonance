@@ -1,11 +1,8 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-store.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerStatus, QueuedItem } from '#types.ts';
 
 import { loadedItem } from '#store/selectors.ts';
 
-const defaultSeekSeconds = 10;
 const mediaSessionArtworkMaxWidth = 512;
 
 // Firefox on Android re-requests Android audio focus on every position report, so one is owed only where the platform is wrong
@@ -21,16 +18,13 @@ interface ReportedPosition {
 	position: number;
 }
 
-export function bindMediaSession(
-	store: StoreApi<PlayerStore>,
-	seekSeconds = defaultSeekSeconds,
-): () => void {
+export function bindMediaSession(store: PlayerStoreApi): () => void {
 	if (!('mediaSession' in navigator))
 		return () => {
 			// Nothing was claimed
 		};
 
-	const actions = bindActions(store, seekSeconds);
+	const actions = bindActions(store);
 
 	let boundQueueId: string | undefined;
 	let boundState: MediaSessionPlaybackState | undefined;
@@ -111,7 +105,7 @@ export function bindMediaSession(
 	};
 }
 
-function bindActions(store: StoreApi<PlayerStore>, seekSeconds: number): Array<MediaSessionAction> {
+function bindActions(store: PlayerStoreApi): Array<MediaSessionAction> {
 	const bindings: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
 		[
 			'play',
@@ -140,13 +134,17 @@ function bindActions(store: StoreApi<PlayerStore>, seekSeconds: number): Array<M
 		[
 			'seekbackward',
 			(details) => {
-				store.getState().seekBy(-(details.seekOffset ?? seekSeconds));
+				const { seekBy, seekSeconds } = store.getState();
+
+				seekBy(-(details.seekOffset ?? seekSeconds));
 			},
 		],
 		[
 			'seekforward',
 			(details) => {
-				store.getState().seekBy(details.seekOffset ?? seekSeconds);
+				const { seekBy, seekSeconds } = store.getState();
+
+				seekBy(details.seekOffset ?? seekSeconds);
 			},
 		],
 		[

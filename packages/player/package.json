@@ -8,6 +8,8 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
+		"./astro": "./src/astro.ts",
+		"./boot": "./src/boot.ts",
 		"./constants": "./src/constants.ts",
 		"./player.css": "./src/player.css"
 	},

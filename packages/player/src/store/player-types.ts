@@ -1,3 +1,5 @@
+import type { StoreApi } from 'zustand/vanilla';
+
 import type { CreateAudioEngine } from '#engine/audio-engine.ts';
 import type {
 	PlaybackDiagnostic,
@@ -12,16 +14,12 @@ import type {
 // Property syntax so an element can select one action without tripping `unbound-method`
 export interface PlayerActions {
 	clearQueue: () => void;
-	// Accepts the host's resolvers and nothing else; an unchanged object writes nothing
-	configure: (config: { urls: PlayerUrls | undefined }) => void;
+	// A field left out keeps its value, and an unchanged config writes nothing
+	configure: (config: { seekSeconds?: number | undefined; urls?: PlayerUrls | undefined }) => void;
 	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; read inside a rAF loop rather than subscribed to
 	getCurrentTime: () => number | undefined;
 	// Created on the first load, so an observer waits for it
 	getMediaElement: () => HTMLMediaElement | undefined;
-	// The root hydrates each store once, however often it reconnects
-	hydratePreferences: () => void;
-	// Positioned, with nothing loaded and nothing playing
-	hydrateQueue: () => void;
 	// Replaces the queue and unloads whatever played; nothing plays until a gesture asks
 	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
 	// A shuffled play order moves with the item rather than reshuffling
@@ -84,6 +82,8 @@ export interface PlayerState {
 	playOrder: Array<number>;
 	queue: Array<QueuedItem>;
 	scrubPreviewSeconds: number | undefined;
+	// Read once, as the bar and the overlay connect
+	seekSeconds: number;
 	status: PlayerStatus;
 	// A listener preference rather than playback state, so it is persisted beside the volume
 	timeMode: PlayerTimeMode;
@@ -93,6 +93,8 @@ export interface PlayerState {
 }
 
 export type PlayerStore = PlayerActions & PlayerState;
+
+export type PlayerStoreApi = Omit<StoreApi<PlayerStore>, 'setState'>;
 
 export interface PlayerStoreOptions {
 	createEngine?: CreateAudioEngine | undefined;

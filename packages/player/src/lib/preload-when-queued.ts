@@ -1,9 +1,7 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 
 // Touch fires `pointerenter` with the tap, so a toggle's hover preload gives a touch open no head start
-export function preloadWhenQueued(store: StoreApi<PlayerStore>, preload: () => void): () => void {
+export function preloadWhenQueued(store: PlayerStoreApi, preload: () => void): () => void {
 	let cancelIdle: (() => void) | undefined;
 
 	const schedule = (state: PlayerStore): void => {

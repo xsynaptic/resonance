@@ -16,7 +16,7 @@ function transportLabels(part: Element): Array<null | string> {
 
 describe('<player-bar>', () => {
 	test('places the seek pair inside the step buttons, under one named region', () => {
-		const { part } = mount('player-bar', {}, { seekSeconds: 30 });
+		const { part } = mount('player-bar');
 
 		getByRole(part, 'region', { name: labels.nowPlaying });
 		expect(transportLabels(part)).toEqual([
@@ -38,15 +38,37 @@ describe('<player-bar>', () => {
 			{ isArtworkEnabled: false, isOverlayEnabled: false, isPanelEnabled: false },
 		);
 
-		expect(transportLabels(part)).toEqual([labels.previous, labels.play, labels.next]);
+		expect(transportLabels(part)).toEqual([
+			labels.previous,
+			labels.seekBack,
+			labels.play,
+			labels.seekForward,
+			labels.next,
+		]);
 		expect(part.querySelector('player-artwork')).toBeNull();
 		expect(part.querySelector('player-overlay-toggle')).toBeNull();
 		expect(part.querySelector('dialog')).toBeNull();
 		expect(part.querySelector('player-panel, player-panel-toggle')).toBeNull();
 	});
 
+	test('fills the seek labels with the seconds the store holds', () => {
+		const { part } = mount(
+			'player-bar',
+			{},
+			{ labels: { ...labels, seekBack: 'Back {seconds}', seekForward: 'Forward {seconds}' } },
+		);
+
+		expect(transportLabels(part)).toEqual([
+			labels.previous,
+			'Back 10',
+			labels.play,
+			'Forward 10',
+			labels.next,
+		]);
+	});
+
 	test('keeps its one bar across a reconnect', () => {
-		const { part, root } = mount('player-bar', {}, { seekSeconds: 30 });
+		const { part, root } = mount('player-bar');
 
 		root.remove();
 		document.body.append(root);

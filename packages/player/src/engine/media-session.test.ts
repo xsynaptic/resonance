@@ -5,7 +5,7 @@ import type { QueueItem } from '#types.ts';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bindMediaSession } from '#engine/media-session.ts';
-import { createPlayerStore } from '#store/player-store.ts';
+import { createWritablePlayerStore } from '#store/player-store.ts';
 
 // jsdom carries no media session, so the projection is read off a stand-in
 interface FakeMediaSession {
@@ -55,7 +55,10 @@ const release = [makeItem('a'), makeItem('b')];
 let mediaSession: FakeMediaSession;
 
 function loadedStore() {
-	const store = createPlayerStore({ createEngine: createMockEngine().createEngine });
+	const store = createWritablePlayerStore({
+		createEngine: createMockEngine().createEngine,
+		isPersistent: false,
+	});
 
 	store.getState().configure({
 		urls: {
@@ -289,7 +292,8 @@ describe('bindMediaSession', () => {
 	test('seeks by the host interval where the platform names no offset', () => {
 		const store = loadedStore();
 
-		bindMediaSession(store, 30);
+		store.getState().configure({ seekSeconds: 30 });
+		bindMediaSession(store);
 		store.setState({ currentIndex: 0, currentTimeSeconds: 100, durationSeconds: 600 });
 		mediaSession.handlers.get('seekbackward')?.({ action: 'seekbackward' });
 

@@ -1,4 +1,5 @@
-.player {
+player-root {
+	display: block;
 	font-family: var(--player-font-family);
 }
 

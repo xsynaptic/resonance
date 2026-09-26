@@ -1,13 +1,22 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 import type { QueueItem } from '#types.ts';
 
 import {
 	controlSelector,
+	cueCurrentAttribute,
+	cueMixAttribute,
+	cueSecondsAttribute,
 	heldPressAttribute,
 	heldPressSelector,
+	loadedAttribute,
+	payloadAttribute,
 	payloadSelector,
+	playingAttribute,
+	playPlaylistAttribute,
+	playTrackAttribute,
+	queuedAttribute,
+	queueTrackAttribute,
+	trackIdAttribute,
 } from '#constants.ts';
 import { bind } from '#lib/bind.ts';
 import { currentCue, loadedItem } from '#store/selectors.ts';
@@ -16,6 +25,11 @@ import { currentCue, loadedItem } from '#store/selectors.ts';
 export interface ControlPress {
 	itemIds: Array<string>;
 	verb: 'play-playlist' | 'play-track' | 'queue-track' | 'toggle-playlist';
+}
+
+export interface PageControls {
+	refresh: () => void;
+	unbind: () => void;
 }
 
 interface PageControlOptions {
@@ -31,20 +45,20 @@ interface RowState {
 
 // One delegated listener, so pages ship no player script and survive the client router's scripts-run-once model
 export function bindPageControls(
-	store: StoreApi<PlayerStore>,
+	store: PlayerStoreApi,
 	page: Document,
 	{ onPress }: PageControlOptions = {},
-): () => void {
+): PageControls {
 	const connection = new AbortController();
 	const { signal } = connection;
 	const readPayload = payloadReader(page);
 
 	const dispatchControl = (target: Element | undefined): void => {
-		const control = target?.closest<HTMLElement>(controlSelector);
+		const control = target?.closest(controlSelector);
 		const items = control ? readPayload() : undefined;
 		if (!control || !items) return;
 
-		const press = pressControl(store.getState(), control.dataset, items);
+		const press = pressControl(store.getState(), control, items);
 
 		if (press) onPress?.(press);
 	};
@@ -56,15 +70,6 @@ export function bindPageControls(
 	};
 
 	refreshQueue();
-	// Page load fires after the transition animates in, so marking there flashes the stale state
-	page.addEventListener(
-		'astro:after-swap',
-		() => {
-			refreshQueue();
-			markRows(page, selectRowState(store.getState()));
-		},
-		{ signal },
-	);
 	bind(
 		store,
 		selectRowState,
@@ -86,9 +91,19 @@ export function bindPageControls(
 	held?.removeAttribute(heldPressAttribute);
 	dispatchControl(held ?? undefined);
 
-	return () => {
-		connection.abort();
+	return {
+		refresh: () => {
+			refreshQueue();
+			markRows(page, selectRowState(store.getState()));
+		},
+		unbind: () => {
+			connection.abort();
+		},
 	};
+}
+
+function attribute(element: Element, name: string): string | undefined {
+	return element.getAttribute(name) ?? undefined;
 }
 
 function isTunedIn(playlistIds: string, itemId: string | undefined): boolean {
@@ -96,23 +111,23 @@ function isTunedIn(playlistIds: string, itemId: string | undefined): boolean {
 }
 
 function markCueRows(page: Document, { cueStartSeconds, itemId }: RowState): void {
-	for (const list of page.querySelectorAll<HTMLElement>('[data-cue-mix]')) {
-		const isLoaded = itemId !== undefined && list.dataset.cueMix === itemId;
+	for (const list of page.querySelectorAll(`[${CSS.escape(cueMixAttribute)}]`)) {
+		const isLoaded = itemId !== undefined && attribute(list, cueMixAttribute) === itemId;
 
-		for (const row of list.querySelectorAll<HTMLElement>('[data-cue-seconds]')) {
+		for (const row of list.querySelectorAll(`[${CSS.escape(cueSecondsAttribute)}]`)) {
 			row.toggleAttribute(
-				'data-cue-current',
-				isLoaded && Number(row.dataset.cueSeconds) === cueStartSeconds,
+				cueCurrentAttribute,
+				isLoaded && Number(attribute(row, cueSecondsAttribute)) === cueStartSeconds,
 			);
 		}
 	}
 }
 
 function markPlaylists(page: Document, { isPlaying, itemId }: RowState): void {
-	for (const playlist of page.querySelectorAll<HTMLElement>('[data-play-playlist]')) {
+	for (const playlist of page.querySelectorAll(`[${CSS.escape(playPlaylistAttribute)}]`)) {
 		playlist.toggleAttribute(
-			'data-playing',
-			isPlaying && isTunedIn(playlist.dataset.playPlaylist ?? '', itemId),
+			playingAttribute,
+			isPlaying && isTunedIn(attribute(playlist, playPlaylistAttribute) ?? '', itemId),
 		);
 	}
 }
@@ -126,17 +141,19 @@ function markRows(page: Document, state: RowState): void {
 function markTrackRows(page: Document, { isPlaying, itemId, queuedIds }: RowState): void {
 	const queued = new Set(queuedIds.split(' '));
 
-	for (const row of page.querySelectorAll<HTMLElement>('[data-track-id]')) {
-		const { trackId } = row.dataset;
+	for (const row of page.querySelectorAll(`[${CSS.escape(trackIdAttribute)}]`)) {
+		const trackId = attribute(row, trackIdAttribute);
 		const isLoaded = itemId !== undefined && trackId === itemId;
 		const isQueued = trackId !== undefined && queued.has(trackId);
 
-		row.toggleAttribute('data-loaded', isLoaded);
-		row.toggleAttribute('data-playing', isLoaded && isPlaying);
-		row.toggleAttribute('data-queued', isQueued);
+		row.toggleAttribute(loadedAttribute, isLoaded);
+		row.toggleAttribute(playingAttribute, isLoaded && isPlaying);
+		row.toggleAttribute(queuedAttribute, isQueued);
 
 		// The verb only adds, so a queued Mix leaves the button nothing to do
-		for (const button of row.querySelectorAll<HTMLButtonElement>('[data-queue-track]')) {
+		for (const button of row.querySelectorAll<HTMLButtonElement>(
+			`[${CSS.escape(queueTrackAttribute)}]`,
+		)) {
 			button.disabled = isQueued;
 		}
 	}
@@ -148,7 +165,7 @@ function payloadReader(page: Document): () => Array<QueueItem> | undefined {
 	let parsedItems: Array<QueueItem> | undefined;
 
 	return () => {
-		const payload = page.querySelector<HTMLElement>(payloadSelector)?.dataset.playerPayload;
+		const payload = page.querySelector(payloadSelector)?.getAttribute(payloadAttribute);
 		if (!payload) return;
 		if (payload === parsedSource) return parsedItems;
 
@@ -174,10 +191,10 @@ function playlistItems(ids: string, items: ReadonlyArray<QueueItem>): Array<Queu
 // The nearest verb wins, so a track's own control beats a play-all wrapping it
 function pressControl(
 	state: PlayerStore,
-	verbs: DOMStringMap,
+	control: Element,
 	items: Array<QueueItem>,
 ): ControlPress | undefined {
-	const { playPlaylist, playTrack, queueTrack } = verbs;
+	const playPlaylist = attribute(control, playPlaylistAttribute);
 
 	if (playPlaylist !== undefined && isTunedIn(playPlaylist, loadedItem(state)?.itemId)) {
 		state.togglePaused();
@@ -193,12 +210,15 @@ function pressControl(
 		return { itemIds: playlist.map((item) => item.itemId), verb: 'play-playlist' };
 	}
 
+	const queueTrack = attribute(control, queueTrackAttribute);
+
 	if (queueTrack) {
 		state.queueTrack(items, queueTrack);
 
 		return { itemIds: [queueTrack], verb: 'queue-track' };
 	}
 
+	const playTrack = attribute(control, playTrackAttribute);
 	if (!playTrack) return undefined;
 
 	state.playTrack(items, playTrack);

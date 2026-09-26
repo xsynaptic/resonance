@@ -1,12 +1,10 @@
-import type { StoreApi } from 'zustand/vanilla';
-
 import type { KeyScrub } from '#elements/time-slider/overview-scrub.ts';
 import type {
 	OverviewInput,
 	OverviewParts,
 	OverviewRendering,
 } from '#elements/time-slider/overview.ts';
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 import type { WaveformRendering } from '#waveform/overview/overview-render.ts';
 
@@ -39,7 +37,7 @@ export interface SliderInput extends OverviewInput {
 	durationSeconds: number | undefined;
 	labels: PlayerLabels;
 	scrub: Scrub;
-	store: StoreApi<PlayerStore>;
+	store: PlayerStoreApi;
 }
 
 interface ScrubGesture {

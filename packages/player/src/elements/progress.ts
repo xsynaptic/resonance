@@ -1,6 +1,4 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 import type { WaveformSpan } from '#waveform/overview/overview-render.ts';
 
@@ -180,7 +178,7 @@ function bufferedGradient(spans: ReadonlyArray<WaveformSpan>, width: number): st
 	return `linear-gradient(to right, ${stops.join(', ')})`;
 }
 
-function createBufferedPaint(track: HTMLDivElement, strip: Strip, store: StoreApi<PlayerStore>) {
+function createBufferedPaint(track: HTMLDivElement, strip: Strip, store: PlayerStoreApi) {
 	let painted = '';
 
 	return (): void => {

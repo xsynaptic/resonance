@@ -1,9 +1,7 @@
-import type { StoreApi } from 'zustand/vanilla';
-
-import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerStoreApi } from '#store/player-types.ts';
 import type { SubscribeTime } from '#types.ts';
 
-export function subscribeStoreTime(store: StoreApi<PlayerStore>): SubscribeTime {
+export function subscribeStoreTime(store: PlayerStoreApi): SubscribeTime {
 	return (onTime) => {
 		onTime(store.getState().currentTimeSeconds);
 

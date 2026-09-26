@@ -1,4 +1,4 @@
-import type { PlayerRoot } from '#elements/player-root.ts';
+import type { PlayerContext } from '#elements/player-context.ts';
 
 import { placeSeekButtons } from '#elements/place-seek-buttons.ts';
 import { playerContext } from '#elements/player-context.ts';
@@ -50,15 +50,15 @@ export class PlayerBar extends PlayerElement {
 		const bar = this.#bar;
 		if (bar.parentNode === this) return;
 
-		const { labels, root } = playerContext(this);
+		const context = playerContext(this);
 
-		bar.setAttribute('aria-label', labels.nowPlaying);
-		shapeBar(bar, root);
+		bar.setAttribute('aria-label', context.labels.nowPlaying);
+		shapeBar(bar, context);
 		this.append(bar);
 	}
 }
 
-function shapeBar(bar: HTMLElement, root: PlayerRoot): void {
+function shapeBar(bar: HTMLElement, { root, store }: PlayerContext): void {
 	for (const [option, selector] of optionalParts) {
 		if (root[option]) continue;
 
@@ -67,7 +67,5 @@ function shapeBar(bar: HTMLElement, root: PlayerRoot): void {
 
 	const [previous, next] = [...bar.querySelectorAll('player-step-button')];
 
-	if (previous && next && root.seekSeconds !== undefined) {
-		placeSeekButtons(previous, next, root.seekSeconds);
-	}
+	if (previous && next) placeSeekButtons(previous, next, store.getState().seekSeconds);
 }

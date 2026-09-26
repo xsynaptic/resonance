@@ -14,23 +14,25 @@ export function bindPlayerStats(
 ): () => void {
 	if (import.meta.env.DEV || navigator.doNotTrack === '1' || isOptedOut()) return doNothing;
 
-	const monitored = new Map<HTMLMediaElement, () => void>();
+	const element = store.getState().getMediaElement();
 
-	const monitor = (): void => {
-		const element = store.getState().getMediaElement();
+	if (element) return monitorPlayback(element, { identify, minimumSeconds, onReport });
 
-		if (!element || monitored.has(element)) return;
+	// The engine is built on the first load, so the monitor waits for the element to exist
+	let unmonitor: (() => void) | undefined;
 
-		monitored.set(element, monitorPlayback(element, { identify, minimumSeconds, onReport }));
-	};
+	const unsubscribe = store.subscribe(() => {
+		const loaded = store.getState().getMediaElement();
 
-	monitor();
+		if (!loaded) return;
 
-	const unsubscribe = store.subscribe(monitor);
+		unsubscribe();
+		unmonitor = monitorPlayback(loaded, { identify, minimumSeconds, onReport });
+	});
 
 	return () => {
 		unsubscribe();
-		for (const unmonitor of monitored.values()) unmonitor();
+		unmonitor?.();
 	};
 }
 

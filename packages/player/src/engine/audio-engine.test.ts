@@ -2,12 +2,17 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { AudioEngineCallbacks } from '#engine/audio-engine.ts';
 
-import { createAudioEngine } from '#engine/audio-engine.ts';
+import { createAudioEngine, stallAfterMs } from '#engine/audio-engine.ts';
 
 const request = { resumeAtSeconds: 0, src: 'https://api.test/a' };
 
 let isPaused = false;
 let media: ReturnType<typeof spyOnMedia>;
+
+// Every engine a test built still listens on the document, so calls count per element
+function callsOn(spy: { mock: { contexts: Array<unknown> } }, element: HTMLMediaElement): number {
+	return spy.mock.contexts.filter((context) => context === element).length;
+}
 
 function createCallbacks(): AudioEngineCallbacks {
 	return {
@@ -19,6 +24,13 @@ function createCallbacks(): AudioEngineCallbacks {
 		onStatus: vi.fn(),
 		onTime: vi.fn(),
 	};
+}
+
+function showPageAfter(elapsedMs: number): void {
+	const now = vi.spyOn(performance, 'now').mockReturnValue(performance.now() + elapsedMs);
+
+	document.dispatchEvent(new Event('visibilitychange'));
+	now.mockRestore();
 }
 
 function spyOnMedia() {
@@ -44,20 +56,16 @@ describe('audio engine', () => {
 		const callbacks = createCallbacks();
 		const pendingPlay = Promise.withResolvers<undefined>();
 
-		const engine = createAudioEngine(callbacks);
-		const playing = engine.element;
-
-		media.play.mockReturnValueOnce(pendingPlay.promise);
-		media.pause.mockImplementation(function (this: HTMLMediaElement) {
-			if (this !== playing) return;
-
+		media.play.mockReturnValue(pendingPlay.promise);
+		media.pause.mockImplementation(() => {
 			pendingPlay.reject(new DOMException('Interrupted by a call to pause()', 'AbortError'));
 		});
 
+		const engine = createAudioEngine(callbacks);
 		const loaded = engine.load(request);
 
 		await vi.waitFor(() => {
-			expect(media.play).toHaveBeenCalled();
+			expect(media.play).toHaveBeenCalledOnce();
 		});
 
 		isPaused = true;
@@ -65,8 +73,10 @@ describe('audio engine', () => {
 		await loaded;
 
 		expect(callbacks.onError).not.toHaveBeenCalled();
-		expect(media.play.mock.contexts.filter((context) => context === playing)).toHaveLength(1);
-		expect(media.pause.mock.contexts.at(-1)).toBe(playing);
+		expect(media.play).toHaveBeenCalledOnce();
+		expect(media.pause.mock.invocationCallOrder[0]).toBeGreaterThan(
+			media.play.mock.invocationCallOrder[0] ?? Infinity,
+		);
 	});
 
 	test('an autoplay refusal reports a pause rather than a failure', async () => {
@@ -176,27 +186,57 @@ describe('audio engine', () => {
 		});
 	});
 
-	test('a switch keeps the old element loaded and quiet until the next one plays', async () => {
-		const callbacks = createCallbacks();
-		const engine = createAudioEngine(callbacks);
-		const outgoing = engine.element;
+	describe('a starved load on return to the page', () => {
+		test('starts again once the stall threshold has passed, and not again straight after', async () => {
+			const engine = createAudioEngine(createCallbacks());
 
-		await engine.load(request);
-		engine.silence();
+			await engine.load(request);
+			showPageAfter(stallAfterMs);
+			showPageAfter(stallAfterMs);
 
-		const incoming = engine.element;
+			expect(callsOn(media.load, engine.element)).toBe(2);
+			expect(callsOn(media.play, engine.element)).toBe(2);
+			expect(engine.element.getAttribute('src')).toBe(request.src);
+		});
 
-		await engine.load({ resumeAtSeconds: 0, src: 'https://api.test/b' });
-		outgoing.dispatchEvent(new Event('pause'));
+		test('is left alone before the stall threshold', async () => {
+			const engine = createAudioEngine(createCallbacks());
 
-		expect(incoming).not.toBe(outgoing);
-		expect(outgoing.getAttribute('src')).toBe(request.src);
-		expect(callbacks.onStatus).not.toHaveBeenCalledWith('paused');
+			await engine.load(request);
+			showPageAfter(stallAfterMs / 2);
 
-		incoming.dispatchEvent(new Event('playing'));
+			expect(callsOn(media.load, engine.element)).toBe(1);
+		});
 
-		expect(outgoing.hasAttribute('src')).toBe(false);
-		expect(incoming.getAttribute('src')).toBe('https://api.test/b');
+		test('is left alone once the element holds anything', async () => {
+			const engine = createAudioEngine(createCallbacks());
+
+			await engine.load(request);
+			vi.spyOn(engine.element, 'readyState', 'get').mockReturnValue(1);
+			showPageAfter(stallAfterMs);
+
+			expect(callsOn(media.load, engine.element)).toBe(1);
+		});
+
+		test('is left alone after a pause', async () => {
+			const engine = createAudioEngine(createCallbacks());
+
+			await engine.load(request);
+			isPaused = true;
+			showPageAfter(stallAfterMs);
+
+			expect(callsOn(media.load, engine.element)).toBe(1);
+		});
+
+		test('is left alone after an unload', async () => {
+			const engine = createAudioEngine(createCallbacks());
+
+			await engine.load(request);
+			engine.reset();
+			showPageAfter(stallAfterMs);
+
+			expect(callsOn(media.load, engine.element)).toBe(2);
+		});
 	});
 
 	test('unloading drops the source so the old track stops downloading', () => {

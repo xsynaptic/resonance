@@ -34,6 +34,9 @@ const messageLength = 200;
 
 const browserVersion = describeBrowser(navigator.userAgent);
 
+// iOS 26 opens any Home Screen site as a web app, where WebKit's lock-screen audio bugs live
+const isStandalone = matchMedia('(display-mode: standalone)').matches;
+
 export function bindPlayerAnalytics(store: ReturnType<typeof createPlayerStore>): () => void {
 	if (isSuppressed) return doNothing;
 
@@ -78,7 +81,7 @@ export function trackControlPress({ itemIds, verb }: ControlPress): void {
 		return;
 	}
 
-	trackEvent('player-play', { mix, origin: origins[verb] });
+	trackEvent('player-play', { isStandalone, mix, origin: origins[verb] });
 }
 
 // Parsed rather than sent raw: versions are what gets grouped by, and the full string is needless entropy
@@ -145,6 +148,7 @@ function trackChunkError(event: ErrorEvent): void {
 function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void {
 	const data: Record<string, boolean | number | string> = {
 		...fields,
+		isStandalone,
 		mix: itemId,
 		version: browserVersion,
 	};

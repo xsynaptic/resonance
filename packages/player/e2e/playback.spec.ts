@@ -17,7 +17,7 @@ test('a press on a page control plays', async ({ harness, page }) => {
 	await expectAdvancing(harness, 1);
 	await expect(page.getByRole('button', { exact: true, name: labels.pause })).toBeVisible();
 	expect(await harness.read()).toMatchObject({ status: 'playing' });
-	expect(await harness.observed()).toMatchObject({ audioCount: 2 });
+	expect(await harness.observed()).toMatchObject({ audioCount: 1 });
 	expect(streamResponses).toContainEqual({
 		headers: expect.objectContaining({
 			'access-control-allow-origin': '*',

@@ -53,7 +53,7 @@ const settings = {
 	isCued: parameters.has('cued'),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
 	run: parameters.get('run') ?? 'manual',
-	stream: readChoice('stream', ['audio', 'missing', 'garbage', 'hang', 'flaky']),
+	stream: readChoice('stream', ['audio', 'missing', 'garbage', 'hang', 'flaky', 'stalled']),
 	type: readChoice('type', ['capital', 'lowercase']),
 };
 

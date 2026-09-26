@@ -1,4 +1,5 @@
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
+import { stallAfterMs } from '#engine/audio-engine.ts';
 import { labels } from '#test/labels.ts';
 
 const webkitProjects = new Set(['mobile-webkit', 'webkit']);
@@ -125,4 +126,35 @@ test('pause during a hanging load settles on paused', async ({ harness, page }) 
 	expect(status).toBe('paused');
 	expect(isPaused).toBe(true);
 	expect(playbackError).toBeUndefined();
+});
+
+// Playwright cannot hide a page, so the return is dispatched; what the element does with the reload is real
+test('a load starved past the stall threshold starts again when the page comes back', async ({
+	harness,
+	page,
+}) => {
+	await page.clock.install();
+	await harness.open({ stream: 'stalled' });
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await expect.poll(() => harness.requests()).toEqual([expect.objectContaining({ status: 0 })]);
+
+	await page.clock.fastForward(stallAfterMs);
+	await expect
+		.poll(async () => {
+			const { diagnostics } = await harness.read();
+
+			return diagnostics;
+		})
+		.toContainEqual(expect.objectContaining({ hasPlayed: false, kind: 'stall', readyState: 0 }));
+
+	await page.evaluate(() => {
+		Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+		document.dispatchEvent(new Event('visibilitychange'));
+		Reflect.deleteProperty(document, 'hidden');
+		document.dispatchEvent(new Event('visibilitychange'));
+	});
+
+	await expectAdvancing(harness, 1);
+	expect(await harness.read()).toMatchObject({ resolveCount: 1, status: 'playing' });
+	expect(await harness.requests()).toContainEqual(expect.objectContaining({ status: 206 }));
 });

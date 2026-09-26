@@ -26,6 +26,7 @@ const garbage = randomBytes(256 * 1024);
 // Per page run, so parallel tests read only their own requests
 const requestLog = new Map<string, Array<LoggedRequest>>();
 const flakyRuns = new Set<string>();
+const stalledRuns = new Set<string>();
 
 function contentType(name: string): string {
 	return contentTypes[path.extname(name)] ?? 'application/octet-stream';
@@ -81,6 +82,12 @@ async function respond(
 				.writeHead(200, { 'content-type': 'application/json' })
 				.end(JSON.stringify(requestLog.get(run) ?? []));
 			return 200;
+		}
+		case 'stalled': {
+			if (stalledRuns.has(`${run}/${name}`)) return sendFile(request, response, name);
+
+			stalledRuns.add(`${run}/${name}`);
+			return undefined;
 		}
 		default: {
 			response.writeHead(404).end();

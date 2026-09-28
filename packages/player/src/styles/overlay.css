@@ -283,7 +283,7 @@
 	color: var(--player-clock-hover);
 }
 
-/* The deck takes its full height, the waveform at its cap, and the cover centres in whatever is left */
+/* The deck takes its full height, the waveform at its cap; the cover gets the rest up to full width, spare height falls below */
 .player-overlay-body[data-layout='phone'] {
 	.player-overlay-layout {
 		--player-overlay-deck-size: min(
@@ -291,7 +291,8 @@
 			40rem
 		);
 
-		grid-template: 'artwork' minmax(0, 1fr) 'deck' auto / minmax(0, 1fr);
+		grid-template: 'artwork' minmax(0, min(100cqi, 40rem)) 'deck' max-content / minmax(0, 1fr);
+		align-content: start;
 		max-inline-size: 40rem;
 		margin-inline: auto;
 	}
@@ -318,7 +319,7 @@
 	.player-overlay-deck {
 		position: relative;
 		display: grid;
-		align-content: end;
+		align-content: start;
 		padding: 0 var(--player-overlay-inset-right) var(--player-overlay-inset-bottom)
 			var(--player-overlay-inset-left);
 	}
@@ -350,19 +351,13 @@
 		margin-inline-end: -0.5rem;
 	}
 
-	/* Centred in a header row's height, so it holds still as the sheet's header row opens over it */
-	> .player-overlay-close {
-		position: absolute;
-		inset-block-start: calc(
-			var(--player-overlay-inset-top) +
-				(var(--player-hit-target) - var(--player-button-size-small)) / 2
-		);
-		inset-inline-end: var(--player-overlay-inset-right);
-		z-index: var(--player-z-raised);
-	}
-
 	player-queue-actions + .player-overlay-close {
 		margin-inline-start: -0.375rem;
+	}
+
+	.player-overlay-head > .player-overlay-close {
+		inset-block-start: calc((1.75rem - var(--player-button-size-small)) / 2);
+		inset-inline-end: 0;
 	}
 
 	.player-overlay-close svg {
@@ -370,13 +365,8 @@
 		block-size: 0.875rem;
 	}
 
-	/* The cover can sit under it, and a busy one swallows a bare glyph */
-	> .player-overlay-close svg {
-		filter: drop-shadow(0 0 2px color-mix(in oklab, var(--player-surface) 80%, transparent));
-	}
-
-	.player-overlay-track :is(.player-track-title, .player-track-empty) {
-		padding-inline-end: 0;
+	.player-overlay-track :is(.player-track-title, .player-track-empty, .player-scrub-readout-title) {
+		padding-inline-end: calc(var(--player-button-size-small) + var(--player-gap-tight));
 	}
 
 	.player-overlay-track {
@@ -482,7 +472,6 @@
 		}
 
 		.player-overlay-deck {
-			align-content: center;
 			padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
 				var(--player-overlay-inset-bottom) var(--player-overlay-cover-gap);
 		}
@@ -492,11 +481,6 @@
 			inset-inline: calc(-1 * var(--player-overlay-cover-size)) 100%;
 			grid-row: auto;
 			background-color: color-mix(in oklab, var(--player-panel-well) 85%, transparent);
-		}
-
-		.player-overlay-track
-			:is(.player-track-title, .player-track-empty, .player-scrub-readout-title) {
-			padding-inline-end: calc(var(--player-button-size-small) + var(--player-gap-tight));
 		}
 	}
 }
@@ -535,4 +519,18 @@
 	.player-overlay-controls .player-transport {
 		margin-inline-end: auto;
 	}
+}
+
+/* Coverless, the phone overlay drops the artwork row and the deck takes the top inset */
+.player-overlay-body[data-layout='phone']
+	.player-overlay-layout:not(:has(.player-overlay-art .player-artwork)) {
+	grid-template: 'deck' max-content / minmax(0, 1fr);
+
+	.player-overlay-deck {
+		padding-block-start: var(--player-overlay-inset-top);
+	}
+}
+
+.player-overlay-body[data-layout='phone'] .player-overlay-art:not(:has(.player-artwork)) {
+	display: none;
 }

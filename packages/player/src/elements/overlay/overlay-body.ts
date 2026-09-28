@@ -17,7 +17,6 @@ interface BodyParts {
 	body: HTMLDivElement;
 	close: HTMLButtonElement;
 	columnsOnly: Array<HTMLElement>;
-	head: HTMLElement;
 	header: HTMLElement;
 	next: HTMLElement;
 	previous: HTMLElement;
@@ -174,7 +173,6 @@ export function connectOverlayBody(
 				for (const control of parts.columnsOnly) control.hidden = layout !== 'columns';
 
 				if (layout === 'phone') {
-					parts.body.prepend(parts.close);
 					sheet.dialog.append(parts.tabs);
 					parts.header.append(sheet.close);
 					return;
@@ -182,7 +180,6 @@ export function connectOverlayBody(
 
 				sheet.closeSheetNow();
 				sheet.dialog.append(sheet.close);
-				parts.head.prepend(parts.close);
 				parts.sheets.before(parts.tabs);
 			},
 		},
@@ -245,7 +242,6 @@ function renderBodyParts(): BodyParts {
 	const art = requireChild(body, '.player-overlay-art', HTMLElement);
 	const close = requireChild(body, '.player-overlay-close', HTMLButtonElement);
 	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
-	const head = requireChild(body, '.player-overlay-head', HTMLElement);
 	const header = requireChild(body, '.player-header', HTMLElement);
 	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);
 	const tablist = requireChild(body, '.player-overlay-tablist', HTMLElement);
@@ -262,7 +258,6 @@ function renderBodyParts(): BodyParts {
 		body,
 		close,
 		columnsOnly,
-		head,
 		header,
 		next,
 		previous,

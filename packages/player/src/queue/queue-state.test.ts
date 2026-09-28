@@ -31,6 +31,35 @@ function emptyState(): QueueState {
 	return { currentIndex: undefined, isShuffling: false, playOrder: [], queue: [] };
 }
 
+function orderViolation(state: QueueState): string | undefined {
+	const { currentIndex, isShuffling, playOrder, queue } = state;
+	const isInRange = (index: number) => index >= 0 && index < queue.length;
+
+	if (playOrder.length !== queue.length || new Set(playOrder).size !== queue.length) {
+		return 'play order is not one entry per queue position';
+	}
+	if (playOrder.some((index) => !isInRange(index))) return 'play order points outside the queue';
+	if (!isShuffling && playOrder.some((index, position) => index !== position)) {
+		return 'an unshuffled play order is out of queue order';
+	}
+	if (currentIndex !== undefined && !isInRange(currentIndex)) {
+		return 'loaded index is outside the queue';
+	}
+
+	return undefined;
+}
+
+// Seeded, so a failure replays the same sequence of steps
+function seededRandom(seed: number): () => number {
+	let state = seed;
+
+	return () => {
+		state = (state * 16_807) % 2_147_483_647;
+
+		return state / 2_147_483_647;
+	};
+}
+
 function stamp(items: ReadonlyArray<QueueItem>): Array<QueuedItem> {
 	return stampQueue(items, nextId);
 }
@@ -231,5 +260,50 @@ describe('shuffledQueue', () => {
 
 	test('puts the loaded track first when toggled on', () => {
 		expect(shuffledQueue(withQueue(release, 1), true).playOrder[0]).toBe(1);
+	});
+});
+
+describe('queue transitions', () => {
+	// The persisted reader drops a shuffled order that is not a permutation, so a violation silently reshuffles on reload
+	test('keep the play order a permutation of the queue through any sequence of actions', () => {
+		const random = seededRandom(1);
+		const pick = (count: number) => Math.floor(random() * count);
+		const itemIds = ['a', 'b', 'c', 'd', 'e'];
+		const someRelease = () =>
+			stamp(Array.from({ length: 1 + pick(4) }, (_, index) => makeItem(itemIds[index] ?? 'a')));
+
+		const steps: Array<(state: QueueState) => QueueState> = [
+			(state) => {
+				const itemId = pick(2) === 0 ? undefined : (itemIds[pick(itemIds.length + 1)] ?? 'missing');
+				const appended = appendedQueue(state, someRelease(), itemId);
+				if (!appended) return state;
+
+				return pick(2) === 0
+					? { ...appended.state, currentIndex: appended.loadIndex }
+					: appended.state;
+			},
+			(state) => loadedQueue(state, someRelease()),
+			(state) => {
+				const from = pick(state.queue.length);
+				const to = pick(state.queue.length);
+
+				return from === to ? state : movedItem(state, from, to);
+			},
+			(state) => (state.queue.length === 0 ? state : removedAt(state, pick(state.queue.length))),
+			(state) => shuffledQueue(state, !state.isShuffling),
+			(state) => ({ ...emptyState(), isShuffling: state.isShuffling }),
+			(state) =>
+				state.queue.length === 0 ? state : { ...state, currentIndex: pick(state.queue.length) },
+		];
+
+		for (let run = 0; run < 2000; run += 1) {
+			let state = emptyState();
+
+			for (let step = 0; step < 12; step += 1) {
+				state = steps[pick(steps.length)]?.(state) ?? state;
+
+				expect(orderViolation(state), JSON.stringify(state)).toBeUndefined();
+			}
+		}
 	});
 });

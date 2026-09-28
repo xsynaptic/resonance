@@ -47,13 +47,13 @@
 @media (hover: hover) {
 	.player-tray-action:hover {
 		color: var(--player-meta-hover);
-		border-color: currentcolor;
+		border-color: var(--player-pill-border-hover);
 	}
 }
 
 .player-tray-action:focus-visible {
 	color: var(--player-meta-hover);
-	border-color: currentcolor;
+	border-color: var(--player-pill-border-hover);
 }
 
 .player-tray-action[aria-pressed='true'] {

@@ -55,18 +55,4 @@
 			inset-block-start: calc((var(--player-hit-target) - var(--player-button-size-primary)) / -2);
 		}
 	}
-
-	/* A touch drags the cover down to close; the clipped X stays for screen readers and keyboard focus */
-	.player-overlay-body[data-layout='phone']:has(.player-overlay-art .player-artwork)
-		> .player-overlay-close:not(:focus-visible) {
-		clip-path: inset(50%);
-	}
-
-	@container player-overlay (orientation: landscape) {
-		.player-overlay-body[data-layout='phone']:has(.player-overlay-art .player-artwork)
-			.player-overlay-track
-			:is(.player-track-title, .player-track-empty) {
-			padding-inline-end: 0;
-		}
-	}
 }

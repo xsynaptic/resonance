@@ -1,0 +1,68 @@
+---
+import AudioCounts from '#components/parts/audio-counts.astro';
+import AudioLinks from '#components/parts/audio-links.astro';
+import PlayerControls from '#components/player/player-controls.astro';
+import { seekSeconds } from '#components/player/player-labels.ts';
+import { getInventoryFixtures } from '#dev/inventory/inventory-fixtures.ts';
+import InventoryLayout from '#dev/inventory/inventory-layout.astro';
+import PlayerSection from '#dev/inventory/inventory-player.astro';
+import Section from '#dev/inventory/inventory-section.astro';
+import Specimen from '#dev/inventory/inventory-specimen.astro';
+import Variant from '#dev/inventory/inventory-variant.astro';
+
+const { mix, playerItems, playerLabels } = await getInventoryFixtures();
+---
+
+<InventoryLayout sectionTitles={['Audio', 'Player']} title="Player">
+	<Section title="Audio">
+		<Specimen
+			name="AudioLinks"
+			note="The Queued state is set by the site host, so it shows on a Mix Detail Page only."
+			source="src/components/parts/audio-links.astro"
+		>
+			<Variant label="with PlayerControls">
+				{mix?.queueItem ? (
+					<AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links}>
+						<PlayerControls itemId={mix.queueItem.itemId} />
+					</AudioLinks>
+				) : undefined}
+			</Variant>
+			<Variant label="with cueSlug">
+				{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
+			</Variant>
+			<Variant label="no cueSlug">{mix ? <AudioLinks files={mix.files} /> : undefined}</Variant>
+			<Variant label="links only">
+				<AudioLinks links={mix?.links} />
+			</Variant>
+		</Specimen>
+		<Specimen
+			name="AudioCounts"
+			note="Only downloads is real data."
+			source="src/components/parts/audio-counts.astro"
+		>
+			<Variant label="fixtures">
+				{mix ? (
+					<AudioCounts
+						downloads={mix.downloads}
+						listeningSeconds={2400}
+						listens={642}
+						mixcloudPlays={38_216}
+						soundcloudPlays={9412}
+						streams={1204}
+					/>
+				) : undefined}
+			</Variant>
+			<Variant label="singulars">
+				<AudioCounts
+					downloads={1}
+					listeningSeconds={3600}
+					listens={1}
+					mixcloudPlays={1}
+					soundcloudPlays={1}
+					streams={1}
+				/>
+			</Variant>
+		</Specimen>
+	</Section>
+	<PlayerSection items={playerItems} labels={playerLabels} seekSeconds={seekSeconds} />
+</InventoryLayout>

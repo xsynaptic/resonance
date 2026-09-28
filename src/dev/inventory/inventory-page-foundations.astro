@@ -1,0 +1,129 @@
+---
+import Anchor from '#components/parts/anchor.astro';
+import InventoryLayout from '#dev/inventory/inventory-layout.astro';
+import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
+import Section from '#dev/inventory/inventory-section.astro';
+import Specimen from '#dev/inventory/inventory-specimen.astro';
+
+// Mirrors the ramps in styles/main/parts/theme.css, which define every step for all five
+const rampSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const rampNames = ['surface', 'ink', 'accent', 'highlight', 'flair'];
+
+const fontFamilies = [
+	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
+	{ name: 'font-body', note: 'Archivo, for body copy and chrome' },
+	{ name: 'font-mono', note: "System mono, for this page's own labels" },
+];
+---
+
+<InventoryLayout sectionTitles={['Foundations', 'Prose']} title="Foundations">
+	<Section title="Foundations">
+		<Specimen name="Colour tokens" source="src/styles/main/parts/theme.css">
+			<div class="flex flex-col gap-5">
+				{rampNames.map((name) => (
+					<div>
+						<div class="font-mono text-xs text-ink-600">--color-{name}-*</div>
+						<div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1">
+							{rampSteps.map((step) => (
+								<div>
+									<div
+										class="h-12 rounded-xs border border-ink-700"
+										style={`background-color: var(--color-${name}-${String(step)})`}
+									/>
+									<div class="mt-1 font-mono text-[0.6875rem] text-ink-600">{step}</div>
+								</div>
+							))}
+						</div>
+					</div>
+				))}
+			</div>
+		</Specimen>
+		<Specimen name="Typefaces" source="src/styles/main/parts/theme.css">
+			<div class="flex flex-col gap-4">
+				{fontFamilies.map((family) => (
+					<div class="border-t border-surface-400 pt-4 first:border-0 first:pt-0">
+						<div class="font-mono text-xs text-ink-700">
+							--{family.name}, {family.note}
+						</div>
+						<div class="mt-1 text-2xl" style={`font-family: var(--${family.name})`}>
+							Basilisk 0123456789 <em>italic</em> <strong>bold</strong>
+						</div>
+					</div>
+				))}
+			</div>
+		</Specimen>
+		<Specimen
+			name="Heading roles"
+			note="Roles, not a type scale; outside prose a heading level carries no styling."
+			source="src/styles/main/components/headings.css"
+		>
+			<div class="space-y-3">
+				<h1 class="title-main">title-main, a Detail Page or List Page title</h1>
+				<h2 class="title-main">title-main on h2, an excerpt or hero title, a step down</h2>
+				<h2 class="heading-section">heading-section, a band on Home or Related</h2>
+				<h2 class="heading-sub">heading-sub, a Tracklist</h2>
+				<h2 class="heading-label">heading-label, a footer band</h2>
+			</div>
+		</Specimen>
+		<Specimen
+			name="Link roles"
+			note="Tab through for the focus treatment."
+			source="src/styles/main/parts/base.css"
+		>
+			<div class="space-y-2">
+				<div class="prose-x">
+					<p>
+						Prose claims a link with <a href="/mixes/">an underline and a lift to ink-200</a>.
+					</p>
+				</div>
+				<p>
+					<Anchor href="/mixes/">anchorColor=&quot;highlight&quot;</Anchor>, the default, for
+					taxonomy, meta and navigation.
+				</p>
+				<p>
+					<Anchor anchorColor="muted" href="/mixes/">
+						anchorColor=&quot;muted&quot;
+					</Anchor>
+					, a step dimmer, for the footer.
+				</p>
+				<p class="title-meta">
+					<span>
+						<a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.
+					</span>
+				</p>
+				<p>
+					And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.
+				</p>
+			</div>
+		</Specimen>
+		<Specimen name="pattern-maze-*" source="src/styles/main/parts/utilities.css">
+			<div class="pattern-maze-surface-300 rounded-md bg-surface-800 p-5">
+				The header and footer bands both sit on this.
+			</div>
+		</Specimen>
+		<Specimen name="content-measure" source="src/styles/main/parts/utilities.css">
+			<p class="content-measure">
+				This paragraph stops at 50rem however wide the column around it gets, which keeps an
+				introduction readable on a large screen without pulling it out of the grid.
+			</p>
+		</Specimen>
+		<Specimen
+			name="content-bleed / content-bleed-inset"
+			note="Visible under 640px."
+			source="src/styles/main/parts/utilities.css"
+		>
+			<div class="content-bleed bg-surface-700 content-bleed-inset py-3 sm:px-3">
+				Bled and inset together, so this text stays on the column while the band behind it runs to
+				the edge.
+			</div>
+			<div class="content-bleed mt-2 bg-surface-600 py-3 text-center">Bled on its own.</div>
+		</Specimen>
+	</Section>
+	<Section title="Prose">
+		<Specimen name=".prose-x" source="src/styles/main/components/prose.css">
+			<div class="prose-x">
+				<ProseSample />
+			</div>
+		</Specimen>
+	</Section>
+</InventoryLayout>

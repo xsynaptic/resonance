@@ -1,0 +1,43 @@
+---
+import type { Pagination } from '#lib/utils/pagination-types.ts';
+
+import PaginationSelect from '#components/parts/pagination-select.astro';
+import { inventoryPages, inventoryRoute } from '#dev/inventory/inventory-pages.ts';
+import { toSlug } from '#lib/utils/text.ts';
+
+interface Props {
+	sectionTitles: Array<string>;
+}
+
+const { sectionTitles } = Astro.props;
+
+const pagePath = Astro.url.pathname.replace(/\/$/, '');
+
+const sections: Pagination = {
+	label: 'Sections',
+	options: sectionTitles.map((title) => ({ label: title, url: `#${toSlug(title)}` })),
+	placeholder: 'Section',
+	selectLabel: 'Section',
+	submitLabel: 'Go',
+};
+---
+
+<div class="mb-12 flex flex-wrap items-center justify-between gap-4">
+	<nav aria-label="Inventory pages" class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm">
+		{inventoryPages.map((page) => {
+			const href = `${inventoryRoute}${page.path}`;
+
+			return (
+				<a
+					aria-current={href === pagePath ? 'page' : undefined}
+					class="text-ink-500 aria-[current]:text-highlight-400"
+					data-astro-reload={true}
+					href={href}
+				>
+					{page.title}
+				</a>
+			);
+		})}
+	</nav>
+	<PaginationSelect pagination={sections} />
+</div>

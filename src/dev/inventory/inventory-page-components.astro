@@ -7,15 +7,12 @@ import type { LinkedName } from '#lib/utils/terms.ts';
 
 import EmbedMixcloud from '#components/embed/embed-mixcloud.astro';
 import EmbedSoundcloud from '#components/embed/embed-soundcloud.astro';
-import MainSite from '#components/main/main-site.astro';
 import EmbedYoutube from '#components/mdx/embed-youtube.astro';
 import ImgGroup from '#components/mdx/img-group.astro';
 import Img from '#components/mdx/img.astro';
 import Quotation from '#components/mdx/quotation.astro';
 import Selections from '#components/mdx/selections.astro';
 import TrackList from '#components/mdx/track-list.astro';
-import Anchor from '#components/parts/anchor.astro';
-import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import ButtonSplit from '#components/parts/button-split.astro';
@@ -30,25 +27,19 @@ import MediaImage from '#components/parts/media-image.astro';
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import TermDirectory from '#components/parts/term-directory.astro';
 import TermLinks from '#components/parts/term-links.astro';
-import PlayerControls from '#components/player/player-controls.astro';
-import { seekSeconds } from '#components/player/player-labels.ts';
 import SectionCoda from '#components/sections/section-coda.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
-import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import SectionHome from '#components/sections/section-home.astro';
 import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro';
 import SectionRelated from '#components/sections/section-related.astro';
 import { getInventoryFixtures } from '#dev/inventory/inventory-fixtures.ts';
-import PlayerSection from '#dev/inventory/inventory-player.astro';
-import ProseSample from '#dev/inventory/inventory-prose-sample.mdx';
+import InventoryLayout from '#dev/inventory/inventory-layout.astro';
 import Section from '#dev/inventory/inventory-section.astro';
 import Specimen from '#dev/inventory/inventory-specimen.astro';
 import Variant from '#dev/inventory/inventory-variant.astro';
 import { getArchiveYearPagination } from '#lib/archive/archive-data.ts';
 import { collectionKinds } from '#lib/catalog/catalog-kind.ts';
 import { getPagination } from '#lib/utils/pagination.ts';
-import { toSlug } from '#lib/utils/text.ts';
-import '#dev/inventory/inventory.css';
 
 const {
 	artists,
@@ -63,9 +54,6 @@ const {
 	mix,
 	mixcloudUrl,
 	mixItems,
-	openGraphCards,
-	playerItems,
-	playerLabels,
 	regionTree,
 	relatedItems,
 	review,
@@ -76,34 +64,6 @@ const {
 	vocabulary,
 	youtubeUrl,
 } = await getInventoryFixtures();
-
-// Hand-kept mirror of the Section titles below, which the nav links to by derived anchor
-const sectionTitles = [
-	'Foundations',
-	'Prose',
-	'Content blocks',
-	'Buttons, icons and dividers',
-	'Credits and terms',
-	'Cards and listings',
-	'Detail pages',
-	'Media',
-	'Audio',
-	'Player',
-	'Open Graph',
-	'Empty states',
-];
-
-const hasHero = !Astro.url.pathname.replace(/\/$/, '').endsWith('/no-hero');
-
-// Mirrors the ramps in styles/main/parts/theme.css, which define every step for all five
-const rampSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-const rampNames = ['surface', 'ink', 'accent', 'highlight', 'flair'];
-
-const fontFamilies = [
-	{ name: 'font-display', note: 'Fira Sans, for headings and navigation' },
-	{ name: 'font-body', note: 'Archivo, for body copy and chrome' },
-	{ name: 'font-mono', note: "System mono, for this page's own labels" },
-];
 
 function toDirectoryTerms(terms: Array<LinkedName>) {
 	return terms.flatMap((term) =>
@@ -153,151 +113,18 @@ const inlineSelection: SelectionValue = {
 };
 ---
 
-<MainSite title="Inventory">
-	{heroPath && hasHero ? (
-		<SectionDetailHero
-			date={new Date()}
-			kind={{ name: 'Development' }}
-			path={heroPath}
-			slot="hero"
-			styles={styles.slice(0, 2)}
-			title="Component gallery"
-		/>
-	) : undefined}
-	<p class="mb-6 content-measure text-sm leading-relaxed text-ink-600">
-		The header is in its {hasHero ? 'overlay' : 'normal'} variant:{' '}
-		<Anchor href={hasHero ? '/inventory/no-hero' : '/inventory'}>
-			{hasHero ? 'drop the hero band' : 'restore the hero band'}
-		</Anchor>{' '}
-		to see the other.
-	</p>
-	<nav
-		aria-label="Gallery sections"
-		class="mb-12 flex flex-wrap gap-x-5 gap-y-2 rounded-md bg-surface-600 px-5 py-4 font-mono text-xs leading-relaxed"
-	>
-		{sectionTitles.map((title) => (
-			<a class="text-ink-500" href={`#${toSlug(title)}`}>
-				{title}
-			</a>
-		))}
-	</nav>
-	<Section title="Foundations">
-		<Specimen
-			name="Colour tokens"
-			note="Includes steps the site never uses."
-			source="src/styles/main/parts/theme.css"
-		>
-			<div class="flex flex-col gap-5">
-				{rampNames.map((name) => (
-					<div>
-						<div class="font-mono text-xs text-ink-600">--color-{name}-*</div>
-						<div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-1">
-							{rampSteps.map((step) => (
-								<div>
-									<div
-										class="h-12 rounded-xs border border-ink-700"
-										style={`background-color: var(--color-${name}-${String(step)})`}
-									/>
-									<div class="mt-1 font-mono text-[0.6875rem] text-ink-600">{step}</div>
-								</div>
-							))}
-						</div>
-					</div>
-				))}
-			</div>
-		</Specimen>
-		<Specimen name="Typefaces" source="src/styles/main/parts/theme.css">
-			<div class="flex flex-col gap-4">
-				{fontFamilies.map((family) => (
-					<div class="border-t border-surface-400 pt-4 first:border-0 first:pt-0">
-						<div class="font-mono text-xs text-ink-700">
-							--{family.name}, {family.note}
-						</div>
-						<div class="mt-1 text-2xl" style={`font-family: var(--${family.name})`}>
-							Basilisk 0123456789 <em>italic</em> <strong>bold</strong>
-						</div>
-					</div>
-				))}
-			</div>
-		</Specimen>
-		<Specimen
-			name="Heading roles"
-			note="Roles, not a type scale; outside prose a heading level carries no styling."
-			source="src/styles/main/components/headings.css"
-		>
-			<div class="space-y-3">
-				<h1 class="title-main">title-main, a Detail Page or List Page title</h1>
-				<h2 class="title-main">title-main on h2, an excerpt or hero title, a step down</h2>
-				<h2 class="heading-section">heading-section, a band on Home or Related</h2>
-				<h2 class="heading-sub">heading-sub, a Tracklist</h2>
-				<h2 class="heading-label">heading-label, a footer band</h2>
-			</div>
-		</Specimen>
-		<Specimen
-			name="Link roles"
-			note="Tab through for the focus treatment."
-			source="src/styles/main/parts/base.css"
-		>
-			<div class="space-y-2">
-				<div class="prose-x">
-					<p>
-						Prose claims a link with <a href="/mixes/">an underline and a lift to ink-200</a>.
-					</p>
-				</div>
-				<p>
-					<Anchor href="/mixes/">anchorColor=&quot;highlight&quot;</Anchor>, the default, for
-					taxonomy, meta and navigation.
-				</p>
-				<p>
-					<Anchor anchorColor="muted" href="/mixes/">
-						anchorColor=&quot;muted&quot;
-					</Anchor>
-					, a step dimmer, for the footer.
-				</p>
-				<p class="title-meta">
-					<span>
-						<a href="/mixes/">A meta line link</a>, ink-300 against the ink-600 around it.
-					</span>
-				</p>
-				<p>
-					And the base, <a href="/mixes/">a bare anchor</a>, which no page reaches for.
-				</p>
-			</div>
-		</Specimen>
-		<Specimen
-			name="pattern-maze-*"
-			note="--pattern-maze-opacity and --pattern-maze-size are the knobs, defaulting to 0.2 and 60px."
-			source="src/styles/main/parts/utilities.css"
-		>
-			<div class="pattern-maze-surface-300 rounded-md bg-surface-800 p-5">
-				The header and footer bands both sit on this.
-			</div>
-		</Specimen>
-		<Specimen name="content-measure" source="src/styles/main/parts/utilities.css">
-			<p class="content-measure">
-				This paragraph stops at 50rem however wide the column around it gets, which keeps an
-				introduction readable on a large screen without pulling it out of the grid.
-			</p>
-		</Specimen>
-		<Specimen
-			name="content-bleed / content-bleed-inset"
-			note="Visible under 640px."
-			source="src/styles/main/parts/utilities.css"
-		>
-			<div class="content-bleed bg-surface-700 content-bleed-inset py-3 sm:px-3">
-				Bled and inset together, so this text stays on the column while the band behind it runs to
-				the edge.
-			</div>
-			<div class="content-bleed mt-2 bg-surface-600 py-3 text-center">Bled on its own.</div>
-		</Specimen>
-	</Section>
-	<Section title="Prose">
-		<Specimen name=".prose-x" source="src/styles/main/components/prose.css">
-			<div class="prose-x">
-				<ProseSample />
-			</div>
-		</Specimen>
-	</Section>
+<InventoryLayout
+	sectionTitles={[
+		'Content blocks',
+		'Buttons, icons and dividers',
+		'Credits and terms',
+		'Cards and listings',
+		'Detail pages',
+		'Media',
+		'Empty states',
+	]}
+	title="Components"
+>
 	<Section title="Content blocks">
 		<Specimen name="Img" note="Below 40rem a float stacks." source="src/components/mdx/img.astro">
 			<Variant label="align='right' size='small'">
@@ -377,7 +204,7 @@ const inlineSelection: SelectionValue = {
 					<Quotation
 						author="Erik Davis"
 						title="Hedonic Tantra"
-						url="/inventory/#content-blocks"
+						url="/inventory/components/#content-blocks"
 						year="2004"
 					>
 						Whether or not Goa is the core source of rave spirituality, the freak colony has grown
@@ -637,11 +464,7 @@ const inlineSelection: SelectionValue = {
 				</ul>
 			) : undefined}
 		</Specimen>
-		<Specimen
-			name="ListGroupHeading"
-			note="The <code>heading-group</code> role."
-			source="src/components/parts/list-group-heading.astro"
-		>
+		<Specimen name="ListGroupHeading" source="src/components/parts/list-group-heading.astro">
 			<ListGroupHeading label={String(new Date().getFullYear())} />
 		</Specimen>
 		<Specimen
@@ -742,84 +565,6 @@ const inlineSelection: SelectionValue = {
 			{review?.image ? <MediaFeatured alt={review.title} path={review.image} /> : undefined}
 		</Specimen>
 	</Section>
-	<Section title="Audio">
-		<Specimen
-			name="AudioLinks"
-			note="The Queued state is set by the site host, so it shows on a Mix Detail Page only."
-			source="src/components/parts/audio-links.astro"
-		>
-			<Variant label="with PlayerControls">
-				{mix?.queueItem ? (
-					<AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links}>
-						<PlayerControls itemId={mix.queueItem.itemId} />
-					</AudioLinks>
-				) : undefined}
-			</Variant>
-			<Variant label="with cueSlug">
-				{mix ? <AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links} /> : undefined}
-			</Variant>
-			<Variant label="no cueSlug">{mix ? <AudioLinks files={mix.files} /> : undefined}</Variant>
-			<Variant label="links only">
-				<AudioLinks links={mix?.links} />
-			</Variant>
-		</Specimen>
-		<Specimen
-			name="AudioCounts"
-			note="Only downloads is real data."
-			source="src/components/parts/audio-counts.astro"
-		>
-			<Variant label="fixtures">
-				{mix ? (
-					<AudioCounts
-						downloads={mix.downloads}
-						listeningSeconds={2400}
-						listens={642}
-						mixcloudPlays={38_216}
-						soundcloudPlays={9412}
-						streams={1204}
-					/>
-				) : undefined}
-			</Variant>
-			<Variant label="singulars">
-				<AudioCounts
-					downloads={1}
-					listeningSeconds={3600}
-					listens={1}
-					mixcloudPlays={1}
-					soundcloudPlays={1}
-					streams={1}
-				/>
-			</Variant>
-		</Specimen>
-	</Section>
-	<PlayerSection items={playerItems} labels={playerLabels} seekSeconds={seekSeconds} />
-	<Section
-		note="Drawn per request from <code>element.tsx</code>, so edit and reload. Half size."
-		title="Open Graph"
-	>
-		<Specimen name="Cards" source="packages/scripts/src/og-image/element.tsx">
-			{openGraphCards.length > 0 ? (
-				<ul class="grid gap-6 sm:grid-cols-2">
-					{openGraphCards.map((card) => (
-						<li>
-							<img
-								alt={card.label}
-								class="w-full rounded-sm border border-surface-700"
-								height={315}
-								loading="lazy"
-								src={`/inventory/og/${card.key}.jpg`}
-								width={600}
-							/>
-							<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
-							<div class="font-mono text-[0.6875rem] text-ink-700">{card.entry.outputId}</div>
-						</li>
-					))}
-				</ul>
-			) : (
-				<p class="text-sm text-ink-600">No entries to sample a card from.</p>
-			)}
-		</Specimen>
-	</Section>
 	<Section title="Empty states">
 		<Specimen
 			name="Components that render nothing"
@@ -834,4 +579,4 @@ const inlineSelection: SelectionValue = {
 			</div>
 		</Specimen>
 	</Section>
-</MainSite>
+</InventoryLayout>

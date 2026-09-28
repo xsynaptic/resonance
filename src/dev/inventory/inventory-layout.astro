@@ -1,0 +1,32 @@
+---
+import MainSite from '#components/main/main-site.astro';
+import SectionDetailHero from '#components/sections/section-detail-hero.astro';
+import { getInventoryHero } from '#dev/inventory/inventory-fixtures.ts';
+import InventoryNav from '#dev/inventory/inventory-nav.astro';
+import '#dev/inventory/inventory.css';
+
+interface Props {
+	// Hand-kept mirror of the page's Section titles, which the nav links to by derived anchor
+	sectionTitles: Array<string>;
+	title: string;
+}
+
+const { sectionTitles, title } = Astro.props;
+
+const hero = await getInventoryHero();
+---
+
+<MainSite title={`Inventory: ${title}`}>
+	{hero.path ? (
+		<SectionDetailHero
+			date={new Date()}
+			kind={{ name: 'Development' }}
+			path={hero.path}
+			slot="hero"
+			styles={hero.styles}
+			title="Component gallery"
+		/>
+	) : undefined}
+	<InventoryNav sectionTitles={sectionTitles} />
+	<slot />
+</MainSite>

@@ -1,0 +1,38 @@
+---
+import { getInventoryFixtures } from '#dev/inventory/inventory-fixtures.ts';
+import InventoryLayout from '#dev/inventory/inventory-layout.astro';
+import Section from '#dev/inventory/inventory-section.astro';
+import Specimen from '#dev/inventory/inventory-specimen.astro';
+
+const { openGraphCards } = await getInventoryFixtures();
+---
+
+<InventoryLayout sectionTitles={['Open Graph']} title="Open Graph">
+	<Section
+		note="Drawn per request from <code>element.tsx</code>, so edit and reload. Half size."
+		title="Open Graph"
+	>
+		<Specimen name="Cards" source="packages/scripts/src/og-image/element.tsx">
+			{openGraphCards.length > 0 ? (
+				<ul class="grid gap-6 sm:grid-cols-2">
+					{openGraphCards.map((card) => (
+						<li>
+							<img
+								alt={card.label}
+								class="w-full rounded-sm border border-surface-700"
+								height={315}
+								loading="lazy"
+								src={`/inventory/og/${card.key}.jpg`}
+								width={600}
+							/>
+							<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
+							<div class="font-mono text-[0.6875rem] text-ink-700">{card.entry.outputId}</div>
+						</li>
+					))}
+				</ul>
+			) : (
+				<p class="text-sm text-ink-600">No entries to sample a card from.</p>
+			)}
+		</Specimen>
+	</Section>
+</InventoryLayout>

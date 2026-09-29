@@ -1,8 +1,14 @@
 import type { ContentEntry } from '#shared/astro-content.ts';
-import type { EntryReference, ReferenceIssue } from '#validate-content/validation-result.ts';
+import type { ReferenceIssue } from '#validate-content/validation-result.ts';
 
 import { getIdsByCollection, toReferenceIds } from '#shared/entries.ts';
 import { toReferenceValidationResult } from '#validate-content/validation-result.ts';
+
+interface CreditField {
+	collection: string;
+	field: string;
+	value: unknown;
+}
 
 // Every schema carrying these is `.strict()`, so a field name here cannot mean anything else
 // The extractor emits both forms: `{ id }` where the name resolved to a term, a bare string where not
@@ -34,6 +40,16 @@ export function validateCredits(entries: Array<ContentEntry>, catalog: Array<Con
 	});
 }
 
+export function collectEntryCredits(entry: ContentEntry) {
+	const credits = collectFieldCredits(entry.data, topLevelCreditFields, '');
+
+	for (const [container, fields] of Object.entries(nestedCreditFields)) {
+		credits.push(...collectContainerCredits(entry.data[container], container, fields));
+	}
+
+	return credits;
+}
+
 function collectContainerCredits(
 	items: unknown,
 	container: string,
@@ -43,7 +59,7 @@ function collectContainerCredits(
 
 	const values: Array<unknown> = items;
 
-	const credits: Array<EntryReference> = [];
+	const credits: Array<CreditField> = [];
 
 	for (const [index, item] of values.entries()) {
 		if (item === null || typeof item !== 'object') continue;
@@ -66,37 +82,25 @@ function collectContainerCredits(
 function collectEntryCreditIssues(entry: ContentEntry, idsByCollection: Map<string, Set<string>>) {
 	const issues: Array<ReferenceIssue> = [];
 
-	for (const credit of collectEntryCredits(entry)) {
-		if (idsByCollection.get(credit.collection)?.has(credit.id)) continue;
+	for (const { collection, field, value } of collectEntryCredits(entry)) {
+		for (const id of toReferenceIds(value)) {
+			if (idsByCollection.get(collection)?.has(id)) continue;
 
-		issues.push({ ...credit, location: entry.filePath ?? entry.id });
+			issues.push({ collection, field, id, location: entry.filePath ?? entry.id });
+		}
 	}
 
 	return issues;
-}
-
-function collectEntryCredits(entry: ContentEntry) {
-	const credits = collectFieldCredits(entry.data, topLevelCreditFields, '');
-
-	for (const [container, fields] of Object.entries(nestedCreditFields)) {
-		credits.push(...collectContainerCredits(entry.data[container], container, fields));
-	}
-
-	return credits;
 }
 
 function collectFieldCredits(
 	source: Record<string, unknown>,
 	fields: Record<string, string>,
 	prefix: string,
-) {
-	const credits: Array<EntryReference> = [];
-
-	for (const [field, collection] of Object.entries(fields)) {
-		const ids = toReferenceIds(source[field]);
-
-		credits.push(...ids.map((id) => ({ collection, field: `${prefix}${field}`, id })));
-	}
-
-	return credits;
+): Array<CreditField> {
+	return Object.entries(fields).map(([field, collection]) => ({
+		collection,
+		field: `${prefix}${field}`,
+		value: source[field],
+	}));
 }

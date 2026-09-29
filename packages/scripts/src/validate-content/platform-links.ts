@@ -8,6 +8,9 @@ import { toValidationResult } from '#validate-content/validation-result.ts';
 // The one SoundCloud account this site publishes as; a URL under any other is somebody else's
 const soundcloudAccountPrefix = 'https://soundcloud.com/djbasilisk/';
 
+// Mixes went out under several Mixcloud accounts, so any Mixcloud URL in `links` counts
+const mixcloudUrlPattern = /^https?:\/\/(www\.)?mixcloud\.com\//;
+
 // `undefined` where a service's stats file is absent, so its keys go unchecked rather than failing
 export interface PlatformKeys {
 	mixcloud?: Set<string> | undefined;
@@ -24,26 +27,28 @@ export function validatePlatformLinks(
 
 	for (const entry of entries) {
 		const location = entry.filePath ?? entry.id;
+		const links = toUrls(entry.data.links);
+		const mixcloudUrls = toUrls(entry.data.mixcloudLink);
 		const soundcloudUrls = toUrls(entry.data.soundcloudLink);
-		const soundcloudKeys = new Set(soundcloudUrls.map((url) => toStatsKey(url)));
-		const backlinkKeys = new Set(
-			toUrls(entry.data.links)
-				.filter((link) => link.startsWith(soundcloudAccountPrefix))
-				.map((link) => toStatsKey(link)),
-		);
 
 		issues.push(
-			...[...backlinkKeys.difference(soundcloudKeys)].map((key) => ({
-				message: `${location}: \`links\` has ${key}, missing from \`soundcloudLink\``,
-			})),
-			...[...soundcloudKeys.difference(backlinkKeys)].map((key) => ({
-				message: `${location}: \`soundcloudLink\` has ${key}, missing from \`links\``,
-			})),
+			...collectMismatches({
+				backlinks: links.filter((link) => mixcloudUrlPattern.test(link)),
+				field: 'mixcloudLink',
+				location,
+				urls: mixcloudUrls,
+			}),
+			...collectMismatches({
+				backlinks: links.filter((link) => link.startsWith(soundcloudAccountPrefix)),
+				field: 'soundcloudLink',
+				location,
+				urls: soundcloudUrls,
+			}),
 			...collectUnresolved({
 				field: 'mixcloudLink',
 				keys: keys.mixcloud,
 				location,
-				urls: toUrls(entry.data.mixcloudLink),
+				urls: mixcloudUrls,
 			}),
 			...collectUnresolved({
 				field: 'soundcloudLink',
@@ -61,6 +66,31 @@ export function validatePlatformLinks(
 	const notes = toSkippedNotes(keys);
 
 	return notes.length > 0 ? { ...result, notes } : result;
+}
+
+// A stale copy in `links` stays linked after a rename, so each URL must appear in both fields
+function collectMismatches({
+	backlinks,
+	field,
+	location,
+	urls,
+}: {
+	backlinks: Array<string>;
+	field: string;
+	location: string;
+	urls: Array<string>;
+}): Array<ValidationIssue> {
+	const backlinkKeys = new Set(backlinks.map((link) => toStatsKey(link)));
+	const embedKeys = new Set(urls.map((url) => toStatsKey(url)));
+
+	return [
+		...[...backlinkKeys.difference(embedKeys)].map((key) => ({
+			message: `${location}: \`links\` has ${key}, missing from \`${field}\``,
+		})),
+		...[...embedKeys.difference(backlinkKeys)].map((key) => ({
+			message: `${location}: \`${field}\` has ${key}, missing from \`links\``,
+		})),
+	];
 }
 
 function collectUnresolved({

@@ -44,6 +44,30 @@ describe('validatePlatformLinks', () => {
 		]);
 	});
 
+	test('fails when `mixcloudLink` and the Mixcloud URL in `links` disagree, on any account', () => {
+		const mixes = [
+			makeEntry({
+				data: {
+					links: ['https://www.mixcloud.com/SynapticFX/old-name/'],
+					mixcloudLink: 'https://www.mixcloud.com/Basilisk/a-mix/',
+				},
+				filePath: 'collections/mixes/2015/a-mix.mdx',
+				id: 'a-mix',
+			}),
+		];
+
+		expect(validatePlatformLinks(mixes, keys).issues).toEqual([
+			{
+				message:
+					'collections/mixes/2015/a-mix.mdx: `links` has /synapticfx/old-name, missing from `mixcloudLink`',
+			},
+			{
+				message:
+					'collections/mixes/2015/a-mix.mdx: `mixcloudLink` has /basilisk/a-mix, missing from `links`',
+			},
+		]);
+	});
+
 	test('fails on an embed key matching no track in the last pull, which is a rename', () => {
 		const mixes = [
 			makeEntry({

@@ -419,12 +419,10 @@
 		opacity: 1;
 	}
 
-	.player-scrub-readout > span {
-		display: block;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		background-color: var(--player-surface);
+	.player-overlay-track:has(> player-scrub-readout[data-held]) player-time,
+	.player-overlay-track:has(> player-scrub-readout[data-held][data-track])
+		:is(player-title, player-artist-line) {
+		visibility: hidden;
 	}
 
 	player-scrub-readout:not([data-track])

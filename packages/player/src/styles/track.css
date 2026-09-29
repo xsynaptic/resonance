@@ -57,7 +57,8 @@ player-title[data-idle] {
 	min-width: 0;
 }
 
-.player-marquee {
+.player-marquee,
+.player-scrub-readout > span {
 	display: block;
 	overflow: hidden;
 	text-overflow: ellipsis;

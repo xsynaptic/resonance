@@ -44,7 +44,20 @@ const tokenGroups = [
 		],
 	},
 	{ label: 'Cues', tokens: ['cue-dot', 'cue-artist', 'cue-title'] },
-	{ label: 'Fader', tokens: ['fader-slot', 'fader-cap', 'fader-cap-hover'] },
+	{
+		label: 'Dial',
+		tokens: [
+			'dial-cap',
+			'dial-cap-hover',
+			'dial-mark',
+			'dial-lit',
+			'dial-unlit',
+			'dial-dimmed',
+			'dial-focus',
+			'dial-glass',
+			'dial-readout-text',
+		],
+	},
 ];
 ---
 
@@ -174,7 +187,6 @@ const tokenGroups = [
 		});
 	}
 
-	// Each token's computed colour matched back to the ramp step it resolves to, read before any pick lands
 	function readDefaults(selects: Array<HTMLSelectElement>): void {
 		const styles = getComputedStyle(document.documentElement);
 		const stepByColour = new Map<string, string>();

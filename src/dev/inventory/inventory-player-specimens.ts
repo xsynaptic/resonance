@@ -34,7 +34,6 @@ export const createSilentEngine: CreateAudioEngine = (callbacks) => {
 	};
 };
 
-// Holds every load and every play short of sound, so the play button's ring stays on screen
 export const createLoadingEngine: CreateAudioEngine = (callbacks) => ({
 	...createSilentEngine(callbacks),
 	load: () => {
@@ -51,7 +50,6 @@ export const createLoadingEngine: CreateAudioEngine = (callbacks) => ({
 	},
 });
 
-// Cued and paused, as a listener leaves it; the ring belongs to the loading specimen alone
 export function cueFirstPaused(store: PlayerStoreApi): void {
 	store.getState().playAt(0);
 	store.getState().pause();
@@ -86,7 +84,6 @@ export function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls 
 	};
 }
 
-// Long enough to overflow the info window in either layout, so both lines are always marching
 const marqueeArtist = 'Basilisk, with Nebula Drift, Forest Signal and the Ektoplazm Sound System';
 const marqueeTitle = 'Deep Forest Transmissions From The Edge Of A Very Long Winter Night';
 
@@ -106,7 +103,6 @@ export function withoutArtwork(items: ReadonlyArray<PlayerPayloadItem>): Array<Q
 	return items.map(({ artwork: _artwork, ...item }) => item);
 }
 
-// Enough rows to scroll, at title lengths that show both the two-line row and where it truncates
 const trayTitles = [
 	'Mountain Calling',
 	'Nightfall Over The Northern Cordillera, An Extended Transmission For The Long Dark',

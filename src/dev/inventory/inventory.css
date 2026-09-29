@@ -7,8 +7,3 @@
 .inventory-player-empty player-root[data-empty] .player-bar {
 	display: block;
 }
-
-/* The panel opens on hover or focus on this machine, so the specimen pins it open to be looked at */
-.inventory-volume-open .player-volume-panel {
-	display: flex;
-}

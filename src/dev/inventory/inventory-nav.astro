@@ -1,9 +1,10 @@
 ---
+import { toSlug } from '@xsynaptic/shared/routing';
+
 import type { Pagination } from '#lib/utils/pagination-types.ts';
 
 import PaginationSelect from '#components/parts/pagination-select.astro';
 import { inventoryPages, inventoryRoute } from '#dev/inventory/inventory-pages.ts';
-import { toSlug } from '#lib/utils/text.ts';
 
 interface Props {
 	sectionTitles: Array<string>;

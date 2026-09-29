@@ -120,30 +120,16 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</player-root>
 		</Variant>
 	</Specimen>
-	<Specimen
-		name="player-volume-popover"
-		note="Pinned open."
-		source="packages/player/src/elements/volume-popover.ts"
-	>
+	<Specimen name="player-volume" source="packages/player/src/elements/volume.ts">
 		<Variant label="default">
-			<div class="pt-36">
-				<player-root
-					class="inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
-					data-inventory-queue="volume"
-				>
-					<player-volume-popover></player-volume-popover>
-				</player-root>
-			</div>
+			<player-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="volume">
+				<player-volume></player-volume>
+			</player-root>
 		</Variant>
 		<Variant label="muted at 30%">
-			<div class="pt-36">
-				<player-root
-					class="inventory-volume-open flex justify-center bg-surface-900 px-4 py-2.5"
-					data-inventory-queue="muted"
-				>
-					<player-volume-popover></player-volume-popover>
-				</player-root>
-			</div>
+			<player-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="muted">
+				<player-volume></player-volume>
+			</player-root>
 		</Variant>
 	</Specimen>
 	<Specimen
@@ -157,11 +143,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</player-root>
 		</div>
 	</Specimen>
-	<Specimen
-		name="The bar's leaves"
-		note="Hover or focus the volume to open its fader."
-		source="packages/player/src/elements/"
-	>
+	<Specimen name="The bar's leaves" source="packages/player/src/elements/">
 		<Variant label="cued and paused">
 			<player-root
 				class="relative flex flex-wrap items-center gap-4 bg-surface-900 py-2.5 pr-4"
@@ -185,7 +167,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 				<player-status></player-status>
 				<player-scope></player-scope>
 				<player-panel-toggle></player-panel-toggle>
-				<player-volume-popover></player-volume-popover>
+				<player-volume></player-volume>
 				<player-queue-button></player-queue-button>
 				<player-overlay-toggle></player-overlay-toggle>
 				<player-overlay></player-overlay>
@@ -292,7 +274,6 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		seekSeconds: number;
 	}
 
-	// Roots that show a control rather than an item hold no queue
 	const unqueued = new Set(['empty', 'muted', 'volume']);
 
 	const openPanelQueues = new Set(['palette', 'panel']);
@@ -311,7 +292,6 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		return store;
 	}
 
-	// The error and loading roots play, so the rejection and the held load are what they show
 	function seedSpecimen(store: PlayerStoreApi, queue: string): void {
 		if (queue === 'idle') return;
 		if (queue === 'error' || queue === 'loading') {
@@ -320,7 +300,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		}
 
 		cueFirstPaused(store);
-		if (queue.startsWith('tray')) {
+		if (queue === 'tray') {
 			store.getState().setTrayOpen(true);
 			return;
 		}

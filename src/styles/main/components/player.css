@@ -3,7 +3,12 @@
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
 	--player-surface: var(--color-surface-800);
 	--player-panel-well: var(--color-surface-700);
-	--player-artwork-well: var(--color-surface-900);
+	--player-artwork-well: var(--color-surface-950);
+	--player-list-well: var(--color-surface-900);
+	--player-texture: var(--color-surface-600);
+	--player-texture-mask:
+		url('/patterns/maze.svg') 0 0 / 48px 48px repeat intersect,
+		radial-gradient(ellipse 80% 50% at 0 0, #000, transparent) no-repeat;
 	--player-popover: var(--color-surface-900);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
@@ -53,12 +58,20 @@
 	--player-cue-dot: var(--color-accent-400);
 	--player-cue-artist: var(--color-highlight-400);
 	--player-cue-title: var(--color-highlight-600);
-
-	/* The fader's slot and its cap, off the surface ramp so they read as hardware rather than as control */
-	--player-fader-slot: var(--color-surface-700);
-	--player-fader-cap: var(--color-surface-300);
-	--player-fader-cap-hover: var(--color-surface-200);
+	--player-dial-cap: var(--color-surface-400);
+	--player-dial-cap-hover: var(--color-surface-300);
+	--player-dial-mark: var(--color-surface-50);
+	--player-dial-lit: var(--color-highlight-500);
+	--player-dial-unlit: var(--color-surface-950);
+	--player-dial-dimmed: var(--color-highlight-700);
+	--player-dial-focus: var(--color-highlight-500);
+	--player-dial-glass: var(--color-surface-950);
+	--player-dial-readout-text: var(--color-accent-500);
 	--player-font-mono: var(--font-mono);
+}
+
+.player-overlay-body {
+	--player-panel-well: var(--color-surface-900);
 }
 
 /* Hiding an empty bar is the host's call, so it sits here rather than in the player's sheet; the dock collapses to where `MainTopButton` sits with the flag off */

@@ -1,3 +1,5 @@
+import { SonicDial } from '@xsynaptic/sonic-ui';
+
 import type { PlayerButtonPart } from '#elements/button-part.ts';
 import type { PlayerTracklist } from '#elements/overlay/tracklist.ts';
 import type { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
@@ -26,8 +28,7 @@ import { PlayerStepButton } from '#elements/step-button.ts';
 import { PlayerTimeSlider } from '#elements/time-slider/time-slider.ts';
 import { PlayerTime } from '#elements/time.ts';
 import { PlayerTitle } from '#elements/title.ts';
-import { PlayerVolumePopover } from '#elements/volume-popover.ts';
-import { PlayerVolumeSlider } from '#elements/volume-slider.ts';
+import { PlayerVolume } from '#elements/volume.ts';
 
 declare global {
 	interface HTMLElementTagNameMap {
@@ -56,12 +57,13 @@ declare global {
 		'player-title': PlayerTitle;
 		'player-tracklist': PlayerTracklist;
 		'player-tray': PlayerTray;
-		'player-volume-popover': PlayerVolumePopover;
-		'player-volume-slider': PlayerVolumeSlider;
+		'player-volume': PlayerVolume;
 	}
 }
 
+// Registered before `player-volume`, which needs an upgraded dial when it connects
 const playerElements = [
+	['sonic-dial', SonicDial],
 	['player-root', PlayerRoot],
 	['player-play-button', PlayerPlayButton],
 	['player-time', PlayerTime],
@@ -76,8 +78,7 @@ const playerElements = [
 	['player-progress', PlayerProgress],
 	['player-queue-button', PlayerQueueButton],
 	['player-mute-button', PlayerMuteButton],
-	['player-volume-slider', PlayerVolumeSlider],
-	['player-volume-popover', PlayerVolumePopover],
+	['player-volume', PlayerVolume],
 	['player-scope', PlayerScope],
 	['player-scrub-readout', PlayerScrubReadout],
 	['player-time-slider', PlayerTimeSlider],

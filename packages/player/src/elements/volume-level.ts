@@ -9,7 +9,8 @@ export interface LevelView {
 	isSilent: boolean;
 }
 
-const lowVolume = 0.5;
+const lowVolume = 1 / 3;
+const mediumVolume = 2 / 3;
 
 export function muteLabel(view: LevelView, labels: Pick<PlayerLabels, 'mute' | 'unmute'>): string {
 	return view.isSilent ? labels.unmute : labels.mute;
@@ -24,6 +25,7 @@ export function selectLevel(state: PlayerStore): LevelView {
 function levelIcon(volume: number): IconName {
 	if (volume === 0) return 'volumeMuted';
 	if (volume < lowVolume) return 'volumeLow';
+	if (volume < mediumVolume) return 'volumeMedium';
 
 	return 'volume';
 }

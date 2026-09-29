@@ -26,7 +26,7 @@ const renderBar = template(
 				</div>
 				<player-time-slider></player-time-slider><player-status></player-status
 				><player-scope></player-scope><player-panel-toggle></player-panel-toggle
-				><player-volume-popover></player-volume-popover><player-queue-button></player-queue-button
+				><player-volume></player-volume><player-queue-button></player-queue-button
 				><player-overlay-toggle></player-overlay-toggle>
 			</div>
 			<player-overlay></player-overlay>

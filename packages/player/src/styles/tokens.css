@@ -2,6 +2,9 @@
 	--player-surface: #0a0a0a;
 	--player-panel-well: #000;
 	--player-artwork-well: #000;
+	--player-list-well: #000;
+	--player-texture: transparent;
+	--player-texture-mask: none;
 	--player-popover: #171717;
 	--player-hover: #262626;
 	--player-border: #262626;
@@ -58,10 +61,29 @@
 	--player-cue-title: #a3a3a3;
 	--player-cue-size: 4px;
 	--player-cue-label-max: 20rem;
-	--player-fader-slot: #525252;
-	--player-fader-cap: #525252;
-	--player-fader-cap-hover: #737373;
-	--player-volume-level: 100%;
+	--player-dial-cap: #525252;
+	--player-dial-cap-hover: #737373;
+	--player-dial-mark: #d4d4d4;
+	--player-dial-lit: var(--player-control-active);
+	--player-dial-unlit: #262626;
+	--player-dial-dimmed: #047857;
+	--player-dial-focus: var(--player-focus-ring);
+	--player-dial-glass: var(--player-popover);
+	--player-dial-readout-text: var(--player-clock);
+	--player-dial-readout-size: 1.5rem;
+	--player-dial-light-tilt: 17deg;
+	--player-dial-size: var(--player-button-size);
+	--player-dial-ring-ratio: 0.075;
+	--player-dial-gap-ratio: 0.05;
+	--player-dial-pointer-ratio: 0.08;
+	--player-dial-pointer-taper: 0.3;
+	--player-dial-face-drift: 0.1;
+	--player-dial-ridge-pitch: 4px;
+	--player-dial-sweep: 300deg;
+
+	/* The dial parses both as px, so another unit reads as its bare number */
+	--player-dial-travel: 160px;
+	--player-dial-travel-bar: 90px;
 	--player-gap-wide: 3rem;
 	--player-gap: 0.75rem;
 	--player-gap-tight: 0.5rem;

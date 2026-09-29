@@ -8,7 +8,6 @@
 	.player-tray-action,
 	.player-tray-handle,
 	.player-tray-pick,
-	.player-volume-slider,
 	.player-waveform
 ):focus-visible {
 	outline: var(--player-focus-width) solid var(--player-focus-ring);

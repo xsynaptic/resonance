@@ -163,6 +163,8 @@
 }
 
 .player-bar-grid .player-volume {
+	--sonic-dial-travel: var(--player-dial-travel-bar);
+
 	grid-area: volume;
 }
 

@@ -44,8 +44,12 @@
 	touch-action: none;
 }
 
-.player-overlay-art .player-artwork {
-	border: 1px solid var(--player-border);
+.player-overlay-art {
+	background-color: var(--player-artwork-well);
+}
+
+.player-overlay-art:not(:has(.player-artwork)) {
+	display: none;
 }
 
 .player-overlay-body {
@@ -69,12 +73,24 @@
 }
 
 .player-overlay-deck {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	grid-area: deck;
 	gap: var(--player-gap);
 	min-inline-size: 0;
 	min-block-size: 0;
+	isolation: isolate;
+}
+
+.player-overlay-deck::before {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	content: '';
+	background-color: var(--player-texture);
+	mask: var(--player-texture-mask);
 }
 
 .player-overlay-head {
@@ -185,7 +201,7 @@
 }
 
 .player-overlay-tab:disabled {
-	color: var(--player-control-inert);
+	color: var(--player-hint);
 }
 
 .player-overlay-tab[aria-selected='true'] {
@@ -204,6 +220,10 @@
 	overflow-y: auto;
 	scrollbar-gutter: stable;
 	overscroll-behavior: contain;
+}
+
+.player-overlay-sheet {
+	--player-surface: var(--player-list-well);
 }
 
 .player-overlay-sheet[open] {
@@ -317,11 +337,14 @@
 	}
 
 	.player-overlay-deck {
-		position: relative;
 		display: grid;
 		align-content: start;
 		padding: 0 var(--player-overlay-inset-right) var(--player-overlay-inset-bottom)
 			var(--player-overlay-inset-left);
+	}
+
+	.player-overlay-deck::before {
+		inset-block-start: calc(-1 * var(--player-gap));
 	}
 
 	.player-overlay-deck:has(.player-waveform-frame) {
@@ -464,7 +487,6 @@
 			align-items: start;
 			padding-inline-start: env(safe-area-inset-left);
 			container-type: normal;
-			background-color: var(--player-artwork-well);
 		}
 
 		.player-overlay-art .player-artwork {
@@ -486,29 +508,38 @@
 }
 
 .player-overlay-body[data-layout='columns'] {
-	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
-		var(--player-overlay-inset-bottom) var(--player-overlay-inset-left);
-
 	.player-overlay-layout {
-		grid-template: 'artwork deck' minmax(0, 1fr) / auto minmax(0, 64rem);
-		column-gap: var(--player-gap-wide);
-		justify-content: center;
+		grid-template: 'artwork deck' minmax(0, 1fr) / min(40cqi, 100cqb, 900px) minmax(0, 64rem);
+		gap: 0;
 	}
 
 	.player-overlay-layout:not(:has(.player-overlay-art .player-artwork)) {
 		grid-template: 'deck' minmax(0, 1fr) / minmax(0, 64rem);
+		justify-content: center;
 	}
 
 	.player-overlay-art {
-		display: contents;
+		grid-area: artwork;
 	}
 
 	.player-overlay-art .player-artwork {
-		grid-area: artwork;
-		align-self: center;
-		inline-size: min(40cqi, 100cqb, 900px);
+		inline-size: 100%;
 		block-size: auto;
 		aspect-ratio: 1;
+	}
+
+	.player-overlay-layout > .player-overlay-deck {
+		padding: max(1.5rem, env(safe-area-inset-top)) max(2rem, env(safe-area-inset-right))
+			max(1.5rem, env(safe-area-inset-bottom)) max(2rem, env(safe-area-inset-left));
+		container: player-overlay-deck / inline-size;
+	}
+
+	.player-overlay-tabs {
+		--player-border: var(--player-surface);
+
+		margin-inline: 0;
+		background-color: var(--player-list-well);
+		border-radius: 0.125rem;
 	}
 
 	.player-overlay-deck > player-panel > .player-panel {
@@ -516,8 +547,19 @@
 		border-radius: var(--player-radius-large);
 	}
 
+	/* Aligns the previous glyph (0.625rem wide), not its box, with the deck's edge */
 	.player-overlay-controls .player-transport {
-		margin-inline-end: auto;
+		margin-inline: calc((0.625rem - var(--player-button-size)) / 2) auto;
+	}
+
+	@container player-overlay-deck (width < 22.5rem) {
+		.player-overlay-controls {
+			--player-button-size-hero: 3rem;
+		}
+
+		.player-overlay-controls .player-transport {
+			gap: var(--player-gap-tight);
+		}
 	}
 }
 
@@ -529,8 +571,4 @@
 	.player-overlay-deck {
 		padding-block-start: var(--player-overlay-inset-top);
 	}
-}
-
-.player-overlay-body[data-layout='phone'] .player-overlay-art:not(:has(.player-artwork)) {
-	display: none;
 }

@@ -44,7 +44,7 @@ const headerActionsMinWidthRem = 30;
 
 // The stylesheet's artwork caps for each layout; the phone cover is full bleed, so it takes no padding off
 const artworkSizes =
-	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh - 2rem, 900px), (orientation: landscape) min(50vw, 100vh, 900px), min(100vw, 60vh, 40rem)';
+	'(width >= 40rem) and (height >= 30rem) min(40vw, 100vh, 900px), (orientation: landscape) min(50vw, 100vh, 900px), min(100vw, 60vh, 40rem)';
 
 const renderBody = template(
 	/* HTML */ `
@@ -77,8 +77,7 @@ const renderBody = template(
 							><player-play-button></player-play-button
 							><player-step-button direction="next"></player-step-button>
 						</div>
-						<player-panel-toggle></player-panel-toggle
-						><player-volume-popover></player-volume-popover>
+						<player-panel-toggle></player-panel-toggle><player-volume></player-volume>
 					</div>
 					<div class="player-overlay-tabs">
 						<div class="player-header">

@@ -28,8 +28,7 @@ player-root {
 	player-title,
 	player-tracklist,
 	player-tray,
-	player-volume-popover,
-	player-volume-slider
+	player-volume
 ):not([hidden]) {
 	display: contents;
 }

@@ -1,6 +1,6 @@
 import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 
-import { getContentPath } from '@xsynaptic/shared/routing';
+import { getContentPath, toSlug } from '@xsynaptic/shared/routing';
 import { getCollection, getEntries } from 'astro:content';
 
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
@@ -8,7 +8,6 @@ import type { CreditValue, LabelCreditValue } from '#lib/schemas/credits.ts';
 
 import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
 import { memoizeByKey } from '#lib/utils/memoize.ts';
-import { toSlug } from '#lib/utils/text.ts';
 
 // url is set only when the name matches a catalog entry; free text and unresolved ids render plain
 export interface LinkedName {

@@ -1,8 +1,9 @@
+import { toSlug } from '@xsynaptic/shared/routing';
+
 import type { CreditValue, LabelCreditValue } from '#lib/schemas/credits.ts';
 import type { LinkableEntry } from '#lib/utils/entries.ts';
 
 import { toCreditArray } from '#lib/utils/terms.ts';
-import { toSlug } from '#lib/utils/text.ts';
 import { toFlatTracks } from '#lib/utils/track-groups.ts';
 
 export interface ListedRow {

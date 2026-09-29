@@ -1,4 +1,4 @@
-import { getContentPath } from '@xsynaptic/shared/routing';
+import { getContentPath, toSlug } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
 
 import type { LabelCreditValue } from '#lib/schemas/credits.ts';
@@ -10,7 +10,6 @@ import { getImageFeaturedId } from '#lib/image/image-featured.ts';
 import { getEntryBySlug } from '#lib/utils/entries.ts';
 import { renderMarkdown } from '#lib/utils/markdown.ts';
 import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
-import { toSlug } from '#lib/utils/text.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 import { getYoutubeSearchUrl } from '#lib/utils/youtube.ts';
 

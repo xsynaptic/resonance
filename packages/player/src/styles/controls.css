@@ -14,6 +14,8 @@
 	--sonic-dimmed: var(--player-dial-dimmed);
 	--sonic-focus: var(--player-dial-focus);
 	--sonic-glass: var(--player-dial-glass);
+	--sonic-glass-font: var(--player-font-mono);
+	--sonic-glass-text: var(--player-dial-readout-text);
 	--sonic-light-tilt: var(--player-dial-light-tilt);
 	--sonic-lit: var(--player-dial-lit);
 	--sonic-mark: var(--player-dial-mark);
@@ -26,12 +28,9 @@
 	align-items: center;
 }
 
-/* Reads like the clock beside it, as sonic-ui has no token for the readout's text */
+/* Chrome flips the readout below the bar once the page scrolls, covering the waveform */
 .player-volume .sonic-dial-readout {
-	/* Chrome flips the readout below the bar once the page scrolls, covering the waveform */
 	position-try-fallbacks: none;
-	font-family: var(--player-font-mono);
-	color: var(--player-dial-readout-text);
 }
 
 .player-seek {

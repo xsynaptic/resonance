@@ -4,7 +4,7 @@ An Astro 7 port of [djbasilisk.com](https://djbasilisk.com), a DJ and electronic
 
 It builds on [spectralcodex](https://github.com/xsynaptic/spectralcodex): when you're unsure how to structure something, copy the pattern from there. The `@xsynaptic/*` packages come from [astro-lab](https://github.com/xsynaptic/astro-lab) via npm.
 
-Read `.claude/context.md` before naming anything or writing user-facing copy; its vocabulary is binding.
+Read `.claude/glossary.md` before naming anything or writing user-facing copy; its vocabulary is binding.
 
 Add a line to this file only if it changes what an agent does.
 

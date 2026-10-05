@@ -147,7 +147,7 @@
 
 .player-overlay-deck .player-transport .player-button-primary svg {
 	inline-size: auto;
-	block-size: 1.5rem;
+	block-size: 1.875rem;
 }
 
 .player-overlay-sheets {
@@ -385,7 +385,7 @@
 
 	.player-overlay-close svg {
 		inline-size: auto;
-		block-size: 0.875rem;
+		block-size: 1.125rem;
 	}
 
 	.player-overlay-track :is(.player-track-title, .player-track-empty, .player-scrub-readout-title) {
@@ -455,8 +455,8 @@
 		contain: size;
 	}
 
-	.player-overlay-scrub .player-waveform {
-		block-size: 100%;
+	.player-overlay-scrub .player-waveform-frame {
+		block-size: auto;
 	}
 
 	.player-cue-label[data-above] {
@@ -545,9 +545,9 @@
 		border-radius: var(--player-radius-large);
 	}
 
-	/* Aligns the previous glyph (0.625rem wide), not its box, with the deck's edge */
+	/* Aligns the previous glyph (five sixths of its 1.25rem icon), not its box, with the deck's edge */
 	.player-overlay-controls .player-transport {
-		margin-inline: calc((0.625rem - var(--player-button-size)) / 2) auto;
+		margin-inline: calc((1.25rem * 5 / 6 - var(--player-button-size)) / 2) auto;
 	}
 
 	@container player-overlay-deck (width < 22.5rem) {

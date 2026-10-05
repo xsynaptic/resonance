@@ -153,7 +153,7 @@
 	grid-area: info;
 }
 
-.player-bar-grid player-time-slider > :is(.player-waveform-frame, .player-seek) {
+.player-bar-grid player-time-slider > .player-waveform-frame {
 	grid-area: seek;
 	min-block-size: var(--player-waveform-height);
 }
@@ -235,7 +235,7 @@
 
 	.player-bar > player-panel > .player-panel,
 	.player-bar-grid .player-artwork,
-	.player-bar-grid player-time-slider > :is(.player-waveform-frame, .player-seek),
+	.player-bar-grid player-time-slider > .player-waveform-frame,
 	.player-bar-grid .player-panel-toggle,
 	.player-bar-grid:has(> player-overlay-toggle) .player-queue,
 	.player-bar-grid .player-seek-button,

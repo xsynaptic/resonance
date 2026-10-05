@@ -81,7 +81,7 @@ const iconIds: Array<IconId> = [
 	'youtube',
 ];
 
-// No `waveformOverview`, so the seek bar falls back to its range input
+// No `waveformOverview`, so the seek bar draws a plain groove
 // Both URLs point at this page, so nothing plays and the panel finds no archive
 const itemWithoutPeaks: PlayerPayloadItem = {
 	archiveUrl: '/inventory/player/#player',

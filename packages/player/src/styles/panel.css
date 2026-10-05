@@ -1,9 +1,36 @@
 .player-panel {
+	--sonic-glass: transparent;
+	--sonic-lit: var(--player-panel-wave);
+	--sonic-marker: var(--player-panel-cue);
+	--sonic-readout-edge: var(--player-border);
+	--sonic-readout-edge-width: 1px;
+	--sonic-readout-glass: var(--player-popover);
+	--sonic-readout-text: var(--player-title);
+	--sonic-waveform-edge: var(--player-panel-wave-peak);
+	--sonic-waveform-ends: var(--player-panel-ends);
+	--sonic-waveform-ghost: var(--player-panel-ghost);
+	--sonic-waveform-grid: var(--player-panel-grid);
+	--sonic-waveform-inset-ratio: 0;
+	--sonic-waveform-label: var(--player-cue-title);
+	--sonic-waveform-label-font: var(--player-font-family);
+
+	/* `--player-font-size` over `--player-panel-height` */
+	--sonic-waveform-label-font-ratio: calc(0.875 / 7.5);
+	--sonic-waveform-label-inset-block: 0.25rem;
+	--sonic-waveform-label-inset-inline: calc(1rem + var(--player-panel-inset-left, 0px));
+	--sonic-waveform-length: 100%;
+	--sonic-waveform-placeholder: var(--player-panel-placeholder);
+	--sonic-waveform-playhead: var(--player-playhead);
+	--sonic-waveform-playhead-width: 1px;
+	--sonic-waveform-radius-ratio: 0;
+
+	/* As tall as the label's row */
+	--sonic-waveform-scrim: linear-gradient(to top, var(--player-surface), transparent 1.75rem);
+	--sonic-waveform-size: var(--player-panel-height);
+
 	position: relative;
 	height: var(--player-panel-height);
 	overflow: hidden;
-	touch-action: pan-y;
-	cursor: grab;
 	user-select: none;
 	background-image: linear-gradient(
 		to bottom,
@@ -14,36 +41,19 @@
 	background-repeat: no-repeat;
 }
 
-.player-panel[data-dragging] {
-	cursor: grabbing;
+/* Outside the library's layer, so it beats its `line-height: 1` */
+.player-panel .sonic-waveform-label {
+	line-height: 1.25rem;
 }
 
-.player-panel-canvas {
-	display: block;
-	width: 100%;
-	height: 100%;
-}
-
-.player-panel-playhead {
+/* The waveform's own labels are hidden from assistive tech, so the current Track is said here */
+.player-panel-now {
 	position: absolute;
-	inset-block: 0;
-	left: 50%;
-	width: 1px;
-	background-color: var(--player-playhead);
-	translate: -50%;
-}
-
-.player-panel-ghost {
-	position: absolute;
-	inset-block: 0;
-	left: 50%;
-	width: 1px;
-	margin-left: -0.5px;
-	background-color: var(--player-panel-ghost);
-}
-
-.player-panel-ghost[hidden] {
-	display: none;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	white-space: nowrap;
+	clip-path: inset(50%);
 }
 
 .player-panel-zoom {
@@ -53,7 +63,6 @@
 	display: flex;
 	gap: var(--player-gap-small);
 	padding: var(--player-gap-small);
-	cursor: default;
 }
 
 .player-panel-zoom .player-button-small {
@@ -70,66 +79,6 @@
 
 .player-panel-zoom .player-button-small:focus-visible {
 	background-color: var(--player-hover);
-}
-
-.player-panel-readout {
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	left: 0;
-	display: grid;
-	overflow: hidden;
-	pointer-events: none;
-	background-image: linear-gradient(to top, var(--player-surface), transparent);
-	background-repeat: no-repeat;
-}
-
-.player-panel-now {
-	display: flex;
-	grid-area: 1 / 1;
-	align-items: baseline;
-	justify-self: start;
-	padding-block: 0.25rem;
-	white-space: nowrap;
-}
-
-.player-panel-now[data-empty] {
-	visibility: hidden;
-}
-
-.player-panel-now-artist {
-	font-size: var(--player-font-size);
-	font-weight: 500;
-	line-height: 1.25rem;
-	color: var(--player-cue-artist);
-}
-
-.player-panel-now-title {
-	font-size: var(--player-font-size);
-	line-height: 1.25rem;
-	color: var(--player-cue-title);
-}
-
-.player-panel-now-note {
-	display: none;
-	flex-shrink: 0;
-	margin-left: var(--player-gap-tight);
-	font-size: var(--player-font-size-small);
-	line-height: 1rem;
-	color: var(--player-hint);
-}
-
-.player-panel-now[data-uncertain] .player-panel-now-title,
-.player-panel-now[data-uncertain] .player-panel-now-artist {
-	color: var(--player-hint);
-}
-
-.player-panel-now[data-uncertain] .player-panel-now-artist::after {
-	color: var(--player-hint);
-}
-
-.player-panel-now[data-uncertain] .player-panel-now-note {
-	display: block;
 }
 
 .player-panel-toggle[aria-pressed='true'] {

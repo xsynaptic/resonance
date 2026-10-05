@@ -1,50 +1,42 @@
+import { SonicWaveform } from '@xsynaptic/sonic-ui';
+
 import type { PlayerContext } from '#elements/player-context.ts';
-import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerLabels, PlayerUrls, QueueItem } from '#types.ts';
-import type { PanelParts, PanelView } from '#waveform/panel/panel-view.ts';
+import type { PlayerStore, PlayerStoreApi } from '#store/player-store.ts';
+import type { PlayerUrls, QueueItem } from '#types.ts';
+import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
 import { defineOnce } from '#elements/define-once.ts';
 import { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
+import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
-import { requireChild, requireChildren, template } from '#lib/render.ts';
+import { formatClock, parseClock } from '#lib/format.ts';
+import { requireChild, template } from '#lib/render.ts';
+import { supersede } from '#lib/supersede.ts';
+import { toDurationSeconds } from '#queue/queue.ts';
 import { loadedItem } from '#store/selectors.ts';
-import { subscribeStoreTime } from '#store/subscribe-time.ts';
-import { toCueSlot } from '#waveform/panel/cue-rider.ts';
-import { createPanelDrag } from '#waveform/panel/panel-drag.ts';
-import {
-	createPanelView,
-	isPanelMoving,
-	openPanelArchive,
-	paintPanelFrame,
-	startPanelLoop,
-} from '#waveform/panel/panel-view.ts';
-import { createScrollClock } from '#waveform/panel/scroll-clock.ts';
-import { subscribeTheme } from '#waveform/theme-change.ts';
+import { describePosition, toPanelMarkers } from '#waveform/cue-markers.ts';
+import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
 interface PanelSource {
 	item: QueueItem | undefined;
-	pxPerSecond: number;
 	resolveArchive: PlayerUrls['archive'];
 }
 
-// The arriving readout is hidden from assistive tech: it names a track that is not playing yet
+const archiveFullScale = 128;
+
 const renderSurface = template(
 	/* HTML */ `
 		<div>
-			<canvas aria-hidden="true" class="player-panel-canvas"></canvas>
-			<div aria-hidden="true" class="player-panel-playhead"></div>
-			<div aria-hidden="true" class="player-panel-ghost" hidden></div>
+			<sonic-waveform
+				key-step="1"
+				pending-delay="400"
+				readout
+				reduced-motion="scroll"
+				spoken-step="1"
+				step="0"
+			></sonic-waveform>
+			<p class="player-panel-now"></p>
 			<player-panel-zoom></player-panel-zoom>
-			<div class="player-panel-readout">
-				<p class="player-panel-now" data-empty>
-					<span class="player-panel-now-artist"></span><span class="player-panel-now-title"></span
-					><span class="player-panel-now-note"></span>
-				</p>
-				<p aria-hidden="true" class="player-panel-now" data-empty>
-					<span class="player-panel-now-artist"></span><span class="player-panel-now-title"></span
-					><span class="player-panel-now-note"></span>
-				</p>
-			</div>
 		</div>
 	`,
 	HTMLDivElement,
@@ -56,113 +48,179 @@ export function connectPanelSurface(
 	signal: AbortSignal,
 ): void {
 	defineOnce('player-panel-zoom', PlayerPanelZoom);
+	defineOnce('sonic-waveform', SonicWaveform);
 
-	const parts = renderPanelParts(panel, labels);
-	const clock = createScrollClock({
-		elementTime: store.getState().getCurrentTime,
-		subscribeTime: subscribeStoreTime(store),
-	});
-	const drag = createPanelDrag({
-		canDrag: () => store.getState().currentIndex !== undefined,
-		onSeek: (seconds) => {
-			store.getState().seek(seconds);
-		},
-		panel: parts.panel,
-		pxPerSecond: () => store.getState().panelPxPerSecond,
-		signal,
-	});
-	let archive = openPanelArchive(undefined, undefined);
-	let source: PanelSource | undefined;
-	let view: PanelView | undefined;
+	panel.removeAttribute('aria-hidden');
+	panel.setAttribute('aria-label', labels.waveformPanel);
+	panel.setAttribute('role', 'group');
+	panel.replaceChildren(...renderSurface().children);
 
-	const wake = startPanelLoop({
-		onFrame: (frameMs, insetPx) => {
-			if (view) paintPanelFrame({ archive, clock, drag, frameMs, insetPx, store, view });
+	const waveform = requireChild(panel, 'sonic-waveform', SonicWaveform);
+	const now = requireChild(panel, '.player-panel-now', HTMLParagraphElement);
+	const fed = supersede(signal);
+	let archiveSeconds: number | undefined;
 
-			return isPanelMoving(store.getState(), drag, view);
-		},
-		onResize: () => {
-			view?.canvas.resize();
-		},
-		parts,
-		signal,
-	});
+	const showDuration = (): void => {
+		const state = store.getState();
+		const durationSeconds =
+			state.durationSeconds ?? archiveSeconds ?? toDurationSeconds(loadedItem(state));
 
-	const rebuild = (): void => {
-		if (source === undefined) return;
-
-		view = createPanelView({
-			archive,
-			item: source.item,
-			parts,
-			pxPerSecond: source.pxPerSecond,
-		});
-
-		if (parts.canvas.clientWidth > 0) view.canvas.resize();
-		wake();
+		waveform.max = durationSeconds ?? 0;
+		waveform.formatSpokenValue = (seconds) =>
+			formatSpokenPosition(labels.seekPosition, seconds, durationSeconds);
 	};
+
+	waveform.setAttribute('aria-label', labels.waveformSeek);
+	waveform.formatEntry = formatClock;
+	waveform.parseValue = parseClock;
+	waveform.readTime = store.getState().getCurrentTime;
+	waveform.addEventListener(
+		'change',
+		() => {
+			store.getState().seek(waveform.value);
+		},
+		{ signal },
+	);
+	waveform.addEventListener(
+		'sonic-marker',
+		() => {
+			now.textContent = waveform.currentMarker?.label ?? '';
+		},
+		{ signal },
+	);
 
 	bind(
 		store,
 		selectPanelSource,
-		(next) => {
-			if (next.item !== source?.item || next.resolveArchive !== source?.resolveArchive) {
-				archive = openPanelArchive(next.resolveArchive, next.item);
-			}
+		(source) => {
+			archiveSeconds = undefined;
+			showItem(waveform, source.item, labels.timestampsPartial);
+			showDuration();
+			void feedArchive(waveform, source, fed.next()).then((archive) => {
+				if (!archive) return;
 
-			source = next;
-			rebuild();
+				archiveSeconds = archive.pairsTotal / archive.pairsPerSecond;
+				showDuration();
+			});
 		},
 		signal,
 	);
+	bind(store, selectDuration, showDuration, signal);
+	bindPlayback(waveform, store, signal);
+}
 
-	const unsubscribeStore = store.subscribe(wake);
-	const unsubscribeTheme = subscribeTheme(rebuild);
+function bindPlayback(waveform: SonicWaveform, store: PlayerStoreApi, signal: AbortSignal): void {
+	bind(
+		store,
+		(state) => state.currentTimeSeconds,
+		(seconds) => {
+			waveform.value = seconds;
+		},
+		signal,
+	);
+	bind(
+		store,
+		(state) => state.status === 'playing',
+		(isPlaying) => {
+			waveform.playing = isPlaying;
+		},
+		signal,
+	);
+	bind(
+		store,
+		(state) => state.panelPxPerSecond,
+		(pxPerSecond) => {
+			waveform.zoom = pxPerSecond;
+		},
+		signal,
+	);
+}
 
-	parts.panel.addEventListener('pointerdown', wake, { signal });
+async function feedArchive(
+	waveform: SonicWaveform,
+	{ item, resolveArchive }: PanelSource,
+	signal: AbortSignal,
+): Promise<undefined | WaveformArchive> {
+	waveform.peaks = undefined;
+	waveform.pending = undefined;
+	waveform.requestPeaks = undefined;
+	if (!resolveArchive || item === undefined) return undefined;
+
+	waveform.pending = [[waveform.min, waveform.max]];
+
+	const archive = await openArchive(resolveArchive, item);
+
+	if (signal.aborted) return undefined;
+
+	waveform.pending = undefined;
+	if (archive) requestFromArchive(waveform, archive, signal);
+
+	return archive;
+}
+
+// The archive fills `samples` in place and reports nothing, so a frame loop watches it while the window has a gap
+function requestFromArchive(
+	waveform: SonicWaveform,
+	archive: WaveformArchive,
+	signal: AbortSignal,
+): void {
+	const { pairsPerSecond } = archive;
+	let frame = 0;
+	let landedChunks = archive.landedChunks();
+	let fromPair = 0;
+	let toPair = 0;
+
+	const watch = (): void => {
+		frame = 0;
+		// A failed chunk is asked for again here, once its backoff has run out
+		archive.want(fromPair, toPair);
+
+		if (archive.landedChunks() !== landedChunks) {
+			landedChunks = archive.landedChunks();
+			waveform.repaint();
+		}
+
+		const missing = archive.missing(fromPair, toPair);
+
+		waveform.pending = missing.map((chunk) => [
+			chunk.fromPair / pairsPerSecond,
+			chunk.toPair / pairsPerSecond,
+		]);
+
+		if (missing.length > 0) frame = requestAnimationFrame(watch);
+	};
+
+	waveform.peaks = { fullScale: archiveFullScale, pairsPerSecond, samples: archive.samples };
+	waveform.requestPeaks = (fromSeconds, toSeconds) => {
+		fromPair = fromSeconds * pairsPerSecond;
+		toPair = toSeconds * pairsPerSecond;
+		archive.want(fromPair, toPair);
+
+		if (frame === 0 && archive.missing(fromPair, toPair).length > 0) {
+			frame = requestAnimationFrame(watch);
+		}
+	};
 	signal.addEventListener(
 		'abort',
 		() => {
-			unsubscribeStore();
-			unsubscribeTheme();
-			clock.stop();
+			cancelAnimationFrame(frame);
 		},
 		{ once: true },
 	);
 }
 
-function renderPanelParts(panel: HTMLElement, labels: PlayerLabels): PanelParts {
-	const surface = renderSurface();
-	const canvas = requireChild(surface, 'canvas', HTMLCanvasElement);
-	const context = canvas.getContext('2d');
-	const ghost = requireChild(surface, '.player-panel-ghost', HTMLElement);
-	const [parked, arriving] = requireChildren(surface, 'p', 2, HTMLParagraphElement);
-
-	if (!context) throw new Error('The panel surface found no 2d context');
-
-	for (const note of surface.querySelectorAll('.player-panel-now-note')) {
-		note.textContent = labels.timestampsPartial;
-	}
-
-	panel.removeAttribute('aria-hidden');
-	panel.setAttribute('aria-label', labels.waveformPanel);
-	panel.setAttribute('role', 'group');
-	panel.replaceChildren(...surface.children);
-
-	return {
-		arriving: toCueSlot(arriving),
-		canvas,
-		context,
-		ghost,
-		panel,
-		parked: toCueSlot(parked),
-	};
+function selectDuration(state: PlayerStore): number | undefined {
+	return state.durationSeconds ?? toDurationSeconds(loadedItem(state));
 }
 
 function selectPanelSource(state: PlayerStore): PanelSource {
-	return {
-		item: loadedItem(state),
-		pxPerSecond: state.panelPxPerSecond,
-		resolveArchive: state.urls?.archive,
-	};
+	return { item: loadedItem(state), resolveArchive: state.urls?.archive };
+}
+
+function showItem(waveform: SonicWaveform, item: QueueItem | undefined, partialNote: string): void {
+	const cuePoints = item?.cuePoints ?? [];
+
+	waveform.disabled = item === undefined;
+	waveform.formatValue = (seconds) => describePosition(cuePoints, seconds);
+	waveform.markers = toPanelMarkers(cuePoints, item?.trackCount ?? cuePoints.length, partialNote);
 }

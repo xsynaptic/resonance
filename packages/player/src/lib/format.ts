@@ -29,3 +29,11 @@ export function formatModeClock(
 export function formatTemplate(template: string, values: Record<string, number | string>): string {
 	return template.replaceAll(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
 }
+
+export function parseClock(text: string): number {
+	let seconds = 0;
+
+	for (const part of text.split(':')) seconds = seconds * 60 + Number(part);
+
+	return seconds;
+}

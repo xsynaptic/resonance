@@ -115,10 +115,6 @@ describe('<player-overlay>', () => {
 	});
 
 	test('draws one waveform panel while it is open', async () => {
-		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
-			{} as unknown as CanvasRenderingContext2D,
-		);
-
 		const mounted = mountOverlay();
 
 		mounted.root.append(document.createElement('player-panel'));

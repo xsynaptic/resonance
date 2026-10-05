@@ -37,6 +37,7 @@ export function getPlayerLabels(): PlayerLabels {
 		unplayable: t('player.unplayable'),
 		volume: t('player.volume'),
 		waveformPanel: t('player.waveformPanel'),
+		waveformSeek: t('player.waveformSeek'),
 		zoomIn: t('player.zoomIn'),
 		zoomOut: t('player.zoomOut'),
 	};

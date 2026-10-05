@@ -1,11 +1,15 @@
+import type { BufferedSpan } from '#elements/progress-scrub.ts';
 import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
-import type { WaveformSpan } from '#waveform/overview/overview-render.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
-import { bufferedKey, bufferedSpans, pointerRatio } from '#elements/time-slider/overview-scrub.ts';
-import { bindSliderKeys } from '#elements/time-slider/overview-slider.ts';
+import {
+	bindSliderKeys,
+	bufferedKey,
+	bufferedSpans,
+	pointerRatio,
+} from '#elements/progress-scrub.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
 import { observeResize } from '#lib/observe-resize.ts';
@@ -165,7 +169,7 @@ function bindGesture(gesture: StripGesture, signal: AbortSignal): void {
 	);
 }
 
-function bufferedGradient(spans: ReadonlyArray<WaveformSpan>, width: number): string {
+function bufferedGradient(spans: ReadonlyArray<BufferedSpan>, width: number): string {
 	if (spans.length === 0) return 'none';
 
 	const stops = spans.map(({ fromPx, toPx }) => {

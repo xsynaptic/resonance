@@ -26,11 +26,11 @@ const renderRegion = template(
 );
 
 export class PlayerStatusRegion extends PlayerElement {
+	readonly #alert = cloneIcon('alert');
+
 	readonly #region = renderRegion();
 
 	#shown: ReportedStatus | undefined;
-
-	readonly #skull = cloneIcon('skull');
 
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
@@ -46,7 +46,7 @@ export class PlayerStatusRegion extends PlayerElement {
 
 				this.#shown = reported;
 				region.dataset.status = reported;
-				region.replaceChildren(...(reported === 'error' ? [this.#skull] : []), labels[reported]);
+				region.replaceChildren(...(reported === 'error' ? [this.#alert] : []), labels[reported]);
 			},
 			signal,
 		);

@@ -60,13 +60,14 @@
 	--player-cue-title: var(--color-highlight-600);
 	--player-dial-cap: var(--color-surface-400);
 	--player-dial-cap-hover: var(--color-surface-300);
-	--player-dial-mark: var(--color-surface-50);
+	--player-dial-ink: var(--color-surface-50);
 	--player-dial-lit: var(--color-highlight-500);
 	--player-dial-unlit: var(--color-surface-950);
 	--player-dial-dimmed: var(--color-highlight-700);
 	--player-dial-focus: var(--color-highlight-500);
 	--player-dial-glass: var(--color-surface-950);
 	--player-dial-readout-text: var(--color-accent-500);
+	--player-font-family: var(--font-body);
 	--player-font-mono: var(--font-mono);
 }
 

@@ -43,11 +43,6 @@
 	--player-waveform-played: #10b981;
 	--player-waveform-scrub: #6ee7b7;
 	--player-progress-played: var(--player-waveform-played);
-
-	/* The canvas parses these three and `--player-cue-size` as px, so another unit reads as its bare number */
-	--player-waveform-bar: 2px;
-	--player-waveform-gap: 1px;
-	--player-waveform-radius: 1px;
 	--player-panel-wave: #34d399;
 	--player-panel-wave-peak: #065f46;
 	--player-panel-ghost: #a3a3a3;
@@ -63,7 +58,7 @@
 	--player-cue-label-max: 20rem;
 	--player-dial-cap: #525252;
 	--player-dial-cap-hover: #737373;
-	--player-dial-mark: #d4d4d4;
+	--player-dial-ink: #d4d4d4;
 	--player-dial-lit: var(--player-control-active);
 	--player-dial-unlit: #262626;
 	--player-dial-dimmed: #047857;
@@ -75,10 +70,11 @@
 	--player-dial-size: var(--player-button-size);
 	--player-dial-ring-ratio: 0.075;
 	--player-dial-gap-ratio: 0.05;
-	--player-dial-pointer-ratio: 0.08;
-	--player-dial-pointer-taper: 0.3;
+	--player-dial-indicator-ratio: 0.08;
+	--player-dial-indicator-taper: 0.3;
 	--player-dial-face-drift: 0.1;
 	--player-dial-ridge-pitch: 4px;
+	--player-dial-relief: 1;
 	--player-dial-sweep: 300deg;
 
 	/* The dial parses both as px, so another unit reads as its bare number */

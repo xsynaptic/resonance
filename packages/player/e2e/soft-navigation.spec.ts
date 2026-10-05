@@ -10,7 +10,7 @@ test('a router swap without moveBefore keeps the open panel and playback bound',
 
 	await page.evaluate(() => window.playerPage?.store.getState().setPanelOpen(true));
 
-	const canvas = await page.locator('.player-panel-canvas').elementHandle();
+	const waveform = await page.locator('sonic-waveform').elementHandle();
 
 	await page.evaluate(() => {
 		const root = document.querySelector('player-root');
@@ -25,10 +25,7 @@ test('a router swap without moveBefore keeps the open panel and playback bound',
 	});
 
 	expect(
-		await page.evaluate(
-			(before) => document.querySelector('.player-panel-canvas') === before,
-			canvas,
-		),
+		await page.evaluate((before) => document.querySelector('sonic-waveform') === before, waveform),
 	).toBe(true);
 	expect(await harness.read()).toMatchObject({ isPaused: false, status: 'playing' });
 });

@@ -31,6 +31,7 @@ export const labels = {
 	unplayable: 'This browser cannot play the stream',
 	volume: 'Volume',
 	waveformPanel: 'Waveform detail',
+	waveformSeek: 'Fine seek',
 	zoomIn: 'Zoom in',
 	zoomOut: 'Zoom out',
 } satisfies PlayerLabels;

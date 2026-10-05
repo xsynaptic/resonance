@@ -1,5 +1,7 @@
 @import '@xsynaptic/sonic-ui/material.css';
 @import '@xsynaptic/sonic-ui/dial.css';
+@import '@xsynaptic/sonic-ui/wavestrip.css';
+@import '@xsynaptic/sonic-ui/waveform.css';
 @import './styles/tokens.css';
 @import './styles/host.css';
 @import './styles/focus.css';

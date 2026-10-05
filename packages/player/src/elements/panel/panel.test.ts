@@ -1,4 +1,5 @@
 import { getByRole } from '@testing-library/dom';
+import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
@@ -20,24 +21,26 @@ function mountPanel() {
 			stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
 		},
 	});
-	mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
+	mounted.store
+		.getState()
+		.playTrack(
+			[queueItem('a', { durationMs: 200_000 }), queueItem('b', { durationMs: 200_000 })],
+			'a',
+		);
 
 	return mounted;
 }
 
-async function openPanel({ part, store }: ReturnType<typeof mountPanel>): Promise<void> {
+async function openPanel({ part, store }: ReturnType<typeof mountPanel>): Promise<SonicWaveform> {
 	store.getState().setPanelOpen(true);
 
-	await vi.waitFor(() => {
-		expect(part.querySelector('canvas')).not.toBeNull();
-	});
-}
+	return vi.waitFor(() => {
+		const waveform = part.querySelector('sonic-waveform');
 
-// happy-dom has no 2d context; nothing paints, since its ResizeObserver never starts the frame loop
-function stubContext(): void {
-	vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
-		{} as unknown as CanvasRenderingContext2D,
-	);
+		if (!(waveform instanceof SonicWaveform)) throw new Error('The panel has no waveform yet');
+
+		return waveform;
+	});
 }
 
 afterEach(() => {
@@ -48,8 +51,6 @@ afterEach(() => {
 
 describe('<player-panel>', () => {
 	test('holds nothing until it opens, and nothing again once closed', async () => {
-		stubContext();
-
 		const mounted = mountPanel();
 
 		expect(mounted.part.childElementCount).toBe(0);
@@ -61,8 +62,6 @@ describe('<player-panel>', () => {
 	});
 
 	test('reopens the archive for a new track but not for a zoom', async () => {
-		stubContext();
-
 		const mounted = mountPanel();
 
 		await openPanel(mounted);
@@ -93,31 +92,20 @@ describe('<player-panel>', () => {
 		expect(reportError).toHaveBeenCalledWith(offline);
 	});
 
-	test('a drag that spans a track change still seeks and lets go', async () => {
-		stubContext();
-
+	test('seeks once to where the waveform commits, and names the group and its slider', async () => {
 		const mounted = mountPanel();
+		const waveform = await openPanel(mounted);
 
-		await openPanel(mounted);
+		expect(getByRole(mounted.part, 'group', { name: labels.waveformPanel })).toBeDefined();
+		expect(waveform.getAttribute('aria-label')).toBe(labels.waveformSeek);
 
-		const panel = mounted.part.querySelector<HTMLElement>('.player-panel');
-		if (!panel) throw new Error('The panel rendered no surface');
+		waveform.value = 40;
+		waveform.dispatchEvent(new Event('change'));
 
-		const pointer = { bubbles: true, button: 0, pointerId: 1 };
-
-		panel.setPointerCapture = vi.fn();
-		panel.dispatchEvent(new PointerEvent('pointerdown', { ...pointer, clientX: 500 }));
-		panel.dispatchEvent(new PointerEvent('pointermove', { ...pointer, clientX: 400 }));
-		mounted.store.getState().next();
-		panel.dispatchEvent(new PointerEvent('pointerup', { ...pointer, clientX: 400 }));
-
-		expect(panel.dataset.dragging).toBeUndefined();
-		expect(mounted.store.getState().currentTimeSeconds).toBeGreaterThan(0);
+		expect(mounted.fake.engine.seek.mock.calls).toEqual([[40]]);
 	});
 
 	test('stops zooming at the last level without dropping focus', async () => {
-		stubContext();
-
 		const mounted = mountPanel();
 
 		mounted.store.setState({ panelPxPerSecond: 240 });

@@ -4,8 +4,8 @@
 	--sonic-cap-hover: var(--player-dial-cap-hover);
 	--sonic-dial-face-drift: var(--player-dial-face-drift);
 	--sonic-dial-gap-ratio: var(--player-dial-gap-ratio);
-	--sonic-dial-pointer-ratio: var(--player-dial-pointer-ratio);
-	--sonic-dial-pointer-taper: var(--player-dial-pointer-taper);
+	--sonic-dial-indicator-ratio: var(--player-dial-indicator-ratio);
+	--sonic-dial-indicator-taper: var(--player-dial-indicator-taper);
 	--sonic-dial-ridge-pitch: var(--player-dial-ridge-pitch);
 	--sonic-dial-ring-ratio: var(--player-dial-ring-ratio);
 	--sonic-dial-size: var(--player-dial-size);
@@ -16,10 +16,11 @@
 	--sonic-glass: var(--player-dial-glass);
 	--sonic-glass-font: var(--player-font-mono);
 	--sonic-glass-text: var(--player-dial-readout-text);
+	--sonic-ink: var(--player-dial-ink);
 	--sonic-light-tilt: var(--player-dial-light-tilt);
 	--sonic-lit: var(--player-dial-lit);
-	--sonic-mark: var(--player-dial-mark);
 	--sonic-readout-size: var(--player-dial-readout-size);
+	--sonic-relief: var(--player-dial-relief);
 	--sonic-unlit: var(--player-dial-unlit);
 
 	display: flex;
@@ -33,34 +34,35 @@
 	position-try-fallbacks: none;
 }
 
-.player-seek {
-	width: 100%;
-	height: 0.25rem;
-	accent-color: var(--player-waveform-played);
-	cursor: pointer;
-}
-
-.player-seek:disabled {
-	cursor: default;
-	opacity: 0.4;
-}
-
-.player-waveform {
-	display: block;
-	width: 100%;
-	min-width: 0;
-	height: var(--player-waveform-height);
-	touch-action: none;
-	cursor: pointer;
-}
-
-.player-waveform-inert {
-	touch-action: auto;
-	cursor: default;
+:is(.player-waveform-frame, .player-panel) {
+	--sonic-focus: var(--player-focus-ring);
+	--sonic-glass-edge-width: 0;
+	--sonic-glass-font: var(--player-font-mono);
+	--sonic-scrub: var(--player-waveform-scrub);
 }
 
 .player-waveform-frame {
+	--sonic-buffered: var(--player-waveform-buffered);
+	--sonic-glass: transparent;
+	--sonic-lit: var(--player-waveform-played);
+	--sonic-marker: var(--player-cue-dot);
+	--sonic-reveal-delay: 150ms;
+	--sonic-wave: var(--player-waveform-base);
+
+	/* A 0.25rem groove on the bar's strip, for an item with no peaks */
+	--sonic-wavestrip-groove-ratio: calc(0.25 / 3.5);
+	--sonic-wavestrip-inset-ratio: 0;
+	--sonic-wavestrip-length: 100%;
+	--sonic-wavestrip-marker-edge-width: 1px;
+	--sonic-wavestrip-marker-size: var(--player-cue-size);
+	--sonic-wavestrip-radius-ratio: 0;
+
 	position: relative;
+	block-size: var(--player-waveform-height);
+}
+
+.player-waveform-frame sonic-wavestrip:not([disabled]) {
+	--sonic-touch-action: none;
 }
 
 .player-scope {

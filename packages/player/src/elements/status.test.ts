@@ -9,7 +9,7 @@ afterEach(() => {
 });
 
 describe('<player-status>', () => {
-	test('reports an error with the skull, and keeps the words while it fades', () => {
+	test('reports an error with the alert mark, and keeps the words while it fades', () => {
 		const { part, store } = mount('player-status');
 		const region = getByRole(part, 'status');
 

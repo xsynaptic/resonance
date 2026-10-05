@@ -189,6 +189,7 @@ const strings = {
 	'player.unplayable': 'This browser cannot play the stream',
 	'player.volume': 'Volume',
 	'player.waveformPanel': 'Waveform detail',
+	'player.waveformSeek': 'Fine seek',
 	'player.zoomIn': 'Zoom in',
 	'player.zoomOut': 'Zoom out',
 	'quotation.author': '― {author}',

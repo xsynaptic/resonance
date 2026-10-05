@@ -49,6 +49,7 @@ export interface PlayerLabels {
 	unplayable: string;
 	volume: string;
 	waveformPanel: string;
+	waveformSeek: string;
 	zoomIn: string;
 	zoomOut: string;
 }

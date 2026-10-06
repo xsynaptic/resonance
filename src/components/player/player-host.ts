@@ -3,7 +3,10 @@ import type { PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
 import { bindAstroRouter, loadPersistedStylesheet } from '@xsynaptic/player/astro';
 import { holdPresses, isPlayerActionable } from '@xsynaptic/player/boot';
 
+import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
+
 interface PlayerBarConfig {
+	catalogueUrl: string;
 	isScopeEnabled: boolean;
 	labels: PlayerLabels;
 	seekSeconds: number;
@@ -13,18 +16,7 @@ interface PlayerBarConfig {
 // The MP4 sample entry code, capital included; Safari answers the lowercase spelling with an empty string
 const streamType = 'audio/mp4; codecs="Opus"';
 
-// Both URLs come from the payload, so neither resolver touches the network
-const urls: PlayerUrls = {
-	archive: (item) => Promise.resolve(payloadUrl(item, 'archiveUrl')),
-	stream: (item) => {
-		const streamUrl = payloadUrl(item, 'streamUrl');
-		if (streamUrl === undefined) {
-			return Promise.reject(new Error(`No stream URL for ${item.itemId}`));
-		}
-
-		return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
-	},
-};
+type Catalogue = Map<string, MixQueueItem>;
 
 // Keyed by the host element, which the router carries into every page it persists the bar through
 const started = new WeakSet<Element>();
@@ -42,10 +34,10 @@ async function loadPlayer(host: Element): Promise<void> {
 	const config = readConfig(host);
 	const presses = holdPresses(document);
 
-	await Promise.all([
-		Promise.race([whenIdle(), presses.pressed]),
-		loadPersistedStylesheet(config.stylesheetUrl),
-	]);
+	const wanted = Promise.race([whenIdle(), presses.pressed]);
+	const catalogue = fetchCatalogue(config.catalogueUrl, wanted);
+
+	await Promise.all([wanted, loadPersistedStylesheet(config.stylesheetUrl)]);
 
 	const [
 		{ bindMediaSession, bindPageControls, createPlayer, createPlayerStore, loadedItem },
@@ -65,9 +57,14 @@ async function loadPlayer(host: Element): Promise<void> {
 			labels: config.labels,
 			seekSeconds: config.seekSeconds,
 			store,
-			urls,
+			urls: catalogueUrls(catalogue),
 		}),
 	);
+
+	// A stored Queue catches up on any page, its content-hashed stream and artwork URLs included
+	void catalogue.then((entries) => {
+		if (entries) store.getState().refreshQueue([...entries.values()].map(({ press }) => press));
+	});
 
 	const controls = bindPageControls(store, document, { onPress: trackControlPress });
 
@@ -79,9 +76,43 @@ async function loadPlayer(host: Element): Promise<void> {
 	bindPlayerAnalytics(store);
 }
 
-// Every item this host queues is a payload item, and the store keeps its fields through a reload
-function payloadUrl(item: QueueItem, field: 'archiveUrl' | 'streamUrl'): string | undefined {
-	const value: unknown = Reflect.get(item, field);
+// The stream comes from the press row, so a press never waits on the catalogue
+function catalogueUrls(catalogue: Promise<Catalogue | undefined>): PlayerUrls {
+	return {
+		detail: async ({ itemId }) => {
+			const entries = await catalogue;
+
+			return entries?.get(itemId)?.detail;
+		},
+		stream: (item) => {
+			const streamUrl = pressRowStreamUrl(item);
+			if (streamUrl === undefined) {
+				return Promise.reject(new Error(`No stream URL for ${item.itemId}`));
+			}
+
+			return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
+		},
+	};
+}
+
+async function fetchCatalogue(url: string, wanted: Promise<void>): Promise<Catalogue | undefined> {
+	await wanted;
+
+	try {
+		const response = await fetch(url);
+		if (!response.ok) return undefined;
+
+		const entries = (await response.json()) as Array<MixQueueItem>;
+
+		return new Map(entries.map((entry) => [entry.press.itemId, entry]));
+	} catch {
+		return undefined;
+	}
+}
+
+// Every item this host queues is a press row, and the store keeps its fields through a reload
+function pressRowStreamUrl(item: QueueItem): string | undefined {
+	const value: unknown = Reflect.get(item, 'streamUrl');
 
 	return typeof value === 'string' ? value : undefined;
 }

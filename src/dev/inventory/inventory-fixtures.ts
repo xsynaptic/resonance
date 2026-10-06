@@ -11,7 +11,7 @@ import { getContentPath } from '@xsynaptic/shared/routing';
 import { getCollection, render } from 'astro:content';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
-import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import type { TracklistValue } from '#lib/schemas/audio.ts';
 import type { SelectionValue } from '#lib/schemas/selections.ts';
 import type { IconId } from '#lib/utils/icon-types.ts';
@@ -47,7 +47,7 @@ interface MixSample {
 	files: Array<string>;
 	links: Array<string>;
 	// Absent when the mix has no rendition in the audio manifest
-	queueItem?: PlayerPayloadItem | undefined;
+	queueItem?: MixQueueItem | undefined;
 	title: string;
 	tracks: TracklistValue;
 }
@@ -81,16 +81,17 @@ const iconIds: Array<IconId> = [
 	'youtube',
 ];
 
-// No `waveformOverview`, so the seek bar draws a plain groove
-// Both URLs point at this page, so nothing plays and the panel finds no archive
-const itemWithoutPeaks: PlayerPayloadItem = {
-	archiveUrl: '/inventory/player/#player',
-	artistLine: 'A Hand-Built Fixture',
-	durationMs: 2_400_000,
-	itemId: 'inventory-no-peaks',
-	releaseTitle: 'Inventory Sample',
-	streamUrl: '/inventory/player/#player',
-	title: 'A Mix With No Measured Peaks',
+// The stream points at this page, so nothing plays
+const itemWithoutPeaks: MixQueueItem = {
+	detail: {},
+	press: {
+		artistLine: 'A Hand-Built Fixture',
+		durationMs: 2_400_000,
+		itemId: 'inventory-no-peaks',
+		releaseTitle: 'Inventory Sample',
+		streamUrl: '/inventory/player/#player',
+		title: 'A Mix With No Measured Peaks',
+	},
 };
 
 // No mix in the corpus is split across audio files, so the grouped tracklist has to be hand-built
@@ -357,9 +358,7 @@ async function sampleMixField(
 }
 
 // The alias fallback matches the Mix Detail Page, so the bar shows the artist line production would
-async function sampleQueueItem(
-	entry: CollectionEntry<'mixes'>,
-): Promise<PlayerPayloadItem | undefined> {
+async function sampleQueueItem(entry: CollectionEntry<'mixes'>): Promise<MixQueueItem | undefined> {
 	const work = await getWorkTitle(entry);
 
 	return getMixQueueItem(entry, work.credit?.name ?? site.title);

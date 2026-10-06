@@ -1,7 +1,7 @@
 ---
 import type { PlayerLabels } from '@xsynaptic/player';
 
-import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 import InventoryPalette from '#dev/inventory/inventory-palette.astro';
 import Section from '#dev/inventory/inventory-section.astro';
@@ -9,7 +9,7 @@ import Specimen from '#dev/inventory/inventory-specimen.astro';
 import Variant from '#dev/inventory/inventory-variant.astro';
 
 interface Props {
-	items: Array<PlayerPayloadItem>;
+	items: Array<MixQueueItem>;
 	labels: PlayerLabels;
 	seekSeconds: number;
 }
@@ -88,7 +88,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
-		<Variant label="panel pending: the archive never answers">
+		<Variant label="panel pending: the archive answers no range">
 			<player-root class="block" data-inventory-queue="panel">
 				<player-bar></player-bar>
 			</player-root>
@@ -253,7 +253,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 	import { createPlayerStore, definePlayerElements } from '@xsynaptic/player';
 
-	import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+	import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 	import {
 		createLoadingEngine,
@@ -261,7 +261,6 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		cueFirstPaused,
 		failingUrls,
 		marqueed,
-		pendingPanelQueue,
 		pendingUrls,
 		queuedUrls,
 		trayQueue,
@@ -269,7 +268,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	} from '#dev/inventory/inventory-player-specimens.ts';
 
 	interface SpecimenData {
-		items: Array<PlayerPayloadItem>;
+		items: Array<MixQueueItem>;
 		labels: PlayerLabels;
 		seekSeconds: number;
 	}
@@ -340,17 +339,23 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		definePlayerElements();
 	}
 
-	function specimenItems(items: Array<PlayerPayloadItem>, queue: string): Array<QueueItem> {
-		if (queue === 'marquee') return marqueed(items);
-		if (queue === 'no-artwork') return withoutArtwork(items);
-		if (queue === 'no-peaks') return items.filter((item) => item.waveformOverview === undefined);
-		if (queue === 'panel') return pendingPanelQueue(items);
-		if (queue === 'tray') return trayQueue(items);
+	function specimenItems(items: Array<MixQueueItem>, queue: string): Array<QueueItem> {
+		const rows = items.map(({ press }) => press);
 
-		return items;
+		if (queue === 'marquee') return marqueed(rows);
+		if (queue === 'no-artwork') return withoutArtwork(rows);
+		if (queue === 'tray') return trayQueue(rows);
+
+		if (queue === 'no-peaks') {
+			return items
+				.filter(({ detail }) => detail.waveformOverview === undefined)
+				.map(({ press }) => press);
+		}
+
+		return rows;
 	}
 
-	function specimenUrls(items: Array<PlayerPayloadItem>, queue: string): PlayerUrls {
+	function specimenUrls(items: Array<MixQueueItem>, queue: string): PlayerUrls {
 		if (queue === 'error') return failingUrls;
 		if (queue === 'panel') return pendingUrls(items);
 

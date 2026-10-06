@@ -2,7 +2,7 @@ import { SonicWaveform } from '@xsynaptic/sonic-ui';
 
 import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore, PlayerStoreApi } from '#store/player-store.ts';
-import type { PlayerUrls, QueueItem } from '#types.ts';
+import type { QueueItem, QueueItemDetail } from '#types.ts';
 import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
 import { defineOnce } from '#elements/define-once.ts';
@@ -11,15 +11,14 @@ import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
 import { formatClock, parseClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { supersede } from '#lib/supersede.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { loadedItem } from '#store/selectors.ts';
+import { loadedDetail, loadedItem } from '#store/selectors.ts';
 import { describePosition, toPanelMarkers } from '#waveform/cue-markers.ts';
 import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
 interface PanelSource {
+	detail: QueueItemDetail | undefined;
 	item: QueueItem | undefined;
-	resolveArchive: PlayerUrls['archive'];
 }
 
 const archiveFullScale = 128;
@@ -57,7 +56,6 @@ export function connectPanelSurface(
 
 	const waveform = requireChild(panel, 'sonic-waveform', SonicWaveform);
 	const now = requireChild(panel, '.player-panel-now', HTMLParagraphElement);
-	const fed = supersede(signal);
 	let archiveSeconds: number | undefined;
 
 	const showDuration = (): void => {
@@ -93,15 +91,11 @@ export function connectPanelSurface(
 		store,
 		selectPanelSource,
 		(source) => {
-			archiveSeconds = undefined;
-			showItem(waveform, source.item, labels.timestampsPartial);
-			showDuration();
-			void feedArchive(waveform, source, fed.next()).then((archive) => {
-				if (!archive) return;
+			const archive = feedArchive(waveform, source);
 
-				archiveSeconds = archive.pairsTotal / archive.pairsPerSecond;
-				showDuration();
-			});
+			archiveSeconds = archive && archive.pairsTotal / archive.pairsPerSecond;
+			showItem(waveform, source, labels.timestampsPartial);
+			showDuration();
 		},
 		signal,
 	);
@@ -136,24 +130,18 @@ function bindPlayback(waveform: SonicWaveform, store: PlayerStoreApi, signal: Ab
 	);
 }
 
-async function feedArchive(
+function feedArchive(
 	waveform: SonicWaveform,
-	{ item, resolveArchive }: PanelSource,
-	signal: AbortSignal,
-): Promise<undefined | WaveformArchive> {
+	{ detail }: PanelSource,
+): undefined | WaveformArchive {
 	waveform.peaks = undefined;
 	waveform.pending = undefined;
 	waveform.requestPeaks = undefined;
-	if (!resolveArchive || item === undefined) return undefined;
+	if (!detail?.archive) return undefined;
 
-	waveform.pending = [[waveform.min, waveform.max]];
+	const archive = openArchive(detail.archive);
 
-	const archive = await openArchive(resolveArchive, item);
-
-	if (signal.aborted) return undefined;
-
-	waveform.pending = undefined;
-	if (archive) requestFromArchive(waveform, archive);
+	requestFromArchive(waveform, archive);
 
 	return archive;
 }
@@ -193,13 +181,17 @@ function selectDuration(state: PlayerStore): number | undefined {
 }
 
 function selectPanelSource(state: PlayerStore): PanelSource {
-	return { item: loadedItem(state), resolveArchive: state.urls?.archive };
+	return { detail: loadedDetail(state), item: loadedItem(state) };
 }
 
-function showItem(waveform: SonicWaveform, item: QueueItem | undefined, partialNote: string): void {
-	const cuePoints = item?.cuePoints ?? [];
+function showItem(
+	waveform: SonicWaveform,
+	{ detail, item }: PanelSource,
+	partialNote: string,
+): void {
+	const cuePoints = detail?.cuePoints ?? [];
 
 	waveform.disabled = item === undefined;
 	waveform.formatValue = (seconds) => describePosition(cuePoints, seconds);
-	waveform.markers = toPanelMarkers(cuePoints, item?.trackCount ?? cuePoints.length, partialNote);
+	waveform.markers = toPanelMarkers(cuePoints, detail?.trackCount ?? cuePoints.length, partialNote);
 }

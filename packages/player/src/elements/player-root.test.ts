@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { PlayerRoot } from '#elements/player-root.ts';
 import { createPlayerStore } from '#store/player-store.ts';
@@ -31,6 +31,29 @@ describe('<player-root>', () => {
 		store.getState().toggleMuted();
 
 		expect(root.dataset.muted).toBe('');
+	});
+
+	test('marks itself pending while the displayed item waits on its detail', async () => {
+		const { root, store } = mount('player-time');
+		const answer = Promise.withResolvers<undefined>();
+
+		store.getState().configure({
+			urls: {
+				detail: () => answer.promise,
+				stream: () => Promise.resolve({ status: 'capped' }),
+			},
+		});
+		store.getState().loadQueue([queueItem('a')]);
+
+		await vi.waitFor(() => {
+			expect(root.dataset.pending).toBe('');
+		});
+
+		answer.resolve(undefined);
+
+		await vi.waitFor(() => {
+			expect(root.dataset.pending).toBeUndefined();
+		});
 	});
 
 	test('takes a store handed to it before its tag was defined', () => {

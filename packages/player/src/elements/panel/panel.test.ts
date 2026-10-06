@@ -2,34 +2,34 @@ import { getByRole } from '@testing-library/dom';
 import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import type * as archiveModule from '#waveform/panel/waveform-archive.ts';
-
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
 import { chunkOf, offline, stubArchiveFetch } from '#test/archive-fetch.ts';
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, queueItem } from '#test/mount.ts';
 import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
-vi.mock('#waveform/panel/waveform-archive.ts', () => ({
-	openArchive: vi.fn(() => Promise.resolve(undefined)),
-}));
+vi.mock(import('#waveform/panel/waveform-archive.ts'), async (importOriginal) => {
+	const actual = await importOriginal();
+
+	return { openArchive: vi.fn(actual.openArchive) };
+});
 
 function mountPanel() {
 	const mounted = mount('player-panel');
 
-	mounted.store.getState().configure({
-		urls: {
-			archive: ({ itemId }) => Promise.resolve(`https://api.test/${itemId}.dat`),
-			stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
-		},
-	});
 	mounted.store
 		.getState()
 		.playTrack(
 			[queueItem('a', { durationMs: 200_000 }), queueItem('b', { durationMs: 200_000 })],
 			'a',
 		);
+
+	for (const itemId of ['a', 'b']) {
+		landDetail(mounted.store, itemId, {
+			archive: { pairCount: 20_000, pairsPerSecond: 100, url: `https://api.test/${itemId}.dat` },
+		});
+	}
 
 	return mounted;
 }
@@ -80,13 +80,8 @@ describe('<player-panel>', () => {
 	});
 
 	test('settles a request for a failed chunk as its wait ends, so asking again lands the samples', async () => {
-		const actual = await vi.importActual<typeof archiveModule>(
-			'#waveform/panel/waveform-archive.ts',
-		);
 		const responses = [offline, () => chunkOf(7)];
 		const { chunkRequests } = stubArchiveFetch(() => (responses.shift() ?? offline)());
-
-		vi.mocked(openArchive).mockImplementationOnce(actual.openArchive);
 
 		const waveform = await openPanel(mountPanel());
 		const request = await vi.waitFor(() => {

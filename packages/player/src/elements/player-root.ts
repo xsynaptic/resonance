@@ -3,12 +3,13 @@ import type { PlayerLabels, PlayerStatus } from '#types.ts';
 
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
-import { audibleVolume, isAwaitingPlayback } from '#store/selectors.ts';
+import { audibleVolume, isAwaitingPlayback, isDetailPending } from '#store/selectors.ts';
 
 interface RootView {
 	isEmpty: boolean;
 	isMuted: boolean;
 	isPaused: boolean;
+	isPending: boolean;
 	isWaiting: boolean;
 	status: PlayerStatus;
 }
@@ -17,6 +18,7 @@ const rootAttributes = {
 	isEmpty: 'data-empty',
 	isMuted: 'data-muted',
 	isPaused: 'data-paused',
+	isPending: 'data-pending',
 	isWaiting: 'data-waiting',
 } as const satisfies Record<Exclude<keyof RootView, 'status'>, `data-${string}`>;
 
@@ -105,6 +107,7 @@ function applyRoot(root: HTMLElement, view: RootView): void {
 	root.toggleAttribute(rootAttributes.isEmpty, view.isEmpty);
 	root.toggleAttribute(rootAttributes.isMuted, view.isMuted);
 	root.toggleAttribute(rootAttributes.isPaused, view.isPaused);
+	root.toggleAttribute(rootAttributes.isPending, view.isPending);
 	root.toggleAttribute(rootAttributes.isWaiting, view.isWaiting);
 }
 
@@ -113,6 +116,7 @@ function selectRoot(state: PlayerStore): RootView {
 		isEmpty: state.queue.length === 0,
 		isMuted: audibleVolume(state) === 0,
 		isPaused: state.isPaused,
+		isPending: isDetailPending(state),
 		isWaiting: isAwaitingPlayback(state),
 		status: state.status,
 	};

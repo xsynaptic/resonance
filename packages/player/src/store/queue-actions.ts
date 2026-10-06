@@ -92,6 +92,7 @@ export function createQueueActions({
 						? shuffledQueue(restored, stored.isShuffling)
 						: { ...restored, isShuffling: true, playOrder: stored.playOrder }),
 					currentTimeSeconds: stored.currentTimeSeconds,
+					details: persistence.readDetails(),
 					durationSeconds: toDurationSeconds(item),
 					status: 'idle',
 				});

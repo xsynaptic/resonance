@@ -4,7 +4,7 @@ import path from 'node:path';
 import { parse } from 'yaml';
 import { z } from 'zod';
 
-import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+import type { PlayerPressRow } from '#lib/collections/mixes/mixes-queue.ts';
 
 import { playlistsDataPath } from '#constants.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
@@ -23,7 +23,7 @@ const playlistsSchema = z
 
 export interface Playlist {
 	image?: string | undefined;
-	items: Array<PlayerPayloadItem>;
+	items: Array<PlayerPressRow>;
 	title: string;
 }
 
@@ -45,12 +45,12 @@ export async function getPlaylists(): Promise<Array<Playlist>> {
 async function getPlaylistItem(
 	mixId: string,
 	playlistTitle: string,
-): Promise<PlayerPayloadItem | undefined> {
+): Promise<PlayerPressRow | undefined> {
 	const entry = await getEntry('mixes', mixId);
 	const work = entry ? await getWorkTitle(entry) : undefined;
 	const item = entry ? await getMixQueueItem(entry, work?.credit?.name ?? site.title) : undefined;
 
 	if (!item) console.warn(`[playlists] "${playlistTitle}" has no playable mix "${mixId}"`);
 
-	return item;
+	return item?.press;
 }

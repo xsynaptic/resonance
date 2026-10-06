@@ -10,7 +10,7 @@ import { bind } from '#lib/bind.ts';
 import { formatClock, parseClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { displayedItem, isLoaded } from '#store/selectors.ts';
+import { displayedDetail, displayedItem, isLoaded } from '#store/selectors.ts';
 import { toStripMarkers } from '#waveform/cue-markers.ts';
 import { cueIndexAt, labelPlacement } from '#waveform/cue-points.ts';
 
@@ -211,14 +211,14 @@ function readParts(frame: HTMLDivElement): StripParts {
 }
 
 function selectStrip(state: PlayerStore): StripView {
-	const item = displayedItem(state);
+	const detail = displayedDetail(state);
 
 	return {
-		cueDurationSeconds: toDurationSeconds(item),
-		cuePoints: item?.cuePoints,
+		cueDurationSeconds: toDurationSeconds(displayedItem(state)),
+		cuePoints: detail?.cuePoints,
 		durationSeconds: state.durationSeconds,
 		isLoaded: isLoaded(state),
-		overview: item?.waveformOverview,
+		overview: detail?.waveformOverview,
 	};
 }
 

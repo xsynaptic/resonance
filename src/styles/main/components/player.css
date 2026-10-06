@@ -80,6 +80,11 @@ player-root[data-empty] .player-bar {
 	display: none;
 }
 
+/* A pending bar waits on the catalogue for its strip, so it arrives whole or as a plain groove */
+player-root[data-pending] .player-bar {
+	display: none;
+}
+
 .player-controls-play,
 .player-controls-pause {
 	display: contents;

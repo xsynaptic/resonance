@@ -1,6 +1,6 @@
 import type { CreateAudioEngine, PlayerStoreApi, PlayerUrls, QueueItem } from '@xsynaptic/player';
 
-import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+import type { MixQueueItem, PlayerPressRow } from '#lib/collections/mixes/mixes-queue.ts';
 
 // A browser refuses playback outside a gesture, so the specimens stand at the engine seam instead
 export const createSilentEngine: CreateAudioEngine = (callbacks) => {
@@ -59,27 +59,34 @@ export const failingUrls: PlayerUrls = {
 	stream: () => Promise.reject(new Error('Inventory specimen: no stream')),
 };
 
-export function pendingUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
+// This page answers a range request with a 200, so no chunk lands and the panel holds on its placeholder
+const pendingArchiveUrl = '/inventory/player/';
+
+export function pendingUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
+	const urls = queuedUrls(items);
+
 	return {
-		...queuedUrls(items),
-		archive: () =>
-			new Promise<string | undefined>(() => {
-				// Never answers, so the panel holds on its placeholder
-			}),
+		...urls,
+		detail: async (item) => {
+			const detail = await urls.detail?.(item);
+			if (!detail?.archive) return detail;
+
+			return { ...detail, archive: { ...detail.archive, url: pendingArchiveUrl } };
+		},
 	};
 }
 
 // Any id resolves: the tray specimen synthesizes its own to get distinct rows, and a specimen shows layout rather than resolution
-export function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls {
-	const find = (itemId: string) => items.find((queued) => queued.itemId === itemId) ?? items[0];
+export function queuedUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
+	const find = (itemId: string) => items.find(({ press }) => press.itemId === itemId) ?? items[0];
 
 	return {
-		archive: ({ itemId }) => Promise.resolve(find(itemId)?.archiveUrl),
+		detail: ({ itemId }) => Promise.resolve(find(itemId)?.detail),
 		stream: ({ itemId }) => {
 			const item = find(itemId);
 			if (!item) return Promise.reject(new Error(`No stream URL for ${itemId}`));
 
-			return Promise.resolve({ status: 'ok', url: item.streamUrl });
+			return Promise.resolve({ status: 'ok', url: item.press.streamUrl });
 		},
 	};
 }
@@ -87,19 +94,14 @@ export function queuedUrls(items: ReadonlyArray<PlayerPayloadItem>): PlayerUrls 
 const marqueeArtist = 'Basilisk, with Nebula Drift, Forest Signal and the Ektoplazm Sound System';
 const marqueeTitle = 'Deep Forest Transmissions From The Edge Of A Very Long Winter Night';
 
-export function marqueed(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
+export function marqueed(items: ReadonlyArray<PlayerPressRow>): Array<QueueItem> {
 	const [first, ...rest] = items;
 	if (!first) return [...items];
 
 	return [{ ...first, artistLine: marqueeArtist, title: marqueeTitle }, ...rest];
 }
 
-// The archive cache is keyed by track, so the real archive elsewhere on the page must not answer for this one
-export function pendingPanelQueue(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
-	return items.slice(0, 1).map((item) => ({ ...item, itemId: 'inventory-panel-pending' }));
-}
-
-export function withoutArtwork(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
+export function withoutArtwork(items: ReadonlyArray<PlayerPressRow>): Array<QueueItem> {
 	return items.map(({ artwork: _artwork, ...item }) => item);
 }
 
@@ -113,7 +115,7 @@ const trayTitles = [
 	'Reclaim',
 ];
 
-export function trayQueue(items: ReadonlyArray<PlayerPayloadItem>): Array<QueueItem> {
+export function trayQueue(items: ReadonlyArray<PlayerPressRow>): Array<QueueItem> {
 	const first = items[0];
 	if (!first) return [];
 

@@ -9,6 +9,7 @@ import type {
 	PlayerUrls,
 	QueuedItem,
 	QueueItem,
+	QueueItemDetail,
 } from '#types.ts';
 
 // Property syntax so an element can select one action without tripping `unbound-method`
@@ -35,7 +36,7 @@ export interface PlayerActions {
 	previous: () => void;
 	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
 	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, itemId: string) => void;
-	// Swaps in the page's copy of every queued item it carries, so a queue restored from an older build picks up new fields
+	// Swaps in the fresh copy of every queued item it is handed, so a queue restored from an older build picks up new fields
 	refreshQueue: (items: ReadonlyArray<QueueItem>) => void;
 	removeAt: (index: number) => void;
 	seek: (seconds: number) => void;
@@ -63,6 +64,8 @@ export interface PlayerState {
 	// Index into `queue`, not `playOrder`
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
+	// By `itemId`, for queued items only; an entry means the host has answered, so an absent one is still on its way
+	details: ReadonlyMap<string, QueueItemDetail>;
 	// A fresh object per report, so its identity marks each one; never persisted
 	diagnostic: PlaybackDiagnostic | undefined;
 	durationSeconds: number | undefined;

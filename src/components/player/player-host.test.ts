@@ -1,10 +1,13 @@
 // @vitest-environment happy-dom
+import type { PlayerUrls } from '@xsynaptic/player';
+
 import { heldPressAttribute } from '@xsynaptic/player/constants';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';
 
-const store = vi.hoisted(() => ({}));
+const refreshQueue = vi.hoisted(() => vi.fn());
+const store = vi.hoisted(() => ({ getState: () => ({ refreshQueue }) }));
 
 const elements = vi.hoisted(() => ({
 	bindMediaSession: vi.fn(),
@@ -31,8 +34,20 @@ function control(selector: string): HTMLElement {
 	return found;
 }
 
+const catalogueEntry = {
+	detail: { trackCount: 3 },
+	press: {
+		artistLine: 'Basilisk',
+		itemId: 'a',
+		releaseTitle: 'A',
+		streamUrl: '/a.mp4',
+		title: 'A',
+	},
+};
+
 function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 	const config = JSON.stringify({
+		catalogueUrl: '/api/player/catalogue.json?v=abc',
 		isScopeEnabled: false,
 		labels: getPlayerLabels(),
 		seekSeconds: 30,
@@ -50,6 +65,13 @@ function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 function settle(): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, 50));
 }
+
+beforeEach(() => {
+	vi.stubGlobal(
+		'fetch',
+		vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+	);
+});
 
 afterEach(() => {
 	document.body.replaceChildren();
@@ -104,6 +126,47 @@ describe('startPlayer', () => {
 			expect(elements.createPlayer).toHaveBeenCalledOnce();
 		});
 		expect(elements.bindMediaSession).toHaveBeenCalledOnce();
+	});
+
+	test('the catalogue refreshes the stored Queue with its press rows, and answers for detail', async () => {
+		const fetchCatalogue = vi.fn(() => Promise.resolve(Response.json([catalogueEntry])));
+
+		vi.stubGlobal('fetch', fetchCatalogue);
+		vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
+			callback();
+
+			return 0;
+		});
+		mountPage({ hasPayload: true });
+		startPlayer();
+
+		await vi.waitFor(() => {
+			expect(refreshQueue).toHaveBeenCalledWith([catalogueEntry.press]);
+		});
+		expect(fetchCatalogue).toHaveBeenCalledExactlyOnceWith('/api/player/catalogue.json?v=abc');
+
+		const [{ urls }] = elements.createPlayer.mock.lastCall as unknown as [{ urls: PlayerUrls }];
+
+		await expect(urls.detail?.(catalogueEntry.press)).resolves.toStrictEqual(catalogueEntry.detail);
+	});
+
+	test('a catalogue that fails leaves the Queue alone and answers no detail', async () => {
+		vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
+			callback();
+
+			return 0;
+		});
+		mountPage({ hasPayload: true });
+		startPlayer();
+
+		await vi.waitFor(() => {
+			expect(elements.createPlayer).toHaveBeenCalledOnce();
+		});
+
+		const [{ urls }] = elements.createPlayer.mock.lastCall as unknown as [{ urls: PlayerUrls }];
+
+		await expect(urls.detail?.(catalogueEntry.press)).resolves.toBeUndefined();
+		expect(refreshQueue).not.toHaveBeenCalled();
 	});
 
 	test('a press once the page controls are bound is left to them', async () => {

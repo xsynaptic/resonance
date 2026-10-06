@@ -58,3 +58,20 @@ test('storage that throws on every call leaves playback working', async ({ harne
 	await expectAdvancing(harness, 1);
 	expect(await harness.read()).toMatchObject({ status: 'playing' });
 });
+
+test('a reload restores the cue points with the host yet to answer for them', async ({
+	harness,
+	isMobile,
+	page,
+}) => {
+	test.skip(isMobile, 'The mini layout has no wave strip');
+
+	const markers = page.locator('sonic-wavestrip .sonic-wavestrip-marker');
+
+	await harness.open({ cued: 1 });
+	await page.getByRole('button', { name: 'Queue long' }).click();
+	await expect(markers).toHaveCount(1);
+
+	await harness.open({ cued: 1, detail: 'hang' });
+	await expect(markers).toHaveCount(1);
+});

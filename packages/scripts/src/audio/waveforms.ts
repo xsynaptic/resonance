@@ -180,6 +180,19 @@ export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
 	return { pairs: buffer.readUInt32LE(16), sampleRate: buffer.readInt32LE(8), samplesPerPixel };
 }
 
+export async function readWaveformHeader(archive: string): Promise<WaveformHeader> {
+	const handle = await fs.open(archive, 'r');
+
+	try {
+		const header = Buffer.alloc(headerBytes);
+		const { bytesRead } = await handle.read(header, 0, headerBytes, 0);
+
+		return parseWaveformHeader(header.subarray(0, bytesRead));
+	} finally {
+		await handle.close();
+	}
+}
+
 // Returns the archive's filename, which the caller cannot predict: it names the analyzed bytes
 async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 	const tmp = path.join(cacheDir, `${job.base}${archiveExtension}${tmpExtension}`);
@@ -206,21 +219,10 @@ async function distill(job: WaveformJob, archive: string): Promise<void> {
 async function isArchiveCurrent(source: string, archive: string): Promise<boolean> {
 	if (!(await isNewerThan(archive, source))) return false;
 
-	// Reads the 20-byte header alone, never the whole 4MB archive
 	// A stale zoom level or bit depth reads as not current, so no external version constant is needed
 	try {
-		const handle = await fs.open(archive, 'r');
-
-		try {
-			const header = Buffer.alloc(headerBytes);
-			const { bytesRead } = await handle.read(header, 0, headerBytes, 0);
-			if (bytesRead < headerBytes) return false;
-
-			parseWaveformHeader(header);
-			return true;
-		} finally {
-			await handle.close();
-		}
+		await readWaveformHeader(archive);
+		return true;
 	} catch {
 		return false;
 	}

@@ -1,11 +1,13 @@
 import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerTimeMode, QueuedItem, QueueItem } from '#types.ts';
+import type { PlayerTimeMode, QueuedItem, QueueItem, QueueItemDetail } from '#types.ts';
 
 import { queueStorageKey } from '#constants.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
 
+// Beside the queue rather than in it, so a reorder never rewrites every strip
+const detailStorageKey = 'player:v1:queue-detail';
 const mutedStorageKey = 'player:v1:muted';
 const panelOpenStorageKey = 'player:v1:panel-open';
 const panelZoomStorageKey = 'player:v1:panel-zoom';
@@ -15,13 +17,14 @@ const volumeStorageKey = 'player:v1:volume';
 const volumeWriteDelayMs = 250;
 
 export interface PlayerPersistence {
-	// Bound after the stored queue lands, so restoring it writes nothing back
+	// Bound after the stored queue and its detail land, so restoring them writes nothing back
 	bindQueue: () => void;
 	persistMuted: (isMuted: boolean) => void;
 	persistPanelOpen: (isOpen: boolean) => void;
 	persistPanelZoom: (pxPerSecond: number) => void;
 	persistTimeMode: (timeMode: PlayerTimeMode) => void;
 	persistVolume: (volume: number) => void;
+	readDetails: () => Map<string, QueueItemDetail>;
 	// Unclamped: the preference actions own the volume range, so a hand-edited entry is corrected in one place
 	readPreferences: () => StoredPreferences;
 	readQueue: () => StoredQueue | undefined;
@@ -50,6 +53,7 @@ export const inertPersistence: PlayerPersistence = {
 	persistPanelZoom: touchNothing,
 	persistTimeMode: touchNothing,
 	persistVolume: touchNothing,
+	readDetails: () => new Map(),
 	readPreferences: () => ({
 		isMuted: undefined,
 		isPanelOpen: undefined,
@@ -67,6 +71,7 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 	let volumeToWrite: number | undefined;
 
 	let isQueueBound = false;
+	let persistedDetails: ReadonlyMap<string, QueueItemDetail> = new Map();
 	let persistedQueue: Array<QueuedItem> = [];
 	let persistedIndex: number | undefined;
 	let persistedOrder: Array<number> = [];
@@ -115,15 +120,21 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			isQueueBound = true;
 			({
 				currentIndex: persistedIndex,
+				details: persistedDetails,
 				playOrder: persistedOrder,
 				queue: persistedQueue,
 			} = api.getState());
 
 			// Queue changes write straight away; the position drifting between them goes out when the page is left
 			api.subscribe((state, previous) => {
-				const { currentIndex, playOrder, queue } = state;
+				const { currentIndex, details, playOrder, queue } = state;
 
 				if (state.currentTimeSeconds !== previous.currentTimeSeconds) hasUnsavedPosition = true;
+
+				if (details !== persistedDetails) {
+					persistedDetails = details;
+					writeDetails(details);
+				}
 
 				if (
 					queue === persistedQueue &&
@@ -175,6 +186,7 @@ export function createPlayerPersistence(api: StoreApi<PlayerStore>): PlayerPersi
 			volumeWriteTimer = setTimeout(flushVolume, volumeWriteDelayMs);
 		},
 
+		readDetails: readStoredDetails,
 		readPreferences: () => ({
 			isMuted: readStoredMuted(),
 			isPanelOpen: readStoredPanelOpen(),
@@ -195,6 +207,10 @@ function isPermutation(value: unknown, length: number): value is Array<number> {
 		indices.size === length &&
 		[...indices].every((index) => Number.isSafeInteger(index) && index >= 0 && index < length)
 	);
+}
+
+function isStoredDetail(value: unknown): value is QueueItemDetail {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isStoredItem(value: unknown): value is QueueItem {
@@ -219,6 +235,26 @@ function readStored(key: string): string | undefined {
 		return localStorage.getItem(key) ?? undefined;
 	} catch {
 		return undefined;
+	}
+}
+
+function readStoredDetails(): Map<string, QueueItemDetail> {
+	const stored = readStored(detailStorageKey);
+	if (stored === undefined) return new Map();
+
+	try {
+		const parsed: unknown = JSON.parse(stored);
+		const details = new Map<string, QueueItemDetail>();
+
+		if (!isStoredDetail(parsed)) return details;
+
+		for (const [itemId, detail] of Object.entries(parsed)) {
+			if (isStoredDetail(detail)) details.set(itemId, detail);
+		}
+
+		return details;
+	} catch {
+		return new Map();
 	}
 }
 
@@ -316,6 +352,16 @@ function storedTimeSeconds(currentTimeSeconds: unknown): number {
 
 function touchNothing(): undefined {
 	// A secondary mount leaves the listener's storage alone
+}
+
+// Emptied only as this tab's queue empties, so an idle tab never deletes what another saved
+function writeDetails(details: ReadonlyMap<string, QueueItemDetail>): void {
+	if (details.size === 0) {
+		removeStored(detailStorageKey);
+		return;
+	}
+
+	writeStored(detailStorageKey, JSON.stringify(Object.fromEntries(details)));
 }
 
 function writeStored(key: string, value: string): void {

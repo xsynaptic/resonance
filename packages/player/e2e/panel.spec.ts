@@ -1,8 +1,6 @@
 import { expect, test } from '#e2e/test.ts';
 import { labels } from '#test/labels.ts';
 
-const headerRange = 'bytes=0-19';
-
 // The placeholder animates otherwise, and its frames ask again whether or not the promise settles
 test.use({ reducedMotion: 'reduce' });
 
@@ -23,9 +21,7 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 	);
 
 	await page.route(/\.dat\?/, async (route) => {
-		const { range } = route.request().headers();
-
-		if (range === headerRange || route.request().method() !== 'GET') {
+		if (route.request().method() !== 'GET') {
 			await route.continue();
 			return;
 		}
@@ -50,4 +46,12 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 	expect(chunkRequests).toBe(2);
 	await expect(waveform).toHaveJSProperty('pending', []);
 	expect(await harness.read()).toMatchObject({ isPaused: true });
+
+	// A preflight carries no range
+	const requests = await harness.requests();
+	const archiveRanges = requests
+		.filter((request) => request.path.endsWith('.dat') && request.range !== undefined)
+		.map((request) => request.range);
+
+	expect(new Set(archiveRanges)).toStrictEqual(new Set(['bytes=20-12019']));
 });

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { QueueCuePoint } from '#types.ts';
 
-import { mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, queueItem } from '#test/mount.ts';
 
 const overview = [0.4, 0.8, 0.6, 0.2];
 
@@ -17,13 +17,13 @@ function mountSlider(options: {
 	durationSeconds: number;
 }) {
 	const mounted = mount('player-time-slider');
-	const item = queueItem('a', {
-		durationMs: options.durationSeconds * 1000,
+	const item = queueItem('a', { durationMs: options.durationSeconds * 1000 });
+
+	mounted.store.getState().playTrack([item], 'a');
+	landDetail(mounted.store, 'a', {
 		waveformOverview: overview,
 		...(options.cuePoints === undefined ? {} : { cuePoints: options.cuePoints }),
 	});
-
-	mounted.store.getState().playTrack([item], 'a');
 	mounted.fake.callbacks.current?.onTime(options.currentTimeSeconds);
 
 	return {
@@ -170,11 +170,8 @@ describe('<player-time-slider>', () => {
 	test('is inert before an item loads, naming a cue point only at its start and with no clock', () => {
 		const { part, store } = mount('player-time-slider');
 
-		store
-			.getState()
-			.loadQueue([
-				queueItem('a', { cuePoints: [cue(50)], durationMs: 200_000, waveformOverview: overview }),
-			]);
+		store.getState().loadQueue([queueItem('a', { durationMs: 200_000 })]);
+		landDetail(store, 'a', { cuePoints: [cue(50)], waveformOverview: overview });
 
 		const strip = requireStrip(part);
 

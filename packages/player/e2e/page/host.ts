@@ -3,6 +3,7 @@ import type {
 	PlayerStoreApi,
 	PlayerUrls,
 	QueueItem,
+	QueueItemDetail,
 	StreamResolution,
 } from '@xsynaptic/player';
 
@@ -24,7 +25,7 @@ declare global {
 	}
 }
 
-const cued = {
+const cued: QueueItemDetail = {
 	cuePoints: [{ artistLine: 'Cue Artist', startSeconds: 20, title: 'Cue Title' }],
 	waveformOverview: Array.from(
 		{ length: 64 },
@@ -46,6 +47,7 @@ const parameters = new URLSearchParams(location.search);
 
 const settings = {
 	bindDelay: Number(parameters.get('bindDelay') ?? 0),
+	detail: readChoice('detail', ['answer', 'hang']),
 	hasArchive: parameters.has('archive'),
 	isCued: parameters.has('cued'),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
@@ -56,14 +58,28 @@ const settings = {
 
 let resolveCount = 0;
 
+const unanswered = new Promise<undefined>(() => {
+	// Never settles, as a catalogue fetch still in flight
+});
+
 const urls: PlayerUrls = {
-	...(settings.hasArchive ? { archive: (item) => Promise.resolve(archiveUrl(item.itemId)) } : {}),
+	detail: (item) => (settings.detail === 'hang' ? unanswered : Promise.resolve(detailOf(item))),
 	stream: (item) => {
 		resolveCount += 1;
 
 		return Promise.resolve(resolveStream(item));
 	},
 };
+
+// Matches the header the fixture server writes: 6000 pairs at 44100 / 441
+function detailOf({ itemId }: QueueItem): QueueItemDetail {
+	return {
+		...(settings.isCued ? cued : {}),
+		...(settings.hasArchive
+			? { archive: { pairCount: 6000, pairsPerSecond: 100, url: archiveUrl(itemId) } }
+			: {}),
+	};
+}
 
 function archiveUrl(itemId: string): string {
 	const url = new URL(`/archive/${itemId}.dat`, fixtureOrigin);
@@ -117,7 +133,6 @@ function writePayload(): void {
 		releaseTitle: 'Fixtures',
 		streamUrl: streamUrl(itemId),
 		title: fixtures[itemId].title,
-		...(settings.isCued ? cued : {}),
 	}));
 	const payload = document.createElement('div');
 

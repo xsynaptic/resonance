@@ -1,5 +1,5 @@
 import type { PlayerState, PlayerStore } from '#store/player-types.ts';
-import type { QueueCuePoint, QueuedItem } from '#types.ts';
+import type { QueueCuePoint, QueuedItem, QueueItemDetail } from '#types.ts';
 
 import { nextInOrder, previousInOrder } from '#queue/queue.ts';
 import { cueIndexAt } from '#waveform/cue-points.ts';
@@ -27,10 +27,16 @@ export function canStepForward(state: PlayerStore): boolean {
 }
 
 export function currentCue(state: PlayerStore): QueueCuePoint | undefined {
-	const cuePoints = loadedItem(state)?.cuePoints;
+	const cuePoints = loadedDetail(state)?.cuePoints;
 	if (!cuePoints) return undefined;
 
 	return cuePoints[cueIndexAt(cuePoints, state.currentTimeSeconds)];
+}
+
+export function displayedDetail(state: PlayerStore): QueueItemDetail | undefined {
+	const item = displayedItem(state);
+
+	return item && state.details.get(item.itemId);
 }
 
 export function displayedItem(state: PlayerStore): QueuedItem | undefined {
@@ -45,8 +51,20 @@ export function isAwaitingPlayback(state: PlayerStore): boolean {
 	return !state.isPaused && state.status === 'loading';
 }
 
+export function isDetailPending(state: PlayerStore): boolean {
+	const item = displayedItem(state);
+
+	return item !== undefined && state.urls?.detail !== undefined && !state.details.has(item.itemId);
+}
+
 export function isLoaded(state: PlayerStore): boolean {
 	return state.currentIndex !== undefined;
+}
+
+export function loadedDetail(state: PlayerStore): QueueItemDetail | undefined {
+	const item = loadedItem(state);
+
+	return item && state.details.get(item.itemId);
 }
 
 export function loadedItem(

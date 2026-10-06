@@ -1,5 +1,8 @@
+import type { StoreApi } from 'zustand/vanilla';
+
 import type { PlayerRoot } from '#elements/player-root.ts';
-import type { PlayerUrls, QueueItem } from '#types.ts';
+import type { PlayerStore } from '#store/player-types.ts';
+import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
 
 import { definePlayerElements } from '#elements/define.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
@@ -9,6 +12,14 @@ import { labels } from '#test/labels.ts';
 const testUrls: PlayerUrls = {
 	stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
 };
+
+export function landDetail(
+	store: StoreApi<PlayerStore>,
+	itemId: string,
+	detail: QueueItemDetail,
+): void {
+	store.setState({ details: new Map(store.getState().details).set(itemId, detail) });
+}
 
 export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	tag: Tag,

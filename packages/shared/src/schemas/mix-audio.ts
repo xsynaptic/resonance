@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const mixStreamsVersion = 2;
-export const mixWaveformsVersion = 2;
+export const mixWaveformsVersion = 3;
 
 // Measured from the decoded rendition, since its gain and codec overshoot put it apart from the master
 const StreamLoudnessSchema = z.object({
@@ -31,6 +31,8 @@ export type MixStreamsDocument = z.infer<typeof MixStreamsDocumentSchema>;
 const MixWaveformEntrySchema = z.object({
 	archive: z.string(),
 	base: z.string(),
+	pairs: z.number(),
+	pairsPerSecond: z.number(),
 	peaks: z.number().array(),
 	seconds: z.number(),
 	sources: z.string().array(),

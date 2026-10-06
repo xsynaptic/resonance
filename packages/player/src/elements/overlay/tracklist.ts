@@ -7,7 +7,7 @@ import { bind } from '#lib/bind.ts';
 import { formatClock } from '#lib/format.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, requireChildren, template } from '#lib/render.ts';
-import { currentCue, displayedItem, isLoaded } from '#store/selectors.ts';
+import { currentCue, displayedDetail, isLoaded } from '#store/selectors.ts';
 
 interface CueRow {
 	button: HTMLButtonElement;
@@ -104,7 +104,7 @@ function renderCue(cue: QueueCuePoint): CueRow {
 }
 
 function selectCuePoints(state: PlayerStore): ReadonlyArray<QueueCuePoint> | undefined {
-	return displayedItem(state)?.cuePoints;
+	return displayedDetail(state)?.cuePoints;
 }
 
 function selectMarks(state: PlayerStore): MarksView {

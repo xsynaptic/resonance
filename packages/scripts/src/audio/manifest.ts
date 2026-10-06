@@ -17,7 +17,7 @@ import type { AudioSource } from '#audio/audio-sources.ts';
 import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
-import { collectArchives, previewVersion } from '#audio/waveforms.ts';
+import { collectArchives, previewVersion, readWaveformHeader } from '#audio/waveforms.ts';
 import { contentDataPath } from '#shared/content-path.ts';
 
 const previewExtension = '.json';
@@ -194,11 +194,17 @@ async function resolveEntries({
 	const preview = await readPreview(path.join(cacheDir, `${source.base}${previewExtension}`));
 	if (preview === undefined) return undefined;
 
+	const { pairs, sampleRate, samplesPerPixel } = await readWaveformHeader(
+		path.join(cacheDir, archive),
+	);
+
 	return {
 		stream: { base: source.base, loudness, stream },
 		waveform: {
 			archive,
 			base: source.base,
+			pairs,
+			pairsPerSecond: sampleRate / samplesPerPixel,
 			peaks: preview.values,
 			seconds: preview.seconds,
 			sources: source.files,

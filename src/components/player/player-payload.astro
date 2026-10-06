@@ -1,10 +1,10 @@
 ---
-import type { PlayerPayloadItem } from '#lib/collections/mixes/mixes-queue.ts';
+import type { PlayerPressRow } from '#lib/collections/mixes/mixes-queue.ts';
 
 import { audioOrigin } from '#lib/site.ts';
 
 interface Props {
-	items: Array<PlayerPayloadItem>;
+	items: Array<PlayerPressRow>;
 }
 
 const { items } = Astro.props;

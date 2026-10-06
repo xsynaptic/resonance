@@ -81,7 +81,7 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 		>
 			{queueItem ? <PlayerControls itemId={entry.id} /> : undefined}
 		</AudioLinks>
-		<PlayerPayload items={queueItem ? [queueItem] : []} />
+		<PlayerPayload items={queueItem ? [queueItem.press] : []} />
 	</Fragment>
 	<Fragment slot="coda">
 		<AudioCounts

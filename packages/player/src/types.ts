@@ -62,9 +62,16 @@ export type PlayerTimeMode = 'elapsed' | 'remaining';
 
 // Each resolver is handed the item as the host queued it, its own extra fields included, even after a reload
 export interface PlayerUrls {
-	// Full-resolution `.dat`, range-requested a window at a time; `undefined` leaves the panel on its grid
-	archive?: ((item: QueueItem) => Promise<string | undefined>) | undefined;
+	// Asked once per queued item; `undefined` or a rejection leaves the strip a plain groove and the panel on its grid
+	detail?: ((item: QueueItem) => Promise<QueueItemDetail | undefined>) | undefined;
 	stream: (item: QueueItem) => Promise<StreamResolution>;
+}
+
+// Full-resolution `.dat`, range-requested a window at a time; the header's facts ride here so it is never requested
+export interface QueueArchive {
+	pairCount: number;
+	pairsPerSecond: number;
+	url: string;
 }
 
 // One square rendition; `width` is its size in pixels
@@ -91,17 +98,21 @@ export interface QueueItem {
 	artistLine: string;
 	// Ascending by width
 	artwork?: ReadonlyArray<QueueArtwork>;
-	// Timestamped tracks, in order
-	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	durationMs?: number;
 	itemId: string;
 	// Absent renders the title as plain text
 	releaseHref?: string;
 	releaseTitle: string;
 	title: string;
+}
+
+export interface QueueItemDetail {
+	archive?: QueueArchive;
+	// Timestamped tracks, in order
+	cuePoints?: ReadonlyArray<QueueCuePoint>;
 	// The whole tracklist, so a mix indexed in part can say where the index runs out
 	trackCount?: number;
-	// Normalized 0..1 peak per bucket; absent falls back to a range input
+	// Normalized 0..1 peak per bucket; absent draws a plain groove
 	waveformOverview?: ReadonlyArray<number>;
 }
 

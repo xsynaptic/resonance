@@ -14,6 +14,7 @@ import { createPlaybackController } from '#store/playback-controller.ts';
 import { createPlayerPersistence, inertPersistence } from '#store/player-persistence.ts';
 import { createPreferenceActions } from '#store/preference-actions.ts';
 import { createQueueActions } from '#store/queue-actions.ts';
+import { bindQueueDetails } from '#store/queue-details.ts';
 import { createTransportActions } from '#store/transport-actions.ts';
 import { panelZoomDefault } from '#store/zoom-levels.ts';
 
@@ -22,6 +23,7 @@ export type { PlayerStore, PlayerStoreApi, PlayerStoreOptions } from '#store/pla
 const initialPlayerState: PlayerState = {
 	currentIndex: undefined,
 	currentTimeSeconds: 0,
+	details: new Map(),
 	diagnostic: undefined,
 	durationSeconds: undefined,
 	isMuted: false,
@@ -74,6 +76,9 @@ export function createWritablePlayerStore(options?: PlayerStoreOptions): StoreAp
 
 	// Inside the initializer `get()` is empty and its return overwrites any `set`
 	for (const hydrate of hydrationSteps) hydrate();
+
+	// After the stored detail lands, so a restored item is asked for without first reading as pending
+	bindQueueDetails(store);
 
 	return store;
 }

@@ -1,4 +1,4 @@
-import type { QueueArtwork, QueueItem } from '@xsynaptic/player';
+import type { QueueArtwork, QueueItem, QueueItemDetail } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
 import { barArtworkSize } from '@xsynaptic/player/constants';
@@ -14,16 +14,21 @@ import { toFlatTracks } from '#lib/utils/track-groups.ts';
 // The bar at 1x and 2x, then the lock screen and the overlay's larger slots
 const artworkWidths = [barArtworkSize, barArtworkSize * 2, 512, 900, 1800];
 
-// Both files are resolved at build time, so the island's resolvers read them off the queue
-export interface PlayerPayloadItem extends QueueItem {
-	archiveUrl: string;
+// The stream is resolved at build time, so the island's resolver reads it off the queue
+export interface PlayerPressRow extends QueueItem {
 	streamUrl: string;
+}
+
+// Both parts come from one call, so a page's press row and the catalogue's cannot disagree within a build
+export interface MixQueueItem {
+	detail: QueueItemDetail;
+	press: PlayerPressRow;
 }
 
 export async function getMixQueueItem(
 	entry: CollectionEntry<'mixes'>,
 	artistLine: string,
-): Promise<PlayerPayloadItem | undefined> {
+): Promise<MixQueueItem | undefined> {
 	const audio = await getMixAudio(entry.data);
 	if (!audio) return undefined;
 
@@ -31,20 +36,24 @@ export async function getMixQueueItem(
 	const cuePoints = await getMixCuePoints(entry);
 
 	return {
-		archiveUrl: audio.archiveUrl,
-		artistLine,
-		durationMs: audio.seconds * 1000,
-		itemId: entry.id,
-		releaseHref: getContentPath('mixes', entry.id),
-		releaseTitle: entry.data.title,
-		streamUrl: audio.streamUrl,
-		title: entry.data.title,
-		waveformOverview: audio.peaks.map((peak) => Math.round(peak * 100) / 100),
-		...(artwork ? { artwork } : {}),
-		// Only alongside the cue points it qualifies; on its own the count tells the panel nothing
-		...(cuePoints.length > 0
-			? { cuePoints, trackCount: toFlatTracks(entry.data.tracks).length || cuePoints.length }
-			: {}),
+		detail: {
+			archive: audio.archive,
+			waveformOverview: audio.peaks.map((peak) => Math.round(peak * 100) / 100),
+			// Only alongside the cue points it qualifies; on its own the count tells the panel nothing
+			...(cuePoints.length > 0
+				? { cuePoints, trackCount: toFlatTracks(entry.data.tracks).length || cuePoints.length }
+				: {}),
+		},
+		press: {
+			artistLine,
+			durationMs: audio.seconds * 1000,
+			itemId: entry.id,
+			releaseHref: getContentPath('mixes', entry.id),
+			releaseTitle: entry.data.title,
+			streamUrl: audio.streamUrl,
+			title: entry.data.title,
+			...(artwork ? { artwork } : {}),
+		},
 	};
 }
 

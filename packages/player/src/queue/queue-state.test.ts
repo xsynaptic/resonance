@@ -161,13 +161,13 @@ describe('refreshedQueue', () => {
 
 	test('answers nothing when the page carries the same fields in another key order', () => {
 		const queue = stamp([
-			{ ...makeItem('a'), cuePoints: [{ artistLine: 'Kin', startSeconds: 0, title: 'Open' }] },
+			{ ...makeItem('a'), artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 120 }] },
 		]);
 		const fresh = Object.assign(
 			{ title: 'Track a' },
 			{
 				...makeItem('a'),
-				cuePoints: [Object.assign({ title: 'Open' }, { artistLine: 'Kin', startSeconds: 0 })],
+				artwork: [Object.assign({ width: 120 }, { src: 'a.jpg', type: 'image/jpeg' })],
 			},
 		);
 
@@ -184,11 +184,11 @@ describe('refreshedQueue', () => {
 
 	test('refreshes an item whose nested field changed', () => {
 		const queue = stamp([
-			{ ...makeItem('a'), cuePoints: [{ artistLine: 'Kin', startSeconds: 0, title: 'Open' }] },
+			{ ...makeItem('a'), artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 120 }] },
 		]);
 		const fresh = {
 			...makeItem('a'),
-			cuePoints: [{ artistLine: 'Kin', startSeconds: 5, title: 'Open' }],
+			artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 240 }],
 		};
 
 		expect(refreshedQueue(queue, [fresh])?.[0]).toStrictEqual({
@@ -198,11 +198,11 @@ describe('refreshedQueue', () => {
 	});
 
 	test('refreshes an item that gained or lost a field', () => {
-		const queue = stamp([{ ...makeItem('a'), trackCount: 12 }]);
+		const queue = stamp([{ ...makeItem('a'), durationMs: 12 }]);
 
 		expect(refreshedQueue(queue, [makeItem('a')])).toBeDefined();
 		expect(
-			refreshedQueue(stamp([makeItem('a')]), [{ ...makeItem('a'), trackCount: 12 }]),
+			refreshedQueue(stamp([makeItem('a')]), [{ ...makeItem('a'), durationMs: 12 }]),
 		).toBeDefined();
 	});
 

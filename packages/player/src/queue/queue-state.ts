@@ -169,7 +169,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isSameJson(left: unknown, right: unknown): boolean {
+export function isSameJson(left: unknown, right: unknown): boolean {
 	if (left === right) return true;
 
 	if (Array.isArray(left) && Array.isArray(right)) {

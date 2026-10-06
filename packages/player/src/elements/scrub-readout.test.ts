@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, queueItem } from '#test/mount.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
@@ -9,18 +9,13 @@ afterEach(() => {
 function mountReadout() {
 	const mounted = mount('player-scrub-readout');
 
-	mounted.store.getState().playTrack(
-		[
-			queueItem('a', {
-				cuePoints: [
-					{ artistLine: 'Night Ferry', startSeconds: 50, title: 'Aurora' },
-					{ artistLine: '', startSeconds: 120, title: 'Untitled' },
-				],
-				durationMs: 200_000,
-			}),
+	mounted.store.getState().playTrack([queueItem('a', { durationMs: 200_000 })], 'a');
+	landDetail(mounted.store, 'a', {
+		cuePoints: [
+			{ artistLine: 'Night Ferry', startSeconds: 50, title: 'Aurora' },
+			{ artistLine: '', startSeconds: 120, title: 'Untitled' },
 		],
-		'a',
-	);
+	});
 
 	return mounted;
 }

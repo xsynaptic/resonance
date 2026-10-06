@@ -10,7 +10,7 @@ import path from 'node:path';
 import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
-	archiveUrl: string;
+	archive: { pairCount: number; pairsPerSecond: number; url: string };
 	peaks: Array<number>;
 	seconds: number;
 	streamUrl: string;
@@ -70,7 +70,11 @@ async function buildIndex(): Promise<MixAudioIndex> {
 		if (stream === undefined) continue;
 
 		const audio = {
-			archiveUrl: `${waveformBaseUrl}${encodeURIComponent(waveform.archive)}`,
+			archive: {
+				pairCount: waveform.pairs,
+				pairsPerSecond: waveform.pairsPerSecond,
+				url: `${waveformBaseUrl}${encodeURIComponent(waveform.archive)}`,
+			},
 			peaks: waveform.peaks,
 			seconds: waveform.seconds,
 			streamUrl: `${streamBaseUrl}${encodeURIComponent(stream.stream)}`,

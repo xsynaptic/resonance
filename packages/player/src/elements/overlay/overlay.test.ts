@@ -4,7 +4,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, queueItem } from '#test/mount.ts';
 
 const cuePoints = [
 	{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
@@ -154,7 +154,8 @@ describe('<player-overlay>', () => {
 	test('seeks from a cue in the Tracklist and marks the current one', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { cuePoints, durationMs: 180_000 })], 'a');
+		mounted.store.getState().playTrack([queueItem('a', { durationMs: 180_000 })], 'a');
+		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
 		expect(
@@ -202,7 +203,8 @@ describe('the overlay tabs', () => {
 	test('move with the arrow keys, Home and End', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
+		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
 		const tracklist = getByRole(mounted.dialog, 'tab', { name: labels.tracklist });
@@ -231,7 +233,8 @@ describe('the overlay tabs', () => {
 	test('carry Shuffle and Clear in their row only while the Queue shows', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
+		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
 		expect(queryByRole(mounted.dialog, 'button', { name: labels.shuffle })).toBeNull();
@@ -244,7 +247,8 @@ describe('the overlay tabs', () => {
 	test('keep focus when the Tracklist goes with a focused cue', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { cuePoints }), queueItem('b')], 'a');
+		mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
+		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 		getByRole(mounted.dialog, 'button', { name: /Middle/ }).focus();
 		mounted.store.getState().next();
@@ -261,7 +265,8 @@ describe('the overlay sheet', () => {
 
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
+		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
 		const opener = getByRole(mounted.dialog, 'button', { name: labels.lists });
@@ -292,7 +297,8 @@ describe('the overlay sheet', () => {
 
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { cuePoints })], 'a');
+		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
 		const opener = getByRole(mounted.dialog, 'button', { name: labels.lists });

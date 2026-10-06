@@ -1,7 +1,6 @@
 import type { FillColumns } from '#elements/scope/scope-trace.ts';
 import type { PlayerStoreApi } from '#store/player-types.ts';
-import type { PlayerUrls, QueueItem } from '#types.ts';
-import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
+import type { QueueArchive } from '#types.ts';
 
 import { traceScope } from '#elements/scope/scope-trace.ts';
 import { subscribeStoreTime } from '#store/subscribe-time.ts';
@@ -12,8 +11,7 @@ import { openArchive } from '#waveform/panel/waveform-archive.ts';
 const fullScale = 128;
 
 interface ArchiveTrace {
-	item: QueueItem | undefined;
-	resolveArchive: PlayerUrls['archive'];
+	archive: QueueArchive | undefined;
 	store: PlayerStoreApi;
 	windowSeconds: number;
 }
@@ -25,22 +23,16 @@ interface PairSpan {
 
 export function traceArchive(
 	canvas: HTMLCanvasElement,
-	{ item, resolveArchive, store, windowSeconds }: ArchiveTrace,
+	{ archive: source, store, windowSeconds }: ArchiveTrace,
 	signal: AbortSignal,
 ): void {
 	const clock = createScrollClock({
 		elementTime: store.getState().getCurrentTime,
 		subscribeTime: subscribeStoreTime(store),
 	});
-	let archive: undefined | WaveformArchive;
+	const archive = source && openArchive(source);
 
 	signal.addEventListener('abort', clock.stop, { once: true });
-
-	if (resolveArchive && item) {
-		void openArchive(resolveArchive, item).then((opened) => {
-			archive = opened;
-		});
-	}
 
 	const fillColumns: FillColumns = (frameMs, columns) => {
 		const seconds = clock.read(frameMs, true);
@@ -57,7 +49,7 @@ export function traceArchive(
 		const firstPair = seconds * archive.pairsPerSecond - windowPairs / 2;
 		const pairsPerColumn = windowPairs / columns.count;
 
-		archive.want(Math.floor(firstPair), Math.ceil(firstPair + windowPairs));
+		void archive.want(Math.floor(firstPair), Math.ceil(firstPair + windowPairs));
 
 		for (let column = 0; column < columns.count; column += 1) {
 			const fromPair = firstPair + column * pairsPerColumn;

@@ -37,13 +37,12 @@ describe('currentCue', () => {
 		store.getState().loadQueue([
 			{
 				artistLine: 'Nebula Drift',
-				cuePoints,
 				itemId: 'a',
 				releaseTitle: 'Cosmic Drift',
 				title: 'Mix',
 			},
 		]);
-		store.setState({ currentIndex, currentTimeSeconds });
+		store.setState({ currentIndex, currentTimeSeconds, details: new Map([['a', { cuePoints }]]) });
 
 		return store.getState();
 	}

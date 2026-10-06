@@ -3,7 +3,7 @@ import type { PlayerStore } from '#store/player-types.ts';
 
 import { bind } from '#lib/bind.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { displayedItem } from '#store/selectors.ts';
+import { displayedDetail, displayedItem } from '#store/selectors.ts';
 
 type OverlayList = 'queue' | 'tracklist';
 
@@ -138,7 +138,7 @@ function renderList(list: OverlayList): HTMLElement {
 }
 
 function selectLists(state: PlayerStore): ReadonlyArray<OverlayList> {
-	return (displayedItem(state)?.cuePoints?.length ?? 0) > 0 ? withTracklist : queueOnly;
+	return (displayedDetail(state)?.cuePoints?.length ?? 0) > 0 ? withTracklist : queueOnly;
 }
 
 function selectTabs(state: PlayerStore): TabsView {

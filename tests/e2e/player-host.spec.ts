@@ -200,6 +200,32 @@ test(
 	},
 );
 
+test('a press plays at once, and the bar waits for its wave strip from the catalogue', async ({
+	page,
+	site,
+}) => {
+	const bar = page.locator('.player-bar');
+	const held = Promise.withResolvers<undefined>();
+
+	await observe(page);
+	await page.route('**/api/player/catalogue.json*', async (route) => {
+		await held.promise;
+		await route.continue();
+	});
+
+	await visit(page, site.mixDetail);
+	await pressPlay(page);
+	await expectAdvancing(page, 1);
+	await expect(page.locator('player-root[data-pending]')).toHaveCount(1);
+	await expect(bar).toBeHidden();
+
+	held.resolve(undefined);
+	await expect(bar).toBeVisible();
+	await expect
+		.poll(() => bar.locator('sonic-wavestrip').evaluate((strip) => strip.matches(':state(empty)')))
+		.toBe(false);
+});
+
 test('a listen past 30 heard seconds sends one beacon', async ({ listens, page, site }) => {
 	await observe(page, fastPlaybackRate);
 	await playAListenThrough(page, site);

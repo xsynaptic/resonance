@@ -22,7 +22,7 @@
 		"test-e2e": "pnpm cut-fixtures && playwright test"
 	},
 	"dependencies": {
-		"@xsynaptic/sonic-ui": "^0.10.3",
+		"@xsynaptic/sonic-ui": "^0.10.4",
 		"zustand": "^5.0.15"
 	},
 	"devDependencies": {

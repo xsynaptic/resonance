@@ -47,7 +47,7 @@ test('a sheet dismissed by a drag reopens on screen', async ({ harness, page }) 
 	expect(await sheet.evaluate((element) => element.style.translate)).toBe('');
 });
 
-test('a touch held on the waveform swaps the title block to the Track under it', async ({
+test('a touch held on the waveform swaps the title block to the Track under it, and back past the cancel zone', async ({
 	harness,
 	page,
 }) => {
@@ -85,6 +85,16 @@ test('a touch held on the waveform swaps the title block to the Track under it',
 	await expect(readout).toHaveText(`Cue TitleCue Artist0:${String(seconds)}`);
 	await expect(bubble).toHaveAttribute('data-above');
 	await expect(bubble).toBeHidden();
+
+	await slider.dispatchEvent('pointermove', {
+		...touch,
+		clientX: box.x + box.width / 2,
+		clientY: box.y - 100,
+	});
+	await expect(readout).toBeHidden();
+
+	await slider.dispatchEvent('pointermove', { ...touch, clientX: box.x + box.width / 2 });
+	await expect(readout).toBeVisible();
 
 	await slider.dispatchEvent('pointerup', { ...touch, buttons: 0 });
 	await expect(readout).toBeHidden();

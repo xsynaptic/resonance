@@ -153,60 +153,39 @@ async function feedArchive(
 	if (signal.aborted) return undefined;
 
 	waveform.pending = undefined;
-	if (archive) requestFromArchive(waveform, archive, signal);
+	if (archive) requestFromArchive(waveform, archive);
 
 	return archive;
 }
 
-// The archive fills `samples` in place and reports nothing, so a frame loop watches it while the window has a gap
-function requestFromArchive(
-	waveform: SonicWaveform,
-	archive: WaveformArchive,
-	signal: AbortSignal,
-): void {
+function requestFromArchive(waveform: SonicWaveform, archive: WaveformArchive): void {
 	const { pairsPerSecond } = archive;
-	let frame = 0;
-	let landedChunks = archive.landedChunks();
-	let fromPair = 0;
-	let toPair = 0;
+	let shownChunks = '';
 
-	const watch = (): void => {
-		frame = 0;
-		// A failed chunk is asked for again here, once its backoff has run out
-		archive.want(fromPair, toPair);
-
-		if (archive.landedChunks() !== landedChunks) {
-			landedChunks = archive.landedChunks();
-			waveform.repaint();
-		}
-
+	const showPending = (fromPair: number, toPair: number): void => {
 		const missing = archive.missing(fromPair, toPair);
+		const chunks = missing.map(({ chunk }) => chunk).join(',');
 
+		// `requestPeaks` runs inside a paint and writing `pending` asks for another, so an unchanged list would repaint forever
+		if (chunks === shownChunks) return;
+
+		shownChunks = chunks;
 		waveform.pending = missing.map((chunk) => [
 			chunk.fromPair / pairsPerSecond,
 			chunk.toPair / pairsPerSecond,
 		]);
-
-		if (missing.length > 0) frame = requestAnimationFrame(watch);
 	};
 
 	waveform.peaks = { fullScale: archiveFullScale, pairsPerSecond, samples: archive.samples };
 	waveform.requestPeaks = (fromSeconds, toSeconds) => {
-		fromPair = fromSeconds * pairsPerSecond;
-		toPair = toSeconds * pairsPerSecond;
-		archive.want(fromPair, toPair);
+		const fromPair = fromSeconds * pairsPerSecond;
+		const toPair = toSeconds * pairsPerSecond;
+		const changed = archive.want(fromPair, toPair);
 
-		if (frame === 0 && archive.missing(fromPair, toPair).length > 0) {
-			frame = requestAnimationFrame(watch);
-		}
+		showPending(fromPair, toPair);
+
+		return changed;
 	};
-	signal.addEventListener(
-		'abort',
-		() => {
-			cancelAnimationFrame(frame);
-		},
-		{ once: true },
-	);
 }
 
 function selectDuration(state: PlayerStore): number | undefined {

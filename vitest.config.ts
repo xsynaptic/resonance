@@ -39,7 +39,6 @@ export default defineConfig({
 					environment: 'happy-dom',
 					include: ['packages/player/**/*.test.{ts,tsx}'],
 					name: 'player',
-					setupFiles: ['packages/player/src/test/setup.ts'],
 				},
 			},
 			{

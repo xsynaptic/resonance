@@ -13,11 +13,10 @@
 	--sonic-waveform-inset-ratio: 0;
 	--sonic-waveform-label: var(--player-cue-title);
 	--sonic-waveform-label-font: var(--player-font-family);
-
-	/* `--player-font-size` over `--player-panel-height` */
-	--sonic-waveform-label-font-ratio: calc(0.875 / 7.5);
+	--sonic-waveform-label-font-size: var(--player-font-size);
 	--sonic-waveform-label-inset-block: 0.25rem;
 	--sonic-waveform-label-inset-inline: calc(1rem + var(--player-panel-inset-left, 0px));
+	--sonic-waveform-label-line-height: 1.25rem;
 	--sonic-waveform-length: 100%;
 	--sonic-waveform-placeholder: var(--player-panel-placeholder);
 	--sonic-waveform-playhead: var(--player-playhead);
@@ -39,11 +38,6 @@
 		transparent
 	);
 	background-repeat: no-repeat;
-}
-
-/* Outside the library's layer, so it beats its `line-height: 1` */
-.player-panel .sonic-waveform-label {
-	line-height: 1.25rem;
 }
 
 /* The waveform's own labels are hidden from assistive tech, so the current Track is said here */

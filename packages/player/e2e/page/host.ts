@@ -46,6 +46,7 @@ const parameters = new URLSearchParams(location.search);
 
 const settings = {
 	bindDelay: Number(parameters.get('bindDelay') ?? 0),
+	hasArchive: parameters.has('archive'),
 	isCued: parameters.has('cued'),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
 	run: parameters.get('run') ?? 'manual',
@@ -56,12 +57,21 @@ const settings = {
 let resolveCount = 0;
 
 const urls: PlayerUrls = {
+	...(settings.hasArchive ? { archive: (item) => Promise.resolve(archiveUrl(item.itemId)) } : {}),
 	stream: (item) => {
 		resolveCount += 1;
 
 		return Promise.resolve(resolveStream(item));
 	},
 };
+
+function archiveUrl(itemId: string): string {
+	const url = new URL(`/archive/${itemId}.dat`, fixtureOrigin);
+
+	url.searchParams.set('run', settings.run);
+
+	return url.href;
+}
 
 function isFixture(row: string): row is keyof typeof fixtures {
 	return Object.hasOwn(fixtures, row);

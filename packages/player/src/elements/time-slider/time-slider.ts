@@ -143,7 +143,7 @@ function bindScrubPreview(
 	signal: AbortSignal,
 ): void {
 	const showPreview = (): void => {
-		const isShown = strip.pointerType === 'touch' && strip.matches(':state(revealed)');
+		const isShown = strip.pointerType === 'touch' && strip.revealed;
 
 		preview(isShown ? strip.value : undefined);
 	};
@@ -163,7 +163,6 @@ function isTimed(view: StripView): boolean {
 	return view.isLoaded && view.durationSeconds !== undefined;
 }
 
-// The lane a dot sits in is private to the strip, so the row is read off the dot itself
 function markerRow(strip: SonicWavestrip, index: number): number {
 	const dot = strip.querySelectorAll<HTMLElement>('.sonic-wavestrip-marker')[Math.max(0, index)];
 
@@ -171,9 +170,9 @@ function markerRow(strip: SonicWavestrip, index: number): number {
 }
 
 function isHeld(strip: SonicWavestrip): boolean {
-	if (strip.matches(':state(revealed)')) return true;
+	if (strip.revealed) return true;
 
-	return strip.pointerType === 'mouse' && strip.matches(':state(dragging):not(:state(cancelling))');
+	return strip.pointerType === 'mouse' && strip.dragging && !strip.cancelling;
 }
 
 function readoutFor(strip: SonicWavestrip, view: StripView): Readout | undefined {

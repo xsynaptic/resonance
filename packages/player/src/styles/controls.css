@@ -48,9 +48,7 @@
 	--sonic-marker: var(--player-cue-dot);
 	--sonic-reveal-delay: 150ms;
 	--sonic-wave: var(--player-waveform-base);
-
-	/* A 0.25rem groove on the bar's strip, for an item with no peaks */
-	--sonic-wavestrip-groove-ratio: calc(0.25 / 3.5);
+	--sonic-wavestrip-groove-size: 0.25rem;
 	--sonic-wavestrip-inset-ratio: 0;
 	--sonic-wavestrip-length: 100%;
 	--sonic-wavestrip-marker-edge-width: 1px;

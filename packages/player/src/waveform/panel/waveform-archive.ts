@@ -11,28 +11,25 @@ const chunkPairs = 8192;
 
 const cacheLimit = 2;
 
-// `want` runs every frame, so without a wait an offline panel asks for a failed chunk sixty times a second
 const retryBaseMs = 2000;
 const retryCapMs = 30_000;
 
 const cache = new Map<string, Promise<undefined | WaveformArchive>>();
 
 export interface WaveformArchive {
-	// Rises as each chunk lands; a caller watches it to know a repaint is owed
-	landedChunks: () => number;
 	missing: (fromPair: number, toPair: number) => Array<MissingChunk>;
 	pairsPerSecond: number;
 	pairsTotal: number;
 	// Interleaved 8-bit min and max, silent where a chunk has not landed
 	samples: Int8Array;
 	// Requests whatever the span is missing; a chunk in flight, landed or waiting out a failure is not asked for again
-	want: (fromPair: number, toPair: number) => void;
+	want: (fromPair: number, toPair: number) => Promise<void> | undefined;
 }
 
 interface ChunkRequest {
 	askedMs: number;
 	failures: number;
-	retryAtMs: number;
+	isHeld: boolean;
 }
 
 interface MissingChunk {
@@ -78,6 +75,19 @@ function createArchive({
 	const chunkCount = Math.ceil(pairsTotal / chunkPairs);
 	const landed = new Set<number>();
 	const requests = new Map<number, ChunkRequest>();
+	let announce: () => void;
+	let changed: Promise<void>;
+
+	function awaitChange(): void {
+		changed = new Promise((resolve) => {
+			announce = () => {
+				awaitChange();
+				resolve();
+			};
+		});
+	}
+
+	awaitChange();
 
 	function lastChunk(toPair: number): number {
 		return Math.min(chunkCount - 1, Math.floor(Math.max(0, toPair) / chunkPairs));
@@ -113,16 +123,21 @@ function createArchive({
 	async function load(chunk: number, request: ChunkRequest): Promise<void> {
 		if (await didFetchChunk(chunk)) {
 			landed.add(chunk);
+			announce();
 			return;
 		}
 
 		request.failures += 1;
-		request.retryAtMs =
-			performance.now() + Math.min(retryCapMs, retryBaseMs * 2 ** (request.failures - 1));
+		setTimeout(
+			() => {
+				request.isHeld = false;
+				announce();
+			},
+			Math.min(retryCapMs, retryBaseMs * 2 ** (request.failures - 1)),
+		);
 	}
 
 	return {
-		landedChunks: () => landed.size,
 		missing: (fromPair, toPair) => {
 			const chunks: Array<MissingChunk> = [];
 
@@ -143,18 +158,24 @@ function createArchive({
 		pairsTotal,
 		samples,
 		want: (fromPair, toPair) => {
-			const nowMs = performance.now();
 			// Chunks in view as the header lands have already waited as long as the header did
-			const askedMs = requests.size === 0 ? openedMs : nowMs;
+			const askedMs = requests.size === 0 ? openedMs : performance.now();
+			let hasGap = false;
 
 			for (let chunk = firstChunk(fromPair); chunk <= lastChunk(toPair); chunk += 1) {
-				const request = requests.get(chunk) ?? { askedMs, failures: 0, retryAtMs: 0 };
-				if (nowMs < request.retryAtMs) continue;
+				if (landed.has(chunk)) continue;
 
-				request.retryAtMs = Infinity;
+				hasGap = true;
+
+				const request = requests.get(chunk) ?? { askedMs, failures: 0, isHeld: false };
+				if (request.isHeld) continue;
+
+				request.isHeld = true;
 				requests.set(chunk, request);
 				void load(chunk, request);
 			}
+
+			return hasGap ? changed : undefined;
 		},
 	};
 }

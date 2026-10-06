@@ -33,15 +33,17 @@ function mountSlider(options: {
 	};
 }
 
-function hold(strip: SonicWavestrip, held: { pointerType: string; states: Array<string> }): void {
+const gestureStates = ['cancelling', 'dragging', 'revealed'] as const;
+
+function hold(
+	strip: SonicWavestrip,
+	held: { pointerType: string; states: Array<(typeof gestureStates)[number]> },
+): void {
 	vi.spyOn(strip, 'pointerType', 'get').mockReturnValue(held.pointerType);
-	vi.spyOn(strip, 'matches').mockImplementation((selector) =>
-		selector
-			.matchAll(/(:not\()?:state\((\w+)\)/g)
-			.every(
-				([, negation, state = '']) => held.states.includes(state) === (negation === undefined),
-			),
-	);
+
+	for (const state of gestureStates) {
+		vi.spyOn(strip, state, 'get').mockReturnValue(held.states.includes(state));
+	}
 }
 
 function hover(strip: SonicWavestrip, seconds: number | undefined): void {

@@ -2,8 +2,11 @@ import { getByRole } from '@testing-library/dom';
 import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import type * as archiveModule from '#waveform/panel/waveform-archive.ts';
+
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
+import { chunkOf, offline, stubArchiveFetch } from '#test/archive-fetch.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
 import { openArchive } from '#waveform/panel/waveform-archive.ts';
@@ -44,6 +47,8 @@ async function openPanel({ part, store }: ReturnType<typeof mountPanel>): Promis
 }
 
 afterEach(() => {
+	vi.useRealTimers();
+	vi.unstubAllGlobals();
 	document.body.replaceChildren();
 	vi.restoreAllMocks();
 	vi.mocked(openArchive).mockClear();
@@ -72,6 +77,42 @@ describe('<player-panel>', () => {
 
 		mounted.store.getState().next();
 		expect(openArchive).toHaveBeenCalledTimes(2);
+	});
+
+	test('settles a request for a failed chunk as its wait ends, so asking again lands the samples', async () => {
+		const actual = await vi.importActual<typeof archiveModule>(
+			'#waveform/panel/waveform-archive.ts',
+		);
+		const responses = [offline, () => chunkOf(7)];
+		const { chunkRequests } = stubArchiveFetch(() => (responses.shift() ?? offline)());
+
+		vi.mocked(openArchive).mockImplementationOnce(actual.openArchive);
+
+		const waveform = await openPanel(mountPanel());
+		const request = await vi.waitFor(() => {
+			if (!waveform.requestPeaks) throw new Error('The archive has not opened yet');
+
+			return waveform.requestPeaks;
+		});
+		const settled = vi.fn();
+
+		vi.useFakeTimers({ toFake: ['clearTimeout', 'setTimeout'] });
+
+		void Promise.resolve(request(0, 10)).then(settled);
+		await vi.advanceTimersByTimeAsync(1999);
+		expect(settled).not.toHaveBeenCalled();
+		expect(waveform.pending).toEqual([[0, 81.92]]);
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(settled).toHaveBeenCalledOnce();
+		expect(chunkRequests()).toBe(1);
+
+		await request(0, 10);
+		expect(chunkRequests()).toBe(2);
+		expect(waveform.peaks?.samples[0]).toBe(7);
+
+		request(0, 10);
+		expect(waveform.pending).toEqual([]);
 	});
 
 	test('closes and reports the failure when its surface fails to arrive', async () => {

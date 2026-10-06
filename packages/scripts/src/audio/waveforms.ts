@@ -97,7 +97,7 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 }
 
 // Two tiers from one analysis pass: a full-resolution `.dat` archive and a distilled preview
-// Both land in `.cache/`; they are regenerable intermediates and nothing deploys them
+// Both land in `.cache/` and are regenerable; `deploy-audio` ships the archives, the previews only feed the manifest
 export async function generateWaveforms(options: WaveformsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 

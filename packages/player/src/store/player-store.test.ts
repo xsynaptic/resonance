@@ -976,12 +976,37 @@ describe('panel state', () => {
 		localStorage.removeItem('player:v1:panel-zoom');
 	});
 
-	test('ignores a stored zoom that is not a step on the ladder', () => {
-		localStorage.setItem('player:v1:panel-zoom', '83');
+	test('persists a zoom between two steps and restores it on reload', () => {
+		persisted().getState().setPanelZoom(83.25);
 
+		expect(localStorage.getItem('player:v1:panel-zoom')).toBe('83.25');
+		expect(persisted().getState().panelPxPerSecond).toBe(83.25);
+
+		localStorage.removeItem('player:v1:panel-zoom');
+	});
+
+	test.each(['19', '241', 'wide'])('ignores a stored zoom of %s, outside the ladder', (stored) => {
+		localStorage.setItem('player:v1:panel-zoom', stored);
+
+		expect(persisted().getState().panelPxPerSecond).toBe(70);
+
+		localStorage.removeItem('player:v1:panel-zoom');
+	});
+
+	test('steps from between two steps to the nearest one in that direction', () => {
 		const store = persisted();
 
+		store.getState().setPanelZoom(83.25);
+		store.getState().zoomPanel(1);
+		expect(store.getState().panelPxPerSecond).toBe(105);
+
+		store.getState().setPanelZoom(83.25);
+		store.getState().zoomPanel(-1);
 		expect(store.getState().panelPxPerSecond).toBe(70);
+
+		store.getState().setPanelZoom(239);
+		store.getState().zoomPanel(1);
+		expect(store.getState().panelPxPerSecond).toBe(240);
 
 		localStorage.removeItem('player:v1:panel-zoom');
 	});

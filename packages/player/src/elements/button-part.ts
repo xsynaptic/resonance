@@ -1,31 +1,30 @@
+import type { SonicButton } from '@xsynaptic/sonic-ui';
+
 import type { PlayerContext } from '#elements/player-context.ts';
-import type { IconName } from '#lib/icons.ts';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels } from '#types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bindButton } from '#lib/bind-button.ts';
-import { cloneIcon } from '#lib/icons.ts';
 
-interface ButtonPart<Selected> {
-	apply: (button: HTMLButtonElement, selected: Selected, labels: PlayerLabels) => void;
-	connect?: (button: HTMLButtonElement, context: PlayerContext, signal: AbortSignal) => void;
-	icon?: IconName;
+interface ButtonPart<Selected, Button> {
+	apply: (button: Button, selected: Selected, labels: PlayerLabels) => void;
+	connect?: (button: Button, context: PlayerContext, signal: AbortSignal) => void;
 	label?: keyof PlayerLabels;
 	press: (state: PlayerStore) => void;
-	render: () => HTMLButtonElement;
+	render: () => Button;
 	select: (state: PlayerStore) => Selected;
 }
 
 export abstract class PlayerButtonPart extends PlayerElement {}
 
 // Called at every connect, so a part can read attributes that a constructor cannot see yet
-export function buttonPart<Selected>(
-	readPart: (element: HTMLElement) => ButtonPart<Selected>,
+export function buttonPart<Selected, Button extends HTMLButtonElement | SonicButton>(
+	readPart: (element: HTMLElement) => ButtonPart<Selected, Button>,
 ): new () => PlayerButtonPart {
 	return class extends PlayerButtonPart {
-		#button: HTMLButtonElement | undefined;
+		#button: Button | undefined;
 
 		protected connect(signal: AbortSignal): void {
 			const part = readPart(this);
@@ -37,7 +36,6 @@ export function buttonPart<Selected>(
 			const button = this.#button;
 
 			this.appendOnce(button);
-			if (part.icon !== undefined) button.replaceChildren(cloneIcon(part.icon));
 			if (part.label !== undefined) button.setAttribute('aria-label', labels[part.label]);
 
 			bindButton(

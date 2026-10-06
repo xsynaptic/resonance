@@ -29,6 +29,112 @@
 	align-items: center;
 }
 
+/* On the button itself, so the dial's tokens on `.player-volume` never reach the mute button beside it */
+player-root sonic-button {
+	--sonic-button-icon-ratio: var(--player-icon-ratio);
+	--sonic-button-press-scale: 0.95;
+	--sonic-button-radius-ratio: 0.125;
+	--sonic-button-size: var(--player-button-size);
+	--sonic-cap: initial;
+	--sonic-cap-hover: initial;
+	--sonic-focus-glow: 0;
+	--sonic-focus-outline: var(--player-focus-width) solid var(--player-focus-ring);
+	--sonic-focus-outline-offset: var(--player-focus-offset);
+	--sonic-ink: initial;
+	--sonic-ink-disabled: var(--player-control-inert);
+	--sonic-ink-hover: var(--player-control-hover);
+	--sonic-lit: var(--player-control-active);
+	--sonic-lit-hover: var(--player-control-active-hover);
+	--sonic-relief: 0;
+
+	color: var(--player-control);
+}
+
+.player-button-small {
+	--sonic-button-size: var(--player-button-size-small);
+}
+
+.player-button-primary {
+	--sonic-button-face-radius-ratio: 0.5;
+	--sonic-button-radius-ratio: 0.5;
+	--sonic-button-size: var(--player-button-size-primary);
+	--sonic-cap: var(--player-play-fill);
+	--sonic-cap-edge: transparent;
+	--sonic-cap-hover: var(--player-play-fill-hover);
+	--sonic-disabled-opacity: 0.4;
+	--sonic-ink: var(--player-play-glyph);
+	--sonic-ink-disabled: var(--player-play-glyph);
+	--sonic-ink-hover: var(--player-play-glyph-hover);
+}
+
+/* On the cap, since the library keeps the button's own `::after` for its touch target */
+.player-button-primary[data-loading] .sonic-button-cap::after {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	content: '';
+	border: 2px solid var(--player-loader-track);
+	border-top-color: var(--player-loader);
+	border-radius: inherit;
+	animation:
+		player-loader-appear 150ms 400ms both,
+		player-loader-spin 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-button-primary[data-loading] .sonic-button-cap::after {
+		animation:
+			player-loader-appear 150ms 400ms both,
+			player-loader-fade 1.6s ease-in-out 400ms infinite alternate;
+	}
+}
+
+@keyframes player-loader-appear {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes player-loader-spin {
+	to {
+		rotate: 1turn;
+	}
+}
+
+@keyframes player-loader-fade {
+	from {
+		border-top-color: var(--player-loader-track);
+	}
+
+	to {
+		border-top-color: var(--player-loader);
+	}
+}
+
+.player-transport {
+	display: flex;
+	flex-shrink: 0;
+	gap: var(--player-gap-small);
+	align-items: center;
+}
+
+.player-seek-button {
+	--sonic-ink: color-mix(in oklab, var(--player-control) 80%, var(--player-surface));
+}
+
+.player-seek-button > .sonic-button {
+	user-select: none;
+}
+
+/* Takes back the step glyph's inset, so step to seek sits as close as seek to play */
+player-step-button + player-seek-button > .player-seek-button > .sonic-button {
+	margin-inline-start: -0.375rem;
+}
+
+player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-button {
+	margin-inline-end: -0.375rem;
+}
+
 /* Chrome flips the readout below the bar once the page scrolls, covering the waveform */
 .player-volume .sonic-dial-readout {
 	position-try-fallbacks: none;
@@ -43,6 +149,9 @@
 
 .player-waveform-frame {
 	--sonic-buffered: var(--player-waveform-buffered);
+	--sonic-focus-glow: 0;
+	--sonic-focus-outline: var(--player-focus-width) solid var(--player-focus-ring);
+	--sonic-focus-outline-offset: var(--player-focus-offset);
 	--sonic-glass: transparent;
 	--sonic-lit: var(--player-waveform-played);
 	--sonic-marker: var(--player-cue-dot);

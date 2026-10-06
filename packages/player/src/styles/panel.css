@@ -2,16 +2,14 @@
 	--sonic-glass: transparent;
 	--sonic-lit: var(--player-panel-wave);
 	--sonic-marker: var(--player-panel-cue);
-	--sonic-readout-edge: var(--player-border);
-	--sonic-readout-edge-width: 1px;
-	--sonic-readout-glass: var(--player-popover);
-	--sonic-readout-text: var(--player-title);
 	--sonic-waveform-edge: var(--player-panel-wave-peak);
 	--sonic-waveform-ends: var(--player-panel-ends);
 	--sonic-waveform-ghost: var(--player-panel-ghost);
 	--sonic-waveform-grid: var(--player-panel-grid);
 	--sonic-waveform-inset-ratio: 0;
 	--sonic-waveform-label: var(--player-cue-title);
+	--sonic-waveform-label-fade-end: 0.75;
+	--sonic-waveform-label-fade-start: 0.25;
 	--sonic-waveform-label-font: var(--player-font-family);
 	--sonic-waveform-label-font-size: var(--player-font-size);
 	--sonic-waveform-label-inset-block: 0.25rem;
@@ -40,6 +38,14 @@
 	background-repeat: no-repeat;
 }
 
+.player-panel-label-artist {
+	color: var(--player-cue-artist);
+}
+
+.sonic-waveform-label[data-sonic-dimmed] > .player-panel-label-artist {
+	opacity: 0.5;
+}
+
 /* The waveform's own labels are hidden from assistive tech, so the current Track is said here */
 .player-panel-now {
 	position: absolute;
@@ -59,32 +65,13 @@
 	padding: var(--player-gap-small);
 }
 
-.player-panel-zoom .player-button-small {
-	background-color: color-mix(in oklab, var(--player-popover) 90%, transparent);
-	border: 1px solid var(--player-border);
-	border-radius: 9999px;
-}
-
-@media (hover: hover) {
-	.player-panel-zoom .player-button-small:hover {
-		background-color: var(--player-hover);
-	}
-}
-
-.player-panel-zoom .player-button-small:focus-visible {
-	background-color: var(--player-hover);
-}
-
-.player-panel-toggle[aria-pressed='true'] {
-	color: var(--player-control-active);
-}
-
-@media (hover: hover) {
-	.player-panel-toggle[aria-pressed='true']:hover {
-		color: var(--player-control-active-hover);
-	}
-}
-
-.player-panel-toggle[aria-pressed='true']:focus-visible {
-	color: var(--player-control-active-hover);
+/* The rim draws outside the cap, so the gap takes its 1px back and the pill stays the button's size */
+.player-panel-zoom sonic-button {
+	--sonic-button-bevel-ratio: 0;
+	--sonic-button-face-radius-ratio: 0.5;
+	--sonic-button-gap-ratio: calc(1 / 24);
+	--sonic-button-radius-ratio: 0.5;
+	--sonic-cap: color-mix(in oklab, var(--player-popover) 90%, transparent);
+	--sonic-cap-edge: var(--player-border);
+	--sonic-cap-hover: var(--player-hover);
 }

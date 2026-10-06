@@ -3,6 +3,8 @@ import { SonicWavestrip } from '@xsynaptic/sonic-ui';
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels, QueueCuePoint } from '#types.ts';
 
+import { bindBuffered } from '#elements/bind-buffered.ts';
+import { bindScrubPreview } from '#elements/bind-scrub-preview.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
@@ -101,19 +103,7 @@ export class PlayerTimeSlider extends PlayerElement {
 			},
 			signal,
 		);
-		bind(
-			store,
-			(state) => state.getMediaElement(),
-			(element) => {
-				const showBuffered = (): void => {
-					strip.buffered = element?.buffered;
-				};
-
-				element?.addEventListener('progress', showBuffered, { signal });
-				showBuffered();
-			},
-			signal,
-		);
+		bindBuffered(strip, store, signal);
 		bindReadout(parts, () => shown, signal);
 		bindScrubPreview(strip, store.getState().setScrubPreview, signal);
 	}
@@ -135,28 +125,6 @@ function bindReadout(
 	for (const type of ['input', 'sonic-hover', 'sonic-reveal']) {
 		parts.strip.addEventListener(type, show, { signal });
 	}
-}
-
-function bindScrubPreview(
-	strip: SonicWavestrip,
-	preview: PlayerStore['setScrubPreview'],
-	signal: AbortSignal,
-): void {
-	const showPreview = (): void => {
-		const isShown = strip.pointerType === 'touch' && strip.revealed;
-
-		preview(isShown ? strip.value : undefined);
-	};
-
-	strip.addEventListener('input', showPreview, { signal });
-	strip.addEventListener('sonic-reveal', showPreview, { signal });
-	signal.addEventListener(
-		'abort',
-		() => {
-			preview(undefined);
-		},
-		{ once: true },
-	);
 }
 
 function isTimed(view: StripView): boolean {
@@ -236,10 +204,9 @@ function writeReadout(
 	{ artist, frame, label, strip, time, title }: StripParts,
 	{ cuePoint, hasClock, index, isAbove, seconds }: Readout,
 ): void {
-	// The host is `display: contents`; with no inset and no edge, the frame is the canvas
-	const width = frame.clientWidth;
-	const x = (seconds / strip.max) * width;
-	const { room, side } = labelPlacement(x, width);
+	const box = frame.getBoundingClientRect();
+	const x = strip.clientXOf(seconds) - box.left;
+	const { room, side } = labelPlacement(x, box.width);
 
 	label.toggleAttribute('data-above', isAbove);
 	label.dataset.side = side;

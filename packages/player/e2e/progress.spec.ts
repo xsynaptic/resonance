@@ -37,6 +37,7 @@ test('a drag the browser cancels leaves the position where it was', async ({ har
 	await expect(strip(page)).toBeVisible();
 	await page.getByRole('button', { exact: true, name: labels.pause }).click();
 
+	const slider = page.getByRole('region', { name: labels.nowPlaying }).locator('sonic-slider');
 	const { currentTimeSeconds: before } = await harness.read();
 	const box = await strip(page).boundingBox();
 	if (!box) throw new Error('The strip has no box to press');
@@ -52,10 +53,10 @@ test('a drag the browser cancels leaves the position where it was', async ({ har
 
 	await strip(page).dispatchEvent('pointerdown', { ...touch, clientX: box.x + box.width / 4 });
 	await strip(page).dispatchEvent('pointermove', { ...touch, clientX: box.x + box.width * 0.75 });
-	await expect(strip(page)).toHaveAttribute('data-scrubbing');
+	await expect(slider).toHaveJSProperty('dragging', true);
 
 	await strip(page).dispatchEvent('pointercancel', { ...touch, buttons: 0 });
-	await expect(strip(page)).not.toHaveAttribute('data-scrubbing');
+	await expect(slider).toHaveJSProperty('dragging', false);
 
 	const { currentTimeSeconds: after } = await harness.read();
 

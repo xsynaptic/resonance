@@ -44,7 +44,7 @@ a:active {
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
-	*:not(.player-button-primary[data-loading])::after {
+	*:not(.player-button-primary[data-loading] .sonic-button-cap)::after {
 		scroll-behavior: auto !important;
 		transition-duration: 0.01ms !important;
 		animation-duration: 0.01ms !important;

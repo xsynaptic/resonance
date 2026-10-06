@@ -1,16 +1,12 @@
 @media (pointer: coarse) {
-	.player-button-icon,
-	.player-button-primary,
-	.player-button-small,
-	.player-tray-action,
+	player-root sonic-button {
+		--sonic-target-size: var(--player-hit-target);
+	}
+
 	.player-tray-handle {
 		position: relative;
 	}
 
-	.player-button-icon::before,
-	.player-button-primary::before,
-	.player-button-small::before,
-	.player-tray-action::before,
 	.player-tray-handle::before {
 		position: absolute;
 		inset: calc((var(--player-hit-target) - 100%) / -2);
@@ -44,13 +40,6 @@
 	}
 
 	@container (width < 26rem) {
-		.player-progress {
-			block-size: calc(
-				var(--player-padding-block) + var(--player-progress-space) -
-					(var(--player-hit-target) - var(--player-button-size-primary)) / 2
-			);
-		}
-
 		.player-bar-grid .player-track-title::before {
 			inset-block-start: calc((var(--player-hit-target) - var(--player-button-size-primary)) / -2);
 		}

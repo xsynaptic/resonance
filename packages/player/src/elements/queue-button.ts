@@ -1,3 +1,5 @@
+import type { SonicButton } from '@xsynaptic/sonic-ui';
+
 import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
@@ -8,11 +10,12 @@ import { bindPreload } from '#lib/bind-preload.ts';
 import { bindDismiss } from '#lib/dismiss.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, template } from '#lib/render.ts';
+import { renderSonicButton } from '#lib/sonic-button.ts';
 import { supersede } from '#lib/supersede.ts';
 
 interface QueueParts {
 	control: HTMLDivElement;
-	trigger: HTMLButtonElement;
+	trigger: SonicButton;
 }
 
 interface TrayOpening {
@@ -21,10 +24,7 @@ interface TrayOpening {
 	title: string;
 }
 
-const renderControl = template(
-	'<div class="player-queue"><button class="player-button player-button-icon" type="button"></button></div>',
-	HTMLDivElement,
-);
+const renderControl = template('<div class="player-queue"></div>', HTMLDivElement);
 
 const renderPopover = template(
 	/* HTML */ `
@@ -48,7 +48,6 @@ export class PlayerQueueButton extends PlayerElement {
 
 		this.appendOnce(control);
 		trigger.setAttribute('aria-label', labels.queue);
-		trigger.replaceChildren(cloneIcon('queue'));
 		bindPreload({ preload: trayModule.preload, store, trigger }, signal);
 		bindDismiss(
 			{
@@ -64,7 +63,7 @@ export class PlayerQueueButton extends PlayerElement {
 		bindButton(
 			{
 				apply: (isOpen) => {
-					trigger.setAttribute('aria-expanded', String(isOpen));
+					trigger.setAttribute('expanded', String(isOpen));
 					opened.cancel();
 					if (!isOpen) return;
 
@@ -115,6 +114,9 @@ async function openTray(
 
 function renderQueueParts(): QueueParts {
 	const control = renderControl();
+	const trigger = renderSonicButton({ icons: [cloneIcon('queue')] });
 
-	return { control, trigger: requireChild(control, 'button', HTMLButtonElement) };
+	control.append(trigger);
+
+	return { control, trigger };
 }

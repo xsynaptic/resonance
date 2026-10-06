@@ -23,6 +23,7 @@ const renderBar = template(
 					<div class="player-track-meta">
 						<player-artist-line></player-artist-line><player-time></player-time>
 					</div>
+					<player-scrub-readout></player-scrub-readout>
 				</div>
 				<player-time-slider></player-time-slider><player-status></player-status
 				><player-scope></player-scope><player-panel-toggle></player-panel-toggle

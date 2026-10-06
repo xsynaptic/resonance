@@ -4,7 +4,7 @@ import { bind } from '#lib/bind.ts';
 
 interface ButtonBinding<Selected> {
 	apply: (selected: Selected) => void;
-	button: HTMLButtonElement;
+	button: HTMLElement;
 	press: (state: PlayerStore) => void;
 	select: (state: PlayerStore) => Selected;
 	store: PlayerStoreApi;

@@ -10,12 +10,13 @@ import { cloneIcon } from '#lib/icons.ts';
 import { observeResize } from '#lib/observe-resize.ts';
 import { readPxProperty } from '#lib/read-px-property.ts';
 import { requireChild, requireChildren, template } from '#lib/render.ts';
+import { fillButton } from '#lib/sonic-button.ts';
 
 interface BodyParts {
 	actions: HTMLElement;
 	art: HTMLElement;
 	body: HTMLDivElement;
-	close: HTMLButtonElement;
+	close: HTMLElement;
 	columnsOnly: Array<HTMLElement>;
 	header: HTMLElement;
 	next: HTMLElement;
@@ -55,10 +56,7 @@ const renderBody = template(
 				</div>
 				<div class="player-overlay-deck">
 					<div class="player-overlay-head">
-						<button
-							class="player-button player-button-icon player-overlay-close"
-							type="button"
-						></button>
+						<sonic-button class="player-overlay-close"></sonic-button>
 						<div class="player-track player-overlay-track">
 							<player-title></player-title>
 							<div class="player-track-meta">
@@ -87,17 +85,9 @@ const renderBody = template(
 						<div class="player-overlay-list" role="tabpanel"></div>
 					</div>
 					<div class="player-overlay-sheets" hidden>
-						<button
-							aria-haspopup="dialog"
-							class="player-button player-button-icon"
-							type="button"
-						></button
-						><player-panel-toggle></player-panel-toggle>
+						<sonic-button popup="dialog"></sonic-button><player-panel-toggle></player-panel-toggle>
 						<dialog class="player-overlay-sheet" tabindex="-1">
-							<button
-								class="player-button player-button-icon player-overlay-close"
-								type="button"
-							></button>
+							<sonic-button class="player-overlay-close"></sonic-button>
 						</dialog>
 					</div>
 				</div>
@@ -126,7 +116,7 @@ export function connectOverlayBody(
 	placeSeekButtons(parts.previous, parts.next, store.getState().seekSeconds);
 
 	parts.close.setAttribute('aria-label', labels.close);
-	parts.close.append(cloneIcon('closeLarge'));
+	fillButton(parts.close, [cloneIcon('closeLarge')]);
 	parts.close.addEventListener(
 		'click',
 		() => {
@@ -239,7 +229,7 @@ function renderBodyParts(): BodyParts {
 	const body = renderBody();
 	const actions = requireChild(body, 'player-queue-actions', HTMLElement);
 	const art = requireChild(body, '.player-overlay-art', HTMLElement);
-	const close = requireChild(body, '.player-overlay-close', HTMLButtonElement);
+	const close = requireChild(body, '.player-overlay-close', HTMLElement);
 	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
 	const header = requireChild(body, '.player-header', HTMLElement);
 	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);

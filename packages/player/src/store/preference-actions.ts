@@ -4,7 +4,7 @@ import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerPersistence } from '#store/player-persistence.ts';
 import type { PlayerActions, PlayerState, PlayerStore } from '#store/player-types.ts';
 
-import { stepPanelZoom } from '#store/zoom-levels.ts';
+import { isPanelZoom, stepPanelZoom } from '#store/zoom-levels.ts';
 
 // Unmuting into silence would read as a dead button
 const unmuteVolume = 0.25;
@@ -14,6 +14,7 @@ type PreferenceActions = Pick<
 	| 'configure'
 	| 'setOverlayOpen'
 	| 'setPanelOpen'
+	| 'setPanelZoom'
 	| 'setScrubPreview'
 	| 'setTrayOpen'
 	| 'setVolume'
@@ -46,6 +47,13 @@ export function createPreferenceActions({
 		if (isMuted !== previous.isMuted) persistence.persistMuted(isMuted);
 	}
 
+	function applyPanelZoom(panelPxPerSecond: number): void {
+		if (get().panelPxPerSecond === panelPxPerSecond) return;
+
+		set({ panelPxPerSecond });
+		persistence.persistPanelZoom(panelPxPerSecond);
+	}
+
 	return {
 		configure: ({ seekSeconds = get().seekSeconds, urls = get().urls }) => {
 			if (get().seekSeconds === seekSeconds && get().urls === urls) return;
@@ -75,6 +83,10 @@ export function createPreferenceActions({
 			if (get().isPanelOpen === isOpen) return;
 
 			set({ isPanelOpen: isOpen });
+		},
+
+		setPanelZoom: (pxPerSecond) => {
+			if (isPanelZoom(pxPerSecond)) applyPanelZoom(pxPerSecond);
 		},
 
 		setScrubPreview: (seconds) => {
@@ -131,10 +143,7 @@ export function createPreferenceActions({
 		},
 
 		zoomPanel: (steps) => {
-			const panelPxPerSecond = stepPanelZoom(get().panelPxPerSecond, steps);
-
-			set({ panelPxPerSecond });
-			persistence.persistPanelZoom(panelPxPerSecond);
+			applyPanelZoom(stepPanelZoom(get().panelPxPerSecond, steps));
 		},
 	};
 }

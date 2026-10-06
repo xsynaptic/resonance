@@ -1,34 +1,34 @@
+import type { SonicButton } from '@xsynaptic/sonic-ui';
+
 import type { PlayerStore } from '#store/player-types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bindButton } from '#lib/bind-button.ts';
-import { requireChildren, template } from '#lib/render.ts';
+import { template } from '#lib/render.ts';
 
-const renderActions = template(
-	/* HTML */ `
-		<div class="player-queue-actions">
-			<button class="player-tray-action" type="button"></button
-			><button class="player-tray-action" type="button"></button>
-		</div>
-	`,
-	HTMLDivElement,
-);
+interface ActionParts {
+	actions: HTMLDivElement;
+	clear: SonicButton;
+	shuffle: SonicButton;
+}
+
+const renderActions = template('<div class="player-queue-actions"></div>', HTMLDivElement);
 
 export class PlayerQueueActions extends PlayerElement {
-	readonly #actions = renderActions();
+	readonly #parts = renderActionParts();
 
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
-		const [shuffle, clear] = requireChildren(this.#actions, 'button', 2, HTMLButtonElement);
+		const { actions, clear, shuffle } = this.#parts;
 
-		this.appendOnce(this.#actions);
-		shuffle.textContent = labels.shuffle;
-		clear.textContent = labels.clearQueue;
+		writeLabel(shuffle, labels.shuffle);
+		writeLabel(clear, labels.clearQueue);
+		this.appendOnce(actions);
 		bindButton(
 			{
 				apply: (isShuffling) => {
-					shuffle.setAttribute('aria-pressed', String(isShuffling));
+					shuffle.pressed = isShuffling;
 				},
 				button: shuffle,
 				press: (state) => {
@@ -51,4 +51,30 @@ export class PlayerQueueActions extends PlayerElement {
 
 function isShuffling(state: PlayerStore): boolean {
 	return state.isShuffling;
+}
+
+function renderAction() {
+	const button = document.createElement('sonic-button');
+
+	button.className = 'player-tray-action';
+	button.append(document.createElement('span'));
+
+	return button;
+}
+
+function renderActionParts(): ActionParts {
+	const actions = renderActions();
+	const shuffle = renderAction();
+	const clear = renderAction();
+
+	shuffle.latching = true;
+	actions.append(shuffle, clear);
+
+	return { actions, clear, shuffle };
+}
+
+function writeLabel(button: SonicButton, label: string): void {
+	const text = button.querySelector(':scope > span');
+
+	if (text) text.textContent = label;
 }

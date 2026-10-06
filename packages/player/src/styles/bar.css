@@ -14,6 +14,12 @@
 	backdrop-filter: blur(8px);
 }
 
+/* On the pseudo-element, since the overlay sits inside the bar and would inherit them */
+.player-bar::before {
+	--player-texture-corner: 0 100%;
+	--player-texture-reach: 60% 200%;
+}
+
 .player-bar > player-panel > .player-panel {
 	--player-panel-inset-left: env(safe-area-inset-left);
 
@@ -26,72 +32,43 @@
 }
 
 .player-progress {
+	--sonic-buffered: var(--player-waveform-buffered);
+	--sonic-focus: var(--player-bar-border);
+	--sonic-lit: var(--player-progress-played);
+	--sonic-reveal-delay: 150ms;
+	--sonic-scrub: var(--player-waveform-scrub);
+	--sonic-slider-cap-ratio: 0;
+	--sonic-slider-groove-anchor: 1;
+	--sonic-slider-groove-hover-ratio: calc(2 / 3);
+	--sonic-slider-groove-radius-ratio: 0;
+	--sonic-slider-groove-ratio: calc(1 / 3);
+	--sonic-slider-indicator-ratio: 0;
+	--sonic-slider-length: 100%;
+	--sonic-slider-size: calc(var(--player-progress-height) * 3);
+	--sonic-unlit: var(--player-waveform-base);
+
 	display: none;
 }
 
-.player-progress-track {
+/* The bar's top edge, carried on the groove so it rises as the groove thickens */
+.player-progress .sonic-slider-groove::before {
 	position: absolute;
-	inset-block-end: calc(100% - var(--player-progress-space));
+	inset-block-end: 100%;
 	inset-inline: 0;
-	box-sizing: content-box;
-	block-size: var(--player-progress-height);
-	background-color: var(--player-waveform-base);
-	background-image: var(--player-progress-buffered, none);
-	background-repeat: no-repeat;
-	border-block: 1px solid var(--player-bar-border);
-	transition: block-size var(--player-transition);
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.player-progress-track {
-		transition-duration: 1ms;
-	}
-}
-
-.player-progress:focus-visible {
-	outline: var(--player-focus-width) solid transparent;
-}
-
-.player-progress:focus-visible > .player-progress-track {
-	outline: var(--player-focus-width) solid var(--player-focus-ring);
-}
-
-.player-progress:is(:focus-visible, [data-scrubbing]) > .player-progress-track {
-	block-size: var(--player-progress-height-active);
-}
-
-@media (hover: hover) {
-	.player-progress[role='slider']:hover > .player-progress-track {
-		block-size: var(--player-progress-height-active);
-	}
-}
-
-.player-progress-track::before {
-	position: absolute;
-	inset: 0;
+	block-size: 1px;
 	content: '';
-	background-color: var(--player-progress-played);
-	transform-origin: left;
-	scale: var(--player-progress, 0) 1;
-}
-
-.player-progress[data-scrubbing] > .player-progress-track::after {
-	position: absolute;
-	inset-block: 0;
-	inset-inline: calc(var(--player-progress-scrub-from) * 100%)
-		calc((1 - var(--player-progress-scrub-to)) * 100%);
-	content: '';
-	background-color: var(--player-waveform-scrub);
+	background-color: var(--player-bar-border);
 }
 
 .player-bar-grid {
 	--player-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
 		minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto;
 	--player-waveform-height: var(--player-waveform-height-bar);
+	--player-control-gap: 1rem;
 
 	display: grid;
 	grid-template: var(--player-layout);
-	gap: var(--player-gap-tight) var(--player-gap);
+	gap: var(--player-gap-tight) var(--player-control-gap);
 	align-items: center;
 	block-size: calc(
 		var(--player-artwork-size) - var(--player-padding-block-start) - var(--player-padding-block)
@@ -103,7 +80,7 @@
 	grid-area: scope;
 }
 
-@container (width >= 52rem) {
+@container (width >= 64rem) {
 	.player-bar-grid:has(> player-scope) {
 		--player-layout: 'transport info scope panel volume queue expand' auto
 			'seek seek seek seek seek seek seek' minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto
@@ -158,7 +135,7 @@
 	min-block-size: var(--player-waveform-height);
 }
 
-.player-bar-grid .player-panel-toggle {
+.player-bar-grid .player-panel-toggle > .sonic-button {
 	grid-area: panel;
 }
 
@@ -166,28 +143,51 @@
 	--sonic-dial-travel: var(--player-dial-travel-bar);
 
 	grid-area: volume;
+	gap: var(--player-control-gap);
 }
 
 .player-bar-grid .player-queue {
 	grid-area: queue;
 }
 
-.player-bar-grid .player-overlay-toggle {
+.player-bar-grid .player-overlay-toggle > .sonic-button {
 	grid-area: expand;
 }
 
-/* The glyph is centred in a 2rem box, so each end takes back half the room it leaves */
+@container (width < 64rem) {
+	.player-bar-grid .player-seek-button {
+		display: none;
+	}
+}
+
+/* Each box takes back the room around its glyph, so `--player-control-gap` is what shows between rendered edges */
 @container (width >= 26rem) {
 	.player-bar-grid .player-transport {
-		margin-inline-start: calc((2rem - 0.625rem) / -2);
+		gap: var(--player-control-gap);
 	}
 
-	.player-bar-grid .player-overlay-toggle {
-		margin-inline-end: calc((2rem - 0.875rem) / -2);
+	.player-bar-grid .player-seek-button > .sonic-button {
+		margin-inline: calc((2rem - 1.1875rem) / -2);
 	}
 
-	.player-bar-grid:not(:has(> player-overlay-toggle)) .player-queue {
-		margin-inline-end: calc((2rem - 1rem) / -2);
+	.player-bar-grid :is(.player-panel-toggle, player-mute-button > sonic-button) > .sonic-button {
+		margin-inline: calc((2rem - 1.0625rem) / -2);
+	}
+
+	.player-bar-grid .player-overlay-toggle > .sonic-button {
+		margin-inline: calc((2rem - 0.9375rem) / -2);
+	}
+
+	.player-bar-grid .player-queue > sonic-button > .sonic-button {
+		margin-inline: calc((2rem - 1.125rem) / -2);
+	}
+
+	.player-bar-grid player-step-button[direction='previous'] .sonic-button {
+		margin-inline: -0.6875rem -0.5313rem;
+	}
+
+	.player-bar-grid player-step-button[direction='next'] .sonic-button {
+		margin-inline: -0.5313rem -0.6875rem;
 	}
 }
 
@@ -222,15 +222,24 @@
 
 	.player-progress {
 		position: absolute;
-		inset-block-start: -1px;
+		inset-block-end: calc(100% - var(--player-progress-height));
 		inset-inline: 0;
 		display: block;
-		block-size: calc(var(--player-padding-block) + var(--player-progress-space));
-		touch-action: pan-y;
 	}
 
-	.player-progress[role='slider'] {
-		cursor: pointer;
+	.player-bar-grid .player-track {
+		position: relative;
+	}
+
+	.player-bar-grid .player-scrub-readout {
+		display: block;
+	}
+
+	.player-bar-grid .player-track:has(> player-scrub-readout[data-held]) player-time,
+	.player-bar-grid
+		.player-track:has(> player-scrub-readout[data-held][data-track])
+		:is(player-title, player-artist-line) {
+		visibility: hidden;
 	}
 
 	.player-bar > player-panel > .player-panel,
@@ -238,7 +247,6 @@
 	.player-bar-grid player-time-slider > .player-waveform-frame,
 	.player-bar-grid .player-panel-toggle,
 	.player-bar-grid:has(> player-overlay-toggle) .player-queue,
-	.player-bar-grid .player-seek-button,
 	.player-bar-grid .player-step-button,
 	.player-bar-grid .player-volume {
 		display: none;

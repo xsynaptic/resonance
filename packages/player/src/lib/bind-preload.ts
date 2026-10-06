@@ -12,6 +12,6 @@ export function bindPreload({ preload, store, trigger }: Preloadable, signal: Ab
 	const stopWatchingQueue = preloadWhenQueued(store, preload);
 
 	trigger.addEventListener('pointerenter', preload, { signal });
-	trigger.addEventListener('focus', preload, { signal });
+	trigger.addEventListener('focusin', preload, { signal });
 	signal.addEventListener('abort', stopWatchingQueue, { once: true });
 }

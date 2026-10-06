@@ -1,7 +1,10 @@
+import type { SonicButton } from '@xsynaptic/sonic-ui';
+
 import type { PlayerStore } from '#store/player-types.ts';
 
 import { buttonPart } from '#elements/button-part.ts';
-import { renderIconButton } from '#lib/icon-button.ts';
+import { cloneIcon } from '#lib/icons.ts';
+import { renderSonicButton } from '#lib/sonic-button.ts';
 import { canStepBack, canStepForward } from '#store/selectors.ts';
 
 type StepDirection = keyof typeof stepSelectors;
@@ -13,22 +16,19 @@ const stepSelectors = {
 
 export const PlayerStepButton = buttonPart((element) => {
 	const direction = readDirection(element);
-	const canStep = stepSelectors[direction];
 
 	return {
-		// `aria-disabled` rather than `disabled`, which would drop focus to the page on the last step
-		apply: (button, isEnabled: boolean) => {
-			button.setAttribute('aria-disabled', String(!isEnabled));
+		// Soft rather than `disabled`, which would drop focus to the page on the last step
+		apply: (button: SonicButton, isEnabled: boolean) => {
+			button.softDisabled = !isEnabled;
 		},
-		icon: direction,
 		label: direction,
 		press: (state) => {
-			if (!canStep(state)) return;
-
 			state[direction]();
 		},
-		render: () => renderIconButton('player-step-button'),
-		select: canStep,
+		render: () =>
+			renderSonicButton({ className: 'player-step-button', icons: [cloneIcon(direction)] }),
+		select: stepSelectors[direction],
 	};
 });
 

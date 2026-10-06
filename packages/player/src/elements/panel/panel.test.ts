@@ -106,7 +106,7 @@ describe('<player-panel>', () => {
 		expect(chunkRequests()).toBe(2);
 		expect(waveform.peaks?.samples[0]).toBe(7);
 
-		request(0, 10);
+		void request(0, 10);
 		expect(waveform.pending).toEqual([]);
 	});
 
@@ -157,6 +157,26 @@ describe('<player-panel>', () => {
 
 		zoomOut.click();
 		expect(mounted.store.getState().panelPxPerSecond).toBe(160);
-		expect(zoomIn.getAttribute('aria-disabled')).toBe('false');
+		expect(zoomIn.hasAttribute('aria-disabled')).toBe(false);
+	});
+
+	test('takes a gesture between two levels and leaves both buttons live', async () => {
+		const mounted = mountPanel();
+		const waveform = await openPanel(mounted);
+
+		expect([waveform.zoomable, waveform.zoomMin, waveform.zoomMax]).toEqual([true, 20, 240]);
+
+		waveform.zoom = 239;
+		waveform.dispatchEvent(new Event('sonic-zoom'));
+
+		const zoomIn = getByRole(mounted.part, 'button', { name: labels.zoomIn });
+
+		expect(mounted.store.getState().panelPxPerSecond).toBe(239);
+		expect(zoomIn.hasAttribute('aria-disabled')).toBe(false);
+
+		zoomIn.click();
+		expect(mounted.store.getState().panelPxPerSecond).toBe(240);
+		expect(waveform.zoom).toBe(240);
+		expect(zoomIn.getAttribute('aria-disabled')).toBe('true');
 	});
 });

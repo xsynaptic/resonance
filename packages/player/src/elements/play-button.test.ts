@@ -14,22 +14,19 @@ describe('<player-play-button>', () => {
 
 		store.getState().playTrack([queueItem('a')], 'a');
 
-		const pause = getByRole(part, 'button', { name: labels.pause });
+		const host = part.querySelector('sonic-button');
 
-		expect(pause.hasAttribute('disabled')).toBe(false);
-		expect(pause.dataset.loading).toBe('');
-		expect(pause.dataset.paused).toBeUndefined();
+		expect(getByRole(part, 'button', { name: labels.pause }).hasAttribute('disabled')).toBe(false);
+		expect(host?.dataset.loading).toBe('');
 
 		store.getState().pause();
 
-		const play = getByRole(part, 'button', { name: labels.play });
-
-		expect(play.dataset.loading).toBeUndefined();
-		expect(play.dataset.paused).toBe('');
+		expect(getByRole(part, 'button', { name: labels.play })).toBeDefined();
+		expect(host?.dataset.loading).toBeUndefined();
 
 		fake.callbacks.current?.onStatus('loading');
 
-		expect(play.dataset.loading).toBeUndefined();
+		expect(host?.dataset.loading).toBeUndefined();
 	});
 
 	// Safari has no `moveBefore`, so the router's move arrives as a disconnect and a connect

@@ -1,3 +1,22 @@
+:is(.player-bar, .player-overlay-deck)::before,
+.player-overlay-body[data-layout='columns'] .player-overlay-art::before {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	content: '';
+	background-color: var(--player-texture);
+	mask:
+		var(--player-texture-image) var(--player-texture-corner) / var(--player-texture-size) repeat
+			intersect,
+		radial-gradient(
+				ellipse var(--player-texture-reach) at var(--player-texture-corner),
+				#000,
+				transparent
+			)
+			no-repeat;
+}
+
 .player-popover {
 	background-color: var(--player-popover);
 	border: 1px solid var(--player-border);

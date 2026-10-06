@@ -4,13 +4,14 @@
 	--player-artwork-well: #000;
 	--player-list-well: #000;
 	--player-texture: transparent;
-	--player-texture-mask: none;
+	--player-texture-image: none;
+	--player-texture-size: auto;
+	--player-texture-reach: 80% 50%;
 	--player-popover: #171717;
 	--player-hover: #262626;
 	--player-border: #262626;
 	--player-pill: #171717;
-	--player-pill-border: #404040;
-	--player-pill-border-hover: #525252;
+	--player-pill-hover: #262626;
 	--player-pill-text: #d4d4d4;
 
 	/* Darker than the surface, so the bar reads as a lip over the page rather than a panel edge */
@@ -94,8 +95,7 @@
 	--player-waveform-height: 3rem;
 	--player-waveform-height-bar: 3.5rem;
 	--player-progress-height: 4px;
-	--player-progress-height-active: 8px;
-	--player-waveform-aspect-ratio: 3.5;
+	--player-waveform-aspect-ratio: 4.25;
 	--player-font-size: 0.875rem;
 	--player-font-size-small: 0.75rem;
 	--player-font-size-large: 1.25rem;

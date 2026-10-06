@@ -2,14 +2,18 @@
 const zoomLevels: ReadonlyArray<number> = [20, 30, 45, 70, 105, 160, 240];
 
 export const panelZoomDefault = 70;
+export const panelZoomMin = Math.min(...zoomLevels);
+export const panelZoomMax = Math.max(...zoomLevels);
 
 export function isPanelZoom(pxPerSecond: number): boolean {
-	return zoomLevels.includes(pxPerSecond);
+	return pxPerSecond >= panelZoomMin && pxPerSecond <= panelZoomMax;
 }
 
 export function stepPanelZoom(pxPerSecond: number, steps: number): number {
-	const from = zoomLevels.indexOf(pxPerSecond);
-	const to = Math.min(zoomLevels.length - 1, Math.max(0, from + steps));
+	const rungs =
+		steps > 0
+			? zoomLevels.filter((level) => level > pxPerSecond)
+			: zoomLevels.filter((level) => level < pxPerSecond).toReversed();
 
-	return zoomLevels[to] ?? panelZoomDefault;
+	return rungs[Math.min(rungs.length, Math.abs(steps)) - 1] ?? pxPerSecond;
 }

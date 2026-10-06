@@ -1,26 +1,28 @@
+import type { SonicButton } from '@xsynaptic/sonic-ui';
+
 import { buttonPart } from '#elements/button-part.ts';
 import { formatTemplate } from '#lib/format.ts';
-import { renderIconButton } from '#lib/icon-button.ts';
 import { cloneIcon } from '#lib/icons.ts';
+import { renderSonicButton } from '#lib/sonic-button.ts';
 import { isLoaded } from '#store/selectors.ts';
 
 export const PlayerSeekButton = buttonPart((element) => {
 	const seconds = readSeconds(element);
 
 	return {
-		apply: (button, isTrackLoaded: boolean) => {
+		apply: (button: SonicButton, isTrackLoaded: boolean) => {
 			button.disabled = !isTrackLoaded;
 		},
 		connect: (button, { labels }) => {
 			const label = seconds < 0 ? labels.seekBack : labels.seekForward;
 
 			button.setAttribute('aria-label', formatTemplate(label, { seconds: Math.abs(seconds) }));
-			button.replaceChildren(seekIcon(seconds));
 		},
 		press: (state) => {
 			state.seekBy(seconds);
 		},
-		render: () => renderIconButton('player-seek-button'),
+		render: () =>
+			renderSonicButton({ className: 'player-seek-button', icons: [seekIcon(seconds)] }),
 		select: isLoaded,
 	};
 });

@@ -1,3 +1,5 @@
+import type { WaveMarker } from '@xsynaptic/sonic-ui';
+
 import { SonicWaveform } from '@xsynaptic/sonic-ui';
 
 import type { PlayerContext } from '#elements/player-context.ts';
@@ -13,7 +15,8 @@ import { formatClock, parseClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { loadedDetail, loadedItem } from '#store/selectors.ts';
-import { describePosition, toPanelMarkers } from '#waveform/cue-markers.ts';
+import { panelZoomMax, panelZoomMin } from '#store/zoom-levels.ts';
+import { toPanelMarkers } from '#waveform/cue-markers.ts';
 import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
 interface PanelSource {
@@ -29,10 +32,10 @@ const renderSurface = template(
 			<sonic-waveform
 				key-step="1"
 				pending-delay="400"
-				readout
 				reduced-motion="scroll"
 				spoken-step="1"
 				step="0"
+				zoomable
 			></sonic-waveform>
 			<p class="player-panel-now"></p>
 			<player-panel-zoom></player-panel-zoom>
@@ -72,10 +75,20 @@ export function connectPanelSurface(
 	waveform.formatEntry = formatClock;
 	waveform.parseValue = parseClock;
 	waveform.readTime = store.getState().getCurrentTime;
+	waveform.renderLabel = renderLabel;
+	waveform.zoomMax = panelZoomMax;
+	waveform.zoomMin = panelZoomMin;
 	waveform.addEventListener(
 		'change',
 		() => {
 			store.getState().seek(waveform.value);
+		},
+		{ signal },
+	);
+	waveform.addEventListener(
+		'sonic-zoom',
+		() => {
+			store.getState().setPanelZoom(waveform.zoom);
 		},
 		{ signal },
 	);
@@ -148,21 +161,6 @@ function feedArchive(
 
 function requestFromArchive(waveform: SonicWaveform, archive: WaveformArchive): void {
 	const { pairsPerSecond } = archive;
-	let shownChunks = '';
-
-	const showPending = (fromPair: number, toPair: number): void => {
-		const missing = archive.missing(fromPair, toPair);
-		const chunks = missing.map(({ chunk }) => chunk).join(',');
-
-		// `requestPeaks` runs inside a paint and writing `pending` asks for another, so an unchanged list would repaint forever
-		if (chunks === shownChunks) return;
-
-		shownChunks = chunks;
-		waveform.pending = missing.map((chunk) => [
-			chunk.fromPair / pairsPerSecond,
-			chunk.toPair / pairsPerSecond,
-		]);
-	};
 
 	waveform.peaks = { fullScale: archiveFullScale, pairsPerSecond, samples: archive.samples };
 	waveform.requestPeaks = (fromSeconds, toSeconds) => {
@@ -170,10 +168,26 @@ function requestFromArchive(waveform: SonicWaveform, archive: WaveformArchive): 
 		const toPair = toSeconds * pairsPerSecond;
 		const changed = archive.want(fromPair, toPair);
 
-		showPending(fromPair, toPair);
+		waveform.pending = archive
+			.missing(fromPair, toPair)
+			.map((chunk) => [chunk.fromPair / pairsPerSecond, chunk.toPair / pairsPerSecond]);
 
 		return changed;
 	};
+}
+
+function renderLabel({ artist, label = '', title }: WaveMarker, element: HTMLElement): void {
+	if (typeof artist !== 'string' || typeof title !== 'string' || artist === '') {
+		element.textContent = label;
+
+		return;
+	}
+
+	const artistPart = document.createElement('span');
+
+	artistPart.className = 'player-panel-label-artist';
+	artistPart.textContent = artist;
+	element.append(artistPart, ` - ${title}`);
 }
 
 function selectDuration(state: PlayerStore): number | undefined {
@@ -192,6 +206,5 @@ function showItem(
 	const cuePoints = detail?.cuePoints ?? [];
 
 	waveform.disabled = item === undefined;
-	waveform.formatValue = (seconds) => describePosition(cuePoints, seconds);
 	waveform.markers = toPanelMarkers(cuePoints, detail?.trackCount ?? cuePoints.length, partialNote);
 }

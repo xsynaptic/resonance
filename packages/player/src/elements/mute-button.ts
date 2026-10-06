@@ -1,18 +1,22 @@
+import type { SonicButton } from '@xsynaptic/sonic-ui';
+
 import type { LevelView } from '#elements/volume-level.ts';
 
 import { buttonPart } from '#elements/button-part.ts';
 import { muteLabel, selectLevel } from '#elements/volume-level.ts';
-import { renderIconButton } from '#lib/icon-button.ts';
-import { cloneIcon } from '#lib/icons.ts';
+import { legendIcons, renderSonicButton } from '#lib/sonic-button.ts';
 
 export const PlayerMuteButton = buttonPart(() => ({
-	apply: (button, view: LevelView, labels) => {
+	apply: (button: SonicButton, view: LevelView, labels) => {
 		button.setAttribute('aria-label', muteLabel(view, labels));
-		button.replaceChildren(cloneIcon(view.icon));
+		button.legend = view.icon;
 	},
 	press: (state) => {
 		state.toggleMuted();
 	},
-	render: () => renderIconButton(),
+	render: () =>
+		renderSonicButton({
+			icons: legendIcons(['volumeMuted', 'volumeLow', 'volumeMedium', 'volume']),
+		}),
 	select: selectLevel,
 }));

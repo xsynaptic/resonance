@@ -6,15 +6,13 @@
 	--player-artwork-well: var(--color-surface-950);
 	--player-list-well: var(--color-surface-900);
 	--player-texture: var(--color-surface-600);
-	--player-texture-mask:
-		url('/patterns/maze.svg') 0 0 / 48px 48px repeat intersect,
-		radial-gradient(ellipse 80% 50% at 0 0, #000, transparent) no-repeat;
+	--player-texture-image: url('/patterns/maze.svg');
+	--player-texture-size: 48px;
 	--player-popover: var(--color-surface-900);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
 	--player-pill: var(--color-surface-700);
-	--player-pill-border: var(--color-surface-600);
-	--player-pill-border-hover: var(--color-surface-500);
+	--player-pill-hover: var(--color-surface-600);
 	--player-pill-text: var(--color-ink-500);
 	--player-bar-border: var(--color-surface-950);
 	--player-title: var(--color-ink-200);
@@ -41,7 +39,7 @@
 	--player-current: var(--color-highlight-400);
 	--player-current-icon: var(--color-accent-500);
 	--player-current-meta: var(--color-highlight-600);
-	--player-focus-ring: var(--color-highlight-500);
+	--player-focus-ring: var(--color-accent-500);
 	--player-waveform-base: var(--color-surface-500);
 	--player-waveform-buffered: var(--color-surface-300);
 	--player-waveform-played: var(--color-ink-100);
@@ -64,7 +62,7 @@
 	--player-dial-lit: var(--color-highlight-500);
 	--player-dial-unlit: var(--color-surface-950);
 	--player-dial-dimmed: var(--color-highlight-700);
-	--player-dial-focus: var(--color-highlight-500);
+	--player-dial-focus: var(--color-accent-500);
 	--player-dial-glass: var(--color-surface-950);
 	--player-dial-readout-text: var(--color-accent-500);
 	--player-font-family: var(--font-body);

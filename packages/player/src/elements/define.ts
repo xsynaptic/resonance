@@ -1,4 +1,4 @@
-import { SonicDial, SonicWavestrip } from '@xsynaptic/sonic-ui';
+import { SonicButton, SonicDial, SonicSlider, SonicWavestrip } from '@xsynaptic/sonic-ui';
 
 import type { PlayerButtonPart } from '#elements/button-part.ts';
 import type { PlayerTracklist } from '#elements/overlay/tracklist.ts';
@@ -61,9 +61,11 @@ declare global {
 	}
 }
 
-// Registered before `player-volume` and `player-time-slider`, which need an upgraded control when they connect
+// Registered before the parts, which need an upgraded control when they connect
 const playerElements = [
+	['sonic-button', SonicButton],
 	['sonic-dial', SonicDial],
+	['sonic-slider', SonicSlider],
 	['sonic-wavestrip', SonicWavestrip],
 	['player-root', PlayerRoot],
 	['player-play-button', PlayerPlayButton],

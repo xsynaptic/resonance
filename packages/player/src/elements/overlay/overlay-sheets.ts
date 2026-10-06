@@ -3,9 +3,10 @@ import type { PlayerContext } from '#elements/player-context.ts';
 import { dialogExit } from '#lib/dialog-exit.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild } from '#lib/render.ts';
+import { fillButton } from '#lib/sonic-button.ts';
 
 interface SheetControls {
-	close: HTMLButtonElement;
+	close: HTMLElement;
 	closeSheet: () => void;
 	closeSheetNow: () => void;
 	dialog: HTMLDialogElement;
@@ -16,9 +17,9 @@ export function bindSheets(
 	{ labels }: PlayerContext,
 	signal: AbortSignal,
 ): SheetControls {
-	const opener = requireChild(sheets, ':scope > button', HTMLButtonElement);
+	const opener = requireChild(sheets, ':scope > sonic-button', HTMLElement);
 	const dialog = requireChild(sheets, 'dialog', HTMLDialogElement);
-	const close = requireChild(sheets, '.player-overlay-close', HTMLButtonElement);
+	const close = requireChild(sheets, '.player-overlay-close', HTMLElement);
 
 	const exit = dialogExit(
 		dialog,
@@ -37,7 +38,7 @@ export function bindSheets(
 
 	dialog.setAttribute('aria-label', labels.lists);
 	opener.setAttribute('aria-label', labels.lists);
-	opener.append(cloneIcon('tracklist'));
+	fillButton(opener, [cloneIcon('tracklist')]);
 	opener.addEventListener(
 		'click',
 		() => {
@@ -49,7 +50,7 @@ export function bindSheets(
 		{ signal },
 	);
 	close.setAttribute('aria-label', labels.close);
-	close.append(cloneIcon('closeLarge'));
+	fillButton(close, [cloneIcon('closeLarge')]);
 	close.addEventListener('click', closeSheet, { signal });
 
 	return { close, closeSheet, closeSheetNow, dialog };

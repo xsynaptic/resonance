@@ -272,7 +272,6 @@ function readStoredPanelOpen(): boolean | undefined {
 	return stored === 'true';
 }
 
-// Validated against the ladder, so a hand-edited or retired step cannot land as the panel's scale
 function readStoredPanelZoom(): number | undefined {
 	const stored = readStored(panelZoomStorageKey);
 	if (stored === undefined) return undefined;

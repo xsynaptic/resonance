@@ -1,14 +1,14 @@
 ---
 import { getPlayerLabels, seekSeconds } from '#components/player/player-labels.ts';
-import { getPlayerCatalogueUrl } from '#lib/collections/mixes/mixes-catalogue.ts';
+import { getPlayerLibraryUrl } from '#lib/collections/mixes/mixes-library.ts';
 import { isPlayerScopeEnabled } from '#lib/site.ts';
 import playerStylesheetUrl from '#styles/player.css?url';
 
 // Escaped so no label can close the script early
 const config = JSON.stringify({
-	catalogueUrl: await getPlayerCatalogueUrl(),
 	isScopeEnabled: isPlayerScopeEnabled,
 	labels: getPlayerLabels(),
+	libraryUrl: await getPlayerLibraryUrl(),
 	seekSeconds,
 	stylesheetUrl: playerStylesheetUrl,
 }).replaceAll('<', String.raw`\u003c`);

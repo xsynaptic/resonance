@@ -8,8 +8,10 @@ import { getImage } from 'astro:assets';
 import { getMixAudio } from '#lib/collections/mixes/mixes-audio.ts';
 import { getMixCuePoints } from '#lib/collections/mixes/mixes-cue.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
+import { site } from '#lib/site.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { toFlatTracks } from '#lib/utils/track-groups.ts';
+import { getWorkTitle } from '#lib/utils/work-title.ts';
 
 // The bar at 1x and 2x, then the lock screen and the overlay's larger slots
 const artworkWidths = [barArtworkSize, barArtworkSize * 2, 512, 900, 1800];
@@ -19,7 +21,7 @@ export interface PlayerPressRow extends QueueItem {
 	streamUrl: string;
 }
 
-// Both parts come from one call, so a page's press row and the catalogue's cannot disagree within a build
+// Both parts come from one call, so a page's press row and the Library's cannot disagree within a build
 export interface MixQueueItem {
 	detail: QueueItemDetail;
 	press: PlayerPressRow;
@@ -27,13 +29,13 @@ export interface MixQueueItem {
 
 export async function getMixQueueItem(
 	entry: CollectionEntry<'mixes'>,
-	artistLine: string,
 ): Promise<MixQueueItem | undefined> {
 	const audio = await getMixAudio(entry.data);
 	if (!audio) return undefined;
 
 	const artwork = await getArtwork(getImageFeaturedId(entry.data.imageFeatured));
 	const cuePoints = await getMixCuePoints(entry);
+	const work = await getWorkTitle(entry);
 
 	return {
 		detail: {
@@ -45,7 +47,7 @@ export async function getMixQueueItem(
 				: {}),
 		},
 		press: {
-			artistLine,
+			artistLine: work.credit?.name ?? site.title,
 			durationMs: audio.seconds * 1000,
 			itemId: entry.id,
 			releaseHref: getContentPath('mixes', entry.id),

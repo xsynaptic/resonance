@@ -1,5 +1,7 @@
 import type { QueueArchive } from '#types.ts';
 
+import { retryDelayMs } from '#lib/retry-delay.ts';
+
 // One archive per address, so a chunk that landed is never asked for twice
 
 const headerBytes = 20;
@@ -8,9 +10,6 @@ const headerBytes = 20;
 const chunkPairs = 8192;
 
 const cacheLimit = 2;
-
-const retryBaseMs = 2000;
-const retryCapMs = 30_000;
 
 const cache = new Map<string, WaveformArchive>();
 
@@ -114,13 +113,10 @@ function createArchive({
 		}
 
 		request.failures += 1;
-		setTimeout(
-			() => {
-				request.isHeld = false;
-				announce();
-			},
-			Math.min(retryCapMs, retryBaseMs * 2 ** (request.failures - 1)),
-		);
+		setTimeout(() => {
+			request.isHeld = false;
+			announce();
+		}, retryDelayMs(request.failures));
 	}
 
 	return {

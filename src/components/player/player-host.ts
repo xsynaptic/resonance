@@ -6,9 +6,9 @@ import { holdPresses, isPlayerActionable } from '@xsynaptic/player/boot';
 import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 interface PlayerBarConfig {
-	catalogueUrl: string;
 	isScopeEnabled: boolean;
 	labels: PlayerLabels;
+	libraryUrl: string;
 	seekSeconds: number;
 	stylesheetUrl: string;
 }
@@ -16,7 +16,9 @@ interface PlayerBarConfig {
 // The MP4 sample entry code, capital included; Safari answers the lowercase spelling with an empty string
 const streamType = 'audio/mp4; codecs="Opus"';
 
-type Catalogue = Map<string, MixQueueItem>;
+const libraryTimeoutMs = 10_000;
+
+type Library = Map<string, MixQueueItem>;
 
 // Keyed by the host element, which the router carries into every page it persists the bar through
 const started = new WeakSet<Element>();
@@ -35,7 +37,8 @@ async function loadPlayer(host: Element): Promise<void> {
 	const presses = holdPresses(document);
 
 	const wanted = Promise.race([whenIdle(), presses.pressed]);
-	const catalogue = fetchCatalogue(config.catalogueUrl, wanted);
+	const loadLibrary = createLibraryLoader(config.libraryUrl);
+	const booted = bootLibrary(wanted, loadLibrary);
 
 	await Promise.all([wanted, loadPersistedStylesheet(config.stylesheetUrl)]);
 
@@ -50,6 +53,15 @@ async function loadPlayer(host: Element): Promise<void> {
 	]);
 
 	const store = createPlayerStore();
+	let hasRefreshed = false;
+
+	// A stored Queue catches up on any page, its content-hashed stream and artwork URLs included
+	function refreshQueue(library: Library): void {
+		if (hasRefreshed) return;
+
+		hasRefreshed = true;
+		store.getState().refreshQueue([...library.values()].map(({ press }) => press));
+	}
 
 	host.append(
 		createPlayer({
@@ -57,13 +69,18 @@ async function loadPlayer(host: Element): Promise<void> {
 			labels: config.labels,
 			seekSeconds: config.seekSeconds,
 			store,
-			urls: catalogueUrls(catalogue),
+			urls: libraryUrls(async () => {
+				const library = await loadLibrary();
+
+				refreshQueue(library);
+
+				return library;
+			}),
 		}),
 	);
 
-	// A stored Queue catches up on any page, its content-hashed stream and artwork URLs included
-	void catalogue.then((entries) => {
-		if (entries) store.getState().refreshQueue([...entries.values()].map(({ press }) => press));
+	void booted.then((library) => {
+		if (library) refreshQueue(library);
 	});
 
 	const controls = bindPageControls(store, document, { onPress: trackControlPress });
@@ -76,13 +93,13 @@ async function loadPlayer(host: Element): Promise<void> {
 	bindPlayerAnalytics(store);
 }
 
-// The stream comes from the press row, so a press never waits on the catalogue
-function catalogueUrls(catalogue: Promise<Catalogue | undefined>): PlayerUrls {
+// The stream comes from the press row, so a press never waits on the Library
+function libraryUrls(loadLibrary: () => Promise<Library>): PlayerUrls {
 	return {
 		detail: async ({ itemId }) => {
-			const entries = await catalogue;
+			const library = await loadLibrary();
 
-			return entries?.get(itemId)?.detail;
+			return library.get(itemId)?.detail;
 		},
 		stream: (item) => {
 			const streamUrl = pressRowStreamUrl(item);
@@ -95,19 +112,45 @@ function catalogueUrls(catalogue: Promise<Catalogue | undefined>): PlayerUrls {
 	};
 }
 
-async function fetchCatalogue(url: string, wanted: Promise<void>): Promise<Catalogue | undefined> {
+function createLibraryLoader(url: string): () => Promise<Library> {
+	let request: Promise<Library> | undefined;
+
+	async function load(): Promise<Library> {
+		try {
+			return await fetchLibrary(url);
+		} catch (error) {
+			request = undefined;
+			throw error;
+		}
+	}
+
+	return () => {
+		if (!request) request = load();
+
+		return request;
+	};
+}
+
+async function bootLibrary(
+	wanted: Promise<void>,
+	loadLibrary: () => Promise<Library>,
+): Promise<Library | undefined> {
 	await wanted;
 
 	try {
-		const response = await fetch(url);
-		if (!response.ok) return undefined;
-
-		const entries = (await response.json()) as Array<MixQueueItem>;
-
-		return new Map(entries.map((entry) => [entry.press.itemId, entry]));
+		return await loadLibrary();
 	} catch {
 		return undefined;
 	}
+}
+
+async function fetchLibrary(url: string): Promise<Library> {
+	const response = await fetch(url, { signal: AbortSignal.timeout(libraryTimeoutMs) });
+	if (!response.ok) throw new Error(`The Library answered ${String(response.status)}`);
+
+	const entries = (await response.json()) as Array<MixQueueItem>;
+
+	return new Map(entries.map((entry) => [entry.press.itemId, entry]));
 }
 
 // Every item this host queues is a press row, and the store keeps its fields through a reload

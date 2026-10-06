@@ -354,14 +354,15 @@ function touchNothing(): undefined {
 	// A secondary mount leaves the listener's storage alone
 }
 
-// Emptied only as this tab's queue empties, so an idle tab never deletes what another saved
 function writeDetails(details: ReadonlyMap<string, QueueItemDetail>): void {
-	if (details.size === 0) {
+	const held = [...details].filter(([, detail]) => Object.keys(detail).length > 0);
+
+	if (held.length === 0) {
 		removeStored(detailStorageKey);
 		return;
 	}
 
-	writeStored(detailStorageKey, JSON.stringify(Object.fromEntries(details)));
+	writeStored(detailStorageKey, JSON.stringify(Object.fromEntries(held)));
 }
 
 function writeStored(key: string, value: string): void {

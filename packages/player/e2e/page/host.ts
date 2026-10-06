@@ -59,7 +59,7 @@ const settings = {
 let resolveCount = 0;
 
 const unanswered = new Promise<undefined>(() => {
-	// Never settles, as a catalogue fetch still in flight
+	// Never settles, as a Library fetch still in flight
 });
 
 const urls: PlayerUrls = {

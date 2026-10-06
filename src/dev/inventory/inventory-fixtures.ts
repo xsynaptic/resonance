@@ -25,7 +25,6 @@ import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
-import { site } from '#lib/site.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { resolveCredits } from '#lib/utils/terms.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
@@ -336,7 +335,7 @@ async function sampleMix(): Promise<MixSample | undefined> {
 		downloads: await getDownloadCount(entry.data),
 		files: entry.data.files ?? [],
 		links: entry.data.links ?? [],
-		queueItem: await sampleQueueItem(entry),
+		queueItem: await getMixQueueItem(entry),
 		title: entry.data.title,
 		tracks: entry.data.tracks ?? [],
 	};
@@ -355,13 +354,6 @@ async function sampleMixField(
 	}
 
 	return undefined;
-}
-
-// The alias fallback matches the Mix Detail Page, so the bar shows the artist line production would
-async function sampleQueueItem(entry: CollectionEntry<'mixes'>): Promise<MixQueueItem | undefined> {
-	const work = await getWorkTitle(entry);
-
-	return getMixQueueItem(entry, work.credit?.name ?? site.title);
 }
 
 // A review carries the fullest detail header there is: linked Credit, cited title, labels and year

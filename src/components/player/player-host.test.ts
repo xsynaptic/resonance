@@ -34,7 +34,7 @@ function control(selector: string): HTMLElement {
 	return found;
 }
 
-const catalogueEntry = {
+const libraryEntry = {
 	detail: { trackCount: 3 },
 	press: {
 		artistLine: 'Basilisk',
@@ -47,9 +47,9 @@ const catalogueEntry = {
 
 function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 	const config = JSON.stringify({
-		catalogueUrl: '/api/player/catalogue.json?v=abc',
 		isScopeEnabled: false,
 		labels: getPlayerLabels(),
+		libraryUrl: '/api/player/library.json?v=abc',
 		seekSeconds: 30,
 		stylesheetUrl: 'data:text/css,',
 	});
@@ -60,6 +60,24 @@ function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 		<button data-queue-track="a">Queue</button>
 		<div data-player-host><script type="application/json">${config}</script></div>
 	`;
+}
+
+async function startWithUrls(): Promise<PlayerUrls> {
+	vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
+		callback();
+
+		return 0;
+	});
+	mountPage({ hasPayload: true });
+	startPlayer();
+
+	await vi.waitFor(() => {
+		expect(elements.createPlayer).toHaveBeenCalledOnce();
+	});
+
+	const [{ urls }] = elements.createPlayer.mock.lastCall as unknown as [{ urls: PlayerUrls }];
+
+	return urls;
 }
 
 function settle(): Promise<void> {
@@ -128,45 +146,68 @@ describe('startPlayer', () => {
 		expect(elements.bindMediaSession).toHaveBeenCalledOnce();
 	});
 
-	test('the catalogue refreshes the stored Queue with its press rows, and answers for detail', async () => {
-		const fetchCatalogue = vi.fn(() => Promise.resolve(Response.json([catalogueEntry])));
+	test('the Library refreshes the stored Queue with its press rows, and answers for detail', async () => {
+		const fetchLibrary = vi.fn(() => Promise.resolve(Response.json([libraryEntry])));
 
-		vi.stubGlobal('fetch', fetchCatalogue);
-		vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
-			callback();
+		vi.stubGlobal('fetch', fetchLibrary);
 
-			return 0;
-		});
-		mountPage({ hasPayload: true });
-		startPlayer();
+		const urls = await startWithUrls();
 
 		await vi.waitFor(() => {
-			expect(refreshQueue).toHaveBeenCalledWith([catalogueEntry.press]);
+			expect(refreshQueue).toHaveBeenCalledWith([libraryEntry.press]);
 		});
-		expect(fetchCatalogue).toHaveBeenCalledExactlyOnceWith('/api/player/catalogue.json?v=abc');
 
-		const [{ urls }] = elements.createPlayer.mock.lastCall as unknown as [{ urls: PlayerUrls }];
-
-		await expect(urls.detail?.(catalogueEntry.press)).resolves.toStrictEqual(catalogueEntry.detail);
+		await expect(urls.detail?.(libraryEntry.press)).resolves.toStrictEqual(libraryEntry.detail);
+		await expect(urls.detail?.({ ...libraryEntry.press, itemId: 'b' })).resolves.toBeUndefined();
+		expect(fetchLibrary).toHaveBeenCalledExactlyOnceWith('/api/player/library.json?v=abc', {
+			signal: expect.any(AbortSignal) as AbortSignal,
+		});
+		expect(refreshQueue).toHaveBeenCalledOnce();
 	});
 
-	test('a catalogue that fails leaves the Queue alone and answers no detail', async () => {
-		vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
-			callback();
+	test('a Library fetch that fails is made again by the next call, and a late success refreshes the Queue', async () => {
+		const fetchLibrary = vi
+			.fn<() => Promise<Response>>()
+			.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+			.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+			.mockImplementation(() => Promise.resolve(Response.json([libraryEntry])));
 
-			return 0;
-		});
-		mountPage({ hasPayload: true });
-		startPlayer();
+		vi.stubGlobal('fetch', fetchLibrary);
 
-		await vi.waitFor(() => {
-			expect(elements.createPlayer).toHaveBeenCalledOnce();
-		});
+		const urls = await startWithUrls();
 
-		const [{ urls }] = elements.createPlayer.mock.lastCall as unknown as [{ urls: PlayerUrls }];
-
-		await expect(urls.detail?.(catalogueEntry.press)).resolves.toBeUndefined();
+		await expect(urls.detail?.(libraryEntry.press)).rejects.toThrow('Failed to fetch');
 		expect(refreshQueue).not.toHaveBeenCalled();
+
+		await expect(urls.detail?.(libraryEntry.press)).resolves.toStrictEqual(libraryEntry.detail);
+		expect(fetchLibrary).toHaveBeenCalledTimes(3);
+		expect(refreshQueue).toHaveBeenCalledExactlyOnceWith([libraryEntry.press]);
+	});
+
+	test('a Library fetch that never answers fails at the timeout, for every call waiting on it', async () => {
+		const timeout = new AbortController();
+		const timeoutSignal = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal);
+		const fetchLibrary = vi.fn(
+			(_url: string, { signal }: { signal: AbortSignal }) =>
+				new Promise<Response>((_resolve, reject) => {
+					signal.addEventListener('abort', () => {
+						reject(new DOMException('The Library timed out', 'TimeoutError'));
+					});
+				}),
+		);
+
+		vi.stubGlobal('fetch', fetchLibrary);
+
+		const urls = await startWithUrls();
+		const answer = urls.detail?.(libraryEntry.press);
+
+		timeout.abort();
+
+		await expect(answer).rejects.toThrow('The Library timed out');
+		expect(timeoutSignal).toHaveBeenCalledExactlyOnceWith(10_000);
+		expect(fetchLibrary).toHaveBeenCalledOnce();
+
+		timeoutSignal.mockRestore();
 	});
 
 	test('a press once the page controls are bound is left to them', async () => {

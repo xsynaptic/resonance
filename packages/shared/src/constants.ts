@@ -34,5 +34,4 @@ export const siteTagline = 'Mixcraft, reviews, and writing on electronic music s
 export const mediaLqipPath = './.cache/media-lqip.json';
 
 // Streaming metadata and waveforms, relative to the content package
-export const mixStreamsPath = 'data/mix-streams.json';
-export const mixWaveformsPath = 'data/mix-waveforms.json';
+export const mixAudioPath = 'data/mix-audio.json';

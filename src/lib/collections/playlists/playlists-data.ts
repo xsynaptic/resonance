@@ -9,8 +9,6 @@ import type { PlayerPressRow } from '#lib/collections/mixes/mixes-queue.ts';
 import { playlistsDataPath } from '#constants.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { TitleSchema } from '#lib/schemas/index.ts';
-import { site } from '#lib/site.ts';
-import { getWorkTitle } from '#lib/utils/work-title.ts';
 
 const playlistsSchema = z
 	.object({
@@ -47,8 +45,7 @@ async function getPlaylistItem(
 	playlistTitle: string,
 ): Promise<PlayerPressRow | undefined> {
 	const entry = await getEntry('mixes', mixId);
-	const work = entry ? await getWorkTitle(entry) : undefined;
-	const item = entry ? await getMixQueueItem(entry, work?.credit?.name ?? site.title) : undefined;
+	const item = entry ? await getMixQueueItem(entry) : undefined;
 
 	if (!item) console.warn(`[playlists] "${playlistTitle}" has no playable mix "${mixId}"`);
 

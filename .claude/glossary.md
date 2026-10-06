@@ -56,6 +56,8 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Listen**: One play of one Mix on this site in which at least 30 seconds of audio actually advanced. **Listening time** is the sum of those seconds. _Avoid_: play (Mixcloud's and SoundCloud's unit), stream (the file server's byte count), view, hit.
 
+**Library**: Every Mix with audio, in the shape the player queues, served to the player as one file. _Avoid_: catalogue, catalog (the Catalog is the listing projection), index, manifest.
+
 ### Vocabulary and reference
 
 **Term**: An Entry that gathers other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Theme, or Series. _Avoid_: taxonomy, category, keyword.

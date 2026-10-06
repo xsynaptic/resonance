@@ -18,7 +18,7 @@
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
-# The player catalogue is addressed by a content hash in its query
+# The player Library is addressed by a content hash in its query
 /api/player/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable

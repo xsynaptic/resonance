@@ -1,7 +1,7 @@
-import type { z } from 'zod';
+import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
-import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
-import { MixStreamsDocumentSchema, MixWaveformsDocumentSchema } from '@xsynaptic/shared/schemas';
+import { mixAudioPath } from '@xsynaptic/shared/constants';
+import { MixAudioDocumentSchema } from '@xsynaptic/shared/schemas';
 import { CONTENT_DATA_PATH } from 'astro:env/server';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -53,60 +53,45 @@ export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undef
 }
 
 async function buildIndex(): Promise<MixAudioIndex> {
-	const [streams, waveforms] = await Promise.all([
-		readDocument(path.join(CONTENT_DATA_PATH, mixStreamsPath), MixStreamsDocumentSchema),
-		readDocument(path.join(CONTENT_DATA_PATH, mixWaveformsPath), MixWaveformsDocumentSchema),
-	]);
-
 	const index: MixAudioIndex = { archives: new Set(), byFile: new Map(), streams: new Set() };
+	const mixes = await readMixes(path.join(CONTENT_DATA_PATH, mixAudioPath));
 
-	if (!streams || !waveforms) return index;
-
-	const streamsByBase = new Map(streams.mixes.map((mix) => [mix.base, mix]));
-
-	for (const waveform of waveforms.mixes) {
-		const stream = streamsByBase.get(waveform.base);
-
-		if (stream === undefined) continue;
-
+	for (const mix of mixes) {
 		const audio = {
 			archive: {
-				pairCount: waveform.pairs,
-				pairsPerSecond: waveform.pairsPerSecond,
-				url: `${waveformBaseUrl}${encodeURIComponent(waveform.archive)}`,
+				pairCount: mix.pairs,
+				pairsPerSecond: mix.pairsPerSecond,
+				url: `${waveformBaseUrl}${encodeURIComponent(mix.archive)}`,
 			},
-			peaks: waveform.peaks,
-			seconds: waveform.seconds,
-			streamUrl: `${streamBaseUrl}${encodeURIComponent(stream.stream)}`,
+			peaks: mix.peaks,
+			seconds: mix.seconds,
+			streamUrl: `${streamBaseUrl}${encodeURIComponent(mix.stream)}`,
 		};
 
-		index.archives.add(waveform.archive);
-		index.streams.add(stream.stream);
+		index.archives.add(mix.archive);
+		index.streams.add(mix.stream);
 
-		for (const source of waveform.sources) index.byFile.set(source, audio);
+		for (const source of mix.sources) index.byFile.set(source, audio);
 	}
 
 	return index;
 }
 
 // Warns rather than throws: a missing manifest renders no player, it does not fail the build
-async function readDocument<Output>(
-	filePath: string,
-	schema: z.ZodType<Output>,
-): Promise<Output | undefined> {
+async function readMixes(filePath: string): Promise<Array<MixAudioEntry>> {
 	const resolved = path.resolve(filePath);
 
 	if (!existsSync(resolved)) {
 		console.warn(`No ${filePath} found; building without audio`);
-		return undefined;
+		return [];
 	}
 
 	try {
 		const raw: unknown = JSON.parse(await readFile(resolved, 'utf8'));
 
-		return schema.parse(raw);
+		return MixAudioDocumentSchema.parse(raw).mixes;
 	} catch (error) {
 		console.warn(`Ignoring ${filePath}; building without audio (${String(error)})`);
-		return undefined;
+		return [];
 	}
 }

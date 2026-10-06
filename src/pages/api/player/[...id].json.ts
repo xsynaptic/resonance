@@ -1,9 +1,9 @@
 import type { APIRoute, GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
-import { getPlayerCatalogue } from '#lib/collections/mixes/mixes-catalogue.ts';
+import { getPlayerLibrary } from '#lib/collections/mixes/mixes-library.ts';
 
 export const getStaticPaths = (async () => {
-	return [{ params: { id: 'catalogue' }, props: { data: await getPlayerCatalogue() } }];
+	return [{ params: { id: 'library' }, props: { data: await getPlayerLibrary() } }];
 }) satisfies GetStaticPaths;
 
 export const GET = (({ props: { data } }) => {

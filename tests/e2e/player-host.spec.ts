@@ -200,7 +200,7 @@ test(
 	},
 );
 
-test('a press plays at once, and the bar waits for its wave strip from the catalogue', async ({
+test('a press plays at once, and the bar waits for its wave strip from the Library', async ({
 	page,
 	site,
 }) => {
@@ -208,7 +208,7 @@ test('a press plays at once, and the bar waits for its wave strip from the catal
 	const held = Promise.withResolvers<undefined>();
 
 	await observe(page);
-	await page.route('**/api/player/catalogue.json*', async (route) => {
+	await page.route('**/api/player/library.json*', async (route) => {
 		await held.promise;
 		await route.continue();
 	});

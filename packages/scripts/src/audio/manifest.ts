@@ -1,12 +1,7 @@
-import type { MixStreamEntry, MixWaveformEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
+import type { MixAudioEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
 
-import { mixStreamsPath, mixWaveformsPath } from '@xsynaptic/shared/constants';
-import {
-	MixStreamsDocumentSchema,
-	mixStreamsVersion,
-	MixWaveformsDocumentSchema,
-	mixWaveformsVersion,
-} from '@xsynaptic/shared/schemas';
+import { mixAudioPath } from '@xsynaptic/shared/constants';
+import { MixAudioDocumentSchema, mixAudioVersion } from '@xsynaptic/shared/schemas';
 import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -31,11 +26,10 @@ const PreviewSchema = z.object({
 });
 
 interface ManifestEntries {
+	entries: Array<MixAudioEntry>;
 	// A source missing any one of its three outputs, named for the warning
 	incomplete: Array<string>;
 	sourceCount: number;
-	streamEntries: Array<MixStreamEntry>;
-	waveformEntries: Array<MixWaveformEntry>;
 }
 
 interface ManifestOptions {
@@ -47,15 +41,13 @@ interface ManifestOptions {
 export async function generateAudioManifest(options: ManifestOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	const streamsOutputPath = path.resolve(rootPath, contentDataPath, mixStreamsPath);
-	const waveformsOutputPath = path.resolve(rootPath, contentDataPath, mixWaveformsPath);
+	const outputPath = path.resolve(rootPath, contentDataPath, mixAudioPath);
 
-	const { incomplete, sourceCount, streamEntries, waveformEntries } =
-		await collectManifestEntries(rootPath);
+	const { entries, incomplete, sourceCount } = await collectManifestEntries(rootPath);
 
 	console.log(
 		chalk.blue(
-			`Manifest: ${String(streamEntries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and a preview`,
+			`Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and a preview`,
 		),
 	);
 
@@ -64,39 +56,36 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 		for (const base of incomplete) console.warn(chalk.yellow(`    ${base}`));
 	}
 
-	await assertManifestNotEmptied(streamEntries.length, rootPath);
+	await assertManifestNotEmptied(entries.length, rootPath);
 
 	if (dryRun) {
-		console.log(chalk.yellow(`  DRY RUN write: ${streamsOutputPath}`));
-		console.log(chalk.yellow(`  DRY RUN write: ${waveformsOutputPath}`));
+		console.log(chalk.yellow(`  DRY RUN write: ${outputPath}`));
 		return;
 	}
 
-	await fs.mkdir(path.dirname(streamsOutputPath), { recursive: true });
-	await writeDocument(streamsOutputPath, streamEntries, mixStreamsVersion);
-	await writeDocument(waveformsOutputPath, waveformEntries, mixWaveformsVersion);
+	await fs.mkdir(path.dirname(outputPath), { recursive: true });
+	await writeDocument(outputPath, entries);
 
-	console.log(chalk.green(`Manifest written: ${streamsOutputPath}`));
-	console.log(chalk.green(`Manifest written: ${waveformsOutputPath}`));
+	console.log(chalk.green(`Manifest written: ${outputPath}`));
 }
 
-// The deploy probe needs a filename per location, and the manifests are the only place one is written
+// The deploy probe needs a filename per location, and the manifest is the only place one is written
 export async function readManifestFiles(
 	rootPath: string,
 ): Promise<{ archives: Array<string>; streams: Array<string> }> {
-	const [streams, waveforms] = await Promise.all([
-		readManifest(rootPath, path.join(contentDataPath, mixStreamsPath), MixStreamsDocumentSchema),
-		readManifest(
-			rootPath,
-			path.join(contentDataPath, mixWaveformsPath),
-			MixWaveformsDocumentSchema,
-		),
-	]);
+	try {
+		const raw: unknown = JSON.parse(
+			await fs.readFile(path.resolve(rootPath, contentDataPath, mixAudioPath), 'utf8'),
+		);
+		const { mixes } = MixAudioDocumentSchema.parse(raw);
 
-	return {
-		archives: waveforms?.mixes.map((mix) => mix.archive) ?? [],
-		streams: streams?.mixes.map((mix) => mix.stream) ?? [],
-	};
+		return {
+			archives: mixes.map((mix) => mix.archive),
+			streams: mixes.map((mix) => mix.stream),
+		};
+	} catch {
+		return { archives: [], streams: [] };
+	}
 }
 
 // An audio directory that exists but is empty reads as zero sources rather than an error
@@ -119,13 +108,12 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	const renditions = await collectRenditions(path.join(rootPath, streamsDir));
 	const archives = await collectArchives(cacheDir);
 
-	const streamEntries: Array<MixStreamEntry> = [];
-	const waveformEntries: Array<MixWaveformEntry> = [];
+	const entries: Array<MixAudioEntry> = [];
 	const incomplete: Array<string> = [];
 
 	for (const source of sources) {
 		const stream = renditions.get(source.base);
-		const resolved = await resolveEntries({
+		const entry = await resolveEntry({
 			archive: archives.get(source.base),
 			cacheDir,
 			loudness:
@@ -136,33 +124,11 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 			stream,
 		});
 
-		if (!resolved) {
-			incomplete.push(source.base);
-			continue;
-		}
-
-		streamEntries.push(resolved.stream);
-		waveformEntries.push(resolved.waveform);
+		if (entry) entries.push(entry);
+		else incomplete.push(source.base);
 	}
 
-	return { incomplete, sourceCount: sources.length, streamEntries, waveformEntries };
-}
-
-// A missing or stale-version manifest reads as no files, which both callers handle
-async function readManifest<Output>(
-	rootPath: string,
-	manifestPath: string,
-	schema: z.ZodType<Output>,
-): Promise<Output | undefined> {
-	try {
-		const raw: unknown = JSON.parse(
-			await fs.readFile(path.resolve(rootPath, manifestPath), 'utf8'),
-		);
-
-		return schema.parse(raw);
-	} catch {
-		return undefined;
-	}
+	return { entries, incomplete, sourceCount: sources.length };
 }
 
 async function readPreview(file: string) {
@@ -176,7 +142,7 @@ async function readPreview(file: string) {
 }
 
 // A mix missing its rendition, loudness tags, preview is left out rather than half-published
-async function resolveEntries({
+async function resolveEntry({
 	archive,
 	cacheDir,
 	loudness,
@@ -188,7 +154,7 @@ async function resolveEntries({
 	loudness: StreamLoudness | undefined;
 	source: AudioSource;
 	stream: string | undefined;
-}): Promise<undefined | { stream: MixStreamEntry; waveform: MixWaveformEntry }> {
+}): Promise<MixAudioEntry | undefined> {
 	if (archive === undefined || loudness === undefined || stream === undefined) return undefined;
 
 	const preview = await readPreview(path.join(cacheDir, `${source.base}${previewExtension}`));
@@ -199,27 +165,22 @@ async function resolveEntries({
 	);
 
 	return {
-		stream: { base: source.base, loudness, stream },
-		waveform: {
-			archive,
-			base: source.base,
-			pairs,
-			pairsPerSecond: sampleRate / samplesPerPixel,
-			peaks: preview.values,
-			seconds: preview.seconds,
-			sources: source.files,
-		},
+		archive,
+		base: source.base,
+		loudness,
+		pairs,
+		pairsPerSecond: sampleRate / samplesPerPixel,
+		peaks: preview.values,
+		seconds: preview.seconds,
+		sources: source.files,
+		stream,
 	};
 }
 
 // One row per line, so a diff names the mixes that changed; 400 peaks pretty-printed is 27k lines
-async function writeDocument(
-	outputPath: string,
-	entries: Array<MixStreamEntry | MixWaveformEntry>,
-	version: number,
-): Promise<void> {
+async function writeDocument(outputPath: string, entries: Array<MixAudioEntry>): Promise<void> {
 	const rows = entries.map((entry) => `\t\t${JSON.stringify(entry)}`).join(',\n');
-	const document = `{\n\t"mixes": [\n${rows}\n\t],\n\t"version": ${String(version)}\n}\n`;
+	const document = `{\n\t"mixes": [\n${rows}\n\t],\n\t"version": ${String(mixAudioVersion)}\n}\n`;
 	const tmp = `${outputPath}${tmpExtension}`;
 
 	await fs.writeFile(tmp, document, 'utf8');

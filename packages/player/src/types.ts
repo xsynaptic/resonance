@@ -62,7 +62,7 @@ export type PlayerTimeMode = 'elapsed' | 'remaining';
 
 // Each resolver is handed the item as the host queued it, its own extra fields included, even after a reload
 export interface PlayerUrls {
-	// Asked once per queued item; `undefined` or a rejection leaves the strip a plain groove and the panel on its grid
+	// `undefined` settles on a plain groove and the panel's grid; a rejection draws the same and is asked again
 	detail?: ((item: QueueItem) => Promise<QueueItemDetail | undefined>) | undefined;
 	stream: (item: QueueItem) => Promise<StreamResolution>;
 }

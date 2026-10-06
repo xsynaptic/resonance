@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand/vanilla';
 
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
@@ -36,11 +36,20 @@ function createStore(
 	return store;
 }
 
-function settle(): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, 0));
+async function settle(): Promise<void> {
+	await vi.advanceTimersByTimeAsync(0);
 }
 
+function offline(): Promise<never> {
+	return Promise.reject(new Error('offline'));
+}
+
+beforeEach(() => {
+	vi.useFakeTimers({ toFake: ['clearTimeout', 'setTimeout'] });
+});
+
 afterEach(() => {
+	vi.useRealTimers();
 	localStorage.clear();
 });
 
@@ -64,7 +73,7 @@ describe('queued detail', () => {
 	});
 
 	test.each([
-		['rejects', () => Promise.reject(new Error('offline'))],
+		['rejects', offline],
 		['has nothing', () => Promise.resolve(undefined)],
 	])('stops waiting when the host %s', async (_outcome, detail) => {
 		const store = createStore(detail);
@@ -106,14 +115,159 @@ describe('queued detail', () => {
 	});
 });
 
+describe('detail retry', () => {
+	test('asks again after the base delay, and the answer replaces the groove', async () => {
+		const detail = vi
+			.fn<NonNullable<PlayerUrls['detail']>>()
+			.mockImplementationOnce(offline)
+			.mockResolvedValue(strip);
+		const store = createStore(detail);
+
+		store.getState().playTrack([makeItem('a')], 'a');
+		await settle();
+
+		expect(store.getState().details.get('a')).toStrictEqual({});
+
+		await vi.advanceTimersByTimeAsync(1999);
+
+		expect(detail).toHaveBeenCalledTimes(1);
+
+		await vi.advanceTimersByTimeAsync(1);
+
+		expect(detail).toHaveBeenCalledTimes(2);
+		expect(store.getState().details.get('a')).toBe(strip);
+	});
+
+	test('doubles the delay up to the cap, and starts over after a success', async () => {
+		let isOnline = false;
+		const detail = vi.fn(() => (isOnline ? Promise.resolve(strip) : offline()));
+		const store = createStore(detail);
+
+		store.getState().playTrack([makeItem('a')], 'a');
+		await settle();
+
+		for (const delayMs of [2000, 4000, 8000, 16_000, 30_000, 30_000]) {
+			const asked = detail.mock.calls.length;
+
+			await vi.advanceTimersByTimeAsync(delayMs - 1);
+
+			expect(detail).toHaveBeenCalledTimes(asked);
+
+			await vi.advanceTimersByTimeAsync(1);
+
+			expect(detail).toHaveBeenCalledTimes(asked + 1);
+		}
+
+		isOnline = true;
+		await vi.advanceTimersByTimeAsync(30_000);
+
+		expect(store.getState().details.get('a')).toBe(strip);
+
+		isOnline = false;
+		store.getState().queueTrack([makeItem('b')], 'b');
+		await settle();
+
+		const asked = detail.mock.calls.length;
+
+		await vi.advanceTimersByTimeAsync(2000);
+
+		expect(detail).toHaveBeenCalledTimes(asked + 1);
+	});
+
+	test('waits out one delay for every item the host failed, and asks for them together', async () => {
+		const detail = vi.fn<NonNullable<PlayerUrls['detail']>>(offline);
+		const store = createStore(detail);
+
+		store.getState().playTrack([makeItem('a'), makeItem('b')], 'a');
+		await settle();
+		await vi.advanceTimersByTimeAsync(2000);
+		await vi.advanceTimersByTimeAsync(3999);
+
+		expect(detail.mock.calls.map(([{ itemId }]) => itemId)).toStrictEqual(['a', 'b', 'a', 'b']);
+	});
+
+	test('does not ask again for an item the host has nothing for', async () => {
+		const detail = vi.fn(() => Promise.resolve(undefined));
+		const store = createStore(detail);
+
+		store.getState().playTrack([makeItem('a')], 'a');
+		await vi.advanceTimersByTimeAsync(60_000);
+
+		expect(detail).toHaveBeenCalledOnce();
+	});
+
+	test('does not ask for an item that left the Queue while its retry was waiting', async () => {
+		const detail = vi.fn<NonNullable<PlayerUrls['detail']>>(offline);
+		const store = createStore(detail);
+
+		store.getState().playTrack([makeItem('a'), makeItem('b')], 'a');
+		await settle();
+		store.getState().removeAt(1);
+		await vi.advanceTimersByTimeAsync(2000);
+
+		expect(detail.mock.calls.map(([{ itemId }]) => itemId)).toStrictEqual(['a', 'b', 'a']);
+
+		store.getState().clearQueue();
+
+		expect(vi.getTimerCount()).toBe(0);
+	});
+});
+
 describe('detail persistence', () => {
+	test.each([
+		['fails', offline],
+		['has nothing', () => Promise.resolve(undefined)],
+	])('never stores the empty detail of an item the host %s for', async (_outcome, detail) => {
+		const store = createStore((item) => (item.itemId === 'a' ? Promise.resolve(strip) : detail()), {
+			isPersistent: true,
+		});
+
+		store.getState().loadQueue([makeItem('b')]);
+		await settle();
+
+		expect(store.getState().details.get('b')).toStrictEqual({});
+		expect(localStorage.getItem(detailStorageKey)).toBeNull();
+
+		store.getState().queueTrack([makeItem('a')], 'a');
+		await settle();
+
+		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({ a: strip });
+
+		store.getState().removeAt(1);
+
+		expect(localStorage.getItem(detailStorageKey)).toBeNull();
+	});
+
+	test('an idle tab never deletes the detail another tab saved', () => {
+		const store = createStore(() => Promise.resolve(strip), { isPersistent: true });
+		const saved = JSON.stringify({ a: strip });
+
+		localStorage.setItem(detailStorageKey, saved);
+
+		store.getState().refreshQueue([makeItem('a')]);
+		store.getState().clearQueue();
+		store.getState().removeAt(0);
+		store.getState().toggleShuffle();
+		store.getState().configure({
+			urls: { stream: () => Promise.resolve({ status: 'capped' }) },
+		});
+
+		const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+
+		document.dispatchEvent(new Event('visibilitychange'));
+		visibility.mockRestore();
+		window.dispatchEvent(new Event('pagehide'));
+
+		expect(localStorage.getItem(detailStorageKey)).toBe(saved);
+	});
+
 	test('restores a queued detail before the host is asked, and keeps it when the host fails', async () => {
 		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
 		first.getState().loadQueue([makeItem('a')]);
 		await settle();
 
-		const second = createStore(() => Promise.reject(new Error('offline')), { isPersistent: true });
+		const second = createStore(offline, { isPersistent: true });
 
 		expect(isDetailPending(second.getState())).toBe(false);
 		expect(second.getState().details.get('a')).toStrictEqual(strip);

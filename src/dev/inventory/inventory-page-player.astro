@@ -1,5 +1,4 @@
 ---
-import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import PlayerControls from '#components/player/player-controls.astro';
 import { seekSeconds } from '#components/player/player-labels.ts';
@@ -33,34 +32,6 @@ const { mix, playerItems, playerLabels } = await getInventoryFixtures();
 			<Variant label="no cueSlug">{mix ? <AudioLinks files={mix.files} /> : undefined}</Variant>
 			<Variant label="links only">
 				<AudioLinks links={mix?.links} />
-			</Variant>
-		</Specimen>
-		<Specimen
-			name="AudioCounts"
-			note="Only downloads is real data."
-			source="src/components/parts/audio-counts.astro"
-		>
-			<Variant label="fixtures">
-				{mix ? (
-					<AudioCounts
-						downloads={mix.downloads}
-						listeningSeconds={2400}
-						listens={642}
-						mixcloudPlays={38_216}
-						soundcloudPlays={9412}
-						streams={1204}
-					/>
-				) : undefined}
-			</Variant>
-			<Variant label="singulars">
-				<AudioCounts
-					downloads={1}
-					listeningSeconds={3600}
-					listens={1}
-					mixcloudPlays={1}
-					soundcloudPlays={1}
-					streams={1}
-				/>
 			</Variant>
 		</Specimen>
 	</Section>

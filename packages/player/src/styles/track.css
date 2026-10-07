@@ -8,6 +8,9 @@
 	gap: var(--player-gap-tight);
 	align-items: baseline;
 	justify-content: flex-end;
+
+	/* The artist's line, held open when there is none, so the clock keeps its row */
+	min-block-size: 1rem;
 	padding-inline-end: var(--player-clock-width);
 }
 

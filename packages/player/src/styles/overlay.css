@@ -107,6 +107,10 @@
 	line-height: 1.75rem;
 }
 
+.player-overlay-track .player-track-meta {
+	min-block-size: 1.25rem;
+}
+
 .player-overlay-track .player-track-artist {
 	font-size: var(--player-font-size);
 	line-height: 1.25rem;

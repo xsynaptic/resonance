@@ -144,35 +144,6 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		</div>
 	</Specimen>
 	<Specimen name="The bar's leaves" source="packages/player/src/elements/">
-		<Variant label="cued and paused">
-			<player-root
-				class="relative flex flex-wrap items-center gap-4 bg-surface-900 py-2.5 pr-4"
-				data-inventory-queue="bar"
-			>
-				<player-artwork></player-artwork>
-				<div class="flex items-center gap-1">
-					<player-step-button direction="previous"></player-step-button>
-					<player-seek-button seconds="-30"></player-seek-button>
-					<player-play-button></player-play-button>
-					<player-seek-button seconds="30"></player-seek-button>
-					<player-step-button direction="next"></player-step-button>
-				</div>
-				<div class="player-track min-w-48 flex-1">
-					<player-title></player-title>
-					<div class="player-track-meta">
-						<player-artist-line></player-artist-line>
-						<player-time></player-time>
-					</div>
-				</div>
-				<player-status></player-status>
-				<player-scope></player-scope>
-				<player-panel-toggle></player-panel-toggle>
-				<player-volume></player-volume>
-				<player-queue-button></player-queue-button>
-				<player-overlay-toggle></player-overlay-toggle>
-				<player-overlay></player-overlay>
-			</player-root>
-		</Variant>
 		<Variant label="resolver rejects">
 			<player-root
 				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"

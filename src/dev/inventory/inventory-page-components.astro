@@ -13,6 +13,7 @@ import Img from '#components/mdx/img.astro';
 import Quotation from '#components/mdx/quotation.astro';
 import Selections from '#components/mdx/selections.astro';
 import TrackList from '#components/mdx/track-list.astro';
+import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
 import Breadcrumbs from '#components/parts/breadcrumbs.astro';
 import ButtonSplit from '#components/parts/button-split.astro';
@@ -544,6 +545,36 @@ const inlineSelection: SelectionValue = {
 				<TermLinks heading="Themes" terms={themes} />
 				<TermLinks heading="Labels" terms={labels} />
 			</SectionCoda>
+		</Specimen>
+		<Specimen
+			name="AudioCounts"
+			note="Only downloads is real data."
+			source="src/components/parts/audio-counts.astro"
+		>
+			<div class="grid gap-x-8 sm:grid-cols-2">
+				<Variant label="fixtures">
+					{mix ? (
+						<AudioCounts
+							downloads={mix.downloads}
+							listeningSeconds={2400}
+							listens={642}
+							mixcloudPlays={38_216}
+							soundcloudPlays={9412}
+							streams={1204}
+						/>
+					) : undefined}
+				</Variant>
+				<Variant label="singulars">
+					<AudioCounts
+						downloads={1}
+						listeningSeconds={3600}
+						listens={1}
+						mixcloudPlays={1}
+						soundcloudPlays={1}
+						streams={1}
+					/>
+				</Variant>
+			</div>
 		</Specimen>
 	</Section>
 	<Section note="Originals are gitignored; a missing file renders nothing." title="Media">

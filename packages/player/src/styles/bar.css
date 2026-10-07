@@ -50,6 +50,13 @@
 	display: none;
 }
 
+/* A pointer only passing over leaves the groove thin */
+@media (hover: hover) {
+	.player-progress .sonic-slider:hover {
+		transition-delay: 100ms;
+	}
+}
+
 /* The bar's top edge, carried on the groove so it rises as the groove thickens */
 .player-progress .sonic-slider-groove::before {
 	position: absolute;

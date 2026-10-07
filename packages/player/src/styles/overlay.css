@@ -515,7 +515,7 @@
 
 	@container player-overlay-deck (width < 22.5rem) {
 		.player-overlay-controls .player-button-primary {
-			--player-button-px: 48;
+			--player-button-px: var(--player-button-px-hero-narrow);
 			--sonic-button-icon-ratio: calc(30 / var(--player-button-px));
 		}
 

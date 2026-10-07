@@ -61,7 +61,7 @@
 .player-panel-zoom sonic-button {
 	--sonic-button-bevel-ratio: 0;
 	--sonic-button-face-radius-ratio: 0.5;
-	--sonic-button-gap-ratio: calc(1 / 24);
+	--sonic-button-gap-ratio: calc(1 / var(--player-button-px));
 	--sonic-button-radius-ratio: 0.5;
 	--sonic-cap: color-mix(in oklab, var(--player-popover) 90%, transparent);
 	--sonic-cap-edge: var(--player-border);

@@ -88,7 +88,6 @@
 	--player-row-inset: var(--player-gap-tight);
 	--player-padding-inline: 1rem;
 	--player-padding-block: 0.625rem;
-	--player-padding-block-start: var(--player-padding-block);
 	--player-artwork-size: 7.5rem;
 	--player-clock-width: 3.75rem;
 	--player-panel-height: 7.5rem;
@@ -105,6 +104,7 @@
 	--player-button-px-small: 24;
 	--player-button-px-primary: 36;
 	--player-button-px-hero: 56;
+	--player-button-px-hero-narrow: 48;
 	--player-button-size: calc(var(--player-button-px) / 16 * 1rem);
 	--player-button-size-small: calc(var(--player-button-px-small) / 16 * 1rem);
 	--player-button-size-primary: calc(var(--player-button-px-primary) / 16 * 1rem);

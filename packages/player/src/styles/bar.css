@@ -174,19 +174,19 @@
 	}
 
 	.player-bar-grid .player-seek-button > .sonic-button {
-		margin-inline: calc((2rem - 1.1875rem) / -2);
+		margin-inline: calc((var(--player-button-size) - 1.1875rem) / -2);
 	}
 
 	.player-bar-grid :is(.player-panel-toggle, player-mute-button > sonic-button) > .sonic-button {
-		margin-inline: calc((2rem - 1.0625rem) / -2);
+		margin-inline: calc((var(--player-button-size) - 1.0625rem) / -2);
 	}
 
 	.player-bar-grid .player-overlay-toggle > .sonic-button {
-		margin-inline: calc((2rem - 0.9375rem) / -2);
+		margin-inline: calc((var(--player-button-size) - 0.9375rem) / -2);
 	}
 
 	.player-bar-grid .player-queue > sonic-button > .sonic-button {
-		margin-inline: calc((2rem - 1.125rem) / -2);
+		margin-inline: calc((var(--player-button-size) - 1.125rem) / -2);
 	}
 
 	.player-bar-grid player-step-button[direction='previous'] .sonic-button {

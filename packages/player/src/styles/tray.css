@@ -35,7 +35,7 @@
 .player-tray-action {
 	--player-button-px: var(--player-button-px-small);
 	--sonic-button-face-radius-ratio: 0.5;
-	--sonic-button-padding-ratio: calc(10 / 24);
+	--sonic-button-padding-ratio: calc(10 / var(--player-button-px));
 	--sonic-button-press-scale: initial;
 	--sonic-button-radius-ratio: 0.5;
 	--sonic-cap: var(--player-pill);

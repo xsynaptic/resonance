@@ -62,7 +62,6 @@ function renderZoomButton(icon: 'zoomIn' | 'zoomOut') {
 	return renderSonicButton({
 		className: 'player-button-small',
 		icons: [cloneIcon(icon)],
-		size: 'small',
 	});
 }
 

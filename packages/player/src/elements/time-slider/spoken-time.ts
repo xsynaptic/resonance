@@ -1,4 +1,6 @@
-import { formatClock, formatTemplate } from '#lib/format.ts';
+import { formatClock } from '@xsynaptic/sonic-ui';
+
+import { formatTemplate } from '#lib/format.ts';
 
 // The slider speaks a new position every second, so the formatters are built once
 let durationFormats: Record<'always' | 'auto', Intl.DurationFormat> | undefined;

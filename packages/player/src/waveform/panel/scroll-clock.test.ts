@@ -24,4 +24,21 @@ describe('createScrollClock', () => {
 
 		expect(clock.read(16, true)).toBe(100);
 	});
+
+	test('closes the same share of a drift at 120Hz as at 60Hz', () => {
+		const frameMs = 1000 / 60;
+		const aheadSeconds = 0.2;
+		let nowMs = 0;
+		const elementTime = () => (nowMs === 0 ? 0 : nowMs / 1000 + aheadSeconds);
+		const slow = clockOver(elementTime);
+		const fast = clockOver(elementTime);
+
+		slow.read(0, true);
+		fast.read(0, true);
+		nowMs = frameMs / 2;
+		fast.read(nowMs, true);
+		nowMs = frameMs;
+
+		expect(fast.read(nowMs, true)).toBeCloseTo(slow.read(nowMs, true), 10);
+	});
 });

@@ -1,16 +1,13 @@
 .player-panel {
-	--sonic-glass: transparent;
 	--sonic-lit: var(--player-panel-wave);
 	--sonic-marker: var(--player-panel-cue);
 	--sonic-waveform-edge: var(--player-panel-wave-peak);
 	--sonic-waveform-ends: var(--player-panel-ends);
 	--sonic-waveform-ghost: var(--player-panel-ghost);
 	--sonic-waveform-grid: var(--player-panel-grid);
-	--sonic-waveform-inset-ratio: 0;
 	--sonic-waveform-label: var(--player-cue-title);
 	--sonic-waveform-label-fade-end: 0.75;
 	--sonic-waveform-label-fade-start: 0.25;
-	--sonic-waveform-label-font: var(--player-font-family);
 	--sonic-waveform-label-font-size: var(--player-font-size);
 	--sonic-waveform-label-inset-block: 0.25rem;
 	--sonic-waveform-label-inset-inline: calc(1rem + var(--player-panel-inset-left, 0px));
@@ -19,7 +16,6 @@
 	--sonic-waveform-placeholder: var(--player-panel-placeholder);
 	--sonic-waveform-playhead: var(--player-playhead);
 	--sonic-waveform-playhead-width: 1px;
-	--sonic-waveform-radius-ratio: 0;
 
 	/* As tall as the label's row */
 	--sonic-waveform-scrim: linear-gradient(to top, var(--player-surface), transparent 1.75rem);
@@ -40,10 +36,6 @@
 
 .player-panel-label-artist {
 	color: var(--player-cue-artist);
-}
-
-.sonic-waveform-label[data-sonic-dimmed] > .player-panel-label-artist {
-	opacity: 0.5;
 }
 
 /* The waveform's own labels are hidden from assistive tech, so the current Track is said here */

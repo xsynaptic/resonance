@@ -59,6 +59,22 @@ function readout(part: HTMLElement): string | undefined {
 	return [...label.children].map((span) => span.textContent).join('|');
 }
 
+function pressEnter(target: Element | null): void {
+	target?.dispatchEvent(
+		new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter' }),
+	);
+}
+
+function typeEntry(strip: SonicWavestrip, text: string): void {
+	const entry = strip.querySelector('input');
+
+	if (!entry) throw new Error('The strip rendered no entry');
+
+	pressEnter(strip.querySelector('.sonic-wavestrip'));
+	entry.value = text;
+	pressEnter(entry);
+}
+
 function requireStrip(part: HTMLElement): SonicWavestrip {
 	const strip = part.querySelector('sonic-wavestrip');
 
@@ -89,6 +105,16 @@ describe('<player-time-slider>', () => {
 		expect(seeks()).toEqual([]);
 
 		strip.dispatchEvent(new Event('change'));
+		expect(seeks()).toEqual([120]);
+	});
+
+	test('seeks to a typed clock, and not at all when the entry is emptied', () => {
+		const { seeks, strip } = mountSlider({ currentTimeSeconds: 50, durationSeconds: 200 });
+
+		typeEntry(strip, '');
+		expect(seeks()).toEqual([]);
+
+		typeEntry(strip, '2:00');
 		expect(seeks()).toEqual([120]);
 	});
 

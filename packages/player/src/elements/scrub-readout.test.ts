@@ -39,7 +39,7 @@ describe('<player-scrub-readout>', () => {
 		store.getState().toggleTimeMode();
 		store.getState().setScrubPreview(130);
 
-		expect(slots(part)).toStrictEqual(['Untitled', '', '-1:10']);
+		expect(slots(part)).toStrictEqual(['Untitled', '', '−1:10']);
 	});
 
 	test('keeps the Mix on the text lines before the first Track starts', () => {

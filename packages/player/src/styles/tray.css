@@ -33,16 +33,16 @@
 }
 
 .player-tray-action {
+	--player-button-px: var(--player-button-px-small);
 	--sonic-button-face-radius-ratio: 0.5;
-	--sonic-button-font-ratio: calc(12 / 24);
 	--sonic-button-padding-ratio: calc(10 / 24);
 	--sonic-button-press-scale: initial;
 	--sonic-button-radius-ratio: 0.5;
-	--sonic-button-size: var(--player-button-size-small);
 	--sonic-cap: var(--player-pill);
 	--sonic-cap-hover: var(--player-pill-hover);
 	--sonic-ink: var(--player-pill-text);
 	--sonic-ink-hover: var(--player-meta-hover);
+	--sonic-legend-font-size: var(--player-font-size-small);
 	--sonic-relief: 1;
 }
 

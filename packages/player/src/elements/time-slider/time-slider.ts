@@ -1,4 +1,4 @@
-import { SonicWavestrip } from '@xsynaptic/sonic-ui';
+import { formatClock, SonicWavestrip } from '@xsynaptic/sonic-ui';
 
 import type { PlayerStore } from '#store/player-types.ts';
 import type { PlayerLabels, QueueCuePoint } from '#types.ts';
@@ -9,7 +9,6 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
-import { formatClock, parseClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { displayedDetail, displayedItem, isLoaded } from '#store/selectors.ts';
@@ -76,8 +75,6 @@ export class PlayerTimeSlider extends PlayerElement {
 		const { strip } = parts;
 
 		strip.setAttribute('aria-label', labels.seek);
-		strip.formatEntry = formatClock;
-		strip.parseValue = parseClock;
 		strip.addEventListener(
 			'change',
 			() => {

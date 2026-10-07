@@ -40,7 +40,7 @@ describe('<player-time>', () => {
 
 		clock.click();
 
-		expect(clock.textContent).toBe('-1:56');
+		expect(clock.textContent).toBe('−1:56');
 		expect(clock.dataset.mode).toBe('remaining');
 		expect(clock.getAttribute('aria-pressed')).toBe('true');
 	});

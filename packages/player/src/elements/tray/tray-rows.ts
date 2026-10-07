@@ -86,7 +86,7 @@ function createRow(queueId: string, labels: PlayerLabels): TrayChild {
 	handle.setAttribute('aria-label', labels.reorder);
 	handle.append(cloneIcon('dragHandle'));
 	remove.setAttribute('aria-label', labels.removeFromQueue);
-	fillButton(remove, [cloneIcon('close')], 'small');
+	fillButton(remove, [cloneIcon('close')]);
 	rowControls.set(handle, { control: 'handle', queueId });
 	rowControls.set(pick, { control: 'pick', queueId });
 	rowControls.set(remove, { control: 'remove', queueId });

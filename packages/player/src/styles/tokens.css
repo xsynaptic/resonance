@@ -101,10 +101,13 @@
 	--player-font-size-large: 1.25rem;
 	--player-font-family: inherit;
 	--player-font-mono: ui-monospace, menlo, consolas, monospace;
-	--player-button-size: 2rem;
-	--player-button-size-small: 1.5rem;
-	--player-button-size-primary: 2.25rem;
-	--player-button-size-hero: 3.5rem;
+	--player-button-px: 32;
+	--player-button-px-small: 24;
+	--player-button-px-primary: 36;
+	--player-button-px-hero: 56;
+	--player-button-size: calc(var(--player-button-px) / 16 * 1rem);
+	--player-button-size-small: calc(var(--player-button-px-small) / 16 * 1rem);
+	--player-button-size-primary: calc(var(--player-button-px-primary) / 16 * 1rem);
 	--player-hit-target: 2.75rem;
 	--player-focus-width: 2px;
 	--player-focus-offset: 0;

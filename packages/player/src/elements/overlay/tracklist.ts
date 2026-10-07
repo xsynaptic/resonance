@@ -1,10 +1,11 @@
+import { formatClock } from '@xsynaptic/sonic-ui';
+
 import type { PlayerStore } from '#store/player-types.ts';
 import type { QueueCuePoint } from '#types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
-import { formatClock } from '#lib/format.ts';
 import { cloneIcon } from '#lib/icons.ts';
 import { requireChild, requireChildren, template } from '#lib/render.ts';
 import { currentCue, displayedDetail, isLoaded } from '#store/selectors.ts';

@@ -11,7 +11,6 @@ import { defineOnce } from '#elements/define-once.ts';
 import { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
-import { formatClock, parseClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { loadedDetail, loadedItem } from '#store/selectors.ts';
@@ -23,8 +22,6 @@ interface PanelSource {
 	detail: QueueItemDetail | undefined;
 	item: QueueItem | undefined;
 }
-
-const archiveFullScale = 128;
 
 const renderSurface = template(
 	/* HTML */ `
@@ -72,8 +69,6 @@ export function connectPanelSurface(
 	};
 
 	waveform.setAttribute('aria-label', labels.waveformSeek);
-	waveform.formatEntry = formatClock;
-	waveform.parseValue = parseClock;
 	waveform.readTime = store.getState().getCurrentTime;
 	waveform.renderLabel = renderLabel;
 	waveform.zoomMax = panelZoomMax;
@@ -162,7 +157,7 @@ function feedArchive(
 function requestFromArchive(waveform: SonicWaveform, archive: WaveformArchive): void {
 	const { pairsPerSecond } = archive;
 
-	waveform.peaks = { fullScale: archiveFullScale, pairsPerSecond, samples: archive.samples };
+	waveform.peaks = { pairsPerSecond, samples: archive.samples };
 	waveform.requestPeaks = (fromSeconds, toSeconds) => {
 		const fromPair = fromSeconds * pairsPerSecond;
 		const toPair = toSeconds * pairsPerSecond;

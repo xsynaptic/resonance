@@ -5,7 +5,7 @@ import type { SubscribeTime } from '#types.ts';
 // Past this the source was seeked rather than drifted, so the position snaps instead of sliding
 const seekThresholdSeconds = 0.5;
 
-// Share of the error closed each frame; the gap halves in about a dozen of them
+// Share of the error closed each sixtieth of a second; the gap halves in about a dozen of them
 const catchUpPerFrame = 0.06;
 
 export interface ScrollClock {
@@ -48,7 +48,9 @@ export function createScrollClock({ elementTime, subscribeTime }: ScrollClockSou
 				positionSeconds = sourceTimeSeconds;
 				hasPosition = true;
 			} else {
-				positionSeconds += (sourceTimeSeconds - positionSeconds) * catchUpPerFrame;
+				positionSeconds +=
+					(sourceTimeSeconds - positionSeconds) *
+					(1 - (1 - catchUpPerFrame) ** (elapsedSeconds * 60));
 			}
 
 			return positionSeconds;

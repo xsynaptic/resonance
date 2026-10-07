@@ -135,8 +135,8 @@
 }
 
 .player-overlay-deck .player-button-primary {
-	--sonic-button-icon-ratio: calc(30 / 56);
-	--sonic-button-size: var(--player-button-size-hero);
+	--player-button-px: var(--player-button-px-hero);
+	--sonic-button-icon-ratio: calc(30 / var(--player-button-px));
 }
 
 .player-overlay-sheets {
@@ -354,8 +354,8 @@
 
 	/* Its glyph rather than its box meets the inset, as the Queue rows' buttons do */
 	.player-overlay-close {
-		--sonic-button-icon-ratio: calc(18 / 24);
-		--sonic-button-size: var(--player-button-size-small);
+		--player-button-px: var(--player-button-px-small);
+		--sonic-button-icon-ratio: calc(18 / var(--player-button-px));
 	}
 
 	.player-overlay-close > .sonic-button {
@@ -515,8 +515,8 @@
 
 	@container player-overlay-deck (width < 22.5rem) {
 		.player-overlay-controls .player-button-primary {
-			--sonic-button-icon-ratio: calc(30 / 48);
-			--sonic-button-size: 3rem;
+			--player-button-px: 48;
+			--sonic-button-icon-ratio: calc(30 / var(--player-button-px));
 		}
 
 		.player-overlay-controls .player-transport {

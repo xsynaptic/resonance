@@ -7,6 +7,7 @@ import { $ } from 'zx';
 
 import type { StepStatus } from '#shared/step-status.ts';
 
+import { generateBands } from '#audio/bands.ts';
 import { generateAudioManifest, readManifestFiles } from '#audio/manifest.ts';
 import { generateRenditions } from '#audio/renditions.ts';
 import { validateAudio } from '#audio/validate.ts';
@@ -306,9 +307,10 @@ try {
 	const validatedFiles = await validateAudio({ rootPath });
 
 	// Fatal, since a warned rendition publishes a page with nothing to play
-	// The manifest runs last because it records what the two steps above produced
+	// The manifest runs last because it records what the steps above produced
 	await generateRenditions({ dryRun: isDryRun, rootPath });
 	await generateWaveforms({ dryRun: isDryRun, rootPath });
+	await generateBands({ dryRun: isDryRun, rootPath });
 	await generateAudioManifest({ dryRun: isDryRun, rootPath });
 
 	// Soft-fail by design: fresh counts are nice, a deploy blocked on them is not

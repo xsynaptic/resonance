@@ -10,7 +10,7 @@ export function offline(): Promise<Response> {
 	return Promise.reject(new TypeError('Failed to fetch'));
 }
 
-export function stubArchiveFetch(respond: () => Promise<Response>) {
+export function stubArchiveFetch(respond: (url: string) => Promise<Response>) {
 	const fetchMock = vi.fn(respond);
 
 	vi.stubGlobal('fetch', fetchMock);

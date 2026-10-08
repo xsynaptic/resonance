@@ -20,6 +20,7 @@
 		"audio-validate": "tsx --env-file-if-exists=../../.env ./src/audio/validate.cli.ts",
 		"audio-renditions": "tsx --env-file-if-exists=../../.env ./src/audio/renditions.cli.ts",
 		"audio-waveforms": "tsx --env-file-if-exists=../../.env ./src/audio/waveforms.cli.ts",
+		"audio-bands": "tsx --env-file-if-exists=../../.env ./src/audio/bands.cli.ts",
 		"audio-manifest": "tsx --env-file-if-exists=../../.env ./src/audio/manifest.cli.ts",
 		"deploy-app": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-app.cli.ts",
 		"deploy-audio": "tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-audio.cli.ts",

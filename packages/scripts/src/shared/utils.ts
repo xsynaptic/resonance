@@ -33,6 +33,32 @@ export async function ensureSshKeychain(): Promise<void> {
 	}
 }
 
+export async function readFileHead(file: string, bytes: number): Promise<Buffer> {
+	const handle = await fs.open(file, 'r');
+
+	try {
+		const head = Buffer.alloc(bytes);
+		const { bytesRead } = await handle.read(head, 0, bytes, 0);
+
+		return head.subarray(0, bytesRead);
+	} finally {
+		await handle.close();
+	}
+}
+
+export async function requireBinaries(
+	binaries: ReadonlyArray<string>,
+	formula: string,
+): Promise<void> {
+	for (const binary of binaries) {
+		try {
+			await $`which ${binary}`.quiet();
+		} catch {
+			throw new Error(`${binary} not found on PATH. Install it with: brew install ${formula}`);
+		}
+	}
+}
+
 export function findWorkspaceRoot(startDir: string = process.cwd()): string {
 	if (cachedWorkspaceRoot) return cachedWorkspaceRoot;
 

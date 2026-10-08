@@ -1,8 +1,15 @@
+import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { scopeSurfaceModule } from '#elements/scope/scope-module.ts';
 import { mount, queueItem } from '#test/mount.ts';
 
-function mountPlaying() {
+function mountPlaying(width: number) {
+	Object.defineProperty(HTMLDivElement.prototype, 'clientWidth', {
+		configurable: true,
+		value: width,
+	});
+
 	const mounted = mount('player-scope');
 
 	mounted.store.getState().playTrack([queueItem('a')], 'a');
@@ -10,90 +17,68 @@ function mountPlaying() {
 	return mounted;
 }
 
-// happy-dom draws nothing and lays nothing out, so the canvas, its width and the frame clock are the test's
-function stubCanvas(width: number) {
-	const context = {
-		beginPath: vi.fn(),
-		clearRect: vi.fn(),
-		lineTo: vi.fn(),
-		moveTo: vi.fn(),
-		setTransform: vi.fn(),
-		stroke: vi.fn(),
-	};
-	const frames: Array<FrameRequestCallback> = [];
-	const cancelFrame = vi.fn();
+function traced(part: HTMLElement): Promise<SonicWaveform> {
+	return vi.waitFor(() => {
+		const waveform = part.querySelector('sonic-waveform');
 
-	vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
-		context as unknown as CanvasRenderingContext2D,
-	);
-	Object.defineProperties(HTMLCanvasElement.prototype, {
-		clientHeight: { configurable: true, value: 32 },
-		clientWidth: { configurable: true, value: width },
+		if (!(waveform instanceof SonicWaveform)) throw new Error('The scope has no waveform yet');
+
+		return waveform;
 	});
-	vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-		frames.push(callback);
-
-		return frames.length;
-	});
-	vi.stubGlobal('cancelAnimationFrame', cancelFrame);
-
-	return { cancelFrame, context, frames };
 }
 
 afterEach(() => {
 	document.body.replaceChildren();
-	vi.restoreAllMocks();
-	vi.unstubAllGlobals();
-	for (const property of ['clientHeight', 'clientWidth']) {
-		Reflect.deleteProperty(HTMLCanvasElement.prototype, property);
-	}
+	Reflect.deleteProperty(HTMLDivElement.prototype, 'clientWidth');
 });
 
 describe('<player-scope>', () => {
-	test('traces only while playing, and cancels its frame once paused', () => {
-		const { cancelFrame, context, frames } = stubCanvas(96);
-		const { fake } = mountPlaying();
+	test('holds no waveform until it plays, then scrolls an inert one only while playing', async () => {
+		const { fake, part } = mountPlaying(96);
 
-		expect(frames).toHaveLength(0);
+		await scopeSurfaceModule.load();
+
+		expect(part.querySelector('sonic-waveform')).toBeNull();
 
 		fake.callbacks.current?.onStatus('playing');
 
-		expect(frames).toHaveLength(1);
+		const waveform = await traced(part);
 
-		frames[0]?.(0);
-
-		expect(context.stroke).toHaveBeenCalled();
+		expect(waveform.inert).toBe(true);
+		expect(waveform.playing).toBe(true);
 
 		fake.callbacks.current?.onStatus('paused');
 
-		expect(cancelFrame).toHaveBeenLastCalledWith(frames.length);
+		expect(waveform.playing).toBe(false);
 	});
 
-	test('a press stops the trace once it has faded, and a second press starts it again', () => {
-		const { cancelFrame, frames } = stubCanvas(96);
-		const { fake, part } = mountPlaying();
-
-		fake.callbacks.current?.onStatus('playing');
-		part.querySelector('button')?.click();
-
-		expect(cancelFrame).not.toHaveBeenCalledWith(1);
-
-		part.querySelector('canvas')?.dispatchEvent(new Event('transitionend'));
-
-		expect(cancelFrame).toHaveBeenLastCalledWith(1);
-		expect(frames).toHaveLength(1);
-
-		part.querySelector('button')?.click();
-
-		expect(frames).toHaveLength(2);
-	});
-
-	test('requests no frame while it has no width', () => {
-		const { frames } = stubCanvas(0);
-		const { fake } = mountPlaying();
+	test('a press stops the trace once it has faded, and a second press starts it again', async () => {
+		const { fake, part } = mountPlaying(96);
 
 		fake.callbacks.current?.onStatus('playing');
 
-		expect(frames).toHaveLength(0);
+		const waveform = await traced(part);
+
+		part.querySelector('button')?.click();
+
+		expect(waveform.playing).toBe(true);
+
+		part.querySelector('.player-scope-trace')?.dispatchEvent(new Event('transitionend'));
+
+		expect(waveform.playing).toBe(false);
+
+		part.querySelector('button')?.click();
+
+		expect(waveform.playing).toBe(true);
+	});
+
+	test('loads nothing while it has no width', async () => {
+		const { fake, part } = mountPlaying(0);
+
+		fake.callbacks.current?.onStatus('playing');
+		await scopeSurfaceModule.load();
+		await Promise.resolve();
+
+		expect(part.querySelector('sonic-waveform')).toBeNull();
 	});
 });

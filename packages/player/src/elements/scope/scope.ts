@@ -1,26 +1,17 @@
+import type { ScopeSurface } from '#elements/scope/scope-surface.ts';
 import type { PlayerStore } from '#store/player-types.ts';
-import type { QueueArchive } from '#types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
-import { traceArchive } from '#elements/scope/scope-archive.ts';
+import { scopeSurfaceModule } from '#elements/scope/scope-module.ts';
 import { bind } from '#lib/bind.ts';
+import { observeResize } from '#lib/observe-resize.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { supersede } from '#lib/supersede.ts';
-import { loadedDetail } from '#store/selectors.ts';
-
-// Wider and a kick is a few pixels; narrower and the archive's 256-sample pairs show as facets
-const windowSeconds = 1;
 
 const renderScreen = template(
-	'<button aria-pressed="true" class="player-scope sonic-screen" type="button"><canvas class="player-scope-trace"></canvas></button>',
-	HTMLButtonElement,
+	'<div class="player-scope sonic-screen"><div class="player-scope-trace"></div><button aria-pressed="true" class="player-scope-toggle" type="button"></button></div>',
+	HTMLDivElement,
 );
-
-interface ScopeSource {
-	archive: QueueArchive | undefined;
-	isTracing: boolean;
-}
 
 export class PlayerScope extends PlayerElement {
 	#isOn = true;
@@ -30,40 +21,62 @@ export class PlayerScope extends PlayerElement {
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
 		const screen = this.#screen;
-		const canvas = requireChild(screen, 'canvas', HTMLCanvasElement);
-		const trace = supersede(signal);
-		let source = selectScopeSource(store.getState());
+		const box = requireChild(screen, '.player-scope-trace', HTMLDivElement);
+		const toggle = requireChild(screen, 'button', HTMLButtonElement);
+		let isTracing = isPlayingInBar(store.getState());
+		let surface: ScopeSurface | undefined;
 
-		const retrace = (): void => {
-			trace.cancel();
-			if (!source.isTracing || !this.#isOn) return;
+		const open = async (): Promise<void> => {
+			try {
+				const connectScopeSurface = await scopeSurfaceModule.load();
+				if (surface || signal.aborted) return;
 
-			traceArchive(canvas, { archive: source.archive, store, windowSeconds }, trace.next());
+				surface = connectScopeSurface(box, store, signal);
+				retrace();
+			} catch (error) {
+				reportError(error);
+			}
 		};
 
-		screen.setAttribute('aria-label', labels.scope);
+		const retrace = (): void => {
+			const shouldTrace = isTracing && this.#isOn;
+
+			if (surface) {
+				surface.trace(shouldTrace);
+
+				return;
+			}
+
+			// A scope with no width is hidden by a container query, where the chunk would load for nothing
+			if (!shouldTrace || box.clientWidth === 0) return;
+
+			void open();
+		};
+
+		toggle.setAttribute('aria-label', labels.scope);
 		this.appendOnce(screen);
-		screen.addEventListener(
+		toggle.addEventListener(
 			'click',
 			() => {
 				this.#isOn = !this.#isOn;
-				screen.setAttribute('aria-pressed', String(this.#isOn));
+				toggle.setAttribute('aria-pressed', String(this.#isOn));
 				if (this.#isOn) retrace();
 			},
 			{ signal },
 		);
-		canvas.addEventListener(
+		box.addEventListener(
 			'transitionend',
 			() => {
 				if (!this.#isOn) retrace();
 			},
 			{ signal },
 		);
+		observeResize(box, retrace, signal);
 		bind(
 			store,
-			selectScopeSource,
+			isPlayingInBar,
 			(selected) => {
-				source = selected;
+				isTracing = selected;
 				retrace();
 			},
 			signal,
@@ -71,9 +84,6 @@ export class PlayerScope extends PlayerElement {
 	}
 }
 
-function selectScopeSource(state: PlayerStore): ScopeSource {
-	return {
-		archive: loadedDetail(state)?.archive,
-		isTracing: state.status === 'playing' && !state.isOverlayOpen,
-	};
+function isPlayingInBar(state: PlayerStore): boolean {
+	return state.status === 'playing' && !state.isOverlayOpen;
 }

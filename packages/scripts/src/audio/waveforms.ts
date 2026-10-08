@@ -2,11 +2,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
 
-import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
-import { collectAudioSources } from '#audio/audio-sources.ts';
+import { openWaveformsCache } from '#audio/audio-sources.ts';
 import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
-import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
+import { hashFile, readFileHead } from '#shared/utils.ts';
 
 const concurrency = 6;
 const archiveExtension = '.dat';
@@ -101,12 +100,7 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 export async function generateWaveforms(options: WaveformsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	const cacheDir = path.join(rootPath, waveformsCacheDir);
-	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
-
-	await fs.mkdir(cacheDir, { recursive: true });
-	await cleanStaleTmp(cacheDir, tmpExtension);
-
+	const { cacheDir, sources } = await openWaveformsCache(rootPath, tmpExtension);
 	const archives = await collectArchives(cacheDir);
 
 	const jobs = sources.map((source): WaveformJob => ({
@@ -181,16 +175,7 @@ export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
 }
 
 export async function readWaveformHeader(archive: string): Promise<WaveformHeader> {
-	const handle = await fs.open(archive, 'r');
-
-	try {
-		const header = Buffer.alloc(headerBytes);
-		const { bytesRead } = await handle.read(header, 0, headerBytes, 0);
-
-		return parseWaveformHeader(header.subarray(0, bytesRead));
-	} finally {
-		await handle.close();
-	}
+	return parseWaveformHeader(await readFileHead(archive, headerBytes));
 }
 
 // Returns the archive's filename, which the caller cannot predict: it names the analyzed bytes

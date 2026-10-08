@@ -142,6 +142,7 @@ function feedArchive(
 	waveform: SonicWaveform,
 	{ detail }: PanelSource,
 ): undefined | WaveformArchive {
+	waveform.bands = undefined;
 	waveform.peaks = undefined;
 	waveform.pending = undefined;
 	waveform.requestPeaks = undefined;
@@ -157,6 +158,7 @@ function feedArchive(
 function requestFromArchive(waveform: SonicWaveform, archive: WaveformArchive): void {
 	const { pairsPerSecond } = archive;
 
+	waveform.bands = archive.bands;
 	waveform.peaks = { pairsPerSecond, samples: archive.samples };
 	waveform.requestPeaks = (fromSeconds, toSeconds) => {
 		const fromPair = fromSeconds * pairsPerSecond;

@@ -53,7 +53,9 @@
 	--player-waveform-scrub: var(--color-ink-400);
 	--player-progress-played: var(--color-ink-500);
 	--player-panel-wave: var(--color-ink-100);
-	--player-panel-wave-peak: var(--color-ink-900);
+	--player-panel-band-1: var(--color-surface-400);
+	--player-panel-band-2: var(--color-ink-500);
+	--player-panel-band-3: var(--color-ink-50);
 	--player-panel-ghost: var(--color-highlight-600);
 	--player-panel-grid: var(--color-surface-600);
 	--player-panel-ends: var(--color-surface-500);

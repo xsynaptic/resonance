@@ -1,6 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
+import { cleanStaleTmp } from '#shared/utils.ts';
+
 export interface AudioSource {
 	base: string;
 	files: Array<string>;
@@ -39,6 +42,19 @@ export async function collectAudioSources(sourceDir: string): Promise<Array<Audi
 	}
 
 	return [...sources.values()].sort((left, right) => left.base.localeCompare(right.base));
+}
+
+export async function openWaveformsCache(
+	rootPath: string,
+	tmpExtension: string,
+): Promise<{ cacheDir: string; sources: Array<AudioSource> }> {
+	const cacheDir = path.join(rootPath, waveformsCacheDir);
+	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
+
+	await fs.mkdir(cacheDir, { recursive: true });
+	await cleanStaleTmp(cacheDir, tmpExtension);
+
+	return { cacheDir, sources };
 }
 
 function preferenceRank(file: string): number {

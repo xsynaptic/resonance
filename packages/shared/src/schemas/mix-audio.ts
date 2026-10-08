@@ -10,9 +10,16 @@ const StreamLoudnessSchema = z.object({
 
 export type StreamLoudness = z.infer<typeof StreamLoudnessSchema>;
 
+const MixAudioBandsSchema = z.object({
+	file: z.string(),
+	frames: z.number(),
+	framesPerSecond: z.number(),
+});
+
 // `sources` lists every file sharing the base, so a consumer looks up a name it already has
 const MixAudioEntrySchema = z.object({
 	archive: z.string(),
+	bands: MixAudioBandsSchema.optional(),
 	base: z.string(),
 	loudness: StreamLoudnessSchema,
 	pairs: z.number(),

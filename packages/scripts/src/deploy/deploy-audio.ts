@@ -28,7 +28,7 @@ const rsyncFlags = [
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
 const transferredRendition = /\.mp4$/i;
-const transferredArchive = /\.dat$/i;
+const transferredArchive = /\.(?:bands|dat)$/i;
 
 export interface DeployedAudio {
 	archives: Array<string>;
@@ -74,7 +74,7 @@ const derivedLegs: Array<DerivedLeg> = [
 		key: 'archives',
 		label: 'Archives',
 		localDir: waveformsCacheDir,
-		missingHint: 'run audio-waveforms first',
+		missingHint: 'run audio-waveforms and audio-bands first',
 		remoteDir: 'waveform',
 		transferred: transferredArchive,
 	},

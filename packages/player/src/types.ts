@@ -70,8 +70,15 @@ export interface PlayerUrls {
 
 // Full-resolution `.dat`, range-requested a window at a time; the header's facts ride here so it is never requested
 export interface QueueArchive {
+	bands?: QueueBands;
 	pairCount: number;
 	pairsPerSecond: number;
+	url: string;
+}
+
+export interface QueueBands {
+	frameCount: number;
+	framesPerSecond: number;
 	url: string;
 }
 
@@ -119,8 +126,6 @@ export interface QueueItemDetail {
 
 // `type` is a MIME type with codecs, probed before loading; absent skips the probe
 export type StreamResolution = { status: 'capped' } | { status: 'ok'; type?: string; url: string };
-
-export type SubscribeTime = (onTime: (currentTimeSeconds: number) => void) => () => void;
 
 interface MediaSnapshot {
 	networkState: number;

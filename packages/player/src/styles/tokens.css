@@ -52,7 +52,15 @@
 	--player-waveform-scrub: #6ee7b7;
 	--player-progress-played: var(--player-waveform-played);
 	--player-panel-wave: #34d399;
-	--player-panel-wave-peak: #065f46;
+	--player-panel-band-1: #525252;
+	--player-panel-band-2: #a3a3a3;
+	--player-panel-band-3: #fafafa;
+	--player-panel-band-opacity: 1;
+
+	/* sonic-ui's default of 1 scales each mix to full brightness, which whitens a palette split by lightness */
+	--player-panel-band-normalize: 0;
+	--player-panel-band-contrast: 2;
+	--player-panel-band-tilt: 6;
 	--player-panel-ghost: #a3a3a3;
 	--player-panel-grid: #262626;
 	--player-panel-ends: #525252;

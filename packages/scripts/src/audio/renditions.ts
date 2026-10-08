@@ -12,7 +12,7 @@ import { collectAudioSources } from '#audio/audio-sources.ts';
 import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
 import { measureLoudness } from '#audio/loudness.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
-import { cleanStaleTmp, hashFile } from '#shared/utils.ts';
+import { cleanStaleTmp, hashFile, requireBinaries } from '#shared/utils.ts';
 
 const concurrency = 3;
 const renditionExtension = '.mp4';
@@ -124,13 +124,7 @@ export async function generateRenditions(options: RenditionsOptions): Promise<vo
 	const { dryRun = false, rootPath } = options;
 
 	// ffprobe too: it reads the hash deciding what is pending, so without it every file re-encodes
-	for (const binary of ['ffmpeg', 'ffprobe']) {
-		try {
-			await $`which ${binary}`.quiet();
-		} catch {
-			throw new Error(`${binary} not found on PATH. Install it with: brew install ffmpeg`);
-		}
-	}
+	await requireBinaries(['ffmpeg', 'ffprobe'], 'ffmpeg');
 
 	const streamsPath = path.join(rootPath, streamsDir);
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));

@@ -11,6 +11,7 @@ import type { AudioSource } from '#audio/audio-sources.ts';
 
 import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
+import { collectBands, readBandsHeader, samplesPerFrame } from '#audio/bands.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
 import { collectArchives, previewVersion, readWaveformHeader } from '#audio/waveforms.ts';
 import { contentDataPath } from '#shared/content-path.ts';
@@ -80,7 +81,7 @@ export async function readManifestFiles(
 		const { mixes } = MixAudioDocumentSchema.parse(raw);
 
 		return {
-			archives: mixes.map((mix) => mix.archive),
+			archives: mixes.flatMap((mix) => (mix.bands ? [mix.archive, mix.bands.file] : [mix.archive])),
 			streams: mixes.map((mix) => mix.stream),
 		};
 	} catch {
@@ -107,6 +108,7 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 	const renditions = await collectRenditions(path.join(rootPath, streamsDir));
 	const archives = await collectArchives(cacheDir);
+	const bands = await collectBands(cacheDir);
 
 	const entries: Array<MixAudioEntry> = [];
 	const incomplete: Array<string> = [];
@@ -115,6 +117,7 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 		const stream = renditions.get(source.base);
 		const entry = await resolveEntry({
 			archive: archives.get(source.base),
+			bands: bands.get(source.base),
 			cacheDir,
 			loudness:
 				stream === undefined
@@ -141,15 +144,23 @@ async function readPreview(file: string) {
 	}
 }
 
+async function readBands(cacheDir: string, file: string): Promise<MixAudioEntry['bands']> {
+	const { frames, sampleRate } = await readBandsHeader(path.join(cacheDir, file));
+
+	return { file, frames, framesPerSecond: sampleRate / samplesPerFrame };
+}
+
 // A mix missing its rendition, loudness tags, preview is left out rather than half-published
 async function resolveEntry({
 	archive,
+	bands,
 	cacheDir,
 	loudness,
 	source,
 	stream,
 }: {
 	archive: string | undefined;
+	bands: string | undefined;
 	cacheDir: string;
 	loudness: StreamLoudness | undefined;
 	source: AudioSource;
@@ -166,6 +177,7 @@ async function resolveEntry({
 
 	return {
 		archive,
+		...(bands === undefined ? {} : { bands: await readBands(cacheDir, bands) }),
 		base: source.base,
 		loudness,
 		pairs,

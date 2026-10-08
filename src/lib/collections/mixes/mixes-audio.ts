@@ -1,3 +1,4 @@
+import type { QueueArchive } from '@xsynaptic/player';
 import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
 import { mixAudioPath } from '@xsynaptic/shared/constants';
@@ -10,7 +11,7 @@ import path from 'node:path';
 import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
-	archive: { pairCount: number; pairsPerSecond: number; url: string };
+	archive: QueueArchive;
 	peaks: Array<number>;
 	seconds: number;
 	streamUrl: string;
@@ -57,8 +58,17 @@ async function buildIndex(): Promise<MixAudioIndex> {
 	const mixes = await readMixes(path.join(CONTENT_DATA_PATH, mixAudioPath));
 
 	for (const mix of mixes) {
-		const audio = {
+		const audio: MixAudio = {
 			archive: {
+				...(mix.bands
+					? {
+							bands: {
+								frameCount: mix.bands.frames,
+								framesPerSecond: mix.bands.framesPerSecond,
+								url: `${waveformBaseUrl}${encodeURIComponent(mix.bands.file)}`,
+							},
+						}
+					: {}),
 				pairCount: mix.pairs,
 				pairsPerSecond: mix.pairsPerSecond,
 				url: `${waveformBaseUrl}${encodeURIComponent(mix.archive)}`,
@@ -69,6 +79,7 @@ async function buildIndex(): Promise<MixAudioIndex> {
 		};
 
 		index.archives.add(mix.archive);
+		if (mix.bands) index.archives.add(mix.bands.file);
 		index.streams.add(mix.stream);
 
 		for (const source of mix.sources) index.byFile.set(source, audio);

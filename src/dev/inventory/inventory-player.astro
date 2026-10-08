@@ -44,12 +44,12 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
-		<Variant label="320px mini, marquee (reduced motion restores the ellipsis)">
+		<Variant label="320px mini, marquee">
 			<player-root class="block max-w-xs" data-inventory-queue="marquee">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
-		<Variant label="320px mini, isOverlayEnabled=false: the Queue replaces Expand">
+		<Variant label="320px mini, isOverlayEnabled=false">
 			<div class="pt-96">
 				<player-root
 					class="block max-w-xs"
@@ -66,31 +66,43 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		note="Emulate <code>prefers-reduced-motion</code> for the loader and panel fallbacks."
 		source="packages/player/src/store/selectors.ts"
 	>
-		<Variant label="idle: queued, nothing loaded">
+		<Variant label="idle">
 			<player-root class="block" data-inventory-queue="idle">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
-		<Variant label="empty: nothing queued, hidden on the site">
+		<Variant label="empty, hidden on the site">
 			<div class="inventory-player-empty">
 				<player-root class="block" data-inventory-queue="empty">
 					<player-bar></player-bar>
 				</player-root>
 			</div>
 		</Variant>
-		<Variant label="error: the stream rejects">
+		<Variant label="error">
 			<player-root class="block" data-inventory-queue="error">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
-		<Variant label="loading, held; a press cancels">
+		<Variant label="loading; a press cancels">
 			<player-root class="block" data-inventory-queue="loading">
 				<player-bar></player-bar>
 			</player-root>
 		</Variant>
-		<Variant label="panel pending: the archive answers no range">
+		<Variant label="no peaks, a plain groove">
+			<player-root class="block" data-inventory-queue="no-peaks">
+				<player-bar></player-bar>
+			</player-root>
+		</Variant>
+		<Variant label="panel open; hover a cue dot for its label">
 			<div class="pt-32">
 				<player-root class="block" data-inventory-queue="panel">
+					<player-bar></player-bar>
+				</player-root>
+			</div>
+		</Variant>
+		<Variant label="panel pending">
+			<div class="pt-32">
+				<player-root class="block" data-inventory-queue="panel-pending">
 					<player-bar></player-bar>
 				</player-root>
 			</div>
@@ -145,73 +157,6 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</player-root>
 		</div>
 	</Specimen>
-	<Specimen name="The bar's leaves" source="packages/player/src/elements/">
-		<Variant label="resolver rejects">
-			<player-root
-				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
-				data-inventory-queue="error"
-			>
-				<player-play-button></player-play-button>
-				<div class="player-track min-w-0 flex-1">
-					<player-title></player-title>
-					<div class="player-track-meta">
-						<player-artist-line></player-artist-line>
-					</div>
-				</div>
-				<player-status></player-status>
-			</player-root>
-		</Variant>
-		<Variant label="empty store">
-			<player-root
-				class="flex items-center gap-4 bg-surface-900 px-4 py-2.5"
-				data-inventory-queue="empty"
-			>
-				<player-play-button></player-play-button>
-				<div class="relative h-4 w-20">
-					<player-time></player-time>
-				</div>
-			</player-root>
-		</Variant>
-	</Specimen>
-	<Specimen
-		name="player-time-slider, player-panel"
-		source="packages/player/src/elements/time-slider/"
-	>
-		<Variant label="panel open, archive pending; hover a cue dot for its label">
-			<player-root class="relative bg-surface-900 pb-2.5" data-inventory-queue="panel">
-				<player-panel class="block"></player-panel>
-				<div class="flex items-center gap-4 px-4 pt-2.5">
-					<player-play-button></player-play-button>
-					<player-time-slider class="block min-w-0 flex-1"></player-time-slider>
-					<div class="relative h-4 w-20">
-						<player-time></player-time>
-					</div>
-					<player-panel-toggle></player-panel-toggle>
-				</div>
-			</player-root>
-		</Variant>
-		<Variant label="idle, the inert preview">
-			<player-root
-				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
-				data-inventory-queue="idle"
-			>
-				<player-play-button></player-play-button>
-				<player-time-slider class="block min-w-0 flex-1"></player-time-slider>
-			</player-root>
-		</Variant>
-		<Variant label="no peaks, a plain groove">
-			<player-root
-				class="relative flex items-center gap-4 bg-surface-900 px-4 py-2.5"
-				data-inventory-queue="no-peaks"
-			>
-				<player-play-button></player-play-button>
-				<player-time-slider class="block min-w-0 flex-1"></player-time-slider>
-				<div class="relative h-4 w-20">
-					<player-time></player-time>
-				</div>
-			</player-root>
-		</Variant>
-	</Specimen>
 	<Specimen
 		name="Palette (temporary)"
 		note="Picks land on <code>:root</code> and persist in this browser until reset; hold on the waveform for the scrub colour. Changed lines print below for <code>src/styles/main/components/player.css</code>."
@@ -248,7 +193,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 	const unqueued = new Set(['empty', 'muted', 'volume']);
 
-	const openPanelQueues = new Set(['palette', 'panel']);
+	const openPanelQueues = new Set(['palette', 'panel', 'panel-pending']);
 
 	function createSpecimenStore(queue: string): PlayerStoreApi {
 		const store = createPlayerStore({
@@ -331,7 +276,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 	function specimenUrls(items: Array<MixQueueItem>, queue: string): PlayerUrls {
 		if (queue === 'error') return failingUrls;
-		if (queue === 'panel') return pendingUrls(items);
+		if (queue === 'panel-pending') return pendingUrls(items);
 
 		return queuedUrls(items);
 	}

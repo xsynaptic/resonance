@@ -9,6 +9,7 @@ const tokenGroups = [
 		label: 'Surface',
 		tokens: [
 			'surface',
+			'panel-surface',
 			'panel-well',
 			'artwork-well',
 			'list-well',
@@ -19,8 +20,11 @@ const tokenGroups = [
 			'bar-border',
 		],
 	},
-	{ label: 'Text', tokens: ['title', 'meta', 'meta-hover', 'hint'] },
-	{ label: 'Pill', tokens: ['pill', 'pill-hover', 'pill-text'] },
+	{ label: 'Text', tokens: ['title', 'meta', 'meta-hover', 'hint', 'alert', 'alert-icon'] },
+	{
+		label: 'Pill',
+		tokens: ['pill', 'pill-hover', 'pill-text', 'pill-active', 'pill-active-hover', 'pill-inert'],
+	},
 	{ label: 'Clock', tokens: ['clock', 'clock-hover'] },
 	{
 		label: 'Control',
@@ -55,6 +59,9 @@ const tokenGroups = [
 		label: 'Panel',
 		tokens: [
 			'panel-wave',
+			'panel-band-1',
+			'panel-band-2',
+			'panel-band-3',
 			'panel-ghost',
 			'panel-grid',
 			'panel-ends',
@@ -80,12 +87,14 @@ const tokenGroups = [
 ---
 
 <div data-inventory-palette>
-	<player-root class="block" data-inventory-queue="palette">
-		<player-bar></player-bar>
-	</player-root>
+	<div class="pt-32">
+		<player-root class="block" data-inventory-queue="palette">
+			<player-bar></player-bar>
+		</player-root>
+	</div>
 	<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-6">
 		{tokenGroups.map((group) => (
-			<fieldset class="grid gap-1.5">
+			<fieldset class="grid content-start gap-1.5">
 				<legend class="mb-2 text-ink-400">{group.label}</legend>
 				{group.tokens.map((name) => (
 					<label class="grid grid-cols-[1.25rem_1fr_auto] items-center gap-2">

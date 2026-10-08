@@ -86,7 +86,7 @@
 .player-button-pill:has(> .sonic-button[aria-disabled='true']) {
 	--player-pill-cap: var(--player-pill-inert);
 	--player-pill-edge: var(--player-pill);
-	--sonic-ink-disabled: var(--player-pill-inert-text);
+	--sonic-ink-disabled: var(--player-control-inert);
 }
 
 .player-header {

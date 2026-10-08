@@ -29,9 +29,7 @@ import { getMediaImage } from '#lib/utils/media.ts';
 import { resolveCredits } from '#lib/utils/terms.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 
-// The inventory's one seam onto real content, so the page itself is only imports and prop-passing
-// Everything is found by predicate rather than named by slug, so editing content cannot break a specimen
-// A specimen whose content has vanished renders empty, which is the honest signal
+// Found by predicate, never named by slug; a specimen whose content has vanished renders empty
 
 interface ExcerptSample {
 	Content: Awaited<ReturnType<typeof render>>['Content'];
@@ -93,8 +91,7 @@ const itemWithoutPeaks: MixQueueItem = {
 	},
 };
 
-// No mix in the corpus is split across audio files, so the grouped tracklist has to be hand-built
-// The filenames are fictional, so the download buttons dangle; the page carries no mix slug for a cue link
+// No mix in the corpus is split across audio files; the filenames are fictional, so the download buttons dangle
 const groupedTracks: TracklistValue = [
 	{
 		files: ['A Hand-Built Fixture - Part One.mp3'],

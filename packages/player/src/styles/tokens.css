@@ -17,7 +17,6 @@
 	--player-pill-active: #064e3b;
 	--player-pill-active-hover: #065f46;
 	--player-pill-inert: #0a0a0a;
-	--player-pill-inert-text: #525252;
 
 	/* Darker than the surface, so the bar reads as a lip over the page rather than a panel edge */
 	--player-bar-border: #000;

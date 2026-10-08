@@ -46,16 +46,14 @@ An ordered list numbers in the same dim marker colour:
 3. Finally the artists and labels are matched against the catalog
 
 Fenced blocks are highlighted by shiki, which sets the background and every token colour inline. An
-untagged fence gets one foreground colour on the plate and nothing else, which is what four of the
-twelve blocks in the corpus still look like, being expression syntax no grammar covers. A long line
-scrolls inside the block rather than widening the column.
+untagged fence gets one foreground colour on the plate and nothing else. A long line scrolls inside
+the block rather than widening the column.
 
 ```
 rsync -avh --progress --exclude={"._","._/"} /Volumes/SourceDrive/Music/ /Volumes/DestinationDrive/Music --dry-run
 ```
 
-Tagging the fence is what turns the theme on, and it is the only way token colour reaches the page.
-The other eight blocks in the corpus are tagged, so this is what most of them render as:
+Tagging the fence is what turns the theme on, and it is the only way token colour reaches the page:
 
 ```sh
 rsync -avh --progress --exclude={"._","._/"} /Volumes/SourceDrive/Music/ /Volumes/DestinationDrive/Music --dry-run

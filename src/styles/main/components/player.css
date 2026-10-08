@@ -18,7 +18,6 @@
 	--player-pill-active: var(--color-highlight-800);
 	--player-pill-active-hover: var(--color-highlight-700);
 	--player-pill-inert: var(--color-surface-900);
-	--player-pill-inert-text: var(--color-ink-900);
 	--player-bar-border: var(--color-surface-950);
 	--player-title: var(--color-ink-200);
 	--player-meta: var(--color-ink-600);

@@ -6,7 +6,6 @@ import { holdPresses, isPlayerActionable } from '@xsynaptic/player/boot';
 import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 interface PlayerBarConfig {
-	isScopeEnabled: boolean;
 	labels: PlayerLabels;
 	libraryUrl: string;
 	seekSeconds: number;
@@ -65,7 +64,7 @@ async function loadPlayer(host: Element): Promise<void> {
 
 	host.append(
 		createPlayer({
-			isScopeEnabled: config.isScopeEnabled,
+			isScopeEnabled: true,
 			labels: config.labels,
 			seekSeconds: config.seekSeconds,
 			store,

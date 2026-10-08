@@ -30,20 +30,18 @@ export function traceArchive(
 		elementTime: store.getState().getCurrentTime,
 		subscribeTime: subscribeStoreTime(store),
 	});
-	const archive = source && openArchive(source);
-
 	signal.addEventListener('abort', clock.stop, { once: true });
 
 	const fillColumns: FillColumns = (frameMs, columns) => {
-		const seconds = clock.read(frameMs, true);
-
-		columns.heardCount = Math.round(columns.count / 2);
-
-		if (!archive) {
+		if (!source) {
 			columns.highest.fill(0);
 			columns.lowest.fill(0);
 			return;
 		}
+
+		const archive = openArchive(source);
+
+		const seconds = clock.read(frameMs, true);
 
 		const windowPairs = windowSeconds * archive.pairsPerSecond;
 		const firstPair = seconds * archive.pairsPerSecond - windowPairs / 2;

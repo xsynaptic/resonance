@@ -34,16 +34,8 @@
 
 .player-tray-action {
 	--player-button-px: var(--player-button-px-small);
-	--sonic-button-face-radius-ratio: 0.5;
 	--sonic-button-padding-ratio: calc(10 / var(--player-button-px));
-	--sonic-button-press-scale: initial;
-	--sonic-button-radius-ratio: 0.5;
-	--sonic-cap: var(--player-pill);
-	--sonic-cap-hover: var(--player-pill-hover);
-	--sonic-ink: var(--player-pill-text);
-	--sonic-ink-hover: var(--player-meta-hover);
 	--sonic-legend-font-size: var(--player-font-size-small);
-	--sonic-relief: 1;
 }
 
 .player-tray-empty {

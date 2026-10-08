@@ -47,7 +47,6 @@ const libraryEntry = {
 
 function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 	const config = JSON.stringify({
-		isScopeEnabled: false,
 		labels: getPlayerLabels(),
 		libraryUrl: '/api/player/library.json?v=abc',
 		seekSeconds: 30,
@@ -115,7 +114,7 @@ describe('startPlayer', () => {
 		});
 
 		expect(elements.createPlayer).toHaveBeenCalledWith(
-			expect.objectContaining({ isScopeEnabled: false, seekSeconds: 30, store }),
+			expect.objectContaining({ isScopeEnabled: true, seekSeconds: 30, store }),
 		);
 		expect(document.querySelector('[data-player-host] > player-root')).not.toBeNull();
 		expect(elements.bindMediaSession).toHaveBeenCalledWith(store);

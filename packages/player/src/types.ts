@@ -36,6 +36,7 @@ export interface PlayerLabels {
 	queue: string;
 	removeFromQueue: string;
 	reorder: string;
+	scope: string;
 	seek: string;
 	seekBack: string;
 	seekForward: string;

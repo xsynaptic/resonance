@@ -296,6 +296,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			const urls = specimenUrls(items, queue);
 
 			root.isOverlayEnabled = root.dataset.inventoryOverlay !== 'off';
+			root.isScopeEnabled = true;
 			root.labels = labels;
 			root.store = store;
 			store.getState().configure({ seekSeconds, urls });

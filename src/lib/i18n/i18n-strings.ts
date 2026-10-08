@@ -177,6 +177,7 @@ const strings = {
 	'player.queued': 'Queued',
 	'player.removeFromQueue': 'Remove from the queue',
 	'player.reorder': 'Reorder in the queue',
+	'player.scope': 'Scope',
 	'player.seek': 'Seek',
 	'player.seekBack': 'Back {seconds} seconds',
 	'player.seekForward': 'Forward {seconds} seconds',

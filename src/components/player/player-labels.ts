@@ -25,6 +25,7 @@ export function getPlayerLabels(): PlayerLabels {
 		queue: t('player.queue'),
 		removeFromQueue: t('player.removeFromQueue'),
 		reorder: t('player.reorder'),
+		scope: t('player.scope'),
 		seek: t('player.seek'),
 		seekBack: t('player.seekBack'),
 		seekForward: t('player.seekForward'),

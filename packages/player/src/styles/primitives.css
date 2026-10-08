@@ -41,6 +41,54 @@
 	}
 }
 
+/* Registered, so the cap's fill can fade; the library swaps it on hover with no transition */
+@property --player-pill-cap {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: transparent;
+}
+
+.player-button-pill {
+	--player-pill-fill: var(--player-pill);
+	--player-pill-speed: 150ms;
+	--player-pill-cap: var(--player-pill-fill);
+	--player-pill-edge: var(--player-pill-fill);
+	--sonic-button-bevel-ratio: 0;
+	--sonic-button-face-radius-ratio: 0.5;
+	--sonic-button-radius-ratio: 0.5;
+	--sonic-cap: var(--player-pill-cap);
+	--sonic-cap-edge: var(--player-pill-edge);
+	--sonic-cap-hover: var(--player-pill-cap);
+	--sonic-fade-duration: var(--player-pill-speed);
+	--sonic-ink: var(--player-pill-text);
+	--sonic-ink-hover: var(--player-meta-hover);
+
+	transition: --player-pill-cap var(--player-pill-speed) var(--player-ease);
+}
+
+@media (hover: hover) {
+	.player-button-pill:has(> .sonic-button:not([aria-disabled='true']):hover) {
+		--player-pill-fill: var(--player-pill-hover);
+		--player-pill-speed: 50ms;
+	}
+}
+
+.player-button-pill:has(> .sonic-button:focus-visible) {
+	--player-pill-fill: var(--player-pill-hover);
+	--player-pill-speed: 50ms;
+}
+
+.player-button-pill:has(> .sonic-button[aria-pressed='true']) {
+	--player-pill: var(--player-pill-active);
+	--player-pill-hover: var(--player-pill-active-hover);
+}
+
+.player-button-pill:has(> .sonic-button[aria-disabled='true']) {
+	--player-pill-cap: var(--player-pill-inert);
+	--player-pill-edge: var(--player-pill);
+	--sonic-ink-disabled: var(--player-pill-inert-text);
+}
+
 .player-header {
 	display: flex;
 	flex-shrink: 0;

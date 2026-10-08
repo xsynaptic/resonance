@@ -56,7 +56,7 @@ function isShuffling(state: PlayerStore): boolean {
 function renderAction() {
 	const button = document.createElement('sonic-button');
 
-	button.className = 'player-tray-action';
+	button.className = 'player-button-pill player-tray-action';
 	button.append(document.createElement('span'));
 
 	return button;

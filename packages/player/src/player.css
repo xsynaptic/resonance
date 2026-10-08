@@ -1,6 +1,7 @@
 @import '@xsynaptic/sonic-ui/material/core.css';
 @import '@xsynaptic/sonic-ui/material/cap.css';
 @import '@xsynaptic/sonic-ui/material/glass.css';
+@import '@xsynaptic/sonic-ui/material/pane.css';
 @import '@xsynaptic/sonic-ui/material/well.css';
 @import '@xsynaptic/sonic-ui/material/readout.css';
 @import '@xsynaptic/sonic-ui/material/value.css';
@@ -10,6 +11,7 @@
 @import '@xsynaptic/sonic-ui/material/keycap.css';
 @import '@xsynaptic/sonic-ui/button.css';
 @import '@xsynaptic/sonic-ui/dial.css';
+@import '@xsynaptic/sonic-ui/screen.css';
 @import '@xsynaptic/sonic-ui/slider.css';
 @import '@xsynaptic/sonic-ui/wavestrip.css';
 @import '@xsynaptic/sonic-ui/waveform.css';

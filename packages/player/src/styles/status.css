@@ -23,6 +23,14 @@
 	opacity: 1;
 }
 
+.player-status[data-status='error'] {
+	color: var(--player-alert);
+}
+
+.player-status[data-status='error'] svg {
+	color: var(--player-alert-icon);
+}
+
 /* The play button's ring shows loading; the region stays in the accessibility tree to announce it */
 .player-status[data-visible][data-status='loading'] {
 	opacity: 0;

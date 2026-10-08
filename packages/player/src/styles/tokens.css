@@ -1,5 +1,6 @@
 :root {
 	--player-surface: #0a0a0a;
+	--player-panel-surface: #171717;
 	--player-panel-well: #000;
 	--player-artwork-well: #000;
 	--player-list-well: #000;
@@ -13,6 +14,10 @@
 	--player-pill: #171717;
 	--player-pill-hover: #262626;
 	--player-pill-text: #d4d4d4;
+	--player-pill-active: #064e3b;
+	--player-pill-active-hover: #065f46;
+	--player-pill-inert: #0a0a0a;
+	--player-pill-inert-text: #525252;
 
 	/* Darker than the surface, so the bar reads as a lip over the page rather than a panel edge */
 	--player-bar-border: #000;
@@ -20,6 +25,8 @@
 	--player-meta: #a3a3a3;
 	--player-meta-hover: #f5f5f5;
 	--player-hint: #737373;
+	--player-alert: #fbbf24;
+	--player-alert-icon: #d97706;
 	--player-drag-handle: #737373;
 	--player-drag-handle-hover: #a3a3a3;
 	--player-clock: #a3a3a3;

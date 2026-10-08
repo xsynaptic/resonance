@@ -2,6 +2,7 @@
 :root {
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
 	--player-surface: var(--color-surface-800);
+	--player-panel-surface: var(--color-surface-700);
 	--player-panel-well: var(--color-surface-700);
 	--player-artwork-well: var(--color-surface-950);
 	--player-list-well: var(--color-surface-900);
@@ -11,14 +12,20 @@
 	--player-popover: var(--color-surface-900);
 	--player-hover: var(--color-surface-500);
 	--player-border: var(--color-surface-700);
-	--player-pill: var(--color-surface-600);
-	--player-pill-hover: var(--color-surface-500);
+	--player-pill: var(--color-surface-500);
+	--player-pill-hover: var(--color-surface-400);
 	--player-pill-text: var(--color-ink-500);
+	--player-pill-active: var(--color-highlight-800);
+	--player-pill-active-hover: var(--color-highlight-700);
+	--player-pill-inert: var(--color-surface-900);
+	--player-pill-inert-text: var(--color-ink-900);
 	--player-bar-border: var(--color-surface-950);
 	--player-title: var(--color-ink-200);
 	--player-meta: var(--color-ink-600);
 	--player-meta-hover: var(--color-ink-200);
 	--player-hint: var(--color-ink-700);
+	--player-alert: var(--color-highlight-400);
+	--player-alert-icon: var(--color-highlight-600);
 	--player-clock: var(--color-accent-500);
 	--player-clock-hover: var(--color-accent-400);
 
@@ -49,7 +56,7 @@
 	--player-panel-wave-peak: var(--color-ink-900);
 	--player-panel-ghost: var(--color-highlight-600);
 	--player-panel-grid: var(--color-surface-600);
-	--player-panel-ends: var(--color-surface-300);
+	--player-panel-ends: var(--color-surface-500);
 	--player-panel-cue: var(--color-ink-100);
 	--player-panel-placeholder: var(--color-ink-700);
 	--player-playhead: var(--color-highlight-400);

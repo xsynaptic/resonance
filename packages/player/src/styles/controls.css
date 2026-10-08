@@ -146,9 +146,6 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 
 .player-waveform-frame {
 	--sonic-buffered: var(--player-waveform-buffered);
-	--sonic-focus-glow: 0;
-	--sonic-focus-outline: var(--player-focus-width) solid var(--player-focus-ring);
-	--sonic-focus-outline-offset: var(--player-focus-offset);
 	--sonic-focus-radius: var(--player-radius);
 	--sonic-lit: var(--player-waveform-played);
 	--sonic-marker: var(--player-cue-dot);
@@ -168,9 +165,37 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 }
 
 .player-scope {
+	--sonic-screen-radius-ratio: 0.25;
+	--sonic-screen-size: 2rem;
+
+	inline-size: 6rem;
+	block-size: var(--sonic-screen-size);
+	padding-inline: 0;
+	overflow: hidden;
+	cursor: pointer;
+}
+
+.player-scope-trace {
 	display: block;
-	width: 6rem;
-	height: 2rem;
-	margin-left: var(--player-gap);
-	border-radius: var(--player-radius);
+	inline-size: 100%;
+	block-size: 100%;
+	background: linear-gradient(
+			color-mix(in oklab, var(--player-waveform-played) 20%, transparent),
+			color-mix(in oklab, var(--player-waveform-played) 20%, transparent)
+		)
+		center / 1px 100% no-repeat;
+	filter: drop-shadow(0 0 2px color-mix(in oklab, var(--player-waveform-played) 50%, transparent));
+	mask-image: linear-gradient(to right, rgb(0 0 0 / 55%), #000 15% 85%, rgb(0 0 0 / 55%));
+	mask-repeat: no-repeat;
+	transition: opacity var(--player-transition-slow);
+}
+
+.player-scope[aria-pressed='false'] .player-scope-trace {
+	opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-scope-trace {
+		transition-duration: 1ms;
+	}
 }

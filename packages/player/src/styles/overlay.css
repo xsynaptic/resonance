@@ -505,7 +505,19 @@
 	}
 
 	.player-overlay-deck > player-panel > .player-panel {
+		--player-panel-roll: inset(0 0 100%);
+
 		background: none;
+	}
+
+	.player-overlay-deck .player-panel :is(.sonic-waveform-canvas, .sonic-waveform-scrim) {
+		mask-image: linear-gradient(
+			to right,
+			transparent,
+			#000 0.25rem calc(100% - 0.25rem),
+			transparent
+		);
+		mask-repeat: no-repeat;
 	}
 
 	/* Aligns the previous glyph (five sixths of its 1.25rem icon), not its box, with the deck's edge */

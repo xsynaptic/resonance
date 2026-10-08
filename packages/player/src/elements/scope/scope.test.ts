@@ -69,6 +69,25 @@ describe('<player-scope>', () => {
 		expect(cancelFrame).toHaveBeenLastCalledWith(frames.length);
 	});
 
+	test('a press stops the trace once it has faded, and a second press starts it again', () => {
+		const { cancelFrame, frames } = stubCanvas(96);
+		const { fake, part } = mountPlaying();
+
+		fake.callbacks.current?.onStatus('playing');
+		part.querySelector('button')?.click();
+
+		expect(cancelFrame).not.toHaveBeenCalledWith(1);
+
+		part.querySelector('canvas')?.dispatchEvent(new Event('transitionend'));
+
+		expect(cancelFrame).toHaveBeenLastCalledWith(1);
+		expect(frames).toHaveLength(1);
+
+		part.querySelector('button')?.click();
+
+		expect(frames).toHaveLength(2);
+	});
+
 	test('requests no frame while it has no width', () => {
 		const { frames } = stubCanvas(0);
 		const { fake } = mountPlaying();

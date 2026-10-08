@@ -32,6 +32,23 @@
 		transparent
 	);
 	background-repeat: no-repeat;
+	animation: player-panel-in var(--player-transition-slow);
+}
+
+@keyframes player-panel-in {
+	from {
+		clip-path: var(--player-panel-roll, inset(100% 0 0));
+	}
+
+	to {
+		clip-path: inset(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player-panel {
+		animation: none;
+	}
 }
 
 .player-panel-label-artist {
@@ -57,13 +74,7 @@
 	padding: var(--player-gap-small);
 }
 
-/* The rim draws outside the cap, so the gap takes its 1px back and the pill stays the button's size */
 .player-panel-zoom sonic-button {
-	--sonic-button-bevel-ratio: 0;
-	--sonic-button-face-radius-ratio: 0.5;
-	--sonic-button-gap-ratio: calc(1 / var(--player-button-px));
-	--sonic-button-radius-ratio: 0.5;
-	--sonic-cap: color-mix(in oklab, var(--player-popover) 90%, transparent);
-	--sonic-cap-edge: var(--player-border);
-	--sonic-cap-hover: var(--player-hover);
+	--player-button-px: 16;
+	--sonic-button-icon-ratio: calc(10 / var(--player-button-px));
 }

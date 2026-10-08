@@ -1,5 +1,5 @@
 import { siteTitle } from '@xsynaptic/shared/constants';
-import { FILES_URL, LISTENING_TIME_ENABLED, PLAYER_SCOPE_ENABLED } from 'astro:env/server';
+import { FILES_URL, LISTENING_TIME_ENABLED } from 'astro:env/server';
 
 export const site = {
 	description: 'Long-form mixes, reviews, and writing on electronic music by DJ Basilisk.',
@@ -30,9 +30,6 @@ export const waveformBaseUrl = import.meta.env.DEV
 
 // Dev serves audio locally, so only a build has a remote host worth connecting to early
 export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).origin;
-
-// Opt-in even in dev until the scope's design settles
-export const isPlayerScopeEnabled = import.meta.env.DEV && PLAYER_SCOPE_ENABLED;
 
 // Listen counts render unflagged; listening time waits until the numbers are worth showing
 export const isListeningTimeEnabled = import.meta.env.DEV || LISTENING_TIME_ENABLED;

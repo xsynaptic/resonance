@@ -5,16 +5,16 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { traceArchive } from '#elements/scope/scope-archive.ts';
 import { bind } from '#lib/bind.ts';
-import { template } from '#lib/render.ts';
+import { requireChild, template } from '#lib/render.ts';
 import { supersede } from '#lib/supersede.ts';
 import { loadedDetail } from '#store/selectors.ts';
 
 // Wider and a kick is a few pixels; narrower and the archive's 256-sample pairs show as facets
 const windowSeconds = 1;
 
-const renderCanvas = template(
-	'<canvas aria-hidden="true" class="player-scope"></canvas>',
-	HTMLCanvasElement,
+const renderScreen = template(
+	'<button aria-pressed="true" class="player-scope sonic-screen" type="button"><canvas class="player-scope-trace"></canvas></button>',
+	HTMLButtonElement,
 );
 
 interface ScopeSource {
@@ -23,21 +23,48 @@ interface ScopeSource {
 }
 
 export class PlayerScope extends PlayerElement {
-	readonly #canvas = renderCanvas();
+	#isOn = true;
+
+	readonly #screen = renderScreen();
 
 	protected connect(signal: AbortSignal): void {
-		const { store } = playerContext(this);
+		const { labels, store } = playerContext(this);
+		const screen = this.#screen;
+		const canvas = requireChild(screen, 'canvas', HTMLCanvasElement);
 		const trace = supersede(signal);
+		let source = selectScopeSource(store.getState());
 
-		this.appendOnce(this.#canvas);
+		const retrace = (): void => {
+			trace.cancel();
+			if (!source.isTracing || !this.#isOn) return;
+
+			traceArchive(canvas, { archive: source.archive, store, windowSeconds }, trace.next());
+		};
+
+		screen.setAttribute('aria-label', labels.scope);
+		this.appendOnce(screen);
+		screen.addEventListener(
+			'click',
+			() => {
+				this.#isOn = !this.#isOn;
+				screen.setAttribute('aria-pressed', String(this.#isOn));
+				if (this.#isOn) retrace();
+			},
+			{ signal },
+		);
+		canvas.addEventListener(
+			'transitionend',
+			() => {
+				if (!this.#isOn) retrace();
+			},
+			{ signal },
+		);
 		bind(
 			store,
 			selectScopeSource,
-			({ archive, isTracing }) => {
-				trace.cancel();
-				if (!isTracing) return;
-
-				traceArchive(this.#canvas, { archive, store, windowSeconds }, trace.next());
+			(selected) => {
+				source = selected;
+				retrace();
 			},
 			signal,
 		);

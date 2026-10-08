@@ -60,7 +60,7 @@ export class PlayerPanelZoom extends PlayerElement {
 
 function renderZoomButton(icon: 'zoomIn' | 'zoomOut') {
 	return renderSonicButton({
-		className: 'player-button-small',
+		className: 'player-button-pill',
 		icons: [cloneIcon(icon)],
 	});
 }

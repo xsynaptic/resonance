@@ -19,6 +19,7 @@ export const labels = {
 	queue: 'Queue',
 	removeFromQueue: 'Remove',
 	reorder: 'Reorder',
+	scope: 'Scope',
 	seek: 'Seek',
 	seekBack: 'Back 30 seconds',
 	seekForward: 'Forward 30 seconds',

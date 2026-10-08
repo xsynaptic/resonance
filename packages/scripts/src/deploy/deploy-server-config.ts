@@ -30,6 +30,7 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 	);
 	console.log(chalk.gray(`  stats: ${deployDir}/stats/ -> ${remoteHost}:/usr/local/bin/`));
 	console.log(chalk.gray(`  units: ${deployDir}/systemd/ -> ${remoteHost}:/etc/systemd/system/`));
+	console.log(chalk.gray(`  tmpfiles: ${deployDir}/tmpfiles/ -> ${remoteHost}:/etc/tmpfiles.d/`));
 
 	// fallow-ignore-next-line code-duplication -- the dry-run notice and the timer are unrelated lines that sit together in deploy-audio too
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
@@ -54,6 +55,11 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 		config,
 		dryRun,
 	});
+	await rsyncTo(`${deployDir}/tmpfiles/`, `${remoteHost}:${stagingPath}/tmpfiles/`, {
+		archive: 'av',
+		config,
+		dryRun,
+	});
 
 	await sshExec(config, applyNginxSites(config), { dryRun });
 
@@ -64,6 +70,7 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 		[
 			`sudo rsync -av --chown=root:root ${stagingPath}/stats/download-stats.py /usr/local/bin/download-stats.py`,
 			`sudo rsync -av --chown=root:root ${stagingPath}/systemd/ /etc/systemd/system/`,
+			`sudo rsync -av --chown=root:root ${stagingPath}/tmpfiles/ /etc/tmpfiles.d/`,
 			`sudo systemctl daemon-reload`,
 		].join(' && '),
 		{ dryRun },

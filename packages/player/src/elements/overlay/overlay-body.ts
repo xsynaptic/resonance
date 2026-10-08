@@ -65,7 +65,6 @@ const renderBody = template(
 							<player-scrub-readout></player-scrub-readout>
 						</div>
 					</div>
-					<player-panel></player-panel>
 					<div class="player-overlay-scrub">
 						<player-time-slider></player-time-slider><player-status></player-status>
 					</div>
@@ -77,6 +76,7 @@ const renderBody = template(
 						</div>
 						<player-panel-toggle></player-panel-toggle><player-volume></player-volume>
 					</div>
+					<player-panel></player-panel>
 					<div class="player-overlay-tabs">
 						<div class="player-header">
 							<div class="player-overlay-tablist" role="tablist"></div>

@@ -63,8 +63,6 @@
 	--player-dial-unlit: var(--color-surface-950);
 	--player-dial-dimmed: var(--color-highlight-700);
 	--player-dial-focus: var(--color-accent-500);
-	--player-dial-glass: var(--color-surface-950);
-	--player-dial-readout-text: var(--color-accent-500);
 	--player-font-family: var(--font-body);
 	--player-font-mono: var(--font-mono);
 }

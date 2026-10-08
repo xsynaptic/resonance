@@ -64,9 +64,6 @@
 	--player-dial-unlit: #262626;
 	--player-dial-dimmed: #047857;
 	--player-dial-focus: var(--player-focus-ring);
-	--player-dial-glass: var(--player-popover);
-	--player-dial-readout-text: var(--player-clock);
-	--player-dial-readout-size: 1.5rem;
 	--player-dial-light-tilt: 17deg;
 	--player-dial-size: var(--player-button-size);
 	--player-dial-ring-ratio: 0.075;
@@ -91,6 +88,7 @@
 	--player-artwork-size: 7.5rem;
 	--player-clock-width: 3.75rem;
 	--player-panel-height: 7.5rem;
+	--player-readout-size: 1.5rem;
 	--player-waveform-height: 3rem;
 	--player-waveform-height-bar: 3.5rem;
 	--player-progress-height: 4px;

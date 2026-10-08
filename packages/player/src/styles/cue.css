@@ -1,13 +1,15 @@
 .player-cue-label {
 	position: absolute;
 	z-index: var(--player-z-raised);
+	box-sizing: border-box;
 	max-width: min(var(--player-cue-label-max), var(--player-cue-room, 100%));
-	padding: 0.125rem 0.375rem;
+	block-size: var(--player-readout-size);
+	padding: 0 0.375rem;
 	margin-top: calc(var(--player-cue-size) / 2 + 0.25rem);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: var(--player-font-size-small);
-	line-height: 1rem;
+	line-height: calc(var(--player-readout-size) - 2px);
 	white-space: nowrap;
 	pointer-events: none;
 	background-color: var(--player-popover);

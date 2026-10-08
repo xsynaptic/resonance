@@ -1,3 +1,14 @@
+/* One surface for every boxed readout: the typed entries and the dial's */
+player-root {
+	--sonic-entry-selection: var(--player-control-active);
+	--sonic-glass: var(--player-popover);
+	--sonic-glass-edge: var(--player-border);
+	--sonic-glass-font: var(--player-font-mono);
+	--sonic-glass-text: var(--player-clock);
+	--sonic-radius: var(--player-radius);
+	--sonic-readout-size: var(--player-readout-size);
+}
+
 /* Mapped here, not on `:root`, so a host overriding the player tokens also restyles the dial */
 .player-volume {
 	--sonic-cap: var(--player-dial-cap);
@@ -13,13 +24,9 @@
 	--sonic-dial-travel: var(--player-dial-travel);
 	--sonic-dimmed: var(--player-dial-dimmed);
 	--sonic-focus: var(--player-dial-focus);
-	--sonic-glass: var(--player-dial-glass);
-	--sonic-glass-font: var(--player-font-mono);
-	--sonic-glass-text: var(--player-dial-readout-text);
 	--sonic-ink: var(--player-dial-ink);
 	--sonic-light-tilt: var(--player-dial-light-tilt);
 	--sonic-lit: var(--player-dial-lit);
-	--sonic-readout-size: var(--player-dial-readout-size);
 	--sonic-relief: var(--player-dial-relief);
 	--sonic-unlit: var(--player-dial-unlit);
 
@@ -133,11 +140,6 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 
 :is(.player-waveform-frame, .player-panel) {
 	--sonic-focus: var(--player-focus-ring);
-	--sonic-glass: var(--player-popover);
-	--sonic-glass-edge: var(--player-border);
-	--sonic-glass-font: var(--player-font-mono);
-	--sonic-glass-text: var(--player-clock);
-	--sonic-radius: var(--player-radius);
 	--sonic-scrub: var(--player-waveform-scrub);
 }
 

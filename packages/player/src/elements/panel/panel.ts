@@ -8,7 +8,6 @@ import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
 import { supersede } from '#lib/supersede.ts';
 
-// Holds the bar's height while the surface loads, and stays hidden from assistive tech until it names itself
 const renderPanel = template('<div aria-hidden="true" class="player-panel"></div>', HTMLDivElement);
 
 export class PlayerPanel extends PlayerElement {

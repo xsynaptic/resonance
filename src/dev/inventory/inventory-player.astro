@@ -89,9 +89,11 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</player-root>
 		</Variant>
 		<Variant label="panel pending: the archive answers no range">
-			<player-root class="block" data-inventory-queue="panel">
-				<player-bar></player-bar>
-			</player-root>
+			<div class="pt-32">
+				<player-root class="block" data-inventory-queue="panel">
+					<player-bar></player-bar>
+				</player-root>
+			</div>
 		</Variant>
 	</Specimen>
 	<Specimen name="player-overlay-content" source="packages/player/src/elements/overlay/">

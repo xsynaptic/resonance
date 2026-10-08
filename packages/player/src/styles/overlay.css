@@ -443,6 +443,7 @@
 		}
 
 		.player-overlay-deck {
+			align-content: center;
 			padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
 				var(--player-overlay-inset-bottom) var(--player-overlay-cover-gap);
 		}
@@ -504,8 +505,7 @@
 	}
 
 	.player-overlay-deck > player-panel > .player-panel {
-		background-color: color-mix(in oklab, var(--player-panel-well) 55%, transparent);
-		border-radius: var(--player-radius-large);
+		background: none;
 	}
 
 	/* Aligns the previous glyph (five sixths of its 1.25rem icon), not its box, with the deck's edge */

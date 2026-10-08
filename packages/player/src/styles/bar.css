@@ -23,8 +23,11 @@
 .player-bar > player-panel > .player-panel {
 	--player-panel-inset-left: env(safe-area-inset-left);
 
-	margin: calc(-1 * var(--player-padding-block-start)) calc(-1 * var(--player-inset-right))
-		var(--player-padding-block) calc(-1 * var(--player-inset-left));
+	position: absolute;
+	inset-block-end: 100%;
+	inset-inline: 0;
+	background-color: var(--player-surface);
+	border-top: 1px solid var(--player-bar-border);
 }
 
 .player-bar > player-panel > .player-panel .player-panel-zoom {

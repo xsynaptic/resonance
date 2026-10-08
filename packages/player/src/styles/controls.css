@@ -6,6 +6,7 @@ player-root {
 	--sonic-glass-font: var(--player-font-mono);
 	--sonic-glass-text: var(--player-clock);
 	--sonic-radius: var(--player-radius);
+	--sonic-readout-depth: 0;
 	--sonic-readout-size: var(--player-readout-size);
 }
 

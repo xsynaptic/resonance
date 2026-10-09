@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { QueueItem } from '#types.ts';
 
 import { preloadWhenQueued } from '#lib/preload-when-queued.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 const item = {
@@ -35,7 +36,7 @@ afterEach(() => {
 describe('preloadWhenQueued', () => {
 	test('waits for a queue, then preloads once when the page is idle', () => {
 		const idle = stubIdle();
-		const store = createPlayerStore({ isPersistent: false });
+		const store = createPlayerStore({ storage: createMemoryStorage() });
 		const preload = vi.fn();
 
 		preloadWhenQueued(store, preload);
@@ -55,7 +56,7 @@ describe('preloadWhenQueued', () => {
 
 	test('a queue already restored schedules at once, and unbinding before idle cancels it', () => {
 		const idle = stubIdle();
-		const store = createPlayerStore({ isPersistent: false });
+		const store = createPlayerStore({ storage: createMemoryStorage() });
 		const preload = vi.fn();
 
 		store.getState().loadQueue([item]);

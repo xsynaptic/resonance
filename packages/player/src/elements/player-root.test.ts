@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { PlayerRoot } from '#elements/player-root.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 import { mount, queueItem } from '#test/mount.ts';
@@ -57,7 +58,7 @@ describe('<player-root>', () => {
 	});
 
 	test('takes a store handed to it before its tag was defined', () => {
-		const store = createPlayerStore({ isPersistent: false });
+		const store = createPlayerStore({ storage: createMemoryStorage() });
 		const early = Object.assign(document.createElement('player-early-root'), { labels, store });
 
 		document.body.append(early);

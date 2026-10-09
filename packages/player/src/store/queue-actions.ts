@@ -78,27 +78,24 @@ export function createQueueActions({
 		// Positioned, with nothing loaded and nothing playing
 		hydrateQueue: () => {
 			const stored = persistence.readQueue();
+			if (!stored) return;
 
-			if (stored) {
-				const restored = {
-					...loadedQueue(queueState(), stamped(stored.queue)),
-					currentIndex: stored.currentIndex,
-				};
-				const item =
-					stored.currentIndex === undefined ? undefined : stored.queue[stored.currentIndex];
+			const restored = {
+				...loadedQueue(queueState(), stamped(stored.queue)),
+				currentIndex: stored.currentIndex,
+			};
+			const item =
+				stored.currentIndex === undefined ? undefined : stored.queue[stored.currentIndex];
 
-				set({
-					...(stored.playOrder === undefined
-						? shuffledQueue(restored, stored.isShuffling)
-						: { ...restored, isShuffling: true, playOrder: stored.playOrder }),
-					currentTimeSeconds: stored.currentTimeSeconds,
-					details: persistence.readDetails(),
-					durationSeconds: toDurationSeconds(item),
-					status: 'idle',
-				});
-			}
-
-			persistence.bindQueue();
+			set({
+				...(stored.playOrder === undefined
+					? shuffledQueue(restored, stored.isShuffling)
+					: { ...restored, isShuffling: true, playOrder: stored.playOrder }),
+				currentTimeSeconds: stored.currentTimeSeconds,
+				details: persistence.readDetails(),
+				durationSeconds: toDurationSeconds(item),
+				status: 'idle',
+			});
 		},
 
 		loadQueue: (items) => {

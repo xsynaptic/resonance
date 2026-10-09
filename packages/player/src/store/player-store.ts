@@ -11,7 +11,7 @@ import type {
 
 import { createAudioEngine } from '#engine/audio-engine.ts';
 import { createPlaybackController } from '#store/playback-controller.ts';
-import { createPlayerPersistence, inertPersistence } from '#store/player-persistence.ts';
+import { createPlayerPersistence } from '#store/player-persistence.ts';
 import { createPreferenceActions } from '#store/preference-actions.ts';
 import { createQueueActions } from '#store/queue-actions.ts';
 import { bindQueueDetails } from '#store/queue-details.ts';
@@ -54,8 +54,7 @@ export function createWritablePlayerStore(options?: PlayerStoreOptions): StoreAp
 	const hydrationSteps: Array<() => void> = [];
 
 	const store = createStore<PlayerStore>()((_set, _get, api) => {
-		const persistence =
-			options?.isPersistent === false ? inertPersistence : createPlayerPersistence(api);
+		const persistence = createPlayerPersistence(api, options?.storage);
 		const playback = createPlaybackController(api, createEngine);
 		const { hydratePreferences, ...preferenceActions } = createPreferenceActions({
 			api,
@@ -64,7 +63,7 @@ export function createWritablePlayerStore(options?: PlayerStoreOptions): StoreAp
 		});
 		const { hydrateQueue, ...queueActions } = createQueueActions({ api, persistence, playback });
 
-		hydrationSteps.push(hydratePreferences, hydrateQueue);
+		hydrationSteps.push(hydratePreferences, hydrateQueue, persistence.bind);
 
 		return {
 			...initialPlayerState,

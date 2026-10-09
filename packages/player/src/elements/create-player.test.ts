@@ -4,6 +4,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import type { PlayerUrls } from '#types.ts';
 
 import { createPlayer } from '#elements/create-player.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
@@ -17,7 +18,7 @@ afterEach(() => {
 
 describe('createPlayer', () => {
 	test('lands the options and the seek seconds before the bar is shaped', () => {
-		const store = createPlayerStore({ isPersistent: false });
+		const store = createPlayerStore({ storage: createMemoryStorage() });
 		const root = createPlayer({
 			isArtworkEnabled: false,
 			labels: { ...labels, seekBack: 'Back {seconds}' },

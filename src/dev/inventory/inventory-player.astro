@@ -169,7 +169,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 <script>
 	import type { PlayerLabels, PlayerStoreApi, PlayerUrls, QueueItem } from '@xsynaptic/player';
 
-	import { createPlayerStore, definePlayerElements } from '@xsynaptic/player';
+	import { createMemoryStorage, createPlayerStore, definePlayerElements } from '@xsynaptic/player';
 
 	import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -198,7 +198,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	function createSpecimenStore(queue: string): PlayerStoreApi {
 		const store = createPlayerStore({
 			createEngine: queue === 'loading' ? createLoadingEngine : createSilentEngine,
-			isPersistent: false,
+			storage: createMemoryStorage(),
 		});
 
 		if (queue === 'muted') {

@@ -5,6 +5,7 @@ import type { PlayerUrls, QueueItem } from '#types.ts';
 
 import { heldPressAttribute } from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { bindPageControls } from '#page-controls.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 import { loadedItem } from '#store/selectors.ts';
@@ -25,7 +26,7 @@ afterEach(() => {
 function bindPage(items: Array<QueueItem>, controls: string) {
 	const store = createPlayerStore({
 		createEngine: createMockEngine().createEngine,
-		isPersistent: false,
+		storage: createMemoryStorage(),
 	});
 
 	const onPress = vi.fn();

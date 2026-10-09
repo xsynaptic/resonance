@@ -38,20 +38,14 @@ export function createPreferenceActions({
 	const { getState: get, setState: set } = api;
 
 	function applyVolume({ isMuted, volume }: Pick<PlayerState, 'isMuted' | 'volume'>): void {
-		const previous = get();
-
 		set({ isMuted, volume });
 		playback.syncVolume();
-
-		if (volume !== previous.volume) persistence.persistVolume(volume);
-		if (isMuted !== previous.isMuted) persistence.persistMuted(isMuted);
 	}
 
 	function applyPanelZoom(panelPxPerSecond: number): void {
 		if (get().panelPxPerSecond === panelPxPerSecond) return;
 
 		set({ panelPxPerSecond });
-		persistence.persistPanelZoom(panelPxPerSecond);
 	}
 
 	return {
@@ -65,7 +59,7 @@ export function createPreferenceActions({
 			const { isMuted, isPanelOpen, panelPxPerSecond, timeMode, volume } =
 				persistence.readPreferences();
 
-			// Not persisted back: this is the stored value arriving, not the listener moving the slider
+			// Before persistence binds, so a stored value arriving is not written back
 			if (isMuted !== undefined) set({ isMuted });
 			if (isPanelOpen !== undefined) set({ isPanelOpen });
 			if (panelPxPerSecond !== undefined) set({ panelPxPerSecond });
@@ -125,17 +119,11 @@ export function createPreferenceActions({
 		},
 
 		togglePanel: () => {
-			const isPanelOpen = !get().isPanelOpen;
-
-			set({ isPanelOpen });
-			persistence.persistPanelOpen(isPanelOpen);
+			set((state) => ({ isPanelOpen: !state.isPanelOpen }));
 		},
 
 		toggleTimeMode: () => {
-			const timeMode = get().timeMode === 'elapsed' ? 'remaining' : 'elapsed';
-
-			set({ timeMode });
-			persistence.persistTimeMode(timeMode);
+			set({ timeMode: get().timeMode === 'elapsed' ? 'remaining' : 'elapsed' });
 		},
 
 		toggleTray: () => {

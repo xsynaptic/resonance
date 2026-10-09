@@ -2,6 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bind } from '#lib/bind.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
 afterEach(() => {
@@ -13,7 +14,7 @@ test('a write that throws is reported and leaves later subscribers their update'
 	const reportError = vi.fn();
 	const store = createPlayerStore({
 		createEngine: createMockEngine().createEngine,
-		isPersistent: false,
+		storage: createMemoryStorage(),
 	});
 	const later = vi.fn();
 

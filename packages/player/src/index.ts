@@ -4,6 +4,8 @@ export { definePlayerElements } from '#elements/define.ts';
 export type { AudioEngine, AudioEngineCallbacks, CreateAudioEngine } from '#engine/audio-engine.ts';
 export { bindMediaSession } from '#engine/media-session.ts';
 export { LazyModuleError } from '#lib/lazy-module.ts';
+export { createMemoryStorage } from '#lib/storage.ts';
+export type { PlayerStorage } from '#lib/storage.ts';
 export { bindPageControls } from '#page-controls.ts';
 export type { ControlPress, PageControls } from '#page-controls.ts';
 export { createPlayerStore } from '#store/player-store.ts';

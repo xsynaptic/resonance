@@ -6,6 +6,7 @@ import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore, createWritablePlayerStore } from '#store/player-store.ts';
 
 // Replaced per test, so nothing a store did survives into the next one
@@ -26,12 +27,12 @@ const release = [makeItem('a'), makeItem('b'), makeItem('c')];
 
 const mediaSnapshot = { networkState: 2, positionSeconds: 0, readyState: 0 };
 
-interface StoredQueueRecord {
+interface StoredOrderRecord {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
 	isShuffling: boolean;
+	itemIds: Array<string>;
 	playOrder: Array<number>;
-	queue: Array<{ itemId: string }>;
 }
 
 function configured(isPersistent = false): StoreApi<PlayerStore> {
@@ -87,12 +88,22 @@ function persisted(): StoreApi<PlayerStore> {
 	return configured(true);
 }
 
-function storedQueue(): null | StoredQueueRecord {
-	return JSON.parse(localStorage.getItem('player:v2:queue') ?? 'null') as null | StoredQueueRecord;
+function storedItems(): Record<string, QueueItem> {
+	return JSON.parse(localStorage.getItem('player:v1:queue-items') ?? '{}') as Record<
+		string,
+		QueueItem
+	>;
+}
+
+function storedOrder(): null | StoredOrderRecord {
+	return JSON.parse(localStorage.getItem('player:v2:queue') ?? 'null') as null | StoredOrderRecord;
 }
 
 function withResolver(stream: PlayerUrls['stream'], isPersistent = false): StoreApi<PlayerStore> {
-	const store = createWritablePlayerStore({ createEngine: fake.createEngine, isPersistent });
+	const store = createWritablePlayerStore({
+		createEngine: fake.createEngine,
+		storage: isPersistent ? undefined : createMemoryStorage(),
+	});
 
 	store.getState().configure({
 		urls: {
@@ -1034,11 +1045,125 @@ describe('queue persistence', () => {
 
 		store.getState().playTrack(release, 'b');
 
-		expect(storedQueue()?.queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
-		expect(storedQueue()?.currentIndex).toBe(1);
+		expect(storedOrder()?.itemIds).toStrictEqual(['a', 'b', 'c']);
+		expect(storedOrder()?.currentIndex).toBe(1);
+		expect(Object.keys(storedItems())).toStrictEqual(['a', 'b', 'c']);
 
 		store.getState().clearQueue();
 		expect(localStorage.getItem('player:v2:queue')).toBeNull();
+		expect(localStorage.getItem('player:v1:queue-items')).toBeNull();
+	});
+
+	test('an advance, a reorder and a shuffle write the order and leave the items alone', () => {
+		const store = persisted();
+
+		store.getState().playTrack(release, 'a');
+
+		const setItem = vi.spyOn(localStorage, 'setItem');
+
+		store.getState().next();
+		store.getState().moveItem(0, 2);
+		store.getState().toggleShuffle();
+
+		expect(setItem.mock.calls.map(([key]) => key)).toStrictEqual([
+			'player:v2:queue',
+			'player:v2:queue',
+			'player:v2:queue',
+		]);
+		expect(storedOrder()?.itemIds).toStrictEqual(['b', 'c', 'a']);
+
+		setItem.mockRestore();
+		localStorage.clear();
+	});
+
+	test('writes the items when one is added, removed or refreshed', () => {
+		const store = persisted();
+
+		store.getState().loadQueue(release);
+		store.getState().queueTrack([makeItem('d')], 'd');
+
+		expect(Object.keys(storedItems())).toStrictEqual(['a', 'b', 'c', 'd']);
+
+		store.getState().removeAt(0);
+
+		expect(Object.keys(storedItems())).toStrictEqual(['b', 'c', 'd']);
+
+		store.getState().refreshQueue([{ ...makeItem('b'), title: 'Fresh' }]);
+
+		expect(storedItems().b?.title).toBe('Fresh');
+
+		localStorage.clear();
+	});
+
+	test('restores a queue stored whole under the order key, and splits it on the first change', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({
+				currentIndex: 1,
+				currentTimeSeconds: 42,
+				isShuffling: false,
+				playOrder: [0, 1, 2],
+				queue: release,
+			}),
+		);
+
+		const store = persisted();
+
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
+		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
+		expect(localStorage.getItem('player:v1:queue-items')).toBeNull();
+
+		store.getState().moveItem(0, 2);
+
+		expect(storedOrder()?.itemIds).toStrictEqual(['b', 'c', 'a']);
+		expect(Object.keys(storedItems())).toStrictEqual(['b', 'c', 'a']);
+
+		fake = createMockEngine();
+
+		expect(
+			persisted()
+				.getState()
+				.queue.map((item) => item.itemId),
+		).toStrictEqual(['b', 'c', 'a']);
+
+		localStorage.clear();
+	});
+
+	test('restores an id stored twice as two rows, and follows the loaded one', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'b', 'a'] }),
+		);
+		localStorage.setItem(
+			'player:v1:queue-items',
+			JSON.stringify({ a: makeItem('a'), b: makeItem('b') }),
+		);
+
+		const { currentIndex, queue } = persisted().getState();
+
+		expect(queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'a']);
+		expect(new Set(queue.map((item) => item.queueId)).size).toBe(3);
+		expect(currentIndex).toBe(2);
+
+		localStorage.clear();
+	});
+
+	test('drops a stored id that has no item and follows the loaded one past it', () => {
+		localStorage.setItem(
+			'player:v2:queue',
+			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'gone', 'c'] }),
+		);
+		localStorage.setItem(
+			'player:v1:queue-items',
+			JSON.stringify({ a: makeItem('a'), c: makeItem('c') }),
+		);
+
+		const store = persisted();
+
+		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'c']);
+		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
+
+		localStorage.clear();
 	});
 
 	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
@@ -1047,7 +1172,7 @@ describe('queue persistence', () => {
 		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: release }));
 		leavePage();
 
-		expect(storedQueue()?.queue).toHaveLength(3);
+		expect(localStorage.getItem('player:v2:queue')).toBe(JSON.stringify({ queue: release }));
 
 		localStorage.removeItem('player:v2:queue');
 	});
@@ -1178,17 +1303,18 @@ describe('queue persistence', () => {
 		fake = createMockEngine();
 
 		const second = persisted();
+		const saved = JSON.stringify({ queue: [makeItem('y')] });
 
 		leavePage();
-		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: [makeItem('y')] }));
+		localStorage.setItem('player:v2:queue', saved);
 		leavePage();
 
-		expect(storedQueue()?.queue.map((item) => item.itemId)).toStrictEqual(['y']);
+		expect(localStorage.getItem('player:v2:queue')).toBe(saved);
 
 		second.getState().seek(30);
 		leavePage();
 
-		expect(storedQueue()?.currentTimeSeconds).toBe(30);
+		expect(storedOrder()?.currentTimeSeconds).toBe(30);
 
 		localStorage.removeItem('player:v2:queue');
 	});
@@ -1200,7 +1326,7 @@ describe('queue persistence', () => {
 		store.getState().seek(42);
 		hidePage();
 
-		expect(storedQueue()?.currentTimeSeconds).toBe(42);
+		expect(storedOrder()?.currentTimeSeconds).toBe(42);
 
 		localStorage.removeItem('player:v2:queue');
 	});
@@ -1214,7 +1340,7 @@ describe('queue persistence', () => {
 
 		const { playOrder } = first.getState();
 
-		expect(storedQueue()).toMatchObject({ isShuffling: true, playOrder });
+		expect(storedOrder()).toMatchObject({ isShuffling: true, playOrder });
 
 		random.mockReturnValue(0.99);
 		fake = createMockEngine();
@@ -1313,7 +1439,7 @@ describe('storage', () => {
 		}
 	});
 
-	test('a store that does not persist neither reads nor writes storage', () => {
+	test('a store given its own storage neither reads nor writes localStorage', () => {
 		vi.useFakeTimers();
 		localStorage.setItem('player:v1:volume', '0.4');
 		localStorage.setItem(
@@ -1327,9 +1453,10 @@ describe('storage', () => {
 		);
 
 		const setItem = vi.spyOn(localStorage, 'setItem');
+		const storage = createMemoryStorage();
 
 		try {
-			const store = createPlayerStore({ createEngine: fake.createEngine, isPersistent: false });
+			const store = createPlayerStore({ createEngine: fake.createEngine, storage });
 
 			expect(store.getState().volume).toBe(1);
 			expect(store.getState().queue).toHaveLength(0);
@@ -1339,6 +1466,8 @@ describe('storage', () => {
 			vi.runAllTimers();
 
 			expect(setItem).not.toHaveBeenCalled();
+			expect(storage.getItem('player:v1:volume')).toBe('0.7');
+			expect(storage.getItem('player:v2:queue')).toBeDefined();
 		} finally {
 			setItem.mockRestore();
 			vi.useRealTimers();

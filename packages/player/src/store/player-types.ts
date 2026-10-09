@@ -1,6 +1,7 @@
 import type { StoreApi } from 'zustand/vanilla';
 
 import type { CreateAudioEngine } from '#engine/audio-engine.ts';
+import type { PlayerStorage } from '#lib/storage.ts';
 import type {
 	PlaybackDiagnostic,
 	PlaybackError,
@@ -102,6 +103,5 @@ export type PlayerStoreApi = Omit<StoreApi<PlayerStore>, 'setState'>;
 
 export interface PlayerStoreOptions {
 	createEngine?: CreateAudioEngine | undefined;
-	// Off for a secondary mount, which must neither show the listener's saved queue and volume nor write over them
-	isPersistent?: boolean | undefined;
+	storage?: PlayerStorage | undefined;
 }

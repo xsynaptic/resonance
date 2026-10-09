@@ -1,3 +1,5 @@
+import type { PlayerStorage } from '#lib/storage.ts';
+
 import {
 	controlSelector,
 	heldPressAttribute,
@@ -5,6 +7,7 @@ import {
 	payloadSelector,
 	queueStorageKey,
 } from '#constants.ts';
+import { readStored } from '#lib/storage.ts';
 
 export interface HeldPresses {
 	pressed: Promise<void>;
@@ -41,12 +44,8 @@ export function holdPresses(page: Document): HeldPresses {
 }
 
 // A page that can queue something, or a listener whose bar is already showing
-export function isPlayerActionable(page: Document): boolean {
+export function isPlayerActionable(page: Document, storage?: PlayerStorage): boolean {
 	if (page.querySelector(payloadSelector)) return true;
 
-	try {
-		return localStorage.getItem(queueStorageKey) !== null;
-	} catch {
-		return false;
-	}
+	return readStored(storage, queueStorageKey) !== undefined;
 }

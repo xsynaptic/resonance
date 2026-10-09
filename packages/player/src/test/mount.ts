@@ -6,6 +6,7 @@ import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
 
 import { definePlayerElements } from '#elements/define.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
@@ -37,7 +38,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	const fake = createMockEngine();
 	const store = createWritablePlayerStore({
 		createEngine: fake.createEngine,
-		isPersistent: false,
+		storage: createMemoryStorage(),
 	});
 	const root = document.createElement('player-root');
 	const part = document.createElement(tag);

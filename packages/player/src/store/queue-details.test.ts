@@ -6,6 +6,7 @@ import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { isDetailPending } from '#store/selectors.ts';
 
@@ -23,7 +24,7 @@ function createStore(
 ): StoreApi<PlayerStore> {
 	const store = createWritablePlayerStore({
 		createEngine: createMockEngine().createEngine,
-		isPersistent,
+		storage: isPersistent ? undefined : createMemoryStorage(),
 	});
 
 	store.getState().configure({
@@ -222,20 +223,48 @@ describe('detail persistence', () => {
 			isPersistent: true,
 		});
 
-		store.getState().loadQueue([makeItem('b')]);
-		await settle();
-
-		expect(store.getState().details.get('b')).toStrictEqual({});
-		expect(localStorage.getItem(detailStorageKey)).toBeNull();
-
-		store.getState().queueTrack([makeItem('a')], 'a');
+		store.getState().loadQueue([makeItem('a'), makeItem('b')]);
 		await settle();
 
 		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({ a: strip });
 
-		store.getState().removeAt(1);
+		store.getState().removeAt(0);
 
+		expect(store.getState().details.get('b')).toStrictEqual({});
 		expect(localStorage.getItem(detailStorageKey)).toBeNull();
+	});
+
+	test('holds the displayed item alone, following it through an advance', async () => {
+		const store = createStore(({ itemId }) => Promise.resolve({ trackCount: itemId.length }), {
+			isPersistent: true,
+		});
+
+		store.getState().playTrack([makeItem('a'), makeItem('bb')], 'a');
+		await settle();
+
+		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({
+			a: { trackCount: 1 },
+		});
+
+		store.getState().next();
+
+		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({
+			bb: { trackCount: 2 },
+		});
+	});
+
+	test('restores the displayed detail out of a map that holds every queued item', async () => {
+		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
+
+		first.getState().loadQueue([makeItem('a'), makeItem('b')]);
+		await settle();
+		localStorage.setItem(detailStorageKey, JSON.stringify({ a: strip, b: { trackCount: 9 } }));
+
+		const second = createStore(offline, { isPersistent: true });
+
+		expect(isDetailPending(second.getState())).toBe(false);
+		expect(second.getState().details.get('a')).toStrictEqual(strip);
+		expect(second.getState().details.get('b')).toStrictEqual({ trackCount: 9 });
 	});
 
 	test('an idle tab never deletes the detail another tab saved', () => {
@@ -298,7 +327,7 @@ describe('detail persistence', () => {
 		first.getState().loadQueue([makeItem('a')]);
 		await settle();
 
-		const setItem = vi.spyOn(Storage.prototype, 'setItem');
+		const setItem = vi.spyOn(localStorage, 'setItem');
 		const second = createStore(() => Promise.resolve({ ...strip }), { isPersistent: true });
 
 		await settle();

@@ -64,6 +64,7 @@ function feedArchive(
 	waveform: SonicWaveform,
 	source: QueueArchive | undefined,
 ): number | undefined {
+	waveform.bands = undefined;
 	waveform.peaks = undefined;
 	waveform.requestPeaks = undefined;
 	if (!source) return undefined;
@@ -74,6 +75,7 @@ function feedArchive(
 	waveform.peaks = { pairsPerSecond, samples: archive.samples };
 	waveform.requestPeaks = (fromSeconds, toSeconds) =>
 		archive.want(fromSeconds * pairsPerSecond, toSeconds * pairsPerSecond);
+	waveform.bands = archive.bands;
 
 	return archive.pairsTotal / pairsPerSecond;
 }

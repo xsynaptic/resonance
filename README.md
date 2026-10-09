@@ -15,8 +15,7 @@ The centrepiece of the site. Mixes run anywhere from one to eight hours, so the 
 - A queue visitors can add to and reorder, restored per browser after a reload without autoplaying
 - Curated Playlists on the homepage: pick a style, lean back, and the next mix picks up when one ends
 - Cue points derived from each mix's timestamped tracklist drive track skipping, now-playing titles, and the Media Session API for lock screens and hardware keys
-- A scrolling waveform panel drawn to Canvas 2D from full-resolution waveform archives, fetching only the window on screen via HTTP range requests
-- Sub-pixel scrolling driven by a first-order tracking clock rather than the media element's stepped `currentTime`, so the waveform glides instead of stuttering
+- A scrolling waveform panel drawn by [`@xsynaptic/sonic-ui`](https://github.com/xsynaptic/sonic-ui) from full-resolution waveform archives, fetching only the window on screen via HTTP range requests
 
 ### Audio Pipeline
 

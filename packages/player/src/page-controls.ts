@@ -52,6 +52,7 @@ export function bindPageControls(
 	const connection = new AbortController();
 	const { signal } = connection;
 	const readPayload = payloadReader(page);
+	const selectRowState = rowStateSelector();
 
 	const dispatchControl = (target: Element | undefined): void => {
 		const control = target?.closest(controlSelector);
@@ -226,12 +227,22 @@ function pressControl(
 	return { itemIds: [playTrack], verb: 'play-track' };
 }
 
-// Intent rather than sound, matching the bar's play button
-function selectRowState(state: PlayerStore): RowState {
-	return {
-		cueStartSeconds: currentCue(state)?.startSeconds,
-		isPlaying: !state.isPaused,
-		itemId: loadedItem(state)?.itemId,
-		queuedIds: state.queue.map((item) => item.itemId).join(' '),
+function rowStateSelector(): (state: PlayerStore) => RowState {
+	let joinedQueue: PlayerStore['queue'] | undefined;
+	let queuedIds = '';
+
+	return (state) => {
+		if (state.queue !== joinedQueue) {
+			joinedQueue = state.queue;
+			queuedIds = state.queue.map((item) => item.itemId).join(' ');
+		}
+
+		return {
+			cueStartSeconds: currentCue(state)?.startSeconds,
+			// Intent rather than sound, matching the bar's play button
+			isPlaying: !state.isPaused,
+			itemId: loadedItem(state)?.itemId,
+			queuedIds,
+		};
 	};
 }

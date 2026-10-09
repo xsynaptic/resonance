@@ -4,6 +4,8 @@ import type { PlayerStoreApi } from '#store/player-store.ts';
 
 import { bind } from '#lib/bind.ts';
 
+const bufferedEvents = ['emptied', 'loadeddata', 'progress', 'suspend'] as const;
+
 export function bindBuffered(
 	control: SonicSlider | SonicWavestrip,
 	store: PlayerStoreApi,
@@ -17,7 +19,7 @@ export function bindBuffered(
 				control.buffered = element?.buffered;
 			};
 
-			element?.addEventListener('progress', showBuffered, { signal });
+			for (const type of bufferedEvents) element?.addEventListener(type, showBuffered, { signal });
 			showBuffered();
 		},
 		signal,

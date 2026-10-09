@@ -5,6 +5,7 @@ import type { QueueItem } from '#types.ts';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bindMediaSession } from '#engine/media-session.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 
 // jsdom carries no media session, so the projection is read off a stand-in
@@ -57,7 +58,7 @@ let mediaSession: FakeMediaSession;
 function loadedStore() {
 	const store = createWritablePlayerStore({
 		createEngine: createMockEngine().createEngine,
-		isPersistent: false,
+		storage: createMemoryStorage(),
 	});
 
 	store.getState().configure({

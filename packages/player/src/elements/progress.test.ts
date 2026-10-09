@@ -91,4 +91,24 @@ describe('<player-progress>', () => {
 
 		expect(slider.buffered).toEqual([[0, 90]]);
 	});
+
+	test('drops the buffered range when the media element empties for the next track', () => {
+		const { fake, slider, store } = mountStrip();
+		const { element } = fake.engine;
+		let rangeCount = 1;
+
+		vi.spyOn(element, 'buffered', 'get').mockImplementation(() => ({
+			end: () => 30,
+			length: rangeCount,
+			start: () => 0,
+		}));
+
+		store.getState().playTrack([queueItem('a')], 'a');
+		fake.callbacks.current?.onDuration(180);
+
+		rangeCount = 0;
+		element.dispatchEvent(new Event('emptied'));
+
+		expect(slider.buffered).toEqual([]);
+	});
 });

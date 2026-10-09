@@ -193,6 +193,20 @@ describe('<player-time-slider>', () => {
 		expect(store.getState().scrubPreviewSeconds).toBeUndefined();
 	});
 
+	test('previews a revealed hold from a finger, and never from a mouse', () => {
+		const { store, strip } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
+
+		strip.value = 100;
+
+		hold(strip, { pointerType: 'mouse', states: ['dragging', 'revealed'] });
+		strip.dispatchEvent(new Event('sonic-reveal'));
+		expect(store.getState().scrubPreviewSeconds).toBeUndefined();
+
+		hold(strip, { pointerType: 'touch', states: ['dragging', 'revealed'] });
+		strip.dispatchEvent(new Event('sonic-reveal'));
+		expect(store.getState().scrubPreviewSeconds).toBe(100);
+	});
+
 	test('is inert before an item loads, naming a cue point only at its start and with no clock', () => {
 		const { part, store } = mount('player-time-slider');
 

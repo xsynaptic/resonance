@@ -1,6 +1,5 @@
-.player-panel {
-	--sonic-lit: var(--player-panel-wave);
-	--sonic-marker: var(--player-panel-cue);
+.player-panel,
+.player-scope {
 	--sonic-waveform-band-1: var(--player-panel-band-1);
 	--sonic-waveform-band-2: var(--player-panel-band-2);
 	--sonic-waveform-band-3: var(--player-panel-band-3);
@@ -8,6 +7,11 @@
 	--sonic-waveform-band-normalize: var(--player-panel-band-normalize);
 	--sonic-waveform-band-opacity: var(--player-panel-band-opacity);
 	--sonic-waveform-band-tilt: var(--player-panel-band-tilt);
+}
+
+.player-panel {
+	--sonic-lit: var(--player-panel-wave);
+	--sonic-marker: var(--player-panel-cue);
 	--sonic-waveform-ends: var(--player-panel-ends);
 	--sonic-waveform-ghost: var(--player-panel-ghost);
 	--sonic-waveform-grid: var(--player-panel-grid);

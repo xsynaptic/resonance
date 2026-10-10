@@ -1,5 +1,7 @@
+import { peakArchiveHeaderBytes } from '@xsynaptic/shared/waveform-format';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { z } from 'zod';
 import { $ } from 'zx';
 
 import { openWaveformsCache } from '#audio/audio-sources.ts';
@@ -9,37 +11,39 @@ import { hashFile, readFileHead } from '#shared/utils.ts';
 
 const concurrency = 6;
 const archiveExtension = '.dat';
-const previewExtension = '.json';
+const overviewExtension = '.json';
 const tmpExtension = '.tmp';
 
 const archivePattern = /^(?<base>.+)\.[0-9a-f]{12}\.dat$/;
 
-const headerBytes = 20;
 const archiveVersion = 1;
 const eightBitFlag = 1;
 const expectedSamplesPerPixel = 256;
 
 // Bumped whenever the bucket count or the output range changes; neither is visible in an mtime
-export const previewVersion = 2;
-const previewBuckets = 400;
-const previewPrecision = 1000;
+const overviewVersion = 2;
+const overviewBuckets = 400;
+const overviewPrecision = 1000;
+
+// Rejecting a stale shape here is what stops it reaching a page
+const OverviewSchema = z.object({
+	seconds: z.number(),
+	values: z.number().array(),
+	version: z.literal(overviewVersion),
+});
 
 export interface WaveformHeader {
-	pairs: number;
+	pairCount: number;
 	sampleRate: number;
 	samplesPerPixel: number;
 }
 
-export interface WaveformPreview {
-	seconds: number;
-	values: Array<number>;
-	version: number;
-}
+export type WaveformOverview = z.infer<typeof OverviewSchema>;
 
 interface WaveformJob {
 	base: string;
 	existing: string | undefined;
-	preview: string;
+	overview: string;
 	source: string;
 }
 
@@ -57,11 +61,12 @@ export async function collectArchives(cacheDir: string): Promise<Map<string, str
 // Per pair take the envelope amplitude, per bucket the RMS of those amplitudes
 // Peak-per-bucket would render a featureless rectangle: a mastered mix peaks in every bucket
 // Values are normalized here rather than in a renderer, so consumers never need the source units
-export function distillWaveform(buffer: Buffer): WaveformPreview {
-	const { pairs, sampleRate, samplesPerPixel } = parseWaveformHeader(buffer);
-	if (buffer.length < headerBytes + pairs * 2) throw new Error('Waveform data is truncated');
+export function distillWaveform(buffer: Buffer): WaveformOverview {
+	const { pairCount: pairs, sampleRate, samplesPerPixel } = parseWaveformHeader(buffer);
+	if (buffer.length < peakArchiveHeaderBytes + pairs * 2)
+		throw new Error('Waveform data is truncated');
 
-	const bucketCount = Math.min(previewBuckets, pairs);
+	const bucketCount = Math.min(overviewBuckets, pairs);
 	const buckets: Array<number> = [];
 	let peak = 0;
 
@@ -71,7 +76,7 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 		let sumOfSquares = 0;
 
 		for (let pair = start; pair < end; pair += 1) {
-			const offset = headerBytes + pair * 2;
+			const offset = peakArchiveHeaderBytes + pair * 2;
 			const amplitude = Math.max(
 				Math.abs(buffer.readInt8(offset)),
 				Math.abs(buffer.readInt8(offset + 1)),
@@ -85,18 +90,18 @@ export function distillWaveform(buffer: Buffer): WaveformPreview {
 	}
 
 	const values = buckets.map((rms) =>
-		peak > 0 ? Math.round((rms / peak) * previewPrecision) / previewPrecision : 0,
+		peak > 0 ? Math.round((rms / peak) * overviewPrecision) / overviewPrecision : 0,
 	);
 
 	return {
 		seconds: Math.round(((pairs * samplesPerPixel) / sampleRate) * 10) / 10,
 		values,
-		version: previewVersion,
+		version: overviewVersion,
 	};
 }
 
-// Two tiers from one analysis pass: a full-resolution `.dat` archive and a distilled preview
-// Both land in `.cache/` and are regenerable; `deploy-audio` ships the archives, the previews only feed the manifest
+// Two tiers from one analysis pass: a full-resolution `.dat` archive and a distilled overview
+// Both land in `.cache/` and are regenerable; `deploy-audio` ships the archives, the overviews only feed the manifest
 export async function generateWaveforms(options: WaveformsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
@@ -106,7 +111,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 	const jobs = sources.map((source): WaveformJob => ({
 		base: source.base,
 		existing: archives.get(source.base),
-		preview: path.join(cacheDir, `${source.base}${previewExtension}`),
+		overview: overviewPath(cacheDir, source.base),
 		source: source.path,
 	}));
 
@@ -140,7 +145,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 
 			await distill(job, path.join(cacheDir, archive));
 
-			return path.basename(job.preview);
+			return path.basename(job.overview);
 		},
 		skipped: jobs.length - pending.length,
 		verb: { infinitive: 'derive', past: 'derived' },
@@ -150,7 +155,8 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 // Header layout, little-endian: version, flags, sample_rate, samples_per_pixel, length in min/max PAIRS
 // Self-describing, so freshness needs no external version constant; anything unexpected regenerates
 export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
-	if (buffer.length < headerBytes) throw new Error('Waveform data is shorter than its header');
+	if (buffer.length < peakArchiveHeaderBytes)
+		throw new Error('Waveform data is shorter than its header');
 
 	const version = buffer.readInt32LE(0);
 	if (version !== archiveVersion) {
@@ -171,11 +177,25 @@ export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
 		);
 	}
 
-	return { pairs: buffer.readUInt32LE(16), sampleRate: buffer.readInt32LE(8), samplesPerPixel };
+	return { pairCount: buffer.readUInt32LE(16), sampleRate: buffer.readInt32LE(8), samplesPerPixel };
+}
+
+// `undefined` for a missing file as for a stale shape, since either way there is nothing to publish
+export async function readOverview(
+	cacheDir: string,
+	base: string,
+): Promise<undefined | WaveformOverview> {
+	try {
+		const parsed: unknown = JSON.parse(await fs.readFile(overviewPath(cacheDir, base), 'utf8'));
+
+		return OverviewSchema.parse(parsed);
+	} catch {
+		return undefined;
+	}
 }
 
 export async function readWaveformHeader(archive: string): Promise<WaveformHeader> {
-	return parseWaveformHeader(await readFileHead(archive, headerBytes));
+	return parseWaveformHeader(await readFileHead(archive, peakArchiveHeaderBytes));
 }
 
 // Returns the archive's filename, which the caller cannot predict: it names the analyzed bytes
@@ -194,11 +214,11 @@ async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 }
 
 async function distill(job: WaveformJob, archive: string): Promise<void> {
-	const preview = distillWaveform(await fs.readFile(archive));
-	const tmp = `${job.preview}${tmpExtension}`;
+	const overview = distillWaveform(await fs.readFile(archive));
+	const tmp = `${job.overview}${tmpExtension}`;
 
-	await fs.writeFile(tmp, `${JSON.stringify(preview)}\n`, 'utf8');
-	await fs.rename(tmp, job.preview);
+	await fs.writeFile(tmp, `${JSON.stringify(overview)}\n`, 'utf8');
+	await fs.rename(tmp, job.overview);
 }
 
 async function isArchiveCurrent(source: string, archive: string): Promise<boolean> {
@@ -225,22 +245,19 @@ async function isNewerThan(candidate: string, reference: string): Promise<boolea
 	}
 }
 
-async function isPreviewCurrent(preview: string, archive: string): Promise<boolean> {
-	if (!(await isNewerThan(preview, archive))) return false;
+async function isOverviewCurrent(
+	job: WaveformJob,
+	cacheDir: string,
+	archive: string,
+): Promise<boolean> {
+	if (!(await isNewerThan(job.overview, archive))) return false;
 
 	// A bucket count or range change leaves the mtimes untouched, so the stored version is the check
-	try {
-		const parsed: unknown = JSON.parse(await fs.readFile(preview, 'utf8'));
+	return (await readOverview(cacheDir, job.base)) !== undefined;
+}
 
-		return (
-			typeof parsed === 'object' &&
-			parsed !== null &&
-			'version' in parsed &&
-			parsed.version === previewVersion
-		);
-	} catch {
-		return false;
-	}
+function overviewPath(cacheDir: string, base: string): string {
+	return path.join(cacheDir, `${base}${overviewExtension}`);
 }
 
 async function planJob(
@@ -252,6 +269,6 @@ async function planJob(
 	const archive = path.join(cacheDir, job.existing);
 
 	if (!(await isArchiveCurrent(job.source, archive))) return 'analyze';
-	if (!(await isPreviewCurrent(job.preview, archive))) return 'distill';
+	if (!(await isOverviewCurrent(job, cacheDir, archive))) return 'distill';
 	return 'skip';
 }

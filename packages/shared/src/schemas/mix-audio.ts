@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const mixAudioVersion = 1;
+export const mixAudioVersion = 2;
 
 // Measured from the decoded rendition, since its gain and codec overshoot put it apart from the master
 const StreamLoudnessSchema = z.object({
@@ -12,7 +12,7 @@ export type StreamLoudness = z.infer<typeof StreamLoudnessSchema>;
 
 const MixAudioBandsSchema = z.object({
 	file: z.string(),
-	frames: z.number(),
+	frameCount: z.number(),
 	framesPerSecond: z.number(),
 });
 
@@ -22,9 +22,9 @@ const MixAudioEntrySchema = z.object({
 	bands: MixAudioBandsSchema.optional(),
 	base: z.string(),
 	loudness: StreamLoudnessSchema,
-	pairs: z.number(),
+	overview: z.number().array(),
+	pairCount: z.number(),
 	pairsPerSecond: z.number(),
-	peaks: z.number().array(),
 	seconds: z.number(),
 	sources: z.string().array(),
 	stream: z.string(),

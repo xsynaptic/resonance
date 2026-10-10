@@ -7,13 +7,14 @@ import { bindBuffered } from '#elements/bind-buffered.ts';
 import { bindScrubPreview } from '#elements/bind-scrub-preview.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
+import { labelPlacement } from '#elements/time-slider/label-placement.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
 import { requireChild, template } from '#lib/render.ts';
+import { cueIndexAt } from '#queue/cue-points.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { displayedDetail, displayedItem, isLoaded } from '#store/selectors.ts';
 import { toStripMarkers } from '#waveform/cue-markers.ts';
-import { cueIndexAt, labelPlacement } from '#waveform/cue-points.ts';
 
 interface Readout {
 	cuePoint: QueueCuePoint | undefined;

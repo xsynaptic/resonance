@@ -58,6 +58,16 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Library**: Every Mix with audio, in the shape the player queues, served to the player as one file. _Avoid_: catalogue, catalog (the Catalog is the listing projection), index, manifest.
 
+### Waveform
+
+**Peak Archive**: The full-resolution min/max envelope of one Mix, range-requested a window at a time; `archive` in code. _Avoid_: peaks (the control's property), waveform (the drawing), or using it for both waveform files.
+
+**Overview**: The Peak Archive reduced to at most 400 values, inlined with the Mix and drawn in the seek bar. _Avoid_: preview (the player's scrub preview), peaks, thumbnail.
+
+**Bands**: The per-Frame levels of the low, mid and high bands of one Mix, stored beside its Peak Archive and drawn as the panel's tint. _Avoid_: spectrum (the live display), frequencies, colours.
+
+**Frame**: One cell of Bands, 1,024 samples long. _Avoid_: cell, bucket, window.
+
 ### Vocabulary and reference
 
 **Term**: An Entry that gathers other Entries and has its own Detail Page: an Artist, Label, Style, Region, Era, Theme, or Series. _Avoid_: taxonomy, category, keyword.

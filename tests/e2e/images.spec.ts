@@ -24,7 +24,7 @@ async function getSelectedWidth(image: Locator): Promise<number> {
 		return Number(selected?.[1]?.replace('w', ''));
 	});
 
-	if (!Number.isFinite(width)) throw new Error('No srcset candidate matches currentSrc');
+	if (!Number.isFinite(width)) throw new TypeError('No srcset candidate matches currentSrc');
 
 	return width;
 }

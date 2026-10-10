@@ -47,7 +47,7 @@ describe('parseWaveformHeader', () => {
 	test('reads the fields the pipeline depends on', () => {
 		const header = parseWaveformHeader(buildDat([[-10, 20]]));
 
-		expect(header).toEqual({ pairs: 1, sampleRate: 44_100, samplesPerPixel: 256 });
+		expect(header).toEqual({ pairCount: 1, sampleRate: 44_100, samplesPerPixel: 256 });
 	});
 
 	test('rejects anything the archive is not', () => {
@@ -63,54 +63,54 @@ describe('parseWaveformHeader', () => {
 describe('distillWaveform', () => {
 	test('reduces each bucket by RMS of the envelope, not by mean or peak', () => {
 		// RMS of (30, 50) is 41.23, which is 0.825 of the loudest bucket; the mean would be 0.8
-		const preview = distillWaveform(buildTwoPairBuckets({ 0: [30, 50], 1: [50, 50] }));
+		const overview = distillWaveform(buildTwoPairBuckets({ 0: [30, 50], 1: [50, 50] }));
 
-		expect(preview.values[0]).toBe(0.825);
-		expect(preview.values[1]).toBe(1);
-		expect(preview.values[2]).toBe(0);
+		expect(overview.values[0]).toBe(0.825);
+		expect(overview.values[1]).toBe(1);
+		expect(overview.values[2]).toBe(0);
 	});
 
 	test('takes the envelope amplitude from whichever of min and max is larger', () => {
-		const preview = distillWaveform(
+		const overview = distillWaveform(
 			buildDat([
 				[-80, 10],
 				[40, 40],
 			]),
 		);
 
-		expect(preview.values).toEqual([1, 0.5]);
+		expect(overview.values).toEqual([1, 0.5]);
 	});
 
 	test('keeps a short file at its own resolution rather than upsampling', () => {
-		const preview = distillWaveform(buildDat(Array.from({ length: 37 }, () => [-10, 10])));
+		const overview = distillWaveform(buildDat(Array.from({ length: 37 }, () => [-10, 10])));
 
-		expect(preview.values).toHaveLength(37);
+		expect(overview.values).toHaveLength(37);
 	});
 
-	test('caps a long file at the preview budget with no empty buckets', () => {
+	test('caps a long file at the overview budget with no empty buckets', () => {
 		// 600 pairs across 400 buckets: uneven boundaries, so every bucket must still cover at least one pair
-		const preview = distillWaveform(buildDat(Array.from({ length: 600 }, () => [-10, 10])));
+		const overview = distillWaveform(buildDat(Array.from({ length: 600 }, () => [-10, 10])));
 
-		expect(preview.values).toHaveLength(400);
-		expect(preview.values.every((value) => value === 1)).toBe(true);
+		expect(overview.values).toHaveLength(400);
+		expect(overview.values.every((value) => value === 1)).toBe(true);
 	});
 
 	test('derives duration from the header', () => {
-		const preview = distillWaveform(buildDat(Array.from({ length: 4000 }, () => [-10, 10])));
+		const overview = distillWaveform(buildDat(Array.from({ length: 4000 }, () => [-10, 10])));
 
-		expect(preview.seconds).toBe(23.2);
-		expect(preview.version).toBe(2);
+		expect(overview.seconds).toBe(23.2);
+		expect(overview.version).toBe(2);
 	});
 
 	test('survives digital silence without dividing by zero', () => {
-		const preview = distillWaveform(
+		const overview = distillWaveform(
 			buildDat([
 				[0, 0],
 				[0, 0],
 			]),
 		);
 
-		expect(preview.values).toEqual([0, 0]);
+		expect(overview.values).toEqual([0, 0]);
 	});
 
 	test('rejects a file whose data is shorter than its header claims', () => {

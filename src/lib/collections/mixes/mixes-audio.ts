@@ -3,6 +3,12 @@ import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
 import { mixAudioPath } from '@xsynaptic/shared/constants';
 import { MixAudioDocumentSchema } from '@xsynaptic/shared/schemas';
+import {
+	bandCount,
+	bandsDecibelRange,
+	bandsHeaderBytes,
+	peakArchiveHeaderBytes,
+} from '@xsynaptic/shared/waveform-format';
 import { CONTENT_DATA_PATH } from 'astro:env/server';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -12,16 +18,16 @@ import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
 export interface MixAudio {
 	archive: QueueArchive;
-	peaks: Array<number>;
+	overview: Array<number>;
 	seconds: number;
 	streamUrl: string;
 }
 
 // The dev routes serve only filenames that appear here
 export interface MixAudioIndex {
-	archives: Set<string>;
 	byFile: Map<string, MixAudio>;
 	streams: Set<string>;
+	waveformFiles: Set<string>;
 }
 
 interface MixAudioSource {
@@ -54,7 +60,7 @@ export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undef
 }
 
 async function buildIndex(): Promise<MixAudioIndex> {
-	const index: MixAudioIndex = { archives: new Set(), byFile: new Map(), streams: new Set() };
+	const index: MixAudioIndex = { byFile: new Map(), streams: new Set(), waveformFiles: new Set() };
 	const mixes = await readMixes(path.join(CONTENT_DATA_PATH, mixAudioPath));
 
 	for (const mix of mixes) {
@@ -63,23 +69,27 @@ async function buildIndex(): Promise<MixAudioIndex> {
 				...(mix.bands
 					? {
 							bands: {
-								frameCount: mix.bands.frames,
+								bandCount,
+								byteOffset: bandsHeaderBytes,
+								frameCount: mix.bands.frameCount,
 								framesPerSecond: mix.bands.framesPerSecond,
+								minDecibels: -bandsDecibelRange,
 								url: `${waveformBaseUrl}${encodeURIComponent(mix.bands.file)}`,
 							},
 						}
 					: {}),
-				pairCount: mix.pairs,
+				byteOffset: peakArchiveHeaderBytes,
+				pairCount: mix.pairCount,
 				pairsPerSecond: mix.pairsPerSecond,
 				url: `${waveformBaseUrl}${encodeURIComponent(mix.archive)}`,
 			},
-			peaks: mix.peaks,
+			overview: mix.overview,
 			seconds: mix.seconds,
 			streamUrl: `${streamBaseUrl}${encodeURIComponent(mix.stream)}`,
 		};
 
-		index.archives.add(mix.archive);
-		if (mix.bands) index.archives.add(mix.bands.file);
+		index.waveformFiles.add(mix.archive);
+		if (mix.bands) index.waveformFiles.add(mix.bands.file);
 		index.streams.add(mix.stream);
 
 		for (const source of mix.sources) index.byFile.set(source, audio);

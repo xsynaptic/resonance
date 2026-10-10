@@ -7,7 +7,7 @@ interface LucideIcon {
 	strokeWidth?: number;
 }
 
-const glyphHeight = 512;
+const glyphSize = 512;
 
 // Lucide has no numbered arrow, so the count is ours, set in the arrow's open centre
 const seekCount =
@@ -58,7 +58,6 @@ const icons = {
 		'<path d="M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z"/><path d="M3 20V4"/>',
 	),
 	queue: glyph(
-		512,
 		18,
 		'<path d="M40 48C26.7 48 16 58.7 16 72l0 48c0 13.3 10.7 24 24 24l48 0c13.3 0 24-10.7 24-24l0-48c0-13.3-10.7-24-24-24L40 48zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM16 232l0 48c0 13.3 10.7 24 24 24l48 0c13.3 0 24-10.7 24-24l0-48c0-13.3-10.7-24-24-24l-48 0c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24l0 48c0 13.3 10.7 24 24 24l48 0c13.3 0 24-10.7 24-24l0-48c0-13.3-10.7-24-24-24l-48 0z"/>',
 	),
@@ -71,7 +70,6 @@ const icons = {
 		`<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>${seekCount}`,
 	),
 	tracklist: glyph(
-		512,
 		16,
 		'<path d="M24 56c0-13.3 10.7-24 24-24l32 0c13.3 0 24 10.7 24 24l0 120 16 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l16 0 0-96-8 0C34.7 80 24 69.3 24 56zM86.7 341.2c-6.5-7.4-18.3-6.9-24 1.2L51.5 357.9c-7.7 10.8-22.7 13.3-33.5 5.6s-13.3-22.7-5.6-33.5l11.1-15.6c23.7-33.2 72.3-35.6 99.2-4.9c21.3 24.4 20.8 60.9-1.1 84.7L86.8 432l33.2 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-88 0c-9.5 0-18.2-5.6-22-14.4s-2.1-18.9 4.3-25.9l72-78c5.3-5.8 5.4-14.6 .3-20.5zM224 64l256 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-256 0c-17.7 0-32-14.3-32-32s14.3-32 32-32zm0 160l256 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-256 0c-17.7 0-32-14.3-32-32s14.3-32 32-32zm0 160l256 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-256 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/>',
 	),
@@ -108,10 +106,8 @@ export function cloneIcon(name: IconName): SVGSVGElement {
 	return render();
 }
 
-function glyph(glyphWidth: number, size: number, children: string): string {
-	const width = String((size * glyphWidth) / glyphHeight);
-
-	return `<svg aria-hidden="true" fill="currentColor" height="${String(size)}" viewBox="0 0 ${String(glyphWidth)} ${String(glyphHeight)}" width="${width}">${children}</svg>`;
+function glyph(size: number, children: string): string {
+	return `<svg aria-hidden="true" fill="currentColor" height="${String(size)}" viewBox="0 0 ${String(glyphSize)} ${String(glyphSize)}" width="${String(size)}">${children}</svg>`;
 }
 
 function lucide({ isSolid, name, size, strokeWidth }: LucideIcon, children: string): string {

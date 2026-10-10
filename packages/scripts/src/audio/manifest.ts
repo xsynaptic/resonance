@@ -1,30 +1,22 @@
 import type { MixAudioEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
 
-import { mixAudioPath } from '@xsynaptic/shared/constants';
+import { mixAudioPath, waveformsCacheDir } from '@xsynaptic/shared/constants';
 import { MixAudioDocumentSchema, mixAudioVersion } from '@xsynaptic/shared/schemas';
+import { samplesPerFrame } from '@xsynaptic/shared/waveform-format';
 import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { z } from 'zod';
 
 import type { AudioSource } from '#audio/audio-sources.ts';
 
-import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
+import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { collectBands, readBandsHeader, samplesPerFrame } from '#audio/bands.ts';
+import { collectBands, readBandsHeader } from '#audio/bands.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
-import { collectArchives, previewVersion, readWaveformHeader } from '#audio/waveforms.ts';
+import { collectArchives, readOverview, readWaveformHeader } from '#audio/waveforms.ts';
 import { contentDataPath } from '#shared/content-path.ts';
 
-const previewExtension = '.json';
 const tmpExtension = '.tmp';
-
-// Rejecting a stale preview shape here is what stops it reaching a page
-const PreviewSchema = z.object({
-	seconds: z.number(),
-	values: z.number().array(),
-	version: z.literal(previewVersion),
-});
 
 interface ManifestEntries {
 	entries: Array<MixAudioEntry>;
@@ -48,7 +40,7 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 
 	console.log(
 		chalk.blue(
-			`Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and a preview`,
+			`Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and an overview`,
 		),
 	);
 
@@ -73,7 +65,7 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 // The deploy probe needs a filename per location, and the manifest is the only place one is written
 export async function readManifestFiles(
 	rootPath: string,
-): Promise<{ archives: Array<string>; streams: Array<string> }> {
+): Promise<{ streams: Array<string>; waveformFiles: Array<string> }> {
 	try {
 		const raw: unknown = JSON.parse(
 			await fs.readFile(path.resolve(rootPath, contentDataPath, mixAudioPath), 'utf8'),
@@ -81,11 +73,13 @@ export async function readManifestFiles(
 		const { mixes } = MixAudioDocumentSchema.parse(raw);
 
 		return {
-			archives: mixes.flatMap((mix) => (mix.bands ? [mix.archive, mix.bands.file] : [mix.archive])),
 			streams: mixes.map((mix) => mix.stream),
+			waveformFiles: mixes.flatMap((mix) =>
+				mix.bands ? [mix.archive, mix.bands.file] : [mix.archive],
+			),
 		};
 	} catch {
-		return { archives: [], streams: [] };
+		return { streams: [], waveformFiles: [] };
 	}
 }
 
@@ -134,23 +128,13 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	return { entries, incomplete, sourceCount: sources.length };
 }
 
-async function readPreview(file: string) {
-	try {
-		const parsed: unknown = JSON.parse(await fs.readFile(file, 'utf8'));
-
-		return PreviewSchema.parse(parsed);
-	} catch {
-		return;
-	}
-}
-
 async function readBands(cacheDir: string, file: string): Promise<MixAudioEntry['bands']> {
-	const { frames, sampleRate } = await readBandsHeader(path.join(cacheDir, file));
+	const { frameCount, sampleRate } = await readBandsHeader(path.join(cacheDir, file));
 
-	return { file, frames, framesPerSecond: sampleRate / samplesPerFrame };
+	return { file, frameCount, framesPerSecond: sampleRate / samplesPerFrame };
 }
 
-// A mix missing its rendition, loudness tags, preview is left out rather than half-published
+// A mix missing its rendition, loudness tags or overview is left out rather than half-published
 async function resolveEntry({
 	archive,
 	bands,
@@ -168,10 +152,10 @@ async function resolveEntry({
 }): Promise<MixAudioEntry | undefined> {
 	if (archive === undefined || loudness === undefined || stream === undefined) return undefined;
 
-	const preview = await readPreview(path.join(cacheDir, `${source.base}${previewExtension}`));
-	if (preview === undefined) return undefined;
+	const overview = await readOverview(cacheDir, source.base);
+	if (overview === undefined) return undefined;
 
-	const { pairs, sampleRate, samplesPerPixel } = await readWaveformHeader(
+	const { pairCount, sampleRate, samplesPerPixel } = await readWaveformHeader(
 		path.join(cacheDir, archive),
 	);
 
@@ -180,16 +164,16 @@ async function resolveEntry({
 		...(bands === undefined ? {} : { bands: await readBands(cacheDir, bands) }),
 		base: source.base,
 		loudness,
-		pairs,
+		overview: overview.values,
+		pairCount,
 		pairsPerSecond: sampleRate / samplesPerPixel,
-		peaks: preview.values,
-		seconds: preview.seconds,
+		seconds: overview.seconds,
 		sources: source.files,
 		stream,
 	};
 }
 
-// One row per line, so a diff names the mixes that changed; 400 peaks pretty-printed is 27k lines
+// One row per line, so a diff names the mixes that changed; a 400-value overview pretty-printed is 27k lines
 async function writeDocument(outputPath: string, entries: Array<MixAudioEntry>): Promise<void> {
 	const rows = entries.map((entry) => `\t\t${JSON.stringify(entry)}`).join(',\n');
 	const document = `{\n\t"mixes": [\n${rows}\n\t],\n\t"version": ${String(mixAudioVersion)}\n}\n`;

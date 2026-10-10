@@ -26,7 +26,8 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 	page,
 }) => {
 	const waveform = page.locator('sonic-waveform:has(:visible)');
-	const readPending = () => waveform.evaluate((element) => element.matches(':state(pending)'));
+	const readPending = () =>
+		waveform.evaluate((element) => element.querySelector('[data-sonic-pending]') !== null);
 	let chunkRequests = 0;
 
 	consoleGuard.allow(

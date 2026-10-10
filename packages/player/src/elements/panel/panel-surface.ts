@@ -5,18 +5,16 @@ import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore, PlayerStoreApi } from '#store/player-store.ts';
 import type { QueueItem, QueueItemDetail } from '#types.ts';
-import type { WaveformArchive } from '#waveform/panel/waveform-archive.ts';
 
 import { defineOnce } from '#elements/define-once.ts';
 import { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { toDurationSeconds } from '#queue/queue.ts';
 import { loadedDetail, loadedItem } from '#store/selectors.ts';
 import { panelZoomMax, panelZoomMin } from '#store/zoom-levels.ts';
+import { bindLoadedWaveform } from '#waveform/bind-loaded-waveform.ts';
 import { toPanelMarkers } from '#waveform/cue-markers.ts';
-import { openArchive } from '#waveform/panel/waveform-archive.ts';
 
 interface PanelSource {
 	detail: QueueItemDetail | undefined;
@@ -56,20 +54,11 @@ export function connectPanelSurface(
 
 	const waveform = requireChild(panel, 'sonic-waveform', SonicWaveform);
 	const now = requireChild(panel, '.player-panel-now', HTMLParagraphElement);
-	let archiveSeconds: number | undefined;
-
-	const showDuration = (): void => {
-		const state = store.getState();
-		const durationSeconds =
-			state.durationSeconds ?? archiveSeconds ?? toDurationSeconds(loadedItem(state));
-
-		waveform.max = durationSeconds ?? 0;
-		waveform.formatSpokenValue = (seconds) =>
-			formatSpokenPosition(labels.seekPosition, seconds, durationSeconds);
-	};
 
 	waveform.setAttribute('aria-label', labels.waveformSeek);
-	waveform.readTime = store.getState().getCurrentTime;
+	// A `max` of 0 is a length nobody knows yet
+	waveform.formatSpokenValue = (seconds) =>
+		formatSpokenPosition(labels.seekPosition, seconds, waveform.max || undefined);
 	waveform.renderLabel = renderLabel;
 	waveform.zoomMax = panelZoomMax;
 	waveform.zoomMin = panelZoomMin;
@@ -99,15 +88,11 @@ export function connectPanelSurface(
 		store,
 		selectPanelSource,
 		(source) => {
-			const archive = feedArchive(waveform, source);
-
-			archiveSeconds = archive && archive.pairsTotal / archive.pairsPerSecond;
 			showItem(waveform, source, labels.timestampsPartial);
-			showDuration();
 		},
 		signal,
 	);
-	bind(store, selectDuration, showDuration, signal);
+	bindLoadedWaveform(waveform, store, signal, { isTinted: true, showsPending: true });
 	bindPlayback(waveform, store, signal);
 }
 
@@ -138,41 +123,6 @@ function bindPlayback(waveform: SonicWaveform, store: PlayerStoreApi, signal: Ab
 	);
 }
 
-function feedArchive(
-	waveform: SonicWaveform,
-	{ detail }: PanelSource,
-): undefined | WaveformArchive {
-	waveform.bands = undefined;
-	waveform.peaks = undefined;
-	waveform.pending = undefined;
-	waveform.requestPeaks = undefined;
-	if (!detail?.archive) return undefined;
-
-	const archive = openArchive(detail.archive);
-
-	requestFromArchive(waveform, archive);
-
-	return archive;
-}
-
-function requestFromArchive(waveform: SonicWaveform, archive: WaveformArchive): void {
-	const { pairsPerSecond } = archive;
-
-	waveform.bands = archive.bands;
-	waveform.peaks = { pairsPerSecond, samples: archive.samples };
-	waveform.requestPeaks = (fromSeconds, toSeconds) => {
-		const fromPair = fromSeconds * pairsPerSecond;
-		const toPair = toSeconds * pairsPerSecond;
-		const changed = archive.want(fromPair, toPair);
-
-		waveform.pending = archive
-			.missing(fromPair, toPair)
-			.map((chunk) => [chunk.fromPair / pairsPerSecond, chunk.toPair / pairsPerSecond]);
-
-		return changed;
-	};
-}
-
 function renderLabel({ artist, label = '', title }: WaveMarker, element: HTMLElement): void {
 	if (typeof artist !== 'string' || typeof title !== 'string' || artist === '') {
 		element.textContent = label;
@@ -185,10 +135,6 @@ function renderLabel({ artist, label = '', title }: WaveMarker, element: HTMLEle
 	artistPart.className = 'player-panel-label-artist';
 	artistPart.textContent = artist;
 	element.append(artistPart, ` - ${title}`);
-}
-
-function selectDuration(state: PlayerStore): number | undefined {
-	return state.durationSeconds ?? toDurationSeconds(loadedItem(state));
 }
 
 function selectPanelSource(state: PlayerStore): PanelSource {

@@ -10,7 +10,7 @@ import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { isDetailPending } from '#store/selectors.ts';
 
-const detailStorageKey = 'player:v1:queue-detail';
+const detailStorageKey = 'player:v2:queue-detail';
 
 const strip: QueueItemDetail = { waveformOverview: [0.2, 0.8] };
 

@@ -150,7 +150,7 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 	--sonic-lit: var(--player-waveform-played);
 	--sonic-marker: var(--player-cue-dot);
 	--sonic-reveal-delay: 150ms;
-	--sonic-wave: var(--player-waveform-base);
+	--sonic-unplayed: var(--player-waveform-base);
 	--sonic-wavestrip-groove-size: 0.25rem;
 	--sonic-wavestrip-length: 100%;
 	--sonic-wavestrip-marker-edge-width: 1px;

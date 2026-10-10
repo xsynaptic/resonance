@@ -16,7 +16,8 @@
 		"./schemas": "./src/schemas/index.ts",
 		"./sitemap": "./src/sitemap.ts",
 		"./stats": "./src/stats.ts",
-		"./tracklist": "./src/tracklist.ts"
+		"./tracklist": "./src/tracklist.ts",
+		"./waveform-format": "./src/waveform-format.ts"
 	},
 	"dependencies": {
 		"zod": "^4.6.5"

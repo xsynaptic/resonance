@@ -70,7 +70,7 @@ function typeEntry(strip: SonicWavestrip, text: string): void {
 
 	if (!entry) throw new Error('The strip rendered no entry');
 
-	pressEnter(strip.querySelector('.sonic-wavestrip'));
+	pressEnter(strip.querySelector('[role="slider"]'));
 	entry.value = text;
 	pressEnter(entry);
 }
@@ -78,7 +78,7 @@ function typeEntry(strip: SonicWavestrip, text: string): void {
 function requireStrip(part: HTMLElement): SonicWavestrip {
 	const strip = part.querySelector('sonic-wavestrip');
 
-	if (!(strip instanceof SonicWavestrip)) throw new Error('The slider rendered no wave strip');
+	if (!(strip instanceof SonicWavestrip)) throw new TypeError('The slider rendered no wave strip');
 
 	return strip;
 }

@@ -11,9 +11,14 @@ export function offline(): Promise<Response> {
 }
 
 export function stubArchiveFetch(respond: (url: string) => Promise<Response>) {
-	const fetchMock = vi.fn(respond);
+	const fetchMock = vi.fn((url: string, _init?: RequestInit) => respond(url));
 
 	vi.stubGlobal('fetch', fetchMock);
 
-	return { chunkRequests: () => fetchMock.mock.calls.length };
+	return {
+		chunkRequests: () => fetchMock.mock.calls.length,
+		rangeRequests: () =>
+			fetchMock.mock.calls.map(([, init]) => new Headers(init?.headers).get('Range')),
+		urls: () => fetchMock.mock.calls.map(([url]) => url),
+	};
 }

@@ -71,14 +71,21 @@ export interface PlayerUrls {
 // Full-resolution `.dat`, range-requested a window at a time; the header's facts ride here so it is never requested
 export interface QueueArchive {
 	bands?: QueueBands;
+	// Where the first pair starts, past the file's header
+	byteOffset: number;
 	pairCount: number;
 	pairsPerSecond: number;
 	url: string;
 }
 
 export interface QueueBands {
+	bandCount: number;
+	// Where the first frame starts, past the file's header
+	byteOffset: number;
 	frameCount: number;
 	framesPerSecond: number;
+	// The level a byte of 0 stands for, 255 being full scale
+	minDecibels: number;
 	url: string;
 }
 

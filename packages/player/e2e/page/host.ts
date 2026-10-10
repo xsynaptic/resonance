@@ -76,7 +76,14 @@ function detailOf({ itemId }: QueueItem): QueueItemDetail {
 	return {
 		...(settings.isCued ? cued : {}),
 		...(settings.hasArchive
-			? { archive: { pairCount: 6000, pairsPerSecond: 100, url: archiveUrl(itemId) } }
+			? {
+					archive: {
+						byteOffset: 20,
+						pairCount: 6000,
+						pairsPerSecond: 100,
+						url: archiveUrl(itemId),
+					},
+				}
 			: {}),
 	};
 }
@@ -105,7 +112,7 @@ function readChoice<Choice extends string>(
 // Read off the item, since a queue restored from storage carries the URL it was saved with
 function resolveStream(item: QueueItem): StreamResolution {
 	const url: unknown = Reflect.get(item, 'streamUrl');
-	if (typeof url !== 'string') throw new Error(`No stream URL for ${item.itemId}`);
+	if (typeof url !== 'string') throw new TypeError(`No stream URL for ${item.itemId}`);
 
 	return { status: 'ok', type: streamTypes[settings.type], url };
 }

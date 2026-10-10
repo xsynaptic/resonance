@@ -26,9 +26,9 @@ import { findWorkspaceRoot } from '#shared/utils.ts';
 import { pullListens } from '#stats/listens-pull.ts';
 
 interface HealthCheckFiles {
-	archives: Array<string>;
 	originals: Array<string>;
 	renditions: Array<string>;
+	waveformFiles: Array<string>;
 }
 
 interface MediaProbeBatch {
@@ -129,7 +129,11 @@ function formatStep({ label, status }: WarnOnlyStep): string {
 	return chalk.yellow(`  ⚠ ${label}`);
 }
 
-async function healthCheck({ archives, originals, renditions }: HealthCheckFiles): Promise<void> {
+async function healthCheck({
+	originals,
+	renditions,
+	waveformFiles,
+}: HealthCheckFiles): Promise<void> {
 	console.log(chalk.blue(`Health check: ${config.siteUrl}`));
 
 	const siteResponse = await fetch(config.siteUrl, { signal: AbortSignal.timeout(15_000) });
@@ -142,7 +146,7 @@ async function healthCheck({ archives, originals, renditions }: HealthCheckFiles
 
 	recordStep('Certificate', await checkCertificate());
 
-	if (archives.length === 0 && originals.length === 0 && renditions.length === 0) {
+	if (waveformFiles.length === 0 && originals.length === 0 && renditions.length === 0) {
 		console.log(chalk.yellow('  No audio files to probe; skipping files health check'));
 		return;
 	}
@@ -163,7 +167,7 @@ async function healthCheck({ archives, originals, renditions }: HealthCheckFiles
 	// The only check that `gzip off` held: with gzip on, this answers 200 and the panel goes blank
 	await probeAll({
 		contentTypePrefix: 'application/octet-stream',
-		names: archives,
+		names: waveformFiles,
 		pathPrefix: 'waveform/',
 	});
 }
@@ -346,9 +350,9 @@ try {
 	} else {
 		// Prefers what this run uploaded; a no-op run falls back to whatever the manifest names
 		await healthCheck({
-			archives: probeSample(uploaded.archives, manifest.archives),
 			originals: probeSample(uploaded.originals, validatedFiles),
 			renditions: probeSample(uploaded.renditions, manifest.streams),
+			waveformFiles: probeSample(uploaded.waveformFiles, manifest.waveformFiles),
 		});
 	}
 

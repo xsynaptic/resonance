@@ -5,8 +5,8 @@ import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { formatModeClock } from '#lib/format.ts';
 import { requireChild, template } from '#lib/render.ts';
+import { cueIndexAt } from '#queue/cue-points.ts';
 import { loadedDetail, loadedItem } from '#store/selectors.ts';
-import { cueIndexAt } from '#waveform/cue-points.ts';
 
 interface ReadoutView {
 	clock: string;

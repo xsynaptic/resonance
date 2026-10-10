@@ -1,55 +1,41 @@
+import type { WaveformBands, WaveformPeaks } from '@xsynaptic/sonic-ui';
+
 import type { QueueArchive, QueueBands } from '#types.ts';
 
 import { retryDelayMs } from '#lib/retry-delay.ts';
 
 // One archive per address, so a chunk that landed is never asked for twice
 
-const headerBytes = 20;
-
 // About 47 seconds of audio and 16 KB on the wire, so one window is one or two requests
 const chunkPairs = 8192;
-
-const bandsHeaderBytes = 36;
-const bandCount = 3;
-const bandsMinDecibels = -60;
 
 const cacheLimit = 2;
 
 const cache = new Map<string, WaveformArchive>();
 
-export interface ArchiveBands {
-	bandCount: number;
-	framesPerSecond: number;
-	levels: Uint8Array;
-	minDecibels: number;
-}
-
 export interface WaveformArchive {
-	bands: ArchiveBands | undefined;
-	missing: (fromPair: number, toPair: number) => Array<MissingChunk>;
-	pairsPerSecond: number;
-	pairsTotal: number;
-	// Interleaved 8-bit min and max, silent where a chunk has not landed
-	samples: Int8Array;
-	want: (fromPair: number, toPair: number) => Promise<void> | undefined;
+	bands: undefined | WaveformBands;
+	durationSeconds: number;
+	// Silent where a chunk has not landed
+	peaks: WaveformPeaks;
+	// The stretches of a window whose peaks have not landed
+	pending: (fromSeconds: number, toSeconds: number) => Array<[number, number]>;
+	// `undefined` once the window has landed; otherwise settles on the next change, for the caller to ask again
+	request: (fromSeconds: number, toSeconds: number) => Promise<void> | undefined;
 }
 
-interface BandsTwin extends ArchiveBands {
+interface BandsTwin extends WaveformBands {
+	byteOffset: number;
 	bytesTotal: number;
 	chunkBytes: number;
 	landed: Set<number>;
+	levels: Uint8Array;
 	url: string;
 }
 
 interface ChunkRequest {
 	failures: number;
 	isHeld: boolean;
-}
-
-interface MissingChunk {
-	chunk: number;
-	fromPair: number;
-	toPair: number;
 }
 
 export function openArchive(source: QueueArchive): WaveformArchive {
@@ -92,25 +78,27 @@ async function fetchRange(
 }
 
 function createBandsTwin(source: QueueBands, pairsPerSecond: number): BandsTwin {
-	const bytesTotal = source.frameCount * bandCount;
+	const { bandCount, byteOffset, frameCount, framesPerSecond, minDecibels, url } = source;
+	const bytesTotal = frameCount * bandCount;
 
 	return {
 		bandCount,
+		byteOffset,
 		bytesTotal,
-		chunkBytes: Math.round((chunkPairs * source.framesPerSecond) / pairsPerSecond) * bandCount,
-		framesPerSecond: source.framesPerSecond,
+		chunkBytes: Math.round((chunkPairs * framesPerSecond) / pairsPerSecond) * bandCount,
+		framesPerSecond,
 		landed: new Set(),
 		levels: new Uint8Array(bytesTotal),
-		minDecibels: bandsMinDecibels,
-		url: source.url,
+		minDecibels,
+		url,
 	};
 }
 
 async function fetchLevels(twin: BandsTwin, chunk: number): Promise<(() => void) | undefined> {
 	if (twin.landed.has(chunk)) return undefined;
 
-	const start = bandsHeaderBytes + chunk * twin.chunkBytes;
-	const end = Math.min(bandsHeaderBytes + twin.bytesTotal, start + twin.chunkBytes);
+	const start = twin.byteOffset + chunk * twin.chunkBytes;
+	const end = Math.min(twin.byteOffset + twin.bytesTotal, start + twin.chunkBytes);
 	const bytes = await fetchRange(twin.url, start, end);
 
 	return (
@@ -124,13 +112,14 @@ async function fetchLevels(twin: BandsTwin, chunk: number): Promise<(() => void)
 
 function createArchive({
 	bands: bandsSource,
-	pairCount: pairsTotal,
+	byteOffset,
+	pairCount,
 	pairsPerSecond,
 	url,
 }: QueueArchive): WaveformArchive {
-	const samples = new Int8Array(pairsTotal * 2);
+	const samples = new Int8Array(pairCount * 2);
 	const bands = bandsSource && createBandsTwin(bandsSource, pairsPerSecond);
-	const chunkCount = Math.ceil(pairsTotal / chunkPairs);
+	const chunkCount = Math.ceil(pairCount / chunkPairs);
 	const landed = new Set<number>();
 	const requests = new Map<number, ChunkRequest>();
 	let announce: () => void;
@@ -147,12 +136,18 @@ function createArchive({
 
 	awaitChange();
 
-	function lastChunk(toPair: number): number {
-		return Math.min(chunkCount - 1, Math.floor(Math.max(0, toPair) / chunkPairs));
-	}
+	function chunksIn(fromSeconds: number, toSeconds: number): Array<number> {
+		const first = Math.floor(Math.max(0, fromSeconds * pairsPerSecond) / chunkPairs);
+		const last = Math.min(
+			chunkCount - 1,
+			Math.floor(Math.max(0, toSeconds * pairsPerSecond) / chunkPairs),
+		);
 
-	function firstChunk(fromPair: number): number {
-		return Math.max(0, Math.floor(Math.max(0, fromPair) / chunkPairs));
+		const chunks: Array<number> = [];
+
+		for (let chunk = first; chunk <= last; chunk += 1) chunks.push(chunk);
+
+		return chunks;
 	}
 
 	function isComplete(chunk: number): boolean {
@@ -162,8 +157,8 @@ function createArchive({
 	async function fetchPeaks(chunk: number): Promise<(() => void) | undefined> {
 		if (landed.has(chunk)) return undefined;
 
-		const start = headerBytes + chunk * chunkPairs * 2;
-		const end = Math.min(headerBytes + pairsTotal * 2, start + chunkPairs * 2);
+		const start = byteOffset + chunk * chunkPairs * 2;
+		const end = Math.min(byteOffset + pairCount * 2, start + chunkPairs * 2);
 		const bytes = await fetchRange(url, start, end);
 
 		return (
@@ -192,38 +187,30 @@ function createArchive({
 
 	return {
 		bands,
-		missing: (fromPair, toPair) => {
-			const chunks: Array<MissingChunk> = [];
-
-			for (let chunk = firstChunk(fromPair); chunk <= lastChunk(toPair); chunk += 1) {
-				if (landed.has(chunk)) continue;
-
-				chunks.push({
-					chunk,
-					fromPair: chunk * chunkPairs,
-					toPair: Math.min(pairsTotal, (chunk + 1) * chunkPairs),
-				});
-			}
-
-			return chunks;
-		},
-		pairsPerSecond,
-		pairsTotal,
-		samples,
-		want: (fromPair, toPair) => {
+		durationSeconds: pairCount / pairsPerSecond,
+		peaks: { pairsPerSecond, samples },
+		// Peaks alone: a chunk whose levels failed draws plain rather than shaded
+		pending: (fromSeconds, toSeconds) =>
+			chunksIn(fromSeconds, toSeconds)
+				.filter((chunk) => !landed.has(chunk))
+				.map((chunk) => [
+					(chunk * chunkPairs) / pairsPerSecond,
+					Math.min(pairCount, (chunk + 1) * chunkPairs) / pairsPerSecond,
+				]),
+		request: (fromSeconds, toSeconds) => {
 			let hasGap = false;
 
-			for (let chunk = firstChunk(fromPair); chunk <= lastChunk(toPair); chunk += 1) {
+			for (const chunk of chunksIn(fromSeconds, toSeconds)) {
 				if (isComplete(chunk)) continue;
 
 				hasGap = true;
 
-				const request = requests.get(chunk) ?? { failures: 0, isHeld: false };
-				if (request.isHeld) continue;
+				const held = requests.get(chunk) ?? { failures: 0, isHeld: false };
+				if (held.isHeld) continue;
 
-				request.isHeld = true;
-				requests.set(chunk, request);
-				void load(chunk, request);
+				held.isHeld = true;
+				requests.set(chunk, held);
+				void load(chunk, held);
 			}
 
 			return hasGap ? changed : undefined;

@@ -1,3 +1,5 @@
+import { waveformsCacheDir } from '@xsynaptic/shared/constants';
+
 import { createLocalFileRoute } from '#dev/audio/file-route.ts';
 import { getIndex } from '#lib/collections/mixes/mixes-audio.ts';
 
@@ -7,11 +9,10 @@ export const prerender = false;
 
 export const GET = createLocalFileRoute({
 	contentType: 'application/octet-stream',
-	// Not the scripts package's `waveformsCacheDir`: that workspace is not a dependency of the app
-	directory: './.cache/waveforms',
+	directory: waveformsCacheDir,
 	names: async () => {
 		const index = await getIndex();
 
-		return index.archives;
+		return index.waveformFiles;
 	},
 });

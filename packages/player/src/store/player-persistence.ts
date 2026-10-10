@@ -9,7 +9,8 @@ import { readStored, removeStored, writeStored } from '#lib/storage.ts';
 import { displayedDetail, displayedItem } from '#store/selectors.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
 
-const detailStorageKey = 'player:v1:queue-detail';
+// Bumped when the archive gained its byte offsets, which a detail stored before then lacks
+const detailStorageKey = 'player:v2:queue-detail';
 // Beside the order rather than in it, so a reorder never rewrites every item
 const itemsStorageKey = 'player:v1:queue-items';
 const mutedStorageKey = 'player:v1:muted';

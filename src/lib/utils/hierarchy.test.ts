@@ -14,8 +14,7 @@ const nodes: Array<HierarchyNode> = [
 ];
 
 describe('createHierarchy nested-set numbering', () => {
-	const tree = createHierarchy(nodes);
-	const { intervalById, ordinalById } = tree;
+	const { intervalById, ordinalById } = createHierarchy(nodes);
 
 	test('numbering is deterministic regardless of input order', () => {
 		const again = createHierarchy(nodes.toReversed());

@@ -1,8 +1,8 @@
 import type { PlayerState, PlayerStore } from '#store/player-types.ts';
 import type { QueueCuePoint, QueuedItem, QueueItemDetail } from '#types.ts';
 
+import { cueIndexAt } from '#queue/cue-points.ts';
 import { nextInOrder, previousInOrder } from '#queue/queue.ts';
-import { cueIndexAt } from '#waveform/cue-points.ts';
 
 // Past this many seconds into a track, previous restarts it instead of stepping back
 export const restartThresholdSeconds = 3;

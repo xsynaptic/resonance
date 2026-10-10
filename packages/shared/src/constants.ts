@@ -33,5 +33,8 @@ export const siteTagline = 'Mixcraft, reviews, and writing on electronic music s
 // Incremental LQIP cache, written before the build and read back when a media image renders
 export const mediaLqipPath = './.cache/media-lqip.json';
 
+// Peak Archives, Bands and Overviews, regenerable from the audio sources
+export const waveformsCacheDir = './.cache/waveforms';
+
 // Streaming metadata and waveforms, relative to the content package
 export const mixAudioPath = 'data/mix-audio.json';

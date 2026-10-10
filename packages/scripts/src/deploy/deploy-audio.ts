@@ -1,9 +1,10 @@
+import { waveformsCacheDir } from '@xsynaptic/shared/constants';
 import chalk from 'chalk';
 import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { audioSourceDir, streamsDir, waveformsCacheDir } from '#audio/audio-paths.ts';
+import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { rsyncTo } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
@@ -28,12 +29,12 @@ const rsyncFlags = [
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
 const transferredRendition = /\.mp4$/i;
-const transferredArchive = /\.(?:bands|dat)$/i;
+const transferredWaveformFile = /\.(?:bands|dat)$/i;
 
 export interface DeployedAudio {
-	archives: Array<string>;
 	originals: Array<string>;
 	renditions: Array<string>;
+	waveformFiles: Array<string>;
 }
 
 interface DeployAudioOptions {
@@ -44,7 +45,7 @@ interface DeployAudioOptions {
 
 interface DerivedLeg {
 	excludes: Array<string>;
-	key: 'archives' | 'renditions';
+	key: 'renditions' | 'waveformFiles';
 	label: string;
 	localDir: string;
 	missingHint: string;
@@ -69,14 +70,14 @@ const derivedLegs: Array<DerivedLeg> = [
 		transferred: transferredRendition,
 	},
 	{
-		// The previews share this directory but are inlined into pages, so nothing serves them
+		// The overviews share this directory but are inlined into pages, so nothing serves them
 		excludes: [...rsyncExcludes, '*.json'],
-		key: 'archives',
-		label: 'Archives',
+		key: 'waveformFiles',
+		label: 'Waveform files',
 		localDir: waveformsCacheDir,
 		missingHint: 'run audio-waveforms and audio-bands first',
 		remoteDir: 'waveform',
-		transferred: transferredArchive,
+		transferred: transferredWaveformFile,
 	},
 ];
 
@@ -109,7 +110,10 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 	);
 
 	// One leg at a time, because the box serves other traffic
-	const derived: Pick<DeployedAudio, 'archives' | 'renditions'> = { archives: [], renditions: [] };
+	const derived: Pick<DeployedAudio, 'renditions' | 'waveformFiles'> = {
+		renditions: [],
+		waveformFiles: [],
+	};
 
 	for (const leg of derivedLegs) {
 		const localPath = path.join(rootPath, leg.localDir);
@@ -138,7 +142,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 
 	console.log(
 		chalk.green(
-			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(originals.length)} original(s), ${String(derived.renditions.length)} rendition(s), ${String(derived.archives.length)} archive(s) transferred)`,
+			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(originals.length)} original(s), ${String(derived.renditions.length)} rendition(s), ${String(derived.waveformFiles.length)} waveform file(s) transferred)`,
 		),
 	);
 

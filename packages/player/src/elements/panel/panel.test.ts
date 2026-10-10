@@ -7,13 +7,6 @@ import { LazyModuleError } from '#lib/lazy-module.ts';
 import { chunkOf, offline, stubArchiveFetch } from '#test/archive-fetch.ts';
 import { labels } from '#test/labels.ts';
 import { landDetail, mount, queueItem } from '#test/mount.ts';
-import { openArchive } from '#waveform/panel/waveform-archive.ts';
-
-vi.mock(import('#waveform/panel/waveform-archive.ts'), async (importOriginal) => {
-	const actual = await importOriginal();
-
-	return { openArchive: vi.fn(actual.openArchive) };
-});
 
 function mountPanel() {
 	const mounted = mount('player-panel');
@@ -27,7 +20,12 @@ function mountPanel() {
 
 	for (const itemId of ['a', 'b']) {
 		landDetail(mounted.store, itemId, {
-			archive: { pairCount: 20_000, pairsPerSecond: 100, url: `https://api.test/${itemId}.dat` },
+			archive: {
+				byteOffset: 20,
+				pairCount: 20_000,
+				pairsPerSecond: 100,
+				url: `https://api.test/${itemId}.dat`,
+			},
 		});
 	}
 
@@ -40,7 +38,7 @@ async function openPanel({ part, store }: ReturnType<typeof mountPanel>): Promis
 	return vi.waitFor(() => {
 		const waveform = part.querySelector('sonic-waveform');
 
-		if (!(waveform instanceof SonicWaveform)) throw new Error('The panel has no waveform yet');
+		if (!(waveform instanceof SonicWaveform)) throw new TypeError('The panel has no waveform yet');
 
 		return waveform;
 	});
@@ -51,7 +49,6 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 	document.body.replaceChildren();
 	vi.restoreAllMocks();
-	vi.mocked(openArchive).mockClear();
 });
 
 describe('<player-panel>', () => {
@@ -66,17 +63,20 @@ describe('<player-panel>', () => {
 		expect(mounted.part.childElementCount).toBe(0);
 	});
 
-	test('reopens the archive for a new track but not for a zoom', async () => {
+	test('draws the next track from its own archive, and keeps the one it has through a zoom', async () => {
+		const { urls } = stubArchiveFetch(offline);
 		const mounted = mountPanel();
-
-		await openPanel(mounted);
-		expect(openArchive).toHaveBeenCalledOnce();
+		const waveform = await openPanel(mounted);
+		const { peaks } = waveform;
 
 		mounted.store.getState().zoomPanel(1);
-		expect(openArchive).toHaveBeenCalledOnce();
+		expect(waveform.peaks).toBe(peaks);
 
 		mounted.store.getState().next();
-		expect(openArchive).toHaveBeenCalledTimes(2);
+		expect(waveform.peaks).not.toBe(peaks);
+
+		void waveform.requestPeaks?.(0, 1);
+		expect(urls()).toStrictEqual(['https://api.test/b.dat']);
 	});
 
 	test('settles a request for a failed chunk as its wait ends, so asking again lands the samples', async () => {

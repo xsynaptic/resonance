@@ -2,7 +2,7 @@ import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { scopeSurfaceModule } from '#elements/scope/scope-module.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, queueItem } from '#test/mount.ts';
 
 function mountPlaying(width: number) {
 	Object.defineProperty(HTMLDivElement.prototype, 'clientWidth', {
@@ -21,7 +21,7 @@ function traced(part: HTMLElement): Promise<SonicWaveform> {
 	return vi.waitFor(() => {
 		const waveform = part.querySelector('sonic-waveform');
 
-		if (!(waveform instanceof SonicWaveform)) throw new Error('The scope has no waveform yet');
+		if (!(waveform instanceof SonicWaveform)) throw new TypeError('The scope has no waveform yet');
 
 		return waveform;
 	});
@@ -70,6 +70,33 @@ describe('<player-scope>', () => {
 		part.querySelector('button')?.click();
 
 		expect(waveform.playing).toBe(true);
+	});
+
+	test('draws the loaded track from its archive and takes no bands, so it never tints', async () => {
+		const { fake, part, store } = mountPlaying(96);
+
+		landDetail(store, 'a', {
+			archive: {
+				bands: {
+					bandCount: 3,
+					byteOffset: 36,
+					frameCount: 5000,
+					framesPerSecond: 25,
+					minDecibels: -60,
+					url: 'https://api.test/scope.bands',
+				},
+				byteOffset: 20,
+				pairCount: 20_000,
+				pairsPerSecond: 100,
+				url: 'https://api.test/scope.dat',
+			},
+		});
+		fake.callbacks.current?.onStatus('playing');
+
+		const waveform = await traced(part);
+
+		expect(waveform.peaks?.pairsPerSecond).toBe(100);
+		expect(waveform.bands).toBeUndefined();
 	});
 
 	test('loads nothing while it has no width', async () => {

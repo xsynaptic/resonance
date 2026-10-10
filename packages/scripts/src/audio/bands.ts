@@ -1,3 +1,9 @@
+import {
+	bandCount,
+	bandsDecibelRange,
+	bandsHeaderBytes,
+	samplesPerFrame,
+} from '@xsynaptic/shared/waveform-format';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -14,21 +20,16 @@ const tmpExtension = '.bands.tmp';
 
 const bandsPattern = /^(?<base>.+)\.[0-9a-f]{12}\.bands$/;
 
-// The player skips the header and range-requests from here, so it shares this offset
-export const bandsHeaderBytes = 36;
 const bandsVersion = 1;
 const rmsDecibelsKind = 1;
 
 const bandEdges = [200, 2000] as const;
-export const bandCount = 3;
-export const samplesPerFrame = 1024;
-const decibelRange = 60;
 
 const sampleBytes = 4;
 const sampleSetBytes = bandCount * sampleBytes;
 
 export interface BandsHeader {
-	frames: number;
+	frameCount: number;
 	sampleRate: number;
 }
 
@@ -104,7 +105,7 @@ export function buildBands(levels: Buffer, sampleRate: number): Buffer {
 	header.writeUInt32LE(bandEdges[0], 20);
 	header.writeUInt32LE(bandEdges[1], 24);
 	header.writeUInt32LE(rmsDecibelsKind, 28);
-	header.writeUInt32LE(decibelRange, 32);
+	header.writeUInt32LE(bandsDecibelRange, 32);
 
 	return Buffer.concat([header, levels]);
 }
@@ -152,7 +153,7 @@ function encodeBandLevel(meanSquare: number): number {
 	if (meanSquare === 0) return 0;
 
 	const decibels = 10 * Math.log10(meanSquare);
-	const level = Math.round(255 * (1 + decibels / decibelRange));
+	const level = Math.round(255 * (1 + decibels / bandsDecibelRange));
 
 	return Math.min(255, Math.max(1, level));
 }
@@ -196,7 +197,7 @@ export function parseBandsHeader(buffer: Buffer): BandsHeader {
 		['first band edge', 20, bandEdges[0]],
 		['second band edge', 24, bandEdges[1]],
 		['value kind', 28, rmsDecibelsKind],
-		['decibel range', 32, decibelRange],
+		['decibel range', 32, bandsDecibelRange],
 	];
 
 	for (const [name, offset, value] of expected) {
@@ -207,7 +208,7 @@ export function parseBandsHeader(buffer: Buffer): BandsHeader {
 		}
 	}
 
-	return { frames: buffer.readUInt32LE(12), sampleRate: buffer.readInt32LE(4) };
+	return { frameCount: buffer.readUInt32LE(12), sampleRate: buffer.readInt32LE(4) };
 }
 
 export async function readBandsHeader(file: string): Promise<BandsHeader> {
@@ -240,7 +241,7 @@ async function isJobCurrent(job: BandsJob, cacheDir: string): Promise<boolean> {
 
 		return (
 			fileStat.mtimeMs >= sourceStat.mtimeMs &&
-			fileStat.size === bandsHeaderBytes + header.frames * bandCount
+			fileStat.size === bandsHeaderBytes + header.frameCount * bandCount
 		);
 	} catch {
 		return false;

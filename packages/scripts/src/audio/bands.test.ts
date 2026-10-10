@@ -1,13 +1,7 @@
+import { bandCount, bandsHeaderBytes, samplesPerFrame } from '@xsynaptic/shared/waveform-format';
 import { describe, expect, test } from 'vitest';
 
-import {
-	bandCount,
-	bandsHeaderBytes,
-	buildBands,
-	createBandReducer,
-	parseBandsHeader,
-	samplesPerFrame,
-} from '#audio/bands.ts';
+import { buildBands, createBandReducer, parseBandsHeader } from '#audio/bands.ts';
 
 type BandSignal = (sample: number) => number;
 
@@ -81,7 +75,7 @@ describe('buildBands', () => {
 		const levels = Buffer.from([10, 20, 30, 40, 50, 60]);
 		const file = buildBands(levels, 48_000);
 
-		expect(parseBandsHeader(file)).toEqual({ frames: 2, sampleRate: 48_000 });
+		expect(parseBandsHeader(file)).toEqual({ frameCount: 2, sampleRate: 48_000 });
 		expect([...file.subarray(bandsHeaderBytes)]).toEqual([...levels]);
 	});
 

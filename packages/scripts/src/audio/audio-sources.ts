@@ -1,7 +1,8 @@
+import { waveformsCacheDir } from '@xsynaptic/shared/constants';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { audioSourceDir, waveformsCacheDir } from '#audio/audio-paths.ts';
+import { audioSourceDir } from '#audio/audio-paths.ts';
 import { cleanStaleTmp } from '#shared/utils.ts';
 
 export interface AudioSource {

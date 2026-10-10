@@ -13,7 +13,7 @@ function mountStrip() {
 	const mounted = mount('player-progress');
 	const slider = mounted.part.querySelector('sonic-slider');
 
-	if (!(slider instanceof SonicSlider)) throw new Error('The strip rendered no slider');
+	if (!(slider instanceof SonicSlider)) throw new TypeError('The strip rendered no slider');
 
 	return {
 		...mounted,

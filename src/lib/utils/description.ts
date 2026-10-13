@@ -1,21 +1,40 @@
+import type { Cache } from '@xsynaptic/shared/cache';
+
+import { hash } from 'ohash';
+
 import { toExcerpt } from '#lib/utils/markdown.ts';
 
 // Terms carry no description field at all, hence the index signature
-interface DescribableEntry {
+export interface DescribableEntry {
 	body?: string | undefined;
+	collection: string;
 	data: { [key: string]: unknown; description?: string | undefined };
+	id: string;
 }
 
 // Enough source to fill a 160-character excerpt once component tags and markdown come out
 const sourceWordCount = 60;
 
-export async function getEntryDescription(entry: DescribableEntry): Promise<string | undefined> {
-	if (entry.data.description) return entry.data.description;
+export function createEntryDescriptionFunction({ cache }: { cache: Cache<string> }) {
+	return async function getEntryDescription(entry: DescribableEntry) {
+		if (entry.data.description) return entry.data.description;
 
-	const source = toDescriptionSource(entry.body ?? '');
-	if (source === '') return undefined;
+		const source = toDescriptionSource(entry.body ?? '');
+		if (source === '') return;
 
-	return toExcerpt(source);
+		// Bump the version when excerpt rendering changes
+		const key = `${entry.collection}/${entry.id}`;
+		const sourceHash = hash({ source, version: 1 });
+
+		const cached = cache.get(key, sourceHash);
+		if (cached !== undefined) return cached;
+
+		const description = await toExcerpt(source);
+
+		cache.set(key, sourceHash, description);
+
+		return description;
+	};
 }
 
 // Whole blocks only, so the clip never lands inside a link or an emphasis span

@@ -68,6 +68,7 @@
 		"knip": "^6.40.0",
 		"lefthook": "^2.2.0",
 		"markdown-it": "^15.0.2",
+		"ohash": "^2.0.12",
 		"prettier": "^3.9.9",
 		"prettier-plugin-astro": "^1.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.1",

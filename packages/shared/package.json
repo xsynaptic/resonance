@@ -8,6 +8,7 @@
 		"#*": "./src/*"
 	},
 	"exports": {
+		"./cache": "./src/cache.ts",
 		"./comments": "./src/comments/index.ts",
 		"./constants": "./src/constants.ts",
 		"./open-graph": "./src/open-graph.ts",

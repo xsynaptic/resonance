@@ -9,7 +9,7 @@ import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
 import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
 import { renderFeedContent } from '#lib/feed/feed-render.ts';
-import { getEntryDescription } from '#lib/utils/description.ts';
+import { getEntryDescription } from '#lib/utils/description-data.ts';
 import { byDateCreatedDescending } from '#lib/utils/entries.ts';
 
 export async function getFeedItems(site: URL) {

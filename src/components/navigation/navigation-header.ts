@@ -25,7 +25,6 @@ export const navigationHeaderItems = [
 		children: [
 			{ title: 'Profile', url: getContentPath('pages', 'profile') },
 			{ title: 'FAQ', url: getContentPath('pages', 'frequently-asked-questions') },
-			{ title: 'Resources', url: getContentPath('pages', 'resources') },
 			{ title: 'Contact', url: getContentPath('pages', 'contact') },
 		],
 		title: 'About',

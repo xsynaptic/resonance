@@ -7,15 +7,43 @@
 	color: var(--color-ink-700);
 }
 
-/* Below sm the items flow as running text, wrapping mid-item rather than as whole units */
-@media (width < 40rem) {
-	.colophon {
-		display: block;
-	}
-}
-
 /* Small print sits a step below the muted role the markup asks for */
 .colophon .anchor-x {
 	--anchor-color: var(--color-ink-600);
 	--anchor-hover: var(--color-highlight-400);
+}
+
+.colophon-rss-link {
+	display: inline-flex;
+	gap: calc(var(--spacing) * 2);
+	align-items: center;
+}
+
+/* The white square fills the cutouts in the glyph, so the icon reads the same on any band */
+.colophon-rss-icon {
+	position: relative;
+	width: 10px;
+	height: 10px;
+	background-color: var(--color-white);
+}
+
+.colophon-rss-icon svg {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 16px;
+	height: 16px;
+	color: var(--color-highlight-400);
+	transform: translate(-50%, -50%);
+	transition: color 300ms var(--default-transition-timing-function);
+}
+
+.colophon-rss-link:focus-visible .colophon-rss-icon svg {
+	color: var(--color-highlight-300);
+}
+
+@media (hover: hover) {
+	.colophon-rss-link:hover .colophon-rss-icon svg {
+		color: var(--color-highlight-300);
+	}
 }

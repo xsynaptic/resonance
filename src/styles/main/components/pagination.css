@@ -15,7 +15,9 @@
 	transition:
 		opacity 120ms cubic-bezier(0.22, 1, 0.36, 1),
 		visibility 120ms cubic-bezier(0.22, 1, 0.36, 1),
-		color 120ms linear;
+		color 120ms linear,
+		border-color 150ms linear,
+		background-color 150ms linear;
 
 	&[data-visible] {
 		visibility: visible;

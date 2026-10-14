@@ -119,10 +119,10 @@ const strings = {
 	'footer.astro': 'Astro',
 	'footer.colophonLabel': 'Colophon',
 	'footer.copyright': '© 2001–{year} Basilisk',
-	'footer.feed': 'RSS',
+	'footer.feed': 'RSS Feed',
 	'footer.poweredBy': 'Powered by',
 	'footer.recentMixes.heading': 'Recent Mixes',
-	'footer.source': 'Source code',
+	'footer.source': 'Source Code',
 	'footer.support.lead': 'Support',
 	'footer.support.link': 'Ektoplazm on Patreon',
 	'home.intro.description':

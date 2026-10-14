@@ -111,7 +111,7 @@ const schemas = isFirstPage
 		)}
 	</div>
 	{memberLinks.length > 0 || projectLinks.length > 0 || relationGroups.length > 0 ? (
-		<div class="mb-6 space-y-1">
+		<div class="mb-6 space-y-1" data-nosnippet data-pagefind-ignore>
 			<TermLinks heading={t('artist.members')} terms={memberLinks} />
 			<TermLinks heading={t('artist.projects')} terms={projectLinks} />
 			{relationGroups.map((group) => (

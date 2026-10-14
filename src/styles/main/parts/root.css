@@ -3,6 +3,8 @@
 	--content-chevron: '\203A';
 	--content-dot: '\00B7';
 	--content-slash: '/';
+	--content-word-joiner: '\2060';
+	--content-zero-width-space: '\200B';
 
 	/* The page gutter, so anything bleeding past the column can negate exactly what the column pads */
 	--content-gutter: max(var(--content-gutter-step), var(--content-safe-inline));

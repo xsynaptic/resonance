@@ -1,17 +1,15 @@
 /* Glyph separator between inline items; avoids repetition in the divided-item component */
 .divided-item {
+	--divider-glyph: var(--content-dot);
+
 	display: inline;
 }
 
-/* Astro strips the whitespace between items, so the glyph carries the whole gap; a gap on the item itself would space its own words too */
-.divided-item::after {
+/* Astro strips the whitespace between items, so the glyph carries the gap and the only line break, which falls after it; a gap on the item would space its own words too */
+.divided-item:has(~ .divided-item)::after {
 	margin-inline: var(--divider-space, calc(var(--spacing) * 1));
 	color: var(--divider-color, var(--color-ink-700));
-	content: var(--divider-glyph, var(--content-dot));
-}
-
-.divided-item:last-child::after {
-	content: none;
+	content: var(--content-word-joiner) var(--divider-glyph) var(--content-zero-width-space);
 }
 
 .divided-chevron {

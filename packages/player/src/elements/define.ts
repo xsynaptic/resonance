@@ -1,4 +1,10 @@
-import { SonicButton, SonicDial, SonicSlider, SonicWavestrip } from '@xsynaptic/sonic-ui';
+import {
+	SonicButton,
+	SonicDial,
+	SonicSlider,
+	SonicTicker,
+	SonicWavestrip,
+} from '@xsynaptic/sonic-ui';
 
 import type { PlayerButtonPart } from '#elements/button-part.ts';
 import type { PlayerTracklist } from '#elements/overlay/tracklist.ts';
@@ -66,6 +72,7 @@ const playerElements = [
 	['sonic-button', SonicButton],
 	['sonic-dial', SonicDial],
 	['sonic-slider', SonicSlider],
+	['sonic-ticker', SonicTicker],
 	['sonic-wavestrip', SonicWavestrip],
 	['player-root', PlayerRoot],
 	['player-play-button', PlayerPlayButton],

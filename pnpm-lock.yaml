@@ -338,8 +338,8 @@ importers:
   packages/player:
     dependencies:
       '@xsynaptic/sonic-ui':
-        specifier: ^0.27.0
-        version: 0.27.0
+        specifier: ^0.28.0
+        version: 0.28.0
       zustand:
         specifier: ^5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)
@@ -2833,8 +2833,8 @@ packages:
     peerDependencies:
       satteri: ^0.10.0
 
-  '@xsynaptic/sonic-ui@0.27.0':
-    resolution: {integrity: sha512-qNirrrbc16eFBIIG4Ba2oxJJVyxwqS3/gkzJT5zori/icUxgco8hllUQOP5lQDtFR+KmV15oAkuDzzjE6yvbTA==}
+  '@xsynaptic/sonic-ui@0.28.0':
+    resolution: {integrity: sha512-VK9YCTgIJ1jkjlEwYxytbtHqXMf7bMQUw4AziPpf9W0oUWCE1vI4lL10WkAK5DtCFM6BzhtQuSlzWYeEOuweOw==}
     engines: {node: '>=24.0.0'}
 
   '@xsynaptic/stylelint-config@1.1.5':
@@ -8486,7 +8486,7 @@ snapshots:
       satteri: 0.10.5
       zod: 4.6.5
 
-  '@xsynaptic/sonic-ui@0.27.0': {}
+  '@xsynaptic/sonic-ui@0.28.0': {}
 
   '@xsynaptic/stylelint-config@1.1.5(postcss@8.5.28)(stylelint-order@8.1.1(stylelint@17.16.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.16.0(supports-color@10.2.2)(typescript@6.0.3))':
     dependencies:

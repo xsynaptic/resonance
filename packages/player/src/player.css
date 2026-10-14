@@ -13,6 +13,7 @@
 @import '@xsynaptic/sonic-ui/dial.css';
 @import '@xsynaptic/sonic-ui/screen.css';
 @import '@xsynaptic/sonic-ui/slider.css';
+@import '@xsynaptic/sonic-ui/ticker.css';
 @import '@xsynaptic/sonic-ui/wavestrip.css';
 @import '@xsynaptic/sonic-ui/waveform.css';
 @import './styles/tokens.css';

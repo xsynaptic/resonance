@@ -19,6 +19,6 @@ describe('<player-title>', () => {
 
 		expect(queryByRole(part, 'link')).toBeNull();
 		expect(getByText(part, 'Mix b').closest('.player-track-title')?.localName).toBe('span');
-		expect(part.querySelectorAll('.player-marquee')).toHaveLength(1);
+		expect(part.querySelectorAll('sonic-ticker')).toHaveLength(1);
 	});
 });

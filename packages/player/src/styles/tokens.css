@@ -101,6 +101,8 @@
 	--player-padding-block: 0.625rem;
 	--player-artwork-size: 7.5rem;
 	--player-clock-width: 3.75rem;
+	--player-ticker-hold: 4s;
+	--player-ticker-fade: 1.5rem;
 	--player-panel-height: 7.5rem;
 	--player-readout-size: 1.5rem;
 	--player-waveform-height: 3rem;

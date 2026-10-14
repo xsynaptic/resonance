@@ -1,31 +1,42 @@
+import type { SonicTicker } from '@xsynaptic/sonic-ui';
+
 import type { PlayerStore } from '#store/player-types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
-import { bindMarquee, renderMarquee, writeMarquee } from '#lib/marquee.ts';
+import { template } from '#lib/render.ts';
 import { displayedItem } from '#store/selectors.ts';
 
+const renderLine = template('<span class="player-track-artist"></span>', HTMLSpanElement);
+
 export class PlayerArtistLine extends PlayerElement {
-	readonly #marquee = renderMarquee();
+	readonly #ticker = document.createElement('sonic-ticker');
+	readonly #line = lineAround(this.#ticker);
 
 	protected connect(signal: AbortSignal): void {
 		const { store } = playerContext(this);
-		const { box } = this.#marquee;
 
-		box.classList.add('player-track-artist');
-		this.appendOnce(box);
-		bindMarquee(this.#marquee, signal);
+		this.#ticker.cancellable = true;
+		this.appendOnce(this.#line);
 		bind(
 			store,
 			selectArtistLine,
 			(artistLine) => {
 				this.hidden = artistLine === undefined;
-				writeMarquee(this.#marquee, artistLine ?? '');
+				this.#ticker.text = artistLine;
 			},
 			signal,
 		);
 	}
+}
+
+function lineAround(ticker: SonicTicker): HTMLSpanElement {
+	const line = renderLine();
+
+	line.append(ticker);
+
+	return line;
 }
 
 function selectArtistLine(state: PlayerStore): string | undefined {

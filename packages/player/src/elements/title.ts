@@ -3,7 +3,6 @@ import type { PlayerStore } from '#store/player-types.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
-import { bindMarquee, renderMarquee, writeMarquee } from '#lib/marquee.ts';
 import { template } from '#lib/render.ts';
 import { displayedItem, isLoaded } from '#store/selectors.ts';
 
@@ -24,14 +23,14 @@ const renderText = template('<span class="player-track-title"></span>', HTMLSpan
 export class PlayerTitle extends PlayerElement {
 	readonly #empty = renderEmpty();
 	readonly #link = renderLink();
-	readonly #marquee = renderMarquee();
 	readonly #text = renderText();
+	readonly #ticker = document.createElement('sonic-ticker');
 
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
 
 		this.#empty.textContent = labels.nowPlaying;
-		bindMarquee(this.#marquee, signal);
+		this.#ticker.cancellable = true;
 		bind(
 			store,
 			selectTitle,
@@ -53,10 +52,10 @@ export class PlayerTitle extends PlayerElement {
 		const line = view.href === undefined ? this.#text : this.#link;
 
 		if (view.href !== undefined) this.#link.href = view.href;
-		if (this.#marquee.box.parentNode !== line) line.append(this.#marquee.box);
+		if (this.#ticker.parentNode !== line) line.append(this.#ticker);
 		if (line.parentNode !== this) this.replaceChildren(line);
 
-		writeMarquee(this.#marquee, view.title);
+		if (this.#ticker.text !== view.title) this.#ticker.text = view.title;
 	}
 }
 

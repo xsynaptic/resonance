@@ -1,6 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
 
+import { isDev } from '#e2e/constants.ts';
 import { expect, test, visit } from '#e2e/test.ts';
+
+test.skip(isDev, 'dev serves every width through `/_image`');
 
 const desktopWidthMaximum = 700;
 const mobileWidthMaximum = 500;

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { expect, test, visit } from '#e2e/test.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
-test('Pagefind returns a known Entry first', async ({ page, site }) => {
+test('Pagefind returns a known Entry first', { tag: '@smoke' }, async ({ page, site }) => {
 	await visit(page, '/');
 
 	await page.getByRole('button', { name: t('search.toggle.label') }).click();

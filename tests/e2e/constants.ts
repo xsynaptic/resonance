@@ -1,12 +1,14 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 export const localPort = 47_322;
 export const localUrl = `http://localhost:${String(localPort)}`;
 
+export const isDev = process.env.TEST_ENV === 'dev';
 export const isProd = process.env.TEST_ENV === 'prod';
 
 // Must match the site URL fallback in astro.config.ts
-const prodUrl = 'https://djbasilisk.com/';
+export const prodUrl = 'https://djbasilisk.com/';
 
 export const audioFixturePath = path.join(
 	import.meta.dirname,
@@ -26,6 +28,15 @@ export const routes = {
 	postsIndex: '/posts/',
 } as const;
 
+function readDevServerUrl(): string {
+	const { url } = JSON.parse(readFileSync('.astro/dev.json', 'utf8')) as { url: string };
+
+	return url;
+}
+
 export function getBaseUrl(): string {
-	return isProd ? (process.env.PROD_SERVER_URL ?? prodUrl) : localUrl;
+	if (isProd) return process.env.PROD_SERVER_URL ?? prodUrl;
+	if (isDev) return readDevServerUrl();
+
+	return localUrl;
 }

@@ -6,6 +6,7 @@ export interface SitePaths {
 	cueSheet: string;
 	mixDetail: string;
 	mixDetailNext: string;
+	mixDetailNextTitle: string;
 	postDetail: string;
 	postTitle: string;
 	reviewDetail: string;
@@ -73,17 +74,22 @@ function isRootLevelPath(pathname: string): boolean {
 async function probeMixes(
 	request: APIRequestContext,
 	mixes: Array<CatalogItem>,
-): Promise<Pick<SitePaths, 'cueSheet' | 'mixDetail' | 'mixDetailNext'>> {
+): Promise<Pick<SitePaths, 'cueSheet' | 'mixDetail' | 'mixDetailNext' | 'mixDetailNextTitle'>> {
 	for (const mix of mixes.slice(0, mixProbeLimit)) {
 		const html = await readText(request, mix.url);
 		const cueSheet = /href="([^"]+\.cue)"/.exec(html)?.[1];
-		const mixDetailNext = [...html.matchAll(/href="(\/mixes\/[^"/]+\/)"/g)]
-			.map(([, url = '']) => url)
-			.find((url) => url !== mix.url);
+		const nextMix = [...html.matchAll(/href="(\/mixes\/[^"/]+\/)"/g)]
+			.map(([, url = '']) => mixes.find((item) => item.url === url))
+			.find((item) => item !== undefined && item.url !== mix.url);
 
-		if (!cueSheet || !mixDetailNext || !html.includes('data-player-payload')) continue;
+		if (!cueSheet || !nextMix || !html.includes('data-player-payload')) continue;
 
-		return { cueSheet, mixDetail: mix.url, mixDetailNext };
+		return {
+			cueSheet,
+			mixDetail: mix.url,
+			mixDetailNext: nextMix.url,
+			mixDetailNextTitle: nextMix.title,
+		};
 	}
 
 	throw new Error(`No Mix among the first ${String(mixProbeLimit)} is complete enough to test`);

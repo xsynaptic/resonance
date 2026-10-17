@@ -1,3 +1,5 @@
+import type { Locator, Page } from '@playwright/test';
+
 import { routes } from '#e2e/constants.ts';
 import { expect, test, visit } from '#e2e/test.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -7,44 +9,57 @@ function getPageOptionLabel(pageNumber: number): string {
 	return formatStringTemplate(t('pagination.pageNumber'), { page: pageNumber });
 }
 
-test('a List Page loads and its Next link reaches page two', async ({ page }) => {
-	const response = await visit(page, routes.mixesIndex);
+function getPageSelect(page: Page): Locator {
+	return page.getByRole('combobox', { name: t('pagination.selectLabel') });
+}
 
-	expect(response?.status()).toBe(200);
-	await expect(page.locator('main a').first()).toBeVisible();
+// The address changes before the new page is fetched and swapped in, and every page shares its heading
+async function expectCurrentPage(select: Locator, path: string): Promise<void> {
+	await expect(select.locator('option[data-current]')).toHaveAttribute('value', path);
+}
 
-	const nextLink = page.getByRole('link', { name: t('pagination.next') });
+test(
+	'a List Page loads and its Next link reaches page two',
+	{ tag: '@smoke' },
+	async ({ page }) => {
+		const response = await visit(page, routes.mixesIndex);
 
-	await expect(nextLink).toHaveAttribute('href', routes.mixesIndexPage2);
+		expect(response?.status()).toBe(200);
+		await expect(page.locator('main a').first()).toBeVisible();
 
-	await nextLink.click();
-	await expect(page).toHaveURL(routes.mixesIndexPage2);
-});
+		const nextLink = page.getByRole('link', { name: t('pagination.next') });
+
+		await expect(nextLink).toHaveAttribute('href', routes.mixesIndexPage2);
+
+		await nextLink.click();
+		await expectCurrentPage(getPageSelect(page), routes.mixesIndexPage2);
+	},
+);
 
 test('a change without pointer intent waits for Go', async ({ page }) => {
 	await visit(page, routes.mixesIndexPage2);
 
-	const select = page.getByRole('combobox', { name: t('pagination.selectLabel') });
+	const select = getPageSelect(page);
 
 	await expect(select).toBeVisible();
 	await select.selectOption({ label: getPageOptionLabel(1) });
 	await expect(page).toHaveURL(routes.mixesIndexPage2);
 
 	await page.getByRole('button', { name: t('pagination.submit') }).click();
-	await expect(page).toHaveURL(routes.mixesIndex);
+	await expectCurrentPage(select, routes.mixesIndex);
 });
 
 test('a pointer-driven change navigates at once', async ({ page }) => {
 	await visit(page, routes.mixesIndex);
 
-	const select = page.getByRole('combobox', { name: t('pagination.selectLabel') });
+	const select = getPageSelect(page);
 
 	// Stands in for opening the picker, which Playwright cannot drive on a native select
 	await expect(select).toBeVisible();
 	await select.dispatchEvent('pointerdown');
 	await select.selectOption({ label: getPageOptionLabel(2) });
 
-	await expect(page).toHaveURL(routes.mixesIndexPage2);
+	await expectCurrentPage(select, routes.mixesIndexPage2);
 });
 
 test.describe('on a coarse pointer', () => {
@@ -54,7 +69,7 @@ test.describe('on a coarse pointer', () => {
 	test('a pointer-driven change still waits for Go', async ({ page }) => {
 		await visit(page, routes.mixesIndex);
 
-		const select = page.getByRole('combobox', { name: t('pagination.selectLabel') });
+		const select = getPageSelect(page);
 
 		await expect(select).toBeVisible();
 		await select.dispatchEvent('pointerdown');
@@ -62,7 +77,7 @@ test.describe('on a coarse pointer', () => {
 		await expect(page).toHaveURL(routes.mixesIndex);
 
 		await page.getByRole('button', { name: t('pagination.submit') }).click();
-		await expect(page).toHaveURL(routes.mixesIndexPage2);
+		await expectCurrentPage(select, routes.mixesIndexPage2);
 	});
 });
 
@@ -83,5 +98,5 @@ test('a pointer-driven year pick on the Archive index navigates to that year', a
 	await select.dispatchEvent('pointerdown');
 	await select.selectOption({ value: year });
 
-	await expect(page).toHaveURL(year);
+	await expectCurrentPage(select, year);
 });

@@ -58,7 +58,7 @@ The root `package.json` holds entry points only. Every script in `packages/scrip
 
 `pnpm check` and `pnpm fix` are the gate, defined in `lefthook.yml`. `check` is green end to end, so anything it reports is yours.
 
-The two Playwright suites run on demand, outside `check`, and both need the content repository and `ffmpeg`:
+The two Playwright suites run on demand, outside `check`. Both need the content repository, and every script that plays audio needs `ffmpeg`:
 
 - `pnpm test-e2e-player` tests the player in isolation across four browsers. Run it after changing anything under `packages/player/src/engine/`, `store/` or `page-controls.ts`.
-- `pnpm test-e2e-smoke` tests the site against `dist/`, so build first. `deploy-site` runs it after its build (`--skip-smoke` opts out), and `pnpm test-e2e-smoke-prod` points it at the live site.
+- `pnpm test-e2e` tests the site against `dist/`, so build first; `pnpm test-e2e-dev` runs it against the dev server instead. `pnpm test-e2e-smoke` runs its `@smoke` subset, which plays no audio: `deploy-site` runs it after its build (`--skip-smoke` opts out), and `pnpm test-e2e-smoke-prod` points it at the live site.

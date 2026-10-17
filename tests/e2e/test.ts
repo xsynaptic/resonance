@@ -8,6 +8,7 @@ import type { SitePaths } from '#e2e/site-paths.ts';
 import {
 	audioFixturePath,
 	getBaseUrl,
+	isDev,
 	listenUrlPattern,
 	streamUrlPattern,
 } from '#e2e/constants.ts';
@@ -32,6 +33,9 @@ const allowedHost = new URL(getBaseUrl()).host;
 
 // Cloudflare edge-injects a beacon the off-host route answers empty; Chromium fails its SRI check, WebKit its MIME check
 const blockedResourcePattern = /static\.cloudflareinsights\.com/;
+
+// Vite logs to the console under dev, and a dependency re-optimization answers 504 once
+const devPatterns = isDev ? [/\[vite\]/, /Outdated Optimize Dep/] : [];
 
 let audioFixture: Buffer | undefined;
 
@@ -84,7 +88,7 @@ export const test = base.extend<{
 	consoleGuard: [
 		async ({ page }, use) => {
 			const errors: Array<string> = [];
-			const allowed: Array<RegExp> = [blockedResourcePattern];
+			const allowed: Array<RegExp> = [blockedResourcePattern, ...devPatterns];
 
 			page.on('console', (message) => {
 				if (message.type() === 'error') errors.push(message.text());

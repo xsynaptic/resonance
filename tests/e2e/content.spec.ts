@@ -22,7 +22,7 @@ async function expectEntryRenders(page: Page, hasDate = true): Promise<void> {
 	expect(bodyText.trim().length).toBeGreaterThan(bodyLengthMinimum);
 }
 
-test('a Post renders', async ({ page, site }) => {
+test('a Post renders', { tag: '@smoke' }, async ({ page, site }) => {
 	await visit(page, site.postDetail);
 	await expectEntryRenders(page);
 });
@@ -34,6 +34,7 @@ test('a Page renders', async ({ page }) => {
 		.getByRole('link', { exact: true, name: 'About' })
 		.click();
 
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('About');
 	await expectEntryRenders(page, false);
 });
 
@@ -42,7 +43,7 @@ test('a Review renders', async ({ page, site }) => {
 	await expectEntryRenders(page);
 });
 
-test('a Mix renders', async ({ page, site }) => {
+test('a Mix renders', { tag: '@smoke' }, async ({ page, site }) => {
 	await visit(page, site.mixDetail);
 	await expectEntryRenders(page);
 });

@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 
 import type { SitePaths } from '#e2e/site-paths.ts';
 
+import { isDev } from '#e2e/constants.ts';
 import { expect, test, visit } from '#e2e/test.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
@@ -159,7 +160,7 @@ test('playback survives soft navigation', { tag: '@engines' }, async ({ page, si
 
 	await test.step('a second Mix keeps the one bar playing', async () => {
 		await page.locator(`a[href="${site.mixDetailNext}"]`).first().click();
-		await expect(page).toHaveURL(site.mixDetailNext);
+		await expect(page.getByRole('heading', { level: 1 })).toContainText(site.mixDetailNextTitle);
 		await expectAdvancing(page, 2);
 		await expectBarIsPlaying(page);
 	});
@@ -169,6 +170,7 @@ test('playback survives soft navigation', { tag: '@engines' }, async ({ page, si
 			.getByRole('navigation', { name: t('nav.primary.label') })
 			.getByRole('link', { exact: true, name: 'About' })
 			.click();
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('About');
 		await expectAdvancing(page, 3);
 		await expectBarIsPlaying(page);
 		await expect(page.locator(`head link[href="${stylesheetUrl}"]`)).toHaveCount(1);
@@ -227,6 +229,8 @@ test('a press plays at once, and the bar waits for its wave strip from the Libra
 });
 
 test('a listen past 30 heard seconds sends one beacon', async ({ listens, page, site }) => {
+	test.skip(isDev, 'dev sends no Listen beacons');
+
 	await observe(page, fastPlaybackRate);
 	await playAListenThrough(page, site);
 

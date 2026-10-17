@@ -1,6 +1,6 @@
 import { expect, test, visit } from '#e2e/test.ts';
 
-test('a cue sheet is served and opens as one', async ({ request, site }) => {
+test('a cue sheet is served and opens as one', { tag: '@smoke' }, async ({ request, site }) => {
 	const response = await request.get(site.cueSheet);
 
 	expect(response.status()).toBe(200);

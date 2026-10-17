@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import { getBaseUrl, isProd, localPort, localUrl } from '#e2e/constants.ts';
+import { getBaseUrl, isDev, isProd, localPort, localUrl } from '#e2e/constants.ts';
 
 // `--ignore-lock` leaves a preview already running for this project alone, and needs the foreground
 const previewServer = {
@@ -12,7 +12,6 @@ const previewServer = {
 
 export default defineConfig({
 	fullyParallel: true,
-	maxFailures: 3,
 	outputDir: './temp/playwright-results',
 	projects: [
 		{
@@ -29,10 +28,11 @@ export default defineConfig({
 	reporter: [['list'], ['html', { open: 'never', outputFolder: './temp/playwright-report' }]],
 	retries: 0,
 	testDir: './tests/e2e',
-	timeout: 15_000,
+	timeout: isDev ? 60_000 : 15_000,
 	use: {
 		baseURL: getBaseUrl(),
 		trace: 'retain-on-failure',
 	},
-	...(isProd ? {} : { webServer: previewServer }),
+	...(isDev ? { expect: { timeout: 12_000 }, workers: 3 } : {}),
+	...(isProd || isDev ? {} : { webServer: previewServer }),
 });

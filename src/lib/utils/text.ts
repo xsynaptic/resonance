@@ -1,13 +1,15 @@
+import { getNumberFormat } from '#lib/i18n/i18n-formatters.ts';
+
 export function formatNumber({
 	locales,
 	number,
 	options,
 }: {
-	locales?: Intl.LocalesArgument | undefined;
+	locales?: string | undefined;
 	number: number | string;
 	options?: Intl.NumberFormatOptions | undefined;
 }) {
-	return new Intl.NumberFormat(locales ?? 'en', options).format(Number(number));
+	return getNumberFormat(locales ?? 'en', options).format(Number(number));
 }
 
 export function formatStringTemplate(

@@ -6,9 +6,24 @@ interface Props {
 }
 
 const { umamiDomain, umamiId } = Astro.props;
+
+const beforeSendName = 'resonanceUmamiBeforeSend';
+
+// Crawler cohorts seen in Umami that hide navigator.webdriver but keep a fixed screen
+const excludedScreens = ['800x600', '1280x1200', '1600x1600'];
 ---
 
+<script define:vars={{ beforeSendName, excludedScreens }} is:inline>
+	window[beforeSendName] = (_type, payload) => {
+		if (navigator.webdriver) return false;
+		if (excludedScreens.includes(`${screen.width}x${screen.height}`)) return false;
+
+		return payload;
+	};
+</script>
+
 <script
+	data-before-send={beforeSendName}
 	data-do-not-track="true"
 	data-exclude-hash="true"
 	data-performance="true"
@@ -17,3 +32,31 @@ const { umamiDomain, umamiId } = Astro.props;
 	is:inline
 	src={`${umamiDomain}/script.js`}
 ></script>
+
+<script>
+	import { trackEvent } from '#components/main/main-analytics.ts';
+
+	let isTraversing = false;
+
+	// Not `data-umami-event`: the tracker cancels that link's click and reassigns location, dropping `download`
+	document.addEventListener('click', (event) => {
+		if (!(event.target instanceof Element)) return;
+
+		const mix = event.target.closest<HTMLAnchorElement>('a[data-cue-sheet]')?.dataset.cueSheet;
+
+		if (mix === undefined) return;
+
+		trackEvent('cue-sheet-download', { mix });
+	});
+
+	// The tracker learns the URL only from pushState and replaceState, which back and forward never call
+	document.addEventListener('astro:before-swap', (event) => {
+		isTraversing = event.navigationType === 'traverse';
+	});
+
+	document.addEventListener('astro:after-swap', () => {
+		if (!isTraversing) return;
+
+		history.replaceState(history.state, '', location.href);
+	});
+</script>

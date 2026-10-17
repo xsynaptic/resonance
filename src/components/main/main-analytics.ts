@@ -11,6 +11,7 @@ type AnalyticsEvent =
 	| 'player-queue-add'
 	| 'player-retry-recovered'
 	| 'player-stall'
+	| 'search-empty'
 	| 'search-open'
 	| 'search-query';
 

@@ -15,5 +15,12 @@ test('a cue sheet is served and opens as one', async ({ request, site }) => {
 test('the Mix page offers the cue sheet as a download', async ({ page, site }) => {
 	await visit(page, site.mixDetail);
 
-	await expect(page.locator(`a[href="${site.cueSheet}"]`)).toHaveAttribute('download', '');
+	const link = page.locator(`a[href="${site.cueSheet}"]`);
+
+	await expect(link).toHaveAttribute('download', '');
+
+	const [download] = await Promise.all([page.waitForEvent('download'), link.click()]);
+
+	expect(download.url()).toContain(site.cueSheet);
+	expect(new URL(page.url()).pathname).toBe(site.mixDetail);
 });

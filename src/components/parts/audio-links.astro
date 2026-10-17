@@ -64,8 +64,7 @@ const hasList = linkItems.length > 0 || fileItems.length > 0;
 							{cueSlug ? (
 								<Button
 									as="a"
-									data-umami-event="cue-sheet-download"
-									data-umami-event-mix={cueSlug}
+									data-cue-sheet={cueSlug}
 									download={true}
 									href={`/mixes/${cueSlug}/${encodeURIComponent(file)}.cue`}
 									title={formatStringTemplate(t('audio.cueTitle'), { file })}

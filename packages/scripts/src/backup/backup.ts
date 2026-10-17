@@ -108,7 +108,7 @@ async function findLatestBackup(
 	const dates = names
 		.map((name) => filePattern.exec(name)?.[1])
 		.filter((date) => date !== undefined)
-		.sort((left, right) => left.localeCompare(right));
+		.toSorted((left, right) => left.localeCompare(right));
 
 	return dates.at(-1);
 }

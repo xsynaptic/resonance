@@ -42,7 +42,7 @@ export async function collectAudioSources(sourceDir: string): Promise<Array<Audi
 		source.files.sort((left, right) => left.localeCompare(right));
 	}
 
-	return [...sources.values()].sort((left, right) => left.base.localeCompare(right.base));
+	return [...sources.values()].toSorted((left, right) => left.base.localeCompare(right.base));
 }
 
 export async function openWaveformsCache(

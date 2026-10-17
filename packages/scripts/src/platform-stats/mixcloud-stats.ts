@@ -122,7 +122,7 @@ async function fetchAccounts(): Promise<Array<Cloudcast>> {
 		cloudcasts.push(...fetched);
 	}
 
-	return cloudcasts.sort((first, second) => first.key.localeCompare(second.key));
+	return cloudcasts.toSorted((first, second) => first.key.localeCompare(second.key));
 }
 
 // The counts are the whole point of the pull, so a row missing one is worth stopping for

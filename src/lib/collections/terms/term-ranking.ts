@@ -35,8 +35,8 @@ async function resolveStylesRanked(
 		return index.get(id)?.length ?? 0;
 	}
 
-	// A tie keeps frontmatter order; `sort` is stable
-	return [...entries]
-		.sort((first, second) => countOf(second.id) - countOf(first.id))
+	// A tie keeps frontmatter order; `toSorted` is stable
+	return entries
+		.toSorted((first, second) => countOf(second.id) - countOf(first.id))
 		.map((entry) => toLinkedName('styles', entry));
 }

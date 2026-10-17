@@ -20,7 +20,7 @@ export async function getFeedItems(site: URL) {
 	]);
 
 	const entries = [...mixes, ...posts, ...reviews]
-		.sort(byDateCreatedDescending)
+		.toSorted(byDateCreatedDescending)
 		.slice(0, feedItemCount);
 
 	return await Promise.all(entries.map((entry) => toFeedItem(entry, site)));

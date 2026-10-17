@@ -162,7 +162,7 @@ function findReviewFiles(directory: string): Array<string> {
 		else if (entry.name.endsWith('.mdx')) files.push(entryPath);
 	}
 
-	return files.sort((first, second) => first.localeCompare(second));
+	return files.toSorted((first, second) => first.localeCompare(second));
 }
 
 // Only an all-`N-M` tracklist spanning two discs or more groups; every other shape stays flat

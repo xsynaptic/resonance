@@ -80,7 +80,9 @@ export async function generateLqip(rootPath: string): Promise<void> {
 		),
 	);
 
-	const sorted = Object.fromEntries(Object.entries(entries).sort(([a], [b]) => a.localeCompare(b)));
+	const sorted = Object.fromEntries(
+		Object.entries(entries).toSorted(([a], [b]) => a.localeCompare(b)),
+	);
 
 	await fs.mkdir(path.dirname(outputPath), { recursive: true });
 	await fs.writeFile(

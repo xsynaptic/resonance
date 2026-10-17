@@ -70,7 +70,6 @@ async function fetchAccounts(credentials: Credentials): Promise<Array<Soundcloud
 		const fetched = await fetchAccountTracks(accessToken, accountUrn);
 		const plays = fetched.reduce((total, track) => total + track.playback_count, 0);
 
-		// fallow-ignore-next-line code-duplication -- the Mixcloud sweep logs alike; a shared line would have no module to live in
 		console.log(
 			chalk.gray(
 				`  ${account}: ${String(fetched.length)} tracks, ${plays.toLocaleString('en')} plays`,
@@ -127,7 +126,7 @@ function toCredentials(): Credentials | undefined {
 }
 
 function toItems(tracks: Array<SoundcloudTrack>): Record<string, StatsItem> {
-	const sorted = [...tracks].sort((first, second) =>
+	const sorted = tracks.toSorted((first, second) =>
 		first.permalink_url.localeCompare(second.permalink_url),
 	);
 	const items: Record<string, StatsItem> = {};

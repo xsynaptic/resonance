@@ -74,7 +74,7 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 		)}\n`,
 	);
 
-	for (const group of [...orphans].sort(byCountDescending)) {
+	for (const group of orphans.toSorted(byCountDescending)) {
 		const counts = [
 			`${String(group.approved)} approved`,
 			group.pending === 0 ? undefined : chalk.yellow(`${String(group.pending)} pending`),

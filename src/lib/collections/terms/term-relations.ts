@@ -46,7 +46,7 @@ export async function getTermRelations(
 			.map((termId) => entriesMap.get(termId))
 			.filter((entry) => entry !== undefined)
 			.filter((entry) => (entry.data._entryCount ?? 0) > 0)
-			.sort(byEntryCount)
+			.toSorted(byEntryCount)
 			.map((entry) => toLinkedName(collection, entry));
 
 		return { heading: t(heading), terms };

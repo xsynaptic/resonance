@@ -79,7 +79,7 @@ async function pruneBackups(backupDir: string): Promise<void> {
 	const entries = await readdir(backupDir);
 	const snapshots = entries
 		.filter((entry) => /^stats-\d{4}-\d{2}-\d{2}\.sqlite$/.test(entry))
-		.sort((first, second) => first.localeCompare(second));
+		.toSorted((first, second) => first.localeCompare(second));
 	const stale = snapshots.slice(0, Math.max(0, snapshots.length - backupsKept));
 
 	if (stale.length === 0) return;

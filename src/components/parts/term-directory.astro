@@ -30,8 +30,8 @@ function getInitial(title: string) {
 
 // Sorting belongs here rather than at the call site: consecutive-run grouping depends on it
 function sortTerms(unsorted: Array<DirectoryTerm>): Array<DirectoryTerm> {
-	return [...unsorted]
-		.sort((first, second) =>
+	return unsorted
+		.toSorted((first, second) =>
 			(first.sortKey ?? first.title).localeCompare(second.sortKey ?? second.title),
 		)
 		.map((term) => (term.children ? { ...term, children: sortTerms(term.children) } : term));

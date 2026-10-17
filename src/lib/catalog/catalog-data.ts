@@ -93,7 +93,9 @@ async function buildCatalogItems(): Promise<Array<CatalogItem>> {
 	]);
 
 	const items = [
-		...contentItems.flat().sort((first, second) => second.date.getTime() - first.date.getTime()),
+		...contentItems
+			.flat()
+			.toSorted((first, second) => second.date.getTime() - first.date.getTime()),
 		...termItems.flat(),
 	];
 

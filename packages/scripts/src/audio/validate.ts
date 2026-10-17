@@ -107,7 +107,7 @@ function report(files: Array<string>, heading: string, log: (line: string) => vo
 }
 
 function sortFiles(files: Array<string>): Array<string> {
-	return files.sort((left, right) => left.localeCompare(right));
+	return files.toSorted((left, right) => left.localeCompare(right));
 }
 
 function warn(line: string): void {

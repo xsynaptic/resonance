@@ -270,9 +270,7 @@ function hasImageFeaturedOnDisk(entry: {
 }
 
 function longestTitle<T extends { data: { title: string } }>(entries: Array<T>): T | undefined {
-	return [...entries].sort(
-		(first, second) => second.data.title.length - first.data.title.length,
-	)[0];
+	return entries.toSorted((first, second) => second.data.title.length - first.data.title.length)[0];
 }
 
 async function sampleExcerpt(): Promise<ExcerptSample | undefined> {
@@ -402,7 +400,7 @@ async function sampleTerms(
 	const entries = await getCollection(collection);
 	const terms = entries
 		.map((entry) => ({ name: entry.data.title, url: getContentPath(collection, entry.id) }))
-		.sort((first, second) => first.name.localeCompare(second.name));
+		.toSorted((first, second) => first.name.localeCompare(second.name));
 
 	return limit === undefined ? terms : terms.slice(0, limit);
 }

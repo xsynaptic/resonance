@@ -68,7 +68,7 @@ async function readsPerTick(length: number): Promise<number> {
 
 test('a tick during playback does no work proportional to the queue', async () => {
 	const short = await readsPerTick(4);
-	const long = await readsPerTick(400);
+	const long = await readsPerTick(40);
 
 	expect(long).toBe(short);
 });

@@ -31,8 +31,7 @@ export default {
 			ignoreDependencies: ['mdxlint', 'react'],
 		},
 		'packages/player': {
-			entry: ['e2e/fixture-server.ts', 'e2e/page/host.ts'],
-			ignoreDependencies: ['vite'],
+			entry: ['e2e/page/host.ts'],
 		},
 		'packages/scripts': {
 			ignoreBinaries: ['audiowaveform', 'ffmpeg', 'ffprobe', 'ssh-add'],

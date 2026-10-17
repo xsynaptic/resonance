@@ -21,6 +21,7 @@ import { loadDeployConfig, printDeployConfig } from '#deploy/deploy-config.ts';
 import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
+import { fetchWithRetry } from '#shared/fetch-with-retry.ts';
 import { readKey } from '#shared/prompt.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 import { pullListens } from '#stats/listens-pull.ts';
@@ -136,7 +137,7 @@ async function healthCheck({
 }: HealthCheckFiles): Promise<void> {
 	console.log(chalk.blue(`Health check: ${config.siteUrl}`));
 
-	const siteResponse = await fetch(config.siteUrl, { signal: AbortSignal.timeout(15_000) });
+	const siteResponse = await fetchWithRetry(config.siteUrl, { label: 'site', timeoutMs: 15_000 });
 	if (!siteResponse.ok) {
 		throw new Error(
 			`Site health check failed: ${String(siteResponse.status)} ${siteResponse.statusText}`,
@@ -211,9 +212,10 @@ async function probeAll({ contentTypePrefix, names, pathPrefix }: MediaProbeBatc
 
 		console.log(chalk.blue(`Health check: ${url}`));
 
-		const response = await fetch(url, {
+		const response = await fetchWithRetry(url, {
 			headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
-			signal: AbortSignal.timeout(15_000),
+			label: `range probe ${pathPrefix}${name}`,
+			timeoutMs: 15_000,
 		});
 
 		// Cancelled rather than read: a gzip regression answers 200 with the whole file

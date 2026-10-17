@@ -15,6 +15,7 @@ const rsyncExcludes = ['.DS_Store', '*.tmp', '.gitkeep'];
 
 const rsyncFlags = [
 	'--partial',
+	'--partial-dir=.rsync-partial',
 	// -a would carry a 0600 source through to the box, where the web server's worker could not read it
 	'--chmod=D755,F644',
 	// A sleeping laptop should fail the run and resume from the partial file, not hang on TCP

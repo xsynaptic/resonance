@@ -5,6 +5,15 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
 
+import {
+	mutedStorageKey,
+	panelOpenStorageKey,
+	panelZoomStorageKey,
+	queueItemsStorageKey,
+	queueStorageKey,
+	timeModeStorageKey,
+	volumeStorageKey,
+} from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore, createWritablePlayerStore } from '#store/player-store.ts';
@@ -89,14 +98,25 @@ function persisted(): StoreApi<PlayerStore> {
 }
 
 function storedItems(): Record<string, QueueItem> {
-	return JSON.parse(localStorage.getItem('player:v1:queue-items') ?? '{}') as Record<
+	return JSON.parse(localStorage.getItem(queueItemsStorageKey) ?? '{}') as Record<
 		string,
 		QueueItem
 	>;
 }
 
 function storedOrder(): null | StoredOrderRecord {
-	return JSON.parse(localStorage.getItem('player:v2:queue') ?? 'null') as null | StoredOrderRecord;
+	return JSON.parse(localStorage.getItem(queueStorageKey) ?? 'null') as null | StoredOrderRecord;
+}
+
+function storeQueue(queue: ReadonlyArray<QueueItem>, order: Partial<StoredOrderRecord>): void {
+	localStorage.setItem(
+		queueStorageKey,
+		JSON.stringify({ ...order, itemIds: queue.map((item) => item.itemId) }),
+	);
+	localStorage.setItem(
+		queueItemsStorageKey,
+		JSON.stringify(Object.fromEntries(queue.map((item) => [item.itemId, item]))),
+	);
 }
 
 function withResolver(stream: PlayerUrls['stream'], isPersistent = false): StoreApi<PlayerStore> {
@@ -932,8 +952,8 @@ describe('volume', () => {
 			expect(reloaded.getState()).toMatchObject({ isMuted: false, volume: 0.3 });
 		} finally {
 			vi.useRealTimers();
-			localStorage.removeItem('player:v1:muted');
-			localStorage.removeItem('player:v1:volume');
+			localStorage.removeItem(mutedStorageKey);
+			localStorage.removeItem(volumeStorageKey);
 		}
 	});
 });
@@ -942,23 +962,23 @@ describe('time mode', () => {
 	test('persists the choice and restores it on reload', () => {
 		persisted().getState().toggleTimeMode();
 
-		expect(localStorage.getItem('player:v1:time-mode')).toBe('remaining');
+		expect(localStorage.getItem(timeModeStorageKey)).toBe('remaining');
 
 		const restored = persisted();
 
 		expect(restored.getState().timeMode).toBe('remaining');
 
-		localStorage.removeItem('player:v1:time-mode');
+		localStorage.removeItem(timeModeStorageKey);
 	});
 
 	test('ignores a stored value that is not a mode', () => {
-		localStorage.setItem('player:v1:time-mode', 'sideways');
+		localStorage.setItem(timeModeStorageKey, 'sideways');
 
 		const store = persisted();
 
 		expect(store.getState().timeMode).toBe('elapsed');
 
-		localStorage.removeItem('player:v1:time-mode');
+		localStorage.removeItem(timeModeStorageKey);
 	});
 });
 
@@ -966,42 +986,42 @@ describe('panel state', () => {
 	test('persists the open state and restores it on reload', () => {
 		persisted().getState().togglePanel();
 
-		expect(localStorage.getItem('player:v1:panel-open')).toBe('true');
+		expect(localStorage.getItem(panelOpenStorageKey)).toBe('true');
 
 		const restored = persisted();
 
 		expect(restored.getState().isPanelOpen).toBe(true);
 
-		localStorage.removeItem('player:v1:panel-open');
+		localStorage.removeItem(panelOpenStorageKey);
 	});
 
 	test('persists the zoom step and restores it on reload', () => {
 		persisted().getState().zoomPanel(1);
 
-		expect(localStorage.getItem('player:v1:panel-zoom')).toBe('105');
+		expect(localStorage.getItem(panelZoomStorageKey)).toBe('105');
 
 		const restored = persisted();
 
 		expect(restored.getState().panelPxPerSecond).toBe(105);
 
-		localStorage.removeItem('player:v1:panel-zoom');
+		localStorage.removeItem(panelZoomStorageKey);
 	});
 
 	test('persists a zoom between two steps and restores it on reload', () => {
 		persisted().getState().setPanelZoom(83.25);
 
-		expect(localStorage.getItem('player:v1:panel-zoom')).toBe('83.25');
+		expect(localStorage.getItem(panelZoomStorageKey)).toBe('83.25');
 		expect(persisted().getState().panelPxPerSecond).toBe(83.25);
 
-		localStorage.removeItem('player:v1:panel-zoom');
+		localStorage.removeItem(panelZoomStorageKey);
 	});
 
 	test.each(['19', '241', 'wide'])('ignores a stored zoom of %s, outside the ladder', (stored) => {
-		localStorage.setItem('player:v1:panel-zoom', stored);
+		localStorage.setItem(panelZoomStorageKey, stored);
 
 		expect(persisted().getState().panelPxPerSecond).toBe(70);
 
-		localStorage.removeItem('player:v1:panel-zoom');
+		localStorage.removeItem(panelZoomStorageKey);
 	});
 
 	test('steps from between two steps to the nearest one in that direction', () => {
@@ -1019,7 +1039,7 @@ describe('panel state', () => {
 		store.getState().zoomPanel(1);
 		expect(store.getState().panelPxPerSecond).toBe(240);
 
-		localStorage.removeItem('player:v1:panel-zoom');
+		localStorage.removeItem(panelZoomStorageKey);
 	});
 });
 
@@ -1050,8 +1070,8 @@ describe('queue persistence', () => {
 		expect(Object.keys(storedItems())).toStrictEqual(['a', 'b', 'c']);
 
 		store.getState().clearQueue();
-		expect(localStorage.getItem('player:v2:queue')).toBeNull();
-		expect(localStorage.getItem('player:v1:queue-items')).toBeNull();
+		expect(localStorage.getItem(queueStorageKey)).toBeNull();
+		expect(localStorage.getItem(queueItemsStorageKey)).toBeNull();
 	});
 
 	test('an advance, a reorder and a shuffle write the order and leave the items alone', () => {
@@ -1066,9 +1086,9 @@ describe('queue persistence', () => {
 		store.getState().toggleShuffle();
 
 		expect(setItem.mock.calls.map(([key]) => key)).toStrictEqual([
-			'player:v2:queue',
-			'player:v2:queue',
-			'player:v2:queue',
+			queueStorageKey,
+			queueStorageKey,
+			queueStorageKey,
 		]);
 		expect(storedOrder()?.itemIds).toStrictEqual(['b', 'c', 'a']);
 
@@ -1095,47 +1115,13 @@ describe('queue persistence', () => {
 		localStorage.clear();
 	});
 
-	test('restores a queue stored whole under the order key, and splits it on the first change', () => {
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({
-				currentIndex: 1,
-				currentTimeSeconds: 42,
-				isShuffling: false,
-				playOrder: [0, 1, 2],
-				queue: release,
-			}),
-		);
-
-		const store = persisted();
-
-		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
-		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
-		expect(localStorage.getItem('player:v1:queue-items')).toBeNull();
-
-		store.getState().moveItem(0, 2);
-
-		expect(storedOrder()?.itemIds).toStrictEqual(['b', 'c', 'a']);
-		expect(Object.keys(storedItems())).toStrictEqual(['b', 'c', 'a']);
-
-		fake = createMockEngine();
-
-		expect(
-			persisted()
-				.getState()
-				.queue.map((item) => item.itemId),
-		).toStrictEqual(['b', 'c', 'a']);
-
-		localStorage.clear();
-	});
-
 	test('restores an id stored twice as two rows, and follows the loaded one', () => {
 		localStorage.setItem(
-			'player:v2:queue',
+			queueStorageKey,
 			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'b', 'a'] }),
 		);
 		localStorage.setItem(
-			'player:v1:queue-items',
+			queueItemsStorageKey,
 			JSON.stringify({ a: makeItem('a'), b: makeItem('b') }),
 		);
 
@@ -1150,11 +1136,11 @@ describe('queue persistence', () => {
 
 	test('drops a stored id that has no item and follows the loaded one past it', () => {
 		localStorage.setItem(
-			'player:v2:queue',
+			queueStorageKey,
 			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'gone', 'c'] }),
 		);
 		localStorage.setItem(
-			'player:v1:queue-items',
+			queueItemsStorageKey,
 			JSON.stringify({ a: makeItem('a'), c: makeItem('c') }),
 		);
 
@@ -1169,12 +1155,14 @@ describe('queue persistence', () => {
 	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
 		persisted();
 
-		localStorage.setItem('player:v2:queue', JSON.stringify({ queue: release }));
+		const saved = JSON.stringify({ itemIds: ['a', 'b', 'c'] });
+
+		localStorage.setItem(queueStorageKey, saved);
 		leavePage();
 
-		expect(localStorage.getItem('player:v2:queue')).toBe(JSON.stringify({ queue: release }));
+		expect(localStorage.getItem(queueStorageKey)).toBe(saved);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('clears a restored queue once it is emptied', () => {
@@ -1188,7 +1176,7 @@ describe('queue persistence', () => {
 
 		second.getState().clearQueue();
 
-		expect(localStorage.getItem('player:v2:queue')).toBeNull();
+		expect(localStorage.getItem(queueStorageKey)).toBeNull();
 	});
 
 	test('restores the queue and its position without loading anything', () => {
@@ -1210,7 +1198,7 @@ describe('queue persistence', () => {
 		expect(state.status).toBe('idle');
 		expect(fake.engine.load).not.toHaveBeenCalled();
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('loads a restored track at the stored position on the first press', async () => {
@@ -1233,7 +1221,7 @@ describe('queue persistence', () => {
 			});
 		});
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('restarts a restored track past the threshold rather than stepping back', () => {
@@ -1253,7 +1241,7 @@ describe('queue persistence', () => {
 		expect(second.getState().currentTimeSeconds).toBe(0);
 		expect(fake.engine.load).not.toHaveBeenCalled();
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('stamps a restored queue with fresh ids rather than the ones it was stored with', () => {
@@ -1271,19 +1259,11 @@ describe('queue persistence', () => {
 
 		expect(new Set(ids).size).toBe(ids.length);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('ignores a stored entry whose index falls outside the queue', () => {
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({
-				currentIndex: 9,
-				currentTimeSeconds: 42,
-				isShuffling: false,
-				queue: release,
-			}),
-		);
+		storeQueue(release, { currentIndex: 9, currentTimeSeconds: 42, isShuffling: false });
 
 		const store = persisted();
 
@@ -1291,7 +1271,7 @@ describe('queue persistence', () => {
 		expect(store.getState().currentIndex).toBeUndefined();
 		expect(store.getState().currentTimeSeconds).toBe(0);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.clear();
 	});
 
 	// Earlier stores in this file still listen, so a first flush settles whatever they hold unsaved
@@ -1303,20 +1283,20 @@ describe('queue persistence', () => {
 		fake = createMockEngine();
 
 		const second = persisted();
-		const saved = JSON.stringify({ queue: [makeItem('y')] });
+		const saved = JSON.stringify({ itemIds: ['y'] });
 
 		leavePage();
-		localStorage.setItem('player:v2:queue', saved);
+		localStorage.setItem(queueStorageKey, saved);
 		leavePage();
 
-		expect(localStorage.getItem('player:v2:queue')).toBe(saved);
+		expect(localStorage.getItem(queueStorageKey)).toBe(saved);
 
 		second.getState().seek(30);
 		leavePage();
 
 		expect(storedOrder()?.currentTimeSeconds).toBe(30);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('flushes the position when the page goes hidden', () => {
@@ -1328,7 +1308,7 @@ describe('queue persistence', () => {
 
 		expect(storedOrder()?.currentTimeSeconds).toBe(42);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('writes a shuffle toggle straight away, and a reload keeps its order', () => {
@@ -1350,14 +1330,11 @@ describe('queue persistence', () => {
 		expect(second.getState().playOrder).toStrictEqual(playOrder);
 
 		random.mockRestore();
-		localStorage.removeItem('player:v2:queue');
+		localStorage.removeItem(queueStorageKey);
 	});
 
 	test('reshuffles a stored order that is not a permutation of the queue', () => {
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({ isShuffling: true, playOrder: [0, 0, 1], queue: release }),
-		);
+		storeQueue(release, { isShuffling: true, playOrder: [0, 0, 1] });
 
 		const store = persisted();
 
@@ -1365,17 +1342,17 @@ describe('queue persistence', () => {
 			0, 1, 2,
 		]);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.clear();
 	});
 
 	test('drops a malformed stored item and follows the loaded one past it', () => {
 		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({
-				currentIndex: 2,
-				currentTimeSeconds: 42,
-				queue: [makeItem('a'), { itemId: 5 }, makeItem('c')],
-			}),
+			queueStorageKey,
+			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'b', 'c'] }),
+		);
+		localStorage.setItem(
+			queueItemsStorageKey,
+			JSON.stringify({ a: makeItem('a'), b: { itemId: 5 }, c: makeItem('c') }),
 		);
 
 		const store = persisted();
@@ -1383,33 +1360,27 @@ describe('queue persistence', () => {
 		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'c']);
 		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.clear();
 	});
 
 	test('ignores a stored index that is not a whole number', () => {
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({ currentIndex: 1.5, currentTimeSeconds: 42, queue: release }),
-		);
+		storeQueue(release, { currentIndex: 1.5, currentTimeSeconds: 42 });
 
 		const store = persisted();
 
 		expect(store.getState()).toMatchObject({ currentIndex: undefined, currentTimeSeconds: 0 });
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.clear();
 	});
 
 	test('restores a stored entry that carries no shuffle flag', () => {
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({ currentIndex: 0, currentTimeSeconds: 0, queue: release }),
-		);
+		storeQueue(release, { currentIndex: 0, currentTimeSeconds: 0 });
 
 		const store = persisted();
 
 		expect(store.getState().isShuffling).toBe(false);
 
-		localStorage.removeItem('player:v2:queue');
+		localStorage.clear();
 	});
 });
 
@@ -1441,16 +1412,8 @@ describe('storage', () => {
 
 	test('a store given its own storage neither reads nor writes localStorage', () => {
 		vi.useFakeTimers();
-		localStorage.setItem('player:v1:volume', '0.4');
-		localStorage.setItem(
-			'player:v2:queue',
-			JSON.stringify({
-				currentIndex: 0,
-				currentTimeSeconds: 42,
-				isShuffling: false,
-				queue: release,
-			}),
-		);
+		localStorage.setItem(volumeStorageKey, '0.4');
+		storeQueue(release, { currentIndex: 0, currentTimeSeconds: 42, isShuffling: false });
 
 		const setItem = vi.spyOn(localStorage, 'setItem');
 		const storage = createMemoryStorage();
@@ -1466,34 +1429,34 @@ describe('storage', () => {
 			vi.runAllTimers();
 
 			expect(setItem).not.toHaveBeenCalled();
-			expect(storage.getItem('player:v1:volume')).toBe('0.7');
-			expect(storage.getItem('player:v2:queue')).toBeDefined();
+			expect(storage.getItem(volumeStorageKey)).toBe('0.7');
+			expect(storage.getItem(queueStorageKey)).toBeDefined();
 		} finally {
 			setItem.mockRestore();
 			vi.useRealTimers();
-			localStorage.removeItem('player:v1:volume');
-			localStorage.removeItem('player:v2:queue');
+			localStorage.removeItem(volumeStorageKey);
+			localStorage.removeItem(queueStorageKey);
 		}
 	});
 
 	test('flushes a pending volume when the page goes hidden', () => {
 		vi.useFakeTimers();
-		localStorage.removeItem('player:v1:volume');
+		localStorage.removeItem(volumeStorageKey);
 
 		try {
 			persisted().getState().setVolume(0.3);
 			hidePage();
 
-			expect(localStorage.getItem('player:v1:volume')).toBe('0.3');
+			expect(localStorage.getItem(volumeStorageKey)).toBe('0.3');
 		} finally {
 			vi.useRealTimers();
-			localStorage.removeItem('player:v1:volume');
+			localStorage.removeItem(volumeStorageKey);
 		}
 	});
 
 	test('writes the volume once for a run of changes', () => {
 		vi.useFakeTimers();
-		localStorage.removeItem('player:v1:volume');
+		localStorage.removeItem(volumeStorageKey);
 
 		try {
 			const store = persisted();
@@ -1505,12 +1468,12 @@ describe('storage', () => {
 
 			vi.runAllTimers();
 			expect(setItem).toHaveBeenCalledTimes(1);
-			expect(localStorage.getItem('player:v1:volume')).toBe('0.4');
+			expect(localStorage.getItem(volumeStorageKey)).toBe('0.4');
 
 			setItem.mockRestore();
 		} finally {
 			vi.useRealTimers();
-			localStorage.removeItem('player:v1:volume');
+			localStorage.removeItem(volumeStorageKey);
 		}
 	});
 });

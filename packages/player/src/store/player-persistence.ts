@@ -4,20 +4,19 @@ import type { PlayerStorage } from '#lib/storage.ts';
 import type { PlayerState, PlayerStore } from '#store/player-types.ts';
 import type { PlayerTimeMode, QueuedItem, QueueItem, QueueItemDetail } from '#types.ts';
 
-import { queueStorageKey } from '#constants.ts';
+import {
+	mutedStorageKey,
+	panelOpenStorageKey,
+	panelZoomStorageKey,
+	queueDetailStorageKey,
+	queueItemsStorageKey,
+	queueStorageKey,
+	timeModeStorageKey,
+	volumeStorageKey,
+} from '#constants.ts';
 import { readStored, removeStored, writeStored } from '#lib/storage.ts';
 import { displayedDetail, displayedItem } from '#store/selectors.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
-
-// Bumped when the archive gained its byte offsets, which a detail stored before then lacks
-const detailStorageKey = 'player:v2:queue-detail';
-// Beside the order rather than in it, so a reorder never rewrites every item
-const itemsStorageKey = 'player:v1:queue-items';
-const mutedStorageKey = 'player:v1:muted';
-const panelOpenStorageKey = 'player:v1:panel-open';
-const panelZoomStorageKey = 'player:v1:panel-zoom';
-const timeModeStorageKey = 'player:v1:time-mode';
-const volumeStorageKey = 'player:v1:volume';
 
 const volumeWriteDelayMs = 250;
 
@@ -39,7 +38,6 @@ interface StoredPreferences {
 }
 
 interface StoredQueue {
-	areItemsStored: boolean;
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
 	isShuffling: boolean;
@@ -84,7 +82,7 @@ export function createPlayerPersistence(
 			persistedItems = new Set(queue);
 			writeStored(
 				storage,
-				itemsStorageKey,
+				queueItemsStorageKey,
 				JSON.stringify(Object.fromEntries(queue.map((item) => [item.itemId, item]))),
 			);
 		}
@@ -141,7 +139,7 @@ export function createPlayerPersistence(
 
 		persistedItems = new Set();
 		removeStored(storage, queueStorageKey);
-		removeStored(storage, itemsStorageKey);
+		removeStored(storage, queueItemsStorageKey);
 	}
 
 	return {
@@ -174,7 +172,7 @@ export function createPlayerPersistence(
 		readQueue() {
 			const stored = readStoredQueue(storage);
 
-			areItemsStored = stored?.areItemsStored === true;
+			areItemsStored = stored !== undefined;
 
 			return stored;
 		},
@@ -237,7 +235,7 @@ function onPageLeft(flush: () => void): void {
 }
 
 function readStoredDetails(storage: PlayerStorage | undefined): Map<string, QueueItemDetail> {
-	const stored = readStored(storage, detailStorageKey);
+	const stored = readStored(storage, queueDetailStorageKey);
 	if (stored === undefined) return new Map();
 
 	try {
@@ -264,7 +262,7 @@ function readStoredFlag(storage: PlayerStorage | undefined, key: string): boolea
 }
 
 function readStoredItems(storage: PlayerStorage | undefined): Map<string, unknown> {
-	const stored = readStored(storage, itemsStorageKey);
+	const stored = readStored(storage, queueItemsStorageKey);
 	if (stored === undefined) return new Map();
 
 	const parsed: unknown = JSON.parse(stored);
@@ -295,8 +293,8 @@ function readStoredQueue(storage: PlayerStorage | undefined): StoredQueue | unde
 	if (stored === undefined) return undefined;
 
 	try {
-		const parsed = JSON.parse(stored) as Partial<Record<'queue' | keyof StoredOrder, unknown>>;
-		const positions = storedPositions(storage, parsed);
+		const parsed = JSON.parse(stored) as Partial<Record<keyof StoredOrder, unknown>>;
+		const positions = storedPositions(storage, parsed.itemIds);
 
 		const queue = positions.filter((item) => isStoredItem(item));
 		if (queue.length === 0) return undefined;
@@ -305,7 +303,6 @@ function readStoredQueue(storage: PlayerStorage | undefined): StoredQueue | unde
 		const isShuffling = parsed.isShuffling === true;
 
 		return {
-			areItemsStored: !Array.isArray(parsed.queue),
 			currentIndex,
 			currentTimeSeconds:
 				currentIndex === undefined ? 0 : storedTimeSeconds(parsed.currentTimeSeconds),
@@ -334,11 +331,7 @@ function readStoredVolume(storage: PlayerStorage | undefined): number | undefine
 	return Number.isFinite(value) ? value : undefined;
 }
 
-function storedPositions(
-	storage: PlayerStorage | undefined,
-	{ itemIds, queue }: { itemIds?: unknown; queue?: unknown },
-): Array<unknown> {
-	if (Array.isArray(queue)) return queue as Array<unknown>;
+function storedPositions(storage: PlayerStorage | undefined, itemIds: unknown): Array<unknown> {
 	if (!Array.isArray(itemIds)) return [];
 
 	const items = readStoredItems(storage);
@@ -370,11 +363,11 @@ function writeDetail(
 	detail: QueueItemDetail | undefined,
 ): void {
 	if (itemId === undefined || detail === undefined || Object.keys(detail).length === 0) {
-		removeStored(storage, detailStorageKey);
+		removeStored(storage, queueDetailStorageKey);
 		return;
 	}
 
-	writeStored(storage, detailStorageKey, JSON.stringify({ [itemId]: detail }));
+	writeStored(storage, queueDetailStorageKey, JSON.stringify({ [itemId]: detail }));
 }
 
 function writePreferences(

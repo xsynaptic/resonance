@@ -1,4 +1,4 @@
-const storageKey = 'comment-form-details';
+import { commentFormStorageKey as storageKey } from '#components/main/main-storage-keys.ts';
 
 export const storedFields = ['author', 'authorEmail', 'authorUrl'] as const;
 

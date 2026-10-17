@@ -138,6 +138,8 @@ const tokenGroups = [
 	></pre>
 </div>
 <script>
+	import { inventoryPaletteStorageKey as storageKey } from '#components/main/main-storage-keys.ts';
+
 	interface PaletteParts {
 		count: HTMLElement;
 		output: HTMLElement;
@@ -145,8 +147,6 @@ const tokenGroups = [
 	}
 
 	type Picks = Record<string, string>;
-
-	const storageKey = 'inventory:player-tokens';
 
 	function applyPicks(parts: PaletteParts, picks: Picks): void {
 		const root = document.documentElement;

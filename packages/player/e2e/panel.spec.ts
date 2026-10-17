@@ -1,12 +1,11 @@
 import type { Page } from '@playwright/test';
 
+import { panelZoomStorageKey } from '#constants.ts';
 import { expect, test } from '#e2e/test.ts';
 import { labels } from '#test/labels.ts';
 
 // The placeholder animates otherwise, and its frames ask again whether or not the promise settles
 test.use({ reducedMotion: 'reduce' });
-
-const zoomStorageKey = 'player:v1:panel-zoom';
 
 async function openPausedPanel(page: Page, isMobile: boolean): Promise<void> {
 	await page.getByRole('button', { name: 'Play long' }).click();
@@ -101,7 +100,7 @@ test('the zoom keys and a ctrl wheel set the panel scale, and a reload restores 
 
 	const zoom = await readZoom(page);
 
-	expect(await page.evaluate((key) => localStorage.getItem(key), zoomStorageKey)).toBe(
+	expect(await page.evaluate((key) => localStorage.getItem(key), panelZoomStorageKey)).toBe(
 		String(zoom),
 	);
 

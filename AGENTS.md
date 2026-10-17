@@ -26,6 +26,7 @@ Documents in `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` car
 ## Conventions
 
 - Imports use the Node `#*` subpaths with an explicit extension (`#lib/site.ts`); extensionless ones don't resolve. Each package defines its own `#*` map, and every import within a package goes through it, sibling files included.
+- Client storage keys (localStorage, sessionStorage, IndexedDB) take the `rez-` prefix in kebab-case and live in `src/components/main/main-storage-keys.ts` (the player's in `packages/player/src/constants.ts`), never as a literal at the call site; a pre-paint inline script receives them through `define:vars`.
 - Code that touches `window` or any other browser global goes under `src/components/**` or in a package; `src/lib/**` is build-time and server code. ESLint only allows browser globals in those paths, so browser code in `src/lib/**` passes `astro check` and then fails `pnpm check`.
 
 ## Styling

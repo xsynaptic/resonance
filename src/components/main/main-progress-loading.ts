@@ -42,8 +42,8 @@ class ProgressLoading extends HTMLElement {
 		this.#resetTimeout = undefined;
 
 		this.#isLoading = true;
-		this.#progress = 0;
-		this.#setProgress(0);
+		this.#progress = restingProgress;
+		this.#setProgress(restingProgress);
 
 		this.#thresholdTimeout = window.setTimeout(() => {
 			this.#thresholdTimeout = undefined;

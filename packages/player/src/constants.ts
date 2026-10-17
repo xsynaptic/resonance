@@ -4,7 +4,16 @@
 export const barArtworkSize = 120;
 
 export const heldPressAttribute = 'data-player-held-press';
-export const queueStorageKey = 'player:v2:queue';
+
+export const mutedStorageKey = 'rez-player-muted';
+export const panelOpenStorageKey = 'rez-player-panel-open';
+export const panelZoomStorageKey = 'rez-player-panel-zoom';
+export const queueDetailStorageKey = 'rez-player-queue-detail';
+// Beside the order rather than in it, so a reorder never rewrites every item
+export const queueItemsStorageKey = 'rez-player-queue-items';
+export const queueStorageKey = 'rez-player-queue';
+export const timeModeStorageKey = 'rez-player-time-mode';
+export const volumeStorageKey = 'rez-player-volume';
 
 export const cueMixAttribute = 'data-cue-mix';
 export const cueSecondsAttribute = 'data-cue-seconds';

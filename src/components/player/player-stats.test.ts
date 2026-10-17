@@ -5,9 +5,8 @@ const monitor = vi.hoisted(() => ({ monitorPlayback: vi.fn(() => vi.fn()) }));
 
 vi.mock('@xsynaptic/playback-stats', () => monitor);
 
+import { statsOptOutStorageKey } from '#components/main/main-storage-keys.ts';
 import { bindPlayerStats } from '#components/player/player-stats.ts';
-
-const optOutKey = 'stats:v1:opt-out';
 
 function storeWithElement() {
 	const element = document.createElement('audio');
@@ -37,7 +36,7 @@ test('a playing element is monitored', () => {
 });
 
 test('an opted-out browser is never monitored', () => {
-	localStorage.setItem(optOutKey, '1');
+	localStorage.setItem(statsOptOutStorageKey, '1');
 
 	const unbind = bindPlayerStats(storeWithElement(), () => 'a-mix');
 

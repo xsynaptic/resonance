@@ -5,12 +5,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { PlayerStore } from '#store/player-store.ts';
 import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
 
+import { queueDetailStorageKey } from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { isDetailPending } from '#store/selectors.ts';
-
-const detailStorageKey = 'player:v2:queue-detail';
 
 const strip: QueueItemDetail = { waveformOverview: [0.2, 0.8] };
 
@@ -226,12 +225,14 @@ describe('detail persistence', () => {
 		store.getState().loadQueue([makeItem('a'), makeItem('b')]);
 		await settle();
 
-		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({ a: strip });
+		expect(JSON.parse(localStorage.getItem(queueDetailStorageKey) ?? '{}')).toStrictEqual({
+			a: strip,
+		});
 
 		store.getState().removeAt(0);
 
 		expect(store.getState().details.get('b')).toStrictEqual({});
-		expect(localStorage.getItem(detailStorageKey)).toBeNull();
+		expect(localStorage.getItem(queueDetailStorageKey)).toBeNull();
 	});
 
 	test('holds the displayed item alone, following it through an advance', async () => {
@@ -242,13 +243,13 @@ describe('detail persistence', () => {
 		store.getState().playTrack([makeItem('a'), makeItem('bb')], 'a');
 		await settle();
 
-		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({
+		expect(JSON.parse(localStorage.getItem(queueDetailStorageKey) ?? '{}')).toStrictEqual({
 			a: { trackCount: 1 },
 		});
 
 		store.getState().next();
 
-		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({
+		expect(JSON.parse(localStorage.getItem(queueDetailStorageKey) ?? '{}')).toStrictEqual({
 			bb: { trackCount: 2 },
 		});
 	});
@@ -258,7 +259,7 @@ describe('detail persistence', () => {
 
 		first.getState().loadQueue([makeItem('a'), makeItem('b')]);
 		await settle();
-		localStorage.setItem(detailStorageKey, JSON.stringify({ a: strip, b: { trackCount: 9 } }));
+		localStorage.setItem(queueDetailStorageKey, JSON.stringify({ a: strip, b: { trackCount: 9 } }));
 
 		const second = createStore(offline, { isPersistent: true });
 
@@ -271,7 +272,7 @@ describe('detail persistence', () => {
 		const store = createStore(() => Promise.resolve(strip), { isPersistent: true });
 		const saved = JSON.stringify({ a: strip });
 
-		localStorage.setItem(detailStorageKey, saved);
+		localStorage.setItem(queueDetailStorageKey, saved);
 
 		store.getState().refreshQueue([makeItem('a')]);
 		store.getState().clearQueue();
@@ -287,7 +288,7 @@ describe('detail persistence', () => {
 		visibility.mockRestore();
 		window.dispatchEvent(new Event('pagehide'));
 
-		expect(localStorage.getItem(detailStorageKey)).toBe(saved);
+		expect(localStorage.getItem(queueDetailStorageKey)).toBe(saved);
 	});
 
 	test('restores a queued detail before the host is asked, and keeps it when the host fails', async () => {
@@ -318,7 +319,9 @@ describe('detail persistence', () => {
 		await settle();
 
 		expect(second.getState().details.get('a')).toBe(newer);
-		expect(JSON.parse(localStorage.getItem(detailStorageKey) ?? '{}')).toStrictEqual({ a: newer });
+		expect(JSON.parse(localStorage.getItem(queueDetailStorageKey) ?? '{}')).toStrictEqual({
+			a: newer,
+		});
 	});
 
 	test('writes nothing back when the host answers with what storage already held', async () => {
@@ -344,10 +347,10 @@ describe('detail persistence', () => {
 		store.getState().loadQueue([makeItem('a')]);
 		await settle();
 
-		expect(localStorage.getItem(detailStorageKey)).not.toBeNull();
+		expect(localStorage.getItem(queueDetailStorageKey)).not.toBeNull();
 
 		store.getState().clearQueue();
 
-		expect(localStorage.getItem(detailStorageKey)).toBeNull();
+		expect(localStorage.getItem(queueDetailStorageKey)).toBeNull();
 	});
 });

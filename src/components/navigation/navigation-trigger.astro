@@ -42,7 +42,13 @@ const triggerType = getNavigationItemTriggerType(item);
 const isActive = variant === 'header' && isActiveNavigationItem(item, pathname);
 ---
 
-<div class:list={[parts.trigger, isActive ? 'nav-current' : undefined]}>
+<div
+	class:list={[
+		parts.trigger,
+		isActive ? 'nav-current' : undefined,
+		hasChildren ? 'select-none' : undefined,
+	]}
+>
 	{triggerType === 'anchor' ? (
 		<a
 			aria-current={isCurrentNavigationPath(item.url, pathname) ? 'page' : undefined}

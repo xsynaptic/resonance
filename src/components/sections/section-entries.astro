@@ -14,7 +14,7 @@ const { groupByYear, isLabelled, items } = Astro.props;
 ---
 
 {items.length > 0 ? (
-	<section data-nosnippet data-pagefind-ignore>
+	<section class="scroll-mt-4" data-nosnippet data-pagefind-ignore data-pagination-target>
 		{isLabelled ? <h2 class="heading-section mb-4">{t('section.entries')}</h2> : undefined}
 		<EntryCardGroups groupByYear={groupByYear} items={items} meta={['kind']} />
 	</section>

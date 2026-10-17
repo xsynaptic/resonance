@@ -6,8 +6,7 @@ import {
 	readStoredDetails,
 	saveStoredDetails,
 } from '#components/comments/comment-form-memory.ts';
-
-const storageKey = 'comment-form-details';
+import { commentFormStorageKey as storageKey } from '#components/main/main-storage-keys.ts';
 
 afterEach(() => {
 	localStorage.clear();

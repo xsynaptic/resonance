@@ -36,12 +36,7 @@ const schemas =
 	page.currentPage === 1 ? buildCollectionGraph({ description, title, url: pageUrl }) : undefined;
 ---
 
-<MainSite
-	noIndex={page.currentPage > 1}
-	openGraphId={getOpenGraphId('index', 'posts')}
-	schemas={schemas}
-	title={title}
->
+<MainSite openGraphId={getOpenGraphId('index', 'posts')} schemas={schemas} title={title}>
 	<ListPageTitle description={description} title={title} />
 	{posts.map(({ Content, entry }) => (
 		<SectionPostExcerpt

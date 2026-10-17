@@ -10,11 +10,13 @@ const SitemapLastmodSchema = z.object({
 
 export type SitemapLastmod = z.infer<typeof SitemapLastmodSchema>;
 
-export function isIndexableUrlPath(pathname: string): boolean {
+export function getUrlPathIndexing(pathname: string) {
 	const normalized = pathname.replace(/\/$/, '');
 
 	// Paginated routes repeat content already indexed at page one
-	return !/\/\d+$/.test(normalized);
+	if (/\/\d+$/.test(normalized)) return { follow: true, index: false };
+
+	return { follow: true, index: true };
 }
 
 // Degrades rather than throws: a plain `pnpm dev` or `pnpm build` runs with no deploy step ahead of it

@@ -1,5 +1,6 @@
 ---
 import { openGraphImageHeight, openGraphImageWidth } from '@xsynaptic/shared/constants';
+import { getUrlPathIndexing } from '@xsynaptic/shared/sitemap';
 import { Font } from 'astro:assets';
 import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
 import { ClientRouter } from 'astro:transitions';
@@ -52,10 +53,14 @@ const pageTitle = title
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
 
+const indexing = noIndex ? { follow: false, index: false } : getUrlPathIndexing(Astro.url.pathname);
+
 // Without max-image-preview:large Google caps image previews at thumbnail size
-const robots = noIndex
-	? 'noindex, nofollow'
-	: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
+const robots = [
+	indexing.index ? 'index' : 'noindex',
+	indexing.follow ? 'follow' : 'nofollow',
+	...(indexing.index ? ['max-snippet:-1', 'max-image-preview:large', 'max-video-preview:-1'] : []),
+].join(', ');
 
 const heroSlot = await renderSlot(Astro.slots, 'hero');
 ---

@@ -6,7 +6,7 @@ import buildLogger from '@xsynaptic/astro-build-logger';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
-import { isIndexableUrlPath, readSitemapLastmod } from '@xsynaptic/shared/sitemap';
+import { getUrlPathIndexing, readSitemapLastmod } from '@xsynaptic/shared/sitemap';
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
@@ -83,7 +83,7 @@ export default defineConfig({
 	integrations: [
 		mdx(),
 		sitemap({
-			filter: (page) => isIndexableUrlPath(new URL(page).pathname),
+			filter: (page) => getUrlPathIndexing(new URL(page).pathname).index,
 			serialize: (item) => {
 				const sitemapLastmod = getSitemapLastmod();
 

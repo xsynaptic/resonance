@@ -46,12 +46,7 @@ const schemas =
 		: undefined;
 ---
 
-<MainSite
-	noIndex={page.currentPage > 1}
-	openGraphId={getOpenGraphId('index', 'archive')}
-	schemas={schemas}
-	title={title}
->
+<MainSite openGraphId={getOpenGraphId('index', 'archive')} schemas={schemas} title={title}>
 	<div class="mb-6">
 		<SectionDetailHeader breadcrumbTrail={breadcrumbTrail} title={title} />
 		<PaginationSelect class="mt-3" pagination={yearPagination} />

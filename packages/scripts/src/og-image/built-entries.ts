@@ -64,12 +64,16 @@ const indexCards: Array<Pick<OpenGraphEntry, 'imageFeaturedId' | 'outputId' | 't
 	{ imageFeaturedId: undefined, outputId: openGraphDefaultId, title: siteTitle },
 ];
 
-// The digest is the stem itself, so an index card renders once and stays cached
 export function getOpenGraphIndexEntries(): Map<string, OpenGraphEntry> {
 	return new Map(
 		indexCards.map((entry) => [
 			entry.outputId,
-			{ ...entry, digest: entry.outputId, label: undefined, style: undefined },
+			{
+				...entry,
+				digest: [entry.outputId, entry.title].join(':'),
+				label: undefined,
+				style: undefined,
+			},
 		]),
 	);
 }

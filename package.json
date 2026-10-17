@@ -39,7 +39,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
-		"@astrojs/markdown-satteri": "^0.4.3",
+		"@astrojs/markdown-satteri": "^0.4.4",
 		"@astrojs/mdx": "^8.1.0",
 		"@astrojs/rss": "^4.0.19",
 		"@astrojs/sitemap": "^3.7.4",
@@ -74,16 +74,16 @@
 		"prettier": "^3.9.10",
 		"prettier-plugin-astro": "^1.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
-		"sanitize-html": "^2.18.0",
+		"sanitize-html": "^2.18.1",
 		"satteri": "^0.10.5",
 		"sharp": "^0.35.5",
 		"shiki": "^4.5.0",
 		"stylelint": "^17.16.0",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.11",
-		"wrangler": "^4.149.0",
-		"zod": "^4.6.6"
+		"vitest": "^4.1.12",
+		"wrangler": "^4.151.0",
+		"zod": "^4.6.7"
 	},
 	"packageManager": "pnpm@12.10.1",
 	"engines": {

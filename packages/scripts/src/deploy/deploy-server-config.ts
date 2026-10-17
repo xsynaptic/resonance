@@ -32,6 +32,7 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 	console.log(chalk.gray(`  units: ${deployDir}/systemd/ -> ${remoteHost}:/etc/systemd/system/`));
 	console.log(chalk.gray(`  tmpfiles: ${deployDir}/tmpfiles/ -> ${remoteHost}:/etc/tmpfiles.d/`));
 
+	// fallow-ignore-next-line code-duplication -- the dry-run notice and the timer are unrelated lines that sit together in deploy-audio too
 	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
 
 	const start = Date.now();

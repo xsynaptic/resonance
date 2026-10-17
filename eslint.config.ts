@@ -1,4 +1,9 @@
-import { getAstroConfig, getConfig, getWebComponentConfig } from '@xsynaptic/eslint-config';
+import {
+	getAstroConfig,
+	getBrowserConfig,
+	getConfig,
+	getWebComponentConfig,
+} from '@xsynaptic/eslint-config';
 import globals from 'globals';
 
 // Globals Node lacks; the DOM lib hides them from `astro check`, so this is what keeps them out of server code
@@ -25,46 +30,17 @@ export default getConfig(
 		},
 		{
 			rules: {
-				complexity: ['warn', { max: 8, variant: 'modified' }],
-				// The expanded form reads more clearly than ??=, ||=, and &&=
-				'logical-assignment-operators': ['error', 'never'],
-				'max-depth': ['warn', 3],
-				'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
-				'max-params': ['warn', 3],
-				'max-statements': ['warn', 25],
-				// Intentional compounds such as schema.org's WebSite type
-				'unicorn/consistent-compound-words': 'off',
-				// The exact inverse of the core rule above; together they reject both forms
-				'unicorn/logical-assignment-operators': 'off',
 				// Zod schema chains legitimately reach 4; depth 5+ still flagged
 				'unicorn/max-nested-calls': ['error', { max: 4 }],
-				// Conflicts with Remeda's sort function
-				'unicorn/no-array-sort': 'off',
+				// The shared config turns this off for a Remeda `R.sort` conflict the rule no longer has
+				'unicorn/no-array-sort': 'error',
 			},
 		},
-		{
-			// A describe block's length is not a complexity signal
-			files: ['**/*.test.{ts,tsx}'],
-			rules: {
-				'max-lines-per-function': 'off',
-				'max-statements': 'off',
-			},
-		},
-		{
-			// These files run in the browser and might need browser globals
-			files: ['src/components/**/*', 'packages/player/**/*', 'packages/playback-stats/**/*'],
-			languageOptions: {
-				globals: {
-					...Object.fromEntries(Object.keys(globals.node).map((key) => [key, 'off'])),
-					...globals.browser,
-				},
-			},
-			rules: {
-				// typescript-eslint turns this off for TS files, and without it the globals above bind nothing
-				'no-undef': 'error',
-				'unicorn/prefer-global-this': 'off',
-			},
-		},
+		getBrowserConfig([
+			'src/components/**/*',
+			'packages/player/**/*',
+			'packages/playback-stats/**/*',
+		]),
 		{
 			// `src/lib/**` is build-time and server code; `no-undef` misreads type namespaces, so the browser names are listed instead
 			files: ['src/lib/**/*.ts'],

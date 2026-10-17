@@ -21,6 +21,7 @@ export default {
 			}
 		}
 
+		// fallow-ignore-next-line code-duplication -- two routes that recover differently
 		if (url.pathname === '/api/listen') {
 			if (request.method !== 'POST')
 				return new Response(undefined, { headers: { allow: 'POST' }, status: 405 });

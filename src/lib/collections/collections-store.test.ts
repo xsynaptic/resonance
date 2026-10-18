@@ -45,7 +45,6 @@ let store: ReturnType<typeof makeStore>;
 
 beforeEach(async () => {
 	vi.resetModules();
-	vi.spyOn(console, 'log').mockImplementation(vi.fn());
 
 	store = makeStore();
 

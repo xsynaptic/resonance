@@ -33,14 +33,6 @@
 		"maxCognitive": 12,
 		// Inventory specimens take one-off sizes with no scale step
 		"ignore": ["src/dev/**"],
-		"thresholdOverrides": [
-			{
-				"files": ["src/components/parts/pagination-select.astro"],
-				"functions": ["<template>"],
-				"maxCognitive": 15,
-				"reason": "Optional controls nested under a render guard",
-			},
-		],
 	},
 	"duplicates": {
 		"minTokens": 30,

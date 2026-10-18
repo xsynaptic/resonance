@@ -15,7 +15,7 @@ function getPageSelect(page: Page): Locator {
 
 // The address changes before the new page is fetched and swapped in, and every page shares its heading
 async function expectCurrentPage(select: Locator, path: string): Promise<void> {
-	await expect(select.locator('option[data-current]')).toHaveAttribute('value', path);
+	await expect(select.locator('option[selected]')).toHaveAttribute('value', path);
 }
 
 test(
@@ -89,7 +89,7 @@ test('a pointer-driven year pick on the Archive index navigates to that year', a
 	await expect(select).toBeVisible();
 
 	const year = await select
-		.locator('option:not([disabled]):not([data-current])')
+		.locator('option:not([disabled]):not([selected])')
 		.first()
 		.getAttribute('value');
 

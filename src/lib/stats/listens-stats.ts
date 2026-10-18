@@ -6,6 +6,7 @@ import { listensSnapshotSchema } from '@xsynaptic/shared/stats';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import pMemoize from 'p-memoize';
 
 import { listensStatsPath } from '#constants.ts';
 
@@ -14,13 +15,10 @@ export interface ListenStats {
 	seconds: number;
 }
 
-// Read once per build, not once per mix page
-let listenStats: Promise<Map<string, ListenStats>> | undefined;
+const getTotals = pMemoize(buildListenStats);
 
 export async function getListenStats(mixId: string): Promise<ListenStats> {
-	if (listenStats === undefined) listenStats = buildListenStats();
-
-	const totals = await listenStats;
+	const totals = await getTotals();
 
 	return totals.get(mixId) ?? { listens: 0, seconds: 0 };
 }

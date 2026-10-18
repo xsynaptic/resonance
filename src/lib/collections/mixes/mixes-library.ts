@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import { createHash } from 'node:crypto';
+import pMemoize from 'p-memoize';
 
 import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -7,13 +8,12 @@ import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
 const libraryPath = '/api/player/library.json';
 
-let libraryPromise: Promise<Array<MixQueueItem>> | undefined;
+const getBuiltLibrary = pMemoize(buildLibrary);
 
 export function getPlayerLibrary(): Promise<Array<MixQueueItem>> {
 	if (import.meta.env.DEV) return buildLibrary();
-	if (!libraryPromise) libraryPromise = buildLibrary();
 
-	return libraryPromise;
+	return getBuiltLibrary();
 }
 
 // In the query rather than the path, so a page cached across a deploy still finds a Library

@@ -3,6 +3,7 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import pMemoize from 'p-memoize';
 import { z } from 'zod';
 
 const CountSchema = z.number().int().nonnegative();
@@ -23,16 +24,7 @@ const GenerationSchema = z.object({
 	version: z.literal(1),
 });
 
-// Read once per build, not once per mix page
-const playCountsByPath = new Map<string, Promise<Map<string, number>>>();
-
-export function getPlayCounts(statsPath: string): Promise<Map<string, number>> {
-	const counts = playCountsByPath.get(statsPath) ?? buildPlayCounts(statsPath);
-
-	playCountsByPath.set(statsPath, counts);
-
-	return counts;
-}
+export const getPlayCounts = pMemoize(buildPlayCounts);
 
 async function buildPlayCounts(statsPath: string): Promise<Map<string, number>> {
 	const filePath = path.resolve(statsPath);

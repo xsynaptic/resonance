@@ -1,6 +1,5 @@
-import type { CollectionEntry } from 'astro:content';
-
 import type { TermCollectionKey } from '#lib/catalog/catalog-types.ts';
+import type { ComputedEntry } from '#lib/collections/collections-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
 import type { StringKey } from '#lib/i18n/i18n-strings.ts';
 import type { LinkedName } from '#lib/utils/terms.ts';
@@ -45,7 +44,7 @@ export async function getTermRelations(
 		const terms = ids
 			.map((termId) => entriesMap.get(termId))
 			.filter((entry) => entry !== undefined)
-			.filter((entry) => (entry.data._entryCount ?? 0) > 0)
+			.filter((entry) => entry.data._entryCount > 0)
 			.toSorted(byEntryCount)
 			.map((entry) => toLinkedName(collection, entry));
 
@@ -60,10 +59,10 @@ export async function getTermRelations(
 }
 
 function byEntryCount(
-	first: CollectionEntry<TermCollectionKey>,
-	second: CollectionEntry<TermCollectionKey>,
+	first: ComputedEntry<TermCollectionKey>,
+	second: ComputedEntry<TermCollectionKey>,
 ) {
-	const difference = (second.data._entryCount ?? 0) - (first.data._entryCount ?? 0);
+	const difference = second.data._entryCount - first.data._entryCount;
 
 	return difference === 0 ? first.data.title.localeCompare(second.data.title) : difference;
 }

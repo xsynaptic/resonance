@@ -1,13 +1,14 @@
 import type { CollectionEntry, CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 // A selection's `entryId` names an entry by bare slug (cross-collection); resolve in priority order
 const linkableCollections = ['mixes', 'reviews', 'posts'] as const satisfies Array<CollectionKey>;
 
 export type LinkableEntry = CollectionEntry<(typeof linkableCollections)[number]>;
 
-let slugMapPromise: Promise<Map<string, LinkableEntry>> | undefined;
+const getSlugMap = pMemoize(buildSlugMap);
 
 export function byDateCreatedDescending(
 	first: { data: { dateCreated: Date } },
@@ -40,9 +41,4 @@ async function buildSlugMap(): Promise<Map<string, LinkableEntry>> {
 	}
 
 	return slugMap;
-}
-
-async function getSlugMap(): Promise<Map<string, LinkableEntry>> {
-	if (!slugMapPromise) slugMapPromise = buildSlugMap();
-	return slugMapPromise;
 }

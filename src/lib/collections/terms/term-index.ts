@@ -1,6 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { ContentCatalogItem, TermCollectionKey } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
@@ -8,7 +9,6 @@ import type { CreditValue } from '#lib/schemas/credits.ts';
 
 import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { descendantsOf } from '#lib/collections/terms/hierarchy.ts';
-import { labelIds } from '#lib/utils/terms.ts';
 
 export type TermIndex = Map<string, Array<ContentCatalogItem>>;
 
@@ -23,14 +23,8 @@ type MemberEntry = CollectionEntry<(typeof memberCollections)[number]>;
 
 type TermReferences = (entry: MemberEntry) => Array<{ id: string }> | undefined;
 
-let membersPromise: Promise<Array<Member>> | undefined;
-
 // One pass shared by every index, so an entry is paired with its catalog item once per build
-export function getMembers(): Promise<Array<Member>> {
-	if (!membersPromise) membersPromise = buildMembers();
-
-	return membersPromise;
-}
+export const getMembers = pMemoize(buildMembers);
 
 export function rollUp(collection: HierarchicalCollection) {
 	return (index: TermIndex) => rollUpHierarchy(index, collection);
@@ -111,14 +105,8 @@ function dedupeById(items: Array<ContentCatalogItem>): Array<ContentCatalogItem>
 function makeTermIndex(
 	getReferences: TermReferences,
 	finalize: (index: TermIndex) => Promise<TermIndex> | TermIndex = sortIndex,
-): () => Promise<TermIndex> {
-	let cached: Promise<TermIndex> | undefined;
-
-	return () => {
-		if (!cached) cached = buildTermIndex(getReferences, finalize);
-
-		return cached;
-	};
+) {
+	return pMemoize(async () => buildTermIndex(getReferences, finalize));
 }
 
 // A parent's page (e.g. /regions/africa/) then shows everything below it, not just direct tags
@@ -157,7 +145,7 @@ export const getArtistsIndex = makeTermIndex(artistReferences);
 export const getErasIndex = makeTermIndex((entry) => entry.data.eras, rollUp('eras'));
 
 export const getLabelsIndex = makeTermIndex(
-	(entry) => labelIds(entry.data.labels).map((id) => ({ id })),
+	(entry) => toIdReferences(entry.data.labels),
 	rollUp('labels'),
 );
 
@@ -167,7 +155,9 @@ export const getStylesIndex = makeTermIndex((entry) => entry.data.styles, rollUp
 
 export const getThemesIndex = makeTermIndex((entry) => entry.data.themes);
 
-// The selector `getTermCollection()` reads to stamp `_entryCount`; every Term collection has an index
+export const getSeriesIndex = pMemoize(buildSeriesIndex);
+
+// The selector `getTermCollection()` reads to compute `_entryCount`; every Term collection has an index
 export const termIndexes = {
 	artists: getArtistsIndex,
 	eras: getErasIndex,
@@ -177,14 +167,6 @@ export const termIndexes = {
 	styles: getStylesIndex,
 	themes: getThemesIndex,
 } as const satisfies Record<TermCollectionKey, () => Promise<TermIndex>>;
-
-let seriesIndexPromise: Promise<TermIndex> | undefined;
-
-export function getSeriesIndex(): Promise<TermIndex> {
-	if (!seriesIndexPromise) seriesIndexPromise = buildSeriesIndex();
-
-	return seriesIndexPromise;
-}
 
 // A series owns its membership through `seriesItems`, an ordered id list, so no date sort
 async function buildSeriesIndex(): Promise<TermIndex> {

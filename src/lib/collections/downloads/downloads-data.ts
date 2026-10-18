@@ -1,10 +1,8 @@
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 const downloadPrefix = 'artifacts/';
 const streamPrefix = 'stream/';
-
-// Scan the collection once per build, not once per mix page
-let countsPromise: Promise<Map<string, number>> | undefined;
 
 interface MixDownloads {
 	downloadsLegacy?: Record<string, number> | undefined;
@@ -68,10 +66,7 @@ async function buildCounts(): Promise<Map<string, number>> {
 }
 
 // Keyed on filename, matching mix frontmatter `files[]`
-function getDownloadCounts(): Promise<Map<string, number>> {
-	if (!countsPromise) countsPromise = buildCounts();
-	return countsPromise;
-}
+const getDownloadCounts = pMemoize(buildCounts);
 
 function sumLegacyCounts(downloadsLegacy: Record<string, number> | undefined): number {
 	const counts = Object.values(downloadsLegacy ?? {});

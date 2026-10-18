@@ -13,6 +13,7 @@ import { CONTENT_DATA_PATH } from 'astro:env/server';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import pMemoize from 'p-memoize';
 
 import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
 
@@ -34,14 +35,7 @@ interface MixAudioSource {
 	files?: Array<string> | undefined;
 }
 
-// Read once per build, not once per mix page
-let indexPromise: Promise<MixAudioIndex> | undefined;
-
-export function getIndex(): Promise<MixAudioIndex> {
-	if (!indexPromise) indexPromise = buildIndex();
-
-	return indexPromise;
-}
+export const getIndex = pMemoize(buildIndex);
 
 // The one seam consumers go through, so the filename convention stays in the manifest
 export async function getMixAudio(mix: MixAudioSource): Promise<MixAudio | undefined> {

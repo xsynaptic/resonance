@@ -1,6 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 
@@ -11,12 +12,10 @@ export interface SeriesMembership {
 	term: CollectionEntry<'series'>;
 }
 
-let membershipPromise: Promise<Map<string, Array<SeriesMembership>>> | undefined;
+const getMembershipBySeries = pMemoize(buildSeriesMembership);
 
 export async function getSeriesMembership(id: string): Promise<Array<SeriesMembership>> {
-	if (!membershipPromise) membershipPromise = buildSeriesMembership();
-
-	const membership = await membershipPromise;
+	const membership = await getMembershipBySeries();
 
 	return membership.get(id) ?? [];
 }

@@ -1,3 +1,5 @@
+import pMemoize from 'p-memoize';
+
 import type { Pagination } from '#lib/utils/pagination-types.ts';
 import type { YearGroup } from '#lib/utils/year-groups.ts';
 
@@ -5,8 +7,6 @@ import { getCatalog } from '#lib/catalog/catalog-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 import { getYearGroups } from '#lib/utils/year-groups.ts';
-
-let archiveYearsPromise: Promise<Array<YearGroup>> | undefined;
 
 // Not an `IndexedCollection` in the shared routing module, so the archive names its own paths
 export function getArchivePath(): string {
@@ -61,11 +61,7 @@ export function getArchiveYearPath(year: string): string {
 }
 
 // Every year with editorial content, newest first; pages are outside the stream and carry no date worth filing
-export function getArchiveYears(): Promise<Array<YearGroup>> {
-	if (!archiveYearsPromise) archiveYearsPromise = buildArchiveYears();
-
-	return archiveYearsPromise;
-}
+export const getArchiveYears = pMemoize(buildArchiveYears);
 
 async function buildArchiveYears(): Promise<Array<YearGroup>> {
 	const catalog = await getCatalog();

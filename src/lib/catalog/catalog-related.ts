@@ -1,4 +1,5 @@
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
@@ -70,7 +71,7 @@ const hierarchicalVocabularies = [
 
 const linkPattern = /<Link\s+id="([^"]+)"/gu;
 
-let contextPromise: Promise<RelatedContext> | undefined;
+const getRelatedContext = pMemoize(buildRelatedContext);
 
 export async function getRelatedItems(id: string): Promise<Array<ContentCatalogItem>> {
 	const context = await getRelatedContext();
@@ -215,12 +216,6 @@ function creditKeys(
 		.map((credit) => toCreditId(credit, slugs[vocabulary]))
 		.filter((id) => id !== '')
 		.map((id) => termKey(vocabulary, id));
-}
-
-function getRelatedContext(): Promise<RelatedContext> {
-	if (!contextPromise) contextPromise = buildRelatedContext();
-
-	return contextPromise;
 }
 
 function measureRarity(profiles: Array<RelatedProfile>): Map<string, number> {

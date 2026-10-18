@@ -6,8 +6,6 @@ import { CreditSchema } from '#lib/schemas/credits.ts';
 import { TitleSchema } from '#lib/schemas/index.ts';
 
 const termBaseSchema = {
-	_appearanceCount: z.number().int().optional(),
-	_entryCount: z.number().int().optional(),
 	imageFeatured: ImageFeaturedSchema.optional(),
 	links: z.string().array().optional(),
 	nameVariant: z.string().optional(),

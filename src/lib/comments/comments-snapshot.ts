@@ -3,19 +3,14 @@ import type { ApprovedComment } from '@xsynaptic/shared/comments';
 import { commentsSnapshotPath, commentsSnapshotSchema } from '@xsynaptic/shared/comments';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import pMemoize from 'p-memoize';
 
 const isLocalDatabase = process.env.COMMENTS_D1_LOCAL === '1';
 
 const snapshotPath = commentsSnapshotPath(isLocalDatabase);
 
 // Read once per process, so a fresh pull needs a dev restart
-let commentsPromise: Promise<Map<string, Array<ApprovedComment>>> | undefined;
-
-export function readCommentsByEntry(): Promise<Map<string, Array<ApprovedComment>>> {
-	if (!commentsPromise) commentsPromise = buildCommentsByEntry();
-
-	return commentsPromise;
-}
+export const readCommentsByEntry = pMemoize(buildCommentsByEntry);
 
 async function buildCommentsByEntry(): Promise<Map<string, Array<ApprovedComment>>> {
 	const rows = await readRows();

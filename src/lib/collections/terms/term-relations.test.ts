@@ -90,7 +90,7 @@ const fixtures: Fixtures = {
 	],
 };
 
-// Both the hierarchy and the stamped counts memoize, so each case builds from a fresh module graph
+// Both the hierarchy and the computed counts memoize, so each case builds from a fresh module graph
 async function getRelations(collection: TermCollectionKey, id: string) {
 	vi.resetModules();
 

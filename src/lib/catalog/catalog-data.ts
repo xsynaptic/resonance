@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { Catalog } from '#lib/catalog/catalog-factory.ts';
 import type {
@@ -57,13 +58,7 @@ interface TermEntry {
 	id: string;
 }
 
-let catalogPromise: Promise<Catalog> | undefined;
-
-export function getCatalog(): Promise<Catalog> {
-	if (!catalogPromise) catalogPromise = buildCatalog();
-
-	return catalogPromise;
-}
+export const getCatalog = pMemoize(buildCatalog);
 
 // Ids are flat across the catalog: `<Link id>` and the site root both resolve without a collection
 function assertUniqueIds(items: ReadonlyArray<CatalogItem>): void {
@@ -163,5 +158,5 @@ function toTermItem(collection: TermCollectionKey, entry: TermEntry): TermCatalo
 function workYear(entry: ContentEntry, work: undefined | WorkTitle): string | undefined {
 	if (!work) return undefined;
 
-	return entry.data.releaseYear ?? String(entry.data.dateCreated.getFullYear());
+	return entry.data.releaseYear ?? String(entry.data.dateCreated.getUTCFullYear());
 }

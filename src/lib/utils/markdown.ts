@@ -1,4 +1,5 @@
 import { createSatteriMarkdownProcessor } from '@astrojs/markdown-satteri';
+import pMemoize from 'p-memoize';
 
 const entities: Record<string, string> = {
 	'&#39;': "'",
@@ -10,9 +11,7 @@ const entities: Record<string, string> = {
 
 // Bare inline-markdown processor for list-item descriptions, NOT the astro.config MDX pipeline
 // So <Link>/<Img> render as literal text; memoized, since building one is expensive
-type Processor = Awaited<ReturnType<typeof createSatteriMarkdownProcessor>>;
-
-let processorPromise: Promise<Processor> | undefined;
+const getProcessor = pMemoize(async () => createSatteriMarkdownProcessor({}));
 
 export async function renderMarkdown(text: string): Promise<string> {
 	const processor = await getProcessor();
@@ -32,9 +31,4 @@ export async function toExcerpt(markdown: string, maxLength = 160): Promise<stri
 		.trim();
 	if (text.length <= maxLength) return text;
 	return `${text.slice(0, maxLength).replace(/\s+\S*$/, '')}…`;
-}
-
-async function getProcessor(): Promise<Processor> {
-	if (!processorPromise) processorPromise = createSatteriMarkdownProcessor({});
-	return processorPromise;
 }

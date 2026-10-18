@@ -24,7 +24,7 @@ const terms = await getDirectoryTerms(collection);
 async function getCounts() {
 	const { entries } = await getTermCollection(collection);
 
-	return new Map(entries.map((entry) => [entry.id, entry.data._entryCount ?? 0]));
+	return new Map(entries.map((entry) => [entry.id, entry.data._entryCount]));
 }
 
 const counts = hasCounts ? await getCounts() : undefined;

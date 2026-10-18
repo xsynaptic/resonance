@@ -2,12 +2,12 @@ import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 
 import { getContentPath, toSlug } from '@xsynaptic/shared/routing';
 import { getCollection, getEntries } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { HierarchicalCollection } from '#lib/collections/terms/hierarchy.ts';
-import type { CreditValue, LabelCreditValue } from '#lib/schemas/credits.ts';
+import type { CreditValue } from '#lib/schemas/credits.ts';
 
 import { ancestorsOf } from '#lib/collections/terms/hierarchy.ts';
-import { memoizeByKey } from '#lib/utils/memoize.ts';
 
 // url is set only when the name matches a catalog entry; free text and unresolved ids render plain
 export interface LinkedName {
@@ -17,16 +17,6 @@ export interface LinkedName {
 
 // Every collection with a `title` field. excluding those that are data-only
 export type TitledCollectionKey = Exclude<CollectionKey, 'downloads'>;
-
-// Ids from a labels array that link to a term (bare strings are free text; objects carry the id)
-export function labelIds(labels: Array<LabelCreditValue> | undefined): Array<string> {
-	if (!labels) return [];
-	const ids: Array<string> = [];
-	for (const label of labels) {
-		if (typeof label !== 'string') ids.push(label.id);
-	}
-	return ids;
-}
 
 export async function resolveAncestors(
 	collection: HierarchicalCollection,
@@ -116,7 +106,7 @@ async function buildTitles(collection: TitledCollectionKey): Promise<Map<string,
 }
 
 // Cached slugified-title->id per collection, so a free-text credit can find the term it names
-export const getSlugs = memoizeByKey(buildSlugs);
+export const getSlugs = pMemoize(buildSlugs);
 
 // Cached id->title per collection, so credit resolution is one build-time scan per collection
-const getTitles = memoizeByKey(buildTitles);
+const getTitles = pMemoize(buildTitles);

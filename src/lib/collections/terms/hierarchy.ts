@@ -1,11 +1,11 @@
 import type { CollectionKey } from 'astro:content';
 
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { Hierarchy } from '#lib/utils/hierarchy.ts';
 
 import { createHierarchy } from '#lib/utils/hierarchy.ts';
-import { memoizeByKey } from '#lib/utils/memoize.ts';
 
 // Term collections whose terms nest via a `parent` reference
 // Flat ones (artists, themes, series) are absent
@@ -34,7 +34,7 @@ export function isHierarchical(collection: CollectionKey): collection is Hierarc
 	return hierarchicalCollections.has(collection);
 }
 
-export const getTermHierarchy = memoizeByKey(buildHierarchy);
+export const getTermHierarchy = pMemoize(buildHierarchy);
 
 async function buildHierarchy(collection: HierarchicalCollection): Promise<Hierarchy> {
 	const entries = await getCollection(collection);

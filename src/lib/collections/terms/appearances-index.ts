@@ -1,4 +1,5 @@
 import { getCollection } from 'astro:content';
+import pMemoize from 'p-memoize';
 
 import type { ContentCatalogItem } from '#lib/catalog/catalog-types.ts';
 import type { TermIndex } from '#lib/collections/terms/term-index.ts';
@@ -22,20 +23,13 @@ interface CreditLookup {
 	vocabulary: AppearanceVocabulary;
 }
 
-let artistsPromise: Promise<TermIndex> | undefined;
-let labelsPromise: Promise<TermIndex> | undefined;
+export const getArtistAppearancesIndex = pMemoize(async () =>
+	buildAppearancesIndex('artists', getArtistsIndex),
+);
 
-export function getArtistAppearancesIndex(): Promise<TermIndex> {
-	if (!artistsPromise) artistsPromise = buildAppearancesIndex('artists', getArtistsIndex);
-
-	return artistsPromise;
-}
-
-export function getLabelAppearancesIndex(): Promise<TermIndex> {
-	if (!labelsPromise) labelsPromise = buildAppearancesIndex('labels', getLabelsIndex);
-
-	return labelsPromise;
-}
+export const getLabelAppearancesIndex = pMemoize(async () =>
+	buildAppearancesIndex('labels', getLabelsIndex),
+);
 
 async function buildAppearancesIndex(
 	vocabulary: AppearanceVocabulary,

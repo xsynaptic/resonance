@@ -35,7 +35,7 @@
 		"@xsynaptic/playback-stats": "workspace:*",
 		"@xsynaptic/player": "workspace:*",
 		"astro": "^7.4.0",
-		"p-memoize": "^8.0.0",
+		"p-memoize": "^9.0.0",
 		"yaml": "^2.9.1"
 	},
 	"devDependencies": {
@@ -70,7 +70,7 @@
 		"happy-dom": "^20.14.6",
 		"knip": "^6.41.0",
 		"lefthook": "^2.2.2",
-		"markdown-it": "^15.0.2",
+		"markdown-it": "^15.0.3",
 		"ohash": "^2.0.12",
 		"prettier": "^3.9.10",
 		"prettier-plugin-astro": "^1.1.1",
@@ -83,7 +83,7 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.12",
-		"wrangler": "^4.151.0",
+		"wrangler": "^4.151.1",
 		"zod": "^4.6.7"
 	},
 	"packageManager": "pnpm@12.10.1",

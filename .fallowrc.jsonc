@@ -23,6 +23,9 @@
 		"css-token-drift": "error",
 		"css-duplicate-block": "error",
 		"css-broken-reference": "error",
+		"re-export-cycle": "error",
+		"package-cycle": "error",
+		"policy-violation": "off",
 	},
 	"health": {
 		// Zero disables CRAP, which fallow otherwise estimates without coverage data
@@ -48,16 +51,31 @@
 	"boundaries": {
 		"zones": [
 			{ "name": "packages", "patterns": ["packages/**"] },
-			{ "name": "lib", "patterns": ["src/lib/**"] },
-			{ "name": "components", "patterns": ["src/components/**", "src/layouts/**", "src/pages/**"] },
+			{ "name": "dev", "patterns": ["src/dev/**"] },
+			{ "name": "lib", "patterns": ["src/lib/**", "src/constants.ts", "src/env.d.ts"] },
+			{
+				"name": "components",
+				"patterns": [
+					"src/components/**",
+					"src/layouts/**",
+					"src/pages/**",
+					"src/styles/**",
+					"src/content.config.ts",
+				],
+			},
 			{ "name": "worker", "patterns": ["worker/**"] },
 		],
+		// Unzoned files are unrestricted both ways, so every analyzed file needs a zone
+		"coverage": {
+			"requireAllFiles": true,
+			"allowUnmatched": ["*.config.{ts,mjs}", "tests/**"],
+		},
 		"rules": [
 			// Vite/Rolldown build breaks when packages import the app at runtime
-			{ "from": "packages", "allow": ["packages"], "allowTypeOnly": ["lib"] },
-			{ "from": "lib", "allow": ["lib", "packages"] },
-			{ "from": "components", "allow": ["components", "lib", "packages"] },
-			{ "from": "worker", "allow": ["worker", "lib"] },
+			{ "from": "packages", "allow": [], "allowTypeOnly": ["lib"] },
+			{ "from": "lib", "allow": ["packages"] },
+			{ "from": "components", "allow": ["lib", "packages"] },
+			{ "from": "worker", "allow": ["lib"] },
 		],
 	},
 }

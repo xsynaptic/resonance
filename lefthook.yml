@@ -39,7 +39,7 @@ check:
           - name: styling
             run: fallow audit --gate all --quiet
           - name: architecture
-            run: fallow dead-code --boundary-violations --circular-deps --quiet
+            run: fallow architecture --quiet
           - name: test
             run: vitest run
 
@@ -75,4 +75,4 @@ fix:
     - name: styling
       run: fallow audit --gate all --quiet
     - name: architecture
-      run: fallow dead-code --boundary-violations --circular-deps --quiet
+      run: fallow architecture --quiet

@@ -1,8 +1,63 @@
+import type { Page } from '@playwright/test';
+import type { StreamResolution } from '@xsynaptic/player';
+
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
 import { stallAfterMs } from '#engine/audio-engine.ts';
 import { labels } from '#test/labels.ts';
 
+interface HeldStream {
+	answer?: (resolution: StreamResolution) => void;
+	calls: number;
+	reject?: () => void;
+}
+
+declare global {
+	interface Window {
+		heldStream?: HeldStream;
+	}
+}
+
 const webkitProjects = new Set(['mobile-webkit', 'webkit']);
+
+async function holdStream(page: Page): Promise<void> {
+	await page.evaluate(() => {
+		const store = window.playerPage?.store;
+		const urls = store?.getState().urls;
+		if (!store || !urls) throw new Error('The player is not bound');
+
+		const held: HeldStream = { calls: 0 };
+
+		Object.defineProperty(window, 'heldStream', { value: held });
+		store.getState().configure({
+			urls: {
+				...urls,
+				stream: () =>
+					new Promise<StreamResolution>((resolve, reject) => {
+						held.calls += 1;
+						held.answer = resolve;
+						held.reject = () => {
+							reject(new Error('Held stream rejected'));
+						};
+					}),
+			},
+		});
+	});
+}
+
+async function answerWithStream(page: Page): Promise<void> {
+	await page.evaluate(() => {
+		const state = window.playerPage?.store.getState();
+		const item = state?.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
+		const url: unknown = item && Reflect.get(item, 'streamUrl');
+		if (typeof url !== 'string') throw new TypeError('Nothing loaded');
+
+		window.heldStream?.answer?.({ status: 'ok', url });
+	});
+}
+
+function readHeldCalls(page: Page): Promise<number | undefined> {
+	return page.evaluate(() => window.heldStream?.calls);
+}
 
 // Chromium and WebKit log the 404 a missing stream answers with; Firefox does not
 const notFoundLog = /the server responded with a status of 404/;
@@ -157,4 +212,69 @@ test('a load starved past the stall threshold starts again when the page comes b
 	await expectAdvancing(harness, 1);
 	expect(await harness.read()).toMatchObject({ resolveCount: 1, status: 'playing' });
 	expect(await harness.requests()).toContainEqual(expect.objectContaining({ status: 206 }));
+});
+
+test('an outside pause after a capped answer stays capped, and the next play resolves again', async ({
+	harness,
+	page,
+}) => {
+	await harness.open();
+	await holdStream(page);
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+
+	await page.evaluate(async () => {
+		const state = window.playerPage?.store.getState();
+		const element = state?.getMediaElement();
+		if (!state || !element) throw new Error('Nothing loaded');
+
+		const waiting = new Promise((resolve) => {
+			element.addEventListener('waiting', resolve, { once: true });
+		});
+
+		state.play();
+		await waiting;
+		window.heldStream?.answer?.({ status: 'capped' });
+	});
+	await expect
+		.poll(() => harness.read())
+		.toMatchObject({ element: { hasSource: false, paused: true }, status: 'capped' });
+
+	await page.evaluate(() => {
+		window.playerPage?.store.getState().pause();
+	});
+	await page.waitForTimeout(500);
+	expect(await harness.read()).toMatchObject({ isPaused: true, status: 'capped' });
+
+	await page.evaluate(() => {
+		window.playerPage?.store.getState().play();
+	});
+	await expect.poll(() => readHeldCalls(page)).toBe(2);
+
+	await answerWithStream(page);
+	await expectAdvancing(harness, 1);
+});
+
+test('a resolve failing as a paused load resumes stays in error, and the next play resolves again', async ({
+	harness,
+	page,
+}) => {
+	await harness.open();
+	await holdStream(page);
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+
+	await page.evaluate(() => {
+		window.playerPage?.store.getState().play();
+		window.heldStream?.reject?.();
+	});
+	await expect.poll(() => harness.read()).toMatchObject({ isPaused: true, status: 'error' });
+	await page.waitForTimeout(500);
+	expect(await harness.read()).toMatchObject({ element: { paused: true }, status: 'error' });
+
+	await page.getByRole('button', { exact: true, name: labels.play }).click();
+	await expect.poll(() => readHeldCalls(page)).toBe(2);
+
+	await answerWithStream(page);
+	await expectAdvancing(harness, 1);
 });

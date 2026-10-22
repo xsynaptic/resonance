@@ -1,6 +1,24 @@
+import type { Page } from '@playwright/test';
+
 import { seekSeconds } from '#e2e/constants.ts';
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
 import { labels } from '#test/labels.ts';
+
+async function openQueue(page: Page, isMobile: boolean): Promise<void> {
+	if (!isMobile) {
+		await page
+			.getByRole('region', { name: labels.nowPlaying })
+			.getByRole('button', { exact: true, name: labels.queue })
+			.click();
+		return;
+	}
+
+	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await page
+		.getByRole('dialog', { name: labels.nowPlaying })
+		.getByRole('button', { exact: true, name: labels.lists })
+		.click();
+}
 
 test('a press on a page control plays', async ({ harness, page }) => {
 	const streamResponses: Array<{ headers: Record<string, string>; status: number }> = [];
@@ -159,4 +177,31 @@ test('an outside pause after switching rows mid-play reads as paused', async ({
 
 	await expect.poll(() => harness.read()).toMatchObject({ isPaused: true, status: 'paused' });
 	await expect(page.getByRole('button', { exact: true, name: labels.play })).toBeVisible();
+});
+
+test('picking the loaded row in the queue pauses and resumes it without reloading', async ({
+	harness,
+	isMobile,
+	page,
+}) => {
+	await harness.open();
+	await page.getByRole('button', { name: 'Play long' }).click();
+	await expectAdvancing(harness, 1);
+
+	const { loadstarts } = await harness.observed();
+	const pick = page.getByRole('button', { name: /^Long fixture/ });
+
+	await openQueue(page, isMobile);
+	await pick.click();
+	await expect
+		.poll(() => harness.read())
+		.toMatchObject({ element: { paused: true }, isPaused: true, status: 'paused' });
+
+	const { element } = await harness.read();
+
+	await pick.click();
+	await expectAdvancing(harness, (element?.currentTime ?? 0) + 1);
+
+	expect(await harness.read()).toMatchObject({ resolveCount: 1, status: 'playing' });
+	expect(await harness.observed()).toMatchObject({ loadstarts });
 });

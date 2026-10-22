@@ -48,8 +48,15 @@ export function createTransportActions({
 		pause: playback.pause,
 		play: playback.play,
 
+		// A jump onto a track that is already loaded is a transport toggle, not a reload
 		playAt: (index) => {
-			if (index < 0 || index >= get().queue.length) return;
+			const { currentIndex, queue } = get();
+			if (index < 0 || index >= queue.length) return;
+
+			if (index === currentIndex) {
+				get().togglePaused();
+				return;
+			}
 
 			playback.loadIndex(index, true);
 		},

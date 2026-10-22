@@ -105,7 +105,7 @@ export function createPlaybackController(
 		if (loading === undefined) return;
 
 		loading = undefined;
-		set(isUnplayable ? unplayableState : errorState(get(), stage));
+		endAttempt(api, engine, isUnplayable ? unplayableState : errorState(get(), stage));
 	}
 
 	// The synchronous half of a load: everything autoplay policy requires to happen inside the gesture
@@ -135,7 +135,7 @@ export function createPlaybackController(
 			engine: activeEngine,
 			isCurrent: () => loading === attempt,
 			onCapped: () => {
-				set({ isPaused: true, status: 'capped' });
+				endAttempt(api, activeEngine, { isPaused: true, status: 'capped' });
 			},
 			onFail: () => {
 				fail('resolve');
@@ -210,6 +210,15 @@ function createDiagnostics(api: StoreApi<PlayerStore>, attempt: () => LoadAttemp
 			retriedStage = stage;
 		},
 	};
+}
+
+function endAttempt(
+	api: StoreApi<PlayerStore>,
+	engine: AudioEngine | undefined,
+	state: Partial<PlayerStore>,
+): void {
+	engine?.reset();
+	api.setState(state);
 }
 
 // Without a current track there is nothing to pin the failure to, so the status carries it alone

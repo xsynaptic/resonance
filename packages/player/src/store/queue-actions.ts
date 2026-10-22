@@ -55,18 +55,12 @@ export function createQueueActions({
 		return stampQueue(items, nextQueueId);
 	}
 
-	// A jump onto a track that is already loaded is a transport toggle, not a reload
 	function enqueue(items: ReadonlyArray<QueueItem>, itemId?: string): void {
 		const appended = appendedQueue(queueState(), stamped(items), itemId);
 		if (!appended) return;
 
-		if (appended.loadIndex === get().currentIndex) {
-			get().togglePaused();
-			return;
-		}
-
 		set(appended.state);
-		playback.loadIndex(appended.loadIndex, true);
+		get().playAt(appended.loadIndex);
 	}
 
 	return {

@@ -25,7 +25,7 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 	page,
 }) => {
 	const waveform = page.locator('sonic-waveform:has(:visible)');
-	const readPending = () =>
+	const isPending = () =>
 		waveform.evaluate((element) => element.querySelector('[data-sonic-pending]') !== null);
 	let chunkRequests = 0;
 
@@ -50,11 +50,11 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 	await harness.open({ archive: 1 });
 	await openPausedPanel(page, isMobile);
 
-	await expect.poll(readPending).toBe(true);
+	await expect.poll(isPending).toBe(true);
 	expect(chunkRequests).toBe(1);
 	await expect(waveform).not.toHaveJSProperty('pending', []);
 
-	await expect.poll(readPending, { timeout: 10_000 }).toBe(false);
+	await expect.poll(isPending, { timeout: 10_000 }).toBe(false);
 	expect(chunkRequests).toBe(2);
 	await expect(waveform).toHaveJSProperty('pending', []);
 	expect(await harness.read()).toMatchObject({ isPaused: true });

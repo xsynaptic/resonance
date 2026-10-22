@@ -27,3 +27,7 @@ allowBuilds:
   lefthook: true
   sharp: true
   workerd: true
+
+permissions:
+  fallow:
+    skills: false

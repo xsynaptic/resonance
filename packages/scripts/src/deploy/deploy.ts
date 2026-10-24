@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import chalk from 'chalk';
 import path from 'node:path';
 import tls from 'node:tls';

@@ -24,8 +24,6 @@ const datedCollections = [
 ] as const;
 
 interface SitemapLastmodOptions {
-	contentPath?: string;
-	outputPath?: string;
 	rootPath: string;
 	siteUrl: string;
 }
@@ -33,13 +31,13 @@ interface SitemapLastmodOptions {
 export async function generateSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
 	console.log(chalk.magenta('=== Sitemap lastmod ==='));
 
-	const { contentPathAbs, contentPathRelative, outputPath } = resolvePaths(options);
+	const outputPath = path.resolve(options.rootPath, sitemapLastmodPath);
 
 	console.log(chalk.blue('Reading git log...'));
 
 	const gitDates = await getGitFileDates({
-		cwd: contentPathAbs,
-		keyPrefix: contentPathRelative,
+		cwd: path.resolve(options.rootPath, contentDataPath),
+		keyPrefix: contentDataPath,
 		pathspec: 'collections/',
 	});
 
@@ -49,7 +47,7 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 		getCollectionEntries(content, [...datedCollections]),
 	);
 
-	const contentPathPrefix = `${contentPathRelative}/collections/`;
+	const contentPathPrefix = `${contentDataPath}/collections/`;
 	const urls: Record<string, string> = {};
 
 	let resolvedCount = 0;
@@ -85,14 +83,4 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 	}
 
 	console.log(chalk.gray(`Output: ${outputPath}`));
-}
-
-function resolvePaths(options: SitemapLastmodOptions) {
-	const contentPathRelative = options.contentPath ?? contentDataPath;
-
-	return {
-		contentPathAbs: path.resolve(options.rootPath, contentPathRelative),
-		contentPathRelative,
-		outputPath: path.resolve(options.rootPath, options.outputPath ?? sitemapLastmodPath),
-	};
 }

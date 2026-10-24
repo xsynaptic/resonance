@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env -S node --import tsx
 import { parseArgs } from 'node:util';
 
 import { generateOpenGraphImages } from '#og-image/index.ts';

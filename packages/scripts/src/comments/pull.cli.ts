@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { pullComments } from '#comments/pull.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 

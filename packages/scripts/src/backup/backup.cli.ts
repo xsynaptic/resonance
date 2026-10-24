@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { backupDatabase, databaseNames } from '#backup/backup.ts';
 import { findWorkspaceRoot } from '#shared/utils.ts';
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { writeDiscogsTracklists } from '#discogs/discogs-tracklists.ts';
 import { toDryRunOptions } from '#shared/cli.ts';
 

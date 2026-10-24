@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import chalk from 'chalk';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';

@@ -70,6 +70,8 @@ function collectMediaFiles(mediaPath: string): Set<string> {
 
 	function walk(directory: string, prefix: string): void {
 		for (const name of readdirSync(directory)) {
+			if (name.startsWith('_')) continue;
+
 			const fullPath = path.join(directory, name);
 			const relativePath = prefix === '' ? name : `${prefix}/${name}`;
 

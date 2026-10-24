@@ -13,7 +13,7 @@ const concurrency = 8;
 const mediaDir = `${contentDataPath}/media`;
 
 // Mirrors the glob in `src/lib/utils/media.ts`
-const mediaPattern = '**/*.{avif,jpeg,jpg,png,webp}';
+const mediaPattern = ['**/[^_]*.{avif,jpeg,jpg,png,webp}', '!**/_*/**'];
 
 // Pixel budget rather than an edge, so the grid tracks the aspect ratio; 1024 is 32x32 on a square cover
 const lqipPixelCount = 1024;

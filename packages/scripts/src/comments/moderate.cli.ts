@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import chalk from 'chalk';
 import { parseArgs } from 'node:util';
 

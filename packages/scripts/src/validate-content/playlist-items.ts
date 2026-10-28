@@ -1,8 +1,7 @@
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
+
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 import { parse } from 'yaml';
-
-import type { ContentEntry } from '#shared/astro-content.ts';
-
-import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // The build drops an unknown item with only a warning, and a Playlist left empty disappears
 export function validatePlaylistItems(
@@ -25,7 +24,7 @@ export function validatePlaylistItems(
 	}
 
 	return toValidationResult(
-		issues.map(({ id, title }) => ({ message: `${location}: "${title}" has unknown mix "${id}"` })),
+		issues.map(({ id, title }) => ({ location, message: `"${title}" has unknown mix "${id}"` })),
 		{
 			fail: `Found ${issues.length.toString()} unknown playlist item(s)`,
 			pass: 'Playlist items valid',

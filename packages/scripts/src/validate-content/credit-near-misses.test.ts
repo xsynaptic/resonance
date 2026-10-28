@@ -23,8 +23,8 @@ describe('validateCreditNearMisses', () => {
 		expect(validateCreditNearMisses(entries, catalog)).toEqual({
 			issues: [
 				{
-					message:
-						'collections/mixes/2019/prototypes-3.mdx: tracks[0].artists "Junion Jack" is one letter off artists "union-jack"',
+					location: 'collections/mixes/2019/prototypes-3.mdx',
+					message: 'tracks[0].artists "Junion Jack" is one letter off artists "union-jack"',
 				},
 			],
 			status: 'warn',

@@ -1,6 +1,6 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
 
-import { toLocatedValidationResult } from '#validate-content/validation-result.ts';
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 
 // An unknown entryId renders a bare row with no title or body, behind only a build warning
 export function validateSelectionEntryIds(
@@ -14,12 +14,12 @@ export function validateSelectionEntryIds(
 			.map(({ entryId }, index) => ({ entryId, index }))
 			.filter(({ entryId }) => entryId !== undefined && !validIds.has(entryId))
 			.map(({ entryId = '', index }) => ({
-				detail: `selections[${index.toString()}].entryId "${entryId}" names no entry`,
 				location: entry.filePath ?? entry.id,
+				message: `selections[${index.toString()}].entryId "${entryId}" names no entry`,
 			}));
 	});
 
-	return toLocatedValidationResult(issues, {
+	return toValidationResult(issues, {
 		fail: `Found ${issues.length.toString()} unknown selection entryId(s)`,
 		pass: 'Selection entryIds valid',
 	});

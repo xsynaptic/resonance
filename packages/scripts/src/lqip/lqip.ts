@@ -1,5 +1,5 @@
+import { createProgress, log } from '@xsynaptic/astro-scripts';
 import { mediaLqipPath } from '@xsynaptic/shared/constants';
-import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import pLimit from 'p-limit';
@@ -49,6 +49,7 @@ export async function generateLqip(rootPath: string): Promise<void> {
 
 	const entries: Record<string, LqipEntry> = {};
 	const limit = pLimit(concurrency);
+	const progress = createProgress({ label: 'LQIP', total: files.length });
 	let generated = 0;
 	let reused = 0;
 	let skipped = 0;
@@ -63,10 +64,13 @@ export async function generateLqip(rootPath: string): Promise<void> {
 				if (previous?.mtime === mtime) {
 					entries[relativePath] = previous;
 					reused += 1;
+					progress.tick();
 					return;
 				}
 
 				const lqip = await renderLqip(path.join(mediaPath, relativePath));
+
+				progress.tick();
 
 				if (lqip === undefined) {
 					skipped += 1;
@@ -75,7 +79,7 @@ export async function generateLqip(rootPath: string): Promise<void> {
 
 				entries[relativePath] = { lqip, mtime };
 				generated += 1;
-				console.log(chalk.green(`  ${relativePath}`));
+				log.detail(relativePath);
 			}),
 		),
 	);
@@ -90,10 +94,8 @@ export async function generateLqip(rootPath: string): Promise<void> {
 		`${JSON.stringify({ entries: sorted, settings: settingsKey } satisfies LqipCache, undefined, '\t')}\n`,
 	);
 
-	console.log(
-		chalk.blue(
-			`LQIP: ${String(generated)} generated, ${String(reused)} cached, ${String(skipped)} skipped for transparency`,
-		),
+	progress.succeed(
+		`LQIP: ${String(generated)} generated, ${String(reused)} cached, ${String(skipped)} skipped for transparency`,
 	);
 }
 

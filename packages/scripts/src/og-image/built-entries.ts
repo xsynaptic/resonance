@@ -1,3 +1,4 @@
+import { getCollectionEntries, withAstroContent } from '@xsynaptic/astro-scripts';
 import {
 	openGraphBasePath,
 	openGraphDefaultId,
@@ -13,7 +14,6 @@ import type { OpenGraphEntry } from '#og-image/types.ts';
 
 import { getStyleTitles, toOpenGraphEntry } from '#og-image/content.ts';
 import { openGraphCollections } from '#og-image/labels.ts';
-import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 
 // Astro writes `content` before `property`, and `og:image:width` must not match
 const openGraphMetaPattern = /<meta content="([^"]+)" property="og:image"\s*\/?>/g;

@@ -1,7 +1,6 @@
-import { toSlug } from '@xsynaptic/shared/routing';
+import type { ContentEntry, ValidationIssue, ValidationResult } from '@xsynaptic/astro-scripts';
 
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { ValidationIssue, ValidationResult } from '#validate-content/validation-result.ts';
+import { toSlug } from '@xsynaptic/shared/routing';
 
 import { collectEntryCredits } from '#validate-content/credits.ts';
 
@@ -41,7 +40,8 @@ function collectNearMisses(entry: ContentEntry, slugsByCollection: Map<string, S
 			if (!nearMiss) continue;
 
 			issues.push({
-				message: `${entry.filePath ?? entry.id}: ${field} "${name}" is one letter off ${collection} "${nearMiss}"`,
+				location: entry.filePath ?? entry.id,
+				message: `${field} "${name}" is one letter off ${collection} "${nearMiss}"`,
 			});
 		}
 	}

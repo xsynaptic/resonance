@@ -1,8 +1,8 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { ReferenceIssue } from '#validate-content/validation-result.ts';
+import type { ContentEntry, ReferenceIssue } from '@xsynaptic/astro-scripts';
+
+import { toReferenceValidationResult } from '@xsynaptic/astro-scripts';
 
 import { getIdsByCollection, toReferenceIds } from '#shared/entries.ts';
-import { toReferenceValidationResult } from '#validate-content/validation-result.ts';
 
 interface CreditField {
 	collection: string;

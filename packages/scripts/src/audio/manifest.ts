@@ -1,9 +1,9 @@
 import type { MixAudioEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
 
+import { log, withStep } from '@xsynaptic/astro-scripts';
 import { mixAudioPath, waveformsCacheDir } from '@xsynaptic/shared/constants';
 import { MixAudioDocumentSchema, mixAudioVersion } from '@xsynaptic/shared/schemas';
 import { samplesPerFrame } from '@xsynaptic/shared/waveform-format';
-import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -38,28 +38,26 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 
 	const { entries, incomplete, sourceCount } = await collectManifestEntries(rootPath);
 
-	console.log(
-		chalk.blue(
-			`Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and an overview`,
-		),
-	);
+	const text = `Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and an overview`;
 
-	if (incomplete.length > 0) {
-		console.warn(chalk.yellow(`  ${String(incomplete.length)} incomplete and left out:`));
-		for (const base of incomplete) console.warn(chalk.yellow(`    ${base}`));
-	}
+	await withStep(text, async () => {
+		if (incomplete.length > 0) {
+			log.warn(`${String(incomplete.length)} incomplete and left out:`);
+			log.detail(incomplete.join('\n'));
+		}
 
-	await assertManifestNotEmptied(entries.length, rootPath);
+		await assertManifestNotEmptied(entries.length, rootPath);
 
-	if (dryRun) {
-		console.log(chalk.yellow(`  DRY RUN write: ${outputPath}`));
-		return;
-	}
+		if (dryRun) {
+			log.warn(`Dry run: not writing ${outputPath}`);
+			return;
+		}
 
-	await fs.mkdir(path.dirname(outputPath), { recursive: true });
-	await writeDocument(outputPath, entries);
+		await fs.mkdir(path.dirname(outputPath), { recursive: true });
+		await writeDocument(outputPath, entries);
 
-	console.log(chalk.green(`Manifest written: ${outputPath}`));
+		log.success(`Manifest written: ${outputPath}`);
+	});
 }
 
 // The deploy probe needs a filename per location, and the manifest is the only place one is written

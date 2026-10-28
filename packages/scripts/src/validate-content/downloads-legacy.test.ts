@@ -27,8 +27,8 @@ describe('validateDownloadsLegacy', () => {
 		expect(validateDownloadsLegacy(mixes)).toEqual({
 			issues: [
 				{
-					message:
-						'collections/mixes/2015/a-mix.mdx: `downloadsLegacy.flac` has no matching file in `files`',
+					location: 'collections/mixes/2015/a-mix.mdx',
+					message: '`downloadsLegacy.flac` has no matching file in `files`',
 				},
 			],
 			status: 'fail',

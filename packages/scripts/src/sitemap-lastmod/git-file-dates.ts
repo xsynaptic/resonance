@@ -1,3 +1,4 @@
+import { log } from '@xsynaptic/astro-scripts';
 import { $ } from 'zx';
 
 interface GitFileDatesOptions {
@@ -72,5 +73,5 @@ async function warnOrThrowOnShallow(cwd: string, onShallow: 'ignore' | 'throw' |
 
 	if (onShallow === 'throw') throw new Error(message);
 
-	console.warn(message);
+	log.warn(message);
 }

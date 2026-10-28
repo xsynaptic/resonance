@@ -1,8 +1,8 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { EntryReference, ReferenceIssue } from '#validate-content/validation-result.ts';
+import type { ContentEntry, EntryReference, ReferenceIssue } from '@xsynaptic/astro-scripts';
+
+import { toReferenceValidationResult } from '@xsynaptic/astro-scripts';
 
 import { getIdsByCollection } from '#shared/entries.ts';
-import { toReferenceValidationResult } from '#validate-content/validation-result.ts';
 
 interface ReferenceOptions {
 	skipCollections?: Array<string>;

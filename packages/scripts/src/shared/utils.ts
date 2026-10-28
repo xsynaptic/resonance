@@ -1,12 +1,9 @@
 import crypto from 'node:crypto';
-import { createReadStream, existsSync } from 'node:fs';
+import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { $ } from 'zx';
-
-// Cached for the process: scripts only ever run from one place per invocation
-let cachedWorkspaceRoot: string | undefined;
 
 // Interrupted work leaves tmp files behind; clear them so none masquerade as a complete output
 export async function cleanStaleTmp(dir: string, extension: string): Promise<void> {
@@ -57,23 +54,6 @@ export async function requireBinaries(
 			throw new Error(`${binary} not found on PATH. Install it with: brew install ${formula}`);
 		}
 	}
-}
-
-export function findWorkspaceRoot(startDir: string = process.cwd()): string {
-	if (cachedWorkspaceRoot) return cachedWorkspaceRoot;
-
-	let current = path.resolve(startDir);
-
-	while (current !== path.dirname(current)) {
-		if (existsSync(path.join(current, 'pnpm-workspace.yaml'))) {
-			cachedWorkspaceRoot = current;
-			return current;
-		}
-
-		current = path.dirname(current);
-	}
-
-	throw new Error(`Could not locate pnpm-workspace.yaml above ${startDir}`);
 }
 
 // 12 hex of a sha256 over a file's own bytes

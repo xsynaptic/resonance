@@ -1,12 +1,12 @@
 import type { ApprovedComment, CommentsSnapshot, CommentStatus } from '@xsynaptic/shared/comments';
 
+import { formatError, log, withStep } from '@xsynaptic/astro-scripts';
 import {
 	approvedCommentSchema,
 	commentsSnapshotPath,
 	commentsSnapshotSchema,
 	queryComments,
 } from '@xsynaptic/shared/comments';
-import chalk from 'chalk';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -16,8 +16,6 @@ export interface PullCommentsOptions {
 	isLocal?: boolean;
 	rootPath: string;
 }
-
-type SnapshotRow = ApprovedComment & { status: CommentStatus };
 
 // Pending rows are selected only so they can be counted; the snapshot holds the approved ones
 const snapshotQuery = `
@@ -33,51 +31,47 @@ export async function pullComments(options: PullCommentsOptions): Promise<number
 
 	const filePath = path.join(rootPath, commentsSnapshotPath(isLocal));
 
-	console.log(chalk.blue(`Pulling ${isLocal ? 'local' : 'remote'} comments...`));
+	return withStep(`Pulling ${isLocal ? 'local' : 'remote'} comments`, async (step) => {
+		type SnapshotRow = ApprovedComment & { status: CommentStatus };
+		let rows: Array<SnapshotRow>;
 
-	let rows: Array<SnapshotRow>;
+		try {
+			rows = await queryComments<SnapshotRow>(snapshotQuery, { cwd: rootPath, isLocal });
+		} catch (error) {
+			if (!allowStale) throw error;
 
-	try {
-		rows = await queryComments<SnapshotRow>(snapshotQuery, { cwd: rootPath, isLocal });
-	} catch (error) {
-		if (!allowStale) throw error;
+			await reportStaleSnapshot(filePath, error);
+			step.warn();
+			return;
+		}
 
-		await reportStaleSnapshot(filePath, error);
-		return undefined;
-	}
+		// Validate before writing so a change to D1's columns fails the pull, not the build
+		const snapshot = {
+			pulledAt: new Date().toISOString(),
+			rows: approvedCommentSchema.array().parse(rows.filter((row) => row.status === 'approved')),
+		} satisfies CommentsSnapshot;
 
-	// Validate before writing so a change to D1's columns fails the pull, not the build
-	const snapshot = {
-		pulledAt: new Date().toISOString(),
-		rows: approvedCommentSchema.array().parse(rows.filter((row) => row.status === 'approved')),
-	} satisfies CommentsSnapshot;
+		await mkdir(path.dirname(filePath), { recursive: true });
+		await writeFile(filePath, JSON.stringify(snapshot));
 
-	await mkdir(path.dirname(filePath), { recursive: true });
-	await writeFile(filePath, JSON.stringify(snapshot));
+		const pending = rows.length - snapshot.rows.length;
 
-	const pending = rows.length - snapshot.rows.length;
+		log.success(
+			`${String(snapshot.rows.length)} approved comments written to ${commentsSnapshotPath(isLocal)}`,
+		);
+		printPendingCount(pending);
 
-	console.log(
-		chalk.green(
-			`  ${String(snapshot.rows.length)} approved comments written to ${commentsSnapshotPath(isLocal)}`,
-		),
-	);
-	printPendingCount(pending);
-
-	return pending;
+		return pending;
+	});
 }
 
 function printPendingCount(pending: number): void {
 	if (pending === 0) {
-		console.log(chalk.gray('  No comments pending'));
+		log.detail('No comments pending');
 		return;
 	}
 
-	console.log(
-		chalk.yellow(
-			`  ${String(pending)} comment${pending === 1 ? '' : 's'} pending; run \`pnpm comments\``,
-		),
-	);
+	log.warn(`${String(pending)} comment${pending === 1 ? '' : 's'} pending; run \`pnpm comments\``);
 }
 
 async function readSnapshot(filePath: string): Promise<CommentsSnapshot | undefined> {
@@ -92,11 +86,9 @@ async function readSnapshot(filePath: string): Promise<CommentsSnapshot | undefi
 async function reportStaleSnapshot(filePath: string, error: unknown): Promise<void> {
 	const snapshot = await readSnapshot(filePath);
 
-	console.warn(
-		chalk.yellow(
-			snapshot
-				? `  D1 is unreachable (${String(error)}); building from the snapshot pulled at ${snapshot.pulledAt}`
-				: `  D1 is unreachable (${String(error)}) and there is no snapshot at ${filePath}`,
-		),
+	log.warn(
+		snapshot
+			? `D1 is unreachable (${formatError(error)}); building from the snapshot pulled at ${snapshot.pulledAt}`
+			: `D1 is unreachable (${formatError(error)}) and there is no snapshot at ${filePath}`,
 	);
 }

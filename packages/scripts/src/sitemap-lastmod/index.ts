@@ -1,10 +1,15 @@
+import {
+	getCollectionEntries,
+	log,
+	withAstroContent,
+	withSpinner,
+	withStep,
+} from '@xsynaptic/astro-scripts';
 import { sitemapLastmodPath } from '@xsynaptic/shared/constants';
 import { getContentPath } from '@xsynaptic/shared/routing';
-import chalk from 'chalk';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 import { contentDataPath } from '#shared/content-path.ts';
 import { getGitFileDates } from '#sitemap-lastmod/git-file-dates.ts';
 
@@ -29,22 +34,22 @@ interface SitemapLastmodOptions {
 }
 
 export async function generateSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
-	console.log(chalk.magenta('=== Sitemap lastmod ==='));
+	await withStep('Sitemap lastmod', () => writeSitemapLastmod(options));
+}
 
+async function writeSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
 	const outputPath = path.resolve(options.rootPath, sitemapLastmodPath);
 
-	console.log(chalk.blue('Reading git log...'));
+	const gitDates = await withSpinner('Reading git log', () =>
+		getGitFileDates({
+			cwd: path.resolve(options.rootPath, contentDataPath),
+			keyPrefix: contentDataPath,
+			pathspec: 'collections/',
+		}),
+	);
 
-	const gitDates = await getGitFileDates({
-		cwd: path.resolve(options.rootPath, contentDataPath),
-		keyPrefix: contentDataPath,
-		pathspec: 'collections/',
-	});
-
-	console.log(chalk.blue('Loading content...'));
-
-	const entries = await withAstroContent((content) =>
-		getCollectionEntries(content, [...datedCollections]),
+	const entries = await withSpinner('Loading content', () =>
+		withAstroContent((content) => getCollectionEntries(content, [...datedCollections])),
 	);
 
 	const contentPathPrefix = `${contentDataPath}/collections/`;
@@ -61,7 +66,7 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 		// Normally a file added but never committed, which is exactly what a deploy should surface
 		if (!gitDate) {
 			missingDateCount++;
-			console.log(chalk.yellow(`  No git history: ${entry.filePath}`));
+			log.warn(`No git history: ${entry.filePath}`);
 			continue;
 		}
 
@@ -76,11 +81,9 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 		JSON.stringify({ generatedAt: new Date().toISOString(), urls }, undefined, 2),
 	);
 
-	console.log(chalk.green(`Resolved: ${String(resolvedCount)} URLs`));
+	log.success(`Resolved ${String(resolvedCount)} URLs to ${outputPath}`);
 
 	if (missingDateCount > 0) {
-		console.log(chalk.yellow(`  ${String(missingDateCount)} entries with no matching git history`));
+		log.warn(`${String(missingDateCount)} entries with no matching git history`);
 	}
-
-	console.log(chalk.gray(`Output: ${outputPath}`));
 }

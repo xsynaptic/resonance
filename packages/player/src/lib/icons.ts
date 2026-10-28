@@ -110,8 +110,8 @@ function glyph(size: number, children: string): string {
 	return `<svg aria-hidden="true" fill="currentColor" height="${String(size)}" viewBox="0 0 ${String(glyphSize)} ${String(glyphSize)}" width="${String(size)}">${children}</svg>`;
 }
 
-function lucide({ isSolid, name, size, strokeWidth }: LucideIcon, children: string): string {
+function lucide({ isSolid, name, size, strokeWidth = 2 }: LucideIcon, children: string): string {
 	const fill = isSolid === true ? 'currentColor' : 'none';
 
-	return `<svg aria-hidden="true" data-lucide="${name}" fill="${fill}" height="${String(size)}" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="${String(strokeWidth ?? 2)}" viewBox="0 0 24 24" width="${String(size)}">${children}</svg>`;
+	return `<svg aria-hidden="true" data-lucide="${name}" fill="${fill}" height="${String(size)}" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="${String(strokeWidth)}" viewBox="0 0 24 24" width="${String(size)}">${children}</svg>`;
 }

@@ -1,8 +1,19 @@
 #!/usr/bin/env node
 import { pullComments } from '#comments/pull.ts';
-import { findWorkspaceRoot } from '#shared/utils.ts';
+import { runCommand } from '#shared/command.ts';
 
-await pullComments({
-	isLocal: process.argv.includes('--local'),
-	rootPath: findWorkspaceRoot(),
+await runCommand({
+	name: 'comments-pull',
+	options: {
+		local: {
+			default: false,
+			description: 'Pull from the local D1 rather than the remote one',
+			type: 'boolean',
+		},
+	},
+	async run({ rootPath, values }) {
+		await pullComments({ isLocal: values.local, rootPath });
+	},
+	summary: 'Write the approved comments snapshot the build reads',
+	title: 'Pull comments',
 });

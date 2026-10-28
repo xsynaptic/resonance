@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { log, UserError } from '@xsynaptic/astro-scripts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parse } from 'yaml';
@@ -27,23 +27,25 @@ export async function validateAudio(options: ValidateAudioOptions): Promise<Arra
 	);
 	const present = sortFiles([...referenced].filter((file) => onDisk.has(file)));
 
-	report(orphaned, `Orphaned audio (on disk, unreferenced): ${String(orphaned.length)}`, warn);
+	report(orphaned, `Orphaned audio (on disk, unreferenced): ${String(orphaned.length)}`, log.warn);
 	report(
 		flacless,
 		`Referenced .mp3 without a .flac sibling (rendition uses mp3): ${String(flacless.length)}`,
-		warn,
+		log.warn,
 	);
-	report(missing, `Missing audio (referenced, absent on disk): ${String(missing.length)}`, fail);
+	report(
+		missing,
+		`Missing audio (referenced, absent on disk): ${String(missing.length)}`,
+		log.error,
+	);
 
 	if (missing.length > 0) {
-		throw new Error(
+		throw new UserError(
 			`Audio validation failed: ${String(missing.length)} referenced file(s) missing from ${audioSourceDir}`,
 		);
 	}
 
-	console.log(
-		chalk.green(`Audio validation passed: ${String(present.length)} referenced file(s) present`),
-	);
+	log.success(`Audio validation passed: ${String(present.length)} referenced file(s) present`);
 
 	return present;
 }
@@ -73,10 +75,6 @@ async function collectReferenced(mixesDir: string): Promise<Set<string>> {
 	return new Set(sources.flatMap((source) => parseFrontmatterFiles(source)));
 }
 
-function fail(line: string): void {
-	console.error(chalk.red(line));
-}
-
 function isMissingFlacSibling(file: string, referenced: Set<string>): boolean {
 	if (!file.toLowerCase().endsWith('.mp3')) return false;
 
@@ -99,17 +97,13 @@ function parseFrontmatterFiles(source: string): Array<string> {
 	return files.filter((entry): entry is string => typeof entry === 'string');
 }
 
-function report(files: Array<string>, heading: string, log: (line: string) => void): void {
+function report(files: Array<string>, heading: string, emit: (text: string) => void): void {
 	if (files.length === 0) return;
 
-	log(heading);
-	for (const file of files) log(`  ${file}`);
+	emit(heading);
+	log.detail(files.join('\n'));
 }
 
 function sortFiles(files: Array<string>): Array<string> {
 	return files.toSorted((left, right) => left.localeCompare(right));
-}
-
-function warn(line: string): void {
-	console.log(chalk.yellow(line));
 }

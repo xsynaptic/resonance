@@ -1,16 +1,20 @@
 #!/usr/bin/env node
-import chalk from 'chalk';
+import {
+	getCollectionEntries,
+	runValidations,
+	withAstroContent,
+	withSpinner,
+} from '@xsynaptic/astro-scripts';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import type { ValidationResult } from '#validate-content/validation-result.ts';
+import type { PlatformKeys } from '#validate-content/platform-links.ts';
 
 import { mixcloudStatsPath } from '#platform-stats/mixcloud-stats.ts';
 import { readGenerationKeys } from '#platform-stats/platform-stats-file.ts';
 import { soundcloudStatsPath } from '#platform-stats/soundcloud-stats.ts';
-import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
+import { runCommand } from '#shared/command.ts';
 import { contentDataPath } from '#shared/content-path.ts';
-import { findWorkspaceRoot } from '#shared/utils.ts';
 import { validateBodyMarkers } from '#validate-content/body-markers.ts';
 import { validateCreditNearMisses } from '#validate-content/credit-near-misses.ts';
 import { validateCredits } from '#validate-content/credits.ts';
@@ -27,7 +31,6 @@ import { validateSelectionEntryIds } from '#validate-content/selection-entry-ids
 import { validateSeriesItems } from '#validate-content/series-items.ts';
 import { validateTrackGroups } from '#validate-content/track-groups.ts';
 import { validateTrackTimestamps } from '#validate-content/track-timestamps.ts';
-import { reportValidationResult } from '#validate-content/validation-result.ts';
 
 // `downloads` is excluded; it is generated from JSON and carries none of the fields these read
 const contentCollections = [
@@ -65,88 +68,96 @@ const mediaPath = `${contentDataPath}/media`;
 // Mirrors playlistsDataPath in src/constants.ts
 const playlistsPath = `${contentDataPath}/data/playlists.yaml`;
 
-const rootPath = findWorkspaceRoot();
+// Names are the CLI subcommands; a full run reports in this order
+const checkNames = [
+	'body-markers',
+	'credit-near-misses',
+	'credits',
+	'downloads-legacy',
+	'entry-ids',
+	'images',
+	'link-ids',
+	'mdx',
+	'platform-links',
+	'playlist-items',
+	'references',
+	'review-folders',
+	'selection-entry-ids',
+	'series-items',
+	'track-groups',
+	'track-timestamps',
+] as const;
 
-const allEntries = await withAstroContent((content) =>
-	getCollectionEntries(content, [...contentCollections]),
-);
+type ContentEntries = Awaited<ReturnType<typeof loadEntries>>;
 
-function entriesFrom(...collections: Array<string>) {
-	return allEntries.filter((entry) => collections.includes(entry.collection));
+async function loadEntries() {
+	return withAstroContent((content) => getCollectionEntries(content, [...contentCollections]));
 }
 
-// Read once here rather than per check; an absent file leaves its keys `undefined` and is skipped
-const platformKeys = {
-	mixcloud: await readGenerationKeys(path.resolve(rootPath, mixcloudStatsPath)),
-	soundcloud: await readGenerationKeys(path.resolve(rootPath, soundcloudStatsPath)),
-};
+// Read once rather than per check; an absent file leaves its keys `undefined` and is skipped
+async function readPlatformKeys(rootPath: string): Promise<PlatformKeys> {
+	return {
+		mixcloud: await readGenerationKeys(path.resolve(rootPath, mixcloudStatsPath)),
+		soundcloud: await readGenerationKeys(path.resolve(rootPath, soundcloudStatsPath)),
+	};
+}
 
-// Names are the CLI subcommands; a full run reports in this order
-const validations = [
-	{ name: 'body-markers', run: () => validateBodyMarkers(entriesFrom(...markerCollections)) },
-	{
-		name: 'credit-near-misses',
-		run: () => validateCreditNearMisses(allEntries, entriesFrom('artists', 'labels')),
-	},
-	{ name: 'credits', run: () => validateCredits(allEntries, entriesFrom('artists', 'labels')) },
-	{ name: 'downloads-legacy', run: () => validateDownloadsLegacy(entriesFrom('mixes')) },
-	{ name: 'entry-ids', run: () => validateEntryIds(allEntries) },
-	{
-		name: 'images',
-		run: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
-	},
-	{ name: 'link-ids', run: () => validateLinkIds(allEntries, allEntries, rootPath) },
-	{ name: 'mdx', run: () => validateMdxComponents(allEntries, rootPath) },
-	{ name: 'platform-links', run: () => validatePlatformLinks(entriesFrom('mixes'), platformKeys) },
-	{
-		name: 'playlist-items',
-		run: () =>
+function getChecks(
+	allEntries: ContentEntries,
+	{ platformKeys, rootPath }: { platformKeys: PlatformKeys; rootPath: string },
+) {
+	function entriesFrom(...collections: Array<string>) {
+		return allEntries.filter((entry) => collections.includes(entry.collection));
+	}
+
+	return {
+		'body-markers': () => validateBodyMarkers(entriesFrom(...markerCollections)),
+		'credit-near-misses': () =>
+			validateCreditNearMisses(allEntries, entriesFrom('artists', 'labels')),
+		credits: () => validateCredits(allEntries, entriesFrom('artists', 'labels')),
+		'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
+		'entry-ids': () => validateEntryIds(allEntries),
+		images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
+		'link-ids': () => validateLinkIds(allEntries, allEntries, rootPath),
+		mdx: () => validateMdxComponents(allEntries, rootPath),
+		'platform-links': () => validatePlatformLinks(entriesFrom('mixes'), platformKeys),
+		'playlist-items': () =>
 			validatePlaylistItems(
 				readFileSync(path.resolve(rootPath, playlistsPath), 'utf8'),
 				playlistsPath,
 				entriesFrom('mixes'),
 			),
-	},
-	{ name: 'references', run: () => validateReferences(allEntries) },
-	{ name: 'review-folders', run: () => validateReviewFolders(entriesFrom('reviews')) },
-	{
-		name: 'selection-entry-ids',
-		run: () =>
+		references: () => validateReferences(allEntries),
+		'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
+		'selection-entry-ids': () =>
 			validateSelectionEntryIds(
 				entriesFrom(...selectionCollections),
 				new Set(entriesFrom(...linkableCollections).map((entry) => entry.id)),
 			),
-	},
-	{
-		name: 'series-items',
-		run: () => validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
-	},
-	{ name: 'track-groups', run: () => validateTrackGroups(entriesFrom('mixes')) },
-	{
-		name: 'track-timestamps',
-		run: () => validateTrackTimestamps(entriesFrom(...audioCollections)),
-	},
-] satisfies Array<{ name: string; run: () => ValidationResult }>;
-
-const command = process.argv[2];
-
-const selected = command ? validations.filter(({ name }) => name === command) : validations;
-
-if (command && selected.length === 0) {
-	console.log(chalk.red(`Unknown command: ${command}`));
-	console.log(chalk.dim(`Available: ${validations.map(({ name }) => name).join(', ')}`));
-	process.exit(1);
+		'series-items': () =>
+			validateSeriesItems(entriesFrom('series'), entriesFrom(...seriesMemberCollections)),
+		'track-groups': () => validateTrackGroups(entriesFrom('mixes')),
+		'track-timestamps': () => validateTrackTimestamps(entriesFrom(...audioCollections)),
+	};
 }
 
-let hasFailure = false;
+await runCommand({
+	name: 'validate-content',
+	positional: {
+		choices: checkNames,
+		description: 'Run one check by name; omit to run all',
+		name: 'check',
+	},
+	async run({ positionals, rootPath }) {
+		const [only] = positionals;
+		const allEntries = await withSpinner('Loading content', loadEntries);
+		const checks = getChecks(allEntries, {
+			platformKeys: await readPlatformKeys(rootPath),
+			rootPath,
+		});
 
-for (const { run } of selected) {
-	const result = run();
-
-	reportValidationResult(result);
-
-	if (result.status === 'fail') hasFailure = true;
-}
-
-// A subcommand is for inspection, so only a full run exits non-zero
-if (!command && hasFailure) process.exit(1);
+		await runValidations(checkNames, checks, { only });
+	},
+	summary: 'Check references, credits, tracklists, links and media before a build',
+	title: 'Validate content',
+});

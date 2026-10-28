@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { formatError, log, withStep } from '@xsynaptic/astro-scripts';
 import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -34,44 +34,45 @@ export async function pullStats(options: StatsPullOptions): Promise<StepStatus> 
 	const backupDir = path.join(rootPath, localBackupDir);
 	const backupDate = new Date().toISOString().slice(0, 10);
 
-	console.log(chalk.blue('Pulling download stats...'));
-	console.log(chalk.gray(`  ${config.remoteHost}:${remoteStatsDir}/ -> ${backupDir}/`));
-	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
+	return withStep('Pulling download stats', async (step) => {
+		log.detail(`${config.remoteHost}:${remoteStatsDir}/ -> ${backupDir}/`);
+		if (dryRun) log.warn('Dry run');
 
-	try {
-		await ensureSshKeychain();
-		await mkdir(backupDir, { recursive: true });
-		await mkdir(jsonDir, { recursive: true });
+		try {
+			await ensureSshKeychain();
+			await mkdir(backupDir, { recursive: true });
+			await mkdir(jsonDir, { recursive: true });
 
-		// Landing on stable names gives the next pull a basis file to delta against
-		await rsyncTo(
-			statsFiles.map((file) => `${config.remoteHost}:${remoteStatsDir}/${file}`),
-			`${backupDir}/`,
-			{ archive: 'av', config, dryRun, quiet: true },
-		);
+			// Landing on stable names gives the next pull a basis file to delta against
+			await rsyncTo(
+				statsFiles.map((file) => `${config.remoteHost}:${remoteStatsDir}/${file}`),
+				`${backupDir}/`,
+				{ archive: 'av', config, dryRun, quiet: true },
+			);
 
-		if (dryRun) return 'skipped';
+			if (dryRun) return 'skipped';
 
-		await copyFile(path.join(backupDir, 'downloads.json'), path.join(jsonDir, 'downloads.json'));
-		await copyFile(
-			path.join(backupDir, 'stats.sqlite'),
-			path.join(backupDir, `stats-${backupDate}.sqlite`),
-		);
-		console.log(chalk.green(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`));
+			await copyFile(path.join(backupDir, 'downloads.json'), path.join(jsonDir, 'downloads.json'));
+			await copyFile(
+				path.join(backupDir, 'stats.sqlite'),
+				path.join(backupDir, `stats-${backupDate}.sqlite`),
+			);
+			log.success(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`);
 
-		await pruneBackups(backupDir);
-		await reportFreshness(jsonDir, backupDir);
+			await pruneBackups(backupDir);
+			// fallow-ignore-next-line code-duplication -- every soft-fail step ends in the same warn-and-return tail
+			await reportFreshness(jsonDir, backupDir);
 
-		return 'ok';
-	} catch (error) {
-		console.log(
-			chalk.yellow(
-				`Stats pull failed; continuing with the last local downloads.json (if any): ${String(error)}`,
-			),
-		);
+			return 'ok';
+		} catch (error) {
+			log.warn(
+				`Stats pull failed; continuing with the last local downloads.json (if any): ${formatError(error)}`,
+			);
 
-		return 'warned';
-	}
+			step.warn();
+			return 'warned';
+		}
+	});
 }
 
 // Names are `stats-YYYY-MM-DD.sqlite`, so a lexical sort is a date sort
@@ -87,11 +88,7 @@ async function pruneBackups(backupDir: string): Promise<void> {
 	for (const snapshot of stale) {
 		await rm(path.join(backupDir, snapshot));
 	}
-	console.log(
-		chalk.gray(
-			`  Pruned ${String(stale.length)} snapshots, keeping the newest ${String(backupsKept)}`,
-		),
-	);
+	log.detail(`Pruned ${String(stale.length)} snapshots, keeping the newest ${String(backupsKept)}`);
 }
 
 async function reportFreshness(jsonDir: string, backupDir: string): Promise<void> {
@@ -101,7 +98,7 @@ async function reportFreshness(jsonDir: string, backupDir: string): Promise<void
 	if (await isPathPresent(jsonPath)) {
 		const document = JSON.parse(await readFile(jsonPath, 'utf8')) as { generated_at?: string };
 
-		console.log(chalk.gray(`  Generated ${document.generated_at ?? 'unknown'}`));
+		log.detail(`Generated ${document.generated_at ?? 'unknown'}`);
 	}
 
 	if (!(await isPathPresent(runLogPath))) return;
@@ -112,6 +109,11 @@ async function reportFreshness(jsonDir: string, backupDir: string): Promise<void
 	const latest = lines.filter((line) => line.startsWith(lastRun));
 
 	for (const line of latest) {
-		console.log(line.includes('WARNING') ? chalk.yellow(`  ${line}`) : chalk.gray(`  ${line}`));
+		if (line.includes('WARNING')) {
+			log.warn(line);
+			continue;
+		}
+
+		log.detail(line);
 	}
 }

@@ -66,12 +66,12 @@ describe('validateTrackGroups', () => {
 		expect(validateTrackGroups(mixes)).toEqual({
 			issues: [
 				{
-					message:
-						'collections/mixes/2011/a-mix.mdx: group "Disc One" names "Other.mp3", missing from `files`',
+					location: 'collections/mixes/2011/a-mix.mdx',
+					message: 'group "Disc One" names "Other.mp3", missing from `files`',
 				},
 				{
-					message:
-						'collections/mixes/2011/a-mix.mdx: "A Mix.mp3" is named by no group and drops off the page',
+					location: 'collections/mixes/2011/a-mix.mdx',
+					message: '"A Mix.mp3" is named by no group and drops off the page',
 				},
 			],
 			status: 'fail',
@@ -93,8 +93,8 @@ describe('validateTrackGroups', () => {
 		expect(validateTrackGroups(mixes)).toEqual({
 			issues: [
 				{
-					message:
-						'collections/mixes/2011/a-mix.mdx: groups "Disc One" and "Disc Two" both name "A Mix.mp3"',
+					location: 'collections/mixes/2011/a-mix.mdx',
+					message: 'groups "Disc One" and "Disc Two" both name "A Mix.mp3"',
 				},
 			],
 			status: 'fail',
@@ -113,12 +113,12 @@ describe('validateTrackGroups', () => {
 		expect(validateTrackGroups(mixes)).toEqual({
 			issues: [
 				{
-					message:
-						'collections/mixes/2011/a-mix.mdx: group "Disc One" carries timestamps alongside another and names no `files`',
+					location: 'collections/mixes/2011/a-mix.mdx',
+					message: 'group "Disc One" carries timestamps alongside another and names no `files`',
 				},
 				{
-					message:
-						'collections/mixes/2011/a-mix.mdx: group "Disc Two" carries timestamps alongside another and names no `files`',
+					location: 'collections/mixes/2011/a-mix.mdx',
+					message: 'group "Disc Two" carries timestamps alongside another and names no `files`',
 				},
 			],
 			status: 'fail',

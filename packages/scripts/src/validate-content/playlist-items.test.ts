@@ -19,7 +19,7 @@ const playlistsYaml = `
 describe('validatePlaylistItems', () => {
 	test('fails on an item naming no mix, with the playlist it sits in', () => {
 		expect(validatePlaylistItems(playlistsYaml, 'data/playlists.yaml', mixes)).toEqual({
-			issues: [{ message: 'data/playlists.yaml: "Goa Trance" has unknown mix "gone"' }],
+			issues: [{ location: 'data/playlists.yaml', message: '"Goa Trance" has unknown mix "gone"' }],
 			status: 'fail',
 			summary: 'Found 1 unknown playlist item(s)',
 		});

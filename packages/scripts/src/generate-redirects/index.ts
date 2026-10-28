@@ -1,4 +1,10 @@
-import chalk from 'chalk';
+import {
+	getCollectionEntries,
+	log,
+	UserError,
+	withAstroContent,
+	withSpinner,
+} from '@xsynaptic/astro-scripts';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -6,7 +12,6 @@ import {
 	buildRedirectPairs,
 	redirectCollections,
 } from '#generate-redirects/build-redirect-pairs.ts';
-import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 
 // WordPress permalinks the site no longer answers to, written by hand because no field records them
 const structuralRedirects: Array<[string, string]> = [
@@ -56,19 +61,17 @@ function isDynamic(from: string) {
 }
 
 export async function generateRedirects(rootPath: string): Promise<void> {
-	const entries = await withAstroContent((content) =>
-		getCollectionEntries(content, [...redirectCollections]),
+	const entries = await withSpinner('Loading content', () =>
+		withAstroContent((content) => getCollectionEntries(content, [...redirectCollections])),
 	);
 
 	const { collisions, pairs, skipped } = buildRedirectPairs(entries);
 
 	// Writing the file anyway would ship a rule that takes a live page off the site
 	if (collisions.length > 0) {
-		for (const collision of collisions) {
-			console.error(chalk.red(`✗ former id collision: ${collision}`));
-		}
+		for (const collision of collisions) log.error(`Former id collision: ${collision}`);
 
-		throw new Error(`${String(collisions.length)} former id collision(s)`);
+		throw new UserError(`${String(collisions.length)} former id collision(s)`);
 	}
 
 	const structuralExact = structuralRedirects.filter(([from]) => !isDynamic(from));
@@ -93,13 +96,9 @@ export async function generateRedirects(rootPath: string): Promise<void> {
 
 	writeFileSync(path.resolve(rootPath, outputFile), lines.join('\n'));
 
-	for (const note of skipped) {
-		console.log(chalk.yellow(`⚠️  skipped ${note}`));
-	}
+	for (const note of skipped) log.warn(`Skipped ${note}`);
 
-	console.log(
-		chalk.green(
-			`✓ ${structuralRedirects.length.toString()} structural and ${pairs.length.toString()} generated redirects → ${outputFile}`,
-		),
+	log.success(
+		`${structuralRedirects.length.toString()} structural and ${pairs.length.toString()} generated redirects → ${outputFile}`,
 	);
 }

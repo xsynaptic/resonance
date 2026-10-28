@@ -16,7 +16,10 @@ describe('validateBodyMarkers', () => {
 
 		expect(validateBodyMarkers(entries)).toEqual({
 			issues: [
-				{ message: 'collections/posts/2008/a-list.mdx: selections with no <Selections> tag' },
+				{
+					location: 'collections/posts/2008/a-list.mdx',
+					message: 'selections with no <Selections> tag',
+				},
 			],
 			status: 'fail',
 			summary: 'Found 1 entry body marker mismatch(es)',
@@ -34,7 +37,7 @@ describe('validateBodyMarkers', () => {
 		];
 
 		expect(validateBodyMarkers(entries).issues).toEqual([
-			{ message: 'collections/mixes/2017/a-mix.mdx: <TrackList> tag with no tracks' },
+			{ location: 'collections/mixes/2017/a-mix.mdx', message: '<TrackList> tag with no tracks' },
 		]);
 	});
 });

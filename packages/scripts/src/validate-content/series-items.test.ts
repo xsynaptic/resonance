@@ -16,7 +16,9 @@ describe('validateSeriesItems', () => {
 		];
 
 		expect(validateSeriesItems(series, members)).toEqual({
-			issues: [{ message: 'collections/series/korner.mdx: unknown series item "gone"' }],
+			issues: [
+				{ location: 'collections/series/korner.mdx', message: 'unknown series item "gone"' },
+			],
 			status: 'fail',
 			summary: 'Found 1 unknown series item(s)',
 		});

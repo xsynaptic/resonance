@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 // `deploy-site` exports NODE_ENV=production, which flips `import.meta.env.DEV`; pinned so the gate cannot depend on its caller
+// eslint-disable-next-line unicorn/no-top-level-side-effects -- has to land before Vite resolves the config
 process.env.NODE_ENV = 'test';
 
 export default defineConfig({

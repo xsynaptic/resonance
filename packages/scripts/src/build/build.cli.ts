@@ -1,26 +1,27 @@
 #!/usr/bin/env -S node --import tsx
-import chalk from 'chalk';
-import { $ } from 'zx';
+import { runChild, UserError } from '@xsynaptic/astro-scripts';
 
 import { generateRedirects } from '#generate-redirects/index.ts';
 import { generateLqip } from '#lqip/lqip.ts';
 import { generateOpenGraphImages } from '#og-image/index.ts';
-import { findWorkspaceRoot } from '#shared/utils.ts';
+import { runCommand } from '#shared/command.ts';
 import { generateSitemapLastmod } from '#sitemap-lastmod/index.ts';
 
-const rootPath = findWorkspaceRoot();
-const siteUrl = process.env.DEPLOY_SITE_URL;
+await runCommand({
+	name: 'build',
+	async run({ rootPath }) {
+		const siteUrl = process.env.DEPLOY_SITE_URL;
 
-if (!siteUrl) {
-	console.error(chalk.red('Missing site URL: set DEPLOY_SITE_URL'));
-	process.exit(1);
-}
+		if (!siteUrl) throw new UserError('Missing site URL: set DEPLOY_SITE_URL');
 
-const astro = $({ cwd: rootPath, preferLocal: true, stdio: 'inherit' });
-
-await astro`astro sync`;
-await generateLqip(rootPath);
-await generateRedirects(rootPath);
-await generateSitemapLastmod({ rootPath, siteUrl });
-await astro`astro build`;
-await generateOpenGraphImages({ rootPath });
+		await runChild('Syncing content', ['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
+		await generateLqip(rootPath);
+		await generateRedirects(rootPath);
+		await generateSitemapLastmod({ rootPath, siteUrl });
+		await runChild('Building site', ['pnpm', 'exec', 'astro', 'build'], { cwd: rootPath });
+		await generateOpenGraphImages({ rootPath });
+	},
+	summary:
+		'Sync content, derive LQIP, redirects and sitemap dates, build, then draw Open Graph cards',
+	title: 'Build',
+});

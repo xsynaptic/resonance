@@ -1,7 +1,7 @@
 import type { ListensRow, ListensSnapshot } from '@xsynaptic/shared/stats';
 
+import { log, withStep } from '@xsynaptic/astro-scripts';
 import { listensSnapshotSchema, queryStats } from '@xsynaptic/shared/stats';
-import chalk from 'chalk';
 import { mkdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -26,32 +26,33 @@ export async function pullListens(options: PullListensOptions): Promise<StepStat
 	const { dryRun = false, rootPath } = options;
 
 	if (dryRun) {
-		console.log(chalk.yellow('  DRY RUN: listening stats not pulled'));
+		log.warn('Dry run: listening stats not pulled');
 
 		return 'skipped';
 	}
 
-	console.log(chalk.blue('Pulling listening stats...'));
+	return withStep('Pulling listening stats', async (step) => {
+		try {
+			const rows = await queryStats<ListensRow>(listensQuery, { cwd: rootPath });
 
-	try {
-		const rows = await queryStats<ListensRow>(listensQuery, { cwd: rootPath });
+			// Validated before writing, so a change to the table's columns fails the pull rather than the build
+			const snapshot = listensSnapshotSchema.parse({
+				pulledAt: new Date().toISOString(),
+				rows,
+			}) satisfies ListensSnapshot;
 
-		// Validated before writing, so a change to the table's columns fails the pull rather than the build
-		const snapshot = listensSnapshotSchema.parse({
-			pulledAt: new Date().toISOString(),
-			rows,
-		}) satisfies ListensSnapshot;
+			await writeSnapshot(path.join(rootPath, snapshotPath), snapshot);
 
-		await writeSnapshot(path.join(rootPath, snapshotPath), snapshot);
+			log.success(`${String(snapshot.rows.length)} rows written to ${snapshotPath}`);
 
-		console.log(chalk.green(`  ${String(snapshot.rows.length)} rows written to ${snapshotPath}`));
+			return 'ok';
+		} catch (error) {
+			log.warn(`Listening stats skipped: ${describeError(error)}`);
 
-		return 'ok';
-	} catch (error) {
-		console.warn(chalk.yellow(`  Listening stats skipped: ${describeError(error)}`));
-
-		return 'warned';
-	}
+			step.warn();
+			return 'warned';
+		}
+	});
 }
 
 // wrangler reports API failures on stdout, which the error's own message leaves out

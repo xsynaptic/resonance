@@ -1,6 +1,6 @@
 import type { Document } from 'yaml';
 
-import chalk from 'chalk';
+import { log } from '@xsynaptic/astro-scripts';
 import { readdirSync, readFileSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -118,7 +118,7 @@ export function toTracklist(
 export async function writeDiscogsTracklists(rootPath: string, isDryRun: boolean): Promise<void> {
 	const files = findReviewFiles(path.resolve(rootPath, reviewsPath));
 
-	console.log(chalk.blue(`Reading ${String(files.length)} reviews...`));
+	log.step(`Reading ${String(files.length)} reviews...`);
 
 	const problems: Array<string> = [];
 	const { skipped, targets } = toTargets(files, rootPath, problems);
@@ -132,20 +132,18 @@ export async function writeDiscogsTracklists(rootPath: string, isDryRun: boolean
 		entry.document.set('tracks', tracklist);
 		written += 1;
 
-		console.log(
-			chalk.gray(
-				`  ${location} ← release ${String(releaseId)}, ${String(toTrackCount(tracklist))} tracks`,
-			),
+		log.detail(
+			`${location} ← release ${String(releaseId)}, ${String(toTrackCount(tracklist))} tracks`,
 		);
 
 		if (!isDryRun) await fs.writeFile(filePath, toSource(entry), 'utf8');
 	}
 
-	for (const problem of problems) console.log(chalk.yellow(`  ${problem}`));
+	for (const problem of problems) log.warn(problem);
 
 	const verb = isDryRun ? 'Would write' : 'Wrote';
 
-	console.log(chalk.green(`${verb} ${String(written)} tracklists, skipped ${String(skipped)}`));
+	log.success(`${verb} ${String(written)} tracklists, skipped ${String(skipped)}`);
 }
 
 function findReviewFiles(directory: string): Array<string> {

@@ -1,7 +1,7 @@
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
+
 import { getOpenGraphId, getOpenGraphPath } from '@xsynaptic/shared/open-graph';
 import { getContentPath } from '@xsynaptic/shared/routing';
-
-import type { ContentEntry } from '#shared/astro-content.ts';
 
 import { toFormerIds } from '#shared/entries.ts';
 

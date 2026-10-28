@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { getOutputMode, log } from '@xsynaptic/astro-scripts';
 import { $ } from 'zx';
 
 interface RsyncOptions {
@@ -42,7 +42,8 @@ export async function rsyncTo(
 		stdio: ['inherit', 'pipe', 'inherit'],
 	})`rsync ${buildRsyncArgs(source, destination, options)}`;
 
-	command.pipe(process.stdout);
+	// Raw rsync lines would break the NDJSON event stream
+	if (getOutputMode() !== 'json') command.pipe(process.stderr);
 
 	const result = await command;
 
@@ -56,7 +57,8 @@ export async function sshExec(
 	{ dryRun = false }: { dryRun?: boolean } = {},
 ): Promise<void> {
 	if (dryRun) {
-		console.log(chalk.yellow(`DRY RUN ssh: ${command}`));
+		log.warn('Dry run ssh:');
+		log.detail(command);
 		return;
 	}
 

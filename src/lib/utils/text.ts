@@ -1,7 +1,7 @@
 import { getNumberFormat } from '#lib/i18n/i18n-formatters.ts';
 
 export function formatNumber({
-	locales,
+	locales = 'en',
 	number,
 	options,
 }: {
@@ -9,7 +9,7 @@ export function formatNumber({
 	number: number | string;
 	options?: Intl.NumberFormatOptions | undefined;
 }) {
-	return getNumberFormat(locales ?? 'en', options).format(Number(number));
+	return getNumberFormat(locales, options).format(Number(number));
 }
 
 export function formatStringTemplate(

@@ -1,3 +1,4 @@
+import { findWorkspaceRoot } from '@xsynaptic/astro-scripts';
 import { openGraphImageHeight, openGraphImageWidth } from '@xsynaptic/shared/constants';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -10,7 +11,6 @@ import type { OpenGraphEntry } from '#og-image/types.ts';
 import { featuredImageSize, getOpenGraphElement } from '#og-image/element.tsx';
 import { loadOpenGraphFonts } from '#og-image/fonts.ts';
 import { contentDataPath } from '#shared/content-path.ts';
-import { findWorkspaceRoot } from '#shared/utils.ts';
 
 // The 8 MiB default evicts glyphs mid-run once a few faces and sizes are in play
 const glyphCacheBytes = 64 * 1024 * 1024;

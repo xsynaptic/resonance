@@ -1,6 +1,6 @@
 import type { StreamLoudness } from '@xsynaptic/shared/schemas';
 
-import chalk from 'chalk';
+import { formatError, log } from '@xsynaptic/astro-scripts';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -301,10 +301,8 @@ async function readRenditionTags(output: string): Promise<Record<string, string>
 	} catch (error) {
 		if (!hasReportedProbeFailure) {
 			hasReportedProbeFailure = true;
-			console.warn(
-				chalk.yellow(
-					`  ffprobe failed on ${path.basename(output)}; treating as stale: ${String(error)}`,
-				),
+			log.warn(
+				`ffprobe failed on ${path.basename(output)}; treating as stale: ${formatError(error)}`,
 			);
 		}
 		return {};

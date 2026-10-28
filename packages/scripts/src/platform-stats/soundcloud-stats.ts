@@ -1,5 +1,5 @@
+import { formatCount, formatError, log, withStep } from '@xsynaptic/astro-scripts';
 import { toStatsKey } from '@xsynaptic/shared/platform-stats';
-import chalk from 'chalk';
 import path from 'node:path';
 
 import type { StatsGeneration, StatsItem } from '#platform-stats/platform-stats-file.ts';
@@ -37,28 +37,27 @@ interface SoundcloudStatsOptions {
 
 // Soft-fail by design, as the Mixcloud pull is: a deploy is never blocked on fresh counts
 export async function pullSoundcloudStats(options: SoundcloudStatsOptions): Promise<StepStatus> {
-	console.log(chalk.blue('Pulling SoundCloud stats...'));
+	return withStep('Pulling SoundCloud stats', async (step) => {
+		const credentials = toCredentials();
 
-	const credentials = toCredentials();
+		if (!credentials) {
+			log.warn('No SOUNDCLOUD_CLIENT_ID/SECRET; skipping');
+			return 'skipped';
+		}
 
-	if (!credentials) {
-		console.log(chalk.yellow('  No SOUNDCLOUD_CLIENT_ID/SECRET; skipping'));
-		return 'skipped';
-	}
+		const filePath = path.join(options.rootPath, soundcloudStatsPath);
 
-	const filePath = path.join(options.rootPath, soundcloudStatsPath);
+		try {
+			return await sweep(filePath, credentials, options);
+		} catch (error) {
+			log.warn(
+				`SoundCloud pull failed; appending nothing to ${soundcloudStatsPath}: ${formatError(error)}`,
+			);
 
-	try {
-		return await sweep(filePath, credentials, options);
-	} catch (error) {
-		console.log(
-			chalk.yellow(
-				`SoundCloud pull failed; appending nothing to ${soundcloudStatsPath}: ${String(error)}`,
-			),
-		);
-
-		return 'warned';
-	}
+			step.warn();
+			return 'warned';
+		}
+	});
 }
 
 async function fetchAccounts(credentials: Credentials): Promise<Array<SoundcloudTrack>> {
@@ -71,11 +70,7 @@ async function fetchAccounts(credentials: Credentials): Promise<Array<Soundcloud
 		const plays = fetched.reduce((total, track) => total + track.playback_count, 0);
 
 		// fallow-ignore-next-line code-duplication -- the Mixcloud sweep logs alike; a shared line would have no module to live in
-		console.log(
-			chalk.gray(
-				`  ${account}: ${String(fetched.length)} tracks, ${plays.toLocaleString('en')} plays`,
-			),
-		);
+		log.detail(`${account}: ${String(fetched.length)} tracks, ${formatCount(plays)} plays`);
 		tracks.push(...fetched);
 	}
 
@@ -95,7 +90,7 @@ async function sweep(
 	const skipReason = toSkipReason(lastGeneration, force);
 
 	if (skipReason) {
-		console.log(chalk.gray(skipReason));
+		log.detail(skipReason);
 		return 'skipped';
 	}
 
@@ -107,12 +102,12 @@ async function sweep(
 	}
 
 	if (dryRun) {
-		console.log(chalk.yellow(`  DRY RUN: ${String(tracks.length)} tracks not written`));
+		log.warn(`Dry run: ${String(tracks.length)} tracks not written`);
 		return 'skipped';
 	}
 
 	await appendGeneration(filePath, toItems(tracks));
-	console.log(chalk.green(`Appended ${String(tracks.length)} tracks to ${soundcloudStatsPath}`));
+	log.success(`Appended ${String(tracks.length)} tracks to ${soundcloudStatsPath}`);
 
 	return 'ok';
 }
@@ -151,5 +146,5 @@ function toSkipReason(
 ): string | undefined {
 	if (isForced || !isFresh(generation, freshnessHours)) return undefined;
 
-	return `  Last generation ${generation?.generated_at ?? ''} is under 24h; skipping`;
+	return `Last generation ${generation?.generated_at ?? ''} is under 24h; skipping`;
 }

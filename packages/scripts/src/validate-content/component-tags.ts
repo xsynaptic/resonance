@@ -1,7 +1,7 @@
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
+
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-
-import type { ContentEntry } from '#shared/astro-content.ts';
 
 export interface ComponentTag {
 	lineNumber: number;

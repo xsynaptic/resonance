@@ -1,12 +1,11 @@
+import type { ContentEntry, ValidationResult } from '@xsynaptic/astro-scripts';
+
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { ValidationResult } from '#validate-content/validation-result.ts';
-
 import { extractImageFeaturedIds } from '#shared/images.ts';
 import { findComponentTags, getTagProp } from '#validate-content/component-tags.ts';
-import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // Media paths are relative to the content package's `media/` and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image
@@ -40,7 +39,8 @@ export function validateImages(entries: Array<ContentEntry>, mediaPath: string):
 
 	return toValidationResult(
 		issues.map(({ imagePath, location }) => ({
-			message: `${location}: no image file at "${imagePath}"`,
+			location,
+			message: `no image file at "${imagePath}"`,
 		})),
 		{
 			fail: `Found ${issues.length.toString()} missing image reference(s)`,

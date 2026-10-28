@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { formatBytes, formatError, log, withSpinner } from '@xsynaptic/astro-scripts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'zx';
@@ -34,19 +34,19 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 	const directory = path.join(rootPath, backupDir);
 	const filePath = path.join(directory, `${databaseName}-${date}.sql`);
 
-	console.log(
-		chalk.blue(`Exporting ${isLocal ? 'local' : 'remote'} ${databaseName} to ${filePath}.gz`),
+	await withSpinner(
+		`Exporting ${isLocal ? 'local' : 'remote'} ${databaseName} to ${filePath}.gz`,
+		async () => {
+			await fs.mkdir(directory, { recursive: true });
+			await $({
+				cwd: rootPath,
+			})`pnpm exec wrangler d1 export ${databaseName} ${scope} --skip-confirmation --output ${filePath}`;
+			await $`gzip -f ${filePath}`;
+
+			return fs.stat(`${filePath}.gz`);
+		},
+		({ size }) => `Backed up ${databaseName} (${formatBytes(size)})`,
 	);
-
-	await fs.mkdir(directory, { recursive: true });
-	await $({
-		cwd: rootPath,
-	})`pnpm exec wrangler d1 export ${databaseName} ${scope} --skip-confirmation --output ${filePath}`;
-	await $`gzip -f ${filePath}`;
-
-	const { size } = await fs.stat(`${filePath}.gz`);
-
-	console.log(chalk.green(`Backup written (${String(Math.round(size / 1024))} KB)`));
 }
 
 // Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
@@ -73,14 +73,14 @@ async function backupOne(databaseName: string, options: BackupIfStaleOptions): P
 		const ageDays = Math.floor((Date.now() - Date.parse(latest)) / 86_400_000);
 
 		if (ageDays < backupAfterDays) {
-			console.log(chalk.gray(`  Last ${databaseName} backup: ${latest}`));
+			log.detail(`Last ${databaseName} backup: ${latest}`);
 
 			return 'skipped';
 		}
 	}
 
 	if (dryRun) {
-		console.log(chalk.yellow(`  DRY RUN: ${databaseName} backup is stale but not taken`));
+		log.warn(`Dry run: ${databaseName} backup is stale but not taken`);
 
 		return 'skipped';
 	}
@@ -91,7 +91,7 @@ async function backupOne(databaseName: string, options: BackupIfStaleOptions): P
 
 		return 'ok';
 	} catch (error) {
-		console.warn(chalk.yellow(`${databaseName} backup skipped: ${String(error)}`));
+		log.warn(`${databaseName} backup skipped: ${formatError(error)}`);
 
 		return 'warned';
 	}

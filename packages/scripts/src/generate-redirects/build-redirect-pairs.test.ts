@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'vitest';
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
 
-import type { ContentEntry } from '#shared/astro-content.ts';
+import { describe, expect, test } from 'vitest';
 
 import { buildRedirectPairs } from '#generate-redirects/build-redirect-pairs.ts';
 import { makeEntry } from '#validate-content/validate-test-utils.ts';

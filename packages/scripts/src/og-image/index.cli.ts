@@ -1,17 +1,19 @@
 #!/usr/bin/env -S node --import tsx
-import { parseArgs } from 'node:util';
-
 import { generateOpenGraphImages } from '#og-image/index.ts';
-import { findWorkspaceRoot } from '#shared/utils.ts';
+import { runCommand } from '#shared/command.ts';
 
-const { values } = parseArgs({
-	args: process.argv.slice(2),
+await runCommand({
+	name: 'og-image',
 	options: {
-		'clear-cache': { default: false, type: 'boolean' },
+		'clear-cache': {
+			default: false,
+			description: 'Delete the rendered card cache and draw nothing',
+			type: 'boolean',
+		},
 	},
-});
-
-await generateOpenGraphImages({
-	clearCache: values['clear-cache'],
-	rootPath: findWorkspaceRoot(),
+	async run({ rootPath, values }) {
+		await generateOpenGraphImages({ clearCache: values['clear-cache'], rootPath });
+	},
+	summary: 'Draw an Open Graph card for every page the build asks for, then publish them into dist',
+	title: 'Open Graph images',
 });

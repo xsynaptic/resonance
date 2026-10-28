@@ -1,6 +1,6 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
 
-import { toValidationResult } from '#validate-content/validation-result.ts';
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 
 // Reviews shelve by year of release, and the root is the "no releaseYear yet" shelf
 // Slugs are path-independent, so a file left in the wrong folder breaks nothing and shows nowhere
@@ -15,7 +15,8 @@ export function validateReviewFolders(entries: Array<ContentEntry>) {
 
 	return toValidationResult(
 		issues.map(({ expected, found, location }) => ({
-			message: `${location}: filed under ${found}, releaseYear says ${expected}`,
+			location,
+			message: `filed under ${found}, releaseYear says ${expected}`,
 		})),
 		{
 			fail: `Found ${issues.length.toString()} review(s) in the wrong year folder`,

@@ -1,7 +1,19 @@
 #!/usr/bin/env node
 import { writeDiscogsTracklists } from '#discogs/discogs-tracklists.ts';
-import { toDryRunOptions } from '#shared/cli.ts';
+import { runCommand } from '#shared/command.ts';
 
-const { dryRun, rootPath } = toDryRunOptions();
-
-await writeDiscogsTracklists(rootPath, dryRun);
+await runCommand({
+	name: 'discogs-tracklists',
+	options: {
+		'dry-run': {
+			default: false,
+			description: 'Fetch and report, but write no files',
+			type: 'boolean',
+		},
+	},
+	async run({ rootPath, values }) {
+		await writeDiscogsTracklists(rootPath, values['dry-run']);
+	},
+	summary: 'Fill the tracks of every Review that names a discogsReleaseId and has none yet',
+	title: 'Discogs tracklists',
+});

@@ -1,10 +1,10 @@
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
+
+import { getCollectionEntries, log, withAstroContent, withSpinner } from '@xsynaptic/astro-scripts';
 import { queryComments } from '@xsynaptic/shared/comments';
 import chalk from 'chalk';
 import { $ } from 'zx';
 
-import type { ContentEntry } from '#shared/astro-content.ts';
-
-import { getCollectionEntries, withAstroContent } from '#shared/astro-content.ts';
 import { toFormerIds } from '#shared/entries.ts';
 
 export interface OrphansOptions {
@@ -44,12 +44,12 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 
 	const rows = await queryComments<GroupRow>(groupQuery, { cwd: rootPath, isLocal });
 
-	// Which entries exist is the whole question, so the store is resynced rather than trusted
-	await $({ cwd: rootPath, quiet: true })`pnpm exec astro sync`;
+	const entries = await withSpinner('Loading content', async () => {
+		// Which entries exist is the whole question, so the store is resynced rather than trusted
+		await $({ cwd: rootPath, quiet: true })`pnpm exec astro sync`;
 
-	const entries = await withAstroContent((content) =>
-		getCollectionEntries(content, [...commentedCollections]),
-	);
+		return withAstroContent((content) => getCollectionEntries(content, [...commentedCollections]));
+	});
 	const resolvable = collectResolvableIds(entries);
 
 	const orphans: Array<EntryGroup> = rows
@@ -62,34 +62,17 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 		}));
 
 	if (orphans.length === 0) {
-		console.log(chalk.green('\n  Every comment resolves to an entry.\n'));
+		log.success('Every comment resolves to an entry');
 		return;
 	}
 
 	const total = orphans.reduce((sum, group) => sum + group.approved + group.pending, 0);
 
-	console.log(
-		`\n  ${chalk.bold.yellow('Orphaned comments')} ${chalk.dim(
-			`· ${String(total)} on ${String(orphans.length)} unresolvable entries`,
-		)}\n`,
-	);
+	log.warn(`${String(total)} orphaned comments on ${String(orphans.length)} unresolvable entries`);
 
-	for (const group of orphans.toSorted(byCountDescending)) {
-		const counts = [
-			`${String(group.approved)} approved`,
-			group.pending === 0 ? undefined : chalk.yellow(`${String(group.pending)} pending`),
-		].filter((part) => part !== undefined);
+	for (const group of orphans.toSorted(byCountDescending)) log.data(group, formatGroup);
 
-		console.log(
-			`  ${chalk.cyan(`${group.collection}/${group.entryId}`)}  ${chalk.dim(counts.join(' · '))}`,
-		);
-	}
-
-	console.log(
-		chalk.dim(
-			'\n  These wait in D1 until the entry is published or lists the slug in `formerIds`.\n',
-		),
-	);
+	log.detail('These wait in D1 until the entry is published or lists the slug in `formerIds`');
 }
 
 function byCountDescending(left: EntryGroup, right: EntryGroup): number {
@@ -98,6 +81,15 @@ function byCountDescending(left: EntryGroup, right: EntryGroup): number {
 	if (difference !== 0) return difference;
 
 	return `${left.collection}/${left.entryId}`.localeCompare(`${right.collection}/${right.entryId}`);
+}
+
+function formatGroup(group: EntryGroup): string {
+	const counts = [
+		`${String(group.approved)} approved`,
+		group.pending === 0 ? undefined : chalk.yellow(`${String(group.pending)} pending`),
+	].filter((part) => part !== undefined);
+
+	return `${chalk.cyan(`${group.collection}/${group.entryId}`)}  ${chalk.dim(counts.join(' · '))}`;
 }
 
 // Drafts never reach the content store, so their comments read as orphaned until the draft is published

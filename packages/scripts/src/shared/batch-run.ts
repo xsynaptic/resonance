@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { createProgress, formatError, log, UserError, withStep } from '@xsynaptic/astro-scripts';
 import pLimit from 'p-limit';
 
 // An incremental derivation step: the caller decides what is already current, this runs the rest
@@ -32,46 +32,42 @@ export async function runBatchStep<Job>({
 	skipped,
 	verb,
 }: BatchStep<Job>): Promise<void> {
-	console.log(
-		chalk.blue(
-			`${label}: ${String(pending.length + skipped)} total, ${String(skipped)} up to date, ${String(pending.length)} to ${verb.infinitive}`,
-		),
-	);
+	const text = `${label}: ${String(pending.length + skipped)} total, ${String(skipped)} up to date, ${String(pending.length)} to ${verb.infinitive}`;
 
-	if (dryRun) {
-		for (const job of pending) console.log(chalk.yellow(`  DRY RUN ${describe(job)}`));
-		return;
-	}
+	await withStep(text, async () => {
+		if (dryRun) {
+			for (const job of pending) log.detail(`Dry run: ${describe(job)}`);
+			return;
+		}
 
-	await prepare?.();
+		await prepare?.();
 
-	const limit = pLimit(concurrency);
-	let done = 0;
+		const limit = pLimit(concurrency);
+		const progress = createProgress({ label, total: pending.length });
 
-	const results = await Promise.allSettled(
-		pending.map((job) =>
-			limit(async () => {
-				const name = await run(job);
+		const results = await Promise.allSettled(
+			pending.map((job) =>
+				limit(async () => {
+					const name = await run(job);
 
-				done += 1;
-				console.log(chalk.green(`  [${String(done)}/${String(pending.length)}] ${name}`));
-			}),
-		),
-	);
+					log.detail(name);
+					progress.tick();
+				}),
+			),
+		);
 
-	const failures = results.filter(
-		(result): result is PromiseRejectedResult => result.status === 'rejected',
-	);
+		const failures = results.filter(
+			(result): result is PromiseRejectedResult => result.status === 'rejected',
+		);
 
-	if (failures.length > 0) {
-		for (const failure of failures)
-			console.error(chalk.red(`  ${noun} failed: ${String(failure.reason)}`));
-		throw new Error(`${String(failures.length)} ${noun}(s) failed to ${verb.infinitive}`);
-	}
+		if (failures.length > 0) {
+			progress.fail();
+			for (const failure of failures) log.error(`${noun} failed: ${formatError(failure.reason)}`);
+			throw new UserError(`${String(failures.length)} ${noun}(s) failed to ${verb.infinitive}`);
+		}
 
-	console.log(
-		chalk.green(
+		progress.succeed(
 			`${label} complete: ${String(pending.length)} ${verb.past}, ${String(skipped)} unchanged`,
-		),
-	);
+		);
+	});
 }

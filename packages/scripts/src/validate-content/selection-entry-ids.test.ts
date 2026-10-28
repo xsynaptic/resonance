@@ -21,8 +21,8 @@ describe('validateSelectionEntryIds', () => {
 		expect(validateSelectionEntryIds(posts, linkableIds)).toEqual({
 			issues: [
 				{
-					message:
-						'collections/posts/2011/best-of-2011.mdx: selections[2].entryId "gone" names no entry',
+					location: 'collections/posts/2011/best-of-2011.mdx',
+					message: 'selections[2].entryId "gone" names no entry',
 				},
 			],
 			status: 'fail',

@@ -12,9 +12,9 @@ const execFile = vi.hoisted(() => vi.fn());
 
 vi.mock('node:child_process', () => ({ execFile }));
 
-type ExecFileCallback = (error: unknown, output: { stdout: string }) => void;
-
 function answerWith(payload: unknown): void {
+	type ExecFileCallback = (error: unknown, output: { stdout: string }) => void;
+
 	execFile.mockImplementation(
 		// eslint-disable-next-line max-params -- mirrors node:child_process `execFile`
 		(_file: string, _args: Array<string>, _options: unknown, callback: ExecFileCallback) => {

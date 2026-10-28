@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { log, withStep } from '@xsynaptic/astro-scripts';
 import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
@@ -22,61 +22,57 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 	const deployDir = path.join(rootPath, 'deploy');
 	const { fileServerConfigPath, remoteHost, stagingPath } = config;
 
-	console.log(chalk.blue('Deploying server config...'));
-	console.log(
-		chalk.gray(
-			`  nginx: ${deployDir}/nginx/sites-enabled/ -> ${remoteHost}:${fileServerConfigPath}/`,
-		),
-	);
-	console.log(chalk.gray(`  stats: ${deployDir}/stats/ -> ${remoteHost}:/usr/local/bin/`));
-	console.log(chalk.gray(`  units: ${deployDir}/systemd/ -> ${remoteHost}:/etc/systemd/system/`));
-	console.log(chalk.gray(`  tmpfiles: ${deployDir}/tmpfiles/ -> ${remoteHost}:/etc/tmpfiles.d/`));
+	await withStep('Deploying server config', async () => {
+		log.detail(
+			[
+				`nginx: ${deployDir}/nginx/sites-enabled/ -> ${remoteHost}:${fileServerConfigPath}/`,
+				`stats: ${deployDir}/stats/ -> ${remoteHost}:/usr/local/bin/`,
+				`units: ${deployDir}/systemd/ -> ${remoteHost}:/etc/systemd/system/`,
+				`tmpfiles: ${deployDir}/tmpfiles/ -> ${remoteHost}:/etc/tmpfiles.d/`,
+			].join('\n'),
+		);
 
-	// fallow-ignore-next-line code-duplication -- the dry-run notice and the timer are unrelated lines that sit together in deploy-audio too
-	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
+		if (dryRun) log.warn('Dry run');
 
-	const start = Date.now();
+		// The vhosts are gitignored, so this directory is local-only and absent from a fresh clone
+		await rsyncTo(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
+			archive: 'av',
+			config,
+			dryRun,
+			extraFlags: ['--delete'],
+		});
+		await rsyncTo(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
+			archive: 'av',
+			config,
+			dryRun,
+			excludes: ['fixtures', 'test-*.py', '__pycache__'],
+		});
+		await rsyncTo(`${deployDir}/systemd/`, `${remoteHost}:${stagingPath}/systemd/`, {
+			archive: 'av',
+			config,
+			dryRun,
+		});
+		await rsyncTo(`${deployDir}/tmpfiles/`, `${remoteHost}:${stagingPath}/tmpfiles/`, {
+			archive: 'av',
+			config,
+			dryRun,
+		});
 
-	// The vhosts are gitignored, so this directory is local-only and absent from a fresh clone
-	await rsyncTo(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
-		archive: 'av',
-		config,
-		dryRun,
-		extraFlags: ['--delete'],
+		await sshExec(config, applyNginxSites(config), { dryRun });
+
+		// Separate from nginx so a failure in one does not strand the other half-applied
+		// `daemon-reload` picks up unit edits; the timer is enabled once by hand on first provision
+		await sshExec(
+			config,
+			[
+				`sudo rsync -av --chown=root:root ${stagingPath}/stats/download-stats.py /usr/local/bin/download-stats.py`,
+				`sudo rsync -av --chown=root:root ${stagingPath}/systemd/ /etc/systemd/system/`,
+				`sudo rsync -av --chown=root:root ${stagingPath}/tmpfiles/ /etc/tmpfiles.d/`,
+				`sudo systemctl daemon-reload`,
+			].join(' && '),
+			{ dryRun },
+		);
 	});
-	await rsyncTo(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
-		archive: 'av',
-		config,
-		dryRun,
-		excludes: ['fixtures', 'test-*.py', '__pycache__'],
-	});
-	await rsyncTo(`${deployDir}/systemd/`, `${remoteHost}:${stagingPath}/systemd/`, {
-		archive: 'av',
-		config,
-		dryRun,
-	});
-	await rsyncTo(`${deployDir}/tmpfiles/`, `${remoteHost}:${stagingPath}/tmpfiles/`, {
-		archive: 'av',
-		config,
-		dryRun,
-	});
-
-	await sshExec(config, applyNginxSites(config), { dryRun });
-
-	// Separate from nginx so a failure in one does not strand the other half-applied
-	// `daemon-reload` picks up unit edits; the timer is enabled once by hand on first provision
-	await sshExec(
-		config,
-		[
-			`sudo rsync -av --chown=root:root ${stagingPath}/stats/download-stats.py /usr/local/bin/download-stats.py`,
-			`sudo rsync -av --chown=root:root ${stagingPath}/systemd/ /etc/systemd/system/`,
-			`sudo rsync -av --chown=root:root ${stagingPath}/tmpfiles/ /etc/tmpfiles.d/`,
-			`sudo systemctl daemon-reload`,
-		].join(' && '),
-		{ dryRun },
-	);
-
-	console.log(chalk.green(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`));
 }
 
 function applyNginxSites(config: DeployConfig): string {

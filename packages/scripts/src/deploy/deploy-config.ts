@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { log, UserError } from '@xsynaptic/astro-scripts';
 
 export interface DeployConfig {
 	fileServerConfigOwner: string;
@@ -42,11 +42,11 @@ export function loadDeployConfig(): DeployConfig {
 }
 
 export function printDeployConfig(config: DeployConfig): void {
-	console.log(chalk.blue('Deploy configuration:'));
-	console.log(chalk.gray(`  Remote host:  ${config.remoteHost}`));
-	console.log(chalk.gray(`  Site URL:     ${config.siteUrl}`));
-	console.log(chalk.gray(`  Files URL:    ${config.filesUrl}`));
-	console.log('');
+	log.summary([
+		['Remote host', config.remoteHost],
+		['Site URL', config.siteUrl],
+		['Files URL', config.filesUrl],
+	]);
 }
 
 // Reports every absent variable at once rather than failing on the first
@@ -70,13 +70,9 @@ function readRequiredEnv(): RequiredConfig {
 	}
 
 	if (missing.length > 0) {
-		const message = `Missing required environment variables: ${missing.join(', ')}`;
-
-		console.error(chalk.red(message));
-		console.error(chalk.gray('\nExample configuration:'));
-		for (const line of exampleEnv) console.error(chalk.gray(line));
-
-		throw new Error(message);
+		throw new UserError(`Missing required environment variables: ${missing.join(', ')}`, {
+			detail: ['Example configuration:', ...exampleEnv].join('\n'),
+		});
 	}
 
 	return values as RequiredConfig;

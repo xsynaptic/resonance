@@ -1,6 +1,6 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
 
-import { toValidationResult } from '#validate-content/validation-result.ts';
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 
 // The frozen counts are keyed on format, so a mix that drops a format keeps a count nothing renders
 export function validateDownloadsLegacy(entries: Array<ContentEntry>) {
@@ -22,7 +22,8 @@ export function validateDownloadsLegacy(entries: Array<ContentEntry>) {
 
 	return toValidationResult(
 		issues.map(({ format, location }) => ({
-			message: `${location}: \`downloadsLegacy.${format}\` has no matching file in \`files\``,
+			location,
+			message: `\`downloadsLegacy.${format}\` has no matching file in \`files\``,
 		})),
 		{
 			fail: `Found ${issues.length.toString()} orphaned legacy download count(s)`,

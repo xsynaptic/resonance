@@ -1,9 +1,8 @@
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
+
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
 import { isGroupedTracklist } from '@xsynaptic/shared/tracklist';
-
-import type { ContentEntry } from '#shared/astro-content.ts';
-
-import { toValidationResult } from '#validate-content/validation-result.ts';
 
 interface TimedTrack {
 	position: number;

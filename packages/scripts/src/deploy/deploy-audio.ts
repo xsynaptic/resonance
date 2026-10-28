@@ -1,5 +1,5 @@
+import { log, withStep } from '@xsynaptic/astro-scripts';
 import { waveformsCacheDir } from '@xsynaptic/shared/constants';
-import chalk from 'chalk';
 import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
@@ -96,58 +96,49 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 
 	await ensureSshKeychain();
 
-	console.log(chalk.blue('Deploying audio...'));
-	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
+	return withStep('Deploying audio', async () => {
+		if (dryRun) log.warn('Dry run');
 
-	const start = Date.now();
-
-	console.log(
-		chalk.gray(`  Originals: ${sourceDir}/ -> ${config.remoteHost}:${remoteRoot}/artifacts/`),
-	);
-	const artifactsOutput = await rsyncTo(
-		`${sourceDir}/`,
-		`${config.remoteHost}:${remoteRoot}/artifacts/`,
-		{ archive: 'av', config, dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
-	);
-
-	// One leg at a time, because the box serves other traffic
-	const derived: Pick<DeployedAudio, 'renditions' | 'waveformFiles'> = {
-		renditions: [],
-		waveformFiles: [],
-	};
-
-	for (const leg of derivedLegs) {
-		const localPath = path.join(rootPath, leg.localDir);
-
-		if (!(await isPathPresent(localPath))) {
-			console.log(
-				chalk.yellow(
-					`  No ${leg.label.toLowerCase()} directory yet; skipping /${leg.remoteDir}/ (${leg.missingHint})`,
-				),
-			);
-			continue;
-		}
-
-		console.log(
-			chalk.gray(
-				`  ${leg.label}: ${localPath}/ -> ${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
-			),
+		log.detail(`Originals: ${sourceDir}/ -> ${config.remoteHost}:${remoteRoot}/artifacts/`);
+		const artifactsOutput = await rsyncTo(
+			`${sourceDir}/`,
+			`${config.remoteHost}:${remoteRoot}/artifacts/`,
+			{ archive: 'av', config, dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
 		);
 
-		const output = await rsyncLeg(leg, localPath, { config, dryRun, extraFlags: rsyncFlags });
+		// One leg at a time, because the box serves other traffic
+		const derived: Pick<DeployedAudio, 'renditions' | 'waveformFiles'> = {
+			renditions: [],
+			waveformFiles: [],
+		};
 
-		derived[leg.key] = parseTransferred(output, leg.transferred);
-	}
+		for (const leg of derivedLegs) {
+			const localPath = path.join(rootPath, leg.localDir);
 
-	const originals = parseTransferred(artifactsOutput, transferredOriginal);
+			if (!(await isPathPresent(localPath))) {
+				log.warn(
+					`No ${leg.label.toLowerCase()} directory yet; skipping /${leg.remoteDir}/ (${leg.missingHint})`,
+				);
+				continue;
+			}
 
-	console.log(
-		chalk.green(
-			`Done in ${((Date.now() - start) / 1000).toFixed(1)}s (${String(originals.length)} original(s), ${String(derived.renditions.length)} rendition(s), ${String(derived.waveformFiles.length)} waveform file(s) transferred)`,
-		),
-	);
+			log.detail(
+				`${leg.label}: ${localPath}/ -> ${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
+			);
 
-	return { ...derived, originals };
+			const output = await rsyncLeg(leg, localPath, { config, dryRun, extraFlags: rsyncFlags });
+
+			derived[leg.key] = parseTransferred(output, leg.transferred);
+		}
+
+		const originals = parseTransferred(artifactsOutput, transferredOriginal);
+
+		log.detail(
+			`${String(originals.length)} original(s), ${String(derived.renditions.length)} rendition(s), ${String(derived.waveformFiles.length)} waveform file(s) transferred`,
+		);
+
+		return { ...derived, originals };
+	});
 }
 
 // Both are named for their own bytes, so a re-derivation lands beside the live generation
@@ -162,18 +153,17 @@ export async function reapDerivedAudio(options: DeployAudioOptions): Promise<voi
 
 		if (!(await isPathPresent(localPath))) continue;
 
-		console.log(chalk.blue(`Reaping superseded ${leg.label.toLowerCase()}...`));
-		if (dryRun) console.log(chalk.yellow('  DRY RUN'));
+		await withStep(`Reaping superseded ${leg.label.toLowerCase()}`, async () => {
+			if (dryRun) log.warn('Dry run');
 
-		const output = await rsyncLeg(leg, localPath, {
-			config,
-			dryRun,
-			extraFlags: [...rsyncFlags, '--delete'],
+			const output = await rsyncLeg(leg, localPath, {
+				config,
+				dryRun,
+				extraFlags: [...rsyncFlags, '--delete'],
+			});
+
+			log.detail(`Reaped ${String(countDeleted(output))} superseded ${leg.label.toLowerCase()}`);
 		});
-
-		console.log(
-			chalk.green(`Reaped ${String(countDeleted(output))} superseded ${leg.label.toLowerCase()}`),
-		);
 	}
 }
 

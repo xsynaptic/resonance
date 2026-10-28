@@ -1,3 +1,4 @@
+import { captureOutput } from '@xsynaptic/astro-scripts';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -79,7 +80,7 @@ describe('pullSoundcloudStats', () => {
 			return Response.json({ collection: [track('a', 1)], next_href: secondPageUrl });
 		});
 
-		await pullSoundcloudStats({ rootPath });
+		await captureOutput(() => pullSoundcloudStats({ rootPath }));
 
 		expect(requests.filter((url) => url.startsWith(tokenUrl))).toHaveLength(1);
 		expect(requests.filter((url) => url.startsWith(firstPageUrl))).toHaveLength(2);
@@ -103,8 +104,12 @@ describe('pullSoundcloudStats', () => {
 			return Response.json({ collection: [track('a', 1)], next_href: secondPageUrl });
 		});
 
-		await pullSoundcloudStats({ rootPath });
+		const { events, result } = await captureOutput(() => pullSoundcloudStats({ rootPath }));
 
+		expect(result).toBe('warned');
+		expect(
+			events.filter((event) => event.type === 'message' && event.level === 'warn'),
+		).toMatchObject([{ text: /429/ }]);
 		expect(await readLines()).toEqual([]);
 	});
 
@@ -125,13 +130,15 @@ describe('pullSoundcloudStats', () => {
 			return Response.json({ collection: [track('a', 9)] });
 		});
 
-		await pullSoundcloudStats({ rootPath });
+		const skipped = await captureOutput(() => pullSoundcloudStats({ rootPath }));
 
+		expect(skipped.result).toBe('skipped');
 		expect(requests).toEqual([]);
 		expect(await readLines()).toHaveLength(1);
 
-		await pullSoundcloudStats({ force: true, rootPath });
+		const forced = await captureOutput(() => pullSoundcloudStats({ force: true, rootPath }));
 
+		expect(forced.result).toBe('ok');
 		expect(await readLines()).toHaveLength(2);
 	});
 });

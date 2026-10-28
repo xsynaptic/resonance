@@ -7,9 +7,10 @@ import {
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
+import { findPackageJSON } from 'node:module';
 import path from 'node:path';
 
-// Everything that decides a card's pixels; hashed so an edit can never be forgotten
+// Everything that decides a card's pixels, engine included; hashed so an edit or upgrade can never be forgotten
 const templateFiles = ['element.tsx', 'fonts.ts', 'generate.ts'];
 
 const templateVersion = hashTemplateFiles();
@@ -79,22 +80,16 @@ export async function createOutputCache(directory: string) {
 // A card goes stale when its content or its Featured Image changes; the template version invalidates the lot
 export function getCacheKey({
 	digest,
-	imageFeaturedId,
+	imageFeaturedId = '',
 	imageModifiedTime,
-	style,
+	style = '',
 }: {
 	digest: string;
 	imageFeaturedId: string | undefined;
 	imageModifiedTime: number | undefined;
 	style: string | undefined;
 }): string {
-	return [
-		templateVersion,
-		digest,
-		imageFeaturedId ?? '',
-		imageModifiedTime ?? '',
-		style ?? '',
-	].join(':');
+	return [templateVersion, digest, imageFeaturedId, imageModifiedTime ?? '', style].join(':');
 }
 
 // A template edit that leaves the pixels alone should not move the cached card's mtime
@@ -110,7 +105,7 @@ async function hasChanged(target: string, data: Uint8Array): Promise<boolean> {
 
 function hashTemplateFiles(): string {
 	const hash = createHash('sha256').update(
-		`${String(openGraphImageWidth)}x${String(openGraphImageHeight)}`,
+		`${String(openGraphImageWidth)}x${String(openGraphImageHeight)}:takumi-js@${readTakumiVersion()}`,
 	);
 
 	for (const file of templateFiles) {
@@ -118,4 +113,12 @@ function hashTemplateFiles(): string {
 	}
 
 	return hash.digest('hex').slice(0, 8);
+}
+
+function readTakumiVersion(): string {
+	const packagePath = findPackageJSON('takumi-js', import.meta.url);
+
+	if (!packagePath) throw new Error('Could not find the installed takumi-js package');
+
+	return (JSON.parse(readFileSync(packagePath, 'utf8')) as { version: string }).version;
 }

@@ -168,10 +168,10 @@ const server = createServer((request, response) => {
 	// A `fetch` for a chunk's range is preflighted, which a media element's never is
 	response.setHeader('access-control-allow-headers', 'range');
 
-	void respond(request, response, url).then((status) => {
+	void respond(request, response, url).then((status = 0) => {
 		if (run === null || url.pathname === '/log') return;
 
-		logRequest(run, { path: url.pathname, range: request.headers.range, status: status ?? 0 });
+		logRequest(run, { path: url.pathname, range: request.headers.range, status });
 	});
 });
 

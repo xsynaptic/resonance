@@ -1,9 +1,7 @@
+import type { ContentEntry, ValidationIssue, ValidationResult } from '@xsynaptic/astro-scripts';
+
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 import { toStatsKey } from '@xsynaptic/shared/platform-stats';
-
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { ValidationIssue, ValidationResult } from '#validate-content/validation-result.ts';
-
-import { toValidationResult } from '#validate-content/validation-result.ts';
 
 // The one SoundCloud account this site publishes as; a URL under any other is somebody else's
 const soundcloudAccountPrefix = 'https://soundcloud.com/djbasilisk/';
@@ -85,10 +83,12 @@ function collectMismatches({
 
 	return [
 		...[...backlinkKeys.difference(embedKeys)].map((key) => ({
-			message: `${location}: \`links\` has ${key}, missing from \`${field}\``,
+			location,
+			message: `\`links\` has ${key}, missing from \`${field}\``,
 		})),
 		...[...embedKeys.difference(backlinkKeys)].map((key) => ({
-			message: `${location}: \`${field}\` has ${key}, missing from \`links\``,
+			location,
+			message: `\`${field}\` has ${key}, missing from \`links\``,
 		})),
 	];
 }
@@ -110,7 +110,8 @@ function collectUnresolved({
 		.map((url) => toStatsKey(url))
 		.filter((key) => !keys.has(key))
 		.map((key) => ({
-			message: `${location}: \`${field}\` ${key} matches no track in the last pull`,
+			location,
+			message: `\`${field}\` ${key} matches no track in the last pull`,
 		}));
 }
 

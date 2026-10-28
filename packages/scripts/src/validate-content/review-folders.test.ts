@@ -37,12 +37,12 @@ describe('validateReviewFolders', () => {
 
 		expect(validateReviewFolders(entries).issues).toEqual([
 			{
-				message:
-					'packages/content/collections/reviews/1995/a-review.mdx: filed under 1995, releaseYear says 1996',
+				location: 'packages/content/collections/reviews/1995/a-review.mdx',
+				message: 'filed under 1995, releaseYear says 1996',
 			},
 			{
-				message:
-					'packages/content/collections/reviews/another-review.mdx: filed under the collection root, releaseYear says 1999',
+				location: 'packages/content/collections/reviews/another-review.mdx',
+				message: 'filed under the collection root, releaseYear says 1999',
 			},
 		]);
 	});

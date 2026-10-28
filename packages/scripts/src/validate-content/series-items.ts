@@ -1,6 +1,6 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
 
-import { toValidationResult } from '#validate-content/validation-result.ts';
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 
 // Plain strings rather than references, because a series spans collections
 // An unresolved item is dropped from the index behind a DEV-only warning, so it is silent in CI
@@ -23,7 +23,7 @@ export function validateSeriesItems(
 	}
 
 	return toValidationResult(
-		issues.map(({ id, location }) => ({ message: `${location}: unknown series item "${id}"` })),
+		issues.map(({ id, location }) => ({ location, message: `unknown series item "${id}"` })),
 		{
 			fail: `Found ${issues.length.toString()} unknown series item(s)`,
 			pass: 'Series items valid',

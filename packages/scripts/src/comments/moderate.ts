@@ -1,6 +1,7 @@
 import type { CommentRow, CommentStatus } from '@xsynaptic/shared/comments';
 import type { ChalkInstance } from 'chalk';
 
+import { log } from '@xsynaptic/astro-scripts';
 import { executeComments, queryComments, toIdLiteral } from '@xsynaptic/shared/comments';
 import chalk from 'chalk';
 
@@ -77,22 +78,21 @@ export async function deleteComment(id: string, options: ModerateOptions): Promi
 	);
 
 	if (!comment) {
-		console.log(chalk.yellow(`\n  No comment with id ${id}.\n`));
+		log.warn(`No comment with id ${id}`);
 		return;
 	}
 
 	printComment(comment, chalk.dim(comment.status));
-	console.log(`  ${chalk.red.bold('Delete permanently?')}  ${chalk.dim('y / n')}`);
+	log.info(`  ${chalk.red.bold('Delete permanently?')}  ${chalk.dim('y / n')}`);
 
 	if ((await readKey(['y', 'n'])) !== 'y') {
-		console.log(chalk.dim('\n  Kept.\n'));
+		log.detail('Kept');
 		return;
 	}
 
 	await executeComments(`DELETE FROM comments WHERE id = ${toIdLiteral(id)}`, target);
 
-	console.log(chalk.red(`\n  ✗ deleted ${id}`));
-	console.log('');
+	log.success(`Deleted ${id}`);
 
 	if (comment.status === 'approved') await pullComments(options);
 }
@@ -102,7 +102,7 @@ export async function moderateComments(options: ModerateOptions): Promise<Tally>
 	const pending = await queryComments<PendingRow>(pendingQuery, target);
 
 	if (pending.length === 0) {
-		console.log(chalk.green('\n  Nothing pending.\n'));
+		log.success('Nothing pending');
 		return toEmptyTally();
 	}
 
@@ -133,25 +133,24 @@ function printComment(comment: PendingRow, marker: string): void {
 		comment.parent_id === null ? undefined : `reply to ${comment.parent_id}`,
 	].filter((part) => part !== undefined);
 
-	console.log(`\n  ${marker}  ${chalk.cyan(`${comment.collection}/${comment.entry_id}`)}`);
-	console.log(chalk.dim(`  ${'─'.repeat(bodyWidth)}`));
-	console.log(`  ${identity.join('  ')}`);
-	console.log(chalk.dim(`  ${meta.join(' · ')}`));
-	console.log('');
+	const lines = [
+		'',
+		`  ${marker}  ${chalk.cyan(`${comment.collection}/${comment.entry_id}`)}`,
+		chalk.dim(`  ${'─'.repeat(bodyWidth)}`),
+		`  ${identity.join('  ')}`,
+		chalk.dim(`  ${meta.join(' · ')}`),
+		'',
+		...wrapBody(comment.body).map((line) => (line === '' ? '' : `  ${line}`)),
+		'',
+	];
 
-	for (const line of wrapBody(comment.body)) {
-		console.log(line === '' ? '' : `  ${line}`);
-	}
-
-	console.log('');
+	log.info(lines.join('\n'));
 }
 
 function printHeader(count: number, isLocal: boolean): void {
 	const target = isLocal ? 'local' : 'remote';
 
-	console.log(
-		`\n  ${chalk.bold.cyan('Moderation queue')} ${chalk.dim(`· ${String(count)} pending · ${target}`)}`,
-	);
+	log.step(`Moderation queue · ${String(count)} pending · ${target}`);
 }
 
 function printLegend(available: ReadonlyArray<Choice>): void {
@@ -159,22 +158,20 @@ function printLegend(available: ReadonlyArray<Choice>): void {
 		.map((choice) => `${chalk.bold.white(choice.key)} ${chalk.dim(choice.label)}`)
 		.join(' '.repeat(3));
 
-	console.log(`  ${legend}`);
+	log.info(`  ${legend}`);
 }
 
 function printResult(status: ModeratedStatus): void {
-	console.log(statusColors[status](`\n  ✓ ${status}`));
+	log.info(statusColors[status](`  ✓ ${status}`));
 }
 
 function printTally(tally: Tally): void {
-	const parts = [
-		chalk.green(`${String(tally.approved)} approved`),
-		chalk.red(`${String(tally.rejected)} rejected`),
-		chalk.magenta(`${String(tally.spam)} spam`),
-		chalk.dim(`${String(tally.skipped)} skipped`),
-	];
-
-	console.log(`\n  ${chalk.bold('Done')} ${chalk.dim('·')} ${parts.join(chalk.dim(' · '))}\n`);
+	log.summary([
+		['Approved', tally.approved],
+		['Rejected', tally.rejected],
+		['Spam', tally.spam],
+		['Skipped', tally.skipped],
+	]);
 }
 
 // `A` decides the same row as `a` once this is the last one left
@@ -216,7 +213,7 @@ async function runQueue(pending: Array<PendingRow>, target: D1Target): Promise<T
 		});
 
 		if (!choice || choice.key === 'q') {
-			console.log(chalk.dim('\n  Stopped.'));
+			log.detail('Stopped');
 			break;
 		}
 
@@ -230,13 +227,13 @@ async function runQueue(pending: Array<PendingRow>, target: D1Target): Promise<T
 			);
 
 			tally.approved += remaining.length;
-			console.log(chalk.green(`\n  ✓ approved ${String(remaining.length)} remaining`));
+			log.success(`Approved ${String(remaining.length)} remaining`);
 			break;
 		}
 
 		if (!('status' in choice)) {
 			tally.skipped += 1;
-			console.log(chalk.dim('\n  → skipped'));
+			log.info(chalk.dim('  → skipped'));
 			continue;
 		}
 

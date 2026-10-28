@@ -1,7 +1,6 @@
-import chalk from 'chalk';
+import { log, runChild } from '@xsynaptic/astro-scripts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { $ } from 'zx';
 
 import { isPathPresent } from '#shared/utils.ts';
 
@@ -37,8 +36,8 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 	const fileCount = files.length;
 	const largeFiles = files.filter((entry) => entry.size >= assetSizeWarn);
 
-	console.log(chalk.blue('Deploying site to Cloudflare Workers...'));
-	console.log(chalk.gray(`  Assets: ${String(fileCount)}`));
+	log.step('Deploying site to Cloudflare Workers...');
+	log.detail(`Assets: ${String(fileCount)}`);
 
 	if (fileCount >= fileCountError) {
 		throw new Error(
@@ -47,43 +46,25 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 	}
 
 	if (fileCount >= fileCountWarn) {
-		console.log(
-			chalk.yellow(`  Warning: ${String(fileCount)} files approaches the 20,000 Workers cap`),
-		);
+		log.warn(`${String(fileCount)} files approaches the 20,000 Workers cap`);
 	}
 
 	for (const large of largeFiles) {
 		const mib = (large.size / 1024 / 1024).toFixed(1);
-		console.log(
-			chalk.yellow(`  Warning: ${large.relativePath} is ${mib} MiB (25 MiB per-asset limit)`),
-		);
+		log.warn(`${large.relativePath} is ${mib} MiB (25 MiB per-asset limit)`);
 	}
 
-	if (dryRun) console.log(chalk.yellow('  DRY RUN'));
-
-	const start = Date.now();
+	if (dryRun) log.warn('Dry run');
 
 	const wranglerArgs = dryRun ? ['deploy', '--dry-run'] : ['deploy'];
 
-	await runWrangler(rootPath, wranglerArgs);
-
-	console.log(chalk.green(`Done in ${((Date.now() - start) / 1000).toFixed(1)}s`));
+	await runChild('Uploading to Workers', ['pnpm', 'exec', 'wrangler', ...wranglerArgs], {
+		cwd: rootPath,
+		filter: isWranglerSummaryLine,
+	});
 }
 
 // wrangler has no flag for its per-asset `+ path` lines; `--log-level warn` would take the deploy summary with them
-// Piping stdout to filter them costs color unless it is forced
-async function runWrangler(rootPath: string, args: Array<string>): Promise<void> {
-	const wrangler = $({
-		cwd: rootPath,
-		env: process.stdout.isTTY ? { ...process.env, FORCE_COLOR: '1' } : process.env,
-		stdio: ['inherit', 'pipe', 'inherit'],
-	})`pnpm exec wrangler ${args}`;
-
-	for await (const line of wrangler) {
-		if (line.startsWith('+ /') || line.includes('truncating changed assets log')) continue;
-
-		console.log(line);
-	}
-
-	await wrangler;
+function isWranglerSummaryLine(line: string): boolean {
+	return !line.startsWith('+ /') && !line.includes('truncating changed assets log');
 }

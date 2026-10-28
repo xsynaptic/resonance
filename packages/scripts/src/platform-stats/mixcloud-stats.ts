@@ -1,5 +1,5 @@
+import { formatCount, formatError, log, withStep } from '@xsynaptic/astro-scripts';
 import { toStatsKey } from '@xsynaptic/shared/platform-stats';
-import chalk from 'chalk';
 import path from 'node:path';
 
 import type { StatsItem } from '#platform-stats/platform-stats-file.ts';
@@ -41,44 +41,39 @@ interface MixcloudStatsOptions {
 export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<StepStatus> {
 	const { dryRun = false, force = false, rootPath } = options;
 
-	console.log(chalk.blue('Pulling Mixcloud stats...'));
+	return withStep('Pulling Mixcloud stats', async (step) => {
+		const filePath = path.join(rootPath, mixcloudStatsPath);
 
-	const filePath = path.join(rootPath, mixcloudStatsPath);
+		try {
+			const lastGeneration = await readLastGeneration(filePath);
 
-	try {
-		const lastGeneration = await readLastGeneration(filePath);
+			if (!force && isFresh(lastGeneration, freshnessHours)) {
+				log.detail(
+					`Last generation ${String(lastGeneration?.generated_at)} is under 24h; skipping`,
+				);
+				return 'skipped';
+			}
 
-		if (!force && isFresh(lastGeneration, freshnessHours)) {
-			console.log(
-				chalk.gray(
-					`  Last generation ${String(lastGeneration?.generated_at)} is under 24h; skipping`,
-				),
+			const cloudcasts = await fetchAccounts();
+
+			if (dryRun) {
+				log.warn(`Dry run: ${String(cloudcasts.length)} cloudcasts not written`);
+				return 'skipped';
+			}
+
+			await appendGeneration(filePath, toItems(cloudcasts));
+			log.success(`Appended ${String(cloudcasts.length)} cloudcasts to ${mixcloudStatsPath}`);
+
+			return 'ok';
+		} catch (error) {
+			log.warn(
+				`Mixcloud pull failed; appending nothing to ${mixcloudStatsPath}: ${formatError(error)}`,
 			);
-			return 'skipped';
+
+			step.warn();
+			return 'warned';
 		}
-
-		const cloudcasts = await fetchAccounts();
-
-		if (dryRun) {
-			console.log(chalk.yellow(`  DRY RUN: ${String(cloudcasts.length)} cloudcasts not written`));
-			return 'skipped';
-		}
-
-		await appendGeneration(filePath, toItems(cloudcasts));
-		console.log(
-			chalk.green(`Appended ${String(cloudcasts.length)} cloudcasts to ${mixcloudStatsPath}`),
-		);
-
-		return 'ok';
-	} catch (error) {
-		console.log(
-			chalk.yellow(
-				`Mixcloud pull failed; appending nothing to ${mixcloudStatsPath}: ${String(error)}`,
-			),
-		);
-
-		return 'warned';
-	}
+	});
 }
 
 async function fetchAccount(account: string): Promise<Array<Cloudcast>> {
@@ -114,11 +109,7 @@ async function fetchAccounts(): Promise<Array<Cloudcast>> {
 		const fetched = await fetchAccount(account);
 		const plays = fetched.reduce((total, cloudcast) => total + cloudcast.item.plays, 0);
 
-		console.log(
-			chalk.gray(
-				`  ${account}: ${String(fetched.length)} cloudcasts, ${plays.toLocaleString('en')} plays`,
-			),
-		);
+		log.detail(`${account}: ${String(fetched.length)} cloudcasts, ${formatCount(plays)} plays`);
 		cloudcasts.push(...fetched);
 	}
 

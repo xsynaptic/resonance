@@ -20,8 +20,8 @@ describe('validatePlatformLinks', () => {
 
 		expect(validatePlatformLinks(mixes, keys).issues).toEqual([
 			{
-				message:
-					'collections/mixes/2015/a-mix.mdx: `links` has /djbasilisk/a-mix, missing from `soundcloudLink`',
+				location: 'collections/mixes/2015/a-mix.mdx',
+				message: '`links` has /djbasilisk/a-mix, missing from `soundcloudLink`',
 			},
 		]);
 	});
@@ -38,8 +38,8 @@ describe('validatePlatformLinks', () => {
 
 		expect(validatePlatformLinks(mixes, keys).issues).toEqual([
 			{
-				message:
-					'collections/mixes/2015/a-mix.mdx: `soundcloudLink` has /djbasilisk/a-mix, missing from `links`',
+				location: 'collections/mixes/2015/a-mix.mdx',
+				message: '`soundcloudLink` has /djbasilisk/a-mix, missing from `links`',
 			},
 		]);
 	});
@@ -58,12 +58,12 @@ describe('validatePlatformLinks', () => {
 
 		expect(validatePlatformLinks(mixes, keys).issues).toEqual([
 			{
-				message:
-					'collections/mixes/2015/a-mix.mdx: `links` has /synapticfx/old-name, missing from `mixcloudLink`',
+				location: 'collections/mixes/2015/a-mix.mdx',
+				message: '`links` has /synapticfx/old-name, missing from `mixcloudLink`',
 			},
 			{
-				message:
-					'collections/mixes/2015/a-mix.mdx: `mixcloudLink` has /basilisk/a-mix, missing from `links`',
+				location: 'collections/mixes/2015/a-mix.mdx',
+				message: '`mixcloudLink` has /basilisk/a-mix, missing from `links`',
 			},
 		]);
 	});
@@ -82,8 +82,8 @@ describe('validatePlatformLinks', () => {
 
 		expect(validatePlatformLinks(mixes, keys).issues).toEqual([
 			{
-				message:
-					'collections/mixes/2015/a-mix.mdx: `soundcloudLink` /djbasilisk/renamed matches no track in the last pull',
+				location: 'collections/mixes/2015/a-mix.mdx',
+				message: '`soundcloudLink` /djbasilisk/renamed matches no track in the last pull',
 			},
 		]);
 	});

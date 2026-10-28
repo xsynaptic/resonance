@@ -1,7 +1,8 @@
+import type { ContentEntry } from '@xsynaptic/astro-scripts';
+
 import { getOpenGraphId } from '@xsynaptic/shared/open-graph';
 
 import type { OpenGraphEntry } from '#og-image/types.ts';
-import type { ContentEntry } from '#shared/astro-content.ts';
 
 import { getCollectionLabel } from '#og-image/labels.ts';
 import { extractImageFeaturedIds } from '#shared/images.ts';

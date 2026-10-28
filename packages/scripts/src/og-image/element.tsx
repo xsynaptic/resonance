@@ -19,11 +19,13 @@ const colorGlow = 'rgba(123, 137, 146, 0.2)'; // surface-200
 const cardPadding = 64;
 const columnGap = 48;
 const featuredImageFrame = 1;
+const featuredImageBorder = 4;
 
 // Three times the site's tile: a card is usually seen at a fraction of its 1200px output
 const patternSize = 180;
 
-export const featuredImageSize = openGraphImageHeight - cardPadding * 2 - featuredImageFrame * 2;
+export const featuredImageSize =
+	openGraphImageHeight - cardPadding * 2 - (featuredImageFrame + featuredImageBorder) * 2;
 
 // Fully gone only behind the middle of the Featured Image, which covers the last of it anyway
 const patternFadeEnd = openGraphImageWidth - cardPadding - featuredImageSize / 2;
@@ -66,6 +68,7 @@ export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: Process
 					flex: 1,
 					flexDirection: 'column',
 					justifyContent: 'space-between',
+					position: 'relative',
 				}}
 			>
 				<div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -146,10 +149,11 @@ function CardImageFrame({ image }: { image: ProcessedImage }) {
 				borderColor: colorImageBorder,
 				borderRadius: '8px',
 				borderStyle: 'solid',
-				borderWidth: '4px',
+				borderWidth: `${String(featuredImageBorder)}px`,
 				boxShadow: `0 0 75px 30px ${colorGlow}`,
 				display: 'flex',
 				padding: `${String(featuredImageFrame)}px`,
+				position: 'relative',
 			}}
 		>
 			<Bitmap

@@ -1,7 +1,6 @@
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { LocatedIssue } from '#validate-content/validation-result.ts';
+import type { ContentEntry, ValidationIssue } from '@xsynaptic/astro-scripts';
 
-import { toLocatedValidationResult } from '#validate-content/validation-result.ts';
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 
 // `<TrackList tracks={frontmatter.tracks} />` and `<Selections items={frontmatter.selections} />`
 // are the only things that render those fields, and the layouts do not
@@ -14,15 +13,15 @@ const markers = [
 export function validateBodyMarkers(entries: Array<ContentEntry>) {
 	const issues = entries.flatMap((entry) => collectEntryMarkerIssues(entry));
 
-	return toLocatedValidationResult(issues, {
+	return toValidationResult(issues, {
 		fail: `Found ${issues.length.toString()} entry body marker mismatch(es)`,
 		pass: 'Body markers match their frontmatter',
 	});
 }
 
-function collectEntryMarkerIssues(entry: ContentEntry): Array<LocatedIssue> {
+function collectEntryMarkerIssues(entry: ContentEntry): Array<ValidationIssue> {
 	const body = entry.body ?? '';
-	const issues: Array<LocatedIssue> = [];
+	const issues: Array<ValidationIssue> = [];
 
 	for (const { field, tag } of markers) {
 		const value = entry.data[field];
@@ -31,8 +30,8 @@ function collectEntryMarkerIssues(entry: ContentEntry): Array<LocatedIssue> {
 		if (hasData === body.includes(tag)) continue;
 
 		issues.push({
-			detail: hasData ? `${field} with no ${tag}> tag` : `${tag}> tag with no ${field}`,
 			location: entry.filePath ?? entry.id,
+			message: hasData ? `${field} with no ${tag}> tag` : `${tag}> tag with no ${field}`,
 		});
 	}
 

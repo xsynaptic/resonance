@@ -1,5 +1,6 @@
 // Plain `fetch`: nothing in `package.json` handles SoundCloud's OAuth and the surface is three requests
 
+import { log } from '@xsynaptic/astro-scripts';
 import { z } from 'zod';
 
 const apiBaseUrl = 'https://api.soundcloud.com';
@@ -82,7 +83,7 @@ export async function fetchAccountTracks(
 			const track = TrackSchema.safeParse(item);
 
 			if (track.success) tracks.push(track.data);
-			else console.warn(`  Skipping an unreadable track: ${track.error.issues[0]?.message ?? ''}`);
+			else log.warn(`Skipping an unreadable track: ${track.error.issues[0]?.message ?? ''}`);
 		}
 
 		nextUrl = page.next_href ?? undefined;

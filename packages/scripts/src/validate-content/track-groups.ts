@@ -1,9 +1,7 @@
+import type { ContentEntry, ValidationIssue } from '@xsynaptic/astro-scripts';
+
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 import { isGroupedTracklist } from '@xsynaptic/shared/tracklist';
-
-import type { ContentEntry } from '#shared/astro-content.ts';
-import type { LocatedIssue } from '#validate-content/validation-result.ts';
-
-import { toLocatedValidationResult } from '#validate-content/validation-result.ts';
 
 interface TrackGroup {
 	files: Array<string>;
@@ -16,13 +14,13 @@ interface TrackGroup {
 export function validateTrackGroups(entries: Array<ContentEntry>) {
 	const issues = entries.flatMap((entry) => collectEntryGroupIssues(entry));
 
-	return toLocatedValidationResult(issues, {
+	return toValidationResult(issues, {
 		fail: `Found ${issues.length.toString()} track group file problem(s)`,
 		pass: 'Track group files valid',
 	});
 }
 
-function collectEntryGroupIssues(entry: ContentEntry): Array<LocatedIssue> {
+function collectEntryGroupIssues(entry: ContentEntry): Array<ValidationIssue> {
 	const groups = toGroups(entry.data.tracks);
 
 	if (groups.length === 0) return [];
@@ -35,7 +33,7 @@ function collectEntryGroupIssues(entry: ContentEntry): Array<LocatedIssue> {
 
 	details.push(...collectTimestampDetails(groups), ...collectUnnamedFileDetails(files, owners));
 
-	return details.map((detail) => ({ detail, location }));
+	return details.map((message) => ({ location, message }));
 }
 
 // `owners` accumulates across the groups of one entry, so the second claim on a file is the one reported

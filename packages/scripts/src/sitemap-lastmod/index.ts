@@ -1,5 +1,6 @@
 import {
 	getCollectionEntries,
+	getEntryCommitDates,
 	log,
 	withAstroContent,
 	withSpinner,
@@ -11,7 +12,6 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { contentDataPath } from '#shared/content-path.ts';
-import { getGitFileDates } from '#sitemap-lastmod/git-file-dates.ts';
 
 // Collections such as `comments` and `downloads` are generated, carrying no file to date
 const datedCollections = [
@@ -40,33 +40,27 @@ export async function generateSitemapLastmod(options: SitemapLastmodOptions): Pr
 async function writeSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
 	const outputPath = path.resolve(options.rootPath, sitemapLastmodPath);
 
-	const gitDates = await withSpinner('Reading git log', () =>
-		getGitFileDates({
-			cwd: path.resolve(options.rootPath, contentDataPath),
-			keyPrefix: contentDataPath,
-			pathspec: 'collections/',
-		}),
-	);
-
 	const entries = await withSpinner('Loading content', () =>
 		withAstroContent((content) => getCollectionEntries(content, [...datedCollections])),
 	);
 
 	const contentPathPrefix = `${contentDataPath}/collections/`;
+	const datedEntries = entries.filter((entry) => entry.filePath?.startsWith(contentPathPrefix));
+	const gitDates = await withSpinner('Reading git log', () =>
+		getEntryCommitDates(datedEntries, { rootPath: options.rootPath }),
+	);
 	const urls: Record<string, string> = {};
 
 	let resolvedCount = 0;
 	let missingDateCount = 0;
 
-	for (const entry of entries) {
-		if (!entry.filePath?.startsWith(contentPathPrefix)) continue;
-
-		const gitDate = gitDates.get(entry.filePath);
+	for (const entry of datedEntries) {
+		const gitDate = entry.filePath ? gitDates.get(entry.filePath) : undefined;
 
 		// Normally a file added but never committed, which is exactly what a deploy should surface
 		if (!gitDate) {
 			missingDateCount++;
-			log.warn(`No git history: ${entry.filePath}`);
+			log.warn(`No git history: ${entry.filePath ?? entry.id}`);
 			continue;
 		}
 

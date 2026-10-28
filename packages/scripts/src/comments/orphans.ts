@@ -1,9 +1,14 @@
 import type { ContentEntry } from '@xsynaptic/astro-scripts';
 
-import { getCollectionEntries, log, withAstroContent, withSpinner } from '@xsynaptic/astro-scripts';
+import {
+	getCollectionEntries,
+	log,
+	readChild,
+	withAstroContent,
+	withSpinner,
+} from '@xsynaptic/astro-scripts';
 import { queryComments } from '@xsynaptic/shared/comments';
 import chalk from 'chalk';
-import { $ } from 'zx';
 
 import { toFormerIds } from '#shared/entries.ts';
 
@@ -46,7 +51,7 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 
 	const entries = await withSpinner('Loading content', async () => {
 		// Which entries exist is the whole question, so the store is resynced rather than trusted
-		await $({ cwd: rootPath, quiet: true })`pnpm exec astro sync`;
+		await readChild(['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
 
 		return withAstroContent((content) => getCollectionEntries(content, [...commentedCollections]));
 	});

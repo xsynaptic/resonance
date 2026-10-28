@@ -1,4 +1,4 @@
-import { $ } from 'zx';
+import { readChild } from '@xsynaptic/astro-scripts';
 
 export interface LoudnessMeasurement {
 	integratedLufs: number;
@@ -8,8 +8,20 @@ export interface LoudnessMeasurement {
 // BS.1770 integrated loudness and oversampled true peak, decoded to float so overs above full scale read as they are
 // framelog=verbose keeps the per-frame readout out of stderr; a four-hour mix would otherwise log 144,000 lines
 export async function measureLoudness(file: string): Promise<LoudnessMeasurement> {
-	const result =
-		await $`ffmpeg -nostdin -hide_banner -nostats -i ${file} -vn -af aformat=sample_fmts=flt,ebur128=peak=true:framelog=verbose -f null -`.quiet();
+	const result = await readChild([
+		'ffmpeg',
+		'-nostdin',
+		'-hide_banner',
+		'-nostats',
+		'-i',
+		file,
+		'-vn',
+		'-af',
+		'aformat=sample_fmts=flt,ebur128=peak=true:framelog=verbose',
+		'-f',
+		'null',
+		'-',
+	]);
 
 	return parseEbur128(result.stderr);
 }

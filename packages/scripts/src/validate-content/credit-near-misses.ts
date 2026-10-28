@@ -1,5 +1,6 @@
-import type { ContentEntry, ValidationIssue, ValidationResult } from '@xsynaptic/astro-scripts';
+import type { ContentEntry, ValidationIssue } from '@xsynaptic/astro-scripts';
 
+import { toValidationResult } from '@xsynaptic/astro-scripts';
 import { toSlug } from '@xsynaptic/shared/routing';
 
 import { collectEntryCredits } from '#validate-content/credits.ts';
@@ -14,18 +15,19 @@ const minimumSlugLength = 4;
 export function validateCreditNearMisses(
 	entries: Array<ContentEntry>,
 	catalog: Array<ContentEntry>,
-): ValidationResult {
+) {
 	const slugsByCollection = getTermSlugsByCollection(catalog);
 
 	const issues = entries.flatMap((entry) => collectNearMisses(entry, slugsByCollection));
 
-	if (issues.length === 0) return { issues, status: 'pass', summary: 'No near-miss credits' };
-
-	return {
+	return toValidationResult(
 		issues,
-		status: 'warn',
-		summary: `Found ${issues.length.toString()} free-text credit(s) one letter off a Term`,
-	};
+		{
+			fail: `Found ${issues.length.toString()} free-text credit(s) one letter off a Term`,
+			pass: 'No near-miss credits',
+		},
+		{ severity: 'warn' },
+	);
 }
 
 function collectNearMisses(entry: ContentEntry, slugsByCollection: Map<string, Set<string>>) {

@@ -1,11 +1,10 @@
 import type { StreamLoudness } from '@xsynaptic/shared/schemas';
 
-import { formatError, log } from '@xsynaptic/astro-scripts';
+import { formatError, log, readChild } from '@xsynaptic/astro-scripts';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
-import { $ } from 'zx';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
@@ -223,7 +222,23 @@ async function encodeAndMeasure({
 	tagArgs: Array<string>;
 	tmp: string;
 }): Promise<StreamLoudness> {
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${source} -af ${gainFilter(gainDb)} ${encoderArgs} ${tagArgs} -f mp4 ${tmp}`;
+	await readChild([
+		'ffmpeg',
+		'-nostdin',
+		'-hide_banner',
+		'-loglevel',
+		'error',
+		'-y',
+		'-i',
+		source,
+		'-af',
+		gainFilter(gainDb),
+		...encoderArgs,
+		...tagArgs,
+		'-f',
+		'mp4',
+		tmp,
+	]);
 
 	return measureLoudness(tmp);
 }
@@ -260,7 +275,21 @@ async function land(
 	const tagged = tmpPath(streamsPath, `${job.base}.tagged`);
 
 	// The demuxer reports the brand boxes as tags, which the copy would write back beside the real ones
-	await $`ffmpeg -nostdin -hide_banner -loglevel error -y -i ${tmp} -map 0 -c copy -map_metadata 0 ${[
+	await readChild([
+		'ffmpeg',
+		'-nostdin',
+		'-hide_banner',
+		'-loglevel',
+		'error',
+		'-y',
+		'-i',
+		tmp,
+		'-map',
+		'0',
+		'-c',
+		'copy',
+		'-map_metadata',
+		'0',
 		'-metadata',
 		'major_brand=',
 		'-metadata',
@@ -277,7 +306,11 @@ async function land(
 		`LOUDNESS_INTEGRATED_LUFS=${String(verified.integratedLufs)}`,
 		'-metadata',
 		`LOUDNESS_TRUE_PEAK_DBTP=${String(verified.truePeakDbtp)}`,
-	]} ${containerArgs} -f mp4 ${tagged}`;
+		...containerArgs,
+		'-f',
+		'mp4',
+		tagged,
+	]);
 	await fs.rm(tmp);
 
 	const name = `${job.base}.${await hashFile(tagged)}${renditionExtension}`;
@@ -288,7 +321,16 @@ async function land(
 }
 
 async function readFormatTags(file: string): Promise<Record<string, string>> {
-	const result = await $`ffprobe -v error -show_entries format_tags -of json ${file}`.quiet();
+	const result = await readChild([
+		'ffprobe',
+		'-v',
+		'error',
+		'-show_entries',
+		'format_tags',
+		'-of',
+		'json',
+		file,
+	]);
 
 	return FormatTagsSchema.parse(JSON.parse(result.stdout)).format.tags ?? {};
 }

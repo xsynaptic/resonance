@@ -1,13 +1,18 @@
-import { getOutputMode, log } from '@xsynaptic/astro-scripts';
+import { log, runChild } from '@xsynaptic/astro-scripts';
 import { $ } from 'zx';
 
 interface RsyncOptions {
 	archive?: 'av' | 'avz';
 	config: SshTarget;
+	describe?: (stdout: string) => string;
 	dryRun?: boolean;
 	excludes?: Array<string>;
 	extraFlags?: Array<string>;
 	quiet?: boolean;
+}
+
+interface RsyncRunOptions extends RsyncOptions {
+	label: string;
 }
 
 interface SshTarget {
@@ -36,18 +41,21 @@ export function buildRsyncArgs(
 export async function rsyncTo(
 	source: Array<string> | string,
 	destination: string,
-	options: RsyncOptions,
+	options: RsyncRunOptions,
 ): Promise<string> {
-	const command = $({
-		stdio: ['inherit', 'pipe', 'inherit'],
-	})`rsync ${buildRsyncArgs(source, destination, options)}`;
+	const { describe, label } = options;
+	const stdout: Array<string> = [];
 
-	// Raw rsync lines would break the NDJSON event stream
-	if (getOutputMode() !== 'json') command.pipe(process.stderr);
+	await runChild(label, ['rsync', ...buildRsyncArgs(source, destination, options)], {
+		...(describe ? { describe: () => describe(stdout.join('\n')) } : {}),
+		onLine: (line, stream) => {
+			if (stream === 'stdout') stdout.push(line);
 
-	const result = await command;
+			return true;
+		},
+	});
 
-	return result.stdout;
+	return stdout.join('\n');
 }
 
 // For dry-run, print the command instead of running it so a deploy preview shows remote actions

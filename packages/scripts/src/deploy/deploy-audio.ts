@@ -56,8 +56,10 @@ interface DerivedLeg {
 
 interface LegSync {
 	config: DeployConfig;
+	describe?: (stdout: string) => string;
 	dryRun: boolean;
 	extraFlags: Array<string>;
+	label: string;
 }
 
 const derivedLegs: Array<DerivedLeg> = [
@@ -103,7 +105,14 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 		const artifactsOutput = await rsyncTo(
 			`${sourceDir}/`,
 			`${config.remoteHost}:${remoteRoot}/artifacts/`,
-			{ archive: 'av', config, dryRun, excludes: rsyncExcludes, extraFlags: rsyncFlags },
+			{
+				archive: 'av',
+				config,
+				dryRun,
+				excludes: rsyncExcludes,
+				extraFlags: rsyncFlags,
+				label: 'Uploading originals',
+			},
 		);
 
 		// One leg at a time, because the box serves other traffic
@@ -126,7 +135,12 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 				`${leg.label}: ${localPath}/ -> ${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
 			);
 
-			const output = await rsyncLeg(leg, localPath, { config, dryRun, extraFlags: rsyncFlags });
+			const output = await rsyncLeg(leg, localPath, {
+				config,
+				dryRun,
+				extraFlags: rsyncFlags,
+				label: `Uploading ${leg.label.toLowerCase()}`,
+			});
 
 			derived[leg.key] = parseTransferred(output, leg.transferred);
 		}
@@ -153,16 +167,16 @@ export async function reapDerivedAudio(options: DeployAudioOptions): Promise<voi
 
 		if (!(await isPathPresent(localPath))) continue;
 
-		await withStep(`Reaping superseded ${leg.label.toLowerCase()}`, async () => {
-			if (dryRun) log.warn('Dry run');
+		const label = leg.label.toLowerCase();
 
-			const output = await rsyncLeg(leg, localPath, {
-				config,
-				dryRun,
-				extraFlags: [...rsyncFlags, '--delete'],
-			});
+		if (dryRun) log.warn('Dry run');
 
-			log.detail(`Reaped ${String(countDeleted(output))} superseded ${leg.label.toLowerCase()}`);
+		await rsyncLeg(leg, localPath, {
+			config,
+			describe: (output) => `Reaped ${String(countDeleted(output))} superseded ${label}`,
+			dryRun,
+			extraFlags: [...rsyncFlags, '--delete'],
+			label: `Reaping superseded ${label}`,
 		});
 	}
 }
@@ -188,13 +202,15 @@ function parseTransferred(output: string, pattern: RegExp): Array<string> {
 function rsyncLeg(
 	leg: DerivedLeg,
 	localPath: string,
-	{ config, dryRun, extraFlags }: LegSync,
+	{ config, describe, dryRun, extraFlags, label }: LegSync,
 ): Promise<string> {
 	return rsyncTo(`${localPath}/`, `${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`, {
 		archive: 'av',
 		config,
+		...(describe ? { describe } : {}),
 		dryRun,
 		excludes: leg.excludes,
 		extraFlags,
+		label,
 	});
 }

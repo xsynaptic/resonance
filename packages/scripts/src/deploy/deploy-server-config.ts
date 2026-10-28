@@ -40,22 +40,26 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 			config,
 			dryRun,
 			extraFlags: ['--delete'],
+			label: 'Staging nginx config',
 		});
 		await rsyncTo(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
 			archive: 'av',
 			config,
 			dryRun,
 			excludes: ['fixtures', 'test-*.py', '__pycache__'],
+			label: 'Staging the stats script',
 		});
 		await rsyncTo(`${deployDir}/systemd/`, `${remoteHost}:${stagingPath}/systemd/`, {
 			archive: 'av',
 			config,
 			dryRun,
+			label: 'Staging systemd units',
 		});
 		await rsyncTo(`${deployDir}/tmpfiles/`, `${remoteHost}:${stagingPath}/tmpfiles/`, {
 			archive: 'av',
 			config,
 			dryRun,
+			label: 'Staging tmpfiles',
 		});
 
 		await sshExec(config, applyNginxSites(config), { dryRun });

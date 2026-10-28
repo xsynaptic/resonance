@@ -1,8 +1,8 @@
+import { readChild } from '@xsynaptic/astro-scripts';
 import { peakArchiveHeaderBytes } from '@xsynaptic/shared/waveform-format';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
-import { $ } from 'zx';
 
 import { openWaveformsCache } from '#audio/audio-sources.ts';
 import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
@@ -132,7 +132,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 			if (pending.every(({ plan }) => plan !== 'analyze')) return;
 
 			try {
-				await $`which audiowaveform`.quiet();
+				await readChild(['which', 'audiowaveform']);
 			} catch {
 				throw new Error(
 					'audiowaveform not found on PATH. Install it with: brew install audiowaveform',
@@ -204,7 +204,20 @@ async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 
 	// --output-format is explicit because the .tmp suffix hides the format
 	// No --amplitude-scale: the archive keeps true peaks and normalization happens at distillation
-	await $`audiowaveform -q -i ${job.source} -o ${tmp} --output-format dat -z ${String(expectedSamplesPerPixel)} -b 8`;
+	await readChild([
+		'audiowaveform',
+		'-q',
+		'-i',
+		job.source,
+		'-o',
+		tmp,
+		'--output-format',
+		'dat',
+		'-z',
+		String(expectedSamplesPerPixel),
+		'-b',
+		'8',
+	]);
 
 	const name = `${job.base}.${await hashFile(tmp)}${archiveExtension}`;
 

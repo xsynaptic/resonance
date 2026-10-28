@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-import { formatError, log, runChild, withStep } from '@xsynaptic/astro-scripts';
+import { fetchWithRetry, formatError, log, runChild, withStep } from '@xsynaptic/astro-scripts';
 import chalk from 'chalk';
 import path from 'node:path';
 import tls from 'node:tls';
 
 import type { DeployedAudio } from '#deploy/deploy-audio.ts';
 import type { DeployConfig } from '#deploy/deploy-config.ts';
-import type { StepStatus } from '#shared/step-status.ts';
 
 import { generateBands } from '#audio/bands.ts';
 import { generateAudioManifest, readManifestFiles } from '#audio/manifest.ts';
@@ -23,7 +22,6 @@ import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
 import { runCommand } from '#shared/command.ts';
-import { fetchWithRetry } from '#shared/fetch-with-retry.ts';
 import { readKey } from '#shared/prompt.ts';
 import { pullListens } from '#stats/listens-pull.ts';
 
@@ -44,11 +42,6 @@ interface MediaProbeBatch {
 	contentTypePrefix: string;
 	names: Array<string>;
 	pathPrefix: string;
-}
-
-interface WarnOnlyStep {
-	label: string;
-	status: StepStatus;
 }
 
 // Matches an entry in UA_BLOCKLIST in deploy/stats/download-stats.py
@@ -78,10 +71,10 @@ async function check({ isSkipBuild, isSkipCheck, rootPath }: StepFlags): Promise
 }
 
 // Let's Encrypt no longer sends expiry mail, so this is the only signal a stalled renewal leaves
-async function checkCertificate(config: DeployConfig): Promise<StepStatus> {
+async function checkCertificate(config: DeployConfig): Promise<void> {
 	const host = new URL(config.filesUrl).hostname;
 
-	return withStep(`Health check: ${host} certificate`, async (step) => {
+	await withStep(`Health check: ${host} certificate`, async (step) => {
 		try {
 			const validTo = await peerCertificateValidTo(host);
 			const daysRemaining = Math.floor((Date.parse(validTo) - Date.now()) / 86_400_000);
@@ -90,20 +83,16 @@ async function checkCertificate(config: DeployConfig): Promise<StepStatus> {
 				throw new TypeError(`Unreadable 'valid_to' on the peer certificate: '${validTo}'`);
 			}
 			if (daysRemaining < certificateWarningDays) {
-				log.warn(
+				step.warn(
 					`Certificate expires in ${String(daysRemaining)} days; check certbot.timer on the box`,
 				);
-				step.warn();
-				return 'warned';
+				return;
 			}
 
 			log.success(`Certificate OK (${String(daysRemaining)} days remaining)`);
-			return 'ok';
 		} catch (error) {
 			// Warn-only: an expired certificate already fails the stats pull and the audio probe
-			log.warn(`Certificate check skipped: ${formatError(error)}`);
-			step.warn();
-			return 'warned';
+			step.warn(`Certificate unread: ${formatError(error)}`);
 		}
 	});
 }
@@ -111,7 +100,7 @@ async function checkCertificate(config: DeployConfig): Promise<StepStatus> {
 async function healthCheck(
 	{ originals, renditions, waveformFiles }: HealthCheckFiles,
 	config: DeployConfig,
-): Promise<StepStatus> {
+): Promise<void> {
 	log.step(`Health check: ${config.siteUrl}`);
 
 	const siteResponse = await fetchWithRetry(config.siteUrl, { label: 'site', timeoutMs: 15_000 });
@@ -122,11 +111,11 @@ async function healthCheck(
 	}
 	log.success(`Site OK (${String(siteResponse.status)})`);
 
-	const certificateStatus = await checkCertificate(config);
+	await checkCertificate(config);
 
 	if (waveformFiles.length === 0 && originals.length === 0 && renditions.length === 0) {
 		log.warn('No audio files to probe; skipping files health check');
-		return certificateStatus;
+		return;
 	}
 
 	await probeAll(config, {
@@ -148,8 +137,6 @@ async function healthCheck(
 		names: waveformFiles,
 		pathPrefix: 'waveform/',
 	});
-
-	return certificateStatus;
 }
 
 function peerCertificateValidTo(host: string): Promise<string> {
@@ -166,33 +153,6 @@ function peerCertificateValidTo(host: string): Promise<string> {
 		});
 		socket.on('error', reject);
 	});
-}
-
-// One block at the end: a step that warns mid-run is one yellow line in a multi-minute log
-function printWarnOnlySummary(warnOnlySteps: Array<WarnOnlyStep>): void {
-	const warned = warnOnlySteps.filter((step) => step.status === 'warned');
-
-	log.step('Warn-only steps:');
-	for (const step of warnOnlySteps) printStep(step);
-
-	if (warned.length === 0) return;
-
-	log.warn(
-		`${String(warned.length)} of ${String(warnOnlySteps.length)} need attention: ${warned.map((step) => step.label).join(', ')}`,
-	);
-}
-
-function printStep({ label, status }: WarnOnlyStep): void {
-	if (status === 'ok') {
-		log.success(label);
-		return;
-	}
-	if (status === 'skipped') {
-		log.detail(`${label} (skipped)`);
-		return;
-	}
-
-	log.warn(label);
 }
 
 // Stays a GET: nginx answers a HEAD with 200 and no `Content-Range`, defeating the probe
@@ -251,29 +211,40 @@ function probeSample(uploaded: Array<string>, fallback: Array<string>): Array<st
 async function promptPendingComments(
 	pending: number | undefined,
 	{ isDryRun, rootPath }: { isDryRun: boolean; rootPath: string },
-): Promise<'quit' | StepStatus> {
+): Promise<'continue' | 'quit'> {
 	// Nothing to ask about: no pending rows, or no reachable D1 to have counted them
-	if (!pending) return 'ok';
+	if (!pending) return 'continue';
 
-	// Moderation statuses are one-way: a rehearsal must not spend them, and a non-TTY cannot ask
-	if (isDryRun || !process.stdin.isTTY) return 'warned';
+	return withStep('Reviewing pending comments', async (step) => {
+		const pendingDetail = `${String(pending)} awaiting moderation`;
 
-	log.info(
-		`  ${chalk.bold.white('m')} ${chalk.dim('moderate now')}   ${chalk.bold.white('c')} ${chalk.dim('continue')}   ${chalk.bold.white('q')} ${chalk.dim('quit')}`,
-	);
+		// Moderation statuses are one-way: a rehearsal must not spend them, and a non-TTY cannot ask
+		if (isDryRun || !process.stdin.isTTY) {
+			step.warn(pendingDetail);
+			return 'continue';
+		}
 
-	const key = await readKey(['c', 'm', 'q']);
+		log.info(
+			`  ${chalk.bold.white('m')} ${chalk.dim('moderate now')}   ${chalk.bold.white('c')} ${chalk.dim('continue')}   ${chalk.bold.white('q')} ${chalk.dim('quit')}`,
+		);
 
-	if (key === undefined || key === 'q') return 'quit';
+		const key = await readKey(['c', 'm', 'q']);
 
-	if (key === 'm') {
-		const tally = await moderateComments({ isLocal: false, rootPath });
+		if (key === undefined || key === 'q') {
+			step.skip('deploy stopped');
+			return 'quit';
+		}
 
-		// Quitting the queue breaks out untallied, so measure what was decided, not what was skipped
-		if (tally.approved + tally.rejected + tally.spam === pending) return 'ok';
-	}
+		if (key === 'm') {
+			const tally = await moderateComments({ isLocal: false, rootPath });
 
-	return 'warned';
+			// Quitting the queue breaks out untallied, so measure what was decided, not what was skipped
+			if (tally.approved + tally.rejected + tally.spam === pending) return 'continue';
+		}
+
+		step.warn(pendingDetail);
+		return 'continue';
+	});
 }
 
 async function deriveAudio({
@@ -300,17 +271,12 @@ async function deriveAudio({
 async function pullSoftSteps(
 	config: DeployConfig,
 	{ isDryRun, rootPath }: { isDryRun: boolean; rootPath: string },
-): Promise<Array<WarnOnlyStep>> {
-	return [
-		{ label: 'Download stats', status: await pullStats({ config, dryRun: isDryRun, rootPath }) },
-		{ label: 'Mixcloud stats', status: await pullMixcloudStats({ dryRun: isDryRun, rootPath }) },
-		{
-			label: 'SoundCloud stats',
-			status: await pullSoundcloudStats({ dryRun: isDryRun, rootPath }),
-		},
-		{ label: 'Listening stats', status: await pullListens({ dryRun: isDryRun, rootPath }) },
-		{ label: 'D1 backup', status: await backupIfStale({ dryRun: isDryRun, rootPath }) },
-	];
+): Promise<void> {
+	await pullStats({ config, dryRun: isDryRun, rootPath });
+	await pullMixcloudStats({ dryRun: isDryRun, rootPath });
+	await pullSoundcloudStats({ dryRun: isDryRun, rootPath });
+	await pullListens({ dryRun: isDryRun, rootPath });
+	await backupIfStale({ dryRun: isDryRun, rootPath });
 }
 
 // Runs in a dry run too, since it reads the build and touches nothing remote
@@ -335,23 +301,25 @@ async function verifyLive(
 		uploaded: DeployedAudio;
 		validatedFiles: Array<string>;
 	},
-): Promise<StepStatus> {
-	if (isDryRun) {
-		log.warn('Skipping health checks (dry run)');
-		return 'skipped';
-	}
+): Promise<void> {
+	await withStep('Checking the live site', async (step) => {
+		if (isDryRun) {
+			step.skip('dry run');
+			return;
+		}
 
-	const manifest = await readManifestFiles(rootPath);
+		const manifest = await readManifestFiles(rootPath);
 
-	// Prefers what this run uploaded; a no-op run falls back to whatever the manifest names
-	return healthCheck(
-		{
-			originals: probeSample(uploaded.originals, validatedFiles),
-			renditions: probeSample(uploaded.renditions, manifest.streams),
-			waveformFiles: probeSample(uploaded.waveformFiles, manifest.waveformFiles),
-		},
-		config,
-	);
+		// Prefers what this run uploaded; a no-op run falls back to whatever the manifest names
+		await healthCheck(
+			{
+				originals: probeSample(uploaded.originals, validatedFiles),
+				renditions: probeSample(uploaded.renditions, manifest.streams),
+				waveformFiles: probeSample(uploaded.waveformFiles, manifest.waveformFiles),
+			},
+			config,
+		);
+	});
 }
 
 // The build lets a broken id through as unlinked text or a dropped item, so this is the only gate
@@ -388,31 +356,19 @@ await runCommand({
 			isSkipSmoke: values['skip-smoke'],
 			rootPath,
 		};
-		const warnOnlySteps: Array<WarnOnlyStep> = [];
-
 		const config = loadDeployConfig();
 
 		printDeployConfig(config);
 
 		const validatedFiles = await deriveAudio({ isDryRun, rootPath });
 
-		warnOnlySteps.push(...(await pullSoftSteps(config, { isDryRun, rootPath })));
+		await pullSoftSteps(config, { isDryRun, rootPath });
 
 		const pending = await pullComments({ allowStale: true, rootPath });
 
 		// Before the build, so moderating here reaches the same deploy
-		const commentsStatus = await promptPendingComments(pending, { isDryRun, rootPath });
-
 		// Nothing is deployed yet, so a deliberate stop exits clean rather than throwing
-		if (commentsStatus === 'quit') {
-			log.detail('Deploy stopped');
-			printWarnOnlySummary(warnOnlySteps);
-			return;
-		}
-
-		if (commentsStatus === 'warned') {
-			warnOnlySteps.push({ label: 'Comments pending', status: 'warned' });
-		}
+		if ((await promptPendingComments(pending, { isDryRun, rootPath })) === 'quit') return;
 
 		await validate(flags);
 		await check(flags);
@@ -426,12 +382,7 @@ await runCommand({
 		// Only now is the generation the old pages named unreachable
 		await reapDerivedAudio({ config, dryRun: isDryRun, rootPath });
 
-		warnOnlySteps.push({
-			label: 'Certificate',
-			status: await verifyLive(config, { isDryRun, rootPath, uploaded, validatedFiles }),
-		});
-
-		printWarnOnlySummary(warnOnlySteps);
+		await verifyLive(config, { isDryRun, rootPath, uploaded, validatedFiles });
 
 		log.success('Deploy complete');
 	},

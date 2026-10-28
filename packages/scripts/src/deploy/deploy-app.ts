@@ -60,7 +60,7 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 
 	await runChild('Uploading to Workers', ['pnpm', 'exec', 'wrangler', ...wranglerArgs], {
 		cwd: rootPath,
-		filter: isWranglerSummaryLine,
+		onLine: isWranglerSummaryLine,
 	});
 }
 

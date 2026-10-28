@@ -3,7 +3,6 @@ import { copyFile, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
-import type { StepStatus } from '#shared/step-status.ts';
 
 import { remoteRoot } from '#deploy/deploy-audio.ts';
 import { rsyncTo } from '#deploy/rsync-exec.ts';
@@ -27,14 +26,14 @@ interface StatsPullOptions {
 
 // The JSON is derived; the SQLite rollup is the only irreplaceable copy, so it is backed up dated
 // Never fatal: an unreachable host means building with the last-pulled copy
-export async function pullStats(options: StatsPullOptions): Promise<StepStatus> {
+export async function pullStats(options: StatsPullOptions): Promise<void> {
 	const { config, dryRun = false, rootPath } = options;
 
 	const jsonDir = path.join(rootPath, localJsonDir);
 	const backupDir = path.join(rootPath, localBackupDir);
 	const backupDate = new Date().toISOString().slice(0, 10);
 
-	return withStep('Pulling download stats', async (step) => {
+	await withStep('Pulling download stats', async (step) => {
 		log.detail(`${config.remoteHost}:${remoteStatsDir}/ -> ${backupDir}/`);
 		if (dryRun) log.warn('Dry run');
 
@@ -47,10 +46,13 @@ export async function pullStats(options: StatsPullOptions): Promise<StepStatus> 
 			await rsyncTo(
 				statsFiles.map((file) => `${config.remoteHost}:${remoteStatsDir}/${file}`),
 				`${backupDir}/`,
-				{ archive: 'av', config, dryRun, quiet: true },
+				{ archive: 'av', config, dryRun, label: 'Transferring stats files', quiet: true },
 			);
 
-			if (dryRun) return 'skipped';
+			if (dryRun) {
+				step.skip('dry run');
+				return;
+			}
 
 			await copyFile(path.join(backupDir, 'downloads.json'), path.join(jsonDir, 'downloads.json'));
 			await copyFile(
@@ -60,17 +62,9 @@ export async function pullStats(options: StatsPullOptions): Promise<StepStatus> 
 			log.success(`Stats pulled (rollup DB backed up as stats-${backupDate}.sqlite)`);
 
 			await pruneBackups(backupDir);
-			// fallow-ignore-next-line code-duplication -- every soft-fail step ends in the same warn-and-return tail
 			await reportFreshness(jsonDir, backupDir);
-
-			return 'ok';
 		} catch (error) {
-			log.warn(
-				`Stats pull failed; continuing with the last local downloads.json (if any): ${formatError(error)}`,
-			);
-
-			step.warn();
-			return 'warned';
+			step.warn(`Continuing with the last local downloads.json (if any): ${formatError(error)}`);
 		}
 	});
 }

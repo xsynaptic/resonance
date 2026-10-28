@@ -5,8 +5,6 @@ import { listensSnapshotSchema, queryStats } from '@xsynaptic/shared/stats';
 import { mkdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import type { StepStatus } from '#shared/step-status.ts';
-
 export interface PullListensOptions {
 	dryRun?: boolean;
 	rootPath: string;
@@ -22,16 +20,15 @@ const listensQuery = `
 `;
 
 // Soft-fail by design, as the other stats pulls are: fresh counts are nice, a deploy blocked on them is not
-export async function pullListens(options: PullListensOptions): Promise<StepStatus> {
+export async function pullListens(options: PullListensOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	if (dryRun) {
-		log.warn('Dry run: listening stats not pulled');
+	await withStep('Pulling listening stats', async (step) => {
+		if (dryRun) {
+			step.skip('dry run');
+			return;
+		}
 
-		return 'skipped';
-	}
-
-	return withStep('Pulling listening stats', async (step) => {
 		try {
 			const rows = await queryStats<ListensRow>(listensQuery, { cwd: rootPath });
 
@@ -44,13 +41,8 @@ export async function pullListens(options: PullListensOptions): Promise<StepStat
 			await writeSnapshot(path.join(rootPath, snapshotPath), snapshot);
 
 			log.success(`${String(snapshot.rows.length)} rows written to ${snapshotPath}`);
-
-			return 'ok';
 		} catch (error) {
-			log.warn(`Listening stats skipped: ${describeError(error)}`);
-
-			step.warn();
-			return 'warned';
+			step.warn(describeError(error));
 		}
 	});
 }

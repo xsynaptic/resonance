@@ -40,8 +40,7 @@ export async function pullComments(options: PullCommentsOptions): Promise<number
 		} catch (error) {
 			if (!allowStale) throw error;
 
-			await reportStaleSnapshot(filePath, error);
-			step.warn();
+			step.warn(await describeStaleSnapshot(filePath, error));
 			return;
 		}
 
@@ -83,12 +82,10 @@ async function readSnapshot(filePath: string): Promise<CommentsSnapshot | undefi
 }
 
 // Warn only: the build fails on its own when there is no snapshot to read
-async function reportStaleSnapshot(filePath: string, error: unknown): Promise<void> {
+async function describeStaleSnapshot(filePath: string, error: unknown): Promise<string> {
 	const snapshot = await readSnapshot(filePath);
 
-	log.warn(
-		snapshot
-			? `D1 is unreachable (${formatError(error)}); building from the snapshot pulled at ${snapshot.pulledAt}`
-			: `D1 is unreachable (${formatError(error)}) and there is no snapshot at ${filePath}`,
-	);
+	return snapshot
+		? `D1 is unreachable (${formatError(error)}); building from the snapshot pulled at ${snapshot.pulledAt}`
+		: `D1 is unreachable (${formatError(error)}) and there is no snapshot at ${filePath}`;
 }

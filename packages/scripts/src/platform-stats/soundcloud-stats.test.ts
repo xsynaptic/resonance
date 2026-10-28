@@ -104,12 +104,11 @@ describe('pullSoundcloudStats', () => {
 			return Response.json({ collection: [track('a', 1)], next_href: secondPageUrl });
 		});
 
-		const { events, result } = await captureOutput(() => pullSoundcloudStats({ rootPath }));
+		const { events } = await captureOutput(() => pullSoundcloudStats({ rootPath }));
 
-		expect(result).toBe('warned');
 		expect(
-			events.filter((event) => event.type === 'message' && event.level === 'warn'),
-		).toMatchObject([{ text: /429/ }]);
+			events.filter((event) => event.type === 'status' && event.state === 'warn'),
+		).toMatchObject([{ detail: /429/, text: 'Pulling SoundCloud stats' }]);
 		expect(await readLines()).toEqual([]);
 	});
 
@@ -132,13 +131,17 @@ describe('pullSoundcloudStats', () => {
 
 		const skipped = await captureOutput(() => pullSoundcloudStats({ rootPath }));
 
-		expect(skipped.result).toBe('skipped');
+		expect(
+			skipped.events.filter((event) => event.type === 'status' && event.state === 'skip'),
+		).toMatchObject([{ detail: /under 24h/, text: 'Pulling SoundCloud stats' }]);
 		expect(requests).toEqual([]);
 		expect(await readLines()).toHaveLength(1);
 
 		const forced = await captureOutput(() => pullSoundcloudStats({ force: true, rootPath }));
 
-		expect(forced.result).toBe('ok');
+		expect(
+			forced.events.filter((event) => event.type === 'status' && event.state === 'succeed'),
+		).toMatchObject([{ text: 'Pulling SoundCloud stats' }]);
 		expect(await readLines()).toHaveLength(2);
 	});
 });

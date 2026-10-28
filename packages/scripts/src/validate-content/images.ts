@@ -1,11 +1,10 @@
 import type { ContentEntry, ValidationResult } from '@xsynaptic/astro-scripts';
 
-import { toValidationResult } from '@xsynaptic/astro-scripts';
+import { findComponentTags, getTagProp, toValidationResult } from '@xsynaptic/astro-scripts';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 import { extractImageFeaturedIds } from '#shared/images.ts';
-import { findComponentTags, getTagProp } from '#validate-content/component-tags.ts';
 
 // Media paths are relative to the content package's `media/` and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image

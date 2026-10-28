@@ -1,3 +1,4 @@
+import { readChild } from '@xsynaptic/astro-scripts';
 import {
 	bandCount,
 	bandsDecibelRange,
@@ -7,7 +8,6 @@ import {
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { $ } from 'zx';
 
 import { openWaveformsCache } from '#audio/audio-sources.ts';
 import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
@@ -249,8 +249,18 @@ async function isJobCurrent(job: BandsJob, cacheDir: string): Promise<boolean> {
 }
 
 async function readSampleRate(source: string): Promise<number> {
-	const result =
-		await $`ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=nw=1:nk=1 ${source}`.quiet();
+	const result = await readChild([
+		'ffprobe',
+		'-v',
+		'error',
+		'-select_streams',
+		'a:0',
+		'-show_entries',
+		'stream=sample_rate',
+		'-of',
+		'default=nw=1:nk=1',
+		source,
+	]);
 	const sampleRate = Number(result.stdout.trim());
 
 	if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0) {

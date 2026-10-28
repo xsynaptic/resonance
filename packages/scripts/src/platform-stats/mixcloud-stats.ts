@@ -3,7 +3,6 @@ import { toStatsKey } from '@xsynaptic/shared/platform-stats';
 import path from 'node:path';
 
 import type { StatsItem } from '#platform-stats/platform-stats-file.ts';
-import type { StepStatus } from '#shared/step-status.ts';
 
 import {
 	appendGeneration,
@@ -38,40 +37,31 @@ interface MixcloudStatsOptions {
 }
 
 // Soft-fail by design, as the download stats pull is: a deploy is never blocked on fresh counts
-export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<StepStatus> {
+export async function pullMixcloudStats(options: MixcloudStatsOptions): Promise<void> {
 	const { dryRun = false, force = false, rootPath } = options;
 
-	return withStep('Pulling Mixcloud stats', async (step) => {
+	await withStep('Pulling Mixcloud stats', async (step) => {
 		const filePath = path.join(rootPath, mixcloudStatsPath);
 
 		try {
 			const lastGeneration = await readLastGeneration(filePath);
 
 			if (!force && isFresh(lastGeneration, freshnessHours)) {
-				log.detail(
-					`Last generation ${String(lastGeneration?.generated_at)} is under 24h; skipping`,
-				);
-				return 'skipped';
+				step.skip(`last generation ${String(lastGeneration?.generated_at)} is under 24h`);
+				return;
 			}
 
 			const cloudcasts = await fetchAccounts();
 
 			if (dryRun) {
-				log.warn(`Dry run: ${String(cloudcasts.length)} cloudcasts not written`);
-				return 'skipped';
+				step.skip(`dry run; ${String(cloudcasts.length)} cloudcasts not written`);
+				return;
 			}
 
 			await appendGeneration(filePath, toItems(cloudcasts));
 			log.success(`Appended ${String(cloudcasts.length)} cloudcasts to ${mixcloudStatsPath}`);
-
-			return 'ok';
 		} catch (error) {
-			log.warn(
-				`Mixcloud pull failed; appending nothing to ${mixcloudStatsPath}: ${formatError(error)}`,
-			);
-
-			step.warn();
-			return 'warned';
+			step.warn(`Appending nothing to ${mixcloudStatsPath}: ${formatError(error)}`);
 		}
 	});
 }

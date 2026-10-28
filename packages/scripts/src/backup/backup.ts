@@ -1,9 +1,13 @@
-import { formatBytes, formatError, log, withSpinner } from '@xsynaptic/astro-scripts';
+import {
+	formatBytes,
+	formatError,
+	log,
+	readChild,
+	withSpinner,
+	withStep,
+} from '@xsynaptic/astro-scripts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { $ } from 'zx';
-
-import type { StepStatus } from '#shared/step-status.ts';
 
 import { isPathPresent } from '#shared/utils.ts';
 
@@ -38,10 +42,22 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 		`Exporting ${isLocal ? 'local' : 'remote'} ${databaseName} to ${filePath}.gz`,
 		async () => {
 			await fs.mkdir(directory, { recursive: true });
-			await $({
-				cwd: rootPath,
-			})`pnpm exec wrangler d1 export ${databaseName} ${scope} --skip-confirmation --output ${filePath}`;
-			await $`gzip -f ${filePath}`;
+			await readChild(
+				[
+					'pnpm',
+					'exec',
+					'wrangler',
+					'd1',
+					'export',
+					databaseName,
+					scope,
+					'--skip-confirmation',
+					'--output',
+					filePath,
+				],
+				{ cwd: rootPath },
+			);
+			await readChild(['gzip', '-f', filePath]);
 
 			return fs.stat(`${filePath}.gz`);
 		},
@@ -49,19 +65,31 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 	);
 }
 
+type BackupOutcome = { detail: string; state: 'failed' } | { state: 'skipped' | 'taken' };
+
 // Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
-export async function backupIfStale(options: BackupIfStaleOptions): Promise<StepStatus> {
-	const statuses = await Array.fromAsync(databaseNames, (databaseName) =>
-		backupOne(databaseName, options),
-	);
+export async function backupIfStale(options: BackupIfStaleOptions): Promise<void> {
+	await withStep('Backing up D1', async (step) => {
+		const outcomes = await Array.fromAsync(databaseNames, (databaseName) =>
+			backupOne(databaseName, options),
+		);
+		const failures = outcomes.flatMap((outcome) =>
+			outcome.state === 'failed' ? [outcome.detail] : [],
+		);
 
-	if (statuses.includes('warned')) return 'warned';
-	if (statuses.includes('ok')) return 'ok';
+		if (failures.length > 0) {
+			step.warn(failures.join('\n'));
+			return;
+		}
 
-	return 'skipped';
+		if (outcomes.every((outcome) => outcome.state === 'skipped')) step.skip();
+	});
 }
 
-async function backupOne(databaseName: string, options: BackupIfStaleOptions): Promise<StepStatus> {
+async function backupOne(
+	databaseName: string,
+	options: BackupIfStaleOptions,
+): Promise<BackupOutcome> {
 	const { dryRun = false, rootPath } = options;
 
 	const latest = await findLatestBackup(
@@ -75,25 +103,23 @@ async function backupOne(databaseName: string, options: BackupIfStaleOptions): P
 		if (ageDays < backupAfterDays) {
 			log.detail(`Last ${databaseName} backup: ${latest}`);
 
-			return 'skipped';
+			return { state: 'skipped' };
 		}
 	}
 
 	if (dryRun) {
 		log.warn(`Dry run: ${databaseName} backup is stale but not taken`);
 
-		return 'skipped';
+		return { state: 'skipped' };
 	}
 
 	// Soft-fail: a deploy must not die on a backup
 	try {
 		await backupDatabase({ databaseName, rootPath });
 
-		return 'ok';
+		return { state: 'taken' };
 	} catch (error) {
-		log.warn(`${databaseName} backup skipped: ${formatError(error)}`);
-
-		return 'warned';
+		return { detail: `${databaseName}: ${formatError(error)}`, state: 'failed' };
 	}
 }
 

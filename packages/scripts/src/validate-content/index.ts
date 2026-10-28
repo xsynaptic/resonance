@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 import {
+	checkComponentProps,
+	checkComponentTargets,
+	checkEntryIds,
+	checkReferences,
 	getCollectionEntries,
 	runValidations,
 	withAstroContent,
@@ -19,13 +23,9 @@ import { validateBodyMarkers } from '#validate-content/body-markers.ts';
 import { validateCreditNearMisses } from '#validate-content/credit-near-misses.ts';
 import { validateCredits } from '#validate-content/credits.ts';
 import { validateDownloadsLegacy } from '#validate-content/downloads-legacy.ts';
-import { validateEntryIds } from '#validate-content/entry-ids.ts';
 import { validateImages } from '#validate-content/images.ts';
-import { validateLinkIds } from '#validate-content/link-ids.ts';
-import { validateMdxComponents } from '#validate-content/mdx.ts';
 import { validatePlatformLinks } from '#validate-content/platform-links.ts';
 import { validatePlaylistItems } from '#validate-content/playlist-items.ts';
-import { validateReferences } from '#validate-content/references.ts';
 import { validateReviewFolders } from '#validate-content/review-folders.ts';
 import { validateSelectionEntryIds } from '#validate-content/selection-entry-ids.ts';
 import { validateSeriesItems } from '#validate-content/series-items.ts';
@@ -116,10 +116,20 @@ function getChecks(
 			validateCreditNearMisses(allEntries, entriesFrom('artists', 'labels')),
 		credits: () => validateCredits(allEntries, entriesFrom('artists', 'labels')),
 		'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
-		'entry-ids': () => validateEntryIds(allEntries),
+		'entry-ids': () => checkEntryIds(allEntries),
 		images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
-		'link-ids': () => validateLinkIds(allEntries, allEntries, rootPath),
-		mdx: () => validateMdxComponents(allEntries, rootPath),
+		'link-ids': () =>
+			checkComponentTargets(allEntries, {
+				component: 'Link',
+				prop: 'id',
+				rootPath,
+				targets: allEntries.map((entry) => entry.id),
+			}),
+		mdx: () =>
+			checkComponentProps(allEntries, {
+				required: { Img: 'src', Link: 'id', Quotation: 'author' },
+				rootPath,
+			}),
 		'platform-links': () => validatePlatformLinks(entriesFrom('mixes'), platformKeys),
 		'playlist-items': () =>
 			validatePlaylistItems(
@@ -127,7 +137,7 @@ function getChecks(
 				playlistsPath,
 				entriesFrom('mixes'),
 			),
-		references: () => validateReferences(allEntries),
+		references: () => checkReferences(allEntries),
 		'review-folders': () => validateReviewFolders(entriesFrom('reviews')),
 		'selection-entry-ids': () =>
 			validateSelectionEntryIds(

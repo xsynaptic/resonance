@@ -1,10 +1,11 @@
+import type { Step } from '@xsynaptic/astro-scripts';
+
 import { formatCount, formatError, log, withStep } from '@xsynaptic/astro-scripts';
 import { toStatsKey } from '@xsynaptic/shared/platform-stats';
 import path from 'node:path';
 
 import type { StatsGeneration, StatsItem } from '#platform-stats/platform-stats-file.ts';
 import type { SoundcloudTrack } from '#platform-stats/soundcloud-api.ts';
-import type { StepStatus } from '#shared/step-status.ts';
 
 import {
 	appendGeneration,
@@ -36,26 +37,21 @@ interface SoundcloudStatsOptions {
 }
 
 // Soft-fail by design, as the Mixcloud pull is: a deploy is never blocked on fresh counts
-export async function pullSoundcloudStats(options: SoundcloudStatsOptions): Promise<StepStatus> {
-	return withStep('Pulling SoundCloud stats', async (step) => {
+export async function pullSoundcloudStats(options: SoundcloudStatsOptions): Promise<void> {
+	await withStep('Pulling SoundCloud stats', async (step) => {
 		const credentials = toCredentials();
 
 		if (!credentials) {
-			log.warn('No SOUNDCLOUD_CLIENT_ID/SECRET; skipping');
-			return 'skipped';
+			step.skip('no SOUNDCLOUD_CLIENT_ID/SECRET');
+			return;
 		}
 
 		const filePath = path.join(options.rootPath, soundcloudStatsPath);
 
 		try {
-			return await sweep(filePath, credentials, options);
+			await sweep({ credentials, filePath, step }, options);
 		} catch (error) {
-			log.warn(
-				`SoundCloud pull failed; appending nothing to ${soundcloudStatsPath}: ${formatError(error)}`,
-			);
-
-			step.warn();
-			return 'warned';
+			step.warn(`Appending nothing to ${soundcloudStatsPath}: ${formatError(error)}`);
 		}
 	});
 }
@@ -69,7 +65,6 @@ async function fetchAccounts(credentials: Credentials): Promise<Array<Soundcloud
 		const fetched = await fetchAccountTracks(accessToken, accountUrn);
 		const plays = fetched.reduce((total, track) => total + track.playback_count, 0);
 
-		// fallow-ignore-next-line code-duplication -- the Mixcloud sweep logs alike; a shared line would have no module to live in
 		log.detail(`${account}: ${String(fetched.length)} tracks, ${formatCount(plays)} plays`);
 		tracks.push(...fetched);
 	}
@@ -82,16 +77,15 @@ function hasRows(generation: StatsGeneration | undefined): boolean {
 }
 
 async function sweep(
-	filePath: string,
-	credentials: Credentials,
+	{ credentials, filePath, step }: { credentials: Credentials; filePath: string; step: Step },
 	{ dryRun = false, force = false }: SoundcloudStatsOptions,
-): Promise<StepStatus> {
+): Promise<void> {
 	const lastGeneration = await readLastGeneration(filePath);
 	const skipReason = toSkipReason(lastGeneration, force);
 
 	if (skipReason) {
-		log.detail(skipReason);
-		return 'skipped';
+		step.skip(skipReason);
+		return;
 	}
 
 	const tracks = await fetchAccounts(credentials);
@@ -102,14 +96,12 @@ async function sweep(
 	}
 
 	if (dryRun) {
-		log.warn(`Dry run: ${String(tracks.length)} tracks not written`);
-		return 'skipped';
+		step.skip(`dry run; ${String(tracks.length)} tracks not written`);
+		return;
 	}
 
 	await appendGeneration(filePath, toItems(tracks));
 	log.success(`Appended ${String(tracks.length)} tracks to ${soundcloudStatsPath}`);
-
-	return 'ok';
 }
 
 function toCredentials(): Credentials | undefined {
@@ -146,5 +138,5 @@ function toSkipReason(
 ): string | undefined {
 	if (isForced || !isFresh(generation, freshnessHours)) return undefined;
 
-	return `Last generation ${generation?.generated_at ?? ''} is under 24h; skipping`;
+	return `last generation ${generation?.generated_at ?? ''} is under 24h`;
 }

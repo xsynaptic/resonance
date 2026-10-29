@@ -97,9 +97,9 @@ export default defineConfig({
 		}),
 		fontDevtools({ providers: ['fontsource'] }),
 		imagePipeline({
-			cachePath: imageCachePath,
 			mediaPath: `${process.env.CONTENT_DATA_PATH ?? 'packages/content'}/media`,
 			placeholders: { blur: 3, pixels: 1024, quality: 25, saturation: 1.2 },
+			storePath: imageCachePath,
 		}),
 		pagefind(),
 		buildLogger(),

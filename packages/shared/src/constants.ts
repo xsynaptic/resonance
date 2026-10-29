@@ -18,7 +18,6 @@ export const openGraphHomeId = 'homepage';
 // Resolved against the content package's `media/`, like a Featured Image in frontmatter
 export const openGraphHomeImageId = '2019/synaptic-fx-round-1.jpg';
 
-// Written by the sitemap-lastmod deploy step, read back when the Astro config loads
 export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';
 
 // The brand line on every OG card, and the site title; read by the app through `#lib/site.ts`

@@ -1,3 +1,9 @@
+import {
+	createCommitDateReader,
+	createSitemapLastmodWriter,
+} from '@xsynaptic/astro-sitemap-lastmod/write';
+import { sitemapLastmodPath } from '@xsynaptic/shared/constants';
+import { getContentPath } from '@xsynaptic/shared/routing';
 import { glob } from 'astro/loaders';
 import { defineCollection } from 'astro:content';
 
@@ -16,11 +22,23 @@ import {
 	themeSchema,
 } from '#lib/schemas/terms.ts';
 
+const sitemapLastmodWriter = createSitemapLastmodWriter({ filePath: sitemapLastmodPath });
+const readCommitDates = createCommitDateReader({ rootPath: process.cwd() });
+
 function collectionLoader(name: string) {
-	return glob({
+	const loader = glob({
 		base: `${contentCollectionsPath}/${name}`,
 		generateId: ({ entry }) => entry.replace(/^.*\//, '').replace(/\.(md|mdx)$/, ''),
 		pattern: '**/[^_]*.(md|mdx)',
+	});
+
+	return sitemapLastmodWriter.wrap(loader, async (entries) => {
+		const dates = await readCommitDates(entries);
+
+		return entries.map((entry) => [
+			getContentPath(name, entry.id),
+			dates.get(entry.filePath ?? ''),
+		]);
 	});
 }
 

@@ -8,12 +8,22 @@ describe('getUrlPathIndexing', () => {
 	});
 
 	test('follows but does not index paginated routes, with or without a trailing slash', () => {
-		for (const pathname of ['/posts/7/', '/posts/7', '/artists/dj-basilisk/2/', '/mixes/12/']) {
+		for (const pathname of [
+			'/posts/7/',
+			'/posts/7',
+			'/artists/dj-basilisk/2/',
+			'/mixes/12/',
+			'/archive/2024/2/',
+		]) {
 			expect(getUrlPathIndexing(pathname)).toStrictEqual({ follow: true, index: false });
 		}
 	});
 
 	test('indexes a slug that merely ends in digits', () => {
 		expect(getUrlPathIndexing('/blade-runner-2049/').index).toBe(true);
+	});
+
+	test('indexes an archive year, whose last segment is a year rather than a page', () => {
+		expect(getUrlPathIndexing('/archive/2024/').index).toBe(true);
 	});
 });

@@ -99,7 +99,7 @@ export default defineConfig({
 		imagePipeline({
 			cachePath: imageCachePath,
 			mediaPath: `${process.env.CONTENT_DATA_PATH ?? 'packages/content'}/media`,
-			placeholders: { pixels: 1024, recipe: 'blur' },
+			placeholders: { blur: 3, pixels: 1024, quality: 25, saturation: 1.2 },
 		}),
 		pagefind(),
 		buildLogger(),

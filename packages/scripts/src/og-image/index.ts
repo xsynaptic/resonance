@@ -4,7 +4,7 @@ import type { Progress } from '@xsynaptic/astro-scripts';
 import {
 	getImageCachePaths,
 	hashTemplateVersion,
-	prepareOpenGraphCardRender,
+	prepareCardRender,
 } from '@xsynaptic/astro-image-pipeline/node';
 import { createProgress, formatCount, log, UserError, withStep } from '@xsynaptic/astro-scripts';
 import {
@@ -50,16 +50,16 @@ async function drawOpenGraphImages({
 	const cachePath = path.resolve(rootPath, imageCachePath);
 
 	if (clearCache) {
-		const { openGraphCardsPath } = getImageCachePaths(cachePath);
+		const { cardsPath } = getImageCachePaths(cachePath);
 
-		await fs.rm(openGraphCardsPath, { force: true, recursive: true });
-		log.success(`Cleared ${openGraphCardsPath}`);
+		await fs.rm(cardsPath, { force: true, recursive: true });
+		log.success(`Cleared ${cardsPath}`);
 		return;
 	}
 
 	const distPath = path.resolve(rootPath, 'dist');
 	const renderCard = await createCardRenderer();
-	const render = await prepareOpenGraphCardRender({
+	const render = await prepareCardRender({
 		cachePath,
 		decode: (source) => decodeFeaturedImage(source.filePath),
 		distPath,

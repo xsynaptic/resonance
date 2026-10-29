@@ -1,4 +1,4 @@
-import { log, runChild } from '@xsynaptic/astro-scripts';
+import { log, runSubprocess } from '@xsynaptic/astro-scripts';
 import { $ } from 'zx';
 
 interface RsyncOptions {
@@ -45,7 +45,7 @@ export async function rsyncTo(
 ): Promise<string> {
 	const { describe, label } = options;
 
-	return runChild(label, ['rsync', ...buildRsyncArgs(source, destination, options)], {
+	return runSubprocess(label, ['rsync', ...buildRsyncArgs(source, destination, options)], {
 		capture: true,
 		...(describe ? { describe } : {}),
 	});

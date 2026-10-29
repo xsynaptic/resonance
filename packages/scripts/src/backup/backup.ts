@@ -3,7 +3,7 @@ import type { Step } from '@xsynaptic/astro-scripts';
 import {
 	formatBytes,
 	formatError,
-	readChild,
+	readSubprocess,
 	withSpinner,
 	withStep,
 } from '@xsynaptic/astro-scripts';
@@ -43,7 +43,7 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 		`Exporting ${isLocal ? 'local' : 'remote'} ${databaseName} to ${filePath}.gz`,
 		async () => {
 			await fs.mkdir(directory, { recursive: true });
-			await readChild(
+			await readSubprocess(
 				[
 					'pnpm',
 					'exec',
@@ -58,7 +58,7 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 				],
 				{ cwd: rootPath },
 			);
-			await readChild(['gzip', '-f', filePath]);
+			await readSubprocess(['gzip', '-f', filePath]);
 
 			return fs.stat(`${filePath}.gz`);
 		},

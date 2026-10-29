@@ -1,4 +1,4 @@
-import { readChild } from '@xsynaptic/astro-scripts';
+import { readSubprocess } from '@xsynaptic/astro-scripts';
 
 export interface LoudnessMeasurement {
 	integratedLufs: number;
@@ -8,7 +8,7 @@ export interface LoudnessMeasurement {
 // BS.1770 integrated loudness and oversampled true peak, decoded to float so overs above full scale read as they are
 // framelog=verbose keeps the per-frame readout out of stderr; a four-hour mix would otherwise log 144,000 lines
 export async function measureLoudness(file: string): Promise<LoudnessMeasurement> {
-	const result = await readChild([
+	const result = await readSubprocess([
 		'ffmpeg',
 		'-nostdin',
 		'-hide_banner',

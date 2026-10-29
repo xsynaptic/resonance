@@ -3,7 +3,7 @@ import type { ContentEntry } from '@xsynaptic/astro-scripts';
 import {
 	getCollectionEntries,
 	log,
-	readChild,
+	readSubprocess,
 	withAstroContent,
 	withSpinner,
 } from '@xsynaptic/astro-scripts';
@@ -51,7 +51,7 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 
 	const entries = await withSpinner('Loading content', async () => {
 		// Which entries exist is the whole question, so the store is resynced rather than trusted
-		await readChild(['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
+		await readSubprocess(['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
 
 		return withAstroContent((content) => getCollectionEntries(content, [...commentedCollections]));
 	});

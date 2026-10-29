@@ -1,4 +1,4 @@
-import { log, runChild } from '@xsynaptic/astro-scripts';
+import { log, runSubprocess } from '@xsynaptic/astro-scripts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -58,7 +58,7 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 
 	const wranglerArgs = dryRun ? ['deploy', '--dry-run'] : ['deploy'];
 
-	await runChild('Uploading to Workers', ['pnpm', 'exec', 'wrangler', ...wranglerArgs], {
+	await runSubprocess('Uploading to Workers', ['pnpm', 'exec', 'wrangler', ...wranglerArgs], {
 		cwd: rootPath,
 		onLine: isWranglerSummaryLine,
 	});

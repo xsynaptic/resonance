@@ -1,4 +1,4 @@
-import { readChild } from '@xsynaptic/astro-scripts';
+import { readSubprocess } from '@xsynaptic/astro-scripts';
 import {
 	bandCount,
 	bandsDecibelRange,
@@ -249,7 +249,7 @@ async function isJobCurrent(job: BandsJob, cacheDir: string): Promise<boolean> {
 }
 
 async function readSampleRate(source: string): Promise<number> {
-	const result = await readChild([
+	const result = await readSubprocess([
 		'ffprobe',
 		'-v',
 		'error',

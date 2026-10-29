@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { fetchWithRetry, formatError, log, runChild, withStep } from '@xsynaptic/astro-scripts';
+import { fetchUrl, formatError, log, runSubprocess, withStep } from '@xsynaptic/astro-scripts';
 import chalk from 'chalk';
 import path from 'node:path';
 import tls from 'node:tls';
@@ -55,7 +55,7 @@ async function build({ isSkipBuild, rootPath }: StepFlags): Promise<void> {
 		log.warn('Skipping build');
 		return;
 	}
-	await runChild('Building', ['pnpm', '--silent', '-C', 'packages/scripts', 'build'], {
+	await runSubprocess('Building', ['pnpm', '--silent', '-C', 'packages/scripts', 'build'], {
 		cwd: rootPath,
 	});
 }
@@ -67,7 +67,7 @@ async function check({ isSkipBuild, isSkipCheck, rootPath }: StepFlags): Promise
 		log.warn('Skipping checks');
 		return;
 	}
-	await runChild('Checking', ['pnpm', 'check'], { cwd: rootPath });
+	await runSubprocess('Checking', ['pnpm', 'check'], { cwd: rootPath });
 }
 
 // Let's Encrypt no longer sends expiry mail, so this is the only signal a stalled renewal leaves
@@ -103,7 +103,11 @@ async function healthCheck(
 ): Promise<void> {
 	log.step(`Health check: ${config.siteUrl}`);
 
-	const siteResponse = await fetchWithRetry(config.siteUrl, { label: 'site', timeoutMs: 15_000 });
+	const siteResponse = await fetchUrl(config.siteUrl, {
+		retry: { limit: 1, retryOnTimeout: true },
+		throwHttpErrors: false,
+		timeout: 15_000,
+	});
 	if (!siteResponse.ok) {
 		throw new Error(
 			`Site health check failed: ${String(siteResponse.status)} ${siteResponse.statusText}`,
@@ -165,10 +169,11 @@ async function probeAll(
 
 		log.step(`Health check: ${url}`);
 
-		const response = await fetchWithRetry(url, {
+		const response = await fetchUrl(url, {
 			headers: { Range: 'bytes=0-1', 'User-Agent': probeUserAgent },
-			label: `range probe ${pathPrefix}${name}`,
-			timeoutMs: 15_000,
+			retry: { limit: 1, retryOnTimeout: true },
+			throwHttpErrors: false,
+			timeout: 15_000,
 		});
 
 		// Cancelled rather than read: a gzip regression answers 200 with the whole file
@@ -285,7 +290,7 @@ async function smoke({ isSkipSmoke, rootPath }: StepFlags): Promise<void> {
 		log.warn('Skipping smoke suite');
 		return;
 	}
-	await runChild('Running the smoke suite', ['pnpm', 'test-e2e-smoke'], { cwd: rootPath });
+	await runSubprocess('Running the smoke suite', ['pnpm', 'test-e2e-smoke'], { cwd: rootPath });
 }
 
 async function verifyLive(
@@ -324,8 +329,8 @@ async function verifyLive(
 
 // The build lets a broken id through as unlinked text or a dropped item, so this is the only gate
 async function validate({ rootPath }: StepFlags): Promise<void> {
-	await runChild('Syncing content', ['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
-	await runChild(
+	await runSubprocess('Syncing content', ['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
+	await runSubprocess(
 		'Validating content',
 		['pnpm', '--silent', '-C', 'packages/scripts', 'validate-content'],
 		{ cwd: rootPath },

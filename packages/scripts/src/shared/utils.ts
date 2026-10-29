@@ -1,4 +1,4 @@
-import { readChild } from '@xsynaptic/astro-scripts';
+import { readSubprocess } from '@xsynaptic/astro-scripts';
 import crypto from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
@@ -50,7 +50,7 @@ export async function requireBinaries(
 ): Promise<void> {
 	for (const binary of binaries) {
 		try {
-			await readChild(['which', binary]);
+			await readSubprocess(['which', binary]);
 		} catch {
 			throw new Error(`${binary} not found on PATH. Install it with: brew install ${formula}`);
 		}

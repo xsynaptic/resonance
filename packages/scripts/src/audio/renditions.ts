@@ -1,6 +1,6 @@
 import type { StreamLoudness } from '@xsynaptic/shared/schemas';
 
-import { formatError, log, readChild } from '@xsynaptic/astro-scripts';
+import { formatError, log, readSubprocess } from '@xsynaptic/astro-scripts';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -222,7 +222,7 @@ async function encodeAndMeasure({
 	tagArgs: Array<string>;
 	tmp: string;
 }): Promise<StreamLoudness> {
-	await readChild([
+	await readSubprocess([
 		'ffmpeg',
 		'-nostdin',
 		'-hide_banner',
@@ -275,7 +275,7 @@ async function land(
 	const tagged = tmpPath(streamsPath, `${job.base}.tagged`);
 
 	// The demuxer reports the brand boxes as tags, which the copy would write back beside the real ones
-	await readChild([
+	await readSubprocess([
 		'ffmpeg',
 		'-nostdin',
 		'-hide_banner',
@@ -321,7 +321,7 @@ async function land(
 }
 
 async function readFormatTags(file: string): Promise<Record<string, string>> {
-	const result = await readChild([
+	const result = await readSubprocess([
 		'ffprobe',
 		'-v',
 		'error',

@@ -1,4 +1,4 @@
-import { readChild } from '@xsynaptic/astro-scripts';
+import { readSubprocess } from '@xsynaptic/astro-scripts';
 import { peakArchiveHeaderBytes } from '@xsynaptic/shared/waveform-format';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -132,7 +132,7 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 			if (pending.every(({ plan }) => plan !== 'analyze')) return;
 
 			try {
-				await readChild(['which', 'audiowaveform']);
+				await readSubprocess(['which', 'audiowaveform']);
 			} catch {
 				throw new Error(
 					'audiowaveform not found on PATH. Install it with: brew install audiowaveform',
@@ -204,7 +204,7 @@ async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 
 	// --output-format is explicit because the .tmp suffix hides the format
 	// No --amplitude-scale: the archive keeps true peaks and normalization happens at distillation
-	await readChild([
+	await readSubprocess([
 		'audiowaveform',
 		'-q',
 		'-i',

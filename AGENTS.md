@@ -23,6 +23,8 @@ Documents in `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` car
 
 **Only `ready` is live work.** Everything else has already been through Xander, so raising it again as a finding wastes a review cycle. If new evidence contradicts a decision, name the measurement that changed. Settled items inside a `ready` document are marked inline (**Deferred**, **Wontfix**, **Decided, do not re-raise**) and get the same treatment.
 
+`grep` here is ugrep, which skips gitignored paths, and all four folders are gitignored: a `grep -r` from the root misses them without a word, so name `.claude` in the search.
+
 ## Conventions
 
 - Imports use the Node `#*` subpaths with an explicit extension (`#lib/site.ts`); extensionless ones don't resolve. Each package defines its own `#*` map, and every import within a package goes through it, sibling files included.

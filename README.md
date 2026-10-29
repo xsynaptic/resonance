@@ -79,7 +79,7 @@ The original site ran a custom WordPress theme for well over a decade. A one-sho
 
 - Tailwind v4 with colour ramps defined in OKLCH, reworked from the original WordPress palette
 - Self-hosted fonts via Astro's fonts API
-- Blurred WebP placeholders (LQIPs) generated incrementally at build time for every media image
+- Blurred WebP placeholders for every opaque media image, made while pages render and cached by source digest
 - Self-hosted [Umami](https://umami.is/) analytics, with custom events fired from the player
 
 ## Build & Deployment
@@ -92,7 +92,7 @@ The site is static, served from Cloudflare Workers static assets, with one small
 4. D1 backup and comment snapshot
 5. The full quality gate (ESLint, Stylelint, Prettier, types, knip, fallow, Vitest, `astro check`)
 6. Redirects and sitemap `lastmod` generation
-7. LQIP generation and the Astro production build
+7. The Astro production build
 8. OG image generation
 9. Audio upload, uploaded before the site so a new page never references a file still in transit
 10. Site deploy to Cloudflare

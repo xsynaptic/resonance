@@ -12,7 +12,7 @@ import SectionPostExcerpt from '#components/sections/section-post-excerpt.astro'
 import { getPagination } from '#lib/utils/pagination.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
+import { getIndexOpenGraphCard } from '#lib/utils/seo.ts';
 
 interface Props {
 	description: string;
@@ -36,7 +36,7 @@ const schemas =
 	page.currentPage === 1 ? buildCollectionGraph({ description, title, url: pageUrl }) : undefined;
 ---
 
-<MainSite openGraphId={getOpenGraphId('index', 'posts')} schemas={schemas} title={title}>
+<MainSite openGraphCard={getIndexOpenGraphCard('posts', title)} schemas={schemas} title={title}>
 	<ListPageTitle description={description} title={title} />
 	{posts.map(({ Content, entry }) => (
 		<SectionPostExcerpt

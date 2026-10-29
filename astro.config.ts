@@ -4,8 +4,10 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import buildLogger from '@xsynaptic/astro-build-logger';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
+import imagePipeline from '@xsynaptic/astro-image-pipeline';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
+import { imageCachePath } from '@xsynaptic/shared/constants';
 import { getUrlPathIndexing, readSitemapLastmod } from '@xsynaptic/shared/sitemap';
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
@@ -94,6 +96,11 @@ export default defineConfig({
 			},
 		}),
 		fontDevtools({ providers: ['fontsource'] }),
+		imagePipeline({
+			cachePath: imageCachePath,
+			mediaPath: `${process.env.CONTENT_DATA_PATH ?? 'packages/content'}/media`,
+			placeholders: { pixels: 1024, recipe: 'blur' },
+		}),
 		pagefind(),
 		buildLogger(),
 		devAudio(),

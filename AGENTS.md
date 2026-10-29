@@ -52,7 +52,7 @@ The collections were generated once from a WordPress dump and have been edited b
 
 ## Build and checks
 
-`pnpm build` wraps `astro build` in the steps it needs; run alone, `astro build` renders every media image without its LQIP placeholder. The build doesn't type-check; `pnpm check` does.
+`pnpm build` wraps `astro build` in the steps it needs. The build doesn't type-check; `pnpm check` does.
 
 The root `package.json` holds entry points only. Every script in `packages/scripts`, build steps included, runs on its own as `pnpm scripts <name>` (`pnpm scripts og-image --clear-cache`).
 

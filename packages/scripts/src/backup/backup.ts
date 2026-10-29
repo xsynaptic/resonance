@@ -1,7 +1,8 @@
+import type { Step } from '@xsynaptic/astro-scripts';
+
 import {
 	formatBytes,
 	formatError,
-	log,
 	readChild,
 	withSpinner,
 	withStep,
@@ -65,31 +66,18 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 	);
 }
 
-type BackupOutcome = { detail: string; state: 'failed' } | { state: 'skipped' | 'taken' };
-
 // Called from `deploy-site`, where a backup old enough to matter is taken rather than announced
 export async function backupIfStale(options: BackupIfStaleOptions): Promise<void> {
 	await withStep('Backing up D1', async (step) => {
-		const outcomes = await Array.fromAsync(databaseNames, (databaseName) =>
-			backupOne(databaseName, options),
-		);
-		const failures = outcomes.flatMap((outcome) =>
-			outcome.state === 'failed' ? [outcome.detail] : [],
-		);
-
-		if (failures.length > 0) {
-			step.warn(failures.join('\n'));
-			return;
-		}
-
-		if (outcomes.every((outcome) => outcome.state === 'skipped')) step.skip();
+		for (const databaseName of databaseNames) await backupOne(databaseName, step, options);
 	});
 }
 
 async function backupOne(
 	databaseName: string,
+	step: Step,
 	options: BackupIfStaleOptions,
-): Promise<BackupOutcome> {
+): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
 	const latest = await findLatestBackup(
@@ -101,25 +89,21 @@ async function backupOne(
 		const ageDays = Math.floor((Date.now() - Date.parse(latest)) / 86_400_000);
 
 		if (ageDays < backupAfterDays) {
-			log.detail(`Last ${databaseName} backup: ${latest}`);
-
-			return { state: 'skipped' };
+			step.skip(`${databaseName}: last backup ${latest}`);
+			return;
 		}
 	}
 
 	if (dryRun) {
-		log.warn(`Dry run: ${databaseName} backup is stale but not taken`);
-
-		return { state: 'skipped' };
+		step.skip(`${databaseName}: stale, not taken in a dry run`);
+		return;
 	}
 
 	// Soft-fail: a deploy must not die on a backup
 	try {
 		await backupDatabase({ databaseName, rootPath });
-
-		return { state: 'taken' };
 	} catch (error) {
-		return { detail: `${databaseName}: ${formatError(error)}`, state: 'failed' };
+		step.warn(`${databaseName}: ${formatError(error)}`);
 	}
 }
 

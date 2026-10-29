@@ -1,7 +1,8 @@
 ---
+import { getPlaceholder } from '@xsynaptic/astro-image-pipeline/node';
 import { Image } from 'astro:assets';
 
-import { getMediaImage, getMediaLqip } from '#lib/utils/media.ts';
+import { getMediaImage } from '#lib/utils/media.ts';
 
 interface Props {
 	alt: string;
@@ -28,18 +29,20 @@ const image = getMediaImage(path);
 // astro:assets upscales whatever width it is handed; most source artwork is only ~600px wide
 const intrinsicWidth = image ? Math.min(width, image.width) : width;
 
-const lqip = getMediaLqip(path);
+const placeholder = image
+	? await getPlaceholder({ height: image.height, id: path, width: image.width })
+	: undefined;
 ---
 
 {image ? (
 	<Image
 		alt={alt}
-		class:list={[className, lqip ? 'bg-cover bg-center text-transparent' : undefined]}
+		class:list={[className, placeholder ? 'bg-cover bg-center text-transparent' : undefined]}
 		layout={layout}
 		priority={priority}
 		src={image}
 		width={intrinsicWidth}
-		{...(lqip ? { style: `background-image:url(${lqip})` } : {})}
+		{...(placeholder ? { style: `background-image:url(${placeholder})` } : {})}
 		{...(sizes ? { sizes } : {})}
 	/>
 ) : undefined}

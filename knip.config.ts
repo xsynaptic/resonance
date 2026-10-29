@@ -34,7 +34,7 @@ export default {
 			entry: ['e2e/page/host.ts'],
 		},
 		'packages/scripts': {
-			ignoreBinaries: ['audiowaveform', 'ffmpeg', 'ffprobe', 'ssh-add'],
+			ignoreBinaries: ['ffmpeg', 'ssh-add'],
 			ignoreDependencies: ['@fontsource/.+', '@types/react', 'react'],
 		},
 	},

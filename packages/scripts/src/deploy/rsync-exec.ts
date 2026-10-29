@@ -44,18 +44,11 @@ export async function rsyncTo(
 	options: RsyncRunOptions,
 ): Promise<string> {
 	const { describe, label } = options;
-	const stdout: Array<string> = [];
 
-	await runChild(label, ['rsync', ...buildRsyncArgs(source, destination, options)], {
-		...(describe ? { describe: () => describe(stdout.join('\n')) } : {}),
-		onLine: (line, stream) => {
-			if (stream === 'stdout') stdout.push(line);
-
-			return true;
-		},
+	return runChild(label, ['rsync', ...buildRsyncArgs(source, destination, options)], {
+		capture: true,
+		...(describe ? { describe } : {}),
 	});
-
-	return stdout.join('\n');
 }
 
 // For dry-run, print the command instead of running it so a deploy preview shows remote actions

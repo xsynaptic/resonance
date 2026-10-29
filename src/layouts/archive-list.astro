@@ -12,12 +12,13 @@ import {
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
+import { getIndexOpenGraphCard } from '#lib/utils/seo.ts';
 import { formatNumber, formatStringTemplate } from '#lib/utils/text.ts';
 
 const years = await getArchiveYears();
 
 const title = t('collection.archive.title');
+const openGraphCard = getIndexOpenGraphCard('archive', title);
 const description = t('collection.archive.description');
 
 const schemas = buildCollectionGraph({
@@ -27,12 +28,7 @@ const schemas = buildCollectionGraph({
 });
 ---
 
-<MainSite
-	description={description}
-	openGraphId={getOpenGraphId('index', 'archive')}
-	schemas={schemas}
-	title={title}
->
+<MainSite description={description} openGraphCard={openGraphCard} schemas={schemas} title={title}>
 	<ListPageTitle description={description} title={title} />
 	<PaginationSelect
 		class="mb-8"

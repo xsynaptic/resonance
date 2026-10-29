@@ -1,12 +1,6 @@
-import type { OpenGraphEntry } from '@xsynaptic/scripts/og-image';
+import type { PageOpenGraphCard } from '@xsynaptic/shared/open-graph';
 import type { CollectionEntry } from 'astro:content';
 
-import {
-	getOpenGraphIndexEntries,
-	getStyleTitles,
-	toOpenGraphEntry,
-} from '@xsynaptic/scripts/og-image';
-import { openGraphDefaultId, openGraphHomeId } from '@xsynaptic/shared/constants';
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { getCollection, render } from 'astro:content';
 
@@ -24,8 +18,15 @@ import { getDownloadCount } from '#lib/collections/downloads/downloads-data.ts';
 import { hasMixTimestamps } from '#lib/collections/mixes/mixes-cue.ts';
 import { getMixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 import { getDirectoryTerms } from '#lib/collections/terms/term-tree.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
+import {
+	defaultOpenGraphCard,
+	getEntryOpenGraphCard,
+	getIndexOpenGraphCard,
+	homeOpenGraphCard,
+} from '#lib/utils/seo.ts';
 import { resolveCredits } from '#lib/utils/terms.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 
@@ -50,8 +51,8 @@ interface MixSample {
 }
 
 interface OpenGraphSample {
-	entry: OpenGraphEntry;
-	// Addresses the dev-only route; the production stem is on `entry.outputId`
+	card: PageOpenGraphCard;
+	// Addresses the dev-only route; the production stem is on `card.id`
 	key: string;
 	label: string;
 }
@@ -182,53 +183,59 @@ async function createOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 	const withImage = contentEntries.filter(hasImageFeaturedOnDisk);
 	const withoutImage = contentEntries.filter((entry) => !hasImageFeaturedOnDisk(entry));
 
-	const indexEntries = getOpenGraphIndexEntries();
-	const styleTitles = getStyleTitles(styles);
+	const styleTitles = new Map(styles.map((style) => [style.id, style.data.title]));
 
-	function toEntry(
+	function toCard(
 		entry: CollectionEntry<'mixes' | 'posts' | 'reviews'> | undefined,
-	): OpenGraphEntry | undefined {
-		return entry ? toOpenGraphEntry(entry, styleTitles) : undefined;
+	): PageOpenGraphCard | undefined {
+		if (!entry) return undefined;
+
+		const styleId = entry.data.styles?.[0]?.id;
+
+		return getEntryOpenGraphCard(
+			entry,
+			styleId === undefined ? undefined : styleTitles.get(styleId),
+		);
 	}
 
 	const candidates = [
 		{
-			entry: indexEntries.get(openGraphHomeId),
+			card: homeOpenGraphCard,
 			key: 'home',
 			label: 'Homepage, the only index card with a Featured Image',
 		},
 		{
-			entry: indexEntries.get('index-mixes'),
+			card: getIndexOpenGraphCard('mixes', t('collection.mixes.title')),
 			key: 'index',
 			label: 'List Page, where the pattern runs full width',
 		},
 		{
-			entry: indexEntries.get(openGraphDefaultId),
+			card: defaultOpenGraphCard,
 			key: 'default',
 			label: 'Default, behind the 404 alone',
 		},
 		{
-			entry: toEntry(mixes.find(hasImageFeaturedOnDisk)),
+			card: toCard(mixes.find(hasImageFeaturedOnDisk)),
 			key: 'mix-image',
 			label: 'Mix with a Featured Image',
 		},
 		{
-			entry: toEntry(reviews.find(hasImageFeaturedOnDisk)),
+			card: toCard(reviews.find(hasImageFeaturedOnDisk)),
 			key: 'review-image',
 			label: 'Review with a Featured Image',
 		},
 		{
-			entry: toEntry(longestTitle(withoutImage)),
+			card: toCard(longestTitle(withoutImage)),
 			key: 'title-long',
 			label: 'Longest title with no Featured Image, set full width',
 		},
 		{
-			entry: toEntry(longestTitle(withImage)),
+			card: toCard(longestTitle(withImage)),
 			key: 'title-long-image',
 			label: 'Longest title beside a Featured Image, where the clamp bites first',
 		},
 		{
-			entry: toEntry(longestTitle(mixes.filter(hasImageFeaturedOnDisk))),
+			card: toCard(longestTitle(mixes.filter(hasImageFeaturedOnDisk))),
 			key: 'mix-title-long',
 			label: 'Longest mix title beside a Featured Image',
 		},
@@ -240,11 +247,11 @@ async function createOpenGraphCards(): Promise<Array<OpenGraphSample>> {
 	const seen = new Set<string>();
 
 	for (const candidate of candidates) {
-		const { entry } = candidate;
-		if (!entry || seen.has(entry.outputId)) continue;
+		const { card } = candidate;
+		if (!card || seen.has(card.id)) continue;
 
-		seen.add(entry.outputId);
-		samples.push({ ...candidate, entry });
+		seen.add(card.id);
+		samples.push({ ...candidate, card });
 	}
 
 	return samples;

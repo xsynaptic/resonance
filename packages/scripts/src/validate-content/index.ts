@@ -121,6 +121,7 @@ function getChecks(
 		'link-ids': () =>
 			checkComponentTargets(allEntries, {
 				component: 'Link',
+				label: 'Link ID',
 				prop: 'id',
 				rootPath,
 				targets: allEntries.map((entry) => entry.id),

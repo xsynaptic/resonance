@@ -6,11 +6,8 @@ export const openGraphImageFormat = 'jpg';
 // Path segment the cards are served under, on whichever origin OG_BASE_URL names
 export const openGraphBasePath = 'og';
 
-// Durable render cache, kept between builds and copied into the build output
-export const openGraphOutputPath = './.cache/og-image';
-
-// Freshness manifest, alongside the rendered cards
-export const openGraphManifestFile = 'manifest.json';
+// The image pipeline's cache; its `cards/` is copied into the build output
+export const imageCachePath = './.cache/images';
 
 // The card every page without one of its own falls back to
 export const openGraphDefaultId = 'index-default';
@@ -29,9 +26,6 @@ export const siteTitle = 'DJ Basilisk';
 
 // Kept off `site.description`, which four other consumers read as an SEO string
 export const siteTagline = 'Mixcraft, reviews, and writing on electronic music since 2001';
-
-// Incremental LQIP cache, written before the build and read back when a media image renders
-export const mediaLqipPath = './.cache/media-lqip.json';
 
 export const sqliteCachePath = './.cache';
 

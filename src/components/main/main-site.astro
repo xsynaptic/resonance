@@ -1,11 +1,14 @@
 ---
+import type { PageOpenGraphCard } from '@xsynaptic/shared/open-graph';
+
 import { openGraphImageHeight, openGraphImageWidth } from '@xsynaptic/shared/constants';
 import { getUrlPathIndexing } from '@xsynaptic/shared/sitemap';
 import { Font } from 'astro:assets';
 import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
-import { ClientRouter } from 'astro:transitions';
 
 import '#styles/main.css';
+import { ClientRouter } from 'astro:transitions';
+
 import type { Thing } from '#lib/utils/seo-structured-data.ts';
 
 import MainAnalytics from '#components/main/main-analytics.astro';
@@ -21,13 +24,13 @@ import { site } from '#lib/site.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { serializeGraph } from '#lib/utils/seo-structured-data.ts';
-import { getOpenGraphImageUrl } from '#lib/utils/seo.ts';
+import { defaultOpenGraphCard, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { formatStringTemplate } from '#lib/utils/text.ts';
 
 interface Props {
 	description?: string | undefined;
 	noIndex?: boolean;
-	openGraphId?: string;
+	openGraphCard?: PageOpenGraphCard | undefined;
 	openGraphType?: 'article' | 'website';
 	publishedTime?: Date | undefined;
 	schemas?: Array<Thing> | undefined;
@@ -37,7 +40,7 @@ interface Props {
 const {
 	description: descriptionProp,
 	noIndex = false,
-	openGraphId,
+	openGraphCard = defaultOpenGraphCard,
 	openGraphType = 'website',
 	publishedTime,
 	schemas,
@@ -51,7 +54,7 @@ const pageTitle = title
 	: site.title;
 
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
-const openGraphImageUrl = getOpenGraphImageUrl(openGraphId, Astro.site);
+const openGraphImageUrl = getOpenGraphImageUrl(openGraphCard, Astro.site);
 
 const indexing = noIndex ? { follow: false, index: false } : getUrlPathIndexing(Astro.url.pathname);
 

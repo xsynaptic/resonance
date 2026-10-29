@@ -11,7 +11,7 @@ import { toExcerpt } from '#lib/utils/markdown.ts';
 import { getPagination } from '#lib/utils/pagination.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
+import { getIndexOpenGraphCard } from '#lib/utils/seo.ts';
 
 interface Props {
 	collection: ContentCollectionKey;
@@ -34,7 +34,7 @@ const schemas =
 
 <MainSite
 	description={metaDescription}
-	openGraphId={getOpenGraphId('index', collection)}
+	openGraphCard={getIndexOpenGraphCard(collection, title)}
 	schemas={schemas}
 	title={title}
 >

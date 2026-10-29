@@ -1,6 +1,11 @@
 import type { APIRoute, GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
-import { createCardRenderer } from '@xsynaptic/scripts/og-image';
+import {
+	createCardRenderer,
+	decodeFeaturedImage,
+	resolveFeaturedImagePath,
+} from '@xsynaptic/scripts/og-image';
+import { existsSync } from 'node:fs';
 
 import { getSampleOpenGraphCards } from '#dev/inventory/inventory-fixtures.ts';
 
@@ -15,18 +20,27 @@ function getRenderCard() {
 	return renderCard;
 }
 
-export const getStaticPaths = (async () => {
-	const cards = await getSampleOpenGraphCards();
+async function readFeaturedImage(imageId: string | undefined) {
+	if (imageId === undefined) return;
 
-	return cards.map((card) => ({ params: { key: card.key }, props: { card } }));
+	const imagePath = resolveFeaturedImagePath(imageId);
+
+	return existsSync(imagePath) ? decodeFeaturedImage(imagePath) : undefined;
+}
+
+export const getStaticPaths = (async () => {
+	const samples = await getSampleOpenGraphCards();
+
+	return samples.map((sample) => ({ params: { key: sample.key }, props: { sample } }));
 }) satisfies GetStaticPaths;
 
 // Drawn per request, so a template edit shows on reload
-export const GET = (async ({ props: { card } }) => {
+export const GET = (async ({ props: { sample } }) => {
 	const render = await getRenderCard();
+	const image = await readFeaturedImage(sample.card.imageId);
 
 	// Takumi may return a Uint8Array backed by a SharedArrayBuffer, which Response rejects
-	return new Response(new Uint8Array(await render(card.entry)), {
+	return new Response(new Uint8Array(await render(sample.card.input, image)), {
 		headers: { 'Cache-Control': 'no-store', 'Content-Type': 'image/jpeg' },
 	});
 }) satisfies APIRoute<InferGetStaticPropsType<typeof getStaticPaths>>;

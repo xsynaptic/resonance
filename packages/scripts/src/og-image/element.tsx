@@ -1,9 +1,10 @@
+import type { OpenGraphCardInput } from '@xsynaptic/shared/open-graph';
+
 import { openGraphImageHeight, openGraphImageWidth, siteTitle } from '@xsynaptic/shared/constants';
 import { readFileSync } from 'node:fs';
 import { Bitmap } from 'takumi-js/helpers/jsx';
 
 import type { ProcessedImage } from '#og-image/generate.ts';
-import type { OpenGraphCard } from '#og-image/types.ts';
 
 // Palette tokens from src/styles/main/parts/theme.css, resolved to hex
 const colorBackground = '#141b1f'; // surface-900
@@ -48,7 +49,7 @@ function readPatternImage() {
 
 const patternImage = readPatternImage();
 
-export function getOpenGraphElement(card: OpenGraphCard, featuredImage?: ProcessedImage) {
+export function getOpenGraphElement(card: OpenGraphCardInput, featuredImage?: ProcessedImage) {
 	return (
 		<div
 			style={{

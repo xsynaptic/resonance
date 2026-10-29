@@ -15,18 +15,18 @@ const { openGraphCards } = await getInventoryFixtures();
 		<Specimen name="Cards" source="packages/scripts/src/og-image/element.tsx">
 			{openGraphCards.length > 0 ? (
 				<ul class="grid gap-6 sm:grid-cols-2">
-					{openGraphCards.map((card) => (
+					{openGraphCards.map((sample) => (
 						<li>
 							<img
-								alt={card.label}
+								alt={sample.label}
 								class="w-full rounded-sm border border-surface-700"
 								height={315}
 								loading="lazy"
-								src={`/inventory/og/${card.key}.jpg`}
+								src={`/inventory/og/${sample.key}.jpg`}
 								width={600}
 							/>
-							<div class="mt-2 font-mono text-xs text-ink-600">{card.label}</div>
-							<div class="font-mono text-[0.6875rem] text-ink-700">{card.entry.outputId}</div>
+							<div class="mt-2 font-mono text-xs text-ink-600">{sample.label}</div>
+							<div class="font-mono text-[0.6875rem] text-ink-700">{sample.card.id}</div>
 						</li>
 					))}
 				</ul>

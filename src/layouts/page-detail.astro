@@ -5,6 +5,7 @@ import ProseDetail from '#layouts/prose-detail.astro';
 import { getPageSchemas } from '#lib/collections/pages/pages-schema.ts';
 import { getEntryDescription } from '#lib/utils/description-data.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
+import { getEntryOpenGraphCard } from '#lib/utils/seo.ts';
 
 interface Props {
 	entry: CollectionEntry<'pages'>;
@@ -21,4 +22,9 @@ const schemas = getPageSchemas(entry, {
 });
 ---
 
-<ProseDetail description={description} entry={entry} schemas={schemas} />
+<ProseDetail
+	description={description}
+	entry={entry}
+	openGraphCard={getEntryOpenGraphCard(entry)}
+	schemas={schemas}
+/>

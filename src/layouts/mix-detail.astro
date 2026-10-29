@@ -22,7 +22,7 @@ import { isListeningTimeEnabled } from '#lib/site.ts';
 import { getListenStats } from '#lib/stats/listens-stats.ts';
 import { getEntryDescription } from '#lib/utils/description-data.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
-import { getOpenGraphId, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
+import { getEntryOpenGraphCard, getOpenGraphImageUrl } from '#lib/utils/seo.ts';
 import { toTrackGroups } from '#lib/utils/track-groups.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
 
@@ -44,13 +44,13 @@ const soundcloudPlays = await getSoundcloudPlayCount(entry.data.soundcloudLink);
 const listenStats = await getListenStats(entry.id);
 const description = await getEntryDescription(entry);
 
-const openGraphId = getOpenGraphId(entry.collection, entry.id);
+const openGraphCard = getEntryOpenGraphCard(entry, styleTerms[0]?.name);
 
 const kind = { name: t('collection.mixes.title'), url: getCollectionPath('mixes') };
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const schemas = getMixSchemas(entry, {
 	description,
-	imageUrl: getOpenGraphImageUrl(openGraphId, Astro.site),
+	imageUrl: getOpenGraphImageUrl(openGraphCard, Astro.site),
 	kind,
 	url: pageUrl,
 });
@@ -68,6 +68,7 @@ const hasGroupFiles = toTrackGroups(entry.data.tracks).some((group) => group.fil
 	entry={entry}
 	kind={kind}
 	labels={labelTerms}
+	openGraphCard={openGraphCard}
 	schemas={schemas}
 	styles={styleTerms}
 	work={work}

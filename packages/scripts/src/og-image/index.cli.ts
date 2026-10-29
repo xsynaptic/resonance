@@ -11,8 +11,8 @@ await runCommand({
 			type: 'boolean',
 		},
 	},
-	async run({ rootPath, values }) {
-		await generateOpenGraphImages({ clearCache: values['clear-cache'], rootPath });
+	async run({ rootPath, signal, values }) {
+		await generateOpenGraphImages({ clearCache: values['clear-cache'], rootPath, signal });
 	},
 	summary: 'Draw an Open Graph card for every page the build asks for, then publish them into dist',
 	title: 'Open Graph images',

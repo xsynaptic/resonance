@@ -24,7 +24,7 @@ import { getEntryDescription } from '#lib/utils/description-data.ts';
 import { getPagination } from '#lib/utils/pagination.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { buildCollectionGraph } from '#lib/utils/seo-structured-data.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
+import { getEntryOpenGraphCard } from '#lib/utils/seo.ts';
 import { resolveAncestors, resolveCredits } from '#lib/utils/terms.ts';
 
 interface Props {
@@ -81,7 +81,7 @@ const schemas = isFirstPage
 
 <MainSite
 	description={description}
-	openGraphId={getOpenGraphId(term.collection, term.id)}
+	openGraphCard={getEntryOpenGraphCard(term)}
 	schemas={schemas}
 	title={term.data.title}
 >

@@ -1,4 +1,5 @@
 ---
+import type { PageOpenGraphCard } from '@xsynaptic/shared/open-graph';
 import type { CollectionEntry } from 'astro:content';
 
 import { render } from 'astro:content';
@@ -11,18 +12,18 @@ import SearchThumbnail from '#components/search/search-thumbnail.astro';
 import SectionDetailHeader from '#components/sections/section-detail-header.astro';
 import SectionDetailHero from '#components/sections/section-detail-hero.astro';
 import { getImageFeaturedId, getImageHeroId } from '#lib/image/image-featured.ts';
-import { getOpenGraphId } from '#lib/utils/seo.ts';
 
 interface Props {
 	date?: Date | undefined;
 	description: string | undefined;
 	entry: CollectionEntry<'pages' | 'posts'>;
 	kind?: LinkedName | undefined;
+	openGraphCard: PageOpenGraphCard;
 	schemas: Array<Thing>;
 	styles?: Array<LinkedName> | undefined;
 }
 
-const { date, description, entry, kind, schemas, styles } = Astro.props;
+const { date, description, entry, kind, openGraphCard, schemas, styles } = Astro.props;
 
 const { Content } = await render(entry);
 
@@ -32,7 +33,7 @@ const imageHeroId = getImageHeroId(entry.data.imageFeatured);
 
 <MainSite
 	description={description}
-	openGraphId={getOpenGraphId(entry.collection, entry.id)}
+	openGraphCard={openGraphCard}
 	openGraphType="article"
 	publishedTime={date}
 	schemas={schemas}

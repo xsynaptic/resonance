@@ -1,3 +1,5 @@
+import type { SitemapLastmodPair } from '@xsynaptic/astro-sitemap-lastmod/write';
+
 import {
 	getCollectionEntries,
 	getEntryCommitDates,
@@ -6,9 +8,9 @@ import {
 	withSpinner,
 	withStep,
 } from '@xsynaptic/astro-scripts';
+import { createSitemapLastmodWriter } from '@xsynaptic/astro-sitemap-lastmod/write';
 import { sitemapLastmodPath } from '@xsynaptic/shared/constants';
 import { getContentPath } from '@xsynaptic/shared/routing';
-import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { contentDataPath } from '#shared/content-path.ts';
@@ -28,17 +30,12 @@ const datedCollections = [
 	'themes',
 ] as const;
 
-interface SitemapLastmodOptions {
-	rootPath: string;
-	siteUrl: string;
+export async function generateSitemapLastmod(rootPath: string): Promise<void> {
+	await withStep('Sitemap lastmod', () => writeSitemapLastmod(rootPath));
 }
 
-export async function generateSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
-	await withStep('Sitemap lastmod', () => writeSitemapLastmod(options));
-}
-
-async function writeSitemapLastmod(options: SitemapLastmodOptions): Promise<void> {
-	const outputPath = path.resolve(options.rootPath, sitemapLastmodPath);
+async function writeSitemapLastmod(rootPath: string): Promise<void> {
+	const outputPath = path.resolve(rootPath, sitemapLastmodPath);
 
 	const entries = await withSpinner('Loading content', () =>
 		withAstroContent((content) => getCollectionEntries(content, [...datedCollections])),
@@ -47,11 +44,10 @@ async function writeSitemapLastmod(options: SitemapLastmodOptions): Promise<void
 	const contentPathPrefix = `${contentDataPath}/collections/`;
 	const datedEntries = entries.filter((entry) => entry.filePath?.startsWith(contentPathPrefix));
 	const gitDates = await withSpinner('Reading git log', () =>
-		getEntryCommitDates(datedEntries, { rootPath: options.rootPath }),
+		getEntryCommitDates(datedEntries, { rootPath }),
 	);
-	const urls: Record<string, string> = {};
+	const pairs: Array<SitemapLastmodPair> = [];
 
-	let resolvedCount = 0;
 	let missingDateCount = 0;
 
 	for (const entry of datedEntries) {
@@ -64,16 +60,10 @@ async function writeSitemapLastmod(options: SitemapLastmodOptions): Promise<void
 			continue;
 		}
 
-		urls[new URL(getContentPath(entry.collection, entry.id), options.siteUrl).href] = gitDate;
-		resolvedCount++;
+		pairs.push([getContentPath(entry.collection, entry.id), gitDate]);
 	}
 
-	mkdirSync(path.dirname(outputPath), { recursive: true });
-
-	writeFileSync(
-		outputPath,
-		JSON.stringify({ generatedAt: new Date().toISOString(), urls }, undefined, 2),
-	);
+	const resolvedCount = createSitemapLastmodWriter({ filePath: outputPath }).record(pairs);
 
 	log.success(`Resolved ${String(resolvedCount)} URLs to ${outputPath}`);
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --import tsx
-import { runSubprocess, UserError } from '@xsynaptic/astro-scripts';
+import { runSubprocess } from '@xsynaptic/astro-scripts';
 
 import { generateRedirects } from '#generate-redirects/index.ts';
 import { generateOpenGraphImages } from '#og-image/index.ts';
@@ -9,13 +9,9 @@ import { generateSitemapLastmod } from '#sitemap-lastmod/index.ts';
 await runCommand({
 	name: 'build',
 	async run({ rootPath, signal }) {
-		const siteUrl = process.env.DEPLOY_SITE_URL;
-
-		if (!siteUrl) throw new UserError('Missing site URL: set DEPLOY_SITE_URL');
-
 		await runSubprocess('Syncing content', ['pnpm', 'exec', 'astro', 'sync'], { cwd: rootPath });
 		await generateRedirects(rootPath);
-		await generateSitemapLastmod({ rootPath, siteUrl });
+		await generateSitemapLastmod(rootPath);
 		await runSubprocess('Building site', ['pnpm', 'exec', 'astro', 'build'], { cwd: rootPath });
 		await generateOpenGraphImages({ rootPath, signal });
 	},

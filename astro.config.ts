@@ -5,10 +5,11 @@ import tailwindcss from '@tailwindcss/vite';
 import buildLogger from '@xsynaptic/astro-build-logger';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import imagePipeline from '@xsynaptic/astro-image-pipeline';
+import { sitemapLastmod } from '@xsynaptic/astro-sitemap-lastmod';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
-import { imageCachePath } from '@xsynaptic/shared/constants';
-import { getUrlPathIndexing, readSitemapLastmod } from '@xsynaptic/shared/sitemap';
+import { imageCachePath, sitemapLastmodPath } from '@xsynaptic/shared/constants';
+import { getUrlPathIndexing } from '@xsynaptic/shared/sitemap';
 import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
@@ -16,17 +17,10 @@ import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
 import devAudio from '#dev/audio/audio-integration.ts';
 import devInventory from '#dev/inventory/inventory-integration.ts';
 
-// One origin for the app and the deploy scripts; a mismatch misses every lastmod lookup silently
 // `astro:env` is unavailable while the config evaluates, hence `process.env`
 const siteUrl = process.env.DEPLOY_SITE_URL ?? 'https://djbasilisk.com/';
 
-let sitemapLastmodCache: ReturnType<typeof readSitemapLastmod> | undefined;
-
-function getSitemapLastmod() {
-	if (!sitemapLastmodCache) sitemapLastmodCache = readSitemapLastmod();
-
-	return sitemapLastmodCache;
-}
+const lastmod = sitemapLastmod({ filePath: sitemapLastmodPath });
 
 export default defineConfig({
 	cacheDir: './.astro/',
@@ -86,15 +80,9 @@ export default defineConfig({
 		mdx(),
 		sitemap({
 			filter: (page) => getUrlPathIndexing(new URL(page).pathname).index,
-			serialize: (item) => {
-				const sitemapLastmod = getSitemapLastmod();
-
-				return {
-					...item,
-					lastmod: sitemapLastmod.urls[item.url] ?? sitemapLastmod.generatedAt,
-				};
-			},
+			serialize: lastmod.serialize,
 		}),
+		lastmod.integration,
 		fontDevtools({ providers: ['fontsource'] }),
 		imagePipeline({
 			mediaPath: `${process.env.CONTENT_DATA_PATH ?? 'packages/content'}/media`,

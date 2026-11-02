@@ -29,7 +29,9 @@ check:
                   run: tsc --noEmit -p worker
           - name: unused
             run: knip
-          # Dead code stays with knip; fallow's unused-code rules are off in .fallowrc.jsonc
+          # Dead code stays with knip except component props, which knip can't see
+          - name: props
+            run: fallow dead-code --unused-component-props --quiet
           - name: dupes
             run: fallow dupes --quiet
           # Health prints its report even at zero findings, so output shows only on failure
@@ -58,21 +60,27 @@ fix:
             run: eslint --fix --cache --cache-location node_modules/.cache/eslint/
     - name: astro
       run: astro check
-    - name: worker
+    - name: verify
       group:
-        piped: true
+        parallel: true
         jobs:
-          - name: types
-            run: wrangler types
-          - name: tsc
-            run: tsc --noEmit -p worker
-    - name: unused
-      run: knip
-    - name: dupes
-      run: fallow dupes --quiet
-    - name: complexity
-      run: out=$(fallow health --complexity --quiet 2>&1) || { printf '%s\n' "$out"; exit 1; }
-    - name: styling
-      run: fallow audit --gate all --quiet
-    - name: architecture
-      run: fallow architecture --quiet
+          - name: worker
+            group:
+              piped: true
+              jobs:
+                - name: types
+                  run: wrangler types
+                - name: tsc
+                  run: tsc --noEmit -p worker
+          - name: unused
+            run: knip
+          - name: props
+            run: fallow dead-code --unused-component-props --quiet
+          - name: dupes
+            run: fallow dupes --quiet
+          - name: complexity
+            run: out=$(fallow health --complexity --quiet 2>&1) || { printf '%s\n' "$out"; exit 1; }
+          - name: styling
+            run: fallow audit --gate all --quiet
+          - name: architecture
+            run: fallow architecture --quiet

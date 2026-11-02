@@ -2,6 +2,7 @@
 	// Boundary and cycle checks only cover reachable files; MDX components are reached by auto-import
 	"dynamicallyLoaded": ["src/components/mdx/**/*.astro"],
 	"ignorePatterns": ["packages/content-demo", "packages/scripts/src/validate-content/fixtures/**"],
+	"failOnParseError": true,
 	"rules": {
 		// Dead code and dependency hygiene belong to knip
 		"unused-files": "off",
@@ -26,11 +27,13 @@
 		"re-export-cycle": "error",
 		"package-cycle": "error",
 		"policy-violation": "off",
+		"unused-component-props": "error",
 	},
 	"health": {
 		// Zero disables CRAP, which fallow otherwise estimates without coverage data
 		"maxCrap": 0,
 		"maxCognitive": 12,
+		"maxFileLines": 500,
 		// Inventory specimens take one-off sizes with no scale step
 		"ignore": ["src/dev/**"],
 	},
@@ -60,7 +63,7 @@
 		// Unzoned files are unrestricted both ways, so every analyzed file needs a zone
 		"coverage": {
 			"requireAllFiles": true,
-			"allowUnmatched": ["*.config.{ts,mjs}", "tests/**"],
+			"allowUnmatched": ["**/*.config.{ts,mjs}", "tests/**"],
 		},
 		"rules": [
 			// Vite/Rolldown build breaks when packages import the app at runtime

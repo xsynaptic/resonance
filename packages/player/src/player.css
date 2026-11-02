@@ -28,4 +28,5 @@
 @import './styles/panel.css';
 @import './styles/bar.css';
 @import './styles/overlay.css';
+@import './styles/overlay-layout.css';
 @import './styles/coarse.css';

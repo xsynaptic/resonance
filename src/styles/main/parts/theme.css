@@ -3,6 +3,10 @@
 	--spacing-prose: 56.25rem;
 }
 
+@theme {
+	--container-card-compact: 17.1875rem;
+}
+
 /* Stacking order; the hero band sits under the header so the chrome can overlap the image */
 @theme {
 	--z-index-hero-scrim: 11;

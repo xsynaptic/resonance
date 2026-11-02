@@ -27,11 +27,6 @@
 	transition: border-color 150ms var(--default-transition-timing-function);
 }
 
-.comment-field:focus-visible {
-	outline: 2px solid var(--color-highlight-500);
-	outline-offset: 1px;
-}
-
 @media (hover: hover) {
 	.comment-field:hover {
 		border-color: var(--color-surface-400);
@@ -63,8 +58,6 @@
 
 .comment-action:focus-visible {
 	color: var(--color-highlight-400);
-	outline: 2px solid var(--color-highlight-500);
-	outline-offset: 1px;
 }
 
 @media (hover: hover) {
@@ -101,8 +94,6 @@ li > [data-comment-form] {
 
 .comment-close:focus-visible {
 	color: var(--color-ink-100);
-	outline: 2px solid var(--color-highlight-500);
-	outline-offset: 1px;
 }
 
 @media (hover: hover) {

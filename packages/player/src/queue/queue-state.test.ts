@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { describe, expect, vi } from 'vitest';
 
 import type { QueueState } from '#queue/queue-state.ts';
 import type { QueuedItem, QueueItem } from '#types.ts';
@@ -49,7 +50,7 @@ function orderViolation(state: QueueState): string | undefined {
 	return undefined;
 }
 
-// Seeded, so a failure replays the same sequence of steps
+// Stands in for `Math.random`, so fast-check can replay and shrink a failing shuffle
 function seededRandom(seed: number): () => number {
 	let state = seed;
 
@@ -263,47 +264,133 @@ describe('shuffledQueue', () => {
 	});
 });
 
+interface QueueStep {
+	from: number;
+	isLoaded: boolean;
+	itemPick: number | undefined;
+	kind: 'clear' | 'jump' | 'load' | 'move' | 'queue' | 'remove' | 'shuffle';
+	releaseSize: number;
+	to: number;
+}
+
+// Only five track ids, so the same track often gets queued twice under different queue ids
+const releaseIds = ['a', 'b', 'c', 'd', 'e'];
+
+const queueSteps = fc.array(
+	fc.record({
+		from: fc.nat(),
+		isLoaded: fc.boolean(),
+		itemPick: fc.option(fc.integer({ max: releaseIds.length, min: 0 }), { nil: undefined }),
+		kind: fc.constantFrom('clear', 'jump', 'load', 'move', 'queue', 'remove', 'shuffle'),
+		releaseSize: fc.integer({ max: 4, min: 1 }),
+		to: fc.nat(),
+	}),
+	{ maxLength: 16, size: 'max' },
+);
+
+const loadKeepingSteps: ReadonlySet<QueueStep['kind']> = new Set(['move', 'remove', 'shuffle']);
+
+const orderKeepingSteps: ReadonlySet<QueueStep['kind']> = new Set(['move', 'queue', 'remove']);
+
+function loadedQueueId(state: QueueState): string | undefined {
+	return state.currentIndex === undefined ? undefined : state.queue[state.currentIndex]?.queueId;
+}
+
+function playOrderIds(state: QueueState): Array<string | undefined> {
+	return state.playOrder.map((index) => state.queue[index]?.queueId);
+}
+
+function stampedRelease(step: QueueStep): Array<QueuedItem> {
+	return stamp(releaseIds.slice(0, step.releaseSize).map(makeItem));
+}
+
+function queuedRelease(state: QueueState, step: QueueStep): QueueState {
+	const itemId = step.itemPick === undefined ? undefined : (releaseIds[step.itemPick] ?? 'missing');
+	const appended = appendedQueue(state, stampedRelease(step), itemId);
+
+	if (!appended) return state;
+	if (!step.isLoaded) return appended.state;
+
+	return { ...appended.state, currentIndex: appended.loadIndex };
+}
+
+const queueStepActions: Record<
+	QueueStep['kind'],
+	(state: QueueState, step: QueueStep) => QueueState
+> = {
+	clear: (state) => ({ ...emptyState(), isShuffling: state.isShuffling }),
+	jump: (state, step) =>
+		state.queue.length === 0 ? state : { ...state, currentIndex: step.from % state.queue.length },
+	load: (state, step) => loadedQueue(state, stampedRelease(step)),
+	move: (state, step) => {
+		const length = Math.max(1, state.queue.length);
+		const from = step.from % length;
+		const to = step.to % length;
+
+		return from === to ? state : movedItem(state, from, to);
+	},
+	queue: queuedRelease,
+	remove: (state, step) =>
+		state.queue.length === 0 ? state : removedAt(state, step.from % state.queue.length),
+	shuffle: (state) => shuffledQueue(state, !state.isShuffling),
+};
+
+function queueIdChanges(before: QueueState, after: QueueState) {
+	const afterIds = new Set(after.queue.map((item) => item.queueId));
+	const beforeIds = new Set(before.queue.map((item) => item.queueId));
+
+	return {
+		added: after.queue.filter((item) => !beforeIds.has(item.queueId)).map((item) => item.queueId),
+		removed: new Set(
+			before.queue.filter((item) => !afterIds.has(item.queueId)).map((item) => item.queueId),
+		),
+	};
+}
+
+function expectLoadedTrackKept(before: QueueState, after: QueueState, step: QueueStep): void {
+	const isKeeping = loadKeepingSteps.has(step.kind) || (step.kind === 'queue' && !step.isLoaded);
+	if (!isKeeping) return;
+
+	const loadedBefore = loadedQueueId(before);
+	const { removed } = queueIdChanges(before, after);
+
+	expect(loadedQueueId(after)).toBe(
+		loadedBefore !== undefined && removed.has(loadedBefore) ? undefined : loadedBefore,
+	);
+}
+
+// Filling an empty queue while shuffling reshuffles it around the first track, so this only holds once the queue has items
+function expectRunningOrderKept(before: QueueState, after: QueueState, step: QueueStep): void {
+	if (!before.isShuffling || before.queue.length === 0 || !orderKeepingSteps.has(step.kind)) return;
+
+	const { added, removed } = queueIdChanges(before, after);
+
+	expect(playOrderIds(after)).toStrictEqual([
+		...playOrderIds(before).filter((queueId) => queueId === undefined || !removed.has(queueId)),
+		...added,
+	]);
+}
+
 describe('queue transitions', () => {
 	// The persisted reader drops a shuffled order that is not a permutation, so a violation silently reshuffles on reload
-	test('keep the play order a permutation of the queue through any sequence of actions', () => {
-		const random = seededRandom(1);
-		const pick = (count: number) => Math.floor(random() * count);
-		const itemIds = ['a', 'b', 'c', 'd', 'e'];
-		const someRelease = () =>
-			stamp(Array.from({ length: 1 + pick(4) }, (_, index) => makeItem(itemIds[index] ?? 'a')));
+	test.prop([queueSteps, fc.integer({ max: 2_147_483_646, min: 1 })])(
+		'keep one play order entry per row, the loaded track loaded, and what is left to play in its order',
+		(steps, seed) => {
+			vi.spyOn(Math, 'random').mockImplementation(seededRandom(seed));
 
-		const steps: Array<(state: QueueState) => QueueState> = [
-			(state) => {
-				const itemId = pick(2) === 0 ? undefined : (itemIds[pick(itemIds.length + 1)] ?? 'missing');
-				const appended = appendedQueue(state, someRelease(), itemId);
-				if (!appended) return state;
-
-				return pick(2) === 0
-					? { ...appended.state, currentIndex: appended.loadIndex }
-					: appended.state;
-			},
-			(state) => loadedQueue(state, someRelease()),
-			(state) => {
-				const from = pick(state.queue.length);
-				const to = pick(state.queue.length);
-
-				return from === to ? state : movedItem(state, from, to);
-			},
-			(state) => (state.queue.length === 0 ? state : removedAt(state, pick(state.queue.length))),
-			(state) => shuffledQueue(state, !state.isShuffling),
-			(state) => ({ ...emptyState(), isShuffling: state.isShuffling }),
-			(state) =>
-				state.queue.length === 0 ? state : { ...state, currentIndex: pick(state.queue.length) },
-		];
-
-		for (let run = 0; run < 2000; run += 1) {
 			let state = emptyState();
 
-			for (let step = 0; step < 12; step += 1) {
-				state = steps[pick(steps.length)]?.(state) ?? state;
+			for (const step of steps) {
+				const next = queueStepActions[step.kind](state, step);
 
-				expect(orderViolation(state), JSON.stringify(state)).toBeUndefined();
+				expect(orderViolation(next), JSON.stringify(next)).toBeUndefined();
+				expectLoadedTrackKept(state, next, step);
+				expectRunningOrderKept(state, next, step);
+
+				state = next;
 			}
-		}
-	});
+
+			vi.restoreAllMocks();
+		},
+	);
 });

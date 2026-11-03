@@ -1,7 +1,8 @@
+import { fc, test } from '@fast-check/vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { handleListenReport } from '#worker/listening.ts';
 
@@ -238,4 +239,166 @@ describe('handleListenReport', () => {
 			),
 		).rejects.toThrow('IP_SALT');
 	});
+});
+
+interface ListenReport {
+	clockStepSeconds: number;
+	ip: string;
+	listen: number;
+	mixId: string;
+	seconds: number;
+}
+
+interface OpenedListen {
+	claimedSeconds: number;
+	mixId: string;
+	openedAt: number;
+	openingSeconds: number;
+}
+
+// Assumes the Worker's clock never goes backwards between reports; only Cloudflare's clock sync guarantees that
+const forwardClockStep = fc.integer({ max: 400, min: 0 });
+
+// Few listen ids and visitors, so reports often land on the same row but never reach the daily cap
+const anyListenReports = fc.array(
+	fc.record({
+		clockStepSeconds: forwardClockStep,
+		ip: fc.constantFrom('198.51.100.7', '203.0.113.9'),
+		listen: fc.integer({ max: 3, min: 0 }),
+		mixId: fc.oneof(
+			{ arbitrary: fc.constant('voyager'), weight: 4 },
+			{ arbitrary: fc.constant('uroboros'), weight: 1 },
+		),
+		seconds: fc.oneof(
+			fc.integer({ max: 40, min: 1 }),
+			fc.integer({ max: 400, min: 340 }),
+			fc.integer({ max: 86_400, min: 1 }),
+		),
+	}),
+	{ maxLength: 30, minLength: 1 },
+);
+
+// An honest client never reports more listening than the time that passed, though a beacon can be resent or arrive late
+const honestListenReports = fc
+	.tuple(
+		fc.integer({ max: 360, min: 30 }),
+		fc.array(
+			fc.record({
+				clockStepSeconds: forwardClockStep,
+				heardShare: fc.double({ max: 1, min: 0, noNaN: true }),
+				isResent: fc.boolean(),
+			}),
+			{ maxLength: 20 },
+		),
+	)
+	.map(([openingSeconds, later]) => {
+		const totals = [openingSeconds];
+		const reports: Array<ListenReport> = [
+			{
+				clockStepSeconds: 0,
+				ip: '198.51.100.7',
+				listen: 0,
+				mixId: 'voyager',
+				seconds: openingSeconds,
+			},
+		];
+
+		for (const { clockStepSeconds, heardShare, isResent } of later) {
+			const latest = totals.at(-1) ?? openingSeconds;
+			const seconds = isResent
+				? (totals[Math.floor(heardShare * totals.length)] ?? latest)
+				: Math.min(86_400, latest + Math.floor(heardShare * clockStepSeconds));
+
+			if (!isResent) totals.push(seconds);
+			reports.push({ clockStepSeconds, ip: '198.51.100.7', listen: 0, mixId: 'voyager', seconds });
+		}
+
+		return reports;
+	});
+
+// Starts ten minutes before midnight so some runs span two days
+const startOfRun = new Date('2026-09-16T23:50:00Z').getTime();
+
+async function sendReports(
+	reports: Array<ListenReport>,
+	onStored: (
+		report: ListenReport,
+		before: ListenRow | undefined,
+		after: ListenRow | undefined,
+	) => void,
+): Promise<void> {
+	database.exec('DELETE FROM listens');
+
+	let now = startOfRun;
+
+	for (const report of reports) {
+		const id = toListenId(report.listen);
+		const before = rows().find((row) => row.id === id);
+
+		now += report.clockStepSeconds * 1000;
+		vi.setSystemTime(now);
+		await post(
+			{ id, mixId: report.mixId, seconds: report.seconds },
+			{ 'cf-connecting-ip': report.ip },
+		);
+
+		onStored(
+			report,
+			before,
+			rows().find((row) => row.id === id),
+		);
+	}
+}
+
+describe('handleListenReport over any sequence of reports', () => {
+	test.prop([anyListenReports])(
+		'a listen opens on 30 s, keeps its mix, never falls, and never outruns its clock or its claims',
+		async (reports) => {
+			const opened = new Map<number, OpenedListen>();
+
+			await sendReports(reports, (report, before, after) => {
+				if (!before) {
+					expect(after !== undefined).toBe(report.seconds >= 30);
+					if (after) {
+						expect(after.heard_seconds).toBe(Math.min(report.seconds, 360));
+						opened.set(report.listen, {
+							claimedSeconds: report.seconds,
+							mixId: report.mixId,
+							openedAt: nowSeconds(),
+							openingSeconds: report.seconds,
+						});
+					}
+
+					return;
+				}
+
+				const listen = opened.get(report.listen);
+
+				if (!after || !listen) throw new Error('A stored listen disappeared');
+				if (report.mixId === listen.mixId) {
+					listen.claimedSeconds = Math.max(listen.claimedSeconds, report.seconds);
+				}
+
+				expect(after.mix_id).toBe(listen.mixId);
+				expect(after.heard_seconds).toBeGreaterThanOrEqual(before.heard_seconds);
+				expect(after.heard_seconds).toBeLessThanOrEqual(listen.claimedSeconds);
+				expect(after.heard_seconds).toBeLessThanOrEqual(
+					nowSeconds() - listen.openedAt + Math.min(listen.openingSeconds, 360) + 60,
+				);
+			});
+		},
+	);
+
+	test.prop([honestListenReports])(
+		'an honest listen stores the largest total it has reported, resent or late beacons included',
+		async (reports) => {
+			let largest = 0;
+
+			await sendReports(reports, (report, _before, after) => {
+				largest = Math.max(largest, report.seconds);
+
+				expect(after?.heard_seconds).toBe(largest);
+			});
+		},
+	);
 });

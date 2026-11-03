@@ -43,7 +43,7 @@ deploy/nginx/
 /packages/content
 
 # testing
-packages/player/e2e/.fixtures/
+packages/player/verify/e2e/.fixtures/
 packages/player/playwright-report/
 packages/player/test-results/
 temp/

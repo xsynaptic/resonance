@@ -14,11 +14,11 @@
 		"./player.css": "./src/player.css"
 	},
 	"imports": {
-		"#e2e/*": "./e2e/*",
+		"#e2e/*": "./verify/e2e/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"cut-fixtures": "node e2e/cut-fixtures.ts",
+		"cut-fixtures": "node verify/e2e/cut-fixtures.ts",
 		"test-e2e": "pnpm cut-fixtures && playwright test"
 	},
 	"dependencies": {

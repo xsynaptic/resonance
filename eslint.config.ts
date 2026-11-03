@@ -56,8 +56,8 @@ export default getConfig(
 		},
 		{
 			files: [
-				'tests/e2e/**/*',
-				'packages/player/e2e/**/*',
+				'verify/e2e/**/*',
+				'packages/player/verify/e2e/**/*',
 				'packages/player/playwright.config.ts',
 				'playwright.config.ts',
 			],

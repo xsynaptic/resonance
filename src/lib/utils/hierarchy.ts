@@ -43,6 +43,8 @@ interface HierarchyIndex {
 }
 
 export function createHierarchy(nodes: Array<HierarchyNode>): Hierarchy {
+	validateParents(nodes);
+
 	const { childrenByParent, idSet, parentById, roots } = buildEdges(nodes);
 	const { depthById, descendantsById, intervalById, ordinalById } = indexTree({
 		childrenByParent,
@@ -51,13 +53,13 @@ export function createHierarchy(nodes: Array<HierarchyNode>): Hierarchy {
 
 	function ancestorsOf(id: string): Array<string> {
 		const ancestors: Array<string> = [];
-		const seen = new Set<string>([id]);
-		let current = parentById.get(id);
 
-		while (current !== undefined && !seen.has(current)) {
+		for (
+			let current = parentById.get(id);
+			current !== undefined;
+			current = parentById.get(current)
+		) {
 			ancestors.push(current);
-			seen.add(current);
-			current = parentById.get(current);
 		}
 		return ancestors;
 	}
@@ -111,7 +113,6 @@ export function createHierarchy(nodes: Array<HierarchyNode>): Hierarchy {
 	};
 }
 
-// A missing, dangling, or self parent makes a root
 function buildEdges(nodes: Array<HierarchyNode>): HierarchyEdges {
 	const idSet = new Set(nodes.map((node) => node.id));
 	const parentById = new Map<string, string>();
@@ -121,7 +122,7 @@ function buildEdges(nodes: Array<HierarchyNode>): HierarchyEdges {
 	for (const node of nodes) {
 		const { id, parentId } = node;
 
-		if (parentId === undefined || parentId === id || !idSet.has(parentId)) {
+		if (parentId === undefined) {
 			roots.push(id);
 			continue;
 		}
@@ -151,15 +152,10 @@ function indexTree(edges: Pick<HierarchyEdges, 'childrenByParent' | 'roots'>): H
 	const intervalById = new Map<string, [number, number]>();
 	const depthById = new Map<string, number>();
 	const descendantsById = new Map<string, Array<string>>();
-	const visited = new Set<string>();
 
 	let counter = 1;
 
 	function visit(id: string, depth: number): Array<string> {
-		if (visited.has(id)) return []; // Defensive against malformed cycles
-
-		visited.add(id);
-
 		const left = counter;
 
 		counter += 1;
@@ -187,4 +183,28 @@ function indexTree(edges: Pick<HierarchyEdges, 'childrenByParent' | 'roots'>): H
 	}
 
 	return { depthById, descendantsById, intervalById, ordinalById };
+}
+
+function validateParents(nodes: Array<HierarchyNode>) {
+	const parentById = new Map(nodes.map((node) => [node.id, node.parentId]));
+
+	for (const [id, parentId] of parentById) {
+		if (parentId !== undefined && !parentById.has(parentId)) {
+			throw new Error(`Error: "${id}" has a parent "${parentId}" that does not exist!`);
+		}
+
+		const chain = [id];
+
+		for (
+			let ancestorId = parentId;
+			ancestorId !== undefined;
+			ancestorId = parentById.get(ancestorId)
+		) {
+			if (chain.includes(ancestorId)) {
+				throw new Error(`Error: parents form a loop: ${[...chain, ancestorId].join(' > ')}!`);
+			}
+
+			chain.push(ancestorId);
+		}
+	}
 }

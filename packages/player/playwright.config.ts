@@ -15,19 +15,19 @@ export default defineConfig({
 	],
 	reporter: [['list'], ['html', { open: 'never' }]],
 	retries: 0,
-	testDir: './e2e',
+	testDir: './verify/e2e',
 	use: {
 		baseURL: `http://localhost:${String(pagePort)}`,
 		trace: 'retain-on-failure',
 	},
 	webServer: [
 		{
-			command: `vite e2e/page --port ${String(pagePort)} --strictPort`,
+			command: `vite verify/e2e/page --port ${String(pagePort)} --strictPort`,
 			reuseExistingServer: true,
 			url: `http://localhost:${String(pagePort)}`,
 		},
 		{
-			command: 'node e2e/fixture-server.ts',
+			command: 'node verify/e2e/fixture-server.ts',
 			reuseExistingServer: true,
 			url: `${fixtureOrigin}/log`,
 		},

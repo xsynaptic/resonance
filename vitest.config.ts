@@ -27,7 +27,7 @@ export default defineConfig({
 						'**/.git/**',
 						'.claude/worktrees/**',
 						'dist/**',
-						'tests/**',
+						'verify/**',
 						'packages/playback-stats/**',
 						'packages/player/**',
 					],

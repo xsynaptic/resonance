@@ -31,7 +31,7 @@ export default {
 			ignoreDependencies: ['mdxlint', 'react'],
 		},
 		'packages/player': {
-			entry: ['e2e/page/host.ts'],
+			entry: ['verify/e2e/page/host.ts'],
 		},
 		'packages/scripts': {
 			ignoreBinaries: ['ffmpeg', 'ssh-add'],

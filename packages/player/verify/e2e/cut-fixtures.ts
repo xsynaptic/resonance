@@ -8,7 +8,7 @@ const run = promisify(execFile);
 
 const fixturesDirectory = path.join(import.meta.dirname, '.fixtures');
 
-const defaultSource = path.join(import.meta.dirname, '../../content/streams');
+const defaultSource = path.join(import.meta.dirname, '../../../content/streams');
 
 // Real music, not a synthetic tone, which has given a false positive through Safari automation before
 const cuts = [

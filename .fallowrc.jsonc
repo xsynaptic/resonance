@@ -41,7 +41,7 @@
 		"minTokens": 30,
 		// A threshold of zero means no limit; this fails on any clone group
 		"threshold": 0.01,
-		"ignore": ["src/dev/**", "tests/e2e/test.ts"],
+		"ignore": ["src/dev/**", "verify/e2e/test.ts"],
 	},
 	"boundaries": {
 		"zones": [
@@ -63,7 +63,7 @@
 		// Unzoned files are unrestricted both ways, so every analyzed file needs a zone
 		"coverage": {
 			"requireAllFiles": true,
-			"allowUnmatched": ["**/*.config.{ts,mjs}", "tests/**"],
+			"allowUnmatched": ["**/*.config.{ts,mjs}", "verify/**"],
 		},
 		"rules": [
 			// Vite/Rolldown build breaks when packages import the app at runtime

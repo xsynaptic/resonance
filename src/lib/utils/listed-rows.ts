@@ -12,12 +12,15 @@ export interface ListedRow {
 	mixArtists?: Array<CreditValue> | CreditValue | undefined;
 }
 
+const freeTextKeyPrefix = 'free-text:';
+
 export function toCreditId(credit: CreditValue, slugs: Map<string, string>): string {
 	if (typeof credit !== 'string') return credit.id;
 
 	const slug = toSlug(credit);
+	if (slug === '') return '';
 
-	return slugs.get(slug) ?? slug;
+	return slugs.get(slug) ?? `${freeTextKeyPrefix}${slug}`;
 }
 
 export function toListedRows(entry: LinkableEntry): Array<ListedRow> {

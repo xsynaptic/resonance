@@ -9,7 +9,6 @@ import { toFormerIds } from '#shared/entries.ts';
 export const redirectCollections = ['mixes', 'pages', 'posts', 'reviews'] as const;
 
 export interface RedirectBuild {
-	// A former id matching a live path; fatal, because a rule takes that page off the site
 	collisions: Array<string>;
 	pairs: Array<RedirectPair>;
 	skipped: Array<string>;
@@ -26,9 +25,17 @@ interface RedirectPair {
 	to: string;
 }
 
-export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild {
+interface ReservedPaths {
+	routeSections: ReadonlySet<string>;
+	ruleSources: ReadonlyArray<string>;
+}
+
+export function buildRedirectPairs(
+	entries: Array<ContentEntry>,
+	{ routeSections, ruleSources }: ReservedPaths,
+): RedirectBuild {
 	const livePaths = collectLivePaths(entries);
-	const claimed = new Set<string>();
+	const claimed = new Set<string>(ruleSources);
 	const collisions: Array<string> = [];
 	const pairs: Array<RedirectPair> = [];
 	const skipped: Array<string> = [];
@@ -39,6 +46,15 @@ export function buildRedirectPairs(entries: Array<ContentEntry>): RedirectBuild 
 		// Cloudflare follows a redirect whether or not an asset sits at the path, so this is a bug
 		if (livePaths.has(from)) {
 			collisions.push(`${from} is a live page`);
+			continue;
+		}
+		if (routeSections.has(formerId) && from === `/${formerId}/`) {
+			collisions.push(`${from} is a section of the site`);
+			continue;
+		}
+		// `/mixes/2/` is a list page; root collections don't paginate
+		if (from !== `/${formerId}/` && /^\d+$/.test(formerId)) {
+			collisions.push(`${from} is a page of the ${collection} list`);
 			continue;
 		}
 		// First claim wins, which is an answer rather than a defect

@@ -1,7 +1,7 @@
 import type { ContentEntry, ValidationIssue } from '@xsynaptic/astro-scripts';
 
 import { toValidationResult } from '@xsynaptic/astro-scripts';
-import { toSlug } from '@xsynaptic/shared/routing';
+import { toCreditSlugs, toSlug } from '@xsynaptic/shared/routing';
 
 import { collectEntryCredits } from '#validate-content/credits.ts';
 
@@ -80,19 +80,24 @@ function getEditDistance(first: string, second: string) {
 	return previous[second.length]!;
 }
 
-// A bare string links when its slug matches a Term's id or its slugified title
 function getTermSlugsByCollection(catalog: Array<ContentEntry>) {
-	const slugsByCollection = new Map<string, Set<string>>();
+	const termsByCollection = new Map<string, Array<{ id: string; title: string }>>();
 
 	for (const entry of catalog) {
-		const slugs = slugsByCollection.get(entry.collection) ?? new Set<string>();
+		if (typeof entry.data.title !== 'string') continue;
 
-		slugs.add(entry.id);
-		if (typeof entry.data.title === 'string') slugs.add(toSlug(entry.data.title));
-		slugsByCollection.set(entry.collection, slugs);
+		const terms = termsByCollection.get(entry.collection) ?? [];
+
+		terms.push({ id: entry.id, title: entry.data.title });
+		termsByCollection.set(entry.collection, terms);
 	}
 
-	return slugsByCollection;
+	return new Map(
+		[...termsByCollection].map(([collection, terms]) => [
+			collection,
+			new Set(toCreditSlugs(terms).keys()),
+		]),
+	);
 }
 
 function toFreeTextNames(value: unknown): Array<string> {

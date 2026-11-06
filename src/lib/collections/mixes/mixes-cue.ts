@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
 
+import type { TrackValue } from '#lib/schemas/audio.ts';
 import type { CreditValue } from '#lib/schemas/credits.ts';
 
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
@@ -38,29 +39,24 @@ export async function getMixCuePoints(
 	return points.filter((point) => point !== undefined);
 }
 
-// One sheet per group per file: a FLAC cue is useless against the MP3, so the two are presented as a pair
-// A group naming no files inherits the mix's, so a flat tracklist emits what it always did
 export async function getMixCueSheets(
 	entry: CollectionEntry<'mixes'>,
 ): Promise<Array<{ audioFile: string; text: string }>> {
-	const mixFiles = entry.data.files ?? [];
 	const performer = await joinArtists(entry.data.alias ? [entry.data.alias] : undefined);
 
 	const sheets = await Promise.all(
-		toTrackGroups(entry.data.tracks).map(async (group) => {
-			const files = group.files ?? mixFiles;
-			if (files.length === 0) return [];
-			if (group.tracks.every((track) => track.timestamp === undefined)) return [];
+		[...toTracksByFile(entry)].map(async ([audioFile, fileTracks]) => {
+			if (fileTracks.every((track) => track.timestamp === undefined)) return;
 
 			const tracks = await Promise.all(
-				group.tracks.map(async (track) => ({
+				fileTracks.map(async (track) => ({
 					performer: await joinArtists(toCreditArray(track.artists)),
 					timestamp: track.timestamp,
 					title: track.title,
 				})),
 			);
 
-			return files.map((audioFile) => ({
+			return {
 				audioFile,
 				text: buildCueSheet({
 					// dateCreated parses as UTC, so read it back the same way or January dates slip a year
@@ -70,11 +66,11 @@ export async function getMixCueSheets(
 					title: entry.data.title,
 					tracks,
 				}),
-			}));
+			};
 		}),
 	);
 
-	return sheets.flat();
+	return sheets.filter((sheet) => sheet !== undefined);
 }
 
 // The presence of timestamps is the whole gate
@@ -88,4 +84,21 @@ async function joinArtists(credits: Array<CreditValue> | undefined): Promise<str
 	if (resolved.length === 0) return undefined;
 
 	return resolved.map((artist) => artist.name).join(', ');
+}
+
+function toTracksByFile(entry: CollectionEntry<'mixes'>): Map<string, Array<TrackValue>> {
+	const groups = toTrackGroups(entry.data.tracks);
+	const claimed = new Set(groups.flatMap((group) => group.files ?? []));
+	const unclaimed = (entry.data.files ?? []).filter((file) => !claimed.has(file));
+	const tracksByFile = new Map<string, Array<TrackValue>>();
+
+	for (const group of groups) {
+		const files = group.files ?? unclaimed;
+
+		for (const file of files) {
+			tracksByFile.set(file, [...(tracksByFile.get(file) ?? []), ...group.tracks]);
+		}
+	}
+
+	return tracksByFile;
 }

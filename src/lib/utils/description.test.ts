@@ -1,8 +1,9 @@
+import { fc, test } from '@fast-check/vitest';
 import { createSqliteCache } from '@xsynaptic/shared/cache';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, vi } from 'vitest';
 
 import { createEntryDescriptionFunction, toDescriptionSource } from '#lib/utils/description.ts';
 
@@ -90,4 +91,37 @@ describe('toDescriptionSource', () => {
 
 		expect(source.split('\n\n')).toHaveLength(2);
 	});
+
+	const attributeValues = fc.constantFrom(
+		'"zq"',
+		'"zq>zq"',
+		"'zq>zq'",
+		'{frontmatter.zq}',
+		'{"zq>zq"}',
+	);
+	const component = fc
+		.record({
+			attributes: fc.array(attributeValues, { maxLength: 3 }),
+			isSelfClosing: fc.boolean(),
+			name: fc.constantFrom('Img', 'Link', 'Selections'),
+		})
+		.map(({ attributes, isSelfClosing, name }) => {
+			const opening = `<${[name, ...attributes.map((value) => `zq=${value}`)].join(' ')}`;
+
+			if (isSelfClosing) return { markdown: `${opening} />`, words: 0 };
+
+			return { markdown: `${opening}>text</${name}>`, words: 1 };
+		});
+	const plainWord = fc.constant({ markdown: 'word', words: 1 });
+
+	test.prop([fc.array(fc.oneof(component, plainWord), { maxLength: 6, minLength: 1 })])(
+		'strips a component tag whole, whatever its attributes hold',
+		(parts) => {
+			const source = toDescriptionSource(parts.map((part) => part.markdown).join(' '));
+			const words = parts.reduce((total, part) => total + part.words, 0);
+
+			expect(source).not.toContain('zq');
+			expect(source.match(/word|text/g)?.length ?? 0).toBe(words);
+		},
+	);
 });

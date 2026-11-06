@@ -1,5 +1,6 @@
 import type { QueuedItem, QueueItem } from '#types.ts';
 
+import { isRecord } from '#lib/is-record.ts';
 import { identityOrder, shuffledOrder } from '#queue/queue.ts';
 import { movedArray, movedIndex } from '#queue/reorder.ts';
 
@@ -163,10 +164,6 @@ function indexOfTrack(items: ReadonlyArray<QueueItem>, itemId: string): number |
 	const index = items.findIndex((item) => item.itemId === itemId);
 
 	return index === -1 ? undefined : index;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export function isSameJson(left: unknown, right: unknown): boolean {

@@ -14,8 +14,10 @@ import {
 	timeModeStorageKey,
 	volumeStorageKey,
 } from '#constants.ts';
+import { isRecord } from '#lib/is-record.ts';
 import { readStored, removeStored, writeStored } from '#lib/storage.ts';
 import { displayedDetail, displayedItem } from '#store/selectors.ts';
+import { toStoredDetail, toStoredItem } from '#store/stored-shapes.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
 
 const volumeWriteDelayMs = 250;
@@ -214,18 +216,6 @@ function isPermutation(value: unknown, length: number): value is Array<number> {
 	);
 }
 
-function isStoredDetail(value: unknown): value is QueueItemDetail {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isStoredItem(value: unknown): value is QueueItem {
-	if (typeof value !== 'object' || value === null) return false;
-
-	return ['artistLine', 'itemId', 'releaseTitle', 'title'].every(
-		(key) => typeof Reflect.get(value, key) === 'string',
-	);
-}
-
 // Mobile browsers kill a backgrounded tab without `pagehide`, so going hidden flushes too
 function onPageLeft(flush: () => void): void {
 	document.addEventListener('visibilitychange', () => {
@@ -242,10 +232,12 @@ function readStoredDetails(storage: PlayerStorage | undefined): Map<string, Queu
 		const parsed: unknown = JSON.parse(stored);
 		const details = new Map<string, QueueItemDetail>();
 
-		if (!isStoredDetail(parsed)) return details;
+		if (!isRecord(parsed)) return details;
 
-		for (const [itemId, detail] of Object.entries(parsed)) {
-			if (isStoredDetail(detail)) details.set(itemId, detail);
+		for (const [itemId, value] of Object.entries(parsed)) {
+			const detail = toStoredDetail(value);
+
+			if (detail) details.set(itemId, detail);
 		}
 
 		return details;
@@ -267,7 +259,7 @@ function readStoredItems(storage: PlayerStorage | undefined): Map<string, unknow
 
 	const parsed: unknown = JSON.parse(stored);
 
-	return new Map(isStoredDetail(parsed) ? Object.entries(parsed) : []);
+	return new Map(isRecord(parsed) ? Object.entries(parsed) : []);
 }
 
 function readStoredPanelZoom(storage: PlayerStorage | undefined): number | undefined {
@@ -296,7 +288,7 @@ function readStoredQueue(storage: PlayerStorage | undefined): StoredQueue | unde
 		const parsed = JSON.parse(stored) as Partial<Record<keyof StoredOrder, unknown>>;
 		const positions = storedPositions(storage, parsed.itemIds);
 
-		const queue = positions.filter((item) => isStoredItem(item));
+		const queue = positions.filter((item) => item !== undefined);
 		if (queue.length === 0) return undefined;
 
 		const currentIndex = storedQueueIndex(positions, parsed.currentIndex);
@@ -331,24 +323,27 @@ function readStoredVolume(storage: PlayerStorage | undefined): number | undefine
 	return Number.isFinite(value) ? value : undefined;
 }
 
-function storedPositions(storage: PlayerStorage | undefined, itemIds: unknown): Array<unknown> {
+function storedPositions(
+	storage: PlayerStorage | undefined,
+	itemIds: unknown,
+): Array<QueueItem | undefined> {
 	if (!Array.isArray(itemIds)) return [];
 
 	const items = readStoredItems(storage);
 
 	return itemIds.map((itemId: unknown) =>
-		typeof itemId === 'string' ? items.get(itemId) : undefined,
+		typeof itemId === 'string' ? toStoredItem(items.get(itemId)) : undefined,
 	);
 }
 
 function storedQueueIndex(
-	positions: ReadonlyArray<unknown>,
+	positions: ReadonlyArray<QueueItem | undefined>,
 	currentIndex: unknown,
 ): number | undefined {
 	if (typeof currentIndex !== 'number' || !Number.isSafeInteger(currentIndex)) return undefined;
-	if (!isStoredItem(positions[currentIndex])) return undefined;
+	if (positions[currentIndex] === undefined) return undefined;
 
-	return positions.slice(0, currentIndex).filter((item) => isStoredItem(item)).length;
+	return positions.slice(0, currentIndex).filter((item) => item !== undefined).length;
 }
 
 function storedTimeSeconds(currentTimeSeconds: unknown): number {

@@ -32,3 +32,16 @@ export function toSlug(input: string): string {
 		.replaceAll(/[^a-z0-9]+/gu, '-')
 		.replaceAll(/^-+|-+$/gu, '');
 }
+
+// First one wins; a duplicate name is too ambiguous to link on anyway
+export function toCreditSlugs(terms: Iterable<{ id: string; title: string }>): Map<string, string> {
+	const slugs = new Map<string, string>();
+
+	for (const { id, title } of terms) {
+		const slug = toSlug(title);
+
+		if (slug !== '' && !slugs.has(slug)) slugs.set(slug, id);
+	}
+
+	return slugs;
+}

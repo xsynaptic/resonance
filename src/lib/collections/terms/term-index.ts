@@ -74,13 +74,13 @@ async function buildTermIndex(
 	const index: TermIndex = new Map();
 
 	for (const { entry, item } of members) {
-		const references = getReferences(entry) ?? [];
+		const termIds = new Set((getReferences(entry) ?? []).map((reference) => reference.id));
 
-		for (const reference of references) {
-			const list = index.get(reference.id) ?? [];
+		for (const termId of termIds) {
+			const list = index.get(termId) ?? [];
 
 			list.push(item);
-			index.set(reference.id, list);
+			index.set(termId, list);
 		}
 	}
 

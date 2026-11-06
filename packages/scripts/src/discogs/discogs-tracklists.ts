@@ -83,7 +83,10 @@ export function toSource(entry: Entry): string {
 		? entry.body
 		: `${entry.body.replace(/\n+$/, '')}\n\n${trackListTag}\n`;
 
-	return `${frontmatterFence}\n${String(entry.document)}${frontmatterFence}\n${body}`;
+	// yaml wraps lines past 80 columns by default, rewriting fields we never edited
+	const frontmatter = entry.document.toString({ lineWidth: 0 });
+
+	return `${frontmatterFence}\n${frontmatter}${frontmatterFence}\n${body}`;
 }
 
 // Discogs carries no per-track label or year, so a track emits artists, title and duration only

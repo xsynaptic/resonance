@@ -1,3 +1,4 @@
+import { fc, it } from '@fast-check/vitest';
 import { describe, expect, test } from 'vitest';
 
 import { isSafeUrl, renderCommentBody, toAuthorHref } from '#lib/utils/comment-markdown.ts';
@@ -96,6 +97,81 @@ describe('renderCommentBody tag allowlist', () => {
 describe('isSafeUrl', () => {
 	test.for(safeUrlCases)('%j', ([url, expected]) => {
 		expect(isSafeUrl(url)).toBe(expected);
+	});
+});
+
+const urlPieces = fc.constantFrom(
+	'/',
+	'\\',
+	'\t',
+	':',
+	'.',
+	'%5C',
+	'evil.com',
+	'https',
+	'javascript',
+	'x',
+);
+const urlLike = fc
+	.array(urlPieces, { maxLength: 6, minLength: 1 })
+	.map((pieces) => pieces.join(''));
+
+const siteOrigin = 'https://djbasilisk.com';
+
+function resolvesTo(href: string): undefined | URL {
+	try {
+		return new URL(href, `${siteOrigin}/a-post/`);
+	} catch {
+		return undefined;
+	}
+}
+
+function hasScheme(href: string): boolean {
+	return /^[a-z][a-z\d+.-]*:/i.test(href);
+}
+
+function expectSafeHref(href: string): void {
+	const resolved = resolvesTo(href);
+
+	expect(resolved && ['http:', 'https:'].includes(resolved.protocol)).toBe(true);
+	if (!hasScheme(href)) expect(resolved?.origin).toBe(siteOrigin);
+}
+
+function expectAllowedTag(tag: string, attributes: string): void {
+	expect(allowedTags).toContain(tag.toLowerCase());
+
+	for (const [, name] of attributes.matchAll(/\s([a-z-]+)=/gi)) {
+		expect(['href', 'rel']).toContain(name);
+	}
+}
+
+describe('isSafeUrl over URL-like strings', () => {
+	it.prop([urlLike])(
+		'passes http(s), and a URL with no scheme only if it stays on the site',
+		(url) => {
+			if (isSafeUrl(url)) expectSafeHref(url);
+		},
+	);
+});
+
+describe('renderCommentBody over arbitrary bodies', () => {
+	const bodyPieces = fc.oneof(
+		urlLike.map((url) => `[t](${url})`),
+		urlLike,
+		fc.constantFrom('<', '>', '"', "'", '`', '*', '_', '&', '\n', ' ', '<a href="x">', '<img>'),
+	);
+	const body = fc.array(bodyPieces, { maxLength: 8 }).map((pieces) => pieces.join(''));
+
+	it.prop([body])('emits only allowlisted tags and attributes, and only safe hrefs', (input) => {
+		const html = render(input);
+
+		for (const [, tag = '', attributes = ''] of html.matchAll(/<\/?([a-z][a-z\d]*)([^>]*)>/gi)) {
+			expectAllowedTag(tag, attributes);
+		}
+
+		for (const [, href = ''] of html.matchAll(/href="([^"]*)"/g)) {
+			expectSafeHref(href.replaceAll('&amp;', '&'));
+		}
 	});
 });
 

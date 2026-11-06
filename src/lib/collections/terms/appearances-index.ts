@@ -87,7 +87,6 @@ function subtractAuthored(index: TermIndex, authored: TermIndex): TermIndex {
 	return subtracted;
 }
 
-// Free text resolves to its own slug when nothing is cataloged under it, which names no Term
 function toRowTermIds(row: ListedRow, lookup: CreditLookup): Array<string> {
 	const credits = lookup.vocabulary === 'artists' ? toRowArtists(row) : (row.labels ?? []);
 

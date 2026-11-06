@@ -1,4 +1,5 @@
-import { describe, expect, test, vi } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { describe, expect, vi } from 'vitest';
 
 import type { StubEntry } from '#lib/collections/astro-content-stub.ts';
 
@@ -71,8 +72,11 @@ const fixtures: Fixtures = {
 	],
 };
 
-async function idsByTerm(name: IndexName): Promise<Record<string, Array<string>>> {
-	const indexes = await importIndexes();
+async function idsByTerm(
+	name: IndexName,
+	collections: Fixtures = fixtures,
+): Promise<Record<string, Array<string>>> {
+	const indexes = await importIndexes(collections);
 	const index = await indexes[name]();
 
 	return Object.fromEntries(
@@ -81,12 +85,12 @@ async function idsByTerm(name: IndexName): Promise<Record<string, Array<string>>
 }
 
 // Every index memoizes on first call, so each case builds from a fresh module graph
-async function importIndexes() {
+async function importIndexes(collections: Fixtures = fixtures) {
 	vi.resetModules();
 
 	const { setCollections } = await import('#lib/collections/astro-content-stub.ts');
 
-	setCollections(fixtures);
+	setCollections(collections);
 
 	return import('#lib/collections/terms/term-index.ts');
 }
@@ -123,4 +127,39 @@ describe('getSeriesIndex', () => {
 	test('keeps the order the series authored and drops what does not resolve', async () => {
 		expect(await idsByTerm('getSeriesIndex')).toEqual({ 'a-series': ['voyager', 'esoteric'] });
 	});
+});
+
+describe('every term index', () => {
+	const references = fc.array(fc.constantFrom('ott', 'asia', 'taiwan'), { maxLength: 4 });
+
+	test.prop([references, references, references], { numRuns: 30 })(
+		'lists an entry once under each term it names, however often it names it',
+		async (artists, regions, themes) => {
+			const review = {
+				data: {
+					artists: artists.map((id) => ({ id })),
+					dateCreated: new Date('2023-01-01'),
+					regions: regions.map((id) => ({ id })),
+					themes: themes.map((id) => ({ id })),
+					title: 'A Review',
+				},
+				id: 'a-review',
+			};
+			const collections = { ...fixtures, mixes: [], posts: [], reviews: [review] };
+
+			for (const [name, named] of [
+				['getArtistsIndex', artists],
+				['getThemesIndex', themes],
+			] as const) {
+				const index = await idsByTerm(name, collections);
+				const expected = Object.fromEntries([...new Set(named)].map((id) => [id, ['a-review']]));
+
+				expect(index).toEqual(expected);
+			}
+
+			const rolled = await idsByTerm('getRegionsIndex', collections);
+
+			for (const ids of Object.values(rolled)) expect(ids).toEqual(['a-review']);
+		},
+	);
 });

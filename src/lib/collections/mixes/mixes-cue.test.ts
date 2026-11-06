@@ -1,6 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 
-import { describe, expect, test } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { describe, expect } from 'vitest';
 
 import type { TracklistValue } from '#lib/schemas/audio.ts';
 
@@ -86,6 +87,55 @@ describe('getMixCueSheets', () => {
 	test('emits nothing when the mix carries no files for a group to inherit', async () => {
 		await expect(getMixCueSheets(makeMix([], [partOne, partTwo]))).resolves.toEqual([]);
 	});
+});
+
+describe('getMixCueSheets over any grouping', () => {
+	const audioFiles = ['Mix.mp3', 'Mix.flac'];
+	const group = fc.record({
+		files: fc.option(fc.subarray(audioFiles), { nil: undefined }),
+		isTimed: fc.boolean(),
+	});
+
+	test.prop([fc.subarray(audioFiles), fc.array(group, { maxLength: 3, minLength: 1 })])(
+		'emits one sheet per file, carrying every timed track of each group that plays from it',
+		async (mixFiles, groups) => {
+			const tracklist = groups.map(({ files, isTimed }, index) => ({
+				...(files === undefined ? {} : { files }),
+				title: `Part ${String(index)}`,
+				tracks: [
+					{
+						artists: 'Lorn',
+						title: `Track ${String(index)}`,
+						...(isTimed ? { timestamp: '00:00:00.00' } : {}),
+					},
+				],
+			}));
+			const sheets = await getMixCueSheets(makeMix(mixFiles, tracklist));
+			const sheetFiles = sheets.map((sheet) => sheet.audioFile);
+			const claimed = new Set(groups.flatMap(({ files }) => files ?? []));
+
+			expect(new Set(sheetFiles).size).toBe(sheetFiles.length);
+
+			const unclaimed = mixFiles.filter((mixFile) => !claimed.has(mixFile));
+			const playsFrom = (index: number) => groups[index]?.files ?? unclaimed;
+
+			for (const [index, { isTimed }] of groups.entries()) {
+				if (!isTimed) continue;
+
+				for (const file of playsFrom(index)) {
+					const sheet = sheets.find((candidate) => candidate.audioFile === file);
+
+					expect(sheet?.text).toContain(`TITLE "Track ${String(index)}"`);
+				}
+			}
+
+			for (const { audioFile, text } of sheets) {
+				for (const [, index] of text.matchAll(/TITLE "Track (\d+)"/g)) {
+					expect(playsFrom(Number(index))).toContain(audioFile);
+				}
+			}
+		},
+	);
 });
 
 describe('getMixCuePoints', () => {

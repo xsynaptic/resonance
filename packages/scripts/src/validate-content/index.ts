@@ -24,6 +24,7 @@ import { validateCreditNearMisses } from '#validate-content/credit-near-misses.t
 import { validateCredits } from '#validate-content/credits.ts';
 import { validateDownloadsLegacy } from '#validate-content/downloads-legacy.ts';
 import { validateImages } from '#validate-content/images.ts';
+import { validateIndexedPaths } from '#validate-content/indexed-paths.ts';
 import { validatePlatformLinks } from '#validate-content/platform-links.ts';
 import { validatePlaylistItems } from '#validate-content/playlist-items.ts';
 import { validateReviewFolders } from '#validate-content/review-folders.ts';
@@ -76,6 +77,7 @@ const checkNames = [
 	'downloads-legacy',
 	'entry-ids',
 	'images',
+	'indexed-paths',
 	'link-ids',
 	'mdx',
 	'platform-links',
@@ -118,6 +120,7 @@ function getChecks(
 		'downloads-legacy': () => validateDownloadsLegacy(entriesFrom('mixes')),
 		'entry-ids': () => checkEntryIds(allEntries),
 		images: () => validateImages(allEntries, path.resolve(rootPath, mediaPath)),
+		'indexed-paths': () => validateIndexedPaths(allEntries),
 		'link-ids': () =>
 			checkComponentTargets(allEntries, {
 				component: 'Link',

@@ -24,7 +24,7 @@ export function createEntryDescriptionFunction({ cache }: { cache: Cache<string>
 
 		// Bump the version when excerpt rendering changes
 		const key = `${entry.collection}/${entry.id}`;
-		const sourceHash = hash({ source, version: 1 });
+		const sourceHash = hash({ source, version: 2 });
 
 		const cached = cache.get(key, sourceHash);
 		if (cached !== undefined) return cached;
@@ -57,5 +57,8 @@ export function toDescriptionSource(body: string): string {
 
 // A line opening with a component is an HTML block under CommonMark, its markdown left unparsed
 function stripMdxComponents(markdown: string): string {
-	return markdown.replaceAll(/<\/?[A-Z][\w.]*(?:\s[^>]*)?\/?>/g, '');
+	return markdown.replaceAll(
+		/<\/?[A-Z][\w.]*(?:\s(?:[^>"'{]|"[^"]*"|'[^']*'|\{[^}]*\})*)?\/?>/g,
+		'',
+	);
 }

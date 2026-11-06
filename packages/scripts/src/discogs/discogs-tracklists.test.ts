@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { describe, expect } from 'vitest';
 
 import type { DiscogsArtistCredit, DiscogsRelease, DiscogsTrack } from '#discogs/discogs-api.ts';
 
@@ -167,6 +168,45 @@ describe('toSource', () => {
 			].join('\n'),
 		);
 	});
+
+	const plainWords = fc
+		.array(fc.constantFrom('deep', 'space', 'music', 'from', 'the', 'Oort', 'Cloud', '1996'), {
+			maxLength: 30,
+			minLength: 1,
+			size: 'max',
+		})
+		.map((words) => words.join(' '))
+		.filter((words) => !/^\d+$/.test(words));
+	const frontmatterLines = fc
+		.record({
+			artists: fc.array(plainWords, { maxLength: 3, minLength: 1 }),
+			description: plainWords,
+			title: plainWords,
+		})
+		.map(({ artists, description, title }) => [
+			`title: ${title}`,
+			`description: ${description}`,
+			'artists:',
+			...artists.map((artist) => `  - ${artist}`),
+			'rating: 80',
+		]);
+
+	test.prop([frontmatterLines])(
+		'leaves frontmatter in the corpus style byte-identical, however long its lines run',
+		(lines) => {
+			const source = [
+				'---',
+				...lines,
+				'---',
+				'',
+				'<TrackList tracks={frontmatter.tracks} />',
+				'',
+			].join('\n');
+			const entry = toEntry(source);
+
+			expect(entry && toSource(entry)).toBe(source);
+		},
+	);
 
 	test('leaves a body that already carries the tag alone', () => {
 		const tag = '<TrackList tracks={frontmatter.tracks} />';

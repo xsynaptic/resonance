@@ -29,11 +29,16 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
 	allowProtocolRelative: false,
 };
 
-export function isSafeUrl(url: string): boolean {
-	if (url.startsWith('//')) return false;
+const relativeBase = 'https://base.invalid';
 
+// Browsers treat `//x`, `/\x` and `\\x` as another host, so a relative URL has to resolve to our origin
+export function isSafeUrl(url: string): boolean {
 	try {
-		return allowedProtocols.has(new URL(url, 'https://base.invalid').protocol);
+		const resolved = new URL(url, relativeBase);
+
+		if (!allowedProtocols.has(resolved.protocol)) return false;
+
+		return /^[a-z][a-z\d+.-]*:/i.test(url) || resolved.origin === relativeBase;
 	} catch {
 		return false;
 	}

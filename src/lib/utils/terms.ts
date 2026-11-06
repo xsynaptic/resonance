@@ -1,6 +1,6 @@
 import type { CollectionKey, ReferenceDataEntry } from 'astro:content';
 
-import { getContentPath, toSlug } from '@xsynaptic/shared/routing';
+import { getContentPath, toCreditSlugs, toSlug } from '@xsynaptic/shared/routing';
 import { getCollection, getEntries } from 'astro:content';
 import pMemoize from 'p-memoize';
 
@@ -91,13 +91,8 @@ export function toLinkedName(
 
 async function buildSlugs(collection: TitledCollectionKey): Promise<Map<string, string>> {
 	const entries = await getCollection(collection);
-	const slugs = new Map<string, string>();
-	for (const entry of entries) {
-		const slug = toSlug(entry.data.title);
-		// First entry wins; a duplicate name is too ambiguous to link on anyway
-		if (slug !== '' && !slugs.has(slug)) slugs.set(slug, entry.id);
-	}
-	return slugs;
+
+	return toCreditSlugs(entries.map((entry) => ({ id: entry.id, title: entry.data.title })));
 }
 
 async function buildTitles(collection: TitledCollectionKey): Promise<Map<string, string>> {

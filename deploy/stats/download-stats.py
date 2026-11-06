@@ -401,7 +401,7 @@ def run(log_dir, log_pattern, media_root, state_dir, now=None):
     for warning in warnings:
         summary += f"{now.strftime('%Y-%m-%dT%H:%M:%SZ')} WARNING {warning}\n"
 
-    # Never truncated: one line per daily run is ~46 KB a year, and the box has no logrotate
+    # Never truncated: one line per daily run is ~46 KB a year
     with open(state / "run.log", "a", encoding="utf-8") as handle:
         handle.write(summary)
     return summary

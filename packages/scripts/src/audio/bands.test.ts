@@ -1,5 +1,6 @@
+import { fc, test } from '@fast-check/vitest';
 import { bandCount, bandsHeaderBytes, samplesPerFrame } from '@xsynaptic/shared/waveform-format';
-import { describe, expect, test } from 'vitest';
+import { describe, expect } from 'vitest';
 
 import { buildBands, createBandReducer, parseBandsHeader } from '#audio/bands.ts';
 
@@ -37,7 +38,47 @@ function reduce(buffer: Buffer, chunkBytes = buffer.length): Array<number> {
 	return [...reducer.finish()];
 }
 
+const finiteSamplesSinceFfmpegDecodesIntegerPcm = fc
+	.float32Array({
+		maxLength: (samplesPerFrame * 4 + 500) * bandCount,
+		minLength: samplesPerFrame * 2 * bandCount,
+		noDefaultInfinity: true,
+		noNaN: true,
+	})
+	.map((samples) => Buffer.from(samples.buffer, samples.byteOffset, samples.byteLength));
+
+const bufferWithSplitPoints = finiteSamplesSinceFfmpegDecodesIntegerPcm.chain((buffer) =>
+	fc.record({
+		buffer: fc.constant(buffer),
+		splits: fc
+			.uniqueArray(fc.nat({ max: buffer.length }), { maxLength: 3, minLength: 2 })
+			.map((points) => points.toSorted((first, second) => first - second)),
+	}),
+);
+
+function reduceInChunks(buffer: Buffer, splits: ReadonlyArray<number>): Buffer {
+	const reducer = createBandReducer();
+	const edges = [0, ...splits, buffer.length];
+	const starts = edges.slice(0, -1);
+
+	for (const [index, start] of starts.entries()) {
+		reducer.push(buffer.subarray(start, edges[index + 1]));
+	}
+
+	return reducer.finish();
+}
+
 describe('createBandReducer', () => {
+	test.prop([bufferWithSplitPoints])(
+		'writes the same levels wherever the input is split into chunks',
+		({ buffer, splits }) => {
+			const whole = reduceInChunks(buffer, []);
+
+			expect(whole.length).toBeGreaterThanOrEqual(2 * bandCount);
+			expect(Buffer.compare(reduceInChunks(buffer, splits), whole)).toBe(0);
+		},
+	);
+
 	test('stores each band as RMS decibels across a 60 dB range', () => {
 		const levels = reduce(interleave([sine(1), steady(0.1), steady(1)], samplesPerFrame));
 

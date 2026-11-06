@@ -50,4 +50,31 @@ describe.each([
 		).toStrictEqual(['/posts/2/']);
 		expect(pagination.previous?.url).toBe('/posts/');
 	});
+
+	test('marks one option current, keeps every url distinct and agrees with previous and next, for every page of up to 12', () => {
+		let checked = 0;
+
+		for (let lastPage = 1; lastPage <= 12; lastPage += 1) {
+			for (let currentPage = 1; currentPage <= lastPage; currentPage += 1) {
+				const { next, options, previous } = getPagination(
+					makePage(currentPage, lastPage, trailingSlash),
+				);
+				const urls = options.map((option) => option.url);
+				const at = JSON.stringify({ currentPage, lastPage });
+
+				expect(options, at).toHaveLength(lastPage);
+				expect(
+					options.flatMap((option, index) => (option.isCurrent ? [index + 1] : [])),
+					at,
+				).toStrictEqual([currentPage]);
+				expect(new Set(urls).size, at).toBe(lastPage);
+				expect(previous?.url, at).toBe(currentPage === 1 ? undefined : urls[currentPage - 2]);
+				expect(next?.url, at).toBe(currentPage === lastPage ? undefined : urls[currentPage]);
+
+				checked += 1;
+			}
+		}
+
+		expect(checked).toBe(78);
+	});
 });

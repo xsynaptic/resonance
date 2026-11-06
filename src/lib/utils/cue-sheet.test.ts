@@ -1,6 +1,75 @@
-import { describe, expect, test } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
+import { describe, expect } from 'vitest';
 
 import { buildCueSheet } from '#lib/utils/cue-sheet.ts';
+
+const twoDigits = (value: number) => String(value).padStart(2, '0');
+
+const timestampInTheSchemaGrammar = fc
+	.record({
+		hours: fc.integer({ max: 99, min: 0 }),
+		hundredths: fc.integer({ max: 99, min: 0 }),
+		minutes: fc.integer({ max: 59, min: 0 }),
+		seconds: fc.integer({ max: 59, min: 0 }),
+	})
+	.map(({ hours, hundredths, minutes, seconds }) => ({
+		text: `${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}.${twoDigits(hundredths)}`,
+		totalHundredths: ((hours * 60 + minutes) * 60 + seconds) * 100 + hundredths,
+	}));
+
+const lineBreakingPiece = fc.constantFrom(
+	'\n',
+	'\r',
+	'\r\n',
+	'\r\n  TRACK 99 AUDIO',
+	'\t',
+	'\u{2028}',
+	'"',
+);
+
+const anyFieldText = fc
+	.array(
+		fc.oneof(
+			{ arbitrary: fc.string({ unit: 'binary' }), weight: 3 },
+			{ arbitrary: lineBreakingPiece, weight: 2 },
+		),
+		{ maxLength: 4 },
+	)
+	.map((pieces) => pieces.join(''));
+
+const timestampText = timestampInTheSchemaGrammar.map((timestamp) => timestamp.text);
+
+const cueSheetFields = fc.record({
+	performer: anyFieldText,
+	title: anyFieldText,
+	tracks: fc.array(
+		fc.record({
+			performer: anyFieldText,
+			timestamp: fc.option(timestampText, { nil: undefined }),
+			title: anyFieldText,
+		}),
+		{ maxLength: 4 },
+	),
+});
+
+function expectedLineCount({
+	performer,
+	title,
+	tracks,
+}: {
+	performer: string;
+	title: string;
+	tracks: Array<{ performer: string; timestamp: string | undefined }>;
+}): number {
+	let count = 1 + (performer ? 1 : 0) + (title ? 1 : 0);
+
+	for (const track of tracks) {
+		if (track.timestamp !== undefined) count += track.performer ? 4 : 3;
+	}
+
+	return count;
+}
 
 function indexOf(timestamp: string): string | undefined {
 	const sheet = buildCueSheet({
@@ -12,6 +81,37 @@ function indexOf(timestamp: string): string | undefined {
 }
 
 describe('buildCueSheet', () => {
+	test.prop([timestampInTheSchemaGrammar], { numRuns: 1000 })(
+		'reads every INDEX back at most one frame before its timestamp, never after, with seconds under 60 and frames under 75',
+		({ text, totalHundredths }) => {
+			expect(parseTimestampSeconds(text)).toBeTypeOf('number');
+
+			const [minutes = NaN, seconds = NaN, frames = NaN] = (indexOf(text) ?? '')
+				.split(':')
+				.map(Number);
+			const indexFrames = (minutes * 60 + seconds) * 75 + frames;
+			const fourTimesFramesShort = totalHundredths * 3 - indexFrames * 4;
+
+			expect(seconds).toBeLessThan(60);
+			expect(frames).toBeLessThan(75);
+			expect(fourTimesFramesShort).toBeGreaterThanOrEqual(0);
+			expect(fourTimesFramesShort).toBeLessThan(4);
+		},
+	);
+
+	test.prop([cueSheetFields], { numRuns: 1000 })(
+		'keeps one line per field and one TRACK per timed track, whatever the titles and performers hold',
+		(fields) => {
+			const lines = buildCueSheet({ ...fields, fileName: 'mix.flac' }).split('\r\n');
+			const timedTracks = fields.tracks.filter((track) => track.timestamp !== undefined);
+
+			expect(lines.pop()).toBe('');
+			expect(lines.filter((line) => /[\r\n]/u.test(line))).toStrictEqual([]);
+			expect(lines).toHaveLength(expectedLineCount(fields));
+			expect(lines.filter((line) => line.startsWith('  TRACK '))).toHaveLength(timedTracks.length);
+		},
+	);
+
 	test('emits a full header followed by track entries', () => {
 		const sheet = buildCueSheet({
 			date: '2021',
@@ -85,6 +185,25 @@ describe('buildCueSheet', () => {
 		expect(sheet).toContain('PERFORMER "The Band"');
 		expect(sheet).toContain('    PERFORMER "A Name"');
 		expect(sheet).toContain('    TITLE "A Title"');
+	});
+
+	test('collapses a line break in a title to one space', () => {
+		const sheet = buildCueSheet({
+			fileName: 'mix.flac',
+			performer: '',
+			title: '',
+			tracks: [{ performer: '', timestamp: '00:00:00.00', title: '\n' }],
+		});
+
+		expect(sheet).toBe(
+			[
+				'FILE "mix.flac" WAVE',
+				'  TRACK 01 AUDIO',
+				'    TITLE " "',
+				'    INDEX 01 00:00:00',
+				'',
+			].join('\r\n'),
+		);
 	});
 
 	test('omits header lines whose source is absent', () => {

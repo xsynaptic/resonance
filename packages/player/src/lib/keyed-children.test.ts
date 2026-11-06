@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { afterEach, describe, expect, vi } from 'vitest';
 
 import { keyedChildren } from '#lib/keyed-children.ts';
 
@@ -25,9 +26,37 @@ function renderList() {
 	return { created, list, reconcile };
 }
 
+// As Chrome's does, it refuses a node that is not yet in the document
+function stubMoveBefore(list: HTMLElement) {
+	const moveBefore = vi.fn((node: Element, child: Element | null) => {
+		if (!node.isConnected) throw new DOMException('Not connected', 'HierarchyRequestError');
+
+		if (child) child.before(node);
+		else list.append(node);
+	});
+
+	Object.assign(list, { moveBefore });
+
+	return moveBefore;
+}
+
 function rowsOf(list: HTMLElement): Array<HTMLLIElement> {
 	return [...list.querySelectorAll('li')];
 }
+
+const smallKeyPool = ['a', 'b', 'c', 'd', 'e'];
+
+const uniqueKeysStampedByTheQueue = fc.uniqueArray(fc.constantFrom(...smallKeyPool), {
+	maxLength: smallKeyPool.length,
+});
+
+const reconcileSteps = fc.array(
+	fc.record(
+		{ focusIndex: fc.nat({ max: smallKeyPool.length - 1 }), items: uniqueKeysStampedByTheQueue },
+		{ noNullPrototype: true },
+	),
+	{ maxLength: 40, minLength: 1, size: 'max' },
+);
 
 afterEach(() => {
 	document.body.replaceChildren();
@@ -56,15 +85,8 @@ describe('keyedChildren', () => {
 
 		reconcile(['a', 'b']);
 
-		// As Chrome's does, it refuses a node that is not yet in the document
-		const moveBefore = vi.fn((node: Element, child: Element | null) => {
-			if (!node.isConnected) throw new DOMException('Not connected', 'HierarchyRequestError');
+		const moveBefore = stubMoveBefore(list);
 
-			if (child) child.before(node);
-			else list.append(node);
-		});
-
-		Object.assign(list, { moveBefore });
 		reconcile(['c', 'b', 'a']);
 
 		const [, b, a] = rowsOf(list);
@@ -86,4 +108,37 @@ describe('keyedChildren', () => {
 
 		expect(document.activeElement).toBe(b);
 	});
+
+	test.prop([reconcileSteps, fc.boolean()])(
+		'matches the items in order after every reconcile, keeping each surviving node and its focus',
+		(steps, hasMoveBefore) => {
+			const { list, reconcile } = renderList();
+
+			if (hasMoveBefore) stubMoveBefore(list);
+
+			for (const { focusIndex, items } of steps) {
+				const before = new Map(rowsOf(list).map((row) => [row.textContent, row] as const));
+				const focused = rowsOf(list)[focusIndex];
+
+				focused?.focus();
+				reconcile(items);
+
+				const rows = rowsOf(list);
+
+				expect(rows.map((row) => row.textContent)).toStrictEqual(items);
+
+				for (const row of rows) {
+					const previous = before.get(row.textContent);
+
+					if (previous) expect(row).toBe(previous);
+				}
+
+				if (focused && items.includes(focused.textContent)) {
+					expect(document.activeElement).toBe(focused);
+				}
+			}
+
+			document.body.replaceChildren();
+		},
+	);
 });

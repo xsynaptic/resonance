@@ -1,6 +1,10 @@
-import { describe, expect, test, vi } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { describe, expect, vi } from 'vitest';
 
+import type { RelatedContext, RelatedProfile } from '#lib/catalog/catalog-related.ts';
 import type { StubEntry } from '#lib/collections/astro-content-stub.ts';
+
+import { scoreCandidate } from '#lib/catalog/catalog-related.ts';
 
 type Fixtures = Record<string, Array<Pick<StubEntry, 'body' | 'data' | 'id'>>>;
 
@@ -186,5 +190,207 @@ describe('getRelatedItems', () => {
 
 		expect(await relatedIds(collections, 'host')).toEqual(['style-match']);
 		expect(await relatedIds(collections, 'lonely')).toEqual([]);
+	});
+});
+
+const ancestorsNearestFirstFromHierarchy = new Map<string, ReadonlyArray<string>>([
+	['labels:parent', []],
+	['labels:sublabel', ['labels:parent']],
+	['styles:child', ['styles:root']],
+	['styles:grandchild', ['styles:child', 'styles:root']],
+	['styles:root', []],
+]);
+
+const signalWeightsByTerm = new Map<string, ReadonlyArray<number>>([
+	['labels:parent', [1.5, 0.5]],
+	['labels:sublabel', [1.5, 0.5]],
+	['styles:child', [3]],
+	['styles:grandchild', [3]],
+	['styles:root', [3]],
+]);
+
+const termKeys = [...signalWeightsByTerm.keys()];
+
+function signalWeightsOf(key: string): ReadonlyArray<number> {
+	return signalWeightsByTerm.get(key) ?? [];
+}
+
+const termsWeightedByCollectTerms = fc
+	.subarray(termKeys)
+	.chain((keys) =>
+		fc.tuple(
+			...keys.map((key) =>
+				fc.constantFrom(...signalWeightsOf(key)).map((weight) => [key, weight] as const),
+			),
+		),
+	)
+	.map((terms) => new Map(terms));
+
+const positiveRarityFromMeasureRarity = fc
+	.tuple(...termKeys.map(() => fc.constantFrom(0.5, 1, 2, 4)))
+	.map((rarities) => new Map(termKeys.map((key, index) => [key, rarities[index] ?? 0] as const)));
+
+const relatedCollection = fc.constantFrom('mixes' as const, 'reviews' as const);
+
+const scoredPair = fc.record({
+	candidate: termsWeightedByCollectTerms,
+	candidateCollection: relatedCollection,
+	entry: termsWeightedByCollectTerms.filter((terms) => terms.size > 0),
+	entryCollection: relatedCollection,
+	rarity: positiveRarityFromMeasureRarity,
+});
+
+const pairGainingATermTheEntryCarries = scoredPair.chain((pair) =>
+	fc
+		.constantFrom(...pair.entry.keys())
+		.chain((key) =>
+			fc
+				.constantFrom(...signalWeightsOf(key))
+				.map((weight) => ({ ...pair, gained: { key, weight } })),
+		),
+);
+
+function toProfile(
+	id: string,
+	collection: RelatedProfile['collection'],
+	terms: Map<string, number>,
+): RelatedProfile {
+	return {
+		collection,
+		dateCreated: new Date(0),
+		id,
+		references: new Set(),
+		terms,
+		year: undefined,
+	};
+}
+
+function toContext(rarity: Map<string, number>): RelatedContext {
+	return {
+		ancestors: ancestorsNearestFirstFromHierarchy,
+		items: new Map(),
+		profiles: new Map(),
+		rarity,
+	};
+}
+
+describe('scoreCandidate', () => {
+	test.prop([pairGainingATermTheEntryCarries], { numRuns: 1000 })(
+		'never lowers a score when the candidate gains a term the entry carries, with rarity held fixed',
+		({ candidate, candidateCollection, entry, entryCollection, gained, rarity }) => {
+			const context = toContext(rarity);
+			const host = toProfile('entry', entryCollection, entry);
+			const gainedTerms = new Map(candidate).set(
+				gained.key,
+				Math.max(gained.weight, candidate.get(gained.key) ?? 0),
+			);
+
+			const before = scoreCandidate(
+				host,
+				toProfile('candidate', candidateCollection, candidate),
+				context,
+			);
+			const after = scoreCandidate(
+				host,
+				toProfile('candidate', candidateCollection, gainedTerms),
+				context,
+			);
+
+			expect(after).toBeGreaterThanOrEqual(before);
+		},
+	);
+
+	test.prop([scoredPair], { numRuns: 1000 })(
+		'scores a pair the same whichever side is the entry',
+		({ candidate, candidateCollection, entry, entryCollection, rarity }) => {
+			const context = toContext(rarity);
+			const first = toProfile('first', entryCollection, entry);
+			const second = toProfile('second', candidateCollection, candidate);
+
+			expect(scoreCandidate(first, second, context)).toBeCloseTo(
+				scoreCandidate(second, first, context),
+				9,
+			);
+		},
+	);
+
+	test.each([
+		{
+			candidate: [['styles:root', 3]],
+			entry: [['styles:child', 3]],
+			gained: ['styles:child', 3],
+			path: 'an exact match replacing the route through its parent',
+			rarity: [
+				['styles:child', 0.5],
+				['styles:root', 2],
+			],
+		},
+		{
+			candidate: [['styles:root', 3]],
+			entry: [
+				['styles:child', 3],
+				['styles:grandchild', 3],
+			],
+			gained: ['styles:child', 3],
+			path: 'a nearer ancestor shadowing a farther one',
+			rarity: [
+				['styles:child', 1],
+				['styles:grandchild', 1],
+				['styles:root', 2],
+			],
+		},
+		{
+			candidate: [['labels:sublabel', 1.5]],
+			entry: [['labels:parent', 0.5]],
+			gained: ['labels:parent', 0.5],
+			path: 'a listed parent Label replacing the route from an authored sublabel',
+			rarity: [
+				['labels:parent', 0.5],
+				['labels:sublabel', 4],
+			],
+		},
+	] satisfies Array<{
+		candidate: Array<[string, number]>;
+		entry: Array<[string, number]>;
+		gained: [string, number];
+		path: string;
+		rarity: Array<[string, number]>;
+	}>)('keeps the score through $path', ({ candidate, entry, gained, rarity }) => {
+		const context = toContext(new Map(rarity));
+		const host = toProfile('entry', 'reviews', new Map(entry));
+		const before = scoreCandidate(
+			host,
+			toProfile('candidate', 'reviews', new Map(candidate)),
+			context,
+		);
+		const after = scoreCandidate(
+			host,
+			toProfile('candidate', 'reviews', new Map([...candidate, gained])),
+			context,
+		);
+
+		expect(after).toBeGreaterThanOrEqual(before);
+	});
+
+	test('credits each term once, by its best route alone', () => {
+		const context = toContext(
+			new Map([
+				['styles:child', 1],
+				['styles:grandchild', 1],
+				['styles:root', 2],
+			]),
+		);
+		const entry = toProfile('entry', 'reviews', new Map([['styles:grandchild', 3]]));
+		const candidate = toProfile(
+			'candidate',
+			'mixes',
+			new Map([
+				['styles:child', 3],
+				['styles:grandchild', 3],
+				['styles:root', 3],
+			]),
+		);
+
+		expect(scoreCandidate(entry, candidate, context)).toBeCloseTo(3, 9);
 	});
 });

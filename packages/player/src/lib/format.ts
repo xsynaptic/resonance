@@ -7,7 +7,7 @@ export function formatModeClock(
 	{ durationSeconds, timeMode }: { durationSeconds: number | undefined; timeMode: PlayerTimeMode },
 ): string {
 	if (timeMode === 'remaining' && durationSeconds !== undefined) {
-		return formatClock(seconds - durationSeconds);
+		return formatClock(Math.min(0, Math.floor(seconds) - Math.floor(durationSeconds)));
 	}
 
 	return formatClock(seconds);

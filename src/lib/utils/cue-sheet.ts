@@ -73,5 +73,5 @@ function getFileFormat(fileName: string): string {
 
 // Quoted fields have no escape mechanism, so an embedded double quote can only be dropped
 function quote(value: string): string {
-	return `"${value.replaceAll('"', '')}"`;
+	return `"${value.replaceAll('"', '').replaceAll(/\s+/gu, ' ')}"`;
 }

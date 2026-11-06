@@ -16,20 +16,30 @@ interface CreditSlugs {
 	labels: Map<string, string>;
 }
 
-interface RelatedContext {
+interface ProfilePair {
+	candidate: RelatedProfile;
+	entry: RelatedProfile;
+}
+
+export interface RelatedContext {
 	ancestors: Map<string, ReadonlyArray<string>>;
 	items: Map<string, ContentCatalogItem>;
 	profiles: Map<string, RelatedProfile>;
 	rarity: Map<string, number>;
 }
 
-interface RelatedProfile {
+export interface RelatedProfile {
 	collection: LinkableEntry['collection'];
 	dateCreated: Date;
 	id: string;
 	references: Set<string>;
 	terms: Map<string, number>;
 	year: number | undefined;
+}
+
+interface RouteSides {
+	other: RelatedProfile;
+	own: RelatedProfile;
 }
 
 interface Scored {
@@ -89,27 +99,25 @@ export async function getRelatedItems(id: string): Promise<Array<ContentCatalogI
 		.filter((item) => item !== undefined);
 }
 
-function ancestorScore(
-	descendant: RelatedProfile,
-	other: RelatedProfile,
-	context: RelatedContext,
-): number {
-	let score = 0;
+function ancestorRoute(key: string, { other, own }: RouteSides, context: RelatedContext): number {
+	const weight = own.terms.get(key);
 
-	for (const [key, weight] of descendant.terms) {
-		if (other.terms.has(key)) continue;
+	if (weight === undefined) return 0;
 
-		const ancestorKey = context.ancestors.get(key)?.find((ancestor) => other.terms.has(ancestor));
+	const ancestorKeys = context.ancestors.get(key) ?? [];
+	let best = 0;
 
-		// An ancestor both sides carry was already counted by `sharedScore`
-		if (ancestorKey === undefined || descendant.terms.has(ancestorKey)) continue;
+	for (const ancestorKey of ancestorKeys) {
+		const otherWeight = other.terms.get(ancestorKey);
 
-		const otherWeight = other.terms.get(ancestorKey) ?? 0;
+		if (otherWeight === undefined) continue;
 
-		score += ancestorShare * Math.max(weight, otherWeight) * rarityOf(context, ancestorKey);
+		const credit = ancestorShare * Math.max(weight, otherWeight) * rarityOf(context, ancestorKey);
+
+		best = Math.max(best, credit);
 	}
 
-	return score;
+	return best;
 }
 
 // A mix's alias is the site's own persona on nearly every mix, so it would join them all
@@ -117,6 +125,18 @@ function authoredArtists(entry: LinkableEntry): Array<CreditValue> {
 	if (entry.collection === 'mixes') return [];
 
 	return entry.data.artists ?? [];
+}
+
+function bestRoute(
+	key: string,
+	{ candidate, entry }: ProfilePair,
+	context: RelatedContext,
+): number {
+	return Math.max(
+		exactRoute(key, { candidate, entry }, context),
+		ancestorRoute(key, { other: candidate, own: entry }, context),
+		ancestorRoute(key, { other: entry, own: candidate }, context),
+	);
 }
 
 async function buildRelatedContext(): Promise<RelatedContext> {
@@ -218,6 +238,19 @@ function creditKeys(
 		.map((id) => termKey(vocabulary, id));
 }
 
+function exactRoute(
+	key: string,
+	{ candidate, entry }: ProfilePair,
+	context: RelatedContext,
+): number {
+	const entryWeight = entry.terms.get(key);
+	const candidateWeight = candidate.terms.get(key);
+
+	if (entryWeight === undefined || candidateWeight === undefined) return 0;
+
+	return Math.max(entryWeight, candidateWeight) * rarityOf(context, key);
+}
+
 function measureRarity(profiles: Array<RelatedProfile>): Map<string, number> {
 	const counts = new Map<string, number>();
 
@@ -250,39 +283,21 @@ function referenceKeys(
 	return (references ?? []).map((reference) => termKey(vocabulary, reference.id));
 }
 
-function scoreCandidate(
+export function scoreCandidate(
 	entry: RelatedProfile,
 	candidate: RelatedProfile,
 	context: RelatedContext,
 ): number {
-	let score =
-		sharedScore(entry, candidate, context) +
-		ancestorScore(entry, candidate, context) +
-		ancestorScore(candidate, entry, context);
+	const keys = new Set([...entry.terms.keys(), ...candidate.terms.keys()]);
+	let score = 0;
+
+	for (const key of keys) score += bestRoute(key, { candidate, entry }, context);
 
 	if (entry.references.has(candidate.id) || candidate.references.has(entry.id)) {
 		score += referenceWeight;
 	}
 
 	return entry.collection === candidate.collection ? score * sameCollectionMultiplier : score;
-}
-
-function sharedScore(
-	entry: RelatedProfile,
-	candidate: RelatedProfile,
-	context: RelatedContext,
-): number {
-	let score = 0;
-
-	for (const [key, weight] of entry.terms) {
-		const candidateWeight = candidate.terms.get(key);
-
-		if (candidateWeight === undefined) continue;
-
-		score += Math.max(weight, candidateWeight) * rarityOf(context, key);
-	}
-
-	return score;
 }
 
 function termKey(vocabulary: Vocabulary, id: string): string {

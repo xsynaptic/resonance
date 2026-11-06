@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'vitest';
+import { fc, test } from '@fast-check/vitest';
+import { describe, expect } from 'vitest';
 
 import { canMove, dropIndex, movedArray, movedIndex } from '#queue/reorder.ts';
 
@@ -54,7 +55,80 @@ describe('movedIndex', () => {
 	});
 });
 
+const longestQueueChecked = 8;
+
+function indicesUpTo(length: number): Array<number> {
+	return Array.from({ length }, (_, index) => index);
+}
+
+function everyMoveCanMoveAccepts() {
+	const moves: Array<{ from: number; length: number; to: number }> = [];
+
+	for (let length = 1; length <= longestQueueChecked; length += 1) {
+		const indices = indicesUpTo(length);
+
+		for (const from of indices) {
+			const accepted = indices.filter((to) => canMove(length, from, to));
+
+			moves.push(...accepted.map((to) => ({ from, length, to })));
+		}
+	}
+
+	return moves;
+}
+
+const byText = (first: string, second: string) => first.localeCompare(second);
+
+describe('movedArray against movedIndex', () => {
+	test('permutes its input and lands every item where movedIndex says, for every move canMove accepts', () => {
+		const moves = everyMoveCanMoveAccepts();
+
+		expect(moves).toHaveLength(168);
+
+		for (const { from, length, to } of moves) {
+			const items = Array.from({ length }, (_, index) => `item-${String(index)}`);
+			const moved = movedArray(items, from, to);
+
+			expect(moved.toSorted(byText)).toStrictEqual(items.toSorted(byText));
+
+			for (const [index, item] of items.entries()) {
+				expect(moved[movedIndex(index, from, to)], JSON.stringify({ from, length, to })).toBe(item);
+			}
+		}
+	});
+});
+
+const midpointsSortedTopDownByConvention = fc
+	.array(fc.integer({ max: 200, min: 0 }), { maxLength: longestQueueChecked, minLength: 1 })
+	.map((values) => values.toSorted((first, second) => first - second));
+
+const dragOverMeasuredRows = midpointsSortedTopDownByConvention.chain((rowMidpoints) =>
+	fc.record({
+		from: fc.nat({ max: rowMidpoints.length - 1 }),
+		midpoints: fc.constant(rowMidpoints),
+		pointers: fc
+			.tuple(fc.integer({ max: 220, min: -20 }), fc.integer({ max: 220, min: -20 }))
+			.map(([first, second]) => [Math.min(first, second), Math.max(first, second)] as const),
+	}),
+);
+
 describe('dropIndex', () => {
+	test.prop([dragOverMeasuredRows], { numRuns: 1000 })(
+		'stays within the queue and never decreases as the pointer moves down',
+		({ from, midpoints: rowMidpoints, pointers }) => {
+			const [higher, lower] = pointers;
+			const upper = dropIndex(rowMidpoints, from, higher);
+			const below = dropIndex(rowMidpoints, from, lower);
+
+			for (const landing of [upper, below]) {
+				expect(landing).toBeGreaterThanOrEqual(0);
+				expect(landing).toBeLessThanOrEqual(rowMidpoints.length - 1);
+			}
+
+			expect(below).toBeGreaterThanOrEqual(upper);
+		},
+	);
+
 	test('lands where the pointer sits when nothing has been crossed', () => {
 		expect(dropIndex(midpoints, 2, 10)).toBe(0);
 	});

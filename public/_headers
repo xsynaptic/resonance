@@ -35,16 +35,16 @@
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 # Ten minutes is what the entry file can afford; it names a shard hash the next deploy deletes
-/pagefind/pagefind-entry.json
+/pagefind/:version/pagefind-entry.json
   ! Cache-Control
   Cache-Control: public, max-age=600
 
 # The shards under these two carry a content hash, so a cached one is never the wrong bytes
-/pagefind/fragment/*
+/pagefind/:version/fragment/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
-/pagefind/index/*
+/pagefind/:version/index/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 

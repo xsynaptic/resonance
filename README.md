@@ -64,7 +64,7 @@ The original site ran a custom WordPress theme for well over a decade. A one-sho
 
 ### Search & Discovery
 
-- Client-side full-text search via [Pagefind](https://pagefind.app/) and the [astro-pagefind](https://github.com/shishkin/astro-pagefind) integration, with a modal interface via [@pagefind/component-ui](https://pagefind.app/docs/ui-usage/)
+- Client-side full-text search via [Pagefind](https://pagefind.app/) and the [@xsynaptic/astro-pagefind](https://github.com/xsynaptic/astro-lab/tree/main/packages/astro-pagefind) integration, with a modal interface via [@pagefind/component-ui](https://pagefind.app/docs/ui-usage/)
 - Hierarchical navigation through styles, regions, eras, themes, and series
 - Client-side fuzzy 404 suggestions via [@xsynaptic/path-suggestions](https://github.com/xsynaptic/astro-lab/tree/main/packages/path-suggestions) scored against a build-time content manifest
 

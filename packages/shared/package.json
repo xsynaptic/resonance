@@ -21,7 +21,7 @@
 		"./waveform-format": "./src/waveform-format.ts"
 	},
 	"dependencies": {
-		"@xsynaptic/astro-image-pipeline": "^0.11.1",
+		"@xsynaptic/astro-image-pipeline": "^0.12.0",
 		"zod": "^4.6.7"
 	}
 }

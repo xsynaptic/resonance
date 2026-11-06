@@ -5,12 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 import buildLogger from '@xsynaptic/astro-build-logger';
 import fontDevtools from '@xsynaptic/astro-font-devtools';
 import imagePipeline from '@xsynaptic/astro-image-pipeline';
+import pagefind from '@xsynaptic/astro-pagefind';
 import { sitemapLastmod } from '@xsynaptic/astro-sitemap-lastmod';
 import { autoImport } from '@xsynaptic/satteri-auto-import';
 import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
 import { imageCachePath, sitemapLastmodPath } from '@xsynaptic/shared/constants';
 import { getUrlPathIndexing } from '@xsynaptic/shared/sitemap';
-import pagefind from 'astro-pagefind';
 import { defineConfig, envField, fontProviders } from 'astro/config';
 import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
 

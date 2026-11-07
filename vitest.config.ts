@@ -17,6 +17,7 @@ export default defineConfig({
 	},
 	test: {
 		env: { SITE: 'http://localhost:4321/' },
+		environmentOptions: { happyDOM: { settings: { enableCSSFileLoading: true } } },
 		projects: [
 			{
 				extends: true,

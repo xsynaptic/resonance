@@ -42,6 +42,26 @@ export default getConfig(
 			'packages/playback-stats/**/*',
 		]),
 		{
+			files: [
+				'**/*.astro/*.{js,ts}',
+				'src/components/**/*.{ts,tsx}',
+				'packages/player/src/**/*.ts',
+				'packages/playback-stats/src/**/*.ts',
+			],
+			ignores: ['**/*.test.{ts,tsx}'],
+			rules: {
+				'no-restricted-properties': [
+					'error',
+					...['toReversed', 'toSorted', 'toSpliced', 'with'].map((property) => ({
+						message: 'Copy then mutate instead (`[...array].sort()`)',
+						property,
+					})),
+				],
+				'unicorn/no-array-reverse': 'off',
+				'unicorn/no-array-sort': 'off',
+			},
+		},
+		{
 			// `src/lib/**` is build-time and server code; `no-undef` misreads type namespaces, so the browser names are listed instead
 			files: ['src/lib/**/*.ts'],
 			rules: {

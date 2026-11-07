@@ -50,6 +50,65 @@ test('the shortcut opens search from a cold start without dropping the keypress'
 	);
 });
 
+async function navigateClientSide(page: Page, path: string): Promise<void> {
+	await page.evaluate(
+		(href) =>
+			new Promise<void>((resolve) => {
+				document.addEventListener(
+					'astro:page-load',
+					() => {
+						resolve();
+					},
+					{ once: true },
+				);
+
+				const link = document.createElement('a');
+
+				link.href = href;
+				document.body.append(link);
+				link.click();
+			}),
+		path,
+	);
+}
+
+function getRegisteredCount(page: Page): Promise<number | undefined> {
+	return page.evaluate(() => document.querySelector('search-toggle')?.instance?.components.length);
+}
+
+test('search still works after client-side navigation', async ({ page, site }) => {
+	await visit(page, '/');
+
+	const toggle = page.getByRole('button', { name: t('search.toggle.label') });
+	const searchInput = page.locator('pagefind-input input');
+
+	await toggle.click();
+	await expect(searchInput).toBeFocused();
+	await page.keyboard.press('Escape');
+
+	const registeredCount = await getRegisteredCount(page);
+
+	for (const path of [site.mixDetail, site.reviewDetail, '/']) {
+		await navigateClientSide(page, path);
+	}
+
+	await toggle.click();
+	await expect(searchInput).toBeFocused();
+	await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+	expect(await getRegisteredCount(page)).toBe(registeredCount);
+	await searchInput.pressSequentially(site.postTitle, { delay: 30 });
+
+	const resultLink = page.locator('.pf-result-link').first();
+
+	await expect(resultLink).toBeVisible({ timeout: 10_000 });
+	await expect(resultLink).toHaveText(site.postTitle);
+
+	await page.keyboard.press('Escape');
+	await expect(toggle).toBeFocused();
+	await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+});
+
 interface TrackedEvent {
 	data: unknown;
 	name: string;

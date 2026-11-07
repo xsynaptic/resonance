@@ -159,7 +159,7 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 export async function reapDerivedAudio(options: DeployAudioOptions): Promise<void> {
 	const { config, dryRun = false, rootPath } = options;
 
-	// fallow-ignore-next-line code-duplication -- a loop header and a guard; the upload warns on a missing leg, this skips it
+	// fallow-ignore-next-line code-duplication
 	for (const leg of derivedLegs) {
 		const localPath = path.join(rootPath, leg.localDir);
 

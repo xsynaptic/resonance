@@ -26,7 +26,7 @@
 }
 
 @media (hover: hover) {
-	/* fallow-ignore-next-line code-duplication -- the hover twin has to stay under @media (hover: hover) */
+	/* fallow-ignore-next-line code-duplication */
 	.button-x:hover:not(:disabled) {
 		--button-sheen: var(
 			--button-sheen-hover,

@@ -46,7 +46,7 @@
 }
 
 .comment-action {
-	/* fallow-ignore-next-line code-duplication -- shares only its text-sm medium type with .comment-label */
+	/* fallow-ignore-next-line code-duplication */
 	padding-inline: calc(var(--spacing) * 1);
 	font-size: var(--text-sm);
 	font-weight: 500;

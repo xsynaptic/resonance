@@ -205,7 +205,7 @@ site-navigation {
 	height: 10px;
 }
 
-/* fallow-ignore-next-line css-duplicate-block -- the hover twin has to stay under @media (hover: hover) */
+/* fallow-ignore-next-line css-duplicate-block */
 .nav-item[data-open] > .nav-sub-d1,
 .nav-sub-item[data-open] > .nav-sub-d2 {
 	visibility: visible;

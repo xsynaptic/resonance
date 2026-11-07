@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { rsyncTo, sshExec } from '#deploy/rsync-exec.ts';
+import { describeRsyncSummary, formatRsyncChange, rsyncTo, sshExec } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain } from '#shared/utils.ts';
 
 interface DeployServerConfigOptions {
@@ -11,6 +11,25 @@ interface DeployServerConfigOptions {
 	dryRun?: boolean;
 	rootPath: string;
 }
+
+interface StagedDirectory {
+	directory: string;
+	excludes?: Array<string>;
+	extraFlags?: Array<string>;
+	label: string;
+}
+
+const stagedDirectories: Array<StagedDirectory> = [
+	// The vhosts are gitignored, so this directory is local-only and absent from a fresh clone
+	{ directory: 'nginx', extraFlags: ['--delete'], label: 'Staging nginx config' },
+	{
+		directory: 'stats',
+		excludes: ['fixtures', 'test-*.py', '__pycache__'],
+		label: 'Staging the stats script',
+	},
+	{ directory: 'systemd', label: 'Staging systemd units' },
+	{ directory: 'tmpfiles', label: 'Staging tmpfiles' },
+];
 
 // Staging prunes, or a vhost renamed here is pushed live again from the copy left behind
 // The apply never --delete, since other sites share the live directory with us
@@ -34,33 +53,16 @@ export async function deployServerConfig(options: DeployServerConfigOptions): Pr
 
 		if (dryRun) log.warn('Dry run');
 
-		// The vhosts are gitignored, so this directory is local-only and absent from a fresh clone
-		await rsyncTo(`${deployDir}/nginx/`, `${remoteHost}:${stagingPath}/nginx/`, {
-			archive: 'av',
-			config,
-			dryRun,
-			extraFlags: ['--delete'],
-			label: 'Staging nginx config',
-		});
-		await rsyncTo(`${deployDir}/stats/`, `${remoteHost}:${stagingPath}/stats/`, {
-			archive: 'av',
-			config,
-			dryRun,
-			excludes: ['fixtures', 'test-*.py', '__pycache__'],
-			label: 'Staging the stats script',
-		});
-		await rsyncTo(`${deployDir}/systemd/`, `${remoteHost}:${stagingPath}/systemd/`, {
-			archive: 'av',
-			config,
-			dryRun,
-			label: 'Staging systemd units',
-		});
-		await rsyncTo(`${deployDir}/tmpfiles/`, `${remoteHost}:${stagingPath}/tmpfiles/`, {
-			archive: 'av',
-			config,
-			dryRun,
-			label: 'Staging tmpfiles',
-		});
+		for (const { directory, label, ...filters } of stagedDirectories) {
+			const summary = await rsyncTo(
+				`${deployDir}/${directory}/`,
+				`${remoteHost}:${stagingPath}/${directory}/`,
+				{ config, dryRun, label, ...filters },
+			);
+
+			log.detail(`${label} · ${describeRsyncSummary(summary)}`);
+			for (const change of summary.changes) log.detail(`  ${formatRsyncChange(change)}`);
+		}
 
 		await sshExec(config, applyNginxSites(config), { dryRun });
 

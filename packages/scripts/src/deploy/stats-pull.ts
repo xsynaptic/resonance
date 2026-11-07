@@ -46,7 +46,7 @@ export async function pullStats(options: StatsPullOptions): Promise<void> {
 			await rsyncTo(
 				statsFiles.map((file) => `${config.remoteHost}:${remoteStatsDir}/${file}`),
 				`${backupDir}/`,
-				{ archive: 'av', config, dryRun, label: 'Transferring stats files', quiet: true },
+				{ config, dryRun, label: 'Transferring stats files' },
 			);
 
 			if (dryRun) {

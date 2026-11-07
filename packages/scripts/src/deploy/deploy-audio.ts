@@ -3,9 +3,10 @@ import { waveformsCacheDir } from '@xsynaptic/shared/constants';
 import path from 'node:path';
 
 import type { DeployConfig } from '#deploy/deploy-config.ts';
+import type { RsyncSummary } from '#deploy/rsync-exec.ts';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
-import { rsyncTo } from '#deploy/rsync-exec.ts';
+import { describeRsyncSummary, rsyncTo } from '#deploy/rsync-exec.ts';
 import { ensureSshKeychain, isPathPresent } from '#shared/utils.ts';
 
 // The one place the server layout is named; stats-pull derives its own path from this
@@ -20,12 +21,8 @@ const rsyncFlags = [
 	'--chmod=D755,F644',
 	// A sleeping laptop should fail the run and resume from the partial file, not hang on TCP
 	'--timeout=60',
-	'-e',
-	'ssh -o ConnectTimeout=15',
 	// The remote host serves other traffic; nice this side so rsync never wins the CPU
 	'--rsync-path=nice -n19 rsync',
-	// One line per transferred file, which the health check probes
-	'--out-format=%n',
 ];
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
@@ -56,7 +53,6 @@ interface DerivedLeg {
 
 interface LegSync {
 	config: DeployConfig;
-	describe?: (stdout: string) => string;
 	dryRun: boolean;
 	extraFlags: Array<string>;
 	label: string;
@@ -102,11 +98,10 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 		if (dryRun) log.warn('Dry run');
 
 		log.detail(`Originals: ${sourceDir}/ -> ${config.remoteHost}:${remoteRoot}/artifacts/`);
-		const artifactsOutput = await rsyncTo(
+		const artifactsSummary = await rsyncTo(
 			`${sourceDir}/`,
 			`${config.remoteHost}:${remoteRoot}/artifacts/`,
 			{
-				archive: 'av',
 				config,
 				dryRun,
 				excludes: rsyncExcludes,
@@ -114,6 +109,8 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 				label: 'Uploading originals',
 			},
 		);
+
+		log.detail(`Originals · ${describeRsyncSummary(artifactsSummary)}`);
 
 		// One leg at a time, because the box serves other traffic
 		const derived: Pick<DeployedAudio, 'renditions' | 'waveformFiles'> = {
@@ -135,17 +132,18 @@ export async function deployAudio(options: DeployAudioOptions): Promise<Deployed
 				`${leg.label}: ${localPath}/ -> ${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`,
 			);
 
-			const output = await rsyncLeg(leg, localPath, {
+			const summary = await rsyncLeg(leg, localPath, {
 				config,
 				dryRun,
 				extraFlags: rsyncFlags,
 				label: `Uploading ${leg.label.toLowerCase()}`,
 			});
 
-			derived[leg.key] = parseTransferred(output, leg.transferred);
+			log.detail(`${leg.label} · ${describeRsyncSummary(summary)}`);
+			derived[leg.key] = getTransferred(summary, leg.transferred);
 		}
 
-		const originals = parseTransferred(artifactsOutput, transferredOriginal);
+		const originals = getTransferred(artifactsSummary, transferredOriginal);
 
 		log.detail(
 			`${String(originals.length)} original(s), ${String(derived.renditions.length)} rendition(s), ${String(derived.waveformFiles.length)} waveform file(s) transferred`,
@@ -171,43 +169,34 @@ export async function reapDerivedAudio(options: DeployAudioOptions): Promise<voi
 
 		if (dryRun) log.warn('Dry run');
 
-		await rsyncLeg(leg, localPath, {
+		const { changes } = await rsyncLeg(leg, localPath, {
 			config,
-			describe: (output) => `Reaped ${String(countDeleted(output))} superseded ${label}`,
 			dryRun,
 			extraFlags: [...rsyncFlags, '--delete'],
 			label: `Reaping superseded ${label}`,
 		});
+
+		// Any extension counts, so a superseded format (the .webm renditions) is reported as it goes
+		const reaped = changes.filter((change) => change.kind === 'removed').length;
+
+		log.detail(`Reaped ${String(reaped)} superseded ${label}`);
 	}
 }
 
-// Any extension counts, so a superseded format (the .webm renditions) is reported as it goes
-function countDeleted(output: string): number {
-	return output
-		.split('\n')
-		.map((line) => line.trim())
-		.filter((line) => line.startsWith('deleting ') && !line.endsWith('/')).length;
-}
-
-// --progress writes its own lines into the same stream, so match on the extension rather than shape
-// `--delete` writes `deleting <name>`, which also ends in the extension and is not a transfer
-function parseTransferred(output: string, pattern: RegExp): Array<string> {
-	return output
-		.split('\n')
-		.map((line) => line.trim())
-		.filter((line) => !line.startsWith('deleting ') && pattern.test(line));
+function getTransferred({ changes }: RsyncSummary, pattern: RegExp): Array<string> {
+	return changes
+		.filter((change) => change.kind !== 'removed' && pattern.test(change.path))
+		.map((change) => change.path);
 }
 
 // The reap deletes against the same destination and excludes the upload wrote through
 function rsyncLeg(
 	leg: DerivedLeg,
 	localPath: string,
-	{ config, describe, dryRun, extraFlags, label }: LegSync,
-): Promise<string> {
+	{ config, dryRun, extraFlags, label }: LegSync,
+): Promise<RsyncSummary> {
 	return rsyncTo(`${localPath}/`, `${config.remoteHost}:${remoteRoot}/${leg.remoteDir}/`, {
-		archive: 'av',
 		config,
-		...(describe ? { describe } : {}),
 		dryRun,
 		excludes: leg.excludes,
 		extraFlags,

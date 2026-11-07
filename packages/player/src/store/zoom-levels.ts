@@ -13,7 +13,7 @@ export function stepPanelZoom(pxPerSecond: number, steps: number): number {
 	const rungs =
 		steps > 0
 			? zoomLevels.filter((level) => level > pxPerSecond)
-			: zoomLevels.filter((level) => level < pxPerSecond).toReversed();
+			: zoomLevels.filter((level) => level < pxPerSecond).reverse();
 
 	return rungs[Math.min(rungs.length, Math.abs(steps)) - 1] ?? pxPerSecond;
 }

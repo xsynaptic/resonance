@@ -28,25 +28,15 @@
   ! Cache-Control
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-# The loader, worker, wasm and UI bundle keep stable names but change only on a Pagefind upgrade
-# Revalidating after a stale hit bounds an upgrade's old-loader-meets-new-index window to one page view
+# The version directory fixes the loader, worker, wasm and UI bytes; shards carry a content hash
 /pagefind/*
   ! Cache-Control
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=31536000, immutable
 
 # Ten minutes is what the entry file can afford; it names a shard hash the next deploy deletes
 /pagefind/:version/pagefind-entry.json
   ! Cache-Control
   Cache-Control: public, max-age=600
-
-# The shards under these two carry a content hash, so a cached one is never the wrong bytes
-/pagefind/:version/fragment/*
-  ! Cache-Control
-  Cache-Control: public, max-age=31536000, immutable
-
-/pagefind/:version/index/*
-  ! Cache-Control
-  Cache-Control: public, max-age=31536000, immutable
 
 # Unfingerprinted, so a month is how long a replacement takes to reach a repeat visitor
 /favicon.ico

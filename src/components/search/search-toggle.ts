@@ -1,8 +1,11 @@
-import type { Instance, PagefindModal } from '@pagefind/component-ui';
+import type { Instance, PagefindModal, PagefindModalTrigger } from '@pagefind/component-ui';
 
 import { trackEvent } from '#components/main/main-analytics.ts';
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent);
+
+// Pagefind reads these by name off a registered modal-trigger; a rename fails silently without this
+type ModalTriggerContract = Pick<PagefindModalTrigger, 'buttonEl' | 'handleModalClose'>;
 
 const searchQueryMinLength = 2;
 const searchQueryMaxLength = 100;
@@ -23,11 +26,10 @@ const imageMetaFields = new Set(['image', 'image_2x']);
 
 const searchCommitters = new WeakMap<Instance, CommitSearch>();
 
-class SearchToggle extends HTMLElement {
+class SearchToggle extends HTMLElement implements ModalTriggerContract {
 	// eslint-disable-next-line unicorn/no-null -- matches Pagefind's PagefindComponent interface
 	instance: Instance | null = null;
 
-	/** Pagefind reads this off the registered trigger to toggle aria-expanded and aria-controls */
 	get buttonEl() {
 		return this.querySelector<HTMLButtonElement>('button');
 	}

@@ -16,6 +16,12 @@ export const listensStatsPath = `./${CONTENT_DATA_PATH}/data/listens.json`;
 // Every feed item is a full off-page MDX render, so the count is the build cost
 export const feedItemCount = 20;
 
+// A configured breakpoint, so the feed reuses a transform the pages already emit
+export const feedImageWidth = 1200;
+
+// Date-only frontmatter parses to 00:00 UTC; feed dates anchor it to the author's UTC+8 day
+export const siteTimezoneOffsetHours = 8;
+
 export const listPageSize = 24;
 
 // Pulled by `pnpm deploy-site` and committed, so a build never reaches Mixcloud

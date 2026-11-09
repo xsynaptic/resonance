@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 
-import rss from '@astrojs/rss';
+import { getRssResponse } from '@xsynaptic/astro-syndication/rss';
 
 import { getFeedItems } from '#lib/feed/feed-items.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
@@ -12,25 +12,19 @@ export const GET = (async (context) => {
 
 	if (!siteUrl) throw new Error('The RSS feed needs `site` set in the Astro config.');
 
-	const items = await getFeedItems(siteUrl);
-
-	// The newest item, not the build time, so an unchanged feed keeps its ETag
-	const lastBuildDate = items[0]?.pubDate;
 	const copyright = formatStringTemplate(t('footer.copyright'), {
 		year: new Date().getFullYear(),
 	});
 
-	return rss({
-		customData: [
-			'<language>en-us</language>',
-			`<atom:link href="${new URL('rss.xml', siteUrl).href}" rel="self" type="application/rss+xml"/>`,
-			...(lastBuildDate ? [`<lastBuildDate>${lastBuildDate.toUTCString()}</lastBuildDate>`] : []),
-			`<copyright>${copyright}</copyright>`,
-		].join(''),
-		description: site.description,
-		items,
-		site: siteUrl,
-		title: site.title,
-		xmlns: { atom: 'http://www.w3.org/2005/Atom' },
+	return getRssResponse({
+		items: await getFeedItems(siteUrl),
+		publication: {
+			copyright,
+			description: site.description,
+			language: 'en-us',
+			site: siteUrl,
+			title: site.title,
+		},
+		selfUrl: new URL('rss.xml', siteUrl),
 	});
 }) satisfies APIRoute;

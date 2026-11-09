@@ -58,6 +58,7 @@
 		"@xsynaptic/astro-image-pipeline": "^0.12.0",
 		"@xsynaptic/astro-pagefind": "^0.1.0",
 		"@xsynaptic/astro-sitemap-lastmod": "^0.3.1",
+		"@xsynaptic/astro-syndication": "^0.2.0",
 		"@xsynaptic/eslint-config": "^6.8.0",
 		"@xsynaptic/mdxlint-config": "^2.0.0",
 		"@xsynaptic/path-suggestions": "^0.2.1",

@@ -13,13 +13,13 @@ export const downloadsStatsPath = `./${CONTENT_DATA_PATH}/data/downloads.json`;
 // Pulled by `pnpm deploy-site`; may not exist locally
 export const listensStatsPath = `./${CONTENT_DATA_PATH}/data/listens.json`;
 
-// Every feed item is a full off-page MDX render, so the count is the build cost
-export const feedItemCount = 20;
+export const syndicationItemCount = 20;
 
-// A configured breakpoint, so the feed reuses a transform the pages already emit
-export const feedImageWidth = 1200;
+// A configured breakpoint, so syndication reuses a transform the pages already emit
+export const syndicationImageWidth = 1200;
 
-// Date-only frontmatter parses to 00:00 UTC; feed dates anchor it to the author's UTC+8 day
+export const siteAuthorName = 'Basilisk';
+
 export const siteTimezoneOffsetHours = 8;
 
 export const listPageSize = 24;

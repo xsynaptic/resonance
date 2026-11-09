@@ -2,6 +2,7 @@ import { getContentPath } from '@xsynaptic/shared/routing';
 
 import type { LinkedName } from '#lib/utils/terms.ts';
 
+import { siteAuthorName } from '#constants.ts';
 import { site } from '#lib/site.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 
@@ -157,7 +158,7 @@ export function buildAuthorSchema(options?: { sameAs?: ReadonlyArray<string> }):
 		'@type': 'Person',
 		// The site title names the persona; the Person node names the human behind it
 		alternateName: 'DJ Basilisk',
-		name: 'Basilisk',
+		name: siteAuthorName,
 		url: profileUrl,
 		...(options?.sameAs && options.sameAs.length > 0 ? { sameAs: options.sameAs } : {}),
 	};

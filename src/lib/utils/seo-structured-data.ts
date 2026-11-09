@@ -3,7 +3,7 @@ import { getContentPath } from '@xsynaptic/shared/routing';
 import type { LinkedName } from '#lib/utils/terms.ts';
 
 import { siteAuthorName } from '#constants.ts';
-import { site } from '#lib/site.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 
 export type Thing =
@@ -174,7 +174,7 @@ export function buildCollectionGraph(props: {
 		buildCollectionPageSchema(props),
 		buildBreadcrumbSchema(
 			[
-				{ name: site.title, url: siteUrl },
+				{ name: t('site.title'), url: siteUrl },
 				...(props.trail ?? []).map((crumb) => ({
 					name: crumb.name,
 					...(crumb.url ? { url: getAbsoluteUrl(crumb.url) } : {}),
@@ -197,7 +197,7 @@ export function buildEntryGraph(props: {
 		buildAuthorSchema(),
 		buildBreadcrumbSchema(
 			[
-				{ name: site.title, url: siteUrl },
+				{ name: t('site.title'), url: siteUrl },
 				{
 					name: props.kind.name,
 					...(props.kind.url ? { url: getAbsoluteUrl(props.kind.url) } : {}),
@@ -273,8 +273,8 @@ export function buildWebSiteSchema(): WebSite {
 	return {
 		'@id': ids.website,
 		'@type': 'WebSite',
-		description: site.description,
-		name: site.title,
+		description: t('site.description'),
+		name: t('site.title'),
 		publisher: { '@id': ids.person },
 		url: siteUrl,
 	};

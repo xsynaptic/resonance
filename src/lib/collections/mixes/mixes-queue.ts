@@ -7,8 +7,8 @@ import { getImage } from 'astro:assets';
 
 import { getMixAudio } from '#lib/collections/mixes/mixes-audio.ts';
 import { getMixCuePoints } from '#lib/collections/mixes/mixes-cue.ts';
+import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { site } from '#lib/site.ts';
 import { getMediaImage } from '#lib/utils/media.ts';
 import { toFlatTracks } from '#lib/utils/track-groups.ts';
 import { getWorkTitle } from '#lib/utils/work-title.ts';
@@ -47,7 +47,7 @@ export async function getMixQueueItem(
 				: {}),
 		},
 		press: {
-			artistLine: work.credit?.name ?? site.title,
+			artistLine: work.credit?.name ?? t('site.title'),
 			durationMs: audio.seconds * 1000,
 			itemId: entry.id,
 			releaseHref: getContentPath('mixes', entry.id),

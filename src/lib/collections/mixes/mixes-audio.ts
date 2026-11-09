@@ -9,13 +9,22 @@ import {
 	bandsHeaderBytes,
 	peakArchiveHeaderBytes,
 } from '@xsynaptic/shared/waveform-format';
-import { CONTENT_DATA_PATH } from 'astro:env/server';
+import { CONTENT_DATA_PATH, FILES_URL } from 'astro:env/server';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import pMemoize from 'p-memoize';
 
-import { streamBaseUrl, waveformBaseUrl } from '#lib/site.ts';
+// Both files exist locally, so dev serves its own rather than reading the production box
+const streamBaseUrl = import.meta.env.DEV ? '/stream/' : new URL('stream/', FILES_URL).href;
+
+const waveformBaseUrl = import.meta.env.DEV ? '/waveform/' : new URL('waveform/', FILES_URL).href;
+
+// Downloads stay remote, because those are links a visitor follows rather than files the player reads
+export const downloadBaseUrl = new URL('artifacts/', FILES_URL).href;
+
+// Dev serves audio locally, so only a build has a remote host worth connecting to early
+export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).origin;
 
 export interface MixAudio {
 	archive: QueueArchive;

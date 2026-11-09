@@ -20,7 +20,6 @@ import MainSprites from '#components/main/main-sprites.astro';
 import MainTopButton from '#components/main/main-top-button.astro';
 import PlayerBar from '#components/player/player-bar.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { site } from '#lib/site.ts';
 import { renderSlot } from '#lib/utils/astro.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
 import { serializeGraph } from '#lib/utils/seo-structured-data.ts';
@@ -48,10 +47,10 @@ const {
 } = Astro.props;
 
 // An excerpt can come back empty, and the layouts pass it through as it is
-const description = descriptionProp || site.description;
+const description = descriptionProp || t('site.description');
 const pageTitle = title
-	? formatStringTemplate(t('site.pageTitle'), { siteTitle: site.title, title })
-	: site.title;
+	? formatStringTemplate(t('site.pageTitle'), { siteTitle: t('site.title'), title })
+	: t('site.title');
 
 const pageUrl = getAbsoluteUrl(Astro.url.pathname);
 const openGraphImageUrl = getOpenGraphImageUrl(openGraphCard, Astro.site);
@@ -82,7 +81,7 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<link
 			href={getAbsoluteUrl('/rss.xml')}
 			rel="alternate"
-			title={site.title}
+			title={t('site.title')}
 			type="application/rss+xml"
 		/>
 		<Font cssVariable="--font-archivo" preload={[{ style: 'normal' }]} />
@@ -96,7 +95,7 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		<meta content={pageTitle} property="og:title" />
 		<meta content={description} property="og:description" />
 		<meta content={pageUrl} property="og:url" />
-		<meta content={site.title} property="og:site_name" />
+		<meta content={t('site.title')} property="og:site_name" />
 		<meta content="en_CA" property="og:locale" />
 		<meta content={openGraphImageUrl} property="og:image" />
 		<meta content={String(openGraphImageWidth)} property="og:image:width" />

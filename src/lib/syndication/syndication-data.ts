@@ -17,7 +17,6 @@ import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getImageFeaturedId } from '#lib/image/image-featured.ts';
-import { site } from '#lib/site.ts';
 import { createSyndicationContentRenderer } from '#lib/syndication/syndication-render.ts';
 import { getEntryDescription } from '#lib/utils/description-data.ts';
 import { byDateCreatedDescending } from '#lib/utils/entries.ts';
@@ -47,13 +46,13 @@ export async function getSyndicationItems() {
 	);
 }
 
-export function getSyndicationPublication(siteUrl: SyndicationPublication['site']) {
+export function getSyndicationPublication(site: SyndicationPublication['site']) {
 	return {
 		copyright: formatStringTemplate(t('footer.copyright'), { year: new Date().getFullYear() }),
-		description: site.description,
+		description: t('site.description'),
 		language: 'en-us',
-		site: siteUrl,
-		title: site.title,
+		site,
+		title: t('site.title'),
 	} satisfies SyndicationPublication;
 }
 

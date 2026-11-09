@@ -20,10 +20,10 @@ export const openGraphHomeImageId = '2019/synaptic-fx-round-1.jpg';
 
 export const sitemapLastmodPath = './.cache/sitemap-lastmod.json';
 
-// The brand line on every OG card, and the site title; read by the app through `#lib/site.ts`
+// The brand line on every OG card, and the site title the app reads as `site.title`
 export const siteTitle = 'DJ Basilisk';
 
-// Kept off `site.description`, which four other consumers read as an SEO string
+// Kept off `site.description`, which the app reads as an SEO string
 export const siteTagline = 'Mixcraft, reviews, and writing on electronic music since 2001';
 
 export const sqliteCachePath = './.cache';

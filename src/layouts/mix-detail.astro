@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getCollectionPath } from '@xsynaptic/shared/routing';
 import { render } from 'astro:content';
+import { LISTENING_TIME_ENABLED } from 'astro:env/server';
 
 import AudioCounts from '#components/parts/audio-counts.astro';
 import AudioLinks from '#components/parts/audio-links.astro';
@@ -18,7 +19,6 @@ import { resolveEntryTerms } from '#lib/collections/terms/term-ranking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 import { getMixcloudPlayCount } from '#lib/platform-stats/mixcloud-stats.ts';
 import { getSoundcloudPlayCount } from '#lib/platform-stats/soundcloud-stats.ts';
-import { isListeningTimeEnabled } from '#lib/site.ts';
 import { getListenStats } from '#lib/stats/listens-stats.ts';
 import { getEntryDescription } from '#lib/utils/description-data.ts';
 import { getAbsoluteUrl } from '#lib/utils/routing.ts';
@@ -31,6 +31,9 @@ interface Props {
 }
 
 const { entry } = Astro.props;
+
+// Listen counts render unflagged; listening time waits until the numbers are worth showing
+const isListeningTimeEnabled = import.meta.env.DEV || LISTENING_TIME_ENABLED;
 
 const { Content } = await render(entry);
 

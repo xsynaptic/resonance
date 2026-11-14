@@ -1,4 +1,5 @@
 import { log, runSubprocess } from '@xsynaptic/astro-scripts';
+import { getWranglerEnv } from '@xsynaptic/shared/wrangler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -60,6 +61,7 @@ export async function deployApp(options: DeployAppOptions): Promise<void> {
 
 	await runSubprocess('Uploading to Workers', ['pnpm', 'exec', 'wrangler', ...wranglerArgs], {
 		cwd: rootPath,
+		env: getWranglerEnv(),
 		onLine: isWranglerSummaryLine,
 	});
 }

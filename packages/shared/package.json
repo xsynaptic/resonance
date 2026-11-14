@@ -18,7 +18,8 @@
 		"./sitemap": "./src/sitemap.ts",
 		"./stats": "./src/stats.ts",
 		"./tracklist": "./src/tracklist.ts",
-		"./waveform-format": "./src/waveform-format.ts"
+		"./waveform-format": "./src/waveform-format.ts",
+		"./wrangler": "./src/wrangler.ts"
 	},
 	"dependencies": {
 		"@xsynaptic/astro-image-pipeline": "^0.12.0",

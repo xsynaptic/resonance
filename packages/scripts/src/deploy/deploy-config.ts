@@ -20,12 +20,12 @@ const requiredEnv = {
 } as const;
 
 // Every wrangler call reads these; without them it falls back to OAuth, whose refresh is not scriptable
-const requiredAuthEnv = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN'] as const;
+const requiredAuthEnv = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_DEPLOY_TOKEN'] as const;
 
 const exampleEnv = [
 	'  deploy/.env:',
 	'    CLOUDFLARE_ACCOUNT_ID=<account-id>',
-	'    CLOUDFLARE_API_TOKEN=<token with Workers Scripts:Edit, Workers Routes:Edit, D1:Edit>',
+	'    CLOUDFLARE_DEPLOY_TOKEN=<token with Workers Scripts:Edit, Workers Routes:Edit, D1:Edit>',
 	'    DEPLOY_FILE_SERVER_CONFIG_OWNER=<user>:<group>',
 	'    DEPLOY_FILE_SERVER_CONFIG_PATH=<absolute path to the live config directory>',
 	'    DEPLOY_REMOTE_HOST=<ssh-host-alias>',

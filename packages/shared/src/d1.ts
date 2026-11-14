@@ -1,6 +1,8 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
+import { getWranglerEnv } from '#wrangler.ts';
+
 const execFileAsync = promisify(execFile);
 
 export interface CommandResult<Row> {
@@ -34,7 +36,7 @@ export async function runD1Command<Row>(
 			sql,
 		],
 		// The corpus grows without bound; Node's 1 MB default would truncate it into a parse failure
-		{ cwd, maxBuffer: Infinity },
+		{ cwd, env: getWranglerEnv(), maxBuffer: Infinity },
 	);
 
 	return JSON.parse(stdout) as Array<CommandResult<Row>>;

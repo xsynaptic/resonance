@@ -7,6 +7,7 @@ import {
 	withSpinner,
 	withStep,
 } from '@xsynaptic/astro-scripts';
+import { getWranglerEnv } from '@xsynaptic/shared/wrangler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -56,7 +57,7 @@ export async function backupDatabase(options: BackupOptions): Promise<void> {
 					'--output',
 					filePath,
 				],
-				{ cwd: rootPath },
+				{ cwd: rootPath, env: getWranglerEnv() },
 			);
 			await readSubprocess(['gzip', '-f', filePath]);
 

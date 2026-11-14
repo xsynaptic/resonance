@@ -5,13 +5,13 @@
 
 # includeSubDomains covers files.djbasilisk.com, which is https only and redirects port 80
 # A year of cached policy means any future subdomain has to be https from its first request
+# No Cache-Control here: HTML revalidates because a deploy removes the `/_astro/` chunks it names
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Content-Security-Policy: frame-ancestors 'none'; upgrade-insecure-requests
-  Cache-Control: public, max-age=300, stale-while-revalidate=3600
 
 # Everything Astro fingerprints, fonts included; the platform default is max-age=0, must-revalidate
 /_astro/*
@@ -33,7 +33,7 @@
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
-# Ten minutes is what the entry file can afford; it names a shard hash the next deploy deletes
+# Pagefind adds a `?ts=` cache buster to this fetch unless `metaCacheTag` is set
 /pagefind/:version/pagefind-entry.json
   ! Cache-Control
   Cache-Control: public, max-age=600

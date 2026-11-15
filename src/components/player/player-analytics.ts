@@ -91,7 +91,6 @@ function describeBrowser(userAgent: string): string {
 		['Chrome', /(?:Chrome|CriOS)\/(\d+)\.(\d+)/],
 		['Safari', /Version\/(\d+)\.(\d+).*Safari/],
 	]);
-	if (browser === undefined) return 'other';
 
 	const system = matchVersion(userAgent, [
 		['iOS', /(?:iPhone|iPad|iPod).*? OS (\d+)_(\d+)/],
@@ -99,6 +98,10 @@ function describeBrowser(userAgent: string): string {
 		['Windows', /Windows NT (\d+)\.(\d+)/],
 		['macOS', /Mac OS X (\d+)[._](\d+)/],
 	]);
+
+	// iOS in-app views omit `Version/`, and their WebKit ships with the OS
+	if (browser === undefined && system?.startsWith('iOS')) return `WebKit / ${system}`;
+	if (browser === undefined) return 'other';
 
 	return `${browser} / ${system ?? 'other'}`;
 }

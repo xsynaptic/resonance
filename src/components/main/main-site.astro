@@ -12,6 +12,7 @@ import { ClientRouter } from 'astro:transitions';
 import type { Thing } from '#lib/utils/seo-structured-data.ts';
 
 import MainAnalytics from '#components/main/main-analytics.astro';
+import MainBuildVersion from '#components/main/main-build-version.astro';
 import MainFooter from '#components/main/main-footer.astro';
 import MainHeader from '#components/main/main-header.astro';
 import MainProgressLoading from '#components/main/main-progress-loading.astro';
@@ -110,6 +111,7 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 			<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
 		) : undefined}
 		<ClientRouter />
+		<MainBuildVersion />
 	</head>
 	<body class="relative flex min-h-screen flex-col">
 		<MainProgressLoading />

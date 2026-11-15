@@ -1,5 +1,6 @@
 // Every event name this site fires, so the set stays greppable from one file
 type AnalyticsEvent =
+	| 'build-version-reload'
 	| 'cue-sheet-download'
 	| 'player-chunk-error'
 	| 'player-error'

@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test, visit } from '#e2e/test.ts';
+import { getTracked, recordTracking } from '#e2e/tracking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 test('Pagefind returns a known Entry first', { tag: '@smoke' }, async ({ page, site }) => {
@@ -108,36 +109,6 @@ test('search still works after client-side navigation', async ({ page, site }) =
 	await expect(toggle).toBeFocused();
 	await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 });
-
-interface TrackedEvent {
-	data: unknown;
-	name: string;
-}
-
-async function recordTracking(page: Page): Promise<void> {
-	await page.addInitScript(() => {
-		const tracked: Array<TrackedEvent> = [];
-
-		Object.assign(window, {
-			tracked,
-			umami: {
-				track: (name: string, data: unknown) => {
-					tracked.push({ data, name });
-				},
-			},
-		});
-	});
-}
-
-function getTracked(page: Page, name: string): Promise<Array<TrackedEvent>> {
-	return page.evaluate(
-		(eventName) =>
-			((window as { tracked?: Array<TrackedEvent> }).tracked ?? []).filter(
-				(event) => event.name === eventName,
-			),
-		name,
-	);
-}
 
 async function searchFor(page: Page, query: string): Promise<void> {
 	const searchInput = page.locator('pagefind-input input');

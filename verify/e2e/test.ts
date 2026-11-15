@@ -35,7 +35,15 @@ const allowedHost = new URL(getBaseUrl()).host;
 const blockedResourcePattern = /static\.cloudflareinsights\.com/;
 
 // Vite logs to the console under dev, and a dependency re-optimization answers 504 once
-const devPatterns = isDev ? [/\[vite\]/, /Outdated Optimize Dep/] : [];
+// Dev serves Pagefind's bundle from the last build, whose result images exist only in `dist/_astro`
+const devPatterns = isDev
+	? [
+			/\[vite\]/,
+			/Outdated Optimize Dep/,
+			/\(\S+\/_astro\/\S+\.(?:avif|jpe?g|png|webp)\)$/,
+			/failed: Page entered Back-Forward Cache/,
+		]
+	: [];
 
 let audioFixture: Buffer | undefined;
 
@@ -91,7 +99,9 @@ export const test = base.extend<{
 			const allowed: Array<RegExp> = [blockedResourcePattern, ...devPatterns];
 
 			page.on('console', (message) => {
-				if (message.type() === 'error') errors.push(message.text());
+				// Chromium leaves the URL out of a failed resource's text, so patterns also see where it came from
+				if (message.type() === 'error')
+					errors.push(`${message.text()} (${message.location().url})`);
 			});
 			page.on('pageerror', (error) => {
 				errors.push(error.message);

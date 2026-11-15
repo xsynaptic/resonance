@@ -129,6 +129,9 @@ export default defineConfig({
 			// Astro sets `target: 'esnext'`, which `cssTarget` inherits, so Lightning CSS would add no prefixes
 			cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari16.4', 'ios16.4'],
 		},
+		define: {
+			'import.meta.env.BUILD_VERSION': JSON.stringify(Date.now().toString()),
+		},
 		plugins: [tailwindcss()],
 		server: {
 			watch: {

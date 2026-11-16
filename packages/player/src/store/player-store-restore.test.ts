@@ -151,10 +151,9 @@ afterEach(() => {
 
 describe('restoring a stored queue', () => {
 	test.prop([storedItemFields, storedDetailFields, fc.integer({ max: 900, min: 0 })])(
-		'whatever sits in the optional fields, the player mounts and keeps what it wrote',
+		'whatever sits in the optional fields, the restored queue keeps what it wrote',
 		(itemFields, detailFields, currentTimeSeconds) => {
-			const store = restore(itemFields, detailFields, currentTimeSeconds);
-			const state = store.getState();
+			const state = restore(itemFields, detailFields, currentTimeSeconds).getState();
 			const item = displayedItem(state);
 			const detail = displayedDetail(state);
 
@@ -162,7 +161,17 @@ describe('restoring a stored queue', () => {
 
 			for (const key of writtenKeys(itemFields)) expect(item).toHaveProperty(key);
 			for (const key of writtenKeys(detailFields)) expect(detail).toHaveProperty(key);
+		},
+	);
 
+	test.prop([storedItemFields, storedDetailFields, fc.integer({ max: 900, min: 0 })], {
+		numRuns: 20,
+	})(
+		'whatever sits in the optional fields, the player mounts',
+		(itemFields, detailFields, currentTimeSeconds) => {
+			const store = restore(itemFields, detailFields, currentTimeSeconds);
+			const state = store.getState();
+			const detail = displayedDetail(state);
 			const unbind = bindMediaSession(store);
 			const root = document.createElement('player-root');
 

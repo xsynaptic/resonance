@@ -13,7 +13,7 @@ const { class: className, ...props } = Astro.props;
 ---
 
 <script>
-	import '#components/search/search-toggle.ts';
+	import '#components/search/search-client.ts';
 </script>
 
 <pagefind-config
@@ -23,8 +23,8 @@ const { class: className, ...props } = Astro.props;
 
 <search-toggle
 	class:list={['flex cursor-pointer items-center justify-center', className]}
-	data-pagefind-css-url={pagefindCssUrl}
-	data-shortcut-description={t('search.shortcut.description')}
+	shortcut-description={t('search.shortcut.description')}
+	stylesheet={pagefindCssUrl}
 	{...props}
 >
 	<button
@@ -34,6 +34,7 @@ const { class: className, ...props } = Astro.props;
 		class="text-highlight-500 transition-colors hover:text-highlight-400 focus-visible:text-highlight-400"
 		data-umami-event="search-open"
 		title={t('search.toggle.title')}
+		type="button"
 	>
 		<svg aria-hidden="true" class="size-5">
 			<use href="#icon:magnifying-glass"></use>

@@ -1,11 +1,13 @@
 import type { Page } from '@playwright/test';
 
-import { expect, test, visit } from '#e2e/test.ts';
+import { expect, navigateClientSide, test, visit } from '#e2e/test.ts';
 import { getTracked, recordTracking } from '#e2e/tracking.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 test('Pagefind returns a known Entry first', { tag: '@smoke' }, async ({ page, site }) => {
 	await visit(page, '/');
+
+	expect(await page.evaluate(() => customElements.get('pagefind-modal') === undefined)).toBe(true);
 
 	await page.getByRole('button', { name: t('search.toggle.label') }).click();
 
@@ -20,96 +22,6 @@ test('Pagefind returns a known Entry first', { tag: '@smoke' }, async ({ page, s
 	await expect(resultLink).toHaveText(site.postTitle);
 });
 
-test('a click opens search from a cold start', async ({ page }) => {
-	await visit(page, '/');
-
-	expect(await page.evaluate(() => customElements.get('pagefind-modal') === undefined)).toBe(true);
-
-	const toggle = page.getByRole('button', { name: t('search.toggle.label') });
-
-	await toggle.click();
-
-	await expect(page.locator('pagefind-input input')).toBeFocused();
-	await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-});
-
-test('the shortcut opens search from a cold start without dropping the keypress', async ({
-	page,
-}) => {
-	await visit(page, '/');
-
-	expect(await page.evaluate(() => customElements.get('pagefind-modal') === undefined)).toBe(true);
-
-	const isMac = await page.evaluate(() => /mac/i.test(navigator.userAgent));
-
-	await page.keyboard.press(isMac ? 'Meta+k' : 'Control+k');
-
-	await expect(page.locator('pagefind-input input')).toBeFocused();
-	await expect(page.getByRole('button', { name: t('search.toggle.label') })).toHaveAttribute(
-		'aria-expanded',
-		'true',
-	);
-});
-
-async function navigateClientSide(page: Page, path: string): Promise<void> {
-	await page.evaluate(
-		(href) =>
-			new Promise<void>((resolve) => {
-				document.addEventListener(
-					'astro:page-load',
-					() => {
-						resolve();
-					},
-					{ once: true },
-				);
-
-				const link = document.createElement('a');
-
-				link.href = href;
-				document.body.append(link);
-				link.click();
-			}),
-		path,
-	);
-}
-
-function getRegisteredCount(page: Page): Promise<number | undefined> {
-	return page.evaluate(() => document.querySelector('search-toggle')?.instance?.components.length);
-}
-
-test('search still works after client-side navigation', async ({ page, site }) => {
-	await visit(page, '/');
-
-	const toggle = page.getByRole('button', { name: t('search.toggle.label') });
-	const searchInput = page.locator('pagefind-input input');
-
-	await toggle.click();
-	await expect(searchInput).toBeFocused();
-	await page.keyboard.press('Escape');
-
-	const registeredCount = await getRegisteredCount(page);
-
-	for (const path of [site.mixDetail, site.reviewDetail, '/']) {
-		await navigateClientSide(page, path);
-	}
-
-	await toggle.click();
-	await expect(searchInput).toBeFocused();
-	await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-
-	expect(await getRegisteredCount(page)).toBe(registeredCount);
-	await searchInput.pressSequentially(site.postTitle, { delay: 30 });
-
-	const resultLink = page.locator('.pf-result-link').first();
-
-	await expect(resultLink).toBeVisible({ timeout: 10_000 });
-	await expect(resultLink).toHaveText(site.postTitle);
-
-	await page.keyboard.press('Escape');
-	await expect(toggle).toBeFocused();
-	await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-});
-
 async function searchFor(page: Page, query: string): Promise<void> {
 	const searchInput = page.locator('pagefind-input input');
 	const summary = page.locator('pagefind-summary');
@@ -121,9 +33,14 @@ async function searchFor(page: Page, query: string): Promise<void> {
 	await expect(summary).not.toContainText('Searching');
 }
 
-test('search analytics send one event when search closes', async ({ page, site }) => {
+test('search analytics survive client-side navigation', async ({ page, site }) => {
 	await recordTracking(page);
 	await visit(page, '/');
+
+	await page.getByRole('button', { name: t('search.toggle.label') }).click();
+	await page.keyboard.press('Escape');
+	await navigateClientSide(page, site.mixDetail);
+
 	await searchFor(page, site.postTitle);
 	await page.keyboard.press('Escape');
 

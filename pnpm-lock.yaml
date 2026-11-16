@@ -246,8 +246,8 @@ importers:
         specifier: ^0.12.0
         version: 0.12.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
       '@xsynaptic/astro-pagefind':
-        specifier: ^0.1.0
-        version: 0.1.0(@pagefind/component-ui@1.6.0)(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(pagefind@1.6.0)
+        specifier: ^0.2.1
+        version: 0.2.1(@pagefind/component-ui@1.6.0)(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(pagefind@1.6.0)
       '@xsynaptic/astro-sitemap-lastmod':
         specifier: ^0.3.1
         version: 0.3.1(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -260,9 +260,6 @@ importers:
       '@xsynaptic/mdxlint-config':
         specifier: ^2.0.0
         version: 2.0.0(supports-color@10.2.2)
-      '@xsynaptic/path-suggestions':
-        specifier: ^0.2.1
-        version: 0.2.1
       '@xsynaptic/satteri-auto-import':
         specifier: ^0.2.2
         version: 0.2.2(satteri@0.11.6)
@@ -278,6 +275,9 @@ importers:
       '@xsynaptic/stylelint-config':
         specifier: ^1.1.6
         version: 1.1.6(postcss@8.5.32)(stylelint-order@8.1.1(stylelint@17.16.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.16.0(supports-color@10.2.2)(typescript@6.0.3))
+      '@xsynaptic/web-components':
+        specifier: ^0.1.0
+        version: 0.1.0
       eslint:
         specifier: ^10.14.0
         version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
@@ -2808,8 +2808,8 @@ packages:
       astro: ^7.4.2
       sharp: ^0.35
 
-  '@xsynaptic/astro-pagefind@0.1.0':
-    resolution: {integrity: sha512-Riji7n89aF8aUVn5Mhkolr5kvT2EiYauVdS7kIWplWZmrabyHlbLgSMCOLRrxp0JLBif/eUoPEE43tNw2ISzvw==}
+  '@xsynaptic/astro-pagefind@0.2.1':
+    resolution: {integrity: sha512-Pu8Fz6O9iuJGyDDFeja650U6u646Fn0Ne4vy/XHkidr8wRMQtOyvBMte2umvxjlKgYmergq+X7IWnU4MMC/I/A==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
       '@pagefind/component-ui': ^1.6.0
@@ -2855,9 +2855,6 @@ packages:
     engines: {node: '>=24'}
     hasBin: true
 
-  '@xsynaptic/path-suggestions@0.2.1':
-    resolution: {integrity: sha512-y0CcHx2l0hvRO6Qs5lQGFY3HJtsIdUY66XRJThBfToWKINicXRetQ5ZDWWvpbFpV3NyB+pnid7ST51/RlxWCPQ==}
-
   '@xsynaptic/satteri-auto-import@0.2.2':
     resolution: {integrity: sha512-UllGoJC5Dmin5/VPkrZ3epsU6qnA5v2TTOTOSK0gVnDlA+TH+koo6T/fy9U1q2VqDLoApBVSDTFRur7K7qatPg==}
     peerDependencies:
@@ -2876,6 +2873,9 @@ packages:
     resolution: {integrity: sha512-/stiiCqdr+tnV7/8cUbSBfGNJ/HG8ZYqaChQt75AdtMoxMw1CdX5ZBbKNhurNFh7gXxczuEirOOHxaWr+SvFHQ==}
     peerDependencies:
       stylelint: ^17.0.0
+
+  '@xsynaptic/web-components@0.1.0':
+    resolution: {integrity: sha512-Aqqd6Jit4MQfLSCENdyAd2vtO9tR3v2Swh5ZUeQ9L8fDQeut+eSaPDLna6kMdRmaav2NK7B0BCEWe+3D+B8jUA==}
 
   abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
@@ -8425,7 +8425,7 @@ snapshots:
       sharp: 0.35.5(@types/node@24.19.2)
       zod: 4.6.7
 
-  '@xsynaptic/astro-pagefind@0.1.0(@pagefind/component-ui@1.6.0)(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(pagefind@1.6.0)':
+  '@xsynaptic/astro-pagefind@0.2.1(@pagefind/component-ui@1.6.0)(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(pagefind@1.6.0)':
     dependencies:
       astro: 7.4.12(@types/node@24.19.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       pagefind: 1.6.0
@@ -8491,10 +8491,6 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@xsynaptic/path-suggestions@0.2.1':
-    dependencies:
-      fastest-levenshtein: 1.0.16
-
   '@xsynaptic/satteri-auto-import@0.2.2(satteri@0.11.6)':
     dependencies:
       satteri: 0.11.6
@@ -8518,6 +8514,10 @@ snapshots:
     transitivePeerDependencies:
       - postcss
       - stylelint-order
+
+  '@xsynaptic/web-components@0.1.0':
+    dependencies:
+      fastest-levenshtein: 1.0.16
 
   abbrev@2.0.0: {}
 

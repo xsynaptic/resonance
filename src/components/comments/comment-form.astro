@@ -25,7 +25,7 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 			{t('comments.form.noscript')}
 		</p>
 	</noscript>
-	<Button data-open-form hidden>
+	<Button data-open-form={true} hidden={true}>
 		{t('comments.form.heading')}
 	</Button>
 	<form action="/api/comments" class="space-y-4" data-comment-form hidden method="post">

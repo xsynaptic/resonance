@@ -269,7 +269,7 @@ const inlineSelection: SelectionValue = {
 						<EmbedMixcloud url={mixcloudUrl} />
 					</Variant>
 					<Variant label="mini">
-						<EmbedMixcloud mini url={mixcloudUrl} />
+						<EmbedMixcloud mini={true} url={mixcloudUrl} />
 					</Variant>
 				</>
 			) : undefined}
@@ -301,7 +301,7 @@ const inlineSelection: SelectionValue = {
 					<Button>standard</Button>
 					<Button icon="download">standard, icon</Button>
 					<Button variant="small">small</Button>
-					<Button disabled>disabled</Button>
+					<Button disabled={true}>disabled</Button>
 				</div>
 			</Variant>
 		</Specimen>

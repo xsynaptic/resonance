@@ -1,4 +1,8 @@
-import type { RenderCounts, RenderFailure } from '@xsynaptic/astro-image-pipeline/node';
+import type {
+	PreparedCard,
+	RenderCounts,
+	RenderFailure,
+} from '@xsynaptic/astro-image-pipeline/node';
 import type { Progress } from '@xsynaptic/astro-scripts';
 
 import {
@@ -33,7 +37,7 @@ interface OpenGraphOptions {
 }
 
 interface PublishOptions {
-	cards: Array<string>;
+	cards: Array<PreparedCard>;
 	directory: string;
 	distPath: string;
 }
@@ -111,7 +115,7 @@ async function publish({ cards, directory, distPath }: PublishOptions): Promise<
 
 	await fs.mkdir(publishPath, { recursive: true });
 
-	for (const name of cards) {
+	for (const { name } of cards) {
 		await fs.copyFile(path.join(directory, name), path.join(publishPath, name));
 	}
 

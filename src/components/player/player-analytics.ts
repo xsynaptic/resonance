@@ -8,8 +8,10 @@ import type {
 
 import { LazyModuleError, loadedItem } from '@xsynaptic/player';
 
-import { trackEvent } from '#components/main/main-analytics.ts';
+import type { AnalyticsEvents } from '#lib/analytics/analytics-events.ts';
+
 import { isOptedOut } from '#components/player/player-opt-out.ts';
+import { sendEvent } from '#lib/analytics/analytics-events.ts';
 
 interface PlayerGate {
 	isOverlayOpen: boolean;
@@ -76,11 +78,11 @@ export function trackControlPress({ itemIds, verb }: ControlPress): void {
 	if (mix === undefined) return;
 
 	if (verb === 'queue-track') {
-		trackEvent('player-queue-add', { mix });
+		sendEvent('player-queue-add', { mix });
 		return;
 	}
 
-	trackEvent('player-play', { isStandalone, mix, origin: origins[verb] });
+	sendEvent('player-play', { isStandalone, mix, origin: origins[verb] });
 }
 
 // Parsed rather than sent raw: versions are what gets grouped by, and the full string is needless entropy
@@ -144,7 +146,7 @@ function trackChunkError(event: ErrorEvent): void {
 	const error: unknown = event.error;
 	if (!(error instanceof LazyModuleError)) return;
 
-	trackEvent('player-chunk-error', { chunk: error.chunk, reason: error.reason });
+	sendEvent('player-chunk-error', { chunk: error.chunk, reason: error.reason });
 }
 
 function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void {
@@ -157,23 +159,23 @@ function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void 
 
 	if ('message' in fields) data.message = fields.message.slice(0, messageLength);
 
-	trackEvent(`player-${kind}`, data);
+	sendEvent(`player-${kind}`, data);
 }
 
 function trackPlaybackError(state: PlayerStore): void {
 	const { playbackError } = state;
-	const data: Record<string, string> = { status: state.status };
+	const data: AnalyticsEvents['player-error'] = { status: state.status };
 	const itemId = loadedItem(state)?.itemId;
 
 	if (itemId !== undefined) data.mix = itemId;
 	if (playbackError) data.stage = playbackError.stage;
 
-	trackEvent('player-error', data);
+	sendEvent('player-error', data);
 }
 
 function trackTransitions(previous: PlayerGate, next: PlayerGate, state: PlayerStore): void {
-	if (next.isPanelOpen && !previous.isPanelOpen) trackEvent('player-panel-open');
-	if (next.isOverlayOpen && !previous.isOverlayOpen) trackEvent('player-overlay-open');
+	if (next.isPanelOpen && !previous.isPanelOpen) sendEvent('player-panel-open');
+	if (next.isOverlayOpen && !previous.isOverlayOpen) sendEvent('player-overlay-open');
 	if (next.status !== previous.status && terminalStatuses.has(next.status)) {
 		trackPlaybackError(state);
 	}

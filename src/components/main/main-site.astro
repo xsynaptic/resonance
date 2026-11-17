@@ -4,7 +4,6 @@ import type { PageOpenGraphCard } from '@xsynaptic/shared/open-graph';
 import { openGraphImageHeight, openGraphImageWidth } from '@xsynaptic/shared/constants';
 import { getUrlPathIndexing } from '@xsynaptic/shared/sitemap';
 import { Font } from 'astro:assets';
-import { UMAMI_DOMAIN, UMAMI_ID } from 'astro:env/client';
 
 import '#styles/main.css';
 import { ClientRouter } from 'astro:transitions';
@@ -107,9 +106,7 @@ const heroSlot = await renderSlot(Astro.slots, 'hero');
 		) : undefined}
 		<meta content="summary_large_image" name="twitter:card" />
 		<meta content="@djbasilisk" name="twitter:site" />
-		{UMAMI_ID && UMAMI_DOMAIN && import.meta.env.PROD ? (
-			<MainAnalytics umamiDomain={UMAMI_DOMAIN} umamiId={UMAMI_ID} />
-		) : undefined}
+		<MainAnalytics />
 		<ClientRouter />
 		<MainBuildVersion />
 	</head>

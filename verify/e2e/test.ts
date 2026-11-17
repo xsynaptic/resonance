@@ -1,9 +1,11 @@
 import type { Page, Response, Route } from '@playwright/test';
 
 import { test as base, expect } from '@playwright/test';
+import { createUmamiStub } from '@xsynaptic/analytics/umami/testing';
 import { readFile } from 'node:fs/promises';
 
 import type { SitePaths } from '#e2e/site-paths.ts';
+import type { AnalyticsEvents } from '#lib/analytics/analytics-events.ts';
 
 import {
 	audioFixturePath,
@@ -15,6 +17,8 @@ import {
 import { getSitePaths } from '#e2e/site-paths.ts';
 
 export { expect } from '@playwright/test';
+
+export const { getSentEvents, stubUmami } = createUmamiStub<AnalyticsEvents>();
 
 interface ConsoleGuard {
 	allow: (...patterns: Array<RegExp>) => void;

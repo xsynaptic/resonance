@@ -1,31 +1,35 @@
-// Every event name this site fires, so the set stays greppable from one file
-type AnalyticsEvent =
-	| 'build-version-reload'
-	| 'cue-sheet-download'
-	| 'player-chunk-error'
-	| 'player-error'
-	| 'player-media-error'
-	| 'player-overlay-open'
-	| 'player-panel-open'
-	| 'player-play'
-	| 'player-play-rejected'
-	| 'player-queue-add'
-	| 'player-retry-recovered'
-	| 'player-stall'
-	| 'search-empty'
-	| 'search-open'
-	| 'search-query';
+import { recordTraversalPageviews } from '@xsynaptic/analytics/umami';
+import {
+	normalizeSearchQuery,
+	searchToggleSearchEndEventName,
+} from '@xsynaptic/astro-pagefind/search-toggle';
 
-// The Umami script is rendered under PROD only, so this reaches nothing anywhere else
-export function trackEvent(
-	name: AnalyticsEvent,
-	data?: Record<string, boolean | number | string>,
-): void {
-	window.umami?.track(name, data);
-}
+import { sendEvent } from '#lib/analytics/analytics-events.ts';
 
-declare global {
-	interface Window {
-		umami?: { track: (eventName: string, eventData?: Record<string, unknown>) => void };
-	}
-}
+// Not `data-umami-event`: the tracker cancels that link's click and reassigns location, dropping `download`
+document.addEventListener('click', (event) => {
+	if (!(event.target instanceof Element)) return;
+
+	const mix = event.target.closest<HTMLAnchorElement>('a[data-cue-sheet]')?.dataset.cueSheet;
+
+	if (mix === undefined) return;
+
+	sendEvent('cue-sheet-download', { mix });
+});
+
+document.addEventListener(
+	searchToggleSearchEndEventName,
+	({ detail: { clicked, query, results } }) => {
+		const reportedQuery = normalizeSearchQuery(query);
+
+		if (reportedQuery === undefined) return;
+
+		sendEvent('search-query', { clicked, query: reportedQuery, results });
+
+		if (results > 0) return;
+
+		sendEvent('search-empty', { query: reportedQuery });
+	},
+);
+
+recordTraversalPageviews();

@@ -44,6 +44,9 @@ player-root sonic-button {
 	--sonic-button-size: calc(var(--player-button-px) / 16 * 1rem);
 	--sonic-cap: initial;
 	--sonic-cap-hover: initial;
+
+	/* sonic-ui fades a disabled cap by default; the inert ink already marks it here */
+	--sonic-disabled-opacity: 1;
 	--sonic-focus-glow: 0;
 	--sonic-focus-outline: var(--player-focus-width) solid var(--player-focus-ring);
 	--sonic-focus-outline-offset: var(--player-focus-offset);

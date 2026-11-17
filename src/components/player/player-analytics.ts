@@ -1,3 +1,4 @@
+import type { EventValue } from '@xsynaptic/analytics';
 import type {
 	ControlPress,
 	PlaybackDiagnostic,
@@ -150,7 +151,7 @@ function trackChunkError(event: ErrorEvent): void {
 }
 
 function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void {
-	const data: Record<string, boolean | number | string> = {
+	const data: Record<string, EventValue> = {
 		...fields,
 		isStandalone,
 		mix: itemId,

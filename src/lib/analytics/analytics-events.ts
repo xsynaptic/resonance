@@ -1,8 +1,10 @@
+import type { EventValue } from '@xsynaptic/analytics';
+
 import { createEventSender } from '@xsynaptic/analytics';
 import { createUmamiAttributes, umamiTransport } from '@xsynaptic/analytics/umami';
 
 // Built up from each diagnostic kind's own fields, which vary by kind and by browser
-type PlayerDiagnosticPayload = Record<string, boolean | number | string>;
+type PlayerDiagnosticPayload = Record<string, EventValue>;
 
 export interface AnalyticsEvents {
 	'build-version-reload': { staleHours: number };

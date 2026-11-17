@@ -41,6 +41,7 @@ test('search analytics survive client-side navigation', async ({ page, site }) =
 	// The tracker sends `search-open` from this attribute itself, so the stub never records it
 	await expect(toggle).toHaveAttribute('data-umami-event', 'search-open');
 	await toggle.click();
+	await expect(page.locator('pagefind-input input')).toBeFocused();
 	await page.keyboard.press('Escape');
 	await navigateClientSide(page, site.mixDetail);
 

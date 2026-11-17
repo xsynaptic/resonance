@@ -151,6 +151,8 @@ export function visit(page: Page, path: string): Promise<null | Response> {
 }
 
 export async function navigateClientSide(page: Page, path: string): Promise<void> {
+	// The router fires the first page's `astro:page-load` on window load, which `visit` does not wait for
+	await page.waitForLoadState('load');
 	await page.evaluate(
 		(href) =>
 			new Promise<void>((resolve) => {

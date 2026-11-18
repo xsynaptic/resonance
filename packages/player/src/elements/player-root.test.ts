@@ -9,6 +9,12 @@ import { mount, queueItem } from '#test/mount.ts';
 // A tag of its own, so the upgrade happens here whatever else in the file has already defined `player-root`
 class EarlyRoot extends PlayerRoot {}
 
+function defineEarlyRoot() {
+	if (!customElements.get('player-early-root')) {
+		customElements.define('player-early-root', EarlyRoot);
+	}
+}
+
 afterEach(() => {
 	document.body.replaceChildren();
 });
@@ -63,9 +69,7 @@ describe('<player-root>', () => {
 
 		document.body.append(early);
 
-		if (!customElements.get('player-early-root')) {
-			customElements.define('player-early-root', EarlyRoot);
-		}
+		defineEarlyRoot();
 
 		expect(early.dataset.status).toBe('idle');
 	});

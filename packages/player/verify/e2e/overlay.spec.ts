@@ -56,7 +56,7 @@ test('a touch held on the waveform swaps the title block to the Track under it, 
 	const readout = overlay.locator('.player-scrub-readout');
 	const bubble = overlay.locator('.player-cue-label');
 
-	await harness.open({ cued: 1 });
+	await harness.open({ query: { cued: 1 } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await page.getByRole('button', { exact: true, name: labels.expand }).click();
 	await expect(slider).not.toHaveAttribute('aria-valuemax', '0');

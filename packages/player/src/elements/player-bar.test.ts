@@ -32,11 +32,9 @@ describe('<player-bar>', () => {
 	});
 
 	test('leaves out what the root turns off', () => {
-		const { part } = mount(
-			'player-bar',
-			{},
-			{ isArtworkEnabled: false, isOverlayEnabled: false, isPanelEnabled: false },
-		);
+		const { part } = mount('player-bar', {
+			root: { isArtworkEnabled: false, isOverlayEnabled: false, isPanelEnabled: false },
+		});
 
 		expect(transportLabels(part)).toEqual([
 			labels.previous,
@@ -52,11 +50,9 @@ describe('<player-bar>', () => {
 	});
 
 	test('fills the seek labels with the seconds the store holds', () => {
-		const { part } = mount(
-			'player-bar',
-			{},
-			{ labels: { ...labels, seekBack: 'Back {seconds}', seekForward: 'Forward {seconds}' } },
-		);
+		const { part } = mount('player-bar', {
+			root: { labels: { ...labels, seekBack: 'Back {seconds}', seekForward: 'Forward {seconds}' } },
+		});
 
 		expect(transportLabels(part)).toEqual([
 			labels.previous,

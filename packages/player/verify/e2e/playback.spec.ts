@@ -99,7 +99,7 @@ test('next moves to the second row and plays it', async ({ harness, page }) => {
 });
 
 test('the end of a track advances the queue without a press', async ({ harness, page }) => {
-	await harness.open({ rows: 'short,long' });
+	await harness.open({ query: { rows: 'short,long' } });
 	await page.getByRole('button', { name: 'Play short' }).click();
 
 	await expect
@@ -110,7 +110,7 @@ test('the end of a track advances the queue without a press', async ({ harness, 
 });
 
 test('the end of the play order is idle, and the next press reloads', async ({ harness, page }) => {
-	await harness.open({ rows: 'short' });
+	await harness.open({ query: { rows: 'short' } });
 	await page.getByRole('button', { name: 'Play short' }).click();
 
 	await expect.poll(() => harness.read(), { timeout: 15_000 }).toMatchObject({ status: 'idle' });

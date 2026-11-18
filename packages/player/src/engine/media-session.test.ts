@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerStore } from '#store/player-store.ts';
 import type { QueueItem } from '#types.ts';
@@ -146,7 +146,7 @@ describe('bindMediaSession', () => {
 	test('hands over only the widest rendition up to 512px', () => {
 		const store = loadedStore();
 		const [first] = store.getState().queue;
-		if (!first) throw new Error('The queue loaded nothing');
+		assert(first, 'The queue loaded nothing');
 
 		bindMediaSession(store);
 		store.setState({

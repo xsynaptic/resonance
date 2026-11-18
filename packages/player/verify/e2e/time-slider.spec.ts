@@ -11,7 +11,7 @@ test('a mouse drag reads out the held time, and one let go past the cancel zone 
 	const slider = bar.getByRole('slider', { name: labels.seek });
 	const bubble = bar.locator('.player-cue-label');
 
-	await harness.open({ cued: 1 });
+	await harness.open({ query: { cued: 1 } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expect(slider).not.toHaveAttribute('aria-valuemax', '0');
 	await page.getByRole('button', { exact: true, name: labels.pause }).click();

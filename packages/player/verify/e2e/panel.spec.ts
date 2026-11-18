@@ -47,7 +47,7 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 		else await route.continue();
 	});
 
-	await harness.open({ archive: 1 });
+	await harness.open({ query: { archive: 1 } });
 	await openPausedPanel(page, isMobile);
 
 	await expect.poll(isPending).toBe(true);
@@ -75,7 +75,7 @@ test('the zoom keys and a ctrl wheel set the panel scale, and a reload restores 
 }) => {
 	const control = page.locator('sonic-waveform:has(:visible)').getByRole('slider');
 
-	await harness.open({ archive: 1 });
+	await harness.open({ query: { archive: 1 } });
 	await openPausedPanel(page, isMobile);
 
 	await control.focus();
@@ -120,7 +120,7 @@ test('a two-finger pinch zooms the panel without seeking', async ({
 	const control = page.locator('sonic-waveform:has(:visible)').getByRole('slider');
 	const devtools = await page.context().newCDPSession(page);
 
-	await harness.open({ archive: 1 });
+	await harness.open({ query: { archive: 1 } });
 	await openPausedPanel(page, isMobile);
 
 	const box = await control.boundingBox();

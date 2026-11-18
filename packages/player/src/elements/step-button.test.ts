@@ -10,7 +10,7 @@ afterEach(() => {
 
 describe('<player-step-button>', () => {
 	test('keeps focus on next once its own press leaves nothing after the current track', () => {
-		const { part, store } = mount('player-step-button', { direction: 'next' });
+		const { part, store } = mount('player-step-button', { attributes: { direction: 'next' } });
 
 		store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
 

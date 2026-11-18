@@ -68,7 +68,7 @@ test('a missing stream ends in error after one re-resolve', async ({
 	page,
 }) => {
 	consoleGuard.allow(notFoundLog);
-	await harness.open({ stream: 'missing' });
+	await harness.open({ query: { stream: 'missing' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 
 	await expect(page.getByRole('status').filter({ hasText: labels.error })).toBeVisible();
@@ -96,7 +96,7 @@ test('a retry after a failed load resumes from the restored position', async ({
 	});
 	await expectAdvancing(harness, 20);
 
-	await harness.open({ stream: 'flaky' });
+	await harness.open({ query: { stream: 'flaky' } });
 
 	const { currentTimeSeconds: saved } = await harness.read();
 
@@ -114,7 +114,7 @@ test('a retry after a failed load resumes from the restored position', async ({
 });
 
 test('garbage bytes end in error after one re-resolve', async ({ harness, page }, testInfo) => {
-	await harness.open({ stream: 'garbage' });
+	await harness.open({ query: { stream: 'garbage' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'error' });
@@ -141,7 +141,7 @@ test('the lowercase probe spelling still plays the real file', async ({
 		'Only WebKit declines the lowercase spelling',
 	);
 
-	await harness.open({ type: 'lowercase' });
+	await harness.open({ query: { type: 'lowercase' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 
 	await expectAdvancing(harness, 1);
@@ -157,7 +157,7 @@ test('a declined type that fails to load is unplayable, with no retry', async ({
 		'Only WebKit declines the lowercase spelling',
 	);
 
-	await harness.open({ stream: 'garbage', type: 'lowercase' });
+	await harness.open({ query: { stream: 'garbage', type: 'lowercase' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 
 	await expect(page.getByRole('status').filter({ hasText: labels.unplayable })).toBeVisible();
@@ -165,7 +165,7 @@ test('a declined type that fails to load is unplayable, with no retry', async ({
 });
 
 test('pause during a hanging load settles on paused', async ({ harness, page }) => {
-	await harness.open({ stream: 'hang' });
+	await harness.open({ query: { stream: 'hang' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expect.poll(() => harness.requests()).not.toEqual([]);
 
@@ -189,7 +189,7 @@ test('a load starved past the stall threshold starts again when the page comes b
 	page,
 }) => {
 	await page.clock.install();
-	await harness.open({ stream: 'stalled' });
+	await harness.open({ query: { stream: 'stalled' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expect.poll(() => harness.requests()).toEqual([expect.objectContaining({ status: 0 })]);
 

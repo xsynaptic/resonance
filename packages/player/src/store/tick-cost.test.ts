@@ -27,14 +27,9 @@ function countedQueue(queue: ReadonlyArray<QueuedItem>) {
 }
 
 async function readsPerTick(length: number): Promise<number> {
-	const { part, store } = mount(
-		'player-bar',
-		{},
-		{
-			isOverlayEnabled: false,
-			isPanelEnabled: false,
-		},
-	);
+	const { part, store } = mount('player-bar', {
+		root: { isOverlayEnabled: false, isPanelEnabled: false },
+	});
 	const items = Array.from({ length }, (_, index) =>
 		queueItem(String(index), { durationMs: 600_000 }),
 	);

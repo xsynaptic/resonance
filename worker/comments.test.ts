@@ -75,15 +75,21 @@ function createEnv({
 	};
 
 	return {
-		env: { ASSETS: assets, DB: database, IP_SALT: salt, TURNSTILE_SECRET_KEY: 'secret' } as Env,
+		env: {
+			ASSETS: assets,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- structural D1 fake; no real D1Database is ever constructed
+			DB: database,
+			IP_SALT: salt,
+			TURNSTILE_SECRET_KEY: 'secret',
+		} as Env,
 		statements,
 	};
 }
 
-function makeRequest(
-	overrides: FieldOverrides = {},
-	headerOverrides: Record<string, string> = {},
-): Request {
+function makeRequest({
+	fields: fieldOverrides = {},
+	headers: headerOverrides = {},
+}: { fields?: FieldOverrides; headers?: Record<string, string> } = {}): Request {
 	const fields: FieldOverrides = {
 		author: 'Reader',
 		body: 'A comment worth keeping.',
@@ -91,7 +97,7 @@ function makeRequest(
 		collection: 'mixes',
 		entryId: 'voyager',
 		renderedAt: String(Date.now() - 5000),
-		...overrides,
+		...fieldOverrides,
 	};
 
 	const body = new URLSearchParams(
@@ -133,7 +139,10 @@ describe('handleCommentSubmission', () => {
 
 	test('rejects a body over the size cap', async () => {
 		const { env } = createEnv();
-		const response = await handleCommentSubmission(makeRequest({ body: 'x'.repeat(40_000) }), env);
+		const response = await handleCommentSubmission(
+			makeRequest({ fields: { body: 'x'.repeat(40_000) } }),
+			env,
+		);
 
 		expect(response.status).toBe(413);
 		await expect(response.json()).resolves.toEqual({ message: t('comments.error.tooLarge') });
@@ -170,14 +179,20 @@ describe('handleCommentSubmission', () => {
 
 	test('rejects a filled honeypot, and ignores an untouched one', async () => {
 		const { env } = createEnv();
-		const trapped = await handleCommentSubmission(makeRequest({ website: 'spam.test' }), env);
+		const trapped = await handleCommentSubmission(
+			makeRequest({ fields: { website: 'spam.test' } }),
+			env,
+		);
 
 		expect(trapped.status).toBe(400);
 		await expect(trapped.json()).resolves.toEqual({ message: t('comments.error.rejected') });
 
 		stubSiteverify(true);
 
-		const untouched = await handleCommentSubmission(makeRequest({ website: '  ' }), env);
+		const untouched = await handleCommentSubmission(
+			makeRequest({ fields: { website: '  ' } }),
+			env,
+		);
 
 		expect(untouched.status).toBe(201);
 	});
@@ -186,7 +201,7 @@ describe('handleCommentSubmission', () => {
 		const { env } = createEnv();
 		const assets = vi.spyOn(env.ASSETS, 'fetch');
 		const response = await handleCommentSubmission(
-			makeRequest({ entryId: '../../etc/passwd' }),
+			makeRequest({ fields: { entryId: '../../etc/passwd' } }),
 			env,
 		);
 
@@ -198,7 +213,7 @@ describe('handleCommentSubmission', () => {
 	test('rejects a form filled in under three seconds', async () => {
 		const { env } = createEnv();
 		const response = await handleCommentSubmission(
-			makeRequest({ renderedAt: String(Date.now() - 100) }),
+			makeRequest({ fields: { renderedAt: String(Date.now() - 100) } }),
 			env,
 		);
 
@@ -208,7 +223,10 @@ describe('handleCommentSubmission', () => {
 
 	test('rejects an entry with no built page', async () => {
 		const { env } = createEnv();
-		const response = await handleCommentSubmission(makeRequest({ entryId: 'no-such-mix' }), env);
+		const response = await handleCommentSubmission(
+			makeRequest({ fields: { entryId: 'no-such-mix' } }),
+			env,
+		);
 
 		expect(response.status).toBe(400);
 		await expect(response.json()).resolves.toEqual({ message: t('comments.error.entryMissing') });
@@ -224,7 +242,10 @@ describe('handleCommentSubmission', () => {
 			return Promise.resolve(new Response(undefined, { status: 404 }));
 		});
 
-		await handleCommentSubmission(makeRequest({ collection: 'posts', entryId: 'a-post' }), env);
+		await handleCommentSubmission(
+			makeRequest({ fields: { collection: 'posts', entryId: 'a-post' } }),
+			env,
+		);
 		await handleCommentSubmission(makeRequest(), env);
 
 		expect(requested).toEqual(['/a-post/', '/mixes/voyager/']);
@@ -232,7 +253,10 @@ describe('handleCommentSubmission', () => {
 
 	test('rejects a reply whose parent is not approved on this entry', async () => {
 		const { env } = createEnv();
-		const response = await handleCommentSubmission(makeRequest({ parentId: 'gone' }), env);
+		const response = await handleCommentSubmission(
+			makeRequest({ fields: { parentId: 'gone' } }),
+			env,
+		);
 
 		expect(response.status).toBe(400);
 		await expect(response.json()).resolves.toEqual({ message: t('comments.error.parentMissing') });
@@ -242,7 +266,10 @@ describe('handleCommentSubmission', () => {
 		stubSiteverify(true);
 
 		const { env, statements } = createEnv({ approvedParentIds: ['parent-id'] });
-		const response = await handleCommentSubmission(makeRequest({ parentId: 'parent-id' }), env);
+		const response = await handleCommentSubmission(
+			makeRequest({ fields: { parentId: 'parent-id' } }),
+			env,
+		);
 
 		expect(response.status).toBe(201);
 		expect(statements.at(-1)?.values[columns.parentId]).toBe('parent-id');
@@ -264,12 +291,12 @@ describe('handleCommentSubmission', () => {
 		const { env } = createEnv();
 
 		const rejected = [
-			makeRequest({ body: 'x'.repeat(40_000) }),
-			makeRequest({ website: 'spam.test' }),
-			makeRequest({ author: undefined }),
-			makeRequest({ renderedAt: String(Date.now() - 100) }),
-			makeRequest({ entryId: 'no-such-mix' }),
-			makeRequest({ parentId: 'gone' }),
+			makeRequest({ fields: { body: 'x'.repeat(40_000) } }),
+			makeRequest({ fields: { website: 'spam.test' } }),
+			makeRequest({ fields: { author: undefined } }),
+			makeRequest({ fields: { renderedAt: String(Date.now() - 100) } }),
+			makeRequest({ fields: { entryId: 'no-such-mix' } }),
+			makeRequest({ fields: { parentId: 'gone' } }),
 		];
 
 		for (const request of rejected) {
@@ -285,7 +312,10 @@ describe('handleCommentSubmission', () => {
 		const siteverify = stubSiteverify(true);
 		const { env } = createEnv();
 
-		await handleCommentSubmission(makeRequest({}, { 'CF-Connecting-IP': '203.0.113.7' }), env);
+		await handleCommentSubmission(
+			makeRequest({ headers: { 'CF-Connecting-IP': '203.0.113.7' } }),
+			env,
+		);
 
 		const [url, init] = siteverify.mock.calls[0] ?? [];
 		const sent = init?.body as FormData;
@@ -327,7 +357,10 @@ describe('handleCommentSubmission', () => {
 
 		const { env, statements } = createEnv();
 
-		await handleCommentSubmission(makeRequest({ authorEmail: 'Reader@Example.TEST' }), env);
+		await handleCommentSubmission(
+			makeRequest({ fields: { authorEmail: 'Reader@Example.TEST' } }),
+			env,
+		);
 
 		const values = statements.at(-1)?.values ?? [];
 
@@ -340,7 +373,10 @@ describe('handleCommentSubmission', () => {
 
 		const { env, statements } = createEnv();
 
-		await handleCommentSubmission(makeRequest({}, { 'CF-Connecting-IP': '203.0.113.7' }), env);
+		await handleCommentSubmission(
+			makeRequest({ headers: { 'CF-Connecting-IP': '203.0.113.7' } }),
+			env,
+		);
 
 		const values = statements.at(-1)?.values ?? [];
 
@@ -352,7 +388,10 @@ describe('handleCommentSubmission', () => {
 		stubSiteverify(true);
 
 		const { env } = createEnv();
-		const response = await handleCommentSubmission(makeRequest({}, { accept: 'text/html' }), env);
+		const response = await handleCommentSubmission(
+			makeRequest({ headers: { accept: 'text/html' } }),
+			env,
+		);
 
 		expect(response.status).toBe(303);
 		expect(response.headers.get('location')).toBe(

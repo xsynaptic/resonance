@@ -11,8 +11,8 @@ const cuePoints = [
 	{ artistLine: '', startSeconds: 60, title: 'Middle' },
 ];
 
-function mountOverlay(options: Parameters<typeof mount>[2] = {}) {
-	const mounted = mount('player-overlay', {}, options);
+function mountOverlay() {
+	const mounted = mount('player-overlay');
 	const toggle = document.createElement('player-overlay-toggle');
 	const dialog = mounted.part.querySelector('dialog');
 	if (!dialog) throw new Error('The overlay rendered no dialog');

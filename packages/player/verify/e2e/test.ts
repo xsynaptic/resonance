@@ -29,10 +29,7 @@ interface ElementSnapshot {
 interface Harness {
 	observed: () => Promise<Observed>;
 	// `isBound: false` returns at the load event, before a `bindDelay` has let the player bind
-	open: (
-		parameters?: Record<string, number | string>,
-		options?: { isBound?: boolean },
-	) => Promise<void>;
+	open: (options?: { isBound?: boolean; query?: Record<string, number | string> }) => Promise<void>;
 	press: (control: BarControl) => Promise<void>;
 	read: () => Promise<PlayerSnapshot>;
 	requests: () => Promise<Array<LoggedRequest>>;
@@ -233,12 +230,12 @@ export const test = base.extend<{ consoleGuard: ConsoleGuard; harness: Harness }
 				page.evaluate(
 					() => window.playerObserved ?? { audioCount: 0, loadstarts: 0, playCalls: 0 },
 				),
-			open: async (parameters = {}, { isBound = true } = {}) => {
-				const query = new URLSearchParams({ run });
+			open: async ({ isBound = true, query = {} } = {}) => {
+				const search = new URLSearchParams({ run });
 
-				for (const [name, value] of Object.entries(parameters)) query.set(name, String(value));
+				for (const [name, value] of Object.entries(query)) search.set(name, String(value));
 
-				await page.goto(`/?${query.toString()}`);
+				await page.goto(`/?${search.toString()}`);
 
 				if (isBound) await waitForBind(page);
 			},

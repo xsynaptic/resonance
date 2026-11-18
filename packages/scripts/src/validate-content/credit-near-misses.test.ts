@@ -62,7 +62,7 @@ describe('validateCreditNearMisses', () => {
 				expect(result.issues).toStrictEqual([]);
 				return;
 			}
-			if (issue === undefined) return;
+			fc.pre(issue !== undefined);
 
 			const suggested = /artists "([^"]+)"$/.exec(issue.message)?.[1];
 

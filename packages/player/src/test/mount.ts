@@ -22,15 +22,19 @@ export function landDetail(
 	store.setState({ details: new Map(store.getState().details).set(itemId, detail) });
 }
 
-export function mount<Tag extends keyof HTMLElementTagNameMap>(
-	tag: Tag,
-	attributes: Record<string, string> = {},
-	options: Partial<
+interface MountOptions {
+	attributes?: Record<string, string>;
+	root?: Partial<
 		Pick<
 			PlayerRoot,
 			'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'isScopeEnabled' | 'labels'
 		>
-	> = {},
+	>;
+}
+
+export function mount<Tag extends keyof HTMLElementTagNameMap>(
+	tag: Tag,
+	{ attributes = {}, root: rootProperties = {} }: MountOptions = {},
 ) {
 	// Defined first, so a root created here is upgraded before any part reads its options
 	definePlayerElements();
@@ -47,7 +51,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 
 	store.getState().configure({ urls: testUrls });
 	root.labels = labels;
-	Object.assign(root, options);
+	Object.assign(root, rootProperties);
 	root.store = store;
 	root.append(part);
 	document.body.append(root);

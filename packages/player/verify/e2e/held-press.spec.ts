@@ -9,7 +9,7 @@ test('a press held 1500ms before the player binds is replayed and plays', async 
 	harness,
 	page,
 }) => {
-	await harness.open({ bindDelay: 1500 }, { isBound: false });
+	await harness.open({ isBound: false, query: { bindDelay: 1500 } });
 
 	const press = page.getByRole('button', { name: 'Play long' });
 
@@ -26,7 +26,7 @@ test('a press held 8000ms before the player binds is refused by WebKit', async (
 	harness,
 	page,
 }) => {
-	await harness.open({ bindDelay: 8000 }, { isBound: false });
+	await harness.open({ isBound: false, query: { bindDelay: 8000 } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await harness.waitForBind();
 

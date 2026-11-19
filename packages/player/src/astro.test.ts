@@ -9,6 +9,7 @@ const stylesheet = 'data:text/css,';
 
 afterEach(() => {
 	document.head.replaceChildren();
+	vi.restoreAllMocks();
 });
 
 describe('bindAstroRouter', () => {
@@ -45,5 +46,20 @@ describe('loadPersistedStylesheet', () => {
 		expect(newDocument.head.querySelector('link[rel="stylesheet"]')?.getAttribute('href')).toBe(
 			stylesheet,
 		);
+	});
+
+	// Kept out of the head, where happy-dom would load even a broken sheet before the error could matter
+	test('settles when the sheet fails to load', { timeout: 2000 }, async () => {
+		let link: Node | undefined;
+
+		vi.spyOn(document.head, 'append').mockImplementation((node) => {
+			if (node instanceof Node) link = node;
+		});
+
+		const loaded = loadPersistedStylesheet(stylesheet);
+
+		link?.dispatchEvent(new Event('error'));
+
+		await expect(loaded).resolves.toBeUndefined();
 	});
 });

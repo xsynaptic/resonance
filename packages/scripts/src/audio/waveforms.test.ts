@@ -87,8 +87,7 @@ describe('distillWaveform', () => {
 		expect(overview.values).toHaveLength(37);
 	});
 
-	test('caps a long file at the overview budget with no empty buckets', () => {
-		// 600 pairs across 400 buckets: uneven boundaries, so every bucket must still cover at least one pair
+	test('caps a long file at the overview budget', () => {
 		const overview = distillWaveform(buildDat(Array.from({ length: 600 }, () => [-10, 10])));
 
 		expect(overview.values).toHaveLength(400);

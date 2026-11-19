@@ -44,6 +44,12 @@ describe('queryComments', () => {
 });
 
 describe('toIdLiteral', () => {
+	test('quotes an id the worker mints, a hyphenated one and one at the length limit', () => {
+		for (const id of ['k7d2mqzx4a', 'wp-1042', 'a'.repeat(64)]) {
+			expect(toIdLiteral(id)).toBe(`'${id}'`);
+		}
+	});
+
 	test('refuses anything that could close the quote', () => {
 		for (const id of [`x' OR 1=1 --`, 'a b', 'a;b', '', 'a'.repeat(65)]) {
 			expect(() => toIdLiteral(id)).toThrow('is not a comment id');

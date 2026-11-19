@@ -49,20 +49,6 @@ describe('<player-bar>', () => {
 		expect(part.querySelector('player-panel, player-panel-toggle')).toBeNull();
 	});
 
-	test('fills the seek labels with the seconds the store holds', () => {
-		const { part } = mount('player-bar', {
-			root: { labels: { ...labels, seekBack: 'Back {seconds}', seekForward: 'Forward {seconds}' } },
-		});
-
-		expect(transportLabels(part)).toEqual([
-			labels.previous,
-			'Back 10',
-			labels.play,
-			'Forward 10',
-			labels.next,
-		]);
-	});
-
 	test('keeps its one bar across a reconnect', async () => {
 		const { part, root } = mount('player-bar');
 

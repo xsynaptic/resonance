@@ -94,11 +94,11 @@ describe('<player-panel>', () => {
 		vi.useFakeTimers({ toFake: ['clearTimeout', 'setTimeout'] });
 
 		void Promise.resolve(request(0, 10)).then(settled);
-		await vi.advanceTimersByTimeAsync(1999);
+		await vi.advanceTimersByTimeAsync(0);
 		expect(settled).not.toHaveBeenCalled();
 		expect(waveform.pending).toEqual([[0, 81.92]]);
 
-		await vi.advanceTimersByTimeAsync(1);
+		await vi.runOnlyPendingTimersAsync();
 		expect(settled).toHaveBeenCalledOnce();
 		expect(chunkRequests()).toBe(1);
 
@@ -126,6 +126,34 @@ describe('<player-panel>', () => {
 		});
 		expect(mounted.part.childElementCount).toBe(0);
 		expect(reportError).toHaveBeenCalledWith(offline);
+	});
+
+	test('tints the loaded track with its bands', async () => {
+		stubArchiveFetch(offline);
+
+		const mounted = mount('player-panel');
+
+		mounted.store.getState().playTrack([queueItem('a', { durationMs: 200_000 })], 'a');
+		landDetail(mounted.store, 'a', {
+			archive: {
+				bands: {
+					bandCount: 3,
+					byteOffset: 36,
+					frameCount: 5000,
+					framesPerSecond: 25,
+					minDecibels: -60,
+					url: 'https://api.test/tinted.bands',
+				},
+				byteOffset: 20,
+				pairCount: 20_000,
+				pairsPerSecond: 100,
+				url: 'https://api.test/tinted.dat',
+			},
+		});
+
+		const waveform = await openPanel(mounted);
+
+		expect(waveform.bands).toMatchObject({ bandCount: 3, framesPerSecond: 25 });
 	});
 
 	test('seeks once to where the waveform commits, and names the group and its slider', async () => {

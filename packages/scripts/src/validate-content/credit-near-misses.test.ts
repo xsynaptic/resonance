@@ -34,6 +34,13 @@ describe('validateCreditNearMisses', () => {
 		});
 	});
 
+	test('leaves a short credit alone, where one letter is most of the name', () => {
+		const entries = [makeEntry({ data: { artists: ['Abd'] }, id: 'a-review' })];
+		const shortCatalog = [makeEntry({ collection: 'artists', data: { title: 'Abc' }, id: 'abc' })];
+
+		expect(validateCreditNearMisses(entries, shortCatalog).issues).toEqual([]);
+	});
+
 	const names = ['The Nebula', 'Nebula', 'Nebulo', 'Union Jack', 'Union Jacks', 'Drumlore'];
 	const ids = ['nebula', 'union-jack', 'drumlore', 'darkpsy'];
 

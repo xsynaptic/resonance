@@ -20,7 +20,7 @@ interface RedirectCandidate {
 	id: string;
 }
 
-interface RedirectPair {
+export interface RedirectPair {
 	from: string;
 	to: string;
 }

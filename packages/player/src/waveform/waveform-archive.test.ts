@@ -90,6 +90,34 @@ test('a chunk that fails is asked for again as its window settles, after a wait 
 	expect(chunkRequests()).toBe(3);
 });
 
+test('a server that ignores the range lands nothing, and the chunk is asked for again', async () => {
+	const { chunkRequests } = stubArchiveFetch(() =>
+		Promise.resolve(new Response(new Int8Array(40_000).fill(7), { status: 200 })),
+	);
+	const archive = open('range-ignored');
+
+	void archive.request(0, 1);
+	await vi.advanceTimersByTimeAsync(0);
+
+	expect(archive.peaks.samples[0]).toBe(0);
+	expect(archive.pending(0, 1)).toHaveLength(1);
+
+	await vi.advanceTimersByTimeAsync(2000);
+	void archive.request(0, 1);
+
+	expect(chunkRequests()).toBe(2);
+});
+
+test('keeps only the two archives opened last', () => {
+	const first = open('evicted-first');
+	const second = open('evicted-second');
+	const third = open('evicted-third');
+
+	expect(open('evicted-third')).toBe(third);
+	expect(open('evicted-second')).toBe(second);
+	expect(open('evicted-first')).not.toBe(first);
+});
+
 function openWithBands(name: string): WaveformArchive {
 	return openArchive({
 		bands: {

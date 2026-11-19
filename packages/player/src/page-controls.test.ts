@@ -7,9 +7,9 @@ import { heldPressAttribute } from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { bindPageControls } from '#page-controls.ts';
-import { createPlayerStore } from '#store/player-store.ts';
+import { createWritablePlayerStore } from '#store/player-store.ts';
 import { loadedItem } from '#store/selectors.ts';
-import { queueItem } from '#test/mount.ts';
+import { landDetail, queueItem } from '#test/mount.ts';
 
 let pageControls: PageControls | undefined;
 
@@ -24,8 +24,9 @@ afterEach(() => {
 });
 
 function bindPage(items: Array<QueueItem>, controls: string) {
-	const store = createPlayerStore({
-		createEngine: createMockEngine().createEngine,
+	const fake = createMockEngine();
+	const store = createWritablePlayerStore({
+		createEngine: fake.createEngine,
 		storage: createMemoryStorage(),
 	});
 
@@ -38,6 +39,7 @@ function bindPage(items: Array<QueueItem>, controls: string) {
 		bind: () => {
 			pageControls = bindPageControls(store, document, { onPress });
 		},
+		fake,
 		onPress,
 		store,
 	};
@@ -48,6 +50,16 @@ function element(selector: string): HTMLElement {
 	if (!found) throw new Error(`Nothing matches ${selector}`);
 
 	return found;
+}
+
+function cueList(mixId: string): string {
+	return `<ol data-cue-mix="${mixId}"><li data-cue-seconds="0"></li><li data-cue-seconds="60"></li></ol>`;
+}
+
+function currentCueRows(): Array<string> {
+	return [...document.querySelectorAll<HTMLElement>('[data-cue-current]')].map(
+		(row) => `${String(row.closest('ol')?.dataset.cueMix)}@${String(row.dataset.cueSeconds)}`,
+	);
 }
 
 describe('bindPageControls', () => {
@@ -113,6 +125,29 @@ describe('bindPageControls', () => {
 		page.store.getState().togglePaused();
 
 		expect(element('#swapped').dataset.playing).toBeUndefined();
+	});
+
+	test("marks the current cue only in the loaded Mix's Tracklist", () => {
+		const page = bindPage(
+			[queueItem('a'), queueItem('b')],
+			`<button data-play-track="a"></button>${cueList('a')}${cueList('b')}`,
+		);
+
+		page.bind();
+		element('[data-play-track]').click();
+		landDetail(page.store, 'a', {
+			cuePoints: [
+				{ artistLine: '', startSeconds: 0, title: 'Opening' },
+				{ artistLine: '', startSeconds: 60, title: 'Second' },
+			],
+		});
+		page.fake.callbacks.current?.onTime(90);
+
+		expect(currentCueRows()).toEqual(['a@60']);
+
+		page.fake.callbacks.current?.onTime(30);
+
+		expect(currentCueRows()).toEqual(['a@0']);
 	});
 
 	test('leaves the page alone once unbound', () => {

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { holdPresses } from '#boot.ts';
-import { heldPressSelector } from '#constants.ts';
+import { holdPresses, isPlayerActionable } from '#boot.ts';
+import { heldPressSelector, queueStorageKey } from '#constants.ts';
+import { createMemoryStorage } from '#lib/storage.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
@@ -25,5 +26,17 @@ describe('holdPresses', () => {
 		third?.click();
 
 		expect([...document.querySelectorAll(heldPressSelector)]).toStrictEqual([second]);
+	});
+});
+
+describe('isPlayerActionable', () => {
+	test('a page with no player is actionable only while a queue is stored', () => {
+		const storage = createMemoryStorage();
+
+		expect(isPlayerActionable(document, storage)).toBe(false);
+
+		storage.setItem(queueStorageKey, '{}');
+
+		expect(isPlayerActionable(document, storage)).toBe(true);
 	});
 });

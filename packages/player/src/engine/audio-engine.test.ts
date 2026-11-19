@@ -129,6 +129,18 @@ describe('audio engine', () => {
 		expect(callbacks.onTime).toHaveBeenCalled();
 	});
 
+	test('reports the length the stream turns out to have', () => {
+		const callbacks = createCallbacks();
+
+		vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(1234.5);
+		void createAudioEngine(callbacks).load(request);
+
+		const [element] = media.load.mock.contexts as Array<HTMLMediaElement>;
+
+		element?.dispatchEvent(new Event('loadedmetadata'));
+		expect(callbacks.onDuration).toHaveBeenCalledWith(1234.5);
+	});
+
 	test('a stream without a finite length reports no duration over the queue one', () => {
 		const callbacks = createCallbacks();
 

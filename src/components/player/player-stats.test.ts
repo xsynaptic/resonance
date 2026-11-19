@@ -1,7 +1,11 @@
 // @vitest-environment happy-dom
+import type { PlaybackMedia, PlaybackOptions } from '@xsynaptic/playback-stats';
+
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
-const monitor = vi.hoisted(() => ({ monitorPlayback: vi.fn(() => vi.fn()) }));
+const monitor = vi.hoisted(() => ({
+	monitorPlayback: vi.fn((_media: PlaybackMedia, _options: PlaybackOptions) => vi.fn()),
+}));
 
 vi.mock('@xsynaptic/playback-stats', () => monitor);
 
@@ -33,6 +37,51 @@ test('a playing element is monitored', () => {
 	bindPlayerStats(storeWithElement(), () => 'a-mix');
 
 	expect(monitor.monitorPlayback).toHaveBeenCalledOnce();
+});
+
+test('a report goes out as the beacon the worker reads', () => {
+	const beacon = vi.fn((_url: string, _body: string): void => undefined);
+
+	vi.stubGlobal('navigator', { sendBeacon: beacon });
+	bindPlayerStats(storeWithElement(), () => 'a-mix');
+
+	const onReport = monitor.monitorPlayback.mock.calls[0]?.[1]?.onReport;
+
+	onReport?.({ heardSeconds: 95, itemId: 'a-mix', listenId: 'listen-1' });
+
+	expect(beacon).toHaveBeenCalledOnce();
+
+	const [url, body] = beacon.mock.calls[0] ?? [];
+
+	expect(url).toBe('/api/listen');
+	expect(JSON.parse(String(body))).toEqual({ id: 'listen-1', mixId: 'a-mix', seconds: 95 });
+});
+
+test('an element that appears after binding is monitored once', () => {
+	const media: { element?: HTMLAudioElement } = {};
+	let listener: (() => void) | undefined;
+	const notify = (): void => listener?.();
+	const store = {
+		getState: () => ({ getMediaElement: () => media.element }),
+		subscribe: (subscribed: () => void) => {
+			listener = subscribed;
+			return () => {
+				listener = undefined;
+			};
+		},
+	} as unknown as Parameters<typeof bindPlayerStats>[0];
+
+	bindPlayerStats(store, () => 'a-mix');
+	notify();
+
+	expect(monitor.monitorPlayback).not.toHaveBeenCalled();
+
+	media.element = document.createElement('audio');
+	notify();
+	notify();
+
+	expect(monitor.monitorPlayback).toHaveBeenCalledOnce();
+	expect(monitor.monitorPlayback.mock.calls[0]?.[0]).toBe(media.element);
 });
 
 test('an opted-out browser is never monitored', () => {

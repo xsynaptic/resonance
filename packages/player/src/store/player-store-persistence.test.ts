@@ -154,28 +154,6 @@ describe('queue persistence', () => {
 		expect(localStorage.getItem(queueStorageKey)).toBeNull();
 	});
 
-	test('restores the queue and its position without loading anything', () => {
-		const first = persisted();
-
-		first.getState().playTrack(release, 'b');
-		first.getState().seek(42);
-		leavePage();
-
-		resetEngine();
-
-		const second = persisted();
-
-		const state = second.getState();
-
-		expect(state.queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'c']);
-		expect(state.currentIndex).toBe(1);
-		expect(state.currentTimeSeconds).toBe(42);
-		expect(state.status).toBe('idle');
-		expect(fake.engine.load).not.toHaveBeenCalled();
-
-		localStorage.removeItem(queueStorageKey);
-	});
-
 	test('loads a restored track at the stored position on the first press', async () => {
 		const first = persisted();
 

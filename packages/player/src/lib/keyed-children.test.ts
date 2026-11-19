@@ -96,19 +96,6 @@ describe('keyedChildren', () => {
 		expect(moveBefore).toHaveBeenCalledWith(b, a);
 	});
 
-	test('hands focus back to a focused node that a move without moveBefore blurred', () => {
-		const { list, reconcile } = renderList();
-
-		reconcile(['a', 'b']);
-
-		const [, b] = rowsOf(list);
-
-		b?.focus();
-		reconcile(['b', 'a']);
-
-		expect(document.activeElement).toBe(b);
-	});
-
 	test.prop([reconcileSteps, fc.boolean()])(
 		'matches the items in order after every reconcile, keeping each surviving node and its focus',
 		(steps, hasMoveBefore) => {

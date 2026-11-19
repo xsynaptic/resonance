@@ -25,24 +25,24 @@ function mountStrip() {
 describe('<player-progress>', () => {
 	test('is disabled and hidden from assistive technology until a duration is known', () => {
 		const { fake, slider, store } = mountStrip();
-		const isInert = () => slider.disabled && slider.getAttribute('aria-hidden') === 'true';
+		const inertness = () => [slider.disabled, slider.getAttribute('aria-hidden')];
 
-		expect(isInert()).toBe(true);
+		expect(inertness()).toEqual([true, 'true']);
 
 		store.getState().playTrack([queueItem('a')], 'a');
 		fake.callbacks.current?.onTime(45);
 
-		expect(isInert()).toBe(true);
+		expect(inertness()).toEqual([true, 'true']);
 
 		fake.callbacks.current?.onDuration(180);
 
-		expect(isInert()).toBe(false);
+		expect(inertness()).toEqual([false, 'false']);
 		expect([slider.value, slider.max]).toEqual([45, 180]);
 		expect(slider.getAttribute('aria-label')).toBe(labels.seek);
 
 		store.getState().clearQueue();
 
-		expect(isInert()).toBe(true);
+		expect(inertness()).toEqual([true, 'true']);
 	});
 
 	test('seeks once to where the slider commits', () => {

@@ -35,6 +35,25 @@ describe('collectCreditIssues', () => {
 		]);
 	});
 
+	test('resolves members and projects against artists', () => {
+		const entries = [
+			makeEntry({
+				data: { members: [{ id: 'twisted' }], projects: [{ id: 'shpongle' }] },
+				filePath: 'collections/artists/simon-posford.mdx',
+				id: 'simon-posford',
+			}),
+		];
+
+		expect(collectCreditIssues(entries, catalog)).toEqual([
+			{
+				collection: 'artists',
+				field: 'members',
+				id: 'twisted',
+				location: 'collections/artists/simon-posford.mdx',
+			},
+		]);
+	});
+
 	test('reaches into a track, reporting which one', () => {
 		const entries = [
 			makeEntry({

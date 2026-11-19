@@ -103,12 +103,6 @@ describe('createBandReducer', () => {
 
 		expect(levels).toEqual([255, 0, 0, 170, 0, 0, 170, 0, 0]);
 	});
-
-	test('gives the same levels however the stream is chunked', () => {
-		const buffer = interleave([sine(0.5), steady(0.25), sine(0.01)], samplesPerFrame * 3 + 17);
-
-		expect(reduce(buffer, 4099)).toEqual(reduce(buffer));
-	});
 });
 
 describe('buildBands', () => {

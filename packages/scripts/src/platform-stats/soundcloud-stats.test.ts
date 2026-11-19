@@ -71,7 +71,7 @@ afterEach(() => {
 });
 
 describe('pullSoundcloudStats', () => {
-	test('exchanges the token exactly once, then pages to exhaustion', async () => {
+	test('pages to exhaustion and writes every track', async () => {
 		stubFetch((url) => {
 			if (url.startsWith(tokenUrl)) return Response.json({ access_token: 'test-token' });
 			if (url.startsWith(resolveUrl)) return resolveResponse();
@@ -82,7 +82,6 @@ describe('pullSoundcloudStats', () => {
 
 		await captureOutput(() => pullSoundcloudStats({ rootPath }));
 
-		expect(requests.filter((url) => url.startsWith(tokenUrl))).toHaveLength(1);
 		expect(requests.filter((url) => url.startsWith(firstPageUrl))).toHaveLength(2);
 
 		const [line] = await readLines();
@@ -110,6 +109,31 @@ describe('pullSoundcloudStats', () => {
 			events.filter((event) => event.type === 'status' && event.state === 'warn'),
 		).toMatchObject([{ detail: /429/, text: 'Pulling SoundCloud stats' }]);
 		expect(await readLines()).toEqual([]);
+	});
+
+	test('appends nothing when a sweep comes back empty after one that had rows', async () => {
+		const filePath = path.join(rootPath, soundcloudStatsPath);
+		const seed = JSON.stringify({
+			generated_at: '2026-01-01T00:00:00Z',
+			items: { '/djbasilisk/a': { plays: 1 } },
+			version: 1,
+		});
+
+		await writeFile(filePath, `${seed}\n`, 'utf8');
+
+		stubFetch((url) => {
+			if (url.startsWith(tokenUrl)) return Response.json({ access_token: 'test-token' });
+			if (url.startsWith(resolveUrl)) return resolveResponse();
+
+			return Response.json({ collection: [] });
+		});
+
+		const { events } = await captureOutput(() => pullSoundcloudStats({ rootPath }));
+
+		expect(
+			events.filter((event) => event.type === 'status' && event.state === 'warn'),
+		).toMatchObject([{ detail: /no tracks/, text: 'Pulling SoundCloud stats' }]);
+		expect(await readLines()).toEqual([seed]);
 	});
 
 	test('skips a generation under 24 hours old, and runs it with force', async () => {

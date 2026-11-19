@@ -205,9 +205,10 @@ describe('handleListenReport', () => {
 		expect(rows()).toHaveLength(0);
 	});
 
+	// Whitespace keeps the oversized report valid JSON, so only the size guard can turn it away
 	test('an oversized, malformed or padded body writes nothing', async () => {
 		const bodies = [
-			JSON.stringify({ id: listenId, mixId: 'voyager', padding: 'x'.repeat(1024), seconds: 300 }),
+			JSON.stringify({ id: listenId, mixId: 'voyager', seconds: 300 }) + ' '.repeat(1024),
 			'{',
 			JSON.stringify({ extra: 1, id: listenId, mixId: 'voyager', seconds: 300 }),
 		];

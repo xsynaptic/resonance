@@ -95,6 +95,8 @@ describe('<player-time-slider>', () => {
 		expect(strip.max).toBe(200);
 		expect(strip.value).toBe(50);
 		expect(strip.disabled).toBe(false);
+		expect(strip.getAttribute('aria-hidden')).toBe('false');
+		expect(strip.peaks).toEqual(overview);
 	});
 
 	test('seeks once to where the strip commits', () => {
@@ -227,13 +229,12 @@ describe('<player-time-slider>', () => {
 		expect(readout(part)).toBe('|Forest Signal|50');
 	});
 
-	test('keeps the same strip for an item measured without peaks', () => {
-		const { part, store } = mount('player-time-slider');
+	test('clears the last peaks on the same strip for an item measured without them', () => {
+		const { part, store, strip } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
 
-		store.getState().playTrack([queueItem('a', { durationMs: 200_000 })], 'a');
+		store.getState().playTrack([queueItem('b', { durationMs: 200_000 })], 'b');
 
-		const strip = requireStrip(part);
-
+		expect(requireStrip(part)).toBe(strip);
 		expect(strip.peaks).toBeUndefined();
 		expect(strip.disabled).toBe(false);
 	});

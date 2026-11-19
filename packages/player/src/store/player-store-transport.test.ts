@@ -84,15 +84,20 @@ describe('shuffle', () => {
 
 describe('transport', () => {
 	// The loaded track keeps its index only until a row above it goes, and reloading it would restart the sound
-	test('pauses rather than reloads after a row above the loaded track is removed', () => {
+	test('resumes rather than reloads after a row above the loaded track is removed', async () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'b');
-		fake.callbacks.current?.onStatus('playing');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledOnce();
+		});
+		fake.callbacks.current?.onStatus('paused');
 		store.getState().removeAt(0);
 		store.getState().togglePaused();
+		await new Promise((resolve) => setTimeout(resolve, 0));
 
-		expect(fake.engine.pause).toHaveBeenCalled();
+		expect(fake.engine.play).toHaveBeenCalledOnce();
+		expect(fake.engine.load).toHaveBeenCalledOnce();
 	});
 
 	test('resumes the engine when toggled while paused', () => {

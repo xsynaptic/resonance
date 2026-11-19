@@ -21,6 +21,10 @@ describe('canStepBack', () => {
 		expect(canStepBack(stateAt(0, restartThresholdSeconds, [0, 1]))).toBe(false);
 	});
 
+	test('steps back from the top of a later track', () => {
+		expect(canStepBack(stateAt(1, 0, [0, 1]))).toBe(true);
+	});
+
 	test('restarts a lone track once it is past the threshold', () => {
 		expect(canStepBack(stateAt(0, restartThresholdSeconds + 1, [0]))).toBe(true);
 	});

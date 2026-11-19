@@ -11,6 +11,7 @@ vi.mock('#components/comments/comment-turnstile.ts', () => ({
 	},
 }));
 
+import { readStoredDetails, saveStoredDetails } from '#components/comments/comment-form-memory.ts';
 import '#components/comments/comments-section.ts';
 
 const errorMessage = 'Your comment could not be posted.';
@@ -28,6 +29,9 @@ function mountSection(): HTMLFormElement {
 
 	container.innerHTML = `
 		<comments-section data-error-message="${errorMessage}">
+			<article id="comment-c1">
+				<button data-reply="c1" hidden type="button">Reply</button>
+			</article>
 			<p data-comment-notice hidden>Your comment is awaiting review.</p>
 			<div data-comment-form-home>
 				<button data-open-form hidden type="button">Leave a comment</button>
@@ -68,11 +72,22 @@ function submit(form: HTMLFormElement): void {
 	form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 }
 
+function postedField(call: number, name: string): FormDataEntryValue | null | undefined {
+	const options = vi.mocked(fetch).mock.calls[call]?.[1];
+
+	return (options?.body as FormData | undefined)?.get(name);
+}
+
+function rememberBox(): HTMLInputElement {
+	return element('[data-remember]') as HTMLInputElement;
+}
+
 afterEach(() => {
 	document.body.replaceChildren();
 	localStorage.clear();
 	vi.clearAllMocks();
 	vi.unstubAllGlobals();
+	vi.useRealTimers();
 });
 
 describe('a submitted comment form', () => {
@@ -91,6 +106,46 @@ describe('a submitted comment form', () => {
 		expect(url).toBe(form.action);
 		expect(options).toMatchObject({ headers: { accept: 'application/json' }, method: 'POST' });
 		expect((options?.body as FormData).get('body')).toBe('A comment');
+	});
+
+	test('carries the time the section connected and no parent', async () => {
+		vi.useFakeTimers({ toFake: ['Date'] });
+		vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
+
+		const form = mountSection();
+
+		vi.setSystemTime(new Date('2026-11-19T12:05:00Z'));
+		respondWith({ ok: true });
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(fetch).toHaveBeenCalledOnce();
+		});
+
+		expect(postedField(0, 'renderedAt')).toBe(String(Date.parse('2026-11-19T12:00:00Z')));
+		expect(postedField(0, 'parentId')).toBe('');
+	});
+
+	test('a reply posts under its parent, and the next comment posts top-level again', async () => {
+		const form = mountSection();
+
+		respondWith({ ok: true });
+		element('[data-reply="c1"]').click();
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(element('[data-comment-notice]').hidden).toBe(false);
+		});
+
+		element('[data-open-form]').click();
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(fetch).toHaveBeenCalledTimes(2);
+		});
+
+		expect(postedField(0, 'parentId')).toBe('c1');
+		expect(postedField(1, 'parentId')).toBe('');
 	});
 
 	test('an accepted comment empties the body, collapses the form and shows the notice', async () => {
@@ -193,5 +248,53 @@ describe('a submitted comment form', () => {
 		});
 
 		expect(widget.render).toHaveBeenCalledWith(element('[data-turnstile]'), 'test-key');
+	});
+});
+
+describe('remembered details', () => {
+	test('stay out of storage unless the visitor opts in', async () => {
+		const form = mountSection();
+
+		respondWith({ ok: true });
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(fetch).toHaveBeenCalledOnce();
+		});
+
+		expect(readStoredDetails()).toBeUndefined();
+	});
+
+	test('opting in stores the name, email and URL but not the comment', async () => {
+		const form = mountSection();
+
+		rememberBox().checked = true;
+		respondWith({ ok: true });
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(fetch).toHaveBeenCalledOnce();
+		});
+
+		expect(readStoredDetails()).toEqual({ author: 'Ada', authorEmail: '', authorUrl: '' });
+	});
+
+	test('fill the form on the next visit, and unticking the box forgets them', async () => {
+		saveStoredDetails({ author: 'Grace', authorEmail: 'grace@example.com', authorUrl: '' });
+
+		const form = mountSection();
+
+		expect(form.querySelector<HTMLInputElement>('input[name="author"]')?.value).toBe('Grace');
+		expect(rememberBox().checked).toBe(true);
+
+		rememberBox().checked = false;
+		respondWith({ ok: true });
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(fetch).toHaveBeenCalledOnce();
+		});
+
+		expect(readStoredDetails()).toBeUndefined();
 	});
 });

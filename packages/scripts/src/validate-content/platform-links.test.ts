@@ -26,6 +26,18 @@ describe('validatePlatformLinks', () => {
 		]);
 	});
 
+	test("ignores a SoundCloud URL under somebody else's account", () => {
+		const mixes = [
+			makeEntry({
+				data: { links: ['https://soundcloud.com/someone-else/a-mix'] },
+				filePath: 'collections/mixes/2015/a-mix.mdx',
+				id: 'a-mix',
+			}),
+		];
+
+		expect(validatePlatformLinks(mixes, keys).issues).toEqual([]);
+	});
+
 	// The terms require a visible backlink from every item whose figures are shown
 	test('fails when `soundcloudLink` has no matching backlink in `links`', () => {
 		const mixes = [

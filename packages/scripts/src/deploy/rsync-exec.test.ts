@@ -9,7 +9,8 @@ function makeConfig(sshKeyPath?: string) {
 	};
 }
 
-const sshCommand: unknown = expect.stringMatching(/^ssh .*-o ControlMaster=auto /);
+const sshCommand =
+	'ssh -o ConnectTimeout=15 -o ControlMaster=auto -o ControlPath=~/.ssh/resonance-%C -o ControlPersist=60';
 
 function getSshCommand(args: Array<string>) {
 	return args[args.indexOf('-e') + 1];

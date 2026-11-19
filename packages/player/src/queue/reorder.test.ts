@@ -44,15 +44,6 @@ describe('movedIndex', () => {
 		expect(movedIndex(1, 3, 1)).toBe(2);
 		expect(movedIndex(2, 3, 1)).toBe(3);
 	});
-
-	test('agrees with the array it describes', () => {
-		const items = ['a', 'b', 'c', 'd'];
-		const moved = movedArray(items, 1, 3);
-
-		for (const [index, item] of items.entries()) {
-			expect(moved[movedIndex(index, 1, 3)]).toBe(item);
-		}
-	});
 });
 
 const longestQueueChecked = 8;

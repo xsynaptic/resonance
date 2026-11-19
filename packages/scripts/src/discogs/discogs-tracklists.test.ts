@@ -67,6 +67,21 @@ describe('toTracklist', () => {
 		expect(problems).toEqual([]);
 	});
 
+	test('credits a compilation track to its own artist', () => {
+		const problems: Array<string> = [];
+		const tracklist = toTracklist(
+			release({
+				artists: [credit('Various')],
+				tracklist: [track({ artists: [credit('Hallucinogen')], title: 'LSD' })],
+			}),
+			'a-review.mdx',
+			problems,
+		);
+
+		expect(tracklist).toEqual([{ artists: 'Hallucinogen', title: 'LSD' }]);
+		expect(problems).toEqual([]);
+	});
+
 	test('refuses to fill "Various" down onto a compilation track', () => {
 		const problems: Array<string> = [];
 		const tracklist = toTracklist(

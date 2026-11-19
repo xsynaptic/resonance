@@ -30,13 +30,14 @@ describe('<player-play-button>', () => {
 	});
 
 	// Safari has no `moveBefore`, so the router's move arrives as a disconnect and a connect
-	test('binds once after a disconnect and a connect', () => {
+	test('binds once after a disconnect and a connect', async () => {
 		const { fake, part, root, store } = mount('player-play-button');
 
 		store.getState().playTrack([queueItem('a')], 'a');
 		fake.callbacks.current?.onStatus('playing');
 		root.remove();
 		document.body.append(root);
+		await Promise.resolve();
 		getByRole(part, 'button', { name: labels.pause }).click();
 
 		expect(store.getState().isPaused).toBe(true);

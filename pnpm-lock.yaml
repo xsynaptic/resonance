@@ -246,8 +246,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@xsynaptic/astro-image-pipeline':
-        specifier: ^0.15.0
-        version: 0.15.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
+        specifier: ^0.16.0
+        version: 0.16.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
       '@xsynaptic/astro-pagefind':
         specifier: ^0.3.0
         version: 0.3.0(@pagefind/component-ui@1.6.0)(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(pagefind@1.6.0)
@@ -393,11 +393,11 @@ importers:
         specifier: ^19.3.0
         version: 19.3.0
       '@xsynaptic/astro-image-pipeline':
-        specifier: ^0.15.0
-        version: 0.15.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
+        specifier: ^0.16.0
+        version: 0.16.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
       '@xsynaptic/astro-scripts':
-        specifier: ^0.16.2
-        version: 0.16.2(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(satteri@0.11.7)
+        specifier: ^0.17.0
+        version: 0.17.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(satteri@0.11.7)
       '@xsynaptic/shared':
         specifier: workspace:*
         version: link:../shared
@@ -438,8 +438,8 @@ importers:
   packages/shared:
     dependencies:
       '@xsynaptic/astro-image-pipeline':
-        specifier: ^0.15.0
-        version: 0.15.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
+        specifier: ^0.16.0
+        version: 0.16.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -2594,8 +2594,8 @@ packages:
     peerDependencies:
       astro: ^6.3.8 || ^7.0.0
 
-  '@xsynaptic/astro-image-pipeline@0.15.0':
-    resolution: {integrity: sha512-GyPsH0MqgDxCSBULDrqCZpPXk5CzJXxRj0WavDHqkNJAMm7yqdZ/uhx5XtFMPKNyWBPgWX0BpbQ7O4P9JL7wqA==}
+  '@xsynaptic/astro-image-pipeline@0.16.0':
+    resolution: {integrity: sha512-grw3yFvsLxeH64oHZ1FV5TWNG2Q21mhDWkwm8rJ3rIPQL7Xy+3KsxWcttxQVhGs6+5K4PfGj47DY4+T0kaU0EQ==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
       astro: ^7.4.2
@@ -2612,8 +2612,8 @@ packages:
       '@pagefind/component-ui':
         optional: true
 
-  '@xsynaptic/astro-scripts@0.16.2':
-    resolution: {integrity: sha512-zXNi66Z+MAVgxD5+EoSExku8Af22DpruYOxh1M+NCKO+lV5WoJec1MbyGDZUp7KTYQFJyf73aOIwqr6yPFMgEA==}
+  '@xsynaptic/astro-scripts@0.17.0':
+    resolution: {integrity: sha512-4IssI1Q2lw10LS/uxsm/xLRQxw2jJB+82SDZa3UHWCYwC4+I2V5uc59Dgx4iHk8Wvfti9dszZQ7vJh6+1sWY4w==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
       astro: ^7.4.2
@@ -8026,7 +8026,7 @@ snapshots:
       unifont: 1.0.3
       zod: 4.6.7
 
-  '@xsynaptic/astro-image-pipeline@0.15.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))':
+  '@xsynaptic/astro-image-pipeline@0.16.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))':
     dependencies:
       astro: 7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       p-limit: 7.3.3
@@ -8042,7 +8042,7 @@ snapshots:
     optionalDependencies:
       '@pagefind/component-ui': 1.6.0
 
-  '@xsynaptic/astro-scripts@0.16.2(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(satteri@0.11.7)':
+  '@xsynaptic/astro-scripts@0.17.0(astro@7.4.12(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(satteri@0.11.7)':
     dependencies:
       chalk: 6.0.1
       ky: 2.2.0

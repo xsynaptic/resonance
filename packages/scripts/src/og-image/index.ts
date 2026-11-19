@@ -10,7 +10,14 @@ import {
 	hashTemplateVersion,
 	prepareCardRender,
 } from '@xsynaptic/astro-image-pipeline/node';
-import { createProgress, formatCount, log, UserError, withStep } from '@xsynaptic/astro-scripts';
+import {
+	createProgress,
+	formatCount,
+	getAstroPaths,
+	log,
+	UserError,
+	withStep,
+} from '@xsynaptic/astro-scripts';
 import {
 	imageCachePath,
 	openGraphBasePath,
@@ -61,7 +68,7 @@ async function drawOpenGraphImages({
 		return;
 	}
 
-	const distPath = path.resolve(rootPath, 'dist');
+	const { clientDir: distPath } = await getAstroPaths();
 	const renderCard = await createCardRenderer();
 	const render = await prepareCardRender({
 		decode: (source) => decodeFeaturedImage(source.filePath),

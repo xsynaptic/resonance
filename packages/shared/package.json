@@ -22,7 +22,7 @@
 		"./wrangler": "./src/wrangler.ts"
 	},
 	"dependencies": {
-		"@xsynaptic/astro-image-pipeline": "^0.15.0",
+		"@xsynaptic/astro-image-pipeline": "^0.16.0",
 		"zod": "^4.6.7"
 	}
 }

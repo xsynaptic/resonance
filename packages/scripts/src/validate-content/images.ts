@@ -1,15 +1,12 @@
 import type { ContentEntry, ValidationResult } from '@xsynaptic/astro-scripts';
 
+import { listImageSources } from '@xsynaptic/astro-image-pipeline/node';
 import { findComponentTags, getTagProp, toValidationResult } from '@xsynaptic/astro-scripts';
-import { existsSync, readdirSync, statSync } from 'node:fs';
-import path from 'node:path';
 
 import { extractImageFeaturedIds } from '#shared/images.ts';
 
 // Media paths are relative to the content package's `media/` and are plain strings, not Astro assets
 // Nothing else catches a typo before the build silently falls back to no image
-const imageExtensions = /\.(avif|gif|jpe?g|png|webp)$/i;
-
 interface MissingImageIssue {
 	imagePath: string;
 	location: string;
@@ -26,8 +23,11 @@ export function collectMissingImageIssues(
 	);
 }
 
-export function validateImages(entries: Array<ContentEntry>, mediaPath: string): ValidationResult {
-	const mediaFiles = collectMediaFiles(mediaPath);
+export async function validateImages(
+	entries: Array<ContentEntry>,
+	mediaPath: string,
+): Promise<ValidationResult> {
+	const mediaFiles = await collectMediaFiles(mediaPath);
 
 	// Originals are gitignored, so an empty tree is a missing checkout rather than a content fault
 	if (mediaFiles.size === 0) {
@@ -64,25 +64,11 @@ function collectEntryImagePaths(entry: ContentEntry): Set<string> {
 	]);
 }
 
-function collectMediaFiles(mediaPath: string): Set<string> {
-	const files = new Set<string>();
+// `_`-prefixed folders hold unused originals, such as `media/_unused`
+async function collectMediaFiles(mediaPath: string) {
+	const sources = await listImageSources(mediaPath);
 
-	function walk(directory: string, prefix: string): void {
-		for (const name of readdirSync(directory)) {
-			if (name.startsWith('_')) continue;
-
-			const fullPath = path.join(directory, name);
-			const relativePath = prefix === '' ? name : `${prefix}/${name}`;
-
-			if (statSync(fullPath).isDirectory()) {
-				walk(fullPath, relativePath);
-				continue;
-			}
-			if (imageExtensions.test(name)) files.add(relativePath);
-		}
-	}
-
-	if (existsSync(mediaPath)) walk(mediaPath, '');
-
-	return files;
+	return new Set(
+		[...sources].filter((source) => source.split('/').every((segment) => !segment.startsWith('_'))),
+	);
 }

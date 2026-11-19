@@ -1,4 +1,4 @@
-import { log, runSubprocess } from '@xsynaptic/astro-scripts';
+import { getAstroPaths, log, runSubprocess } from '@xsynaptic/astro-scripts';
 import { getWranglerEnv } from '@xsynaptic/shared/wrangler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -18,7 +18,7 @@ interface DeployAppOptions {
 export async function deployApp(options: DeployAppOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
-	const distPath = path.join(rootPath, 'dist');
+	const { clientDir: distPath } = await getAstroPaths();
 
 	if (!(await isPathPresent(distPath))) {
 		throw new Error(`dist/ not found at ${distPath}. Run \`pnpm build\` (or omit --skip-build).`);

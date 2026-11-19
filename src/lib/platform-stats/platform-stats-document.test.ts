@@ -35,7 +35,9 @@ describe('getPlayCounts', () => {
 	});
 
 	test('reads the last generation, recovering from a torn final line', async () => {
-		const filePath = writeLog(`${toLine('2026-09-01T00:00:00Z', 7)}\n{"generated_at":"2026-09`);
+		const filePath = writeLog(
+			`${toLine('2026-08-01T00:00:00Z', 3)}\n${toLine('2026-09-01T00:00:00Z', 7)}\n{"generated_at":"2026-09`,
+		);
 
 		expect(await getPlayCounts(filePath)).toEqual(new Map([['/a', 7]]));
 	});

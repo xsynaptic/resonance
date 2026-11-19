@@ -141,10 +141,17 @@ describe('<player-overlay>', () => {
 		link.addEventListener('click', (event) => {
 			event.preventDefault();
 		});
-		fireEvent.click(link, { metaKey: true });
-		fireEvent.click(link, { button: 1 });
+		for (const modifier of [
+			{ altKey: true },
+			{ ctrlKey: true },
+			{ metaKey: true },
+			{ shiftKey: true },
+			{ button: 1 },
+		]) {
+			fireEvent.click(link, modifier);
 
-		expect(mounted.store.getState().isOverlayOpen).toBe(true);
+			expect(mounted.store.getState().isOverlayOpen).toBe(true);
+		}
 
 		fireEvent.click(link);
 

@@ -63,10 +63,12 @@ describe('<player-bar>', () => {
 		]);
 	});
 
-	test('keeps its one bar across a reconnect', () => {
+	test('keeps its one bar across a reconnect', async () => {
 		const { part, root } = mount('player-bar');
 
 		root.remove();
+		// The disconnect settles on a microtask; a same-task reconnect never reaches the bar
+		await Promise.resolve();
 		document.body.append(root);
 
 		expect(part.querySelectorAll('.player-bar')).toHaveLength(1);

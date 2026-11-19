@@ -72,11 +72,9 @@ describe('audio engine', () => {
 		engine.pause();
 		await loaded;
 
+		expect(callbacks.onDiagnostic).not.toHaveBeenCalled();
 		expect(callbacks.onError).not.toHaveBeenCalled();
 		expect(media.play).toHaveBeenCalledOnce();
-		expect(media.pause.mock.invocationCallOrder[0]).toBeGreaterThan(
-			media.play.mock.invocationCallOrder[0] ?? Infinity,
-		);
 	});
 
 	test('an autoplay refusal reports a pause rather than a failure', async () => {

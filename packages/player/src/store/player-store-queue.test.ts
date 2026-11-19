@@ -32,16 +32,23 @@ describe('playTrack', () => {
 		});
 	});
 
-	test('toggles transport when the clicked track is already loaded', () => {
+	test('toggles transport when the clicked track is already loaded', async () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledOnce();
+		});
 		fake.callbacks.current?.onStatus('playing');
 		store.getState().playTrack(release, 'a');
 
+		expect(store.getState()).toMatchObject({ currentIndex: 0, isPaused: true });
 		expect(store.getState().queue).toHaveLength(3);
-		expect(store.getState().currentIndex).toBe(0);
 		expect(fake.engine.pause).toHaveBeenCalled();
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(fake.engine.load).toHaveBeenCalledOnce();
 	});
 });
 

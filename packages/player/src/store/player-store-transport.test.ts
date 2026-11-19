@@ -112,8 +112,9 @@ describe('transport', () => {
 		store.getState().removeAt(0);
 		expect(store.getState().currentIndex).toBeUndefined();
 
+		store.setState({ isShuffling: true, playOrder: [1, 0] });
 		store.getState().togglePaused();
-		expect(store.getState().currentIndex).toBe(0);
+		expect(store.getState().currentIndex).toBe(1);
 	});
 
 	test('seeks by a delta, clamped into the loaded track', () => {

@@ -8,9 +8,18 @@ import {
 } from '#components/comments/comment-form-memory.ts';
 import { commentFormStorageKey as storageKey } from '#components/main/main-storage-keys.ts';
 
+function fail(): never {
+	throw new Error('Storage is disabled');
+}
+
+// happy-dom binds a mocked Storage.prototype method onto localStorage for good, so stub the global instead
+function stubThrowingStorage(): void {
+	vi.stubGlobal('localStorage', { getItem: fail, removeItem: fail, setItem: fail });
+}
+
 afterEach(() => {
+	vi.unstubAllGlobals();
 	localStorage.clear();
-	vi.restoreAllMocks();
 });
 
 describe('readStoredDetails', () => {
@@ -47,9 +56,7 @@ describe('readStoredDetails', () => {
 	});
 
 	test('storage that throws reads as absent', () => {
-		vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-			throw new Error('Storage is disabled');
-		});
+		stubThrowingStorage();
 
 		expect(readStoredDetails()).toBeUndefined();
 	});
@@ -57,9 +64,7 @@ describe('readStoredDetails', () => {
 
 describe('saveStoredDetails', () => {
 	test('storage that throws is not an error for the caller', () => {
-		vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-			throw new Error('Storage is full');
-		});
+		stubThrowingStorage();
 
 		expect(() => {
 			saveStoredDetails({ author: 'Ada' });
@@ -76,9 +81,7 @@ describe('clearStoredDetails', () => {
 	});
 
 	test('storage that throws is not an error for the caller', () => {
-		vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
-			throw new Error('Storage is disabled');
-		});
+		stubThrowingStorage();
 
 		expect(() => {
 			clearStoredDetails();

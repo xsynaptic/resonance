@@ -16,10 +16,11 @@ describe('shuffledOrder', () => {
 	});
 
 	test('shuffles from the head when nothing is current', () => {
-		const order = shuffledOrder(3, undefined, zeroRandom);
+		const orders = [0, 0.5, 0.99].map((draw) => shuffledOrder(3, undefined, () => draw));
 
-		expect(order.toSorted(ascending)).toStrictEqual([0, 1, 2]);
-		expect(order).toHaveLength(3);
+		for (const order of orders) expect(order.toSorted(ascending)).toStrictEqual([0, 1, 2]);
+
+		expect(new Set(orders.map((order) => order[0])).size).toBeGreaterThan(1);
 	});
 });
 

@@ -73,8 +73,8 @@ describe('monitorPlayback', () => {
 		page.emit('playing', { paused: false });
 		page.hear(40);
 		page.emit('seeking', { seeking: true });
-		page.emit('timeupdate', { currentTime: 640 });
-		page.emit('seeked', { currentTime: 640, seeking: false });
+		page.emit('timeupdate', { currentTime: 41.5 });
+		page.emit('seeked', { currentTime: 41.5, seeking: false });
 		page.emit('pause', { paused: true });
 
 		expect(page.reports.map((report) => report.heardSeconds)).toEqual([40]);

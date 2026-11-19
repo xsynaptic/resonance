@@ -21,6 +21,9 @@ describe('createPlayer', () => {
 		const store = createPlayerStore({ storage: createMemoryStorage() });
 		const root = createPlayer({
 			isArtworkEnabled: false,
+			isOverlayEnabled: false,
+			isPanelEnabled: false,
+			isScopeEnabled: true,
 			labels: { ...labels, seekBack: 'Back {seconds}' },
 			seekSeconds: 15,
 			store,
@@ -31,6 +34,9 @@ describe('createPlayer', () => {
 
 		getByRole(root, 'button', { name: 'Back 15' });
 		expect(root.querySelector('player-artwork')).toBeNull();
+		expect(root.querySelector('player-overlay-toggle')).toBeNull();
+		expect(root.querySelector('player-panel-toggle')).toBeNull();
+		expect(root.querySelector('player-scope')).not.toBeNull();
 		expect(store.getState().urls).toBe(urls);
 	});
 });

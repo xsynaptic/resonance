@@ -163,7 +163,23 @@ describe('a submitted comment form', () => {
 		expect(element('[data-comment-error]').textContent).toBe(errorMessage);
 	});
 
-	test('either outcome re-enables the button and rebuilds the single-use widget', async () => {
+	test('an accepted comment re-enables the button for the next one', async () => {
+		const form = mountSection();
+		const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+		respondWith({ ok: true });
+		submit(form);
+
+		expect(button?.disabled).toBe(true);
+
+		await vi.waitFor(() => {
+			expect(element('[data-comment-notice]').hidden).toBe(false);
+		});
+
+		expect(button?.disabled).toBe(false);
+	});
+
+	test('a rejection re-enables the button and rebuilds the single-use widget', async () => {
 		const form = mountSection();
 		const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
 

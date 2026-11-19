@@ -78,6 +78,15 @@ const fixtures: Fixtures = {
 			},
 			id: 'review-six',
 		},
+		// Ambient outsorts Techno on title, so only the counts (Techno's rolled up) put Techno first
+		{
+			data: {
+				dateCreated: new Date('2023-07-01'),
+				styles: [{ id: 'ambient' }],
+				title: 'Review Seven',
+			},
+			id: 'review-seven',
+		},
 	],
 	styles: [
 		{ data: { title: 'Psytrance' }, id: 'psytrance' },
@@ -114,7 +123,7 @@ async function labelsByHeading(collection: TermCollectionKey, id: string) {
 describe('getTermRelations', () => {
 	test('ranks children by content count and drops the ones holding nothing', async () => {
 		expect(await labelsByHeading('styles', 'psytrance')).toEqual({
-			'Other styles': ['Techno'],
+			'Other styles': ['Techno', 'Ambient'],
 			Substyles: ['Darkpsy', 'Forest'],
 		});
 	});

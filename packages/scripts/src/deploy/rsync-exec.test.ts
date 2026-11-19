@@ -40,43 +40,31 @@ describe('buildRsyncArgs', () => {
 		expect(getSshCommand(args)).not.toContain('-i');
 	});
 
-	test('emits excludes in order, ahead of extra flags', () => {
+	// rsync reads every option before it acts, so only the excludes' own order and the paths' place matter
+	test('emits excludes in order, with every flag ahead of the paths', () => {
 		const args = buildRsyncArgs('dist/', 'host:/path', {
 			config: makeConfig(),
 			excludes: ['.DS_Store', '*.tmp'],
 			extraFlags: ['--partial'],
 		});
 
-		expect(args).toEqual([
-			'-ai',
-			'--stats',
-			'-e',
-			sshCommand,
+		expect(args.filter((arg) => arg.startsWith('--exclude='))).toStrictEqual([
 			'--exclude=.DS_Store',
 			'--exclude=*.tmp',
-			'--partial',
-			'dist/',
-			'host:/path',
 		]);
+		expect(args).toContain('--partial');
+		expect(args.slice(-2)).toStrictEqual(['dist/', 'host:/path']);
 	});
 
-	test('keeps a destructive flag ahead of dry-run, and dry-run ahead of the source', () => {
-		const args = buildRsyncArgs('dist/', 'host:/path', {
-			config: makeConfig(),
-			dryRun: true,
-			extraFlags: ['--delete'],
-		});
+	test('rehearses the same transfer with dry-run added ahead of the paths', () => {
+		const options = { config: makeConfig(), extraFlags: ['--delete'] };
+		const live = buildRsyncArgs('dist/', 'host:/path', options);
+		const rehearsal = buildRsyncArgs('dist/', 'host:/path', { ...options, dryRun: true });
 
-		expect(args).toEqual([
-			'-ai',
-			'--stats',
-			'-e',
-			sshCommand,
-			'--delete',
-			'--dry-run',
-			'dist/',
-			'host:/path',
-		]);
+		expect(live).not.toContain('--dry-run');
+		expect(rehearsal).toContain('--dry-run');
+		expect(rehearsal.filter((arg) => arg !== '--dry-run')).toStrictEqual(live);
+		expect(rehearsal.slice(-2)).toStrictEqual(['dist/', 'host:/path']);
 	});
 });
 

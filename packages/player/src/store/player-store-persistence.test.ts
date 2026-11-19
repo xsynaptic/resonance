@@ -125,11 +125,13 @@ describe('queue persistence', () => {
 		localStorage.clear();
 	});
 
+	// Earlier stores in this file still listen, so a first flush settles whatever they hold unsaved
 	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
 		persisted();
 
 		const saved = JSON.stringify({ itemIds: ['a', 'b', 'c'] });
 
+		leavePage();
 		localStorage.setItem(queueStorageKey, saved);
 		leavePage();
 

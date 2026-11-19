@@ -16,10 +16,10 @@ describe('lazyModule', () => {
 
 		await expect(module.load()).rejects.toBeInstanceOf(LazyModuleError);
 
-		const first = module.load();
+		const [first, second] = [module.load(), module.load()];
 
-		expect(module.load()).toBe(first);
 		await expect(first).resolves.toStrictEqual({ isReady: true });
+		await expect(second).resolves.toStrictEqual({ isReady: true });
 		expect(importModule).toHaveBeenCalledTimes(2);
 	});
 

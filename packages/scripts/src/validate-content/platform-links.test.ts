@@ -101,7 +101,9 @@ describe('validatePlatformLinks', () => {
 		const result = validatePlatformLinks(mixes, { mixcloud: keys.mixcloud });
 
 		expect(result.status).toBe('pass');
-		expect(result.notes?.[0]).toContain('soundcloud');
+		expect(result.notes).toStrictEqual([
+			'   No pulled stats for: soundcloud; those keys went unchecked',
+		]);
 	});
 
 	test('passes for a mix whose embed is an array of resolving URLs', () => {
@@ -122,6 +124,9 @@ describe('validatePlatformLinks', () => {
 		];
 		const withBoth = { ...keys, soundcloud: new Set(['/djbasilisk/a-mix', '/djbasilisk/b-mix']) };
 
-		expect(validatePlatformLinks(mixes, withBoth).status).toBe('pass');
+		const result = validatePlatformLinks(mixes, withBoth);
+
+		expect(result.status).toBe('pass');
+		expect(result.notes).toBeUndefined();
 	});
 });

@@ -15,6 +15,7 @@ describe('<player-mute-button>', () => {
 		getByRole(part, 'button', { name: labels.mute }).click();
 
 		expect(store.getState().isMuted).toBe(true);
+		expect(getByRole(part, 'button', { name: labels.unmute })).toBeDefined();
 
 		store.getState().setVolume(0.3);
 

@@ -11,7 +11,7 @@ import { getMixCuePoints, getMixCueSheets } from '#lib/collections/mixes/mixes-c
 setCollections({ artists: [{ data: { title: 'DJ Basilisk' }, id: 'dj-basilisk' }] });
 
 const partOne = { artists: 'Lorn', timestamp: '00:00:00.00', title: 'All Directions Are the Same' };
-const partTwo = { artists: 'O Yuki Conjugate', timestamp: '00:00:00.00', title: 'Black Magic Box' };
+const partTwo = { artists: 'O Yuki Conjugate', timestamp: '00:04:10.00', title: 'Black Magic Box' };
 
 function fileLines(sheets: Array<{ text: string }>) {
 	return sheets.map((sheet) => /FILE (.+) \w+\r\n/.exec(sheet.text)?.[1]);
@@ -21,7 +21,13 @@ function fileLines(sheets: Array<{ text: string }>) {
 function makeMix(files: Array<string>, tracks: TracklistValue): CollectionEntry<'mixes'> {
 	return {
 		collection: 'mixes',
-		data: { dateCreated: new Date('2021-06-01T00:00:00Z'), files, title: 'A Mix', tracks },
+		data: {
+			alias: { collection: 'artists', id: 'dj-basilisk' },
+			dateCreated: new Date('2021-06-01T00:00:00Z'),
+			files,
+			title: 'A Mix',
+			tracks,
+		},
 		id: 'a-mix',
 	} as unknown as CollectionEntry<'mixes'>;
 }
@@ -39,6 +45,28 @@ describe('getMixCueSheets', () => {
 			['All Directions Are the Same', 'Black Magic Box'],
 			['All Directions Are the Same', 'Black Magic Box'],
 		]);
+	});
+
+	test('heads the sheet with the alias, the title and the year, and credits each track', async () => {
+		const [sheet] = await getMixCueSheets(makeMix(['A Mix.mp3'], [partOne, partTwo]));
+
+		expect(sheet?.text).toBe(
+			[
+				'PERFORMER "DJ Basilisk"',
+				'TITLE "A Mix"',
+				'DATE 2021',
+				'FILE "A Mix.mp3" MP3',
+				'  TRACK 01 AUDIO',
+				'    PERFORMER "Lorn"',
+				'    TITLE "All Directions Are the Same"',
+				'    INDEX 01 00:00:00',
+				'  TRACK 02 AUDIO',
+				'    PERFORMER "O Yuki Conjugate"',
+				'    TITLE "Black Magic Box"',
+				'    INDEX 01 04:10:00',
+				'',
+			].join('\r\n'),
+		);
 	});
 
 	test('lets a group naming no files inherit the mix files, matching the flat output', async () => {
@@ -150,9 +178,9 @@ describe('getMixCuePoints', () => {
 			),
 		);
 
-		expect(points.map((point) => point.title)).toEqual([
-			'All Directions Are the Same',
-			'Black Magic Box',
+		expect(points).toEqual([
+			{ artistLine: 'Lorn', startSeconds: 0, title: 'All Directions Are the Same' },
+			{ artistLine: 'O Yuki Conjugate', startSeconds: 250, title: 'Black Magic Box' },
 		]);
 	});
 

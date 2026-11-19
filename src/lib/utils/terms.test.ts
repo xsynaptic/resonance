@@ -11,6 +11,7 @@ setCollections({
 	labels: [
 		{ data: { title: 'Twisted Records' }, id: 'twisted-records' },
 		{ data: { parent: { id: 'twisted-records' }, title: 'Twisted Sub' }, id: 'twisted-sub' },
+		{ data: { parent: { id: 'twisted-sub' }, title: 'Twisted Sub Sub' }, id: 'twisted-sub-sub' },
 	],
 });
 
@@ -52,8 +53,9 @@ describe('resolveCredits', () => {
 
 describe('resolveAncestors', () => {
 	test('trails a hierarchical term root first', async () => {
-		await expect(resolveAncestors('labels', 'twisted-sub')).resolves.toEqual([
+		await expect(resolveAncestors('labels', 'twisted-sub-sub')).resolves.toEqual([
 			{ name: 'Twisted Records', url: '/labels/twisted-records/' },
+			{ name: 'Twisted Sub', url: '/labels/twisted-sub/' },
 		]);
 	});
 });

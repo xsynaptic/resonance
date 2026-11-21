@@ -17,7 +17,6 @@
 			no-repeat;
 }
 
-/* One box for every label that sits over the strip: a hovered cue and the bar's status */
 .player-cue-label,
 .player-status {
 	box-sizing: border-box;

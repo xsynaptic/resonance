@@ -1,17 +1,20 @@
 .player-panel,
 .player-scope {
-	--sonic-waveform-band-1: var(--player-panel-band-1);
-	--sonic-waveform-band-2: var(--player-panel-band-2);
-	--sonic-waveform-band-3: var(--player-panel-band-3);
-	--sonic-waveform-band-contrast: var(--player-panel-band-contrast);
-	--sonic-waveform-band-normalize: var(--player-panel-band-normalize);
-	--sonic-waveform-band-opacity: var(--player-panel-band-opacity);
-	--sonic-waveform-band-tilt: var(--player-panel-band-tilt);
+	--sonic-waveform-peaks-depth: var(--player-tint-peaks-depth);
+	--sonic-waveform-tint-1: var(--player-tint-1);
+	--sonic-waveform-tint-2: var(--player-tint-2);
+	--sonic-waveform-tint-3: var(--player-tint-3);
+	--sonic-waveform-tint-4: var(--player-tint-4);
+	--sonic-waveform-tint-5: var(--player-tint-5);
+	--sonic-waveform-tint-sensitivity: var(--player-tint-sensitivity);
+	--sonic-waveform-tint-smoothing: var(--player-tint-smoothing);
+	--sonic-waveform-tint-steps: var(--player-tint-steps);
 }
 
 .player-panel {
 	--sonic-lit: var(--player-panel-wave);
 	--sonic-marker: var(--player-panel-cue);
+	--sonic-waveform-base: var(--player-panel-wave);
 	--sonic-waveform-ends: var(--player-panel-ends);
 	--sonic-waveform-ghost: var(--player-panel-ghost);
 	--sonic-waveform-grid: var(--player-panel-grid);
@@ -23,6 +26,7 @@
 	--sonic-waveform-label-inset-inline: calc(1rem + var(--player-panel-inset-left, 0px));
 	--sonic-waveform-label-line-height: 1.25rem;
 	--sonic-waveform-length: 100%;
+	--sonic-waveform-peaks: var(--player-panel-wave-peaks);
 	--sonic-waveform-placeholder: var(--player-panel-placeholder);
 	--sonic-waveform-playhead: var(--player-playhead);
 	--sonic-waveform-playhead-width: 1px;

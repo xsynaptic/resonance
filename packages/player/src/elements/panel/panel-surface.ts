@@ -92,7 +92,10 @@ export function connectPanelSurface(
 		},
 		signal,
 	);
-	bindLoadedWaveform(waveform, store, signal, { isTinted: true, showsPending: true });
+	bindLoadedWaveform(waveform, store, signal, {
+		hasBody: true,
+		showsPending: true,
+	});
 	bindPlayback(waveform, store, signal);
 }
 

@@ -1,15 +1,16 @@
 import type { SonicWaveform } from '@xsynaptic/sonic-ui';
 
 import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
-import type { WaveformArchive } from '#waveform/waveform-archive.ts';
+import type { PeaksReader } from '#waveform/waveform-peaks.ts';
 
 import { bind } from '#lib/bind.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { loadedDetail, loadedItem } from '#store/selectors.ts';
-import { openArchive } from '#waveform/waveform-archive.ts';
+import { applyTintCell } from '#waveform/tint-cell.ts';
+import { openPeaks } from '#waveform/waveform-peaks.ts';
 
 interface LoadedWaveformOptions {
-	isTinted: boolean;
+	hasBody: boolean;
 	showsPending: boolean;
 }
 
@@ -20,25 +21,23 @@ export function bindLoadedWaveform(
 	signal: AbortSignal,
 	options: LoadedWaveformOptions,
 ): void {
-	let archive: undefined | WaveformArchive;
+	let reader: PeaksReader | undefined;
 
 	const showDuration = (): void => {
 		const state = store.getState();
 
 		waveform.max =
-			state.durationSeconds ??
-			archive?.durationSeconds ??
-			toDurationSeconds(loadedItem(state)) ??
-			0;
+			state.durationSeconds ?? reader?.durationSeconds ?? toDurationSeconds(loadedItem(state)) ?? 0;
 	};
 
+	applyTintCell(waveform);
 	waveform.readTime = store.getState().getCurrentTime;
 	bind(
 		store,
-		(state) => loadedDetail(state)?.archive,
+		(state) => loadedDetail(state)?.peaks,
 		(source) => {
-			archive = source && openArchive(source);
-			feedArchive(waveform, archive, options);
+			reader = source && openPeaks(source);
+			feedReader(waveform, reader, options);
 			showDuration();
 		},
 		signal,
@@ -46,20 +45,20 @@ export function bindLoadedWaveform(
 	bind(store, selectDuration, showDuration, signal);
 }
 
-function feedArchive(
+function feedReader(
 	waveform: SonicWaveform,
-	archive: undefined | WaveformArchive,
-	{ isTinted, showsPending }: LoadedWaveformOptions,
+	reader: PeaksReader | undefined,
+	{ hasBody, showsPending }: LoadedWaveformOptions,
 ): void {
-	waveform.bands = isTinted ? archive?.bands : undefined;
-	waveform.peaks = archive?.peaks;
+	waveform.bands = reader?.bands;
+	waveform.peaks = hasBody ? reader?.peaks : reader?.peaksWithoutBody;
 	waveform.pending = undefined;
 	waveform.requestPeaks =
-		archive &&
+		reader &&
 		((fromSeconds, toSeconds) => {
-			const changed = archive.request(fromSeconds, toSeconds);
+			const changed = reader.request(fromSeconds, toSeconds);
 
-			if (showsPending) waveform.pending = archive.pending(fromSeconds, toSeconds);
+			if (showsPending) waveform.pending = reader.pending(fromSeconds, toSeconds);
 
 			return changed;
 		});

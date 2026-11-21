@@ -3,7 +3,7 @@ import type { MixAudioEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
 import { log, withStep } from '@xsynaptic/astro-scripts';
 import { mixAudioPath, waveformsCacheDir } from '@xsynaptic/shared/constants';
 import { MixAudioDocumentSchema, mixAudioVersion } from '@xsynaptic/shared/schemas';
-import { samplesPerFrame } from '@xsynaptic/shared/waveform-format';
+import { samplesPerFrame, samplesPerPair } from '@xsynaptic/shared/waveform-format';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -12,15 +12,15 @@ import type { AudioSource } from '#audio/audio-sources.ts';
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
 import { collectBands, readBandsHeader } from '#audio/bands.ts';
+import { collectPeaks, readPeaksHeader } from '#audio/peaks.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
-import { collectArchives, readOverview, readWaveformHeader } from '#audio/waveforms.ts';
+import { readOverview } from '#audio/waveforms.ts';
 import { contentDataPath } from '#shared/content-path.ts';
 
 const tmpExtension = '.tmp';
 
 interface ManifestEntries {
 	entries: Array<MixAudioEntry>;
-	// A source missing any one of its three outputs, named for the warning
 	incomplete: Array<string>;
 	sourceCount: number;
 }
@@ -38,7 +38,7 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 
 	const { entries, incomplete, sourceCount } = await collectManifestEntries(rootPath);
 
-	const text = `Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, an archive and an overview`;
+	const text = `Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, peaks, bands and an overview`;
 
 	await withStep(text, async () => {
 		if (incomplete.length > 0) {
@@ -72,9 +72,7 @@ export async function readManifestFiles(
 
 		return {
 			streams: mixes.map((mix) => mix.stream),
-			waveformFiles: mixes.flatMap((mix) =>
-				mix.bands ? [mix.archive, mix.bands.file] : [mix.archive],
-			),
+			waveformFiles: mixes.flatMap((mix) => [mix.peaks, mix.bands.file]),
 		};
 	} catch {
 		return { streams: [], waveformFiles: [] };
@@ -99,8 +97,8 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 	const renditions = await collectRenditions(path.join(rootPath, streamsDir));
-	const archives = await collectArchives(cacheDir);
-	const bands = await collectBands(cacheDir);
+	const peakFiles = await collectPeaks(cacheDir);
+	const bandFiles = await collectBands(cacheDir);
 
 	const entries: Array<MixAudioEntry> = [];
 	const incomplete: Array<string> = [];
@@ -108,13 +106,13 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	for (const source of sources) {
 		const stream = renditions.get(source.base);
 		const entry = await resolveEntry({
-			archive: archives.get(source.base),
-			bands: bands.get(source.base),
+			bands: bandFiles.get(source.base),
 			cacheDir,
 			loudness:
 				stream === undefined
 					? undefined
 					: await readRenditionLoudness(path.join(rootPath, streamsDir, stream)),
+			peaks: peakFiles.get(source.base),
 			source,
 			stream,
 		});
@@ -126,45 +124,48 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	return { entries, incomplete, sourceCount: sources.length };
 }
 
-async function readBands(cacheDir: string, file: string): Promise<MixAudioEntry['bands']> {
+async function readBands(
+	cacheDir: string,
+	file: string,
+): Promise<Pick<MixAudioEntry['bands'], 'file' | 'frameCount' | 'framesPerSecond'>> {
 	const { frameCount, sampleRate } = await readBandsHeader(path.join(cacheDir, file));
 
 	return { file, frameCount, framesPerSecond: sampleRate / samplesPerFrame };
 }
 
-// A mix missing its rendition, loudness tags or overview is left out rather than half-published
+// A mix missing its rendition, loudness tags, peaks, bands or overview is left out rather than half-published
 async function resolveEntry({
-	archive,
 	bands,
 	cacheDir,
 	loudness,
+	peaks,
 	source,
 	stream,
 }: {
-	archive: string | undefined;
 	bands: string | undefined;
 	cacheDir: string;
 	loudness: StreamLoudness | undefined;
+	peaks: string | undefined;
 	source: AudioSource;
 	stream: string | undefined;
 }): Promise<MixAudioEntry | undefined> {
-	if (archive === undefined || loudness === undefined || stream === undefined) return undefined;
+	if (bands === undefined || loudness === undefined || peaks === undefined || stream === undefined)
+		return undefined;
 
 	const overview = await readOverview(cacheDir, source.base);
 	if (overview === undefined) return undefined;
 
-	const { pairCount, sampleRate, samplesPerPixel } = await readWaveformHeader(
-		path.join(cacheDir, archive),
-	);
+	const { pairCount, sampleRate } = await readPeaksHeader(path.join(cacheDir, peaks));
 
 	return {
-		archive,
-		...(bands === undefined ? {} : { bands: await readBands(cacheDir, bands) }),
+		bands: { ...(await readBands(cacheDir, bands)), medians: overview.medians },
 		base: source.base,
 		loudness,
 		overview: overview.values,
 		pairCount,
-		pairsPerSecond: sampleRate / samplesPerPixel,
+		pairsPerSecond: sampleRate / samplesPerPair,
+		peaks,
+		rmsRange: overview.rmsRange,
 		seconds: overview.seconds,
 		sources: source.files,
 		stream,

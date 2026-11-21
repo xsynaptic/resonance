@@ -15,6 +15,7 @@ import { cueIndexAt } from '#queue/cue-points.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
 import { displayedDetail, displayedItem, isLoaded } from '#store/selectors.ts';
 import { toStripMarkers } from '#waveform/cue-markers.ts';
+import { decodeOverview } from '#waveform/overview-values.ts';
 
 interface Readout {
 	cuePoint: QueueCuePoint | undefined;
@@ -38,7 +39,8 @@ interface StripView {
 	cuePoints: ReadonlyArray<QueueCuePoint> | undefined;
 	durationSeconds: number | undefined;
 	isLoaded: boolean;
-	overview: ReadonlyArray<number> | undefined;
+	// As the detail carries it, so the view compares by value
+	overview: string | undefined;
 }
 
 const noCuePoints: ReadonlyArray<QueueCuePoint> = [];
@@ -192,7 +194,7 @@ function showStrip(strip: SonicWavestrip, view: StripView, labels: PlayerLabels)
 	strip.setAttribute('aria-hidden', String(!isTimed(view)));
 	strip.disabled = !isTimed(view);
 	strip.max = view.durationSeconds ?? view.cueDurationSeconds ?? 0;
-	strip.peaks = view.overview;
+	strip.peaks = view.overview === undefined ? undefined : decodeOverview(view.overview);
 	strip.markers = toStripMarkers(view.cuePoints ?? noCuePoints);
 	strip.formatSpokenValue = (seconds) =>
 		formatSpokenPosition(labels.seekPosition, seconds, view.durationSeconds);

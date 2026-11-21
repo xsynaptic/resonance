@@ -11,7 +11,7 @@ import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { isDetailPending } from '#store/selectors.ts';
 
-const strip: QueueItemDetail = { waveformOverview: [0.2, 0.8] };
+const strip: QueueItemDetail = { waveformOverview: 'M8w=' };
 
 function makeItem(itemId: string): QueueItem {
 	return { artistLine: 'Nebula Drift', itemId, releaseTitle: 'Cosmic Drift', title: itemId };
@@ -308,7 +308,7 @@ describe('detail persistence', () => {
 	});
 
 	test('replaces a restored detail with a newer answer, in the store and in storage', async () => {
-		const newer: QueueItemDetail = { waveformOverview: [0.5, 0.5] };
+		const newer: QueueItemDetail = { waveformOverview: 'gIA=' };
 		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
 		first.getState().loadQueue([makeItem('a')]);

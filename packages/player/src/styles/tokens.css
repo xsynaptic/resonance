@@ -49,17 +49,23 @@
 	--player-waveform-buffered: #737373;
 	--player-waveform-played: #10b981;
 	--player-waveform-scrub: #6ee7b7;
+	--player-scope-peaks: #065f46;
 	--player-progress-played: var(--player-waveform-played);
 	--player-panel-wave: #34d399;
-	--player-panel-band-1: #525252;
-	--player-panel-band-2: #a3a3a3;
-	--player-panel-band-3: #fafafa;
-	--player-panel-band-opacity: 1;
+	--player-panel-wave-peaks: #2e2e2e;
 
-	/* sonic-ui's default of 1 scales each mix to full brightness, which whitens a palette split by lightness */
-	--player-panel-band-normalize: 0;
-	--player-panel-band-contrast: 2;
-	--player-panel-band-tilt: 6;
+	/* `initial` leaves a stop out of the palette */
+	--player-tint-hue: spectral;
+	--player-tint-dynamics: none;
+	--player-tint-1: #047857;
+	--player-tint-2: #6ee7b7;
+	--player-tint-3: initial;
+	--player-tint-4: initial;
+	--player-tint-5: initial;
+	--player-tint-steps: 0;
+	--player-tint-sensitivity: 12;
+	--player-tint-smoothing: 60ms;
+	--player-tint-peaks-depth: 0.6;
 	--player-panel-ghost: #a3a3a3;
 	--player-panel-grid: #262626;
 	--player-panel-ends: #525252;

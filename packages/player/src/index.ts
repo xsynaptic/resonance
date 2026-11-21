@@ -19,10 +19,10 @@ export type {
 	PlayerLabels,
 	PlayerStatus,
 	PlayerUrls,
-	QueueArchive,
 	QueueArtwork,
 	QueueCuePoint,
 	QueueItem,
 	QueueItemDetail,
+	QueuePeaks,
 	StreamResolution,
 } from '#types.ts';

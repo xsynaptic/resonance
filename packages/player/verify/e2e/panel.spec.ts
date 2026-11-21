@@ -35,7 +35,7 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 		/Cross-Origin Request Blocked/,
 	);
 
-	await page.route(/\.dat\?/, async (route) => {
+	await page.route(/\.peaks\.bin\?/, async (route) => {
 		if (route.request().method() !== 'GET') {
 			await route.continue();
 			return;
@@ -47,7 +47,7 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 		else await route.continue();
 	});
 
-	await harness.open({ query: { archive: 1 } });
+	await harness.open({ query: { peaks: 1 } });
 	await openPausedPanel(page, isMobile);
 
 	await expect.poll(isPending).toBe(true);
@@ -61,11 +61,11 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 
 	// A preflight carries no range
 	const requests = await harness.requests();
-	const archiveRanges = requests
-		.filter((request) => request.path.endsWith('.dat') && request.range !== undefined)
+	const peaksRanges = requests
+		.filter((request) => request.path.endsWith('.peaks.bin') && request.range !== undefined)
 		.map((request) => request.range);
 
-	expect(new Set(archiveRanges)).toStrictEqual(new Set(['bytes=20-12019']));
+	expect(new Set(peaksRanges)).toStrictEqual(new Set(['bytes=24-18023']));
 });
 
 test('the zoom keys and a ctrl wheel set the panel scale, and a reload restores it', async ({
@@ -75,7 +75,7 @@ test('the zoom keys and a ctrl wheel set the panel scale, and a reload restores 
 }) => {
 	const control = page.locator('sonic-waveform:has(:visible)').getByRole('slider');
 
-	await harness.open({ query: { archive: 1 } });
+	await harness.open({ query: { peaks: 1 } });
 	await openPausedPanel(page, isMobile);
 
 	await control.focus();
@@ -120,7 +120,7 @@ test('a two-finger pinch zooms the panel without seeking', async ({
 	const control = page.locator('sonic-waveform:has(:visible)').getByRole('slider');
 	const devtools = await page.context().newCDPSession(page);
 
-	await harness.open({ query: { archive: 1 } });
+	await harness.open({ query: { peaks: 1 } });
 	await openPausedPanel(page, isMobile);
 
 	const box = await control.boundingBox();

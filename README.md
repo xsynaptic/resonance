@@ -21,7 +21,7 @@ The centrepiece of the site. Mixes run anywhere from one to eight hours, so the 
 
 - Lossless masters in, 128kbps Opus in MP4 out; the codec was chosen on measured size, encode time, and bytes before first audio, and the bitrate was settled by a blind listening test
 - Every rendition is loudness corrected per file to decode at or under −1 dBTP, with the gain baked into the file
-- Waveforms generated with [audiowaveform](https://github.com/bbc/audiowaveform): a full-resolution archive for the panel, plus a 400-bucket preview inlined into each page
+- Waveforms analysed in one ffmpeg pass per mix: full-resolution peaks (min, max and RMS) for the panel and the scope, three-band levels for the panel's tint, plus a 400-bucket preview inlined into each page
 - Previews reduced by RMS rather than peak, since a peak envelope of a mastered mix is a featureless rectangle
 - MP3 and FLAC downloads, many with a generated `.cue` sheet
 

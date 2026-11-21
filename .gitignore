@@ -36,6 +36,7 @@ deploy/nginx/
 .claude/reference
 .claude/tasks*
 .claude/settings*.json
+.claude/test-audit
 .claude/worktrees/
 .impeccable/
 

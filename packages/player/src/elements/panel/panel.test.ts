@@ -4,9 +4,9 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
-import { chunkOf, offline, stubArchiveFetch } from '#test/archive-fetch.ts';
 import { labels } from '#test/labels.ts';
 import { landDetail, mount, queueItem } from '#test/mount.ts';
+import { chunkOf, offline, stubPeaksFetch } from '#test/peaks-fetch.ts';
 
 function mountPanel() {
 	const mounted = mount('player-panel');
@@ -20,11 +20,12 @@ function mountPanel() {
 
 	for (const itemId of ['a', 'b']) {
 		landDetail(mounted.store, itemId, {
-			archive: {
-				byteOffset: 20,
+			peaks: {
+				byteOffset: 24,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
-				url: `https://api.test/${itemId}.dat`,
+				rmsRange: [4, 40],
+				url: `https://api.test/${itemId}.peaks.bin`,
 			},
 		});
 	}
@@ -44,10 +45,19 @@ async function openPanel({ part, store }: ReturnType<typeof mountPanel>): Promis
 	});
 }
 
+// happy-dom inherits no custom property, so the rule has to match the waveform itself
+function setTintTokens(declarations: string): void {
+	const sheet = document.createElement('style');
+
+	sheet.textContent = `sonic-waveform { ${declarations} }`;
+	document.head.append(sheet);
+}
+
 afterEach(() => {
 	vi.useRealTimers();
 	vi.unstubAllGlobals();
 	document.body.replaceChildren();
+	document.head.replaceChildren();
 	vi.restoreAllMocks();
 });
 
@@ -63,8 +73,8 @@ describe('<player-panel>', () => {
 		expect(mounted.part.childElementCount).toBe(0);
 	});
 
-	test('draws the next track from its own archive, and keeps the one it has through a zoom', async () => {
-		const { urls } = stubArchiveFetch(offline);
+	test('draws the next track from its own peaks, and keeps the one it has through a zoom', async () => {
+		const { urls } = stubPeaksFetch(offline);
 		const mounted = mountPanel();
 		const waveform = await openPanel(mounted);
 		const { peaks } = waveform;
@@ -76,16 +86,16 @@ describe('<player-panel>', () => {
 		expect(waveform.peaks).not.toBe(peaks);
 
 		void waveform.requestPeaks?.(0, 1);
-		expect(urls()).toStrictEqual(['https://api.test/b.dat']);
+		expect(urls()).toStrictEqual(['https://api.test/b.peaks.bin']);
 	});
 
 	test('settles a request for a failed chunk as its wait ends, so asking again lands the samples', async () => {
 		const responses = [offline, () => chunkOf(7)];
-		const { chunkRequests } = stubArchiveFetch(() => (responses.shift() ?? offline)());
+		const { chunkRequests } = stubPeaksFetch(() => (responses.shift() ?? offline)());
 
 		const waveform = await openPanel(mountPanel());
 		const request = await vi.waitFor(() => {
-			if (!waveform.requestPeaks) throw new Error('The archive has not opened yet');
+			if (!waveform.requestPeaks) throw new Error('The peaks have not opened yet');
 
 			return waveform.requestPeaks;
 		});
@@ -128,32 +138,46 @@ describe('<player-panel>', () => {
 		expect(reportError).toHaveBeenCalledWith(offline);
 	});
 
-	test('tints the loaded track with its bands', async () => {
-		stubArchiveFetch(offline);
+	test('tints the loaded track with its bands and draws its body', async () => {
+		stubPeaksFetch(offline);
 
 		const mounted = mount('player-panel');
 
 		mounted.store.getState().playTrack([queueItem('a', { durationMs: 200_000 })], 'a');
 		landDetail(mounted.store, 'a', {
-			archive: {
+			peaks: {
 				bands: {
 					bandCount: 3,
 					byteOffset: 36,
 					frameCount: 5000,
 					framesPerSecond: 25,
+					medians: [180, 140, 100],
 					minDecibels: -60,
-					url: 'https://api.test/tinted.bands',
+					url: 'https://api.test/tinted.bands.bin',
 				},
-				byteOffset: 20,
+				byteOffset: 24,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
-				url: 'https://api.test/tinted.dat',
+				rmsRange: [4, 40],
+				url: 'https://api.test/tinted.peaks.bin',
 			},
 		});
 
 		const waveform = await openPanel(mounted);
 
 		expect(waveform.bands).toMatchObject({ bandCount: 3, framesPerSecond: 25 });
+		expect(waveform.bands?.medians).toEqual([180, 140, 100]);
+		expect(waveform.peaks?.rms).toHaveLength(20_000);
+		expect(waveform.peaks?.rmsRange).toEqual([4, 40]);
+	});
+
+	test('takes its tint cell from the tokens, leaving out a reading set to none', async () => {
+		setTintTokens('--player-tint-hue: none; --player-tint-dynamics: energy');
+
+		const waveform = await openPanel(mountPanel());
+
+		expect(waveform.hasAttribute('tint-hue')).toBe(false);
+		expect(waveform.getAttribute('tint-dynamics')).toBe('energy');
 	});
 
 	test('seeks once to where the waveform commits, and names the group and its slider', async () => {

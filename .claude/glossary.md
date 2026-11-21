@@ -60,11 +60,11 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 ### Waveform
 
-**Peak Archive**: The full-resolution min/max envelope of one Mix, range-requested a window at a time; `archive` in code. _Avoid_: peaks (the control's property), waveform (the drawing), or using it for both waveform files.
+**Peaks**: The full-resolution min, max and RMS of every 256 samples of one Mix, range-requested a window at a time and drawn by the panel and the scope; `peaks` in code, the file's role in its name. _Avoid_: archive, Peak Archive, envelope, amplitude file, waveform (the drawing), or using it for both waveform files.
 
-**Overview**: The Peak Archive reduced to at most 400 values, inlined with the Mix and drawn in the seek bar. _Avoid_: preview (the player's scrub preview), peaks, thumbnail.
+**Overview**: One Mix reduced to at most 400 buckets, inlined with it and drawn in the seek bar. _Avoid_: preview (the player's scrub preview), peaks, thumbnail.
 
-**Bands**: The per-Frame levels of the low, mid and high bands of one Mix, stored beside its Peak Archive and drawn as the panel's tint. _Avoid_: spectrum (the live display), frequencies, colours.
+**Bands**: The per-Frame levels of the low, mid and high bands of one Mix, stored beside its Peaks and read for the tint of the panel and the scope. _Avoid_: spectrum (the live display), frequencies, colours.
 
 **Frame**: One cell of Bands, 1,024 samples long. _Avoid_: cell, bucket, window.
 

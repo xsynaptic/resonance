@@ -7,7 +7,6 @@ import tls from 'node:tls';
 import type { DeployedAudio } from '#deploy/deploy-audio.ts';
 import type { DeployConfig } from '#deploy/deploy-config.ts';
 
-import { generateBands } from '#audio/bands.ts';
 import { generateAudioManifest, readManifestFiles } from '#audio/manifest.ts';
 import { generateRenditions } from '#audio/renditions.ts';
 import { validateAudio } from '#audio/validate.ts';
@@ -266,7 +265,6 @@ async function deriveAudio({
 	// The manifest runs last because it records what the steps above produced
 	await generateRenditions({ dryRun: isDryRun, rootPath });
 	await generateWaveforms({ dryRun: isDryRun, rootPath });
-	await generateBands({ dryRun: isDryRun, rootPath });
 	await generateAudioManifest({ dryRun: isDryRun, rootPath });
 
 	return validatedFiles;

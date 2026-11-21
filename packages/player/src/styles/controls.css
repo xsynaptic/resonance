@@ -171,9 +171,11 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 	--sonic-lit: var(--player-waveform-played);
 	--sonic-screen-radius-ratio: 0.25;
 	--sonic-screen-size: 2rem;
+	--sonic-waveform-base: var(--player-waveform-played);
 	--sonic-waveform-ends: transparent;
 	--sonic-waveform-grid: var(--player-waveform-played);
 	--sonic-waveform-length: 100%;
+	--sonic-waveform-peaks: var(--player-scope-peaks);
 	--sonic-waveform-playhead: color-mix(in oklab, var(--player-waveform-played) 20%, transparent);
 	--sonic-waveform-playhead-width: 1px;
 	--sonic-waveform-size: var(--sonic-screen-size);

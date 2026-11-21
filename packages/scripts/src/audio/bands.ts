@@ -1,97 +1,31 @@
-import { readSubprocess } from '@xsynaptic/astro-scripts';
 import {
 	bandCount,
 	bandsDecibelRange,
 	bandsHeaderBytes,
 	samplesPerFrame,
 } from '@xsynaptic/shared/waveform-format';
-import { spawn } from 'node:child_process';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
-import { openWaveformsCache } from '#audio/audio-sources.ts';
-import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
-import { runBatchStep } from '#shared/batch-run.ts';
-import { hashFile, readFileHead, requireBinaries } from '#shared/utils.ts';
+import { collectHashedOutputs } from '#audio/hashed-outputs.ts';
+import { assertHeaderFields } from '#audio/header-fields.ts';
+import { readFileHead } from '#shared/utils.ts';
 
-const concurrency = 6;
-const bandsExtension = '.bands';
-const tmpExtension = '.bands.tmp';
+export const bandsRole = 'bands';
 
-const bandsPattern = /^(?<base>.+)\.[0-9a-f]{12}\.bands$/;
+const bandsPattern = /^(?<base>.+)\.bands\.[0-9a-f]{12}\.bin$/;
 
 const bandsVersion = 1;
 const rmsDecibelsKind = 1;
 
-const bandEdges = [200, 2000] as const;
+export const bandEdges = [200, 2000] as const;
 
-const sampleBytes = 4;
-const sampleSetBytes = bandCount * sampleBytes;
+export interface BandAccumulator {
+	add: (low: number, mid: number, high: number) => void;
+	finish: () => Buffer;
+}
 
 export interface BandsHeader {
 	frameCount: number;
 	sampleRate: number;
-}
-
-export interface BandReducer {
-	finish: () => Buffer;
-	push: (chunk: Buffer) => void;
-}
-
-interface BandsJob {
-	base: string;
-	existing: string | undefined;
-	source: string;
-}
-
-interface BandsOptions {
-	dryRun?: boolean;
-	rootPath: string;
-}
-
-export async function collectBands(cacheDir: string): Promise<Map<string, string>> {
-	return collectHashedOutputs(cacheDir, bandsPattern, 'band files');
-}
-
-async function analyzeBands(source: string): Promise<Buffer> {
-	const sampleRate = await readSampleRate(source);
-	// The explicit mono mix matches audiowaveform; ffmpeg's default downmix is 1.41 times louder than the archive
-	const filter = `[0:a]pan=mono|c0=0.5*c0+0.5*c1,acrossover=split=${bandEdges.join(' ')}:order=4th[low][mid][high];[low][mid][high]amerge=inputs=${String(bandCount)}[bands]`;
-	const reducer = createBandReducer();
-
-	await new Promise<void>((resolve, reject) => {
-		const ffmpeg = spawn(
-			'ffmpeg',
-			[
-				'-nostdin',
-				'-v',
-				'error',
-				'-vn',
-				'-i',
-				source,
-				'-filter_complex',
-				filter,
-				'-map',
-				'[bands]',
-				'-f',
-				'f32le',
-				'-',
-			],
-			{ stdio: ['ignore', 'pipe', 'inherit'] },
-		);
-
-		ffmpeg.stdout.on('data', reducer.push);
-		ffmpeg.on('error', reject);
-		ffmpeg.on('close', (code) => {
-			if (code !== 0) {
-				reject(new Error(`ffmpeg exited ${String(code)} on ${path.basename(source)}`));
-				return;
-			}
-			resolve();
-		});
-	});
-
-	return buildBands(reducer.finish(), sampleRate);
 }
 
 export function buildBands(levels: Buffer, sampleRate: number): Buffer {
@@ -110,42 +44,100 @@ export function buildBands(levels: Buffer, sampleRate: number): Buffer {
 	return Buffer.concat([header, levels]);
 }
 
-export function createBandReducer(): BandReducer {
+export async function collectBands(cacheDir: string): Promise<Map<string, string>> {
+	return collectHashedOutputs(cacheDir, bandsPattern, 'band files');
+}
+
+export function createBandAccumulator(): BandAccumulator {
 	const levels: Array<number> = [];
-	const sumOfSquares = Array.from({ length: bandCount }, () => 0);
+	let lowSquares = 0;
+	let midSquares = 0;
+	let highSquares = 0;
 	let samplesInFrame = 0;
-	let carry: Buffer = Buffer.alloc(0);
 
 	const closeFrame = (): void => {
-		for (let band = 0; band < bandCount; band += 1) {
-			levels.push(encodeBandLevel((sumOfSquares[band] ?? 0) / samplesInFrame));
-			sumOfSquares[band] = 0;
-		}
+		levels.push(
+			encodeBandLevel(lowSquares / samplesInFrame),
+			encodeBandLevel(midSquares / samplesInFrame),
+			encodeBandLevel(highSquares / samplesInFrame),
+		);
+		lowSquares = 0;
+		midSquares = 0;
+		highSquares = 0;
 		samplesInFrame = 0;
 	};
 
 	return {
+		add: (low, mid, high) => {
+			lowSquares += low * low;
+			midSquares += mid * mid;
+			highSquares += high * high;
+			samplesInFrame += 1;
+			if (samplesInFrame === samplesPerFrame) closeFrame();
+		},
 		finish: () => {
 			if (samplesInFrame > 0) closeFrame();
 			return Buffer.from(levels);
 		},
-		push: (chunk) => {
-			const data = carry.length > 0 ? Buffer.concat([carry, chunk]) : chunk;
-			const sampleSets = Math.floor(data.length / sampleSetBytes);
-
-			for (let sampleSet = 0; sampleSet < sampleSets; sampleSet += 1) {
-				for (let band = 0; band < bandCount; band += 1) {
-					const value = data.readFloatLE(sampleSet * sampleSetBytes + band * sampleBytes);
-					sumOfSquares[band] = (sumOfSquares[band] ?? 0) + value * value;
-				}
-
-				samplesInFrame += 1;
-				if (samplesInFrame === samplesPerFrame) closeFrame();
-			}
-
-			carry = data.subarray(sampleSets * sampleSetBytes);
-		},
 	};
+}
+
+export function parseBandsHeader(buffer: Buffer): BandsHeader {
+	if (buffer.length < bandsHeaderBytes) throw new Error('Band data is shorter than its header');
+
+	assertHeaderFields(buffer, 'Band data', [
+		['version', 0, bandsVersion],
+		['samples per frame', 8, samplesPerFrame],
+		['band count', 16, bandCount],
+		['first band edge', 20, bandEdges[0]],
+		['second band edge', 24, bandEdges[1]],
+		['value kind', 28, rmsDecibelsKind],
+		['decibel range', 32, bandsDecibelRange],
+	]);
+
+	return { frameCount: buffer.readUInt32LE(12), sampleRate: buffer.readInt32LE(4) };
+}
+
+export async function readBandsHeader(file: string): Promise<BandsHeader> {
+	return parseBandsHeader(await readFileHead(file, bandsHeaderBytes));
+}
+
+export function bandMedians(buffer: Buffer): Array<number> {
+	const { frameCount } = parseBandsHeader(buffer);
+	const levels = buffer.subarray(bandsHeaderBytes);
+	if (levels.length < frameCount * bandCount) throw new Error('Band data is truncated');
+
+	const medians: Array<number> = [];
+
+	for (let band = 0; band < bandCount; band += 1) {
+		const counts = new Uint32Array(256);
+
+		for (let frame = 0; frame < frameCount; frame += 1) {
+			const level = levels[frame * bandCount + band] ?? 0;
+
+			counts[level] = (counts[level] ?? 0) + 1;
+		}
+
+		medians.push(medianLevel(counts));
+	}
+
+	return medians;
+}
+
+// Silent frames are left out, as a long silence would drag the median to the floor
+function medianLevel(counts: Uint32Array): number {
+	let total = 0;
+
+	for (let level = 1; level < 256; level += 1) total += counts[level] ?? 0;
+
+	let seen = 0;
+
+	for (let level = 1; level < 256; level += 1) {
+		seen += counts[level] ?? 0;
+		if (seen * 2 >= total) return level;
+	}
+
+	return 0;
 }
 
 // sonic-ui reads a frame of three zeros as not loaded, so 0 is kept for digital silence
@@ -156,116 +148,4 @@ function encodeBandLevel(meanSquare: number): number {
 	const level = Math.round(255 * (1 + decibels / bandsDecibelRange));
 
 	return Math.min(255, Math.max(1, level));
-}
-
-export async function generateBands(options: BandsOptions): Promise<void> {
-	const { dryRun = false, rootPath } = options;
-
-	const { cacheDir, sources } = await openWaveformsCache(rootPath, tmpExtension);
-	const existing = await collectBands(cacheDir);
-
-	const jobs = sources.map((source): BandsJob => ({
-		base: source.base,
-		existing: existing.get(source.base),
-		source: source.path,
-	}));
-
-	const currency = await Promise.all(jobs.map((job) => isJobCurrent(job, cacheDir)));
-	const pending = jobs.filter((_job, index) => currency[index] !== true);
-
-	await runBatchStep({
-		concurrency,
-		describe: (job) => `analyze: ${job.base}`,
-		dryRun,
-		label: 'Bands',
-		noun: 'band file',
-		pending,
-		prepare: () => requireBinaries(['ffmpeg', 'ffprobe'], 'ffmpeg'),
-		run: (job) => analyze(job, cacheDir),
-		skipped: jobs.length - pending.length,
-		verb: { infinitive: 'analyze', past: 'analyzed' },
-	});
-}
-
-export function parseBandsHeader(buffer: Buffer): BandsHeader {
-	if (buffer.length < bandsHeaderBytes) throw new Error('Band data is shorter than its header');
-
-	const expected: Array<[name: string, offset: number, value: number]> = [
-		['version', 0, bandsVersion],
-		['samples per frame', 8, samplesPerFrame],
-		['band count', 16, bandCount],
-		['first band edge', 20, bandEdges[0]],
-		['second band edge', 24, bandEdges[1]],
-		['value kind', 28, rmsDecibelsKind],
-		['decibel range', 32, bandsDecibelRange],
-	];
-
-	for (const [name, offset, value] of expected) {
-		const found = buffer.readUInt32LE(offset);
-
-		if (found !== value) {
-			throw new Error(`Band data has ${name} ${String(found)}, expected ${String(value)}`);
-		}
-	}
-
-	return { frameCount: buffer.readUInt32LE(12), sampleRate: buffer.readInt32LE(4) };
-}
-
-export async function readBandsHeader(file: string): Promise<BandsHeader> {
-	return parseBandsHeader(await readFileHead(file, bandsHeaderBytes));
-}
-
-async function analyze(job: BandsJob, cacheDir: string): Promise<string> {
-	const tmp = path.join(cacheDir, `${job.base}${tmpExtension}`);
-
-	await fs.writeFile(tmp, await analyzeBands(job.source));
-
-	const name = `${job.base}.${await hashFile(tmp)}${bandsExtension}`;
-
-	await landHashedOutput(tmp, cacheDir, { existing: job.existing, name });
-
-	return name;
-}
-
-async function isJobCurrent(job: BandsJob, cacheDir: string): Promise<boolean> {
-	if (job.existing === undefined) return false;
-
-	const file = path.join(cacheDir, job.existing);
-
-	try {
-		const [fileStat, sourceStat, header] = await Promise.all([
-			fs.stat(file),
-			fs.stat(job.source),
-			readBandsHeader(file),
-		]);
-
-		return (
-			fileStat.mtimeMs >= sourceStat.mtimeMs &&
-			fileStat.size === bandsHeaderBytes + header.frameCount * bandCount
-		);
-	} catch {
-		return false;
-	}
-}
-
-async function readSampleRate(source: string): Promise<number> {
-	const result = await readSubprocess([
-		'ffprobe',
-		'-v',
-		'error',
-		'-select_streams',
-		'a:0',
-		'-show_entries',
-		'stream=sample_rate',
-		'-of',
-		'default=nw=1:nk=1',
-		source,
-	]);
-	const sampleRate = Number(result.stdout.trim());
-
-	if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0) {
-		throw new Error(`No sample rate from ffprobe for ${path.basename(source)}`);
-	}
-
-	return sampleRate;
 }

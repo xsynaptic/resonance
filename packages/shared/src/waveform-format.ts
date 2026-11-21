@@ -1,7 +1,10 @@
-// Written by the build and described to the player on each queue item, so the player holds no format of its own
+// Written by the build; each header's facts ride on the queue item, so the player never requests one
 
-// The header audiowaveform writes at version 1
-export const peakArchiveHeaderBytes = 20;
+export const peaksHeaderBytes = 24;
+// Min, max and RMS, one Int8 each at a full scale of 128
+export const peaksFieldCount = 3;
+export const peaksFullScale = 128;
+export const samplesPerPair = 256;
 
 export const bandsHeaderBytes = 36;
 export const bandCount = 3;

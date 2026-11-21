@@ -32,7 +32,10 @@ export function connectScopeSurface(
 		},
 		signal,
 	);
-	bindLoadedWaveform(waveform, store, signal, { isTinted: false, showsPending: false });
+	bindLoadedWaveform(waveform, store, signal, {
+		hasBody: true,
+		showsPending: false,
+	});
 
 	return {
 		trace: (isTracing) => {

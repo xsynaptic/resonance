@@ -23,18 +23,20 @@ const contentTypes: Record<string, string> = {
 
 const garbage = randomBytes(256 * 1024);
 
-const archivePairs = 6000;
-const archive = Buffer.alloc(20 + archivePairs * 2);
+const peakPairs = 6000;
+const peaks = Buffer.alloc(24 + peakPairs * 3);
 
-archive.writeInt32LE(1, 0);
-archive.writeUInt32LE(1, 4);
-archive.writeInt32LE(44_100, 8);
-archive.writeInt32LE(441, 12);
-archive.writeUInt32LE(archivePairs, 16);
+peaks.writeUInt32LE(1, 0);
+peaks.writeUInt32LE(44_100, 4);
+peaks.writeUInt32LE(441, 8);
+peaks.writeUInt32LE(peakPairs, 12);
+peaks.writeUInt32LE(3, 16);
+peaks.writeUInt32LE(1, 20);
 
-for (let pair = 0; pair < archivePairs; pair += 1) {
-	archive.writeInt8(-90, 20 + pair * 2);
-	archive.writeInt8(90, 21 + pair * 2);
+for (let pair = 0; pair < peakPairs; pair += 1) {
+	peaks.writeInt8(-90, 24 + pair * 3);
+	peaks.writeInt8(90, 25 + pair * 3);
+	peaks.writeInt8(60, 26 + pair * 3);
 }
 
 // Per page run, so parallel tests read only their own requests
@@ -75,9 +77,6 @@ async function respond(
 	const run = url.searchParams.get('run') ?? '';
 
 	switch (behaviour) {
-		case 'archive': {
-			return sendBody(request, response, { body: archive, type: contentType(name) });
-		}
 		case 'audio': {
 			return sendFile(request, response, name);
 		}
@@ -99,6 +98,9 @@ async function respond(
 				.writeHead(200, { 'content-type': 'application/json' })
 				.end(JSON.stringify(requestLog.get(run) ?? []));
 			return 200;
+		}
+		case 'peaks': {
+			return sendBody(request, response, { body: peaks, type: contentType(name) });
 		}
 		case 'stalled': {
 			if (stalledRuns.has(`${run}/${name}`)) return sendFile(request, response, name);

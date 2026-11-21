@@ -1,109 +1,11 @@
-import { fc, test } from '@fast-check/vitest';
-import { bandCount, bandsHeaderBytes, samplesPerFrame } from '@xsynaptic/shared/waveform-format';
-import { describe, expect } from 'vitest';
+import { bandsHeaderBytes } from '@xsynaptic/shared/waveform-format';
+import { describe, expect, test } from 'vitest';
 
-import { buildBands, createBandReducer, parseBandsHeader } from '#audio/bands.ts';
+import { bandMedians, buildBands, parseBandsHeader } from '#audio/bands.ts';
 
-type BandSignal = (sample: number) => number;
-
-const silence: BandSignal = () => 0;
-
-function steady(amplitude: number): BandSignal {
-	return () => amplitude;
+function bandsOf(frames: ReadonlyArray<[number, number, number]>): Buffer {
+	return buildBands(Buffer.from(frames.flat()), 44_100);
 }
-
-function sine(amplitude: number): BandSignal {
-	return (sample) => amplitude * Math.sin((2 * Math.PI * 8 * sample) / samplesPerFrame);
-}
-
-function interleave(signals: [BandSignal, BandSignal, BandSignal], samples: number): Buffer {
-	const buffer = Buffer.alloc(samples * bandCount * 4);
-
-	for (let sample = 0; sample < samples; sample += 1) {
-		for (const [band, signal] of signals.entries()) {
-			buffer.writeFloatLE(signal(sample), (sample * bandCount + band) * 4);
-		}
-	}
-
-	return buffer;
-}
-
-function reduce(buffer: Buffer, chunkBytes = buffer.length): Array<number> {
-	const reducer = createBandReducer();
-
-	for (let offset = 0; offset < buffer.length; offset += chunkBytes) {
-		reducer.push(buffer.subarray(offset, offset + chunkBytes));
-	}
-
-	return [...reducer.finish()];
-}
-
-const finiteSamplesSinceFfmpegDecodesIntegerPcm = fc
-	.float32Array({
-		maxLength: (samplesPerFrame * 4 + 500) * bandCount,
-		minLength: samplesPerFrame * 2 * bandCount,
-		noDefaultInfinity: true,
-		noNaN: true,
-	})
-	.map((samples) => Buffer.from(samples.buffer, samples.byteOffset, samples.byteLength));
-
-const bufferWithSplitPoints = finiteSamplesSinceFfmpegDecodesIntegerPcm.chain((buffer) =>
-	fc.record({
-		buffer: fc.constant(buffer),
-		splits: fc
-			.uniqueArray(fc.nat({ max: buffer.length }), { maxLength: 3, minLength: 2 })
-			.map((points) => points.toSorted((first, second) => first - second)),
-	}),
-);
-
-function reduceInChunks(buffer: Buffer, splits: ReadonlyArray<number>): Buffer {
-	const reducer = createBandReducer();
-	const edges = [0, ...splits, buffer.length];
-	const starts = edges.slice(0, -1);
-
-	for (const [index, start] of starts.entries()) {
-		reducer.push(buffer.subarray(start, edges[index + 1]));
-	}
-
-	return reducer.finish();
-}
-
-describe('createBandReducer', () => {
-	test.prop([bufferWithSplitPoints])(
-		'writes the same levels wherever the input is split into chunks',
-		({ buffer, splits }) => {
-			const whole = reduceInChunks(buffer, []);
-
-			expect(whole.length).toBeGreaterThanOrEqual(2 * bandCount);
-			expect(Buffer.compare(reduceInChunks(buffer, splits), whole)).toBe(0);
-		},
-	);
-
-	test('stores each band as RMS decibels across a 60 dB range', () => {
-		const levels = reduce(interleave([sine(1), steady(0.1), steady(1)], samplesPerFrame));
-
-		expect(levels).toEqual([242, 170, 255]);
-	});
-
-	test('keeps 0 for digital silence and lifts any real signal to 1', () => {
-		const levels = reduce(interleave([silence, steady(1e-5), steady(0.001)], samplesPerFrame));
-
-		expect(levels).toEqual([0, 1, 1]);
-	});
-
-	test('clamps a band over full scale', () => {
-		const levels = reduce(interleave([steady(2), silence, silence], samplesPerFrame));
-
-		expect(levels).toEqual([255, 0, 0]);
-	});
-
-	test('cuts one frame per 1,024 samples and keeps the short last one', () => {
-		const loudThenQuiet: BandSignal = (sample) => (sample < samplesPerFrame ? 1 : 0.1);
-		const levels = reduce(interleave([loudThenQuiet, silence, silence], samplesPerFrame * 2 + 100));
-
-		expect(levels).toEqual([255, 0, 0, 170, 0, 0, 170, 0, 0]);
-	});
-});
 
 describe('buildBands', () => {
 	test('writes a header its parser reads back, with frame zero at the shared offset', () => {
@@ -124,5 +26,24 @@ describe('buildBands', () => {
 
 	test('rejects a file shorter than its header', () => {
 		expect(() => parseBandsHeader(Buffer.alloc(bandsHeaderBytes - 1))).toThrow('shorter');
+	});
+});
+
+describe('bandMedians', () => {
+	test("takes each band's median over its sounding frames, so a long silence does not drag it down", () => {
+		const silence: Array<[number, number, number]> = Array.from({ length: 7 }, () => [0, 0, 0]);
+
+		expect(bandMedians(bandsOf([...silence, [100, 10, 30], [120, 20, 30], [140, 30, 30]]))).toEqual(
+			[120, 20, 30],
+		);
+	});
+
+	test('rejects a file whose levels are shorter than its header claims', () => {
+		const file = bandsOf([
+			[1, 2, 3],
+			[4, 5, 6],
+		]);
+
+		expect(() => bandMedians(file.subarray(0, -1))).toThrow(/truncated/);
 	});
 });

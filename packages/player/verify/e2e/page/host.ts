@@ -27,9 +27,12 @@ declare global {
 
 const cued: QueueItemDetail = {
 	cuePoints: [{ artistLine: 'Cue Artist', startSeconds: 20, title: 'Cue Title' }],
-	waveformOverview: Array.from(
-		{ length: 64 },
-		(_, index) => 0.3 + 0.5 * Math.abs(Math.sin(index / 5)),
+	waveformOverview: btoa(
+		String.fromCodePoint(
+			...Array.from({ length: 64 }, (_, index) =>
+				Math.round(255 * (0.3 + 0.5 * Math.abs(Math.sin(index / 5)))),
+			),
+		),
 	),
 };
 
@@ -48,7 +51,7 @@ const parameters = new URLSearchParams(location.search);
 const settings = {
 	bindDelay: Number(parameters.get('bindDelay') ?? 0),
 	detail: readChoice('detail', ['answer', 'hang']),
-	hasArchive: parameters.has('archive'),
+	hasPeaks: parameters.has('peaks'),
 	isCued: parameters.has('cued'),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
 	run: parameters.get('run') ?? 'manual',
@@ -75,21 +78,22 @@ const urls: PlayerUrls = {
 function detailOf({ itemId }: QueueItem): QueueItemDetail {
 	return {
 		...(settings.isCued ? cued : {}),
-		...(settings.hasArchive
+		...(settings.hasPeaks
 			? {
-					archive: {
-						byteOffset: 20,
+					peaks: {
+						byteOffset: 24,
 						pairCount: 6000,
 						pairsPerSecond: 100,
-						url: archiveUrl(itemId),
+						rmsRange: [60, 60],
+						url: peaksUrl(itemId),
 					},
 				}
 			: {}),
 	};
 }
 
-function archiveUrl(itemId: string): string {
-	const url = new URL(`/archive/${itemId}.dat`, fixtureOrigin);
+function peaksUrl(itemId: string): string {
+	const url = new URL(`/peaks/${itemId}.peaks.bin`, fixtureOrigin);
 
 	url.searchParams.set('run', settings.run);
 

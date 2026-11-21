@@ -12,7 +12,7 @@ export default function devAudio(): AstroIntegration {
 					pattern: '/stream/[file]',
 				});
 				injectRoute({
-					entrypoint: './src/dev/audio/waveform-archive.ts',
+					entrypoint: './src/dev/audio/waveform-files.ts',
 					pattern: '/waveform/[file]',
 				});
 			},

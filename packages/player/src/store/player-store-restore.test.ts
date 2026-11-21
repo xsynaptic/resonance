@@ -9,7 +9,7 @@ import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { currentCue, displayedDetail, displayedItem } from '#store/selectors.ts';
 import { labels } from '#test/labels.ts';
-import { openArchive } from '#waveform/waveform-archive.ts';
+import { openPeaks } from '#waveform/waveform-peaks.ts';
 
 const anyJson = fc.jsonValue({ maxDepth: 3 });
 
@@ -59,11 +59,12 @@ const writtenCuePoints = fc.array(
 	{ maxLength: 4 },
 );
 
-const writtenArchive = fc.record(
+const writtenPeaks = fc.record(
 	{
 		byteOffset: fc.integer({ max: 64, min: 0 }),
 		pairCount: fc.integer({ max: 20_000, min: 0 }),
 		pairsPerSecond: fc.integer({ max: 200, min: 1 }),
+		rmsRange: fc.tuple(fc.integer({ max: 20, min: 0 }), fc.integer({ max: 127, min: 20 })),
 		url: fc.webUrl(),
 	},
 	{ noNullPrototype: true },
@@ -81,15 +82,15 @@ const storedItemFields = fc.record({
 });
 
 const storedDetailFields = fc.record({
-	archive: optionalField(writtenArchive, withOneFieldBroken(writtenArchive)),
 	cuePoints: optionalField(
 		writtenCuePoints,
 		withOneFieldBroken(
 			writtenCuePoints.filter((cues) => cues.length > 0).map((cues) => cues[0]!),
 		).map((cue) => [cue]),
 	),
+	peaks: optionalField(writtenPeaks, withOneFieldBroken(writtenPeaks)),
 	trackCount: optionalField(fc.integer({ max: 40, min: 0 })),
-	waveformOverview: optionalField(fc.array(fc.double({ max: 1, min: 0, noNaN: true }))),
+	waveformOverview: optionalField(fc.base64String()),
 });
 
 type StoredFields = Record<string, undefined | { isWritten: boolean; value: unknown }>;
@@ -180,7 +181,7 @@ describe('restoring a stored queue', () => {
 			root.append(document.createElement('player-bar'));
 			document.body.append(root);
 			currentCue(state);
-			if (detail?.archive) openArchive(detail.archive);
+			if (detail?.peaks) openPeaks(detail.peaks);
 
 			root.remove();
 			unbind();

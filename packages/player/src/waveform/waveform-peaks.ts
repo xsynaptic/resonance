@@ -1,24 +1,28 @@
 import type { WaveformBands, WaveformPeaks } from '@xsynaptic/sonic-ui';
 
-import type { QueueArchive, QueueBands } from '#types.ts';
+import type { QueueBands, QueuePeaks } from '#types.ts';
 
 import { retryDelayMs } from '#lib/retry-delay.ts';
 
-// One archive per address, so a chunk that landed is never asked for twice
+// One reader per address, so a chunk that landed is never asked for twice
 
-// About 47 seconds of audio and 16 KB on the wire, so one window is one or two requests
+// About 47 seconds of audio and 24 KB on the wire, so one window is one or two requests
 const chunkPairs = 8192;
+
+// Min, max and RMS, one Int8 each, as the build writes them
+const bytesPerPair = 3;
 
 const cacheLimit = 2;
 
-const cache = new Map<string, WaveformArchive>();
+const cache = new Map<string, PeaksReader>();
 
-export interface WaveformArchive {
+export interface PeaksReader {
 	bands: undefined | WaveformBands;
 	durationSeconds: number;
 	// Silent where a chunk has not landed
 	peaks: WaveformPeaks;
-	// The stretches of a window whose peaks have not landed
+	// The same samples without RMS, for a surface that draws no body
+	peaksWithoutBody: WaveformPeaks;
 	pending: (fromSeconds: number, toSeconds: number) => Array<[number, number]>;
 	// `undefined` once the window has landed; otherwise settles on the next change, for the caller to ask again
 	request: (fromSeconds: number, toSeconds: number) => Promise<void> | undefined;
@@ -38,11 +42,11 @@ interface ChunkRequest {
 	isHeld: boolean;
 }
 
-export function openArchive(source: QueueArchive): WaveformArchive {
+export function openPeaks(source: QueuePeaks): PeaksReader {
 	const cached = cache.get(source.url);
 	if (cached) return cached;
 
-	const archive = createArchive(source);
+	const reader = createReader(source);
 
 	if (cache.size >= cacheLimit) {
 		const oldest = cache.keys().next().value;
@@ -50,9 +54,9 @@ export function openArchive(source: QueueArchive): WaveformArchive {
 		if (oldest !== undefined) cache.delete(oldest);
 	}
 
-	cache.set(source.url, archive);
+	cache.set(source.url, reader);
 
-	return archive;
+	return reader;
 }
 
 // A 200 means the range was ignored and the whole file is on its way, which would land at the wrong offset
@@ -78,7 +82,7 @@ async function fetchRange(
 }
 
 function createBandsTwin(source: QueueBands, pairsPerSecond: number): BandsTwin {
-	const { bandCount, byteOffset, frameCount, framesPerSecond, minDecibels, url } = source;
+	const { bandCount, byteOffset, frameCount, framesPerSecond, medians, minDecibels, url } = source;
 	const bytesTotal = frameCount * bandCount;
 
 	return {
@@ -89,6 +93,7 @@ function createBandsTwin(source: QueueBands, pairsPerSecond: number): BandsTwin 
 		framesPerSecond,
 		landed: new Set(),
 		levels: new Uint8Array(bytesTotal),
+		medians,
 		minDecibels,
 		url,
 	};
@@ -110,14 +115,16 @@ async function fetchLevels(twin: BandsTwin, chunk: number): Promise<(() => void)
 	);
 }
 
-function createArchive({
+function createReader({
 	bands: bandsSource,
 	byteOffset,
 	pairCount,
 	pairsPerSecond,
+	rmsRange,
 	url,
-}: QueueArchive): WaveformArchive {
+}: QueuePeaks): PeaksReader {
 	const samples = new Int8Array(pairCount * 2);
+	const rms = new Int8Array(pairCount);
 	const bands = bandsSource && createBandsTwin(bandsSource, pairsPerSecond);
 	const chunkCount = Math.ceil(pairCount / chunkPairs);
 	const landed = new Set<number>();
@@ -157,17 +164,30 @@ function createArchive({
 	async function fetchPeaks(chunk: number): Promise<(() => void) | undefined> {
 		if (landed.has(chunk)) return undefined;
 
-		const start = byteOffset + chunk * chunkPairs * 2;
-		const end = Math.min(byteOffset + pairCount * 2, start + chunkPairs * 2);
+		const start = byteOffset + chunk * chunkPairs * bytesPerPair;
+		const end = Math.min(byteOffset + pairCount * bytesPerPair, start + chunkPairs * bytesPerPair);
 		const bytes = await fetchRange(url, start, end);
 
 		return (
 			bytes &&
 			(() => {
-				samples.set(new Int8Array(bytes), chunk * chunkPairs * 2);
+				landPairs(new Int8Array(bytes), chunk * chunkPairs);
 				landed.add(chunk);
 			})
 		);
+	}
+
+	function landPairs(fields: Int8Array, firstPair: number): void {
+		const pairs = Math.floor(fields.length / bytesPerPair);
+
+		for (let pair = 0; pair < pairs; pair += 1) {
+			const at = pair * bytesPerPair;
+			const into = firstPair + pair;
+
+			samples[into * 2] = fields[at] ?? 0;
+			samples[into * 2 + 1] = fields[at + 1] ?? 0;
+			rms[into] = fields[at + 2] ?? 0;
+		}
 	}
 
 	// Both land in one turn, levels first, so a stretch never draws plain and then takes its tint
@@ -188,7 +208,8 @@ function createArchive({
 	return {
 		bands,
 		durationSeconds: pairCount / pairsPerSecond,
-		peaks: { pairsPerSecond, samples },
+		peaks: { pairsPerSecond, rms, rmsRange, samples },
+		peaksWithoutBody: { pairsPerSecond, samples },
 		// Peaks alone: a chunk whose levels failed draws plain rather than shaded
 		pending: (fromSeconds, toSeconds) =>
 			chunksIn(fromSeconds, toSeconds)

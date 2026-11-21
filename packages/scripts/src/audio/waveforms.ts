@@ -1,49 +1,69 @@
-import { readSubprocess } from '@xsynaptic/astro-scripts';
-import { peakArchiveHeaderBytes } from '@xsynaptic/shared/waveform-format';
+import {
+	bandCount,
+	bandsHeaderBytes,
+	peaksFieldCount,
+	peaksFullScale,
+	peaksHeaderBytes,
+	samplesPerPair,
+} from '@xsynaptic/shared/waveform-format';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
+import type { MixAnalysis } from '#audio/analysis.ts';
+
+import { analyzeMix } from '#audio/analysis.ts';
 import { openWaveformsCache } from '#audio/audio-sources.ts';
-import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
+import { bandMedians, bandsRole, collectBands, readBandsHeader } from '#audio/bands.ts';
+import { landHashedOutput } from '#audio/hashed-outputs.ts';
+import { collectPeaks, parsePeaksHeader, peaksRole, readPeaksHeader } from '#audio/peaks.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
-import { hashFile, readFileHead } from '#shared/utils.ts';
+import { hashFile, requireBinaries } from '#shared/utils.ts';
 
 const concurrency = 6;
-const archiveExtension = '.dat';
-const overviewExtension = '.json';
+// One extension for both binaries; the role in the name says which is which
+const binaryExtension = '.bin';
+const overviewExtension = '.overview.json';
 const tmpExtension = '.tmp';
 
-const archivePattern = /^(?<base>.+)\.[0-9a-f]{12}\.dat$/;
-
-const archiveVersion = 1;
-const eightBitFlag = 1;
-const expectedSamplesPerPixel = 256;
-
-// Bumped whenever the bucket count or the output range changes; neither is visible in an mtime
-const overviewVersion = 2;
+// Bumped whenever the bucket count, the output range or the source values change; none is visible in an mtime
+const overviewVersion = 6;
 const overviewBuckets = 400;
-const overviewPrecision = 1000;
+const overviewFullScale = 255;
+
+// sonic-ui's contract for a tint's energy: these percentiles of the levels above -60 dBFS
+const rangeFloor = peaksFullScale * 10 ** (-60 / 20);
+const quietShare = 0.1;
+const loudShare = 0.95;
+
+const LevelRangeSchema = z.tuple([z.number(), z.number()]);
 
 // Rejecting a stale shape here is what stops it reaching a page
 const OverviewSchema = z.object({
+	medians: z.number().array(),
+	rmsRange: LevelRangeSchema,
 	seconds: z.number(),
-	values: z.number().array(),
+	values: z.string(),
 	version: z.literal(overviewVersion),
 });
 
-export interface WaveformHeader {
-	pairCount: number;
-	sampleRate: number;
-	samplesPerPixel: number;
-}
-
 export type WaveformOverview = z.infer<typeof OverviewSchema>;
 
+type LevelRange = z.infer<typeof LevelRangeSchema>;
+
+export interface DistilledPeaks {
+	// In the Peaks' Int8 units
+	rmsRange: LevelRange;
+	seconds: number;
+	// One byte per bucket, 255 at the loudest
+	values: Buffer;
+}
+
 interface WaveformJob {
+	bands: string | undefined;
 	base: string;
-	existing: string | undefined;
 	overview: string;
+	peaks: string | undefined;
 	source: string;
 }
 
@@ -52,22 +72,16 @@ interface WaveformsOptions {
 	rootPath: string;
 }
 
-// Exported for the manifest step, which has to name the file the panel will range-request
-export async function collectArchives(cacheDir: string): Promise<Map<string, string>> {
-	return collectHashedOutputs(cacheDir, archivePattern, 'archives');
-}
-
-// Reduces the archive to at most 400 buckets of 0..1, ready to inline
-// Per pair take the envelope amplitude, per bucket the RMS of those amplitudes
-// Peak-per-bucket would render a featureless rectangle: a mastered mix peaks in every bucket
+// Per bucket the RMS of its pairs' RMS, which is the RMS of its samples
 // Values are normalized here rather than in a renderer, so consumers never need the source units
-export function distillWaveform(buffer: Buffer): WaveformOverview {
-	const { pairCount: pairs, sampleRate, samplesPerPixel } = parseWaveformHeader(buffer);
-	if (buffer.length < peakArchiveHeaderBytes + pairs * 2)
-		throw new Error('Waveform data is truncated');
+export function distillWaveform(buffer: Buffer): DistilledPeaks {
+	const { pairCount: pairs, sampleRate } = parsePeaksHeader(buffer);
+	if (buffer.length < peaksHeaderBytes + pairs * peaksFieldCount)
+		throw new Error('Peaks are truncated');
 
 	const bucketCount = Math.min(overviewBuckets, pairs);
 	const buckets: Array<number> = [];
+	const pairRms = new Float32Array(pairs);
 	let peak = 0;
 
 	for (let bucket = 0; bucket < bucketCount; bucket += 1) {
@@ -76,12 +90,10 @@ export function distillWaveform(buffer: Buffer): WaveformOverview {
 		let sumOfSquares = 0;
 
 		for (let pair = start; pair < end; pair += 1) {
-			const offset = peakArchiveHeaderBytes + pair * 2;
-			const amplitude = Math.max(
-				Math.abs(buffer.readInt8(offset)),
-				Math.abs(buffer.readInt8(offset + 1)),
-			);
-			sumOfSquares += amplitude * amplitude;
+			const rms = buffer.readInt8(peaksHeaderBytes + pair * peaksFieldCount + 2);
+
+			pairRms[pair] = rms;
+			sumOfSquares += rms * rms;
 		}
 
 		const rms = Math.sqrt(sumOfSquares / (end - start));
@@ -89,29 +101,30 @@ export function distillWaveform(buffer: Buffer): WaveformOverview {
 		buckets.push(rms);
 	}
 
-	const values = buckets.map((rms) =>
-		peak > 0 ? Math.round((rms / peak) * overviewPrecision) / overviewPrecision : 0,
-	);
-
 	return {
-		seconds: Math.round(((pairs * samplesPerPixel) / sampleRate) * 10) / 10,
-		values,
-		version: overviewVersion,
+		rmsRange: levelRange(pairRms),
+		seconds: Math.round(((pairs * samplesPerPair) / sampleRate) * 10) / 10,
+		values: Buffer.from(
+			buckets.map((rms) => (peak > 0 ? Math.round((rms / peak) * overviewFullScale) : 0)),
+		),
 	};
 }
 
-// Two tiers from one analysis pass: a full-resolution `.dat` archive and a distilled overview
-// Both land in `.cache/` and are regenerable; `deploy-audio` ships the archives, the overviews only feed the manifest
+// All three land in `.cache/` and are regenerable; `deploy-audio` ships the first two, the overviews only feed the manifest
 export async function generateWaveforms(options: WaveformsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
 	const { cacheDir, sources } = await openWaveformsCache(rootPath, tmpExtension);
-	const archives = await collectArchives(cacheDir);
+	const [peakFiles, bandFiles] = await Promise.all([
+		collectPeaks(cacheDir),
+		collectBands(cacheDir),
+	]);
 
 	const jobs = sources.map((source): WaveformJob => ({
+		bands: bandFiles.get(source.base),
 		base: source.base,
-		existing: archives.get(source.base),
 		overview: overviewPath(cacheDir, source.base),
+		peaks: peakFiles.get(source.base),
 		source: source.path,
 	}));
 
@@ -131,53 +144,19 @@ export async function generateWaveforms(options: WaveformsOptions): Promise<void
 		prepare: async () => {
 			if (pending.every(({ plan }) => plan !== 'analyze')) return;
 
-			try {
-				await readSubprocess(['which', 'audiowaveform']);
-			} catch {
-				throw new Error(
-					'audiowaveform not found on PATH. Install it with: brew install audiowaveform',
-				);
-			}
+			await requireBinaries(['ffmpeg', 'ffprobe'], 'ffmpeg');
 		},
 		run: async ({ job, plan }) => {
-			const archive = plan === 'analyze' ? await analyze(job, cacheDir) : job.existing;
-			if (archive === undefined) throw new Error(`No archive on disk for "${job.base}"`);
+			const analysis =
+				plan === 'analyze' ? await analyze(job, cacheDir) : await readAnalysis(job, cacheDir);
 
-			await distill(job, path.join(cacheDir, archive));
+			await distill(job, analysis);
 
 			return path.basename(job.overview);
 		},
 		skipped: jobs.length - pending.length,
 		verb: { infinitive: 'derive', past: 'derived' },
 	});
-}
-
-// Header layout, little-endian: version, flags, sample_rate, samples_per_pixel, length in min/max PAIRS
-// Self-describing, so freshness needs no external version constant; anything unexpected regenerates
-export function parseWaveformHeader(buffer: Buffer): WaveformHeader {
-	if (buffer.length < peakArchiveHeaderBytes)
-		throw new Error('Waveform data is shorter than its header');
-
-	const version = buffer.readInt32LE(0);
-	if (version !== archiveVersion) {
-		throw new Error(
-			`Waveform data is version ${String(version)}, expected ${String(archiveVersion)}`,
-		);
-	}
-
-	const flags = buffer.readUInt32LE(4);
-	if (flags !== eightBitFlag) {
-		throw new Error(`Waveform data is not 8-bit (flags ${String(flags)})`);
-	}
-
-	const samplesPerPixel = buffer.readInt32LE(12);
-	if (samplesPerPixel !== expectedSamplesPerPixel) {
-		throw new Error(
-			`Waveform data is ${String(samplesPerPixel)} samples per pixel, expected ${String(expectedSamplesPerPixel)}`,
-		);
-	}
-
-	return { pairCount: buffer.readUInt32LE(16), sampleRate: buffer.readInt32LE(8), samplesPerPixel };
 }
 
 // `undefined` for a missing file as for a stale shape, since either way there is nothing to publish
@@ -194,65 +173,62 @@ export async function readOverview(
 	}
 }
 
-export async function readWaveformHeader(archive: string): Promise<WaveformHeader> {
-	return parseWaveformHeader(await readFileHead(archive, peakArchiveHeaderBytes));
-}
+async function analyze(job: WaveformJob, cacheDir: string): Promise<MixAnalysis> {
+	const analysis = await analyzeMix(job.source);
 
-// Returns the archive's filename, which the caller cannot predict: it names the analyzed bytes
-async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
-	const tmp = path.join(cacheDir, `${job.base}${archiveExtension}${tmpExtension}`);
-
-	// --output-format is explicit because the .tmp suffix hides the format
-	// No --amplitude-scale: the archive keeps true peaks and normalization happens at distillation
-	await readSubprocess([
-		'audiowaveform',
-		'-q',
-		'-i',
-		job.source,
-		'-o',
-		tmp,
-		'--output-format',
-		'dat',
-		'-z',
-		String(expectedSamplesPerPixel),
-		'-b',
-		'8',
+	await Promise.all([
+		landAnalysis(cacheDir, job.base, {
+			bytes: analysis.peaks,
+			existing: job.peaks,
+			role: peaksRole,
+		}),
+		landAnalysis(cacheDir, job.base, {
+			bytes: analysis.bands,
+			existing: job.bands,
+			role: bandsRole,
+		}),
 	]);
 
-	const name = `${job.base}.${await hashFile(tmp)}${archiveExtension}`;
-
-	await landHashedOutput(tmp, cacheDir, { existing: job.existing, name });
-
-	return name;
+	return analysis;
 }
 
-async function distill(job: WaveformJob, archive: string): Promise<void> {
-	const overview = distillWaveform(await fs.readFile(archive));
+async function distill(job: WaveformJob, { bands, peaks }: MixAnalysis): Promise<void> {
+	const { rmsRange, seconds, values } = distillWaveform(peaks);
+	const overview: WaveformOverview = {
+		medians: bandMedians(bands),
+		rmsRange,
+		seconds,
+		values: values.toString('base64'),
+		version: overviewVersion,
+	};
 	const tmp = `${job.overview}${tmpExtension}`;
 
 	await fs.writeFile(tmp, `${JSON.stringify(overview)}\n`, 'utf8');
 	await fs.rename(tmp, job.overview);
 }
 
-async function isArchiveCurrent(source: string, archive: string): Promise<boolean> {
-	if (!(await isNewerThan(archive, source))) return false;
+// A stale rate or layout reads as not current through the header, so no external version constant is needed
+async function isAnalysisCurrent(job: WaveformJob, cacheDir: string): Promise<boolean> {
+	if (job.peaks === undefined || job.bands === undefined) return false;
 
-	// A stale zoom level or bit depth reads as not current, so no external version constant is needed
-	try {
-		await readWaveformHeader(archive);
-		return true;
-	} catch {
-		return false;
-	}
-}
+	const peaks = path.join(cacheDir, job.peaks);
+	const bands = path.join(cacheDir, job.bands);
 
-async function isNewerThan(candidate: string, reference: string): Promise<boolean> {
 	try {
-		const [candidateStat, referenceStat] = await Promise.all([
-			fs.stat(candidate),
-			fs.stat(reference),
+		const [peaksStat, bandsStat, sourceStat, peaksHeader, bandsHeader] = await Promise.all([
+			fs.stat(peaks),
+			fs.stat(bands),
+			fs.stat(job.source),
+			readPeaksHeader(peaks),
+			readBandsHeader(bands),
 		]);
-		return candidateStat.mtimeMs >= referenceStat.mtimeMs;
+
+		return (
+			peaksStat.mtimeMs >= sourceStat.mtimeMs &&
+			bandsStat.mtimeMs >= sourceStat.mtimeMs &&
+			peaksStat.size === peaksHeaderBytes + peaksHeader.pairCount * peaksFieldCount &&
+			bandsStat.size === bandsHeaderBytes + bandsHeader.frameCount * bandCount
+		);
 	} catch {
 		return false;
 	}
@@ -261,12 +237,44 @@ async function isNewerThan(candidate: string, reference: string): Promise<boolea
 async function isOverviewCurrent(
 	job: WaveformJob,
 	cacheDir: string,
-	archive: string,
+	sources: Array<string>,
 ): Promise<boolean> {
-	if (!(await isNewerThan(job.overview, archive))) return false;
+	try {
+		const [overviewStat, ...sourceStats] = await Promise.all(
+			[job.overview, ...sources].map((file) => fs.stat(file)),
+		);
+
+		if (sourceStats.some((source) => (overviewStat?.mtimeMs ?? 0) < source.mtimeMs)) return false;
+	} catch {
+		return false;
+	}
 
 	// A bucket count or range change leaves the mtimes untouched, so the stored version is the check
 	return (await readOverview(cacheDir, job.base)) !== undefined;
+}
+
+async function landAnalysis(
+	cacheDir: string,
+	base: string,
+	{ bytes, existing, role }: { bytes: Buffer; existing: string | undefined; role: string },
+): Promise<void> {
+	const tmp = path.join(cacheDir, `${base}.${role}${binaryExtension}${tmpExtension}`);
+
+	await fs.writeFile(tmp, bytes);
+	await landHashedOutput(tmp, cacheDir, {
+		existing,
+		name: `${base}.${role}.${await hashFile(tmp)}${binaryExtension}`,
+	});
+}
+
+// Nearest rank; a stored Int8 RMS of 1 is already -42 dBFS, so on the pairs the floor admits every non-zero value
+function levelRange(levels: Float32Array): LevelRange {
+	const sounding = levels.filter((level) => level > rangeFloor).toSorted();
+	if (sounding.length === 0) return [0, 0];
+
+	const at = (share: number) => sounding[Math.max(0, Math.ceil(share * sounding.length) - 1)] ?? 0;
+
+	return [at(quietShare), at(loudShare)];
 }
 
 function overviewPath(cacheDir: string, base: string): string {
@@ -277,11 +285,23 @@ async function planJob(
 	job: WaveformJob,
 	cacheDir: string,
 ): Promise<'analyze' | 'distill' | 'skip'> {
-	if (job.existing === undefined) return 'analyze';
+	if (job.peaks === undefined || job.bands === undefined) return 'analyze';
+	if (!(await isAnalysisCurrent(job, cacheDir))) return 'analyze';
 
-	const archive = path.join(cacheDir, job.existing);
+	const sources = [path.join(cacheDir, job.peaks), path.join(cacheDir, job.bands)];
 
-	if (!(await isArchiveCurrent(job.source, archive))) return 'analyze';
-	if (!(await isOverviewCurrent(job, cacheDir, archive))) return 'distill';
-	return 'skip';
+	return (await isOverviewCurrent(job, cacheDir, sources)) ? 'skip' : 'distill';
+}
+
+async function readAnalysis(job: WaveformJob, cacheDir: string): Promise<MixAnalysis> {
+	if (job.peaks === undefined || job.bands === undefined) {
+		throw new Error(`No peaks and bands on disk for "${job.base}"`);
+	}
+
+	const [peaks, bands] = await Promise.all([
+		fs.readFile(path.join(cacheDir, job.peaks)),
+		fs.readFile(path.join(cacheDir, job.bands)),
+	]);
+
+	return { bands, peaks };
 }

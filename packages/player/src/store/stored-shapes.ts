@@ -12,10 +12,10 @@ const itemChecks: FieldChecks = {
 };
 
 const detailChecks: FieldChecks = {
-	archive: isArchive,
 	cuePoints: (value) => isArrayOf(value, isCuePoint),
+	peaks: isPeaks,
 	trackCount: isCount,
-	waveformOverview: (value) => isArrayOf(value, isFiniteNumber),
+	waveformOverview: (value) => typeof value === 'string',
 };
 
 export function toStoredDetail(value: unknown): QueueItemDetail | undefined {
@@ -47,7 +47,7 @@ function hasOptionalFields(value: Record<string, unknown>, checks: FieldChecks):
 	);
 }
 
-function isArchive(value: unknown): boolean {
+function isPeaks(value: unknown): boolean {
 	if (!isRecord(value)) return false;
 
 	return (
@@ -55,6 +55,8 @@ function isArchive(value: unknown): boolean {
 			byteOffset: isCount,
 			pairCount: isCount,
 			pairsPerSecond: isPositiveNumber,
+			rmsRange: (field) =>
+				Array.isArray(field) && field.length === 2 && field.every((end) => isFiniteNumber(end)),
 			url: (field) => typeof field === 'string',
 		}) &&
 		(value.bands === undefined ||
@@ -63,6 +65,7 @@ function isArchive(value: unknown): boolean {
 				byteOffset: isCount,
 				frameCount: isCount,
 				framesPerSecond: isPositiveNumber,
+				medians: (field) => isArrayOf(field, isFiniteNumber),
 				minDecibels: isFiniteNumber,
 				url: (field) => typeof field === 'string',
 			}))

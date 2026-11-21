@@ -14,7 +14,7 @@ export default {
 				'src/dev/inventory/inventory-page-*.astro',
 				'src/dev/inventory/inventory-og-image.ts',
 				'src/dev/audio/stream-rendition.ts',
-				'src/dev/audio/waveform-archive.ts',
+				'src/dev/audio/waveform-files.ts',
 			],
 			ignoreDependencies: [
 				// Loaded by `astro check` in `lefthook.yml`, which knip does not trace to the package

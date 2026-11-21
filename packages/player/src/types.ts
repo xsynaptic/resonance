@@ -68,13 +68,15 @@ export interface PlayerUrls {
 	stream: (item: QueueItem) => Promise<StreamResolution>;
 }
 
-// Full-resolution `.dat`, range-requested a window at a time; the header's facts ride here so it is never requested
-export interface QueueArchive {
+// The full-resolution Peaks, range-requested a window at a time; the header's facts ride here so it is never requested
+export interface QueuePeaks {
 	bands?: QueueBands;
 	// Where the first pair starts, past the file's header
 	byteOffset: number;
 	pairCount: number;
 	pairsPerSecond: number;
+	// The 10th and 95th percentile RMS of the pairs above -60 dBFS, in the file's Int8 units
+	rmsRange: readonly [quiet: number, loud: number];
 	url: string;
 }
 
@@ -84,6 +86,8 @@ export interface QueueBands {
 	byteOffset: number;
 	frameCount: number;
 	framesPerSecond: number;
+	// In level bytes, low band first
+	medians: ReadonlyArray<number>;
 	// The level a byte of 0 stands for, 255 being full scale
 	minDecibels: number;
 	url: string;
@@ -122,13 +126,13 @@ export interface QueueItem {
 }
 
 export interface QueueItemDetail {
-	archive?: QueueArchive;
 	// Timestamped tracks, in order
 	cuePoints?: ReadonlyArray<QueueCuePoint>;
+	peaks?: QueuePeaks;
 	// The whole tracklist, so a mix indexed in part can say where the index runs out
 	trackCount?: number;
-	// Normalized 0..1 peak per bucket; absent draws a plain groove
-	waveformOverview?: ReadonlyArray<number>;
+	// Base64 of one byte per bucket, 255 at the loudest; absent draws a plain groove
+	waveformOverview?: string;
 }
 
 // `type` is a MIME type with codecs, probed before loading; absent skips the probe

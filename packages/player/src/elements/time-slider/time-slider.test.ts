@@ -5,7 +5,8 @@ import type { QueueCuePoint } from '#types.ts';
 
 import { landDetail, mount, queueItem } from '#test/mount.ts';
 
-const overview = [0.4, 0.8, 0.6, 0.2];
+// Bytes 51, 255, 153 and 0
+const overview = 'M/+ZAA==';
 
 function cue(startSeconds: number): QueueCuePoint {
 	return { artistLine: 'Forest Signal', startSeconds, title: String(startSeconds) };
@@ -96,7 +97,7 @@ describe('<player-time-slider>', () => {
 		expect(strip.value).toBe(50);
 		expect(strip.disabled).toBe(false);
 		expect(strip.getAttribute('aria-hidden')).toBe('false');
-		expect(strip.peaks).toEqual(overview);
+		expect(strip.peaks).toEqual(Float32Array.from([0.2, 1, 0.6, 0]));
 	});
 
 	test('seeks once to where the strip commits', () => {

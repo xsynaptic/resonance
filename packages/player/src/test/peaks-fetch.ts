@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-const chunkBytes = 8192 * 2;
+const chunkBytes = 8192 * 3;
 
 export function chunkOf(sample: number): Promise<Response> {
 	return Promise.resolve(new Response(new Int8Array(chunkBytes).fill(sample), { status: 206 }));
@@ -10,7 +10,7 @@ export function offline(): Promise<Response> {
 	return Promise.reject(new TypeError('Failed to fetch'));
 }
 
-export function stubArchiveFetch(respond: (url: string) => Promise<Response>) {
+export function stubPeaksFetch(respond: (url: string) => Promise<Response>) {
 	const fetchMock = vi.fn((url: string, _init?: RequestInit) => respond(url));
 
 	vi.stubGlobal('fetch', fetchMock);

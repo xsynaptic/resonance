@@ -28,7 +28,7 @@ export const siteTagline = 'Mixcraft, reviews, and writing on electronic music s
 
 export const sqliteCachePath = './.cache';
 
-// Peak Archives, Bands and Overviews, regenerable from the audio sources
+// Peaks, Bands and Overviews, regenerable from the audio sources
 export const waveformsCacheDir = './.cache/waveforms';
 
 // Streaming metadata and waveforms, relative to the content package

@@ -72,23 +72,25 @@ describe('<player-scope>', () => {
 		expect(waveform.playing).toBe(true);
 	});
 
-	test('draws the loaded track from its archive and takes no bands, so it never tints', async () => {
+	test('draws the loaded track from its peaks with its body and its bands', async () => {
 		const { fake, part, store } = mountPlaying(96);
 
 		landDetail(store, 'a', {
-			archive: {
+			peaks: {
 				bands: {
 					bandCount: 3,
 					byteOffset: 36,
 					frameCount: 5000,
 					framesPerSecond: 25,
+					medians: [180, 140, 100],
 					minDecibels: -60,
-					url: 'https://api.test/scope.bands',
+					url: 'https://api.test/scope.bands.bin',
 				},
-				byteOffset: 20,
+				byteOffset: 24,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
-				url: 'https://api.test/scope.dat',
+				rmsRange: [4, 40],
+				url: 'https://api.test/scope.peaks.bin',
 			},
 		});
 		fake.callbacks.current?.onStatus('playing');
@@ -96,7 +98,8 @@ describe('<player-scope>', () => {
 		const waveform = await traced(part);
 
 		expect(waveform.peaks?.pairsPerSecond).toBe(100);
-		expect(waveform.bands).toBeUndefined();
+		expect(waveform.peaks?.rms).toHaveLength(20_000);
+		expect(waveform.bands?.medians).toEqual([180, 140, 100]);
 	});
 
 	test('loads nothing while it has no width', async () => {

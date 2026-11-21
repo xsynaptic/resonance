@@ -144,7 +144,7 @@ async function healthCheck(
 
 function peerCertificateValidTo(host: string): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const socket = tls.connect({ host, port: 443 }, () => {
+		const socket = tls.connect({ host, port: 443, servername: host }, () => {
 			const validTo = socket.getPeerCertificate().valid_to;
 
 			socket.end();

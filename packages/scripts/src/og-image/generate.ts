@@ -4,15 +4,12 @@ import { openImageSource } from '@xsynaptic/astro-image-pipeline/node';
 import { findWorkspaceRoot } from '@xsynaptic/astro-scripts';
 import { openGraphImageHeight, openGraphImageWidth } from '@xsynaptic/shared/constants';
 import path from 'node:path';
-import { render, setGlyphCacheMaxBytes } from 'takumi-js';
+import { render } from 'takumi-js';
 import { Renderer } from 'takumi-js/node';
 
 import { featuredImageSize, getOpenGraphElement } from '#og-image/element.tsx';
 import { loadOpenGraphFonts } from '#og-image/fonts.ts';
 import { contentDataPath } from '#shared/content-path.ts';
-
-// The 8 MiB default evicts glyphs mid-run once a few faces and sizes are in play
-const glyphCacheBytes = 64 * 1024 * 1024;
 
 // Platforms re-encode the card anyway, so start from a high-quality original
 const jpegQuality = 90;
@@ -28,9 +25,6 @@ export interface ProcessedImage {
 
 // Fonts and glyph outlines live on the renderer, so build one and reuse it for every card
 export async function createCardRenderer() {
-	// Read when a cache is first used, so this has to run before the first render
-	setGlyphCacheMaxBytes(glyphCacheBytes);
-
 	const fonts = await loadOpenGraphFonts();
 	const renderer = new Renderer();
 

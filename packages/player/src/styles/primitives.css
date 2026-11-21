@@ -17,6 +17,18 @@
 			no-repeat;
 }
 
+/* One box for every label that sits over the strip: a hovered cue and the bar's status */
+.player-cue-label,
+.player-status {
+	box-sizing: border-box;
+	block-size: var(--player-readout-size);
+	padding: 0 0.375rem;
+	line-height: calc(var(--player-readout-size) - 2px);
+	background-color: var(--player-popover);
+	border: 1px solid var(--player-border);
+	border-radius: var(--player-radius);
+}
+
 .player-popover {
 	background-color: var(--player-popover);
 	border: 1px solid var(--player-border);

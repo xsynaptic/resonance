@@ -35,7 +35,5 @@ export type {
 	StreamResolution,
 	Track,
 	TrackArtwork,
-	TrackBands,
 	TrackDetail,
-	TrackPeaks,
 } from '#types.ts';

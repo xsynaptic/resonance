@@ -32,6 +32,7 @@ export default defineConfig({
 						'packages/playback-stats/**',
 						'packages/plazmoid-core/**',
 						'packages/plazmoid-player/**',
+						'packages/plazmoid-wavedata/**',
 					],
 					name: 'site',
 				},
@@ -50,6 +51,13 @@ export default defineConfig({
 					environment: 'happy-dom',
 					include: ['packages/plazmoid-player/**/*.test.ts'],
 					name: 'plazmoid-player',
+				},
+			},
+			{
+				extends: true,
+				test: {
+					include: ['packages/plazmoid-wavedata/**/*.test.ts'],
+					name: 'plazmoid-wavedata',
 				},
 			},
 			{

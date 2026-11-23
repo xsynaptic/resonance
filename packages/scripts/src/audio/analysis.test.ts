@@ -1,5 +1,5 @@
 import { fc, test } from '@fast-check/vitest';
-import { bandCount, samplesPerFrame, samplesPerPair } from '@xsynaptic/shared/waveform-format';
+import { bandCount, samplesPerFrame, samplesPerPair } from '@xsynaptic/plazmoid-wavedata';
 import { describe, expect } from 'vitest';
 
 import { createAnalysisReducer } from '#audio/analysis.ts';

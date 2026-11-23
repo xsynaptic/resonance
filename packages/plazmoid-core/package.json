@@ -14,6 +14,7 @@
 		"#*": "./src/*"
 	},
 	"dependencies": {
+		"@xsynaptic/plazmoid-wavedata": "workspace:*",
 		"zustand": "^5.1.0"
 	},
 	"peerDependencies": {

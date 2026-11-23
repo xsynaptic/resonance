@@ -3,7 +3,6 @@ import type { MixAudioEntry, StreamLoudness } from '@xsynaptic/shared/schemas';
 import { log, withStep } from '@xsynaptic/astro-scripts';
 import { mixAudioPath, waveformsCacheDir } from '@xsynaptic/shared/constants';
 import { MixAudioDocumentSchema, mixAudioVersion } from '@xsynaptic/shared/schemas';
-import { samplesPerFrame, samplesPerPair } from '@xsynaptic/shared/waveform-format';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -11,8 +10,8 @@ import type { AudioSource } from '#audio/audio-sources.ts';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { collectBands, readBandsHeader } from '#audio/bands.ts';
-import { collectPeaks, readPeaksHeader } from '#audio/peaks.ts';
+import { collectBands } from '#audio/bands.ts';
+import { collectPeaks } from '#audio/peaks.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
 import { readOverview } from '#audio/waveforms.ts';
 import { contentDataPath } from '#shared/content-path.ts';
@@ -72,7 +71,7 @@ export async function readManifestFiles(
 
 		return {
 			streams: mixes.map((mix) => mix.stream),
-			waveformFiles: mixes.flatMap((mix) => [mix.peaks, mix.bands.file]),
+			waveformFiles: mixes.flatMap((mix) => [mix.peaks, mix.bands]),
 		};
 	} catch {
 		return { streams: [], waveformFiles: [] };
@@ -124,15 +123,6 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	return { entries, incomplete, sourceCount: sources.length };
 }
 
-async function readBands(
-	cacheDir: string,
-	file: string,
-): Promise<Pick<MixAudioEntry['bands'], 'file' | 'frameCount' | 'framesPerSecond'>> {
-	const { frameCount, sampleRate } = await readBandsHeader(path.join(cacheDir, file));
-
-	return { file, frameCount, framesPerSecond: sampleRate / samplesPerFrame };
-}
-
 // A mix missing its rendition, loudness tags, peaks, bands or overview is left out rather than half-published
 async function resolveEntry({
 	bands,
@@ -155,17 +145,13 @@ async function resolveEntry({
 	const overview = await readOverview(cacheDir, source.base);
 	if (overview === undefined) return undefined;
 
-	const { pairCount, sampleRate } = await readPeaksHeader(path.join(cacheDir, peaks));
-
 	return {
-		bands: { ...(await readBands(cacheDir, bands)), medians: overview.medians },
+		bands,
 		base: source.base,
+		facts: overview.facts,
 		loudness,
 		overview: overview.values,
-		pairCount,
-		pairsPerSecond: sampleRate / samplesPerPair,
 		peaks,
-		rmsRange: overview.rmsRange,
 		seconds: overview.seconds,
 		sources: source.files,
 		stream,

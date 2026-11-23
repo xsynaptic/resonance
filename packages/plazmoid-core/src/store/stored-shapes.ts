@@ -1,3 +1,5 @@
+import type { BandsDescriptor, PeaksDescriptor } from '@xsynaptic/plazmoid-wavedata';
+
 import type { Track, TrackDetail } from '#types.ts';
 
 import { isRecord } from '#lib/is-record.ts';
@@ -10,6 +12,25 @@ const trackChecks: FieldChecks = {
 	durationMs: (value) => isNonNegativeNumber(value) && value <= Number.MAX_SAFE_INTEGER,
 	releaseHref: (value) => typeof value === 'string',
 };
+
+const peaksChecks = {
+	byteOffset: isCount,
+	pairCount: isCount,
+	pairsPerSecond: isPositiveNumber,
+	rmsRange: (field) =>
+		Array.isArray(field) && field.length === 2 && field.every((end) => isFiniteNumber(end)),
+	url: (field) => typeof field === 'string',
+} satisfies Record<Exclude<keyof PeaksDescriptor, 'bands'>, FieldChecks[string]>;
+
+const bandsChecks = {
+	bandCount: (field) => isCount(field) && field !== 0,
+	byteOffset: isCount,
+	frameCount: isCount,
+	framesPerSecond: isPositiveNumber,
+	medians: (field) => isArrayOf(field, isFiniteNumber),
+	minDecibels: isFiniteNumber,
+	url: (field) => typeof field === 'string',
+} satisfies Record<keyof BandsDescriptor, FieldChecks[string]>;
 
 const detailChecks: FieldChecks = {
 	cuePoints: (value) => isArrayOf(value, isCuePoint),
@@ -51,24 +72,8 @@ function isPeaks(value: unknown): boolean {
 	if (!isRecord(value)) return false;
 
 	return (
-		hasFields(value, {
-			byteOffset: isCount,
-			pairCount: isCount,
-			pairsPerSecond: isPositiveNumber,
-			rmsRange: (field) =>
-				Array.isArray(field) && field.length === 2 && field.every((end) => isFiniteNumber(end)),
-			url: (field) => typeof field === 'string',
-		}) &&
-		(value.bands === undefined ||
-			hasFields(value.bands, {
-				bandCount: (field) => isCount(field) && field !== 0,
-				byteOffset: isCount,
-				frameCount: isCount,
-				framesPerSecond: isPositiveNumber,
-				medians: (field) => isArrayOf(field, isFiniteNumber),
-				minDecibels: isFiniteNumber,
-				url: (field) => typeof field === 'string',
-			}))
+		hasFields(value, peaksChecks) &&
+		(value.bands === undefined || hasFields(value.bands, bandsChecks))
 	);
 }
 

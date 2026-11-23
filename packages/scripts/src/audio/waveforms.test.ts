@@ -1,13 +1,12 @@
+import { buildPeaks } from '@xsynaptic/plazmoid-wavedata';
 import { describe, expect, test } from 'vitest';
 
-import { buildPeaks } from '#audio/peaks.ts';
 import { distillWaveform } from '#audio/waveforms.ts';
 
 type Pair = [min: number, max: number, rms: number];
 
-function peaksOf(pairs: ReadonlyArray<Pair>, truncateBy = 0): Buffer {
-	const fields = Int8Array.from(pairs.flat());
-	const file = buildPeaks(Buffer.from(fields.buffer, fields.byteOffset, fields.byteLength), 44_100);
+function peaksOf(pairs: ReadonlyArray<Pair>, truncateBy = 0): Uint8Array {
+	const file = buildPeaks(Int8Array.from(pairs.flat()), 44_100);
 
 	return file.subarray(0, file.length - truncateBy);
 }
@@ -17,7 +16,7 @@ function quiet(rms: number): Pair {
 }
 
 // Bucket b of an 800-pair file covers exactly pairs [2b, 2b + 2)
-function twoPairBuckets(filled: Record<number, [number, number]>): Buffer {
+function twoPairBuckets(filled: Record<number, [number, number]>): Uint8Array {
 	const pairs: Array<Pair> = Array.from({ length: 800 }, () => [0, 0, 0]);
 
 	for (const [bucket, [first, second]] of Object.entries(filled)) {
@@ -72,16 +71,6 @@ describe('distillWaveform', () => {
 		);
 
 		expect([...overview.values]).toEqual([0, 0]);
-		expect(overview.rmsRange).toEqual([0, 0]);
-	});
-
-	test('reads the quiet and loud levels by nearest rank over the sounding pairs only', () => {
-		// Ranks 2 and 19 of the twenty sounding pairs; the thirty silent ones would otherwise pull the quiet end to 0
-		const sounding = Array.from({ length: 20 }, (_pair, index) => quiet(index + 1));
-		const silent = Array.from({ length: 30 }, (): Pair => [0, 0, 0]);
-		const overview = distillWaveform(peaksOf([...silent, ...sounding]));
-
-		expect(overview.rmsRange).toEqual([2, 19]);
 	});
 
 	test('rejects a file whose data is shorter than its header claims', () => {

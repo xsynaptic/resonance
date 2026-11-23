@@ -137,12 +137,12 @@ test('keeps only the two readers opened last', () => {
 	expect(open('evicted-first')).not.toBe(first);
 });
 
-function openWithBands(name: string): PeaksReader {
+function openWithBands(name: string, frameCount = 5000): PeaksReader {
 	return openPeaks({
 		bands: {
 			bandCount: 3,
 			byteOffset: 36,
-			frameCount: 5000,
+			frameCount,
 			framesPerSecond: 25,
 			medians: [180, 140, 100],
 			minDecibels: -60,
@@ -200,4 +200,26 @@ test('peaks whose band levels failed draw plain, and only the levels are asked f
 	expect(chunkRequests()).toBe(3);
 	expect(reader.bands?.levels[0]).toBe(200);
 	expect(reader.request(0, 1)).toBeUndefined();
+});
+
+test('a chunk the frames never reach asks for its peaks alone, and is complete once they land', async () => {
+	const { chunkRequests, rangeRequests } = stubPeaksFetch((url) =>
+		Promise.resolve(
+			url.endsWith('.bands.bin')
+				? new Response(undefined, { status: 416 })
+				: new Response(new Int8Array(3616 * 3).fill(7), { status: 206 }),
+		),
+	);
+	const reader = openWithBands('frames-run-out', 4096);
+
+	await reader.request(190, 200);
+
+	expect(rangeRequests()).toStrictEqual(['bytes=49176-60023']);
+	expect(reader.peaks.samples[16_384 * 2]).toBe(7);
+	expect(reader.request(190, 200)).toBeUndefined();
+
+	await vi.advanceTimersByTimeAsync(30_000);
+	void reader.request(190, 200);
+
+	expect(chunkRequests()).toBe(1);
 });

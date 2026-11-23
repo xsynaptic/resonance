@@ -17,7 +17,6 @@
 		"./sitemap": "./src/sitemap.ts",
 		"./stats": "./src/stats.ts",
 		"./tracklist": "./src/tracklist.ts",
-		"./waveform-format": "./src/waveform-format.ts",
 		"./wrangler": "./src/wrangler.ts"
 	},
 	"dependencies": {

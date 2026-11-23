@@ -1,11 +1,15 @@
 import {
 	bandCount,
 	bandsHeaderBytes,
+	describeWavedata,
+	overviewFullScale,
+	parsePeaksHeader,
 	peaksFieldCount,
-	peaksFullScale,
 	peaksHeaderBytes,
 	samplesPerPair,
-} from '@xsynaptic/shared/waveform-format';
+	validateWavedata,
+} from '@xsynaptic/plazmoid-wavedata';
+import { WaveformFactsSchema } from '@xsynaptic/shared/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
@@ -14,9 +18,9 @@ import type { MixAnalysis } from '#audio/analysis.ts';
 
 import { analyzeMix } from '#audio/analysis.ts';
 import { openWaveformsCache } from '#audio/audio-sources.ts';
-import { bandMedians, bandsRole, collectBands, readBandsHeader } from '#audio/bands.ts';
+import { bandsRole, collectBands, readBandsHeader } from '#audio/bands.ts';
 import { landHashedOutput } from '#audio/hashed-outputs.ts';
-import { collectPeaks, parsePeaksHeader, peaksRole, readPeaksHeader } from '#audio/peaks.ts';
+import { collectPeaks, peaksRole, readPeaksHeader } from '#audio/peaks.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { hashFile, requireBinaries } from '#shared/utils.ts';
 
@@ -27,21 +31,14 @@ const overviewExtension = '.overview.json';
 const tmpExtension = '.tmp';
 
 // Bumped whenever the bucket count, the output range or the source values change; none is visible in an mtime
-const overviewVersion = 6;
+const overviewVersion = 7;
 const overviewBuckets = 400;
-const overviewFullScale = 255;
 
-// sonic-ui's contract for a tint's energy: these percentiles of the levels above -60 dBFS
-const rangeFloor = peaksFullScale * 10 ** (-60 / 20);
-const quietShare = 0.1;
-const loudShare = 0.95;
-
-const LevelRangeSchema = z.tuple([z.number(), z.number()]);
+const rmsField = 2;
 
 // Rejecting a stale shape here is what stops it reaching a page
 const OverviewSchema = z.object({
-	medians: z.number().array(),
-	rmsRange: LevelRangeSchema,
+	facts: WaveformFactsSchema,
 	seconds: z.number(),
 	values: z.string(),
 	version: z.literal(overviewVersion),
@@ -49,11 +46,7 @@ const OverviewSchema = z.object({
 
 export type WaveformOverview = z.infer<typeof OverviewSchema>;
 
-type LevelRange = z.infer<typeof LevelRangeSchema>;
-
 export interface DistilledPeaks {
-	// In the Peaks' Int8 units
-	rmsRange: LevelRange;
 	seconds: number;
 	// One byte per bucket, 255 at the loudest
 	values: Buffer;
@@ -74,14 +67,18 @@ interface WaveformsOptions {
 
 // Per bucket the RMS of its pairs' RMS, which is the RMS of its samples
 // Values are normalized here rather than in a renderer, so consumers never need the source units
-export function distillWaveform(buffer: Buffer): DistilledPeaks {
-	const { pairCount: pairs, sampleRate } = parsePeaksHeader(buffer);
-	if (buffer.length < peaksHeaderBytes + pairs * peaksFieldCount)
+export function distillWaveform(peaks: Uint8Array): DistilledPeaks {
+	const { pairCount: pairs, sampleRate } = parsePeaksHeader(peaks);
+	if (peaks.length < peaksHeaderBytes + pairs * peaksFieldCount)
 		throw new Error('Peaks are truncated');
 
+	const fields = new Int8Array(
+		peaks.buffer,
+		peaks.byteOffset + peaksHeaderBytes,
+		pairs * peaksFieldCount,
+	);
 	const bucketCount = Math.min(overviewBuckets, pairs);
 	const buckets: Array<number> = [];
-	const pairRms = new Float32Array(pairs);
 	let peak = 0;
 
 	for (let bucket = 0; bucket < bucketCount; bucket += 1) {
@@ -90,9 +87,8 @@ export function distillWaveform(buffer: Buffer): DistilledPeaks {
 		let sumOfSquares = 0;
 
 		for (let pair = start; pair < end; pair += 1) {
-			const rms = buffer.readInt8(peaksHeaderBytes + pair * peaksFieldCount + 2);
+			const rms = fields[pair * peaksFieldCount + rmsField] ?? 0;
 
-			pairRms[pair] = rms;
 			sumOfSquares += rms * rms;
 		}
 
@@ -102,7 +98,6 @@ export function distillWaveform(buffer: Buffer): DistilledPeaks {
 	}
 
 	return {
-		rmsRange: levelRange(pairRms),
 		seconds: Math.round(((pairs * samplesPerPair) / sampleRate) * 10) / 10,
 		values: Buffer.from(
 			buckets.map((rms) => (peak > 0 ? Math.round((rms / peak) * overviewFullScale) : 0)),
@@ -175,6 +170,11 @@ export async function readOverview(
 
 async function analyze(job: WaveformJob, cacheDir: string): Promise<MixAnalysis> {
 	const analysis = await analyzeMix(job.source);
+	const problems = validateWavedata(analysis);
+
+	if (problems.length > 0) {
+		throw new Error(`Waveform data for "${job.base}" is not valid: ${problems.join('; ')}`);
+	}
 
 	await Promise.all([
 		landAnalysis(cacheDir, job.base, {
@@ -193,10 +193,9 @@ async function analyze(job: WaveformJob, cacheDir: string): Promise<MixAnalysis>
 }
 
 async function distill(job: WaveformJob, { bands, peaks }: MixAnalysis): Promise<void> {
-	const { rmsRange, seconds, values } = distillWaveform(peaks);
+	const { seconds, values } = distillWaveform(peaks);
 	const overview: WaveformOverview = {
-		medians: bandMedians(bands),
-		rmsRange,
+		facts: describeWavedata({ bands, peaks }),
 		seconds,
 		values: values.toString('base64'),
 		version: overviewVersion,
@@ -256,7 +255,7 @@ async function isOverviewCurrent(
 async function landAnalysis(
 	cacheDir: string,
 	base: string,
-	{ bytes, existing, role }: { bytes: Buffer; existing: string | undefined; role: string },
+	{ bytes, existing, role }: { bytes: Uint8Array; existing: string | undefined; role: string },
 ): Promise<void> {
 	const tmp = path.join(cacheDir, `${base}.${role}${binaryExtension}${tmpExtension}`);
 
@@ -265,16 +264,6 @@ async function landAnalysis(
 		existing,
 		name: `${base}.${role}.${await hashFile(tmp)}${binaryExtension}`,
 	});
-}
-
-// Nearest rank; a stored Int8 RMS of 1 is already -42 dBFS, so on the pairs the floor admits every non-zero value
-function levelRange(levels: Float32Array): LevelRange {
-	const sounding = levels.filter((level) => level > rangeFloor).toSorted();
-	if (sounding.length === 0) return [0, 0];
-
-	const at = (share: number) => sounding[Math.max(0, Math.ceil(share * sounding.length) - 1)] ?? 0;
-
-	return [at(quietShare), at(loudShare)];
 }
 
 function overviewPath(cacheDir: string, base: string): string {

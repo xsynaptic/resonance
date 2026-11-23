@@ -269,6 +269,9 @@ importers:
       '@xsynaptic/mdxlint-config':
         specifier: ^2.0.0
         version: 2.0.0(supports-color@10.2.2)
+      '@xsynaptic/plazmoid-wavedata':
+        specifier: workspace:*
+        version: link:packages/plazmoid-wavedata
       '@xsynaptic/satteri-auto-import':
         specifier: ^0.2.2
         version: 0.2.2(satteri@0.11.7)
@@ -367,6 +370,9 @@ importers:
 
   packages/plazmoid-core:
     dependencies:
+      '@xsynaptic/plazmoid-wavedata':
+        specifier: workspace:*
+        version: link:../plazmoid-wavedata
       zustand:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@19.3.0)(react@19.3.1)
@@ -377,6 +383,9 @@ importers:
 
   packages/plazmoid-player:
     dependencies:
+      '@xsynaptic/plazmoid-wavedata':
+        specifier: workspace:*
+        version: link:../plazmoid-wavedata
       zustand:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@19.3.0)(react@19.3.1)
@@ -393,6 +402,8 @@ importers:
       vite:
         specifier: ^8.3.8
         version: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/plazmoid-wavedata: {}
 
   packages/scripts:
     devDependencies:
@@ -414,6 +425,9 @@ importers:
       '@xsynaptic/astro-scripts':
         specifier: ^0.17.0
         version: 0.17.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(satteri@0.11.7)
+      '@xsynaptic/plazmoid-wavedata':
+        specifier: workspace:*
+        version: link:../plazmoid-wavedata
       '@xsynaptic/shared':
         specifier: workspace:*
         version: link:../shared

@@ -1,14 +1,8 @@
-import type { TrackPeaks } from '@xsynaptic/plazmoid-core';
+import type { PeaksDescriptor } from '@xsynaptic/plazmoid-wavedata';
 import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
 import { mixAudioPath } from '@xsynaptic/shared/constants';
 import { MixAudioDocumentSchema } from '@xsynaptic/shared/schemas';
-import {
-	bandCount,
-	bandsDecibelRange,
-	bandsHeaderBytes,
-	peaksHeaderBytes,
-} from '@xsynaptic/shared/waveform-format';
 import { CONTENT_DATA_PATH, FILES_URL } from 'astro:env/server';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -28,7 +22,7 @@ export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).
 
 export interface MixAudio {
 	overview: string;
-	peaks: TrackPeaks;
+	peaks: PeaksDescriptor;
 	seconds: number;
 	streamUrl: string;
 }
@@ -70,19 +64,11 @@ async function buildIndex(): Promise<MixAudioIndex> {
 		const audio: MixAudio = {
 			overview: mix.overview,
 			peaks: {
+				...mix.facts,
 				bands: {
-					bandCount,
-					byteOffset: bandsHeaderBytes,
-					frameCount: mix.bands.frameCount,
-					framesPerSecond: mix.bands.framesPerSecond,
-					medians: mix.bands.medians,
-					minDecibels: -bandsDecibelRange,
-					url: `${waveformBaseUrl}${encodeURIComponent(mix.bands.file)}`,
+					...mix.facts.bands,
+					url: `${waveformBaseUrl}${encodeURIComponent(mix.bands)}`,
 				},
-				byteOffset: peaksHeaderBytes,
-				pairCount: mix.pairCount,
-				pairsPerSecond: mix.pairsPerSecond,
-				rmsRange: mix.rmsRange,
 				url: `${waveformBaseUrl}${encodeURIComponent(mix.peaks)}`,
 			},
 			seconds: mix.seconds,
@@ -90,7 +76,7 @@ async function buildIndex(): Promise<MixAudioIndex> {
 		};
 
 		index.waveformFiles.add(mix.peaks);
-		index.waveformFiles.add(mix.bands.file);
+		index.waveformFiles.add(mix.bands);
 		index.streams.add(mix.stream);
 
 		for (const source of mix.sources) index.byFile.set(source, audio);

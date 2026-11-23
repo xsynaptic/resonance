@@ -67,6 +67,7 @@
 		"@xsynaptic/mdxlint-config": "^2.0.0",
 		"@xsynaptic/satteri-auto-import": "^0.2.2",
 		"@xsynaptic/satteri-img-group": "^2.0.2",
+		"@xsynaptic/plazmoid-wavedata": "workspace:*",
 		"@xsynaptic/scripts": "workspace:*",
 		"@xsynaptic/shared": "workspace:*",
 		"@xsynaptic/stylelint-config": "^1.1.7",

@@ -1,5 +1,7 @@
-import type { TrackBands, TrackPeaks } from '@xsynaptic/plazmoid-core';
+import type { BandsDescriptor, PeaksDescriptor } from '@xsynaptic/plazmoid-wavedata';
 import type { WaveformBands, WaveformPeaks } from '@xsynaptic/sonic-ui';
+
+import { framesByteRange, pairsByteRange, splitPairs } from '@xsynaptic/plazmoid-wavedata';
 
 import { retryDelayMs } from '#waveform/retry-delay.ts';
 
@@ -7,9 +9,6 @@ import { retryDelayMs } from '#waveform/retry-delay.ts';
 
 // About 47 seconds of audio and 24 KB on the wire, so one window is one or two requests
 const chunkPairs = 8192;
-
-// Min, max and RMS, one Int8 each, as the build writes them
-const bytesPerPair = 3;
 
 const cacheLimit = 2;
 
@@ -28,12 +27,10 @@ export interface PeaksReader {
 }
 
 interface BandsTwin extends WaveformBands {
-	byteOffset: number;
-	bytesTotal: number;
-	chunkBytes: number;
+	chunkFrames: number;
 	landed: Set<number>;
 	levels: Uint8Array;
-	url: string;
+	source: BandsDescriptor;
 }
 
 interface ChunkRequest {
@@ -41,7 +38,7 @@ interface ChunkRequest {
 	isHeld: boolean;
 }
 
-export function openPeaks(source: TrackPeaks): PeaksReader {
+export function openPeaks(source: PeaksDescriptor): PeaksReader {
 	const cached = cache.get(source.url);
 	if (cached) return cached;
 
@@ -61,8 +58,7 @@ export function openPeaks(source: TrackPeaks): PeaksReader {
 // A 200 means the range was ignored and the whole file is on its way, which would land at the wrong offset
 async function fetchRange(
 	url: string,
-	start: number,
-	end: number,
+	[start, end]: [start: number, end: number],
 ): Promise<ArrayBuffer | undefined> {
 	try {
 		const response = await fetch(url, {
@@ -80,48 +76,44 @@ async function fetchRange(
 	}
 }
 
-function createBandsTwin(source: TrackBands, pairsPerSecond: number): BandsTwin {
-	const { bandCount, byteOffset, frameCount, framesPerSecond, medians, minDecibels, url } = source;
-	const bytesTotal = frameCount * bandCount;
+function createBandsTwin(source: BandsDescriptor, pairsPerSecond: number): BandsTwin {
+	const { bandCount, frameCount, framesPerSecond, medians, minDecibels } = source;
 
 	return {
 		bandCount,
-		byteOffset,
-		bytesTotal,
-		chunkBytes: Math.round((chunkPairs * framesPerSecond) / pairsPerSecond) * bandCount,
+		chunkFrames: Math.round((chunkPairs * framesPerSecond) / pairsPerSecond),
 		framesPerSecond,
 		landed: new Set(),
-		levels: new Uint8Array(bytesTotal),
+		levels: new Uint8Array(frameCount * bandCount),
 		medians,
 		minDecibels,
-		url,
+		source,
 	};
+}
+
+function levelsRange(twin: BandsTwin, chunk: number): [start: number, end: number] | undefined {
+	return framesByteRange(twin.source, chunk * twin.chunkFrames, (chunk + 1) * twin.chunkFrames);
 }
 
 async function fetchLevels(twin: BandsTwin, chunk: number): Promise<(() => void) | undefined> {
 	if (twin.landed.has(chunk)) return undefined;
 
-	const start = twin.byteOffset + chunk * twin.chunkBytes;
-	const end = Math.min(twin.byteOffset + twin.bytesTotal, start + twin.chunkBytes);
-	const bytes = await fetchRange(twin.url, start, end);
+	const range = levelsRange(twin, chunk);
+	if (!range) return undefined;
+
+	const bytes = await fetchRange(twin.source.url, range);
 
 	return (
 		bytes &&
 		(() => {
-			twin.levels.set(new Uint8Array(bytes), chunk * twin.chunkBytes);
+			twin.levels.set(new Uint8Array(bytes), range[0] - twin.source.byteOffset);
 			twin.landed.add(chunk);
 		})
 	);
 }
 
-function createReader({
-	bands: bandsSource,
-	byteOffset,
-	pairCount,
-	pairsPerSecond,
-	rmsRange,
-	url,
-}: TrackPeaks): PeaksReader {
+function createReader(source: PeaksDescriptor): PeaksReader {
+	const { bands: bandsSource, pairCount, pairsPerSecond, rmsRange, url } = source;
 	const samples = new Int8Array(pairCount * 2);
 	const rms = new Int8Array(pairCount);
 	const bands = bandsSource && createBandsTwin(bandsSource, pairsPerSecond);
@@ -157,36 +149,26 @@ function createReader({
 	}
 
 	function isComplete(chunk: number): boolean {
-		return landed.has(chunk) && (!bands || bands.landed.has(chunk));
+		if (!landed.has(chunk)) return false;
+
+		return !bands || bands.landed.has(chunk) || !levelsRange(bands, chunk);
 	}
 
 	async function fetchPeaks(chunk: number): Promise<(() => void) | undefined> {
 		if (landed.has(chunk)) return undefined;
 
-		const start = byteOffset + chunk * chunkPairs * bytesPerPair;
-		const end = Math.min(byteOffset + pairCount * bytesPerPair, start + chunkPairs * bytesPerPair);
-		const bytes = await fetchRange(url, start, end);
+		const range = pairsByteRange(source, chunk * chunkPairs, (chunk + 1) * chunkPairs);
+		if (!range) return undefined;
+
+		const bytes = await fetchRange(url, range);
 
 		return (
 			bytes &&
 			(() => {
-				landPairs(new Int8Array(bytes), chunk * chunkPairs);
+				splitPairs(new Uint8Array(bytes), { rms, samples }, chunk * chunkPairs);
 				landed.add(chunk);
 			})
 		);
-	}
-
-	function landPairs(fields: Int8Array, firstPair: number): void {
-		const pairs = Math.floor(fields.length / bytesPerPair);
-
-		for (let pair = 0; pair < pairs; pair += 1) {
-			const at = pair * bytesPerPair;
-			const into = firstPair + pair;
-
-			samples[into * 2] = fields[at] ?? 0;
-			samples[into * 2 + 1] = fields[at + 1] ?? 0;
-			rms[into] = fields[at + 2] ?? 0;
-		}
 	}
 
 	// Both land in one turn, levels first, so a stretch never draws plain and then takes its tint

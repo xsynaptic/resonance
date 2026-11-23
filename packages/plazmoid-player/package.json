@@ -21,6 +21,7 @@
 		"test-e2e": "pnpm cut-fixtures && playwright test"
 	},
 	"dependencies": {
+		"@xsynaptic/plazmoid-wavedata": "workspace:*",
 		"zustand": "^5.1.0"
 	},
 	"peerDependencies": {

@@ -1,0 +1,65 @@
+{
+	"sampleRate": 44100,
+	"sampleCount": 2348,
+	"input": {
+		"mono": [
+			{ "samples": 256, "value": 0.5 },
+			{ "samples": 256, "value": -0.25 },
+			{ "samples": 256, "value": 2 },
+			{ "samples": 256, "value": -2 },
+			{ "samples": 256, "value": 0 },
+			{ "samples": 128, "value": -0.5 },
+			{ "samples": 128, "value": 0.75 },
+			{ "samples": 256, "value": 0.999 },
+			{ "samples": 256, "value": 0.004 },
+			{ "samples": 256, "value": 1 },
+			{ "samples": 44, "value": 0.25 }
+		],
+		"low": [
+			{ "samples": 1024, "value": 1 },
+			{ "samples": 1024, "value": 2 },
+			{ "samples": 300, "value": 0.1 }
+		],
+		"mid": [
+			{ "samples": 1024, "value": 0.1 },
+			{ "samples": 1024, "value": 0.00001 },
+			{ "samples": 300, "value": 0.5 }
+		],
+		"high": [
+			{ "samples": 1024, "value": 0 },
+			{ "samples": 1024, "value": 0.001 },
+			{ "samples": 300, "value": 0.25 }
+		]
+	},
+	"fields": [
+		[64, 64, 64],
+		[-32, -32, 32],
+		[127, 127, 127],
+		[-128, -128, 127],
+		[0, 0, 0],
+		[-64, 96, 81],
+		[127, 127, 127],
+		[0, 0, 0],
+		[127, 127, 127],
+		[32, 32, 32]
+	],
+	"levels": [
+		[255, 170, 0],
+		[255, 1, 1],
+		[170, 229, 204]
+	],
+	"facts": {
+		"bands": {
+			"bandCount": 3,
+			"byteOffset": 36,
+			"frameCount": 3,
+			"framesPerSecond": 43.06640625,
+			"medians": [255, 170, 1],
+			"minDecibels": -60
+		},
+		"byteOffset": 24,
+		"pairCount": 10,
+		"pairsPerSecond": 172.265625,
+		"rmsRange": [32, 127]
+	}
+}

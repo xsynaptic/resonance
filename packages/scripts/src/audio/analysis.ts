@@ -1,10 +1,10 @@
 import { readSubprocess } from '@xsynaptic/astro-scripts';
-import { bandCount } from '@xsynaptic/shared/waveform-format';
+import { bandCount, bandEdges, buildBands, buildPeaks } from '@xsynaptic/plazmoid-wavedata';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 
-import { bandEdges, buildBands, createBandAccumulator } from '#audio/bands.ts';
-import { buildPeaks, createPairAccumulator } from '#audio/peaks.ts';
+import { createBandAccumulator } from '#audio/bands.ts';
+import { createPairAccumulator } from '#audio/peaks.ts';
 
 // The mono mix, then the low, mid and high bands split from it
 const channelCount = 1 + bandCount;
@@ -17,8 +17,8 @@ export interface AnalysisReducer {
 }
 
 export interface MixAnalysis {
-	bands: Buffer;
-	peaks: Buffer;
+	bands: Uint8Array;
+	peaks: Uint8Array;
 }
 
 export async function analyzeMix(source: string): Promise<MixAnalysis> {

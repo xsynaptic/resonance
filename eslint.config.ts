@@ -40,6 +40,7 @@ export default getConfig(
 			'src/components/**/*',
 			'packages/plazmoid-core/**/*',
 			'packages/plazmoid-player/**/*',
+			'packages/plazmoid-wavedata/**/*',
 			'packages/playback-stats/**/*',
 		]),
 		{
@@ -48,6 +49,7 @@ export default getConfig(
 				'src/components/**/*.{ts,tsx}',
 				'packages/plazmoid-core/src/**/*.ts',
 				'packages/plazmoid-player/src/**/*.ts',
+				'packages/plazmoid-wavedata/src/**/*.ts',
 				'packages/playback-stats/src/**/*.ts',
 			],
 			ignores: ['**/*.test.{ts,tsx}'],
@@ -80,9 +82,16 @@ export default getConfig(
 			// Dependencies run one way: the player imports core, never the reverse
 			files: ['packages/plazmoid-core/**/*.ts'],
 			rules: {
-				'no-restricted-imports': [
+				'@typescript-eslint/no-restricted-imports': [
 					'error',
 					{
+						paths: [
+							{
+								allowTypeImports: true,
+								message: 'Core takes only types from wavedata; write `import type`',
+								name: '@xsynaptic/plazmoid-wavedata',
+							},
+						],
 						patterns: [
 							{
 								group: ['@xsynaptic/plazmoid-player', '@xsynaptic/plazmoid-player/*'],

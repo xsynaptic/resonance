@@ -21,7 +21,7 @@ Documents in `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` car
 | `done`      | Finished work, kept for its measurements and reasoning |
 | `reference` | How something works now; not work                      |
 
-**Only `ready` is live work.** Everything else has already been through Xander, so raising it again as a finding wastes a review cycle. If new evidence contradicts a decision, name the measurement that changed. Settled items inside a `ready` document are marked inline (**Deferred**, **Wontfix**, **Decided, do not re-raise**) and get the same treatment.
+**Only `ready` is live work.** Everything else has already been through the operator, so raising it again as a finding wastes a review cycle. If new evidence contradicts a decision, name the measurement that changed. Settled items inside a `ready` document are marked inline (**Deferred**, **Wontfix**, **Decided, do not re-raise**) and get the same treatment.
 
 `grep` here is ugrep, which skips gitignored paths, and all four folders are gitignored: a `grep -r` from the root misses them without a word, so name `.claude` in the search.
 
@@ -52,6 +52,10 @@ The collections were generated once from a WordPress dump and have been edited b
 - A component added to `autoImport()` in the Astro config also needs its props in `MDXProvidedComponents` (`packages/content/global.d.ts`).
 - **Selections** live in a Post's or Page's `selections` frontmatter and render through the `<Selections>` MDX tag. A selection's `entryId` (a mix, review or post, by bare slug) fills every field the selection leaves unset, review body included, so a row can be one line; inline fields win.
 - **Artists and labels are Credits** (`src/lib/schemas/credits.ts`), which work the other way round from every other vocabulary (those use Astro `reference()`): a bare string is free text that links only if its slug matches a cataloged term, and `{ id, name? }` must resolve but only `console.warn`s when it doesn't.
+
+## Comments
+
+- `pnpm comments pending` and `pull` may run against production; `approve`, `reject`, `spam` and `delete` without `--local` wait for the operator's go-ahead in the session, naming the ids, since a decision is one-way and a delete cannot be undone.
 
 ## Build and checks
 

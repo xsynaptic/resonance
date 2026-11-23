@@ -179,8 +179,8 @@ importers:
   .:
     dependencies:
       '@xsynaptic/astro-comments':
-        specifier: ^0.2.0
-        version: 0.2.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))
+        specifier: ^0.3.0
+        version: 0.3.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))
       '@xsynaptic/playback-stats':
         specifier: workspace:*
         version: link:packages/playback-stats
@@ -417,8 +417,8 @@ importers:
         specifier: ^19.3.0
         version: 19.3.0
       '@xsynaptic/astro-comments':
-        specifier: ^0.2.0
-        version: 0.2.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))
+        specifier: ^0.3.0
+        version: 0.3.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))
       '@xsynaptic/astro-image-pipeline':
         specifier: ^0.16.0
         version: 0.16.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
@@ -2742,8 +2742,8 @@ packages:
     peerDependencies:
       astro: ^6.0.0 || ^7.0.0
 
-  '@xsynaptic/astro-comments@0.2.0':
-    resolution: {integrity: sha512-bVoFedwRQgSnGkNhjphCIGqebsi0iiMeVuoMt7++Y5txiN3QuAtJEj79Si5bCrnWLHVa6fNomj0YkeRU5TLXvQ==}
+  '@xsynaptic/astro-comments@0.3.0':
+    resolution: {integrity: sha512-eTzdx2Q6zL0QLZODSFqfuQBar294/SlO1fHEefVxoEt0G74VSk2EL8ngZVhqhT14kFOH1Vg2orfmf3Itl/tusw==}
     engines: {node: '>=24.0.0'}
     hasBin: true
     peerDependencies:
@@ -8353,7 +8353,7 @@ snapshots:
       astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
       zod: 4.6.7
 
-  '@xsynaptic/astro-comments@0.2.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))':
+  '@xsynaptic/astro-comments@0.3.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))':
     dependencies:
       htmlparser2: 12.0.0
       markdown-it: 15.0.3

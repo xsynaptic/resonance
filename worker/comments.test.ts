@@ -86,14 +86,13 @@ function makeRequest(fields: Record<string, string>): Request {
 		author: 'Reader',
 		body: 'A comment worth keeping.',
 		'cf-turnstile-response': 'token',
-		formAge: '5000',
+		fillTimeMs: '5000',
 		...fields,
 	}).toString();
 
 	return new Request('https://example.test/api/comments', {
 		body,
 		headers: {
-			accept: 'text/html',
 			'CF-Connecting-IP': '203.0.113.7',
 			'content-length': String(new TextEncoder().encode(body).length),
 			'content-type': 'application/x-www-form-urlencoded',
@@ -186,7 +185,7 @@ describe('the thread key migration', () => {
 });
 
 describe('handleComment', () => {
-	test('redirects to the page the registry holds for the thread', async () => {
+	test('accepts a comment on each thread the registry holds', async () => {
 		stubSiteverify(true);
 		migrate();
 
@@ -194,12 +193,8 @@ describe('handleComment', () => {
 		const post = await handleComment(makeRequest({ thread: 'posts/a-post' }), env);
 		const mix = await handleComment(makeRequest({ thread: 'mixes/voyager' }), env);
 
-		expect(post.headers.get('location')).toBe(
-			'https://example.test/a-post/?comment=received#comments',
-		);
-		expect(mix.headers.get('location')).toBe(
-			'https://example.test/mixes/voyager/?comment=received#comments',
-		);
+		expect(post.status).toBe(201);
+		expect(mix.status).toBe(201);
 	});
 
 	test('refuses a thread the registry does not hold, reading the registry once', async () => {
@@ -211,7 +206,7 @@ describe('handleComment', () => {
 		const missing = await handleComment(makeRequest({ thread: 'mixes/no-such-mix' }), env);
 
 		expect(about.status).toBe(400);
-		await expect(about.text()).resolves.toBe(`${t('comments.error.entryMissing')}\n`);
+		await expect(about.json()).resolves.toEqual({ message: t('comments.error.entryMissing') });
 		expect(missing.status).toBe(400);
 		expect(assets).toHaveBeenCalledOnce();
 	});
@@ -225,7 +220,7 @@ describe('handleComment', () => {
 			createEnv(),
 		);
 
-		expect(response.status).toBe(303);
+		expect(response.status).toBe(201);
 		expect(
 			database.prepare(`SELECT thread, parent_id FROM comments WHERE source = 'web'`).get(),
 		).toEqual({ parent_id: 'wp-1', thread: 'mixes/voyager' });
@@ -240,7 +235,7 @@ describe('handleComment', () => {
 			createEnv(),
 		);
 
-		expect(response.status).toBe(303);
+		expect(response.status).toBe(201);
 		expect(
 			database
 				.prepare(`SELECT thread, parent_id, ip_hash FROM comments WHERE source = 'web'`)
@@ -276,7 +271,7 @@ describe('handleComment', () => {
 		const response = await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv());
 
 		expect(response.status).toBe(500);
-		await expect(response.text()).resolves.toBe(`${t('comments.error.unexpected')}\n`);
+		await expect(response.json()).resolves.toEqual({ message: t('comments.error.unexpected') });
 	});
 
 	test('answers a failed challenge with the site copy', async () => {
@@ -286,7 +281,7 @@ describe('handleComment', () => {
 		const response = await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv());
 
 		expect(response.status).toBe(403);
-		await expect(response.text()).resolves.toBe(`${t('comments.error.challenge')}\n`);
+		await expect(response.json()).resolves.toEqual({ message: t('comments.error.challenge') });
 		expect(database.prepare('SELECT COUNT(*) AS count FROM comments').get()).toEqual({ count: 0 });
 	});
 });

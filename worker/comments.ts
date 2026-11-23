@@ -17,10 +17,9 @@ const commentMessages = {
 	threadMissing: t('comments.error.entryMissing'),
 	tooFast: t('comments.error.tooFast'),
 	tooLarge: t('comments.error.tooLarge'),
-	tooMany: t('comments.error.tooMany'),
 	unexpected: t('comments.error.unexpected'),
 	unreadable: t('comments.error.unreadable'),
-} satisfies CommentMessages;
+} satisfies Partial<CommentMessages>;
 
 export function handleComment(request: Request, env: Env): Promise<Response> {
 	return handleCommentSubmission(request, {

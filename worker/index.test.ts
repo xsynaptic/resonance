@@ -39,10 +39,7 @@ describe('fetch', () => {
 		env.IP_SALT = '';
 
 		const response = await worker.fetch(
-			new Request('https://example.test/api/comments', {
-				headers: { accept: 'application/json' },
-				method: 'POST',
-			}),
+			new Request('https://example.test/api/comments', { method: 'POST' }),
 			env,
 		);
 

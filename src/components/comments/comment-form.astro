@@ -41,7 +41,7 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 		<p class="text-sm text-ink-500">{t('comments.form.moderationNote')}</p>
 		<input name="thread" type="hidden" value={thread} />
 		<input name="parentId" type="hidden" value="" />
-		<input name="formAge" type="hidden" value="" />
+		<input name="fillTimeMs" type="hidden" value="" />
 		<div aria-hidden="true" class="comment-trap">
 			<input autocomplete="off" name="extra" tabindex="-1" type="text" />
 		</div>

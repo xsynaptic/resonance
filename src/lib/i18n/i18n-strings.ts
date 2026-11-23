@@ -69,8 +69,6 @@ const strings = {
 	'comments.error.parentMissing': 'That reply target does not exist.',
 	'comments.error.tooFast': 'That was too fast. Please try again.',
 	'comments.error.tooLarge': 'That submission was too large.',
-	'comments.error.tooMany':
-		'Several comments have just come from your connection. Please wait a few minutes before posting another.',
 	'comments.error.unexpected': 'Something went wrong here. Please try again in a moment.',
 	'comments.error.unreadable': 'That submission could not be read.',
 	'comments.form.author': 'Name',

@@ -33,7 +33,7 @@
 		"#*": "./src/*"
 	},
 	"dependencies": {
-		"@xsynaptic/astro-comments": "^0.2.0",
+		"@xsynaptic/astro-comments": "^0.3.0",
 		"@xsynaptic/playback-stats": "workspace:*",
 		"@xsynaptic/plazmoid-core": "workspace:*",
 		"@xsynaptic/plazmoid-player": "workspace:*",

@@ -28,9 +28,9 @@ Documents in `tasks/`, `tasks-backlog/`, `tasks-completed/` and `reference/` car
 ## Conventions
 
 - Imports use the Node `#*` subpaths with an explicit extension (`#lib/utils/routing.ts`); extensionless ones don't resolve. Each package defines its own `#*` map, and every import within a package goes through it, sibling files included.
-- Client storage keys (localStorage, sessionStorage, IndexedDB) take the `rez-` prefix in kebab-case and live in `src/components/main/main-storage-keys.ts`, never as a literal at the call site; a pre-paint inline script receives them through `define:vars`. The player's own keys take `pzm-` and live in `packages/player/src/constants.ts`.
+- Client storage keys (localStorage, sessionStorage, IndexedDB) take the `rez-` prefix in kebab-case and live in `src/components/main/main-storage-keys.ts`, never as a literal at the call site; a pre-paint inline script receives them through `define:vars`. The player's own keys take `pzm-` and live in `src/constants.ts` of the package that owns them: `packages/plazmoid-core` for the queue, volume and mute, `packages/plazmoid-player` for the panel, its zoom and the time mode.
 - Code that touches `window` or any other browser global goes under `src/components/**` or in a package; `src/lib/**` is build-time and server code. ESLint only allows browser globals in those paths, so browser code in `src/lib/**` passes `astro check` and then fails `pnpm check`.
-- Before changing a file, `grep -rl <path> verify/ packages/player/verify/` shows whether a formal model of it needs updating too.
+- Before changing a file, `grep -rl <path> verify/ packages/plazmoid-player/verify/` shows whether a formal model of it needs updating too.
 
 ## Styling
 
@@ -63,5 +63,5 @@ The root `package.json` holds entry points only. Every script in `packages/scrip
 
 The two Playwright suites run on demand, outside `check`. Both need the content repository, and every script that plays audio needs `ffmpeg`:
 
-- `pnpm test-e2e-player` tests the player in isolation across four browsers. Run it after changing anything under `packages/player/src/engine/`, `store/` or `page-controls.ts`.
+- `pnpm test-e2e-player` tests the player in isolation across four browsers. Run it after changing anything under `packages/plazmoid-core/src/engine/`, `store/` or `page-controls.ts`, or `packages/plazmoid-player/src/view/`.
 - `pnpm test-e2e` tests the site against `dist/`, so build first; `pnpm test-e2e-dev` runs it against the dev server instead. `pnpm test-e2e-smoke` runs its `@smoke` subset, which plays no audio: `deploy-site` runs it after its build (`--skip-smoke` opts out), and `pnpm test-e2e-smoke-prod` points it at the live site.

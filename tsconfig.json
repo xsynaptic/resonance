@@ -4,8 +4,8 @@
 	"exclude": [
 		"dist",
 		"packages/content",
-		"packages/player/playwright-report",
-		"packages/player/test-results",
+		"packages/plazmoid-player/playwright-report",
+		"packages/plazmoid-player/test-results",
 		"worker",
 		"worker-configuration.d.ts"
 	],

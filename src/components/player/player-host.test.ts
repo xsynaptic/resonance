@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import type { PlayerUrls } from '@xsynaptic/player';
+import type { PlayerUrls } from '@xsynaptic/plazmoid-core';
 
-import { heldPressAttribute } from '@xsynaptic/player/constants';
+import { heldPressAttribute } from '@xsynaptic/plazmoid-core/constants';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';
@@ -9,19 +9,26 @@ import { getPlayerLabels } from '#components/player/player-labels.ts';
 const refreshQueue = vi.hoisted(() => vi.fn());
 const store = vi.hoisted(() => ({ getState: () => ({ refreshQueue }) }));
 
-const elements = vi.hoisted(() => ({
+const view = vi.hoisted(() => ({}));
+
+const core = vi.hoisted(() => ({
 	bindMediaSession: vi.fn(),
 	bindPageControls: vi.fn(() => ({ refresh: vi.fn(), unbind: vi.fn() })),
-	createPlayer: vi.fn(() => document.createElement('pzm-root')),
 	createPlayerStore: vi.fn(() => store),
 	loadedTrack: vi.fn(),
+}));
+
+const elements = vi.hoisted(() => ({
+	createPlayer: vi.fn(() => document.createElement('pzm-root')),
+	createViewStore: vi.fn(() => view),
 }));
 
 // Bound for real under `NODE_ENV=production`, where `import.meta.env.DEV` stops short-circuiting it
 const stats = vi.hoisted(() => ({ bindPlayerStats: vi.fn() }));
 const analytics = vi.hoisted(() => ({ bindPlayerAnalytics: vi.fn(), trackControlPress: vi.fn() }));
 
-vi.mock('@xsynaptic/player', () => elements);
+vi.mock('@xsynaptic/plazmoid-core', () => core);
+vi.mock('@xsynaptic/plazmoid-player', () => elements);
 vi.mock('#components/player/player-analytics.ts', () => analytics);
 vi.mock('#components/player/player-stats.ts', () => stats);
 
@@ -108,18 +115,18 @@ describe('startPlayer', () => {
 		control('[data-pzm-play-track] span').click();
 
 		await vi.waitFor(() => {
-			expect(elements.bindPageControls).toHaveBeenCalledWith(store, document, {
+			expect(core.bindPageControls).toHaveBeenCalledWith(store, document, {
 				onPress: analytics.trackControlPress,
 			});
 		});
 
 		expect(elements.createPlayer).toHaveBeenCalledWith(
-			expect.objectContaining({ isScopeEnabled: true, seekSeconds: 30, store }),
+			expect.objectContaining({ isScopeEnabled: true, seekSeconds: 30, store, view }),
 		);
 		expect(document.querySelector('[data-player-host] > pzm-root')).not.toBeNull();
-		expect(elements.bindMediaSession).toHaveBeenCalledWith(store);
+		expect(core.bindMediaSession).toHaveBeenCalledWith(store);
 		expect(stats.bindPlayerStats).toHaveBeenCalledWith(store, expect.any(Function));
-		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(store);
+		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(store, view);
 		expect(control('[data-pzm-play-track]').hasAttribute(heldPressAttribute)).toBe(true);
 	});
 
@@ -142,7 +149,7 @@ describe('startPlayer', () => {
 		await vi.waitFor(() => {
 			expect(elements.createPlayer).toHaveBeenCalledOnce();
 		});
-		expect(elements.bindMediaSession).toHaveBeenCalledOnce();
+		expect(core.bindMediaSession).toHaveBeenCalledOnce();
 	});
 
 	test('the Library refreshes the stored Queue with its press rows, and answers for detail', async () => {
@@ -216,7 +223,7 @@ describe('startPlayer', () => {
 		control('[data-pzm-play-track]').click();
 
 		await vi.waitFor(() => {
-			expect(elements.bindPageControls).toHaveBeenCalledOnce();
+			expect(core.bindPageControls).toHaveBeenCalledOnce();
 		});
 
 		control('[data-pzm-queue-track]').click();

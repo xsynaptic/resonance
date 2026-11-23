@@ -1,0 +1,186 @@
+import type { Track } from '@xsynaptic/plazmoid-core';
+
+import {
+	fireEvent,
+	getAllByRole,
+	getByRole,
+	getByText,
+	queryAllByRole,
+} from '@testing-library/dom';
+import { afterEach, describe, expect, test, vi } from 'vitest';
+
+import { trayModule } from '#elements/tray/tray-module.ts';
+import { LazyModuleError } from '#lib/lazy-module.ts';
+import { labels } from '#test/labels.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
+
+const threeTracks = [sampleTrack('a'), sampleTrack('b'), sampleTrack('c')];
+
+// happy-dom lays nothing out, so each row reports a 40px slot down the list
+async function mountDraggableTray() {
+	const mounted = await mountTray();
+	const list = getByRole(mounted.part, 'list');
+	const rowHeight = 40;
+
+	vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 320, 400));
+
+	for (const [index, row] of getAllByRole(list, 'listitem').entries()) {
+		vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
+			new DOMRect(0, index * rowHeight, 320, rowHeight),
+		);
+	}
+
+	const [handle] = getAllByRole(list, 'button', { name: labels.reorder });
+	if (!handle) throw new Error('The tray drew no reorder handle');
+
+	return { handle, list, mounted };
+}
+
+// The tray alone, outside the popover whose dismiss happy-dom misreads once a press removes its own row
+async function mountTray(tracks: Array<Track> = threeTracks) {
+	await trayModule.load();
+
+	const mounted = mount('pzm-tray');
+
+	mounted.store.getState().loadQueue(tracks);
+
+	return mounted;
+}
+
+async function openQueue() {
+	const mounted = mount('pzm-queue-button');
+	const trigger = getByRole(mounted.part, 'button', { name: labels.queue });
+
+	mounted.store.getState().loadQueue(threeTracks);
+	trigger.click();
+
+	return { ...mounted, tray: await waitForTray(mounted.part), trigger };
+}
+
+function queuedIds({ store }: ReturnType<typeof mount>): Array<string> {
+	return store.getState().queue.map((track) => track.trackId);
+}
+
+async function waitForTray(part: HTMLElement): Promise<HTMLElement> {
+	return vi.waitFor(() => {
+		const tray = part.querySelector('pzm-tray');
+		if (!tray?.firstElementChild) throw new Error('The tray has not arrived');
+
+		return tray;
+	});
+}
+
+afterEach(() => {
+	document.body.replaceChildren();
+	vi.restoreAllMocks();
+	vi.unstubAllGlobals();
+});
+
+describe('<pzm-queue-button> with its tray', () => {
+	test('opens on a press and plays the row picked', async () => {
+		const { store, tray, trigger, view } = await openQueue();
+
+		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+
+		getByRole(tray, 'button', { name: /Mix b/ }).click();
+
+		expect(store.getState().currentIndex).toBe(1);
+		expect(view.getState().isTrayOpen).toBe(true);
+	});
+
+	test('heads the tray with Shuffle, which reads pressed while on, and Clear', async () => {
+		const { part, store } = await openQueue();
+		const shuffle = getByRole(part, 'button', { name: labels.shuffle });
+
+		shuffle.click();
+
+		expect(store.getState().isShuffling).toBe(true);
+		expect(shuffle.getAttribute('aria-pressed')).toBe('true');
+
+		getByRole(part, 'button', { name: labels.clearQueue }).click();
+
+		expect(store.getState().queue).toHaveLength(0);
+	});
+
+	test('closes on a click outside it and on Escape, handing focus back to the trigger', async () => {
+		const { part, trigger, view } = await openQueue();
+
+		document.body.click();
+
+		expect(view.getState().isTrayOpen).toBe(false);
+		expect(part.querySelector('pzm-tray')).toBeNull();
+
+		trigger.click();
+		fireEvent.keyDown(getByRole(await waitForTray(part), 'button', { name: /Mix b/ }), {
+			key: 'Escape',
+		});
+
+		expect(view.getState().isTrayOpen).toBe(false);
+		expect(document.activeElement).toBe(trigger);
+	});
+
+	test('stays closed and reports the failure when the tray fails to arrive', async () => {
+		const offline = new LazyModuleError('tray', 'offline');
+		const reportError = vi.fn();
+
+		vi.spyOn(trayModule, 'load').mockRejectedValueOnce(offline);
+		vi.stubGlobal('reportError', reportError);
+
+		const { part, store, view } = mount('pzm-queue-button');
+		const trigger = getByRole(part, 'button', { name: labels.queue });
+
+		store.getState().loadQueue([sampleTrack('a')]);
+		trigger.click();
+
+		await vi.waitFor(() => {
+			expect(view.getState().isTrayOpen).toBe(false);
+		});
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(reportError).toHaveBeenCalledWith(offline);
+	});
+});
+
+describe('<pzm-tray>', () => {
+	test('removes a row, and shows the empty message once the queue is cleared', async () => {
+		const { part, store } = await mountTray();
+
+		getAllByRole(part, 'button', { name: labels.removeFromQueue })[1]?.click();
+
+		expect(getAllByRole(part, 'listitem').map((row) => row.textContent)).toStrictEqual([
+			expect.stringContaining('Mix a'),
+			expect.stringContaining('Mix c'),
+		]);
+
+		store.getState().clearQueue();
+
+		expect(queryAllByRole(part, 'listitem')).toHaveLength(0);
+		expect(getByText(part, labels.empty).hidden).toBe(false);
+	});
+
+	test('moves a row on Alt+Arrow, announces the move and keeps focus on its handle', async () => {
+		const mounted = await mountTray();
+		const handle = getAllByRole(mounted.part, 'button', { name: labels.reorder })[1];
+
+		handle?.focus();
+		fireEvent.keyDown(handle ?? document.body, { altKey: true, key: 'ArrowUp' });
+
+		expect(queuedIds(mounted)).toStrictEqual(['b', 'a', 'c']);
+		expect(getByRole(mounted.part, 'status').textContent).toBe('Moved to position 1 of 3');
+		expect(document.activeElement).toBe(handle);
+	});
+
+	test('leaves a drag running when another pointer lifts elsewhere in the list', async () => {
+		const { handle, list, mounted } = await mountDraggableTray();
+
+		fireEvent.pointerDown(handle, { clientY: 60, pointerId: 1 });
+		fireEvent.pointerMove(handle, { clientY: 110, pointerId: 1 });
+		fireEvent.pointerUp(list, { pointerId: 2 });
+		fireEvent.pointerCancel(list, { pointerId: 2 });
+
+		expect(queuedIds(mounted)).toStrictEqual(['a', 'b', 'c']);
+
+		fireEvent.pointerUp(handle, { pointerId: 1 });
+
+		expect(queuedIds(mounted)).toStrictEqual(['b', 'c', 'a']);
+	});
+});

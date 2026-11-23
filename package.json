@@ -11,9 +11,9 @@
 		"fix-content": "mdxlint-content packages/content --fix --root-path=$PWD",
 		"prepare": "wrangler types",
 		"test": "vitest",
-		"test-e2e": "pnpm -F @xsynaptic/player cut-fixtures && playwright test",
-		"test-e2e-dev": "pnpm -F @xsynaptic/player cut-fixtures && TEST_ENV=dev playwright test",
-		"test-e2e-player": "pnpm -F @xsynaptic/player test-e2e",
+		"test-e2e": "pnpm -F @xsynaptic/plazmoid-player cut-fixtures && playwright test",
+		"test-e2e-dev": "pnpm -F @xsynaptic/plazmoid-player cut-fixtures && TEST_ENV=dev playwright test",
+		"test-e2e-player": "pnpm -F @xsynaptic/plazmoid-player test-e2e",
 		"test-e2e-smoke": "playwright test --grep @smoke --max-failures=3",
 		"test-e2e-smoke-prod": "TEST_ENV=prod playwright test --grep @smoke --max-failures=3",
 		"comments": "astro-comments --env-file=.env --env-file=deploy/.env",
@@ -35,7 +35,8 @@
 	"dependencies": {
 		"@xsynaptic/astro-comments": "workspace:*",
 		"@xsynaptic/playback-stats": "workspace:*",
-		"@xsynaptic/player": "workspace:*",
+		"@xsynaptic/plazmoid-core": "workspace:*",
+		"@xsynaptic/plazmoid-player": "workspace:*",
 		"astro": "^7.4.13",
 		"p-memoize": "^9.0.0",
 		"yaml": "^2.9.1"

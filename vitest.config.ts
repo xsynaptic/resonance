@@ -31,7 +31,8 @@ export default defineConfig({
 						'verify/**',
 						'packages/astro-comments/**',
 						'packages/playback-stats/**',
-						'packages/player/**',
+						'packages/plazmoid-core/**',
+						'packages/plazmoid-player/**',
 					],
 					name: 'site',
 				},
@@ -56,8 +57,16 @@ export default defineConfig({
 				extends: true,
 				test: {
 					environment: 'happy-dom',
-					include: ['packages/player/**/*.test.{ts,tsx}'],
-					name: 'player',
+					include: ['packages/plazmoid-core/**/*.test.ts'],
+					name: 'plazmoid-core',
+				},
+			},
+			{
+				extends: true,
+				test: {
+					environment: 'happy-dom',
+					include: ['packages/plazmoid-player/**/*.test.ts'],
+					name: 'plazmoid-player',
 				},
 			},
 			{

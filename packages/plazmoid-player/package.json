@@ -1,0 +1,36 @@
+{
+	"name": "@xsynaptic/plazmoid-player",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"sideEffects": [
+		"*.css"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./astro": "./src/astro.ts",
+		"./constants": "./src/constants.ts",
+		"./player.css": "./src/player.css"
+	},
+	"imports": {
+		"#e2e/*": "./verify/e2e/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"cut-fixtures": "node verify/e2e/cut-fixtures.ts",
+		"test-e2e": "pnpm cut-fixtures && playwright test"
+	},
+	"dependencies": {
+		"zustand": "^5.1.0"
+	},
+	"peerDependencies": {
+		"@xsynaptic/plazmoid-core": "workspace:*",
+		"@xsynaptic/sonic-ui": "~0.31.0"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.65.1",
+		"@xsynaptic/plazmoid-core": "workspace:*",
+		"@xsynaptic/sonic-ui": "~0.31.0",
+		"vite": "^8.3.8"
+	}
+}

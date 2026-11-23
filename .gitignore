@@ -44,9 +44,9 @@ deploy/nginx/
 /packages/content
 
 # testing
-packages/player/verify/e2e/.fixtures/
-packages/player/playwright-report/
-packages/player/test-results/
+packages/plazmoid-player/verify/e2e/.fixtures/
+packages/plazmoid-player/playwright-report/
+packages/plazmoid-player/test-results/
 temp/
 
 # database backups (large, not for VCS)

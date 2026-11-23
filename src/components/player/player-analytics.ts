@@ -5,20 +5,16 @@ import type {
 	PlayerStatus,
 	PlayerStore,
 	PlayerStoreApi,
-} from '@xsynaptic/player';
+} from '@xsynaptic/plazmoid-core';
+import type { ViewStoreApi } from '@xsynaptic/plazmoid-player';
 
-import { LazyModuleError, loadedTrack } from '@xsynaptic/player';
+import { loadedTrack } from '@xsynaptic/plazmoid-core';
+import { LazyModuleError } from '@xsynaptic/plazmoid-player';
 
 import type { AnalyticsEvents } from '#lib/analytics/analytics-events.ts';
 
 import { isOptedOut } from '#components/player/player-opt-out.ts';
 import { sendEvent } from '#lib/analytics/analytics-events.ts';
-
-interface PlayerGate {
-	isOverlayOpen: boolean;
-	isPanelOpen: boolean;
-	status: PlayerStatus;
-}
 
 const origins = {
 	'play-track': 'mix',
@@ -39,12 +35,12 @@ const browserVersion = describeBrowser(navigator.userAgent);
 // iOS 26 opens any Home Screen site as a web app, where WebKit's lock-screen audio bugs live
 const isStandalone = matchMedia('(display-mode: standalone)').matches;
 
-export function bindPlayerAnalytics(store: PlayerStoreApi): () => void {
+export function bindPlayerAnalytics(store: PlayerStoreApi, view: ViewStoreApi): () => void {
 	if (isSuppressed) return doNothing;
 
 	const connection = new AbortController();
 
-	let gate = selectGate(store.getState());
+	let { status } = store.getState();
 	let diagnostic = store.getState().diagnostic;
 
 	// Selected and compared rather than read straight, since `currentTimeSeconds` moves about four times a second
@@ -54,13 +50,14 @@ export function bindPlayerAnalytics(store: PlayerStoreApi): () => void {
 			if (diagnostic) trackDiagnostic(diagnostic);
 		}
 
-		const next = selectGate(state);
-		if (isSameGate(gate, next)) return;
+		if (state.status === status) return;
 
-		const previous = gate;
-
-		gate = next;
-		trackTransitions(previous, next, state);
+		({ status } = state);
+		if (terminalStatuses.has(status)) trackPlaybackError(state);
+	});
+	const unsubscribeView = view.subscribe((next, previous) => {
+		if (next.isPanelOpen && !previous.isPanelOpen) sendEvent('player-panel-open');
+		if (next.isOverlayOpen && !previous.isOverlayOpen) sendEvent('player-overlay-open');
 	});
 
 	window.addEventListener('error', trackChunkError, { signal: connection.signal });
@@ -68,6 +65,7 @@ export function bindPlayerAnalytics(store: PlayerStoreApi): () => void {
 	return () => {
 		connection.abort();
 		unsubscribe();
+		unsubscribeView();
 	};
 }
 
@@ -113,14 +111,6 @@ function doNothing(): void {
 	// Nothing was bound, so there is nothing to unbind
 }
 
-function isSameGate(left: PlayerGate, right: PlayerGate): boolean {
-	return (
-		left.isOverlayOpen === right.isOverlayOpen &&
-		left.isPanelOpen === right.isPanelOpen &&
-		left.status === right.status
-	);
-}
-
 function matchVersion(
 	userAgent: string,
 	families: ReadonlyArray<readonly [string, RegExp]>,
@@ -133,14 +123,6 @@ function matchVersion(
 	}
 
 	return undefined;
-}
-
-function selectGate(state: PlayerStore): PlayerGate {
-	return {
-		isOverlayOpen: state.isOverlayOpen,
-		isPanelOpen: state.isPanelOpen,
-		status: state.status,
-	};
 }
 
 function trackChunkError(event: ErrorEvent): void {
@@ -172,12 +154,4 @@ function trackPlaybackError(state: PlayerStore): void {
 	if (playbackError) data.stage = playbackError.stage;
 
 	sendEvent('player-error', data);
-}
-
-function trackTransitions(previous: PlayerGate, next: PlayerGate, state: PlayerStore): void {
-	if (next.isPanelOpen && !previous.isPanelOpen) sendEvent('player-panel-open');
-	if (next.isOverlayOpen && !previous.isOverlayOpen) sendEvent('player-overlay-open');
-	if (next.status !== previous.status && terminalStatuses.has(next.status)) {
-		trackPlaybackError(state);
-	}
 }

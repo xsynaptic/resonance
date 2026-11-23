@@ -1,4 +1,4 @@
-import type { CuePoint } from '@xsynaptic/player';
+import type { CuePoint } from '@xsynaptic/plazmoid-core';
 import type { CollectionEntry } from 'astro:content';
 
 import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';

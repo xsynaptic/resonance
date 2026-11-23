@@ -1,4 +1,9 @@
-import type { CreateAudioEngine, PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/player';
+import type {
+	CreateAudioEngine,
+	PlayerStoreApi,
+	PlayerUrls,
+	Track,
+} from '@xsynaptic/plazmoid-core';
 
 import type { MixQueueItem, PlayerPressRow } from '#lib/collections/mixes/mixes-queue.ts';
 

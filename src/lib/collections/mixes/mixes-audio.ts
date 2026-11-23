@@ -1,4 +1,4 @@
-import type { TrackPeaks } from '@xsynaptic/player';
+import type { TrackPeaks } from '@xsynaptic/plazmoid-core';
 import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
 import { mixAudioPath } from '@xsynaptic/shared/constants';

@@ -1,5 +1,5 @@
 import type { PlaybackReport } from '@xsynaptic/playback-stats';
-import type { PlayerStoreApi } from '@xsynaptic/player';
+import type { PlayerStoreApi } from '@xsynaptic/plazmoid-core';
 
 import { monitorPlayback } from '@xsynaptic/playback-stats';
 

@@ -1,7 +1,8 @@
-import type { PlayerLabels, PlayerUrls, Track } from '@xsynaptic/player';
+import type { PlayerUrls, Track } from '@xsynaptic/plazmoid-core';
+import type { PlayerLabels } from '@xsynaptic/plazmoid-player';
 
-import { bindAstroRouter, loadPersistedStylesheet } from '@xsynaptic/player/astro';
-import { holdPresses, isPlayerActionable } from '@xsynaptic/player/boot';
+import { holdPresses, isPlayerActionable } from '@xsynaptic/plazmoid-core/boot';
+import { bindAstroRouter, loadPersistedStylesheet } from '@xsynaptic/plazmoid-player/astro';
 
 import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -42,16 +43,19 @@ async function loadPlayer(host: Element): Promise<void> {
 	await Promise.all([wanted, loadPersistedStylesheet(config.stylesheetUrl)]);
 
 	const [
-		{ bindMediaSession, bindPageControls, createPlayer, createPlayerStore, loadedTrack },
+		{ bindMediaSession, bindPageControls, createPlayerStore, loadedTrack },
+		{ createPlayer, createViewStore },
 		{ bindPlayerStats },
 		{ bindPlayerAnalytics, trackControlPress },
 	] = await Promise.all([
-		import('@xsynaptic/player'),
+		import('@xsynaptic/plazmoid-core'),
+		import('@xsynaptic/plazmoid-player'),
 		import('#components/player/player-stats.ts'),
 		import('#components/player/player-analytics.ts'),
 	]);
 
 	const store = createPlayerStore();
+	const view = createViewStore();
 	let hasRefreshed = false;
 
 	// A stored Queue catches up on any page, its content-hashed stream and artwork URLs included
@@ -75,6 +79,7 @@ async function loadPlayer(host: Element): Promise<void> {
 
 				return library;
 			}),
+			view,
 		}),
 	);
 
@@ -85,11 +90,11 @@ async function loadPlayer(host: Element): Promise<void> {
 	const controls = bindPageControls(store, document, { onPress: trackControlPress });
 
 	presses.release();
-	bindAstroRouter(store, controls);
+	bindAstroRouter(view, controls);
 	// Once per document, since Safari reconnects the persisted root on every navigation and a root's binding would clear the lock screen each time
 	bindMediaSession(store);
 	bindPlayerStats(store, () => loadedTrack(store.getState())?.trackId);
-	bindPlayerAnalytics(store);
+	bindPlayerAnalytics(store, view);
 }
 
 // The stream comes from the press row, so a press never waits on the Library

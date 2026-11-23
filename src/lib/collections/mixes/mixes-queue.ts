@@ -1,7 +1,7 @@
-import type { Track, TrackArtwork, TrackDetail } from '@xsynaptic/player';
+import type { Track, TrackArtwork, TrackDetail } from '@xsynaptic/plazmoid-core';
 import type { CollectionEntry } from 'astro:content';
 
-import { barArtworkSize } from '@xsynaptic/player/constants';
+import { barArtworkSize } from '@xsynaptic/plazmoid-player/constants';
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { getImage } from 'astro:assets';
 

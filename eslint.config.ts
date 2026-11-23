@@ -39,7 +39,8 @@ export default getConfig(
 		getBrowserConfig([
 			'packages/astro-comments/src/element/**/*',
 			'src/components/**/*',
-			'packages/player/**/*',
+			'packages/plazmoid-core/**/*',
+			'packages/plazmoid-player/**/*',
 			'packages/playback-stats/**/*',
 		]),
 		{
@@ -47,7 +48,8 @@ export default getConfig(
 				'**/*.astro/*.{js,ts}',
 				'src/components/**/*.{ts,tsx}',
 				'packages/astro-comments/src/element/**/*.ts',
-				'packages/player/src/**/*.ts',
+				'packages/plazmoid-core/src/**/*.ts',
+				'packages/plazmoid-player/src/**/*.ts',
 				'packages/playback-stats/src/**/*.ts',
 			],
 			ignores: ['**/*.test.{ts,tsx}'],
@@ -90,10 +92,31 @@ export default getConfig(
 			},
 		},
 		{
+			// Dependencies run one way: the player imports core, never the reverse
+			files: ['packages/plazmoid-core/**/*.ts'],
+			rules: {
+				'no-restricted-imports': [
+					'error',
+					{
+						patterns: [
+							{
+								group: ['@xsynaptic/plazmoid-player', '@xsynaptic/plazmoid-player/*'],
+								message: 'Core is headless; the player imports core, never the reverse.',
+							},
+							{
+								group: ['@xsynaptic/sonic-ui', '@xsynaptic/sonic-ui/*'],
+								message: 'Core is headless; controls belong to the player.',
+							},
+						],
+					},
+				],
+			},
+		},
+		{
 			files: [
 				'verify/e2e/**/*',
-				'packages/player/verify/e2e/**/*',
-				'packages/player/playwright.config.ts',
+				'packages/plazmoid-player/verify/e2e/**/*',
+				'packages/plazmoid-player/playwright.config.ts',
 				'playwright.config.ts',
 			],
 			languageOptions: {
@@ -105,7 +128,7 @@ export default getConfig(
 		},
 		{
 			// Prettier formats the `/* HTML */` literals these elements render from; the rule reindents what it just laid out
-			files: ['packages/player/src/elements/**/*.ts'],
+			files: ['packages/plazmoid-player/src/elements/**/*.ts'],
 			rules: {
 				'unicorn/template-indent': 'off',
 			},
@@ -113,7 +136,7 @@ export default getConfig(
 		getWebComponentConfig([
 			'src/components/**/*.ts',
 			'packages/astro-comments/src/element/**/*.ts',
-			'packages/player/src/elements/**/*.ts',
+			'packages/plazmoid-player/src/elements/**/*.ts',
 		]),
 		...getAstroConfig({ a11y: 'strict' }),
 	],

@@ -1,5 +1,5 @@
 ---
-import type { PlayerLabels } from '@xsynaptic/player';
+import type { PlayerLabels } from '@xsynaptic/plazmoid-player';
 
 import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -27,7 +27,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	<Specimen
 		name="pzm-bar"
 		note="The tier follows the bar's width, not the viewport; Expand opens the real overlay."
-		source="packages/player/src/elements/player-bar.ts"
+		source="packages/plazmoid-player/src/elements/player-bar.ts"
 	>
 		<Variant label="full width">
 			<pzm-root class="block" data-inventory-queue="bar">
@@ -64,7 +64,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	<Specimen
 		name="pzm-bar states"
 		note="Emulate <code>prefers-reduced-motion</code> for the loader and panel fallbacks."
-		source="packages/player/src/store/selectors.ts"
+		source="packages/plazmoid-core/src/store/selectors.ts"
 	>
 		<Variant label="idle">
 			<pzm-root class="block" data-inventory-queue="idle">
@@ -108,7 +108,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</div>
 		</Variant>
 	</Specimen>
-	<Specimen name="pzm-overlay-content" source="packages/player/src/elements/overlay/">
+	<Specimen name="pzm-overlay-content" source="packages/plazmoid-player/src/elements/overlay/">
 		<Variant label="390x844 phone">
 			<pzm-root
 				class="block h-211 w-97.5 max-w-full border border-surface-400"
@@ -134,7 +134,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</pzm-root>
 		</Variant>
 	</Specimen>
-	<Specimen name="pzm-volume" source="packages/player/src/elements/volume.ts">
+	<Specimen name="pzm-volume" source="packages/plazmoid-player/src/elements/volume.ts">
 		<Variant label="default">
 			<pzm-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="volume">
 				<pzm-volume></pzm-volume>
@@ -149,7 +149,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	<Specimen
 		name="pzm-tray"
 		note="Drag a handle, or Alt+ArrowUp/Down on a focused one."
-		source="packages/player/src/elements/tray/"
+		source="packages/plazmoid-player/src/elements/tray/"
 	>
 		<div class="pt-96">
 			<pzm-root class="block" data-inventory-queue="tray">
@@ -167,9 +167,11 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 </Section>
 <script id="inventory-player" is:inline set:html={specimenData} type="application/json"></script>
 <script>
-	import type { PlayerLabels, PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/player';
+	import type { PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/plazmoid-core';
+	import type { PlayerLabels, ViewStoreApi } from '@xsynaptic/plazmoid-player';
 
-	import { createMemoryStorage, createPlayerStore, definePlayerElements } from '@xsynaptic/player';
+	import { createMemoryStorage, createPlayerStore } from '@xsynaptic/plazmoid-core';
+	import { createViewStore, definePlayerElements } from '@xsynaptic/plazmoid-player';
 
 	import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -209,7 +211,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		return store;
 	}
 
-	function seedSpecimen(store: PlayerStoreApi, queue: string): void {
+	function seedSpecimen(store: PlayerStoreApi, view: ViewStoreApi, queue: string): void {
 		if (queue === 'idle') return;
 		if (queue === 'error' || queue === 'loading') {
 			store.getState().playAt(0);
@@ -218,12 +220,12 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 		cueFirstPaused(store);
 		if (queue === 'tray') {
-			store.getState().setTrayOpen(true);
+			view.getState().setTrayOpen(true);
 			return;
 		}
 
 		store.getState().seek((store.getState().durationSeconds ?? 0) / 3);
-		if (openPanelQueues.has(queue)) store.getState().setPanelOpen(true);
+		if (openPanelQueues.has(queue)) view.getState().setPanelOpen(true);
 	}
 
 	// Only this page sets properties before the tags are defined or the page is swapped in, so it alone exercises `upgradeProperty`
@@ -238,17 +240,19 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			if (queue === undefined || root.store) continue;
 
 			const store = createSpecimenStore(queue);
+			const view = createViewStore({ storage: createMemoryStorage() });
 			const urls = specimenUrls(items, queue);
 
 			root.isOverlayEnabled = root.dataset.inventoryOverlay !== 'off';
 			root.isScopeEnabled = true;
 			root.labels = labels;
 			root.store = store;
+			root.view = view;
 			store.getState().configure({ seekSeconds, urls });
 
 			if (!unqueued.has(queue)) {
 				store.getState().loadQueue(specimenItems(items, queue));
-				seedSpecimen(store, queue);
+				seedSpecimen(store, view, queue);
 			}
 
 			// A first visit by soft navigation lands after the host defined the tags, so each root connected storeless

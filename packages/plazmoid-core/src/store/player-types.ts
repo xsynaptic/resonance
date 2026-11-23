@@ -1,0 +1,87 @@
+import type { StoreApi } from 'zustand/vanilla';
+
+import type { CreateAudioEngine } from '#engine/audio-engine.ts';
+import type { PlayerStorage } from '#lib/storage.ts';
+import type {
+	PlaybackDiagnostic,
+	PlaybackError,
+	PlayerStatus,
+	PlayerUrls,
+	QueuedTrack,
+	Track,
+	TrackDetail,
+} from '#types.ts';
+
+// Property syntax so an element can select one action without tripping `unbound-method`
+export interface PlayerActions {
+	clearQueue: () => void;
+	// A field left out keeps its value, and an unchanged config writes nothing
+	configure: (config: { seekSeconds?: number | undefined; urls?: PlayerUrls | undefined }) => void;
+	// The element's own clock, far finer than the `timeupdate` behind `currentTimeSeconds`; read inside a rAF loop rather than subscribed to
+	getCurrentTime: () => number | undefined;
+	// Created on the first load, so an observer waits for it
+	getMediaElement: () => HTMLMediaElement | undefined;
+	// Replaces the queue and unloads whatever played; nothing plays until a gesture asks
+	loadQueue: (tracks: ReadonlyArray<Track>) => void;
+	// A shuffled play order moves with the track rather than reshuffling
+	moveTrack: (from: number, to: number) => void;
+	next: () => void;
+	pause: () => void;
+	// Never pauses, for a remote that sends play and pause as separate actions
+	play: () => void;
+	playAt: (index: number) => void;
+	playQueue: (tracks: ReadonlyArray<Track>) => void;
+	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
+	playTrack: (releaseTracks: ReadonlyArray<Track>, trackId: string) => void;
+	previous: () => void;
+	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
+	queueTrack: (releaseTracks: ReadonlyArray<Track>, trackId: string) => void;
+	// Swaps in the fresh copy of every queued track it is handed, so a queue restored from an older build picks up new fields
+	refreshQueue: (tracks: ReadonlyArray<Track>) => void;
+	removeAt: (index: number) => void;
+	seek: (seconds: number) => void;
+	// Clamped into the loaded track, so the seek buttons and the lock screen cannot run past either end
+	seekBy: (deltaSeconds: number) => void;
+	// Clamped into 0..1; a level above zero ends a mute
+	setVolume: (volume: number) => void;
+	// Unmuting a level of zero lands at a quarter, so the press is never answered with silence
+	toggleMuted: () => void;
+	togglePaused: () => void;
+	toggleShuffle: () => void;
+}
+
+export interface PlayerState {
+	// Index into `queue`, not `playOrder`
+	currentIndex: number | undefined;
+	currentTimeSeconds: number;
+	// By `trackId`, for queued tracks only; an entry means the host has answered, so an absent one is still on its way
+	details: ReadonlyMap<string, TrackDetail>;
+	// A fresh object per report, so its identity marks each one; never persisted
+	diagnostic: PlaybackDiagnostic | undefined;
+	durationSeconds: number | undefined;
+	// Beside `volume` rather than a volume of zero, so an unmute after a reload returns to the level
+	isMuted: boolean;
+	// Intent, as `HTMLMediaElement.paused` is: false from the press, before any sound
+	isPaused: boolean;
+	isShuffling: boolean;
+	// The last terminal failure, cleared as a new load starts
+	playbackError: PlaybackError | undefined;
+	// A permutation of queue indices
+	playOrder: Array<number>;
+	queue: Array<QueuedTrack>;
+	// Read once, as the bar and the overlay connect
+	seekSeconds: number;
+	status: PlayerStatus;
+	// `undefined` renders the player inert
+	urls: PlayerUrls | undefined;
+	volume: number;
+}
+
+export type PlayerStore = PlayerActions & PlayerState;
+
+export type PlayerStoreApi = Omit<StoreApi<PlayerStore>, 'setState'>;
+
+export interface PlayerStoreOptions {
+	createEngine?: CreateAudioEngine | undefined;
+	storage?: PlayerStorage | undefined;
+}

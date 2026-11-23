@@ -1,4 +1,4 @@
-import type { PlayerLabels } from '@xsynaptic/player';
+import type { PlayerLabels } from '@xsynaptic/plazmoid-player';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
 

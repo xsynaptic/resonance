@@ -184,9 +184,12 @@ importers:
       '@xsynaptic/playback-stats':
         specifier: workspace:*
         version: link:packages/playback-stats
-      '@xsynaptic/player':
+      '@xsynaptic/plazmoid-core':
         specifier: workspace:*
-        version: link:packages/player
+        version: link:packages/plazmoid-core
+      '@xsynaptic/plazmoid-player':
+        specifier: workspace:*
+        version: link:packages/plazmoid-player
       astro:
         specifier: ^7.4.13
         version: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
@@ -387,11 +390,18 @@ importers:
 
   packages/playback-stats: {}
 
-  packages/player:
+  packages/plazmoid-core:
     dependencies:
-      '@xsynaptic/sonic-ui':
-        specifier: ^0.31.0
-        version: 0.31.0
+      zustand:
+        specifier: ^5.1.0
+        version: 5.1.0(@types/react@19.3.0)(react@19.3.1)
+    devDependencies:
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/plazmoid-player:
+    dependencies:
       zustand:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@19.3.0)(react@19.3.1)
@@ -399,6 +409,12 @@ importers:
       '@playwright/test':
         specifier: ^1.65.1
         version: 1.65.1
+      '@xsynaptic/plazmoid-core':
+        specifier: workspace:*
+        version: link:../plazmoid-core
+      '@xsynaptic/sonic-ui':
+        specifier: ~0.31.0
+        version: 0.31.0
       vite:
         specifier: ^8.3.8
         version: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)

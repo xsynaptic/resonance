@@ -1,44 +1,30 @@
 import type { ApprovedComment } from '@xsynaptic/astro-comments';
 
-import { commentsSnapshotPath, commentsSnapshotSchema } from '@xsynaptic/shared/comments';
-import { readFile } from 'node:fs/promises';
+import { readCommentsByThread, toSnapshotFile } from '@xsynaptic/astro-comments/snapshot';
 import path from 'node:path';
 import pMemoize from 'p-memoize';
 
-const isLocalDatabase = process.env.COMMENTS_D1_LOCAL === '1';
+import commentsConfig from '#astro-comments.config.ts';
 
-const snapshotPath = commentsSnapshotPath(isLocalDatabase);
+const snapshotFile = toSnapshotFile(
+	path.resolve(commentsConfig.snapshotDirectory),
+	process.env.COMMENTS_D1_LOCAL === '1' ? 'local' : 'remote',
+);
 
 // Read once per process, so a fresh pull needs a dev restart
-export const readCommentsByThread = pMemoize(buildCommentsByThread);
-
-async function buildCommentsByThread(): Promise<Map<string, Array<ApprovedComment>>> {
-	const rows = await readRows();
-	const commentsByThread = new Map<string, Array<ApprovedComment>>();
-
-	for (const row of rows) {
-		const existing = commentsByThread.get(row.thread);
-
-		if (existing) existing.push(row);
-		else commentsByThread.set(row.thread, [row]);
-	}
-
-	return commentsByThread;
-}
+export const readSnapshotByThread = pMemoize(readOrWarn);
 
 // A build fails without a snapshot; dev warns instead, so a fresh clone still works
-async function readRows(): Promise<Array<ApprovedComment>> {
+async function readOrWarn(): Promise<Map<string, Array<ApprovedComment>>> {
 	try {
-		const document: unknown = JSON.parse(await readFile(path.resolve(snapshotPath), 'utf8'));
-
-		return commentsSnapshotSchema.parse(document).rows;
+		return await readCommentsByThread(snapshotFile);
 	} catch (error) {
-		const message = `No usable comment snapshot at ${snapshotPath} (${String(error)}); run \`pnpm scripts comments-pull\``;
+		const message = `No usable comment snapshot at ${snapshotFile} (${String(error)}); run \`pnpm comments pull\``;
 
 		if (import.meta.env.PROD) throw new Error(message, { cause: error });
 
 		console.warn(message);
 
-		return [];
+		return new Map();
 	}
 }

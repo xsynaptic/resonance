@@ -1,10 +1,15 @@
-import type { CommentChallengeWidget } from '@xsynaptic/astro-comments/element';
+import type { CommentChallengeWidget } from '#element/challenge-widget.ts';
+
+export interface TurnstileWidgetOptions {
+	size?: 'compact' | 'flexible' | 'normal';
+	theme?: 'auto' | 'dark' | 'light';
+}
 
 interface TurnstileApi {
 	remove: (widgetId: string) => void;
 	render: (
 		container: HTMLElement,
-		options: { sitekey: string; size: string; theme: string },
+		options: TurnstileWidgetOptions & { sitekey: string },
 	) => string | undefined;
 }
 
@@ -13,7 +18,12 @@ const turnstileScriptUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.j
 let turnstileReady: Promise<TurnstileApi | undefined> | undefined;
 
 export class TurnstileWidget implements CommentChallengeWidget {
+	#options: TurnstileWidgetOptions;
 	#widgetId: string | undefined;
+
+	constructor(options: TurnstileWidgetOptions = {}) {
+		this.#options = options;
+	}
 
 	async remove(): Promise<void> {
 		const widgetId = this.#widgetId;
@@ -42,9 +52,8 @@ export class TurnstileWidget implements CommentChallengeWidget {
 		container.replaceChildren();
 
 		this.#widgetId = api.render(container, {
+			...this.#options,
 			sitekey: container.dataset.sitekey ?? '',
-			size: 'compact',
-			theme: 'dark',
 		});
 	}
 }
@@ -64,9 +73,12 @@ function loadTurnstile(): Promise<TurnstileApi | undefined> {
 				},
 				{ once: true },
 			);
+			// Forgotten so the next render retries; nothing retries from here, so it cannot loop
 			script.addEventListener(
 				'error',
 				() => {
+					script.remove();
+					turnstileReady = undefined;
 					resolve(undefined);
 				},
 				{ once: true },

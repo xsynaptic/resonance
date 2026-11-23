@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { CommentMessages } from '#messages.ts';
-import type { CommentSubmissionConfig, NewComment } from '#submission.ts';
+import type { NewComment } from '#store.ts';
+import type { CommentSubmissionConfig } from '#submission.ts';
 
 import { defaultMessages } from '#messages.ts';
 import { handleCommentSubmission } from '#submission.ts';
@@ -61,10 +62,8 @@ function createHarness({
 			return Promise.resolve(threads.includes(thread) ? threadPath(thread) : undefined);
 		},
 		store: {
-			hasApprovedParent: (thread, parentId) =>
-				Promise.resolve(
-					approvedParents.some(([parentThread, id]) => parentThread === thread && id === parentId),
-				),
+			findApprovedParent: (parentId) =>
+				Promise.resolve(approvedParents.find(([, id]) => id === parentId)?.[0]),
 			insert: (comment) => {
 				inserted.push(comment);
 
@@ -202,7 +201,7 @@ describe('handleCommentSubmission', () => {
 	test('rejects a filled honeypot, and ignores an untouched one', async () => {
 		const { config } = createHarness();
 		const trapped = await handleCommentSubmission(
-			makeRequest({ fields: { website: 'spam.test' } }),
+			makeRequest({ fields: { extra: 'spam.test' } }),
 			config,
 		);
 
@@ -210,7 +209,7 @@ describe('handleCommentSubmission', () => {
 		await expect(trapped.json()).resolves.toEqual({ message: defaultMessages.invalid });
 
 		const untouched = await handleCommentSubmission(
-			makeRequest({ fields: { website: '  ' } }),
+			makeRequest({ fields: { extra: '  ' } }),
 			config,
 		);
 
@@ -288,6 +287,35 @@ describe('handleCommentSubmission', () => {
 		expect(inserted.at(-1)?.parentId).toBe('parent-id');
 	});
 
+	test('accepts a reply to a parent under a former key of the same page, stored under the current one', async () => {
+		const { config, inserted } = createHarness({
+			approvedParents: [['mixes/old-slug', 'parent-id']],
+			threadPath: (thread) => (thread === 'mixes/old-slug' ? '/mixes/voyager/' : `/${thread}/`),
+			threads: ['mixes/voyager', 'mixes/old-slug'],
+		});
+		const response = await handleCommentSubmission(
+			makeRequest({ fields: { parentId: 'parent-id' } }),
+			config,
+		);
+
+		expect(response.status).toBe(201);
+		expect(inserted.at(-1)).toMatchObject({ parentId: 'parent-id', thread: 'mixes/voyager' });
+	});
+
+	test('rejects a reply to a parent on another page', async () => {
+		const { config } = createHarness({
+			approvedParents: [['mixes/other', 'parent-id']],
+			threads: ['mixes/voyager', 'mixes/other'],
+		});
+		const response = await handleCommentSubmission(
+			makeRequest({ fields: { parentId: 'parent-id' } }),
+			config,
+		);
+
+		expect(response.status).toBe(400);
+		await expect(response.json()).resolves.toEqual({ message: defaultMessages.parentMissing });
+	});
+
 	test('rejects a submission the challenge will not verify, and stores nothing', async () => {
 		const { config, inserted } = createHarness({ isChallengePassing: false });
 		const response = await handleCommentSubmission(makeRequest(), config);
@@ -304,7 +332,7 @@ describe('handleCommentSubmission', () => {
 
 		const rejected = [
 			makeRequest({ fields: { body: 'x'.repeat(40_000) } }),
-			makeRequest({ fields: { website: 'spam.test' } }),
+			makeRequest({ fields: { extra: 'spam.test' } }),
 			makeRequest({ fields: { author: undefined } }),
 			makeRequest({ fields: { renderedAt: String(Date.now() - 100) } }),
 			makeRequest({ fields: { thread: 'mixes/no-such-mix' } }),
@@ -396,7 +424,7 @@ describe('handleCommentSubmission', () => {
 	test('answers a native form post rejection as plain text', async () => {
 		const { config } = createHarness();
 		const response = await handleCommentSubmission(
-			makeRequest({ fields: { website: 'spam.test' }, headers: { accept: 'text/html' } }),
+			makeRequest({ fields: { extra: 'spam.test' }, headers: { accept: 'text/html' } }),
 			config,
 		);
 

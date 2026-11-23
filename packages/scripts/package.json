@@ -11,11 +11,7 @@
 		"./og-image": "./src/og-image/inventory-exports.ts"
 	},
 	"scripts": {
-		"comments": "node --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/moderate.cli.ts",
-		"comments-delete": "node --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/delete.cli.ts",
-		"comments-orphans": "node --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/orphans.cli.ts",
 		"backup": "node --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/backup/backup.cli.ts",
-		"comments-pull": "node --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/comments/pull.cli.ts",
 		"discogs-tracklists": "node --env-file-if-exists=../../.env ./src/discogs/discogs-tracklists.cli.ts",
 		"build": "NODE_ENV=production node --import tsx --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/build/build.cli.ts",
 		"deploy-server-config": "node --env-file-if-exists=../../.env --env-file-if-exists=../../deploy/.env ./src/deploy/deploy-server-config.cli.ts",

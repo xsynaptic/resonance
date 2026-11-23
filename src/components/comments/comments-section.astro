@@ -49,13 +49,13 @@ const heading =
 </comments-section>
 
 <script>
+	import { TurnstileWidget } from '@xsynaptic/astro-comments/cloudflare/widget';
 	import { defineCommentsSection } from '@xsynaptic/astro-comments/element';
 
-	import { TurnstileWidget } from '#components/comments/comment-turnstile.ts';
 	import { commentFormStorageKey } from '#components/main/main-storage-keys.ts';
 
 	defineCommentsSection({
-		challenge: () => new TurnstileWidget(),
+		challenge: () => new TurnstileWidget({ size: 'compact', theme: 'dark' }),
 		storageKey: commentFormStorageKey,
 	});
 </script>

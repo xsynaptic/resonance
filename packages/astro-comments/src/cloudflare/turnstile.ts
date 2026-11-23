@@ -1,4 +1,4 @@
-import type { CommentChallenge } from '@xsynaptic/astro-comments';
+import type { CommentChallenge } from '#submission.ts';
 
 const siteverifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 

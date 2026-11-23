@@ -16,7 +16,7 @@
 		"test-e2e-player": "pnpm -F @xsynaptic/player test-e2e",
 		"test-e2e-smoke": "playwright test --grep @smoke --max-failures=3",
 		"test-e2e-smoke-prod": "TEST_ENV=prod playwright test --grep @smoke --max-failures=3",
-		"comments": "pnpm -F @xsynaptic/scripts comments",
+		"comments": "astro-comments --env-file=.env --env-file=deploy/.env",
 		"deploy-server-config": "pnpm -F @xsynaptic/scripts deploy-server-config",
 		"deploy-site": "pnpm -F @xsynaptic/scripts deploy-site",
 		"stats-test": "python3 deploy/stats/test-download-stats.py",
@@ -27,6 +27,7 @@
 		"scripts": "pnpm --silent -C packages/scripts"
 	},
 	"imports": {
+		"#astro-comments.config.ts": "./astro-comments.config.ts",
 		"#e2e/*": "./verify/e2e/*",
 		"#worker/*": "./worker/*",
 		"#*": "./src/*"

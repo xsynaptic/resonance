@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import type { CommentMessages } from '#messages.ts';
+import type { CommentStore, NewComment } from '#store.ts';
 
 import { commentFields } from '#fields.ts';
 import { defaultMessages } from '#messages.ts';
@@ -12,11 +13,6 @@ export interface CommentChallenge {
 	verify: (token: string, remoteIp: string | undefined) => Promise<boolean>;
 }
 
-export interface CommentStore {
-	hasApprovedParent: (thread: string, parentId: string) => Promise<boolean>;
-	insert: (comment: NewComment) => Promise<void>;
-}
-
 export interface CommentSubmissionConfig {
 	challenge: CommentChallenge;
 	getClientIp: (request: Request) => string | undefined;
@@ -25,20 +21,6 @@ export interface CommentSubmissionConfig {
 	// The thread's page path on this site, or `undefined` when the thread does not exist
 	resolveThread: (thread: string, request: Request) => Promise<string | undefined>;
 	store: CommentStore;
-}
-
-// Stored as `pending` from the `web` source; the store supplies both
-export interface NewComment {
-	author: string;
-	authorEmail?: string;
-	authorUrl?: string;
-	body: string;
-	createdAt: number;
-	emailHash?: string;
-	id: string;
-	ipHash?: string;
-	parentId?: string;
-	thread: string;
 }
 
 type Submission = Omit<z.infer<typeof submissionSchema>, 'challengeToken'> & {
@@ -112,11 +94,21 @@ function isJsonWanted(request: Request): boolean {
 	return request.headers.get('accept')?.includes('application/json') === true;
 }
 
-// A thread renamed since the parent was written no longer matches, so a reply to a comment older than the rename is refused
-async function isValidParent(store: CommentStore, submission: Submission): Promise<boolean> {
+// A parent under a former key of the same page still counts, so a renamed entry's old comments stay answerable
+async function isValidParent(
+	submission: Submission,
+	threadPath: string,
+	{ config, request }: { config: CommentSubmissionConfig; request: Request },
+): Promise<boolean> {
 	if (submission.parentId === undefined) return true;
 
-	return store.hasApprovedParent(submission.thread, submission.parentId);
+	const parentThread = await config.store.findApprovedParent(submission.parentId);
+
+	if (parentThread === undefined) return false;
+
+	if (parentThread === submission.thread) return true;
+
+	return (await config.resolveThread(parentThread, request)) === threadPath;
 }
 
 async function processSubmission(
@@ -137,7 +129,7 @@ async function processSubmission(
 
 	const threadUrl = toThreadUrl(threadPath, request);
 
-	if (!(await isValidParent(config.store, submission)))
+	if (!(await isValidParent(submission, threadPath, { config, request })))
 		return reject(request, 400, messages.parentMissing);
 
 	const remoteIp = config.getClientIp(request);

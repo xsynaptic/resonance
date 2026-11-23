@@ -34,7 +34,7 @@ export function buildThread(
 
 		if (!node) continue;
 
-		const parent = comment.parent_id === null ? undefined : nodes.get(comment.parent_id);
+		const parent = comment.parentId === undefined ? undefined : nodes.get(comment.parentId);
 
 		if (parent) parent.replies.push(node);
 		else thread.push(node);
@@ -74,12 +74,12 @@ function flattenReplies(nodes: Array<CommentNode>): Array<CommentNode> {
 function toNode(comment: ApprovedComment, avatarSize: number): CommentNode {
 	return {
 		author: comment.author,
-		authorHref: toAuthorHref(comment.author_url ?? undefined),
-		avatar: toGravatarAvatar(comment.email_hash, avatarSize),
+		authorHref: toAuthorHref(comment.authorUrl),
+		avatar: toGravatarAvatar(comment.emailHash, avatarSize),
 		bodyHtml: renderCommentBody(comment.body),
-		date: new Date(comment.created_at * 1000),
+		date: new Date(comment.createdAt * 1000),
 		id: comment.id,
-		isOwner: comment.is_owner === 1,
+		isOwner: comment.isOwner,
 		replies: [],
 	};
 }

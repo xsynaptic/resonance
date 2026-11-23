@@ -1,14 +1,18 @@
 # @xsynaptic/astro-comments
 
-Static, moderated comments for Astro sites. A visitor posts to an endpoint, the comment waits as `pending`, a moderator approves it, and the next build renders it into the page. The package is headless: it ships data, behaviour and a markup contract, and the site owns every template and style. It also owns no storage or challenge provider: the site passes in a `CommentStore` and a `CommentChallenge`.
+Static, moderated comments for Astro sites. A visitor posts to an endpoint, the comment waits as `pending`, a moderator approves it, and the next build renders it into the page. The package is headless: it ships data, behaviour and a markup contract, and the site owns every template and style. The handler takes any `CommentStore` and `CommentChallenge`; `./cloudflare` ships D1 and Turnstile ones.
 
 ## Entry points
 
 | Export | Holds | Runs on |
 | --- | --- | --- |
-| `.` | `approvedCommentSchema`, `defaultMessages`, `handleCommentSubmission` and the store and challenge interfaces | Any server |
-| `./render` | `buildThread`, `renderCommentBody`, `toAuthorHref` | Build time |
-| `./element` | `defineCommentsSection` and the `CommentChallengeWidget` interface | Browser |
+| `.` | Handler, schemas, messages, store interfaces | Server |
+| `./cloudflare` | D1 store, Turnstile siteverify | Server |
+| `./cloudflare/node` | D1 over HTTP, wrangler's local D1 | Node |
+| `./snapshot`, `./cli`, `./config` | Snapshot read and write, commands, `defineCommentsConfig` | Node |
+| `./render` | `buildThread`, `renderCommentBody` | Build |
+| `./import` | WordPress body and row conversion | Node |
+| `./element`, `./cloudflare/widget` | `<comments-section>`, `TurnstileWidget` | Browser |
 
 `./render` stays separate so a server bundle never pulls in markdown-it.
 
@@ -29,13 +33,17 @@ export const ALL: APIRoute = ({ clientAddress, request }) =>
 		getClientIp: () => clientAddress,
 		ipSalt: import.meta.env.COMMENT_IP_SALT,
 		resolveThread: async (thread) => `/${thread}/`, // or undefined when no such page exists
-		store, // { insert(comment), hasApprovedParent(thread, parentId) }
+		store, // { insert(comment), findApprovedParent(parentId) }
 	});
 ```
 
+## Moderation and configuration
+
+`createD1CommentStore` implements `CommentStore` and `CommentModerationStore` over `schema.sql`. Commands read `astro-comments.config.ts` at the site root, with credentials from the environment; builds read the snapshot, never the database.
+
 ## Threads
 
-A comment belongs to a **thread**: an opaque key the site mints, one slug segment or several joined by single slashes (`mixes/voyager`). Keys take letters, digits, `-` and `_` only, so a pathname such as `/blog/post/` or `post.html` (the default key in Isso and Giscus) has to be reduced to its slug first. The handler asks `resolveThread(thread, request)` for the thread's page path on this site, which serves both the existence check and the redirect after a native form post; `undefined` rejects the submission, and anything that is not a same-origin path is a 500.
+A comment belongs to a **thread**: an opaque key the site mints, one slug segment or several joined by single slashes (`mixes/voyager`). Keys take letters, digits, `-` and `_` only, so a pathname such as `/blog/post/` or `post.html` (the default key in Isso and Giscus) has to be reduced to its slug first. The handler asks `resolveThread(thread, request)` for the thread's page path on this site, which serves both the existence check and the redirect after a native form post; `undefined` rejects the submission, and anything that is not a same-origin path is a 500. `createThreadResolver` answers it from a registry the build writes.
 
 ## Submission order
 
@@ -48,7 +56,7 @@ A comment belongs to a **thread**: an opaque key the site mints, one slug segmen
 5. Form age under three seconds (400)
 6. Missing challenge token (403)
 7. Unknown thread (400)
-8. Reply to a parent that is not approved on the same thread (400)
+8. Reply to a parent that is not approved on a thread of the same page (400)
 9. Challenge (403), last, since it may be a round trip and a rejection burns a single-use token
 
 A request asking for `application/json` gets `{ message }` on failure and an empty 201 on success; a native form post gets plain text on failure and a 303 to `<threadPath>?comment=received#comments` on success.
@@ -69,6 +77,8 @@ The element reads the light DOM a template renders inside `<comments-section>`, 
 | `[data-comment-notice]` | Shown once a comment is accepted, or after the native redirect |
 | `[data-comment-error]` | Shows a rejection's message |
 | `[data-remember]`, `[data-clear-stored]` | Opt in to remembering name, email and URL, and forget them |
-| Fields | `thread`, `parentId`, `renderedAt`, `author`, `authorEmail`, `authorUrl`, `body`, and the honeypot `website` |
+| Fields | `thread`, `parentId`, `renderedAt`, `author`, `authorEmail`, `authorUrl`, `body`, and the honeypot `extra` |
 
-Reply buttons, `[data-open-form]` and the form start `hidden`; the element reveals what works once it connects. The honeypot is named `website`, which is Isso's real author URL field, so a form ported from Isso must rename its URL input.
+The section dispatches bubbling `comments:accepted` and `comments:rejected` events and sends no analytics.
+
+Reply buttons, `[data-open-form]` and the form start `hidden`; the element reveals what works once it connects. The honeypot is named `extra` so autofill leaves it empty.

@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-null -- a D1 row leaves these columns `null`, so the fixtures must too */
 import { fc, test } from '@fast-check/vitest';
 import { describe, expect } from 'vitest';
 
@@ -16,14 +15,13 @@ interface CommentFixture {
 function toComments(fixtures: Array<CommentFixture>): Array<ApprovedComment> {
 	return fixtures.map(({ emailHash, id, parentId }, index) => ({
 		author: id,
-		author_url: null,
 		body: id,
-		created_at: 1_577_836_800 + index * 60,
-		email_hash: emailHash ?? null,
+		createdAt: 1_577_836_800 + index * 60,
 		id,
-		is_owner: 0,
-		parent_id: parentId ?? null,
+		isOwner: false,
 		thread: 'posts/entry',
+		...(emailHash === undefined ? undefined : { emailHash }),
+		...(parentId === undefined ? undefined : { parentId }),
 	}));
 }
 

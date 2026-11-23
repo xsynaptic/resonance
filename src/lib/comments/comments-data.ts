@@ -3,7 +3,7 @@ import type { CommentNode } from '@xsynaptic/astro-comments/render';
 
 import { buildThread } from '@xsynaptic/astro-comments/render';
 
-import { readCommentsByThread } from '#lib/comments/comments-snapshot.ts';
+import { readSnapshotByThread } from '#lib/comments/comments-snapshot.ts';
 
 export type CommentsCollection = 'mixes' | 'posts' | 'reviews';
 
@@ -18,14 +18,14 @@ export async function getEntryComments(
 	entryId: string,
 	formerIds?: Array<string>,
 ): Promise<EntryComments> {
-	const commentsByThread = await readCommentsByThread();
+	const commentsByThread = await readSnapshotByThread();
 	const comments: Array<ApprovedComment> = [];
 
 	for (const id of [entryId, ...(formerIds ?? [])]) {
 		comments.push(...(commentsByThread.get(toThreadKey(collection, id)) ?? []));
 	}
 
-	comments.sort((left, right) => left.created_at - right.created_at);
+	comments.sort((left, right) => left.createdAt - right.createdAt);
 
 	return { count: comments.length, thread: buildThread(comments) };
 }

@@ -246,6 +246,51 @@ describe('a submitted comment form', () => {
 	});
 });
 
+describe('the events a section reports', () => {
+	test('a reply that lands reports its thread, bubbling to the document', async () => {
+		const form = mountSection();
+		const accepted = vi.fn<(event: GlobalEventHandlersEventMap['comments:accepted']) => void>();
+
+		document.addEventListener('comments:accepted', accepted);
+		respondWith({ ok: true });
+		element('[data-reply="c1"]').click();
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(accepted).toHaveBeenCalledOnce();
+		});
+
+		expect(accepted.mock.calls[0]?.[0].detail).toEqual({ isReply: true, thread: 'posts/a-post' });
+		document.removeEventListener('comments:accepted', accepted);
+	});
+
+	test("a rejection reports the server's message and status, and a failed request reports no status", async () => {
+		const form = mountSection();
+		const rejected = vi.fn<(event: GlobalEventHandlersEventMap['comments:rejected']) => void>();
+
+		document.addEventListener('comments:rejected', rejected);
+		respondWith({ json: () => Promise.resolve({ message: 'Too fast.' }), ok: false, status: 400 });
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(rejected).toHaveBeenCalledTimes(1);
+		});
+
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Offline')));
+		submit(form);
+
+		await vi.waitFor(() => {
+			expect(rejected).toHaveBeenCalledTimes(2);
+		});
+
+		expect(rejected.mock.calls.map(([event]) => event.detail)).toEqual([
+			{ message: 'Too fast.', status: 400 },
+			{ message: errorMessage },
+		]);
+		document.removeEventListener('comments:rejected', rejected);
+	});
+});
+
 describe('a section that leaves the page', () => {
 	test('moved with its form open, rebuilds the removed widget and keeps the open button hidden', () => {
 		mountSection();

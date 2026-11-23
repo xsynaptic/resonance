@@ -5,6 +5,17 @@ import { BaseElement } from '#element/base-element.ts';
 import { createFormMemory, storedFields } from '#element/form-memory.ts';
 import { commentFields } from '#fields.ts';
 
+export interface CommentsAcceptedDetail {
+	isReply: boolean;
+	thread: string;
+}
+
+// `status` is absent when the request never got an answer
+export interface CommentsRejectedDetail {
+	message: string;
+	status?: number;
+}
+
 export interface CommentsSectionOptions {
 	// One widget per section, since a widget tracks the instance it rendered
 	challenge: () => CommentChallengeWidget;
@@ -185,6 +196,11 @@ export class CommentsSectionElement extends BaseElement {
 		return this.#errorMessage;
 	}
 
+	#reject(detail: CommentsRejectedDetail) {
+		this.#showError(detail.message);
+		this.dispatchEvent(new CustomEvent('comments:rejected', { bubbles: true, detail }));
+	}
+
 	#renderChallenge() {
 		const container = this.querySelector<HTMLElement>('[data-comment-challenge]');
 
@@ -311,19 +327,31 @@ export class CommentsSectionElement extends BaseElement {
 		this.#toggle('[data-comment-error]', false);
 		this.#setSubmitDisabled(form, true);
 
+		const body = new FormData(form);
+		const accepted = {
+			isReply: this.#field(commentFields.parentId).value !== '',
+			thread: this.#field(commentFields.thread).value,
+		} satisfies CommentsAcceptedDetail;
+
 		try {
 			const response = await fetch(form.action, {
-				body: new FormData(form),
+				body,
 				headers: { accept: 'application/json' },
 				method: 'POST',
 				...(signal ? { signal } : undefined),
 			});
 
-			if (response.ok) this.#handleAccepted(form);
-			else this.#showError(await this.#readMessage(response));
+			if (response.ok) {
+				this.#handleAccepted(form);
+				this.dispatchEvent(
+					new CustomEvent('comments:accepted', { bubbles: true, detail: accepted }),
+				);
+			} else {
+				this.#reject({ message: await this.#readMessage(response), status: response.status });
+			}
 		} catch {
 			// An aborted request means the section is gone; nothing is left to show the error on
-			if (!signal?.aborted) this.#showError(this.#errorMessage);
+			if (!signal?.aborted) this.#reject({ message: this.#errorMessage });
 		} finally {
 			this.#setSubmitDisabled(form, false);
 
@@ -349,5 +377,12 @@ export function defineCommentsSection(options: CommentsSectionOptions): void {
 declare global {
 	interface HTMLElementTagNameMap {
 		'comments-section': CommentsSectionElement;
+	}
+}
+
+declare global {
+	interface GlobalEventHandlersEventMap {
+		'comments:accepted': CustomEvent<CommentsAcceptedDetail>;
+		'comments:rejected': CustomEvent<CommentsRejectedDetail>;
 	}
 }

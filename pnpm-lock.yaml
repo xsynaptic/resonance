@@ -353,6 +353,9 @@ importers:
 
   packages/astro-comments:
     dependencies:
+      htmlparser2:
+        specifier: ^12.0.0
+        version: 12.0.0
       markdown-it:
         specifier: ^15.0.3
         version: 15.0.3
@@ -366,6 +369,9 @@ importers:
       '@types/sanitize-html':
         specifier: ^2.16.2
         version: 2.16.2
+      wrangler:
+        specifier: ^4.165.0
+        version: 4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
 
   packages/content:
     devDependencies:
@@ -456,9 +462,6 @@ importers:
 
   packages/shared:
     dependencies:
-      '@xsynaptic/astro-comments':
-        specifier: workspace:*
-        version: link:../astro-comments
       '@xsynaptic/astro-image-pipeline':
         specifier: ^0.16.0
         version: 0.16.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))

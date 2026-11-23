@@ -7,10 +7,10 @@ export interface CommentAvatar {
 const gravatarUrl = 'https://www.gravatar.com/avatar';
 
 export function toGravatarAvatar(
-	emailHash: null | string,
+	emailHash: string | undefined,
 	size: number,
 ): CommentAvatar | undefined {
-	if (emailHash === null) return undefined;
+	if (emailHash === undefined) return undefined;
 
 	const url = toGravatarUrl(emailHash, size);
 

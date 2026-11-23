@@ -1,11 +1,16 @@
 export { defaultMessages } from '#messages.ts';
 export type { CommentMessages } from '#messages.ts';
+export { createThreadResolver, threadRegistrySchema } from '#registry.ts';
+export type { ThreadRegistry, ThreadResolver } from '#registry.ts';
 export { approvedCommentSchema } from '#schemas.ts';
 export type { ApprovedComment } from '#schemas.ts';
-export { handleCommentSubmission } from '#submission.ts';
+export { commentStatuses } from '#store.ts';
 export type {
-	CommentChallenge,
+	CommentModerationStore,
+	CommentStatus,
 	CommentStore,
-	CommentSubmissionConfig,
 	NewComment,
-} from '#submission.ts';
+	StoredComment,
+} from '#store.ts';
+export { handleCommentSubmission } from '#submission.ts';
+export type { CommentChallenge, CommentSubmissionConfig } from '#submission.ts';

@@ -5,7 +5,6 @@ import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { createD1CommentStore } from '#worker/comments-store.ts';
 import { handleComment } from '#worker/comments.ts';
 
 type Binding = Array<null | number | string>;
@@ -59,12 +58,20 @@ function createBinding() {
 	};
 }
 
-function createEnv(builtPaths: Array<string>): Env {
+const registry = {
+	'mixes/old-slug': '/mixes/voyager/',
+	'mixes/voyager': '/mixes/voyager/',
+	'posts/a-post': '/a-post/',
+};
+
+function createEnv(): Env {
 	return {
 		ASSETS: {
 			fetch: (input: URL) =>
 				Promise.resolve(
-					new Response(undefined, { status: builtPaths.includes(input.pathname) ? 200 : 404 }),
+					input.pathname === '/comment-threads.json'
+						? Response.json(registry)
+						: new Response(undefined, { status: 404 }),
 				),
 		},
 		DB: createBinding(),
@@ -177,87 +184,12 @@ describe('the thread key migration', () => {
 	});
 });
 
-describe('the D1 comment store', () => {
-	test('finds a parent only when it is approved on the same thread', async () => {
-		migrate([
-			['approved-here', 'mixes', 'voyager', null, 'approved'],
-			['pending-here', 'mixes', 'voyager', null, 'pending'],
-			['approved-elsewhere', 'mixes', 'other', null, 'approved'],
-		]);
-
-		const store = createD1CommentStore(createBinding());
-
-		await expect(store.hasApprovedParent('mixes/voyager', 'approved-here')).resolves.toBe(true);
-		await expect(store.hasApprovedParent('mixes/voyager', 'pending-here')).resolves.toBe(false);
-		await expect(store.hasApprovedParent('mixes/voyager', 'approved-elsewhere')).resolves.toBe(
-			false,
-		);
-		await expect(store.hasApprovedParent('mixes/voyager', 'missing')).resolves.toBe(false);
-	});
-
-	test("inserts a pending web comment, never the Owner's, with SQL NULL for every absent field", async () => {
-		migrate();
-
-		await createD1CommentStore(createBinding()).insert({
-			author: 'Reader',
-			body: 'A comment worth keeping.',
-			createdAt: 1_763_899_200,
-			id: 'k7d2mqzx4a',
-			thread: 'mixes/voyager',
-		});
-
-		expect(database.prepare('SELECT * FROM comments').all()).toEqual([
-			{
-				author: 'Reader',
-				author_email: null,
-				author_url: null,
-				body: 'A comment worth keeping.',
-				created_at: 1_763_899_200,
-				email_hash: null,
-				id: 'k7d2mqzx4a',
-				ip_hash: null,
-				is_owner: 0,
-				parent_id: null,
-				source: 'web',
-				status: 'pending',
-				thread: 'mixes/voyager',
-			},
-		]);
-	});
-
-	test('writes each field to its own column', async () => {
-		migrate();
-
-		await createD1CommentStore(createBinding()).insert({
-			author: 'Reader',
-			authorEmail: 'reader@example.test',
-			authorUrl: 'https://example.test/',
-			body: 'A reply.',
-			createdAt: 1_763_899_200,
-			emailHash: 'email-hash',
-			id: 'k7d2mqzx4a',
-			ipHash: 'ip-hash',
-			parentId: 'wp-1',
-			thread: 'posts/a-post',
-		});
-
-		expect(database.prepare('SELECT * FROM comments').get()).toMatchObject({
-			author_email: 'reader@example.test',
-			author_url: 'https://example.test/',
-			email_hash: 'email-hash',
-			ip_hash: 'ip-hash',
-			parent_id: 'wp-1',
-			thread: 'posts/a-post',
-		});
-	});
-});
-
 describe('handleComment', () => {
-	test('looks a post up at the site root and a mix under its collection', async () => {
+	test('redirects to the page the registry holds for the thread', async () => {
 		stubSiteverify(true);
 		migrate();
 
-		const env = createEnv(['/a-post/', '/mixes/voyager/']);
+		const env = createEnv();
 		const post = await handleComment(makeRequest({ thread: 'posts/a-post' }), env);
 		const mix = await handleComment(makeRequest({ thread: 'mixes/voyager' }), env);
 
@@ -269,16 +201,33 @@ describe('handleComment', () => {
 		);
 	});
 
-	test('refuses a thread outside the commented collections without a page lookup', async () => {
+	test('refuses a thread the registry does not hold, reading the registry once', async () => {
 		migrate();
 
-		const env = createEnv(['/pages/about/']);
+		const env = createEnv();
 		const assets = vi.spyOn(env.ASSETS, 'fetch');
-		const response = await handleComment(makeRequest({ thread: 'pages/about' }), env);
+		const about = await handleComment(makeRequest({ thread: 'pages/about' }), env);
+		const missing = await handleComment(makeRequest({ thread: 'mixes/no-such-mix' }), env);
 
-		expect(response.status).toBe(400);
-		await expect(response.text()).resolves.toBe(`${t('comments.error.entryMissing')}\n`);
-		expect(assets).not.toHaveBeenCalled();
+		expect(about.status).toBe(400);
+		await expect(about.text()).resolves.toBe(`${t('comments.error.entryMissing')}\n`);
+		expect(missing.status).toBe(400);
+		expect(assets).toHaveBeenCalledOnce();
+	});
+
+	test('accepts a reply to a comment written before the rename', async () => {
+		stubSiteverify(true);
+		migrate([['wp-1', 'mixes', 'old-slug', null, 'approved']]);
+
+		const response = await handleComment(
+			makeRequest({ parentId: 'wp-1', thread: 'mixes/voyager' }),
+			createEnv(),
+		);
+
+		expect(response.status).toBe(303);
+		expect(
+			database.prepare(`SELECT thread, parent_id FROM comments WHERE source = 'web'`).get(),
+		).toEqual({ parent_id: 'wp-1', thread: 'mixes/voyager' });
 	});
 
 	test('stores an accepted reply under its thread with the salted IP hash', async () => {
@@ -287,7 +236,7 @@ describe('handleComment', () => {
 
 		const response = await handleComment(
 			makeRequest({ parentId: 'wp-1', thread: 'mixes/voyager' }),
-			createEnv(['/mixes/voyager/']),
+			createEnv(),
 		);
 
 		expect(response.status).toBe(303);
@@ -307,7 +256,7 @@ describe('handleComment', () => {
 
 		migrate();
 
-		await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv(['/mixes/voyager/']));
+		await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv());
 
 		const [url, init] = siteverify.mock.calls[0] ?? [];
 		const sent = init?.body as FormData;
@@ -323,10 +272,7 @@ describe('handleComment', () => {
 		vi.spyOn(console, 'error').mockImplementation(vi.fn());
 		migrate();
 
-		const response = await handleComment(
-			makeRequest({ thread: 'mixes/voyager' }),
-			createEnv(['/mixes/voyager/']),
-		);
+		const response = await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv());
 
 		expect(response.status).toBe(500);
 		await expect(response.text()).resolves.toBe(`${t('comments.error.unexpected')}\n`);
@@ -336,10 +282,7 @@ describe('handleComment', () => {
 		stubSiteverify(false);
 		migrate();
 
-		const response = await handleComment(
-			makeRequest({ thread: 'mixes/voyager' }),
-			createEnv(['/mixes/voyager/']),
-		);
+		const response = await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv());
 
 		expect(response.status).toBe(403);
 		await expect(response.text()).resolves.toBe(`${t('comments.error.challenge')}\n`);

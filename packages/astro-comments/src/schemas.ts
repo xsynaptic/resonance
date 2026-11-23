@@ -8,14 +8,13 @@ export const maximumThreadKeyLength = 200;
 // What a build may render; a store's private columns stay out
 export const approvedCommentSchema = z.object({
 	author: z.string(),
-	author_url: z.string().nullable(),
+	authorUrl: z.string().optional(),
 	body: z.string(),
-	created_at: z.number(),
-	email_hash: z.string().nullable(),
+	createdAt: z.number(),
+	emailHash: z.string().optional(),
 	id: z.string(),
-	// SQLite has no boolean, so D1 answers 0 or 1
-	is_owner: z.literal([0, 1]),
-	parent_id: z.string().nullable(),
+	isOwner: z.boolean(),
+	parentId: z.string().optional(),
 	thread: z.string(),
 });
 

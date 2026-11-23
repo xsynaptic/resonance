@@ -5,20 +5,40 @@
 	"private": true,
 	"type": "module",
 	"sideEffects": false,
+	"bin": {
+		"astro-comments": "./src/cli/bin.ts"
+	},
 	"exports": {
 		".": "./src/index.ts",
+		"./cli": "./src/cli/index.ts",
+		"./cloudflare": "./src/cloudflare/index.ts",
+		"./cloudflare/node": "./src/cloudflare/node.ts",
+		"./cloudflare/widget": "./src/element/turnstile-widget.ts",
+		"./config": "./src/cli/config-entry.ts",
 		"./element": "./src/element/index.ts",
-		"./render": "./src/render/index.ts"
+		"./import": "./src/import/index.ts",
+		"./render": "./src/render/index.ts",
+		"./snapshot": "./src/snapshot/index.ts"
 	},
 	"imports": {
 		"#*": "./src/*"
 	},
 	"dependencies": {
+		"htmlparser2": "^12.0.0",
 		"markdown-it": "^15.0.3",
 		"sanitize-html": "^2.18.2",
 		"zod": "^4.6.7"
 	},
 	"devDependencies": {
-		"@types/sanitize-html": "^2.16.2"
+		"@types/sanitize-html": "^2.16.2",
+		"wrangler": "^4.165.0"
+	},
+	"peerDependencies": {
+		"wrangler": "^4.165.0"
+	},
+	"peerDependenciesMeta": {
+		"wrangler": {
+			"optional": true
+		}
 	}
 }

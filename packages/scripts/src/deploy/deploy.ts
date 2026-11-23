@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { loadCommentsConfig, moderateComments, readKey } from '@xsynaptic/astro-comments/cli';
 import { fetchUrl, formatError, log, runSubprocess, withStep } from '@xsynaptic/astro-scripts';
 import chalk from 'chalk';
 import path from 'node:path';
@@ -12,16 +13,14 @@ import { generateRenditions } from '#audio/renditions.ts';
 import { validateAudio } from '#audio/validate.ts';
 import { generateWaveforms } from '#audio/waveforms.ts';
 import { backupIfStale } from '#backup/backup.ts';
-import { moderateComments } from '#comments/moderate.ts';
-import { pullComments } from '#comments/pull.ts';
 import { deployApp } from '#deploy/deploy-app.ts';
 import { deployAudio, reapDerivedAudio } from '#deploy/deploy-audio.ts';
+import { pullCommentsForDeploy } from '#deploy/deploy-comments.ts';
 import { loadDeployConfig, printDeployConfig } from '#deploy/deploy-config.ts';
 import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
 import { runCommand } from '#shared/command.ts';
-import { readKey } from '#shared/prompt.ts';
 import { pullListens } from '#stats/listens-pull.ts';
 
 interface HealthCheckFiles {
@@ -240,7 +239,7 @@ async function promptPendingComments(
 		}
 
 		if (key === 'm') {
-			const tally = await moderateComments({ isLocal: false, rootPath });
+			const tally = await moderateComments(await loadCommentsConfig(rootPath), 'remote');
 
 			// Quitting the queue breaks out untallied, so measure what was decided, not what was skipped
 			if (tally.approved + tally.rejected + tally.spam === pending) return 'continue';
@@ -367,7 +366,7 @@ await runCommand({
 
 		await pullSoftSteps(config, { isDryRun, rootPath });
 
-		const pending = await pullComments({ allowStale: true, rootPath });
+		const pending = await pullCommentsForDeploy(await loadCommentsConfig(rootPath));
 
 		// Before the build, so moderating here reaches the same deploy
 		// Nothing is deployed yet, so a deliberate stop exits clean rather than throwing

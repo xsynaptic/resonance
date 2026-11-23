@@ -3,7 +3,7 @@ export const commentFields = {
 	authorEmail: 'authorEmail',
 	authorUrl: 'authorUrl',
 	body: 'body',
-	honeypot: 'website',
+	honeypot: 'extra',
 	parentId: 'parentId',
 	renderedAt: 'renderedAt',
 	thread: 'thread',

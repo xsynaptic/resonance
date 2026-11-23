@@ -151,7 +151,10 @@ describe('play intent', () => {
 
 	test.each([
 		['capped', { status: 'capped' }],
-		['unplayable', { status: 'ok', type: 'audio/x-unplayable', url: 'https://api.test/a' }],
+		[
+			'unplayable',
+			{ sources: [{ type: 'audio/x-unplayable', url: 'https://api.test/a' }], status: 'ok' },
+		],
 	] as const)(
 		'a press on a %s track re-resolves rather than playing what the engine holds',
 		async (status, resolution) => {

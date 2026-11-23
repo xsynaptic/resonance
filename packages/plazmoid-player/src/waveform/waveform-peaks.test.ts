@@ -9,6 +9,7 @@ import { openPeaks } from '#waveform/waveform-peaks.ts';
 function open(name: string): PeaksReader {
 	return openPeaks({
 		byteOffset: 24,
+		formatVersion: 1,
 		pairCount: 20_000,
 		pairsPerSecond: 100,
 		rmsRange: [4, 40],
@@ -149,6 +150,7 @@ function openWithBands(name: string, frameCount = 5000): PeaksReader {
 			url: `https://files.test/waveform/${name}.bands.bin`,
 		},
 		byteOffset: 24,
+		formatVersion: 1,
 		pairCount: 20_000,
 		pairsPerSecond: 100,
 		rmsRange: [4, 40],

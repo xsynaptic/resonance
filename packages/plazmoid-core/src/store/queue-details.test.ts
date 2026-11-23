@@ -30,7 +30,7 @@ function createStore(
 		urls: {
 			detail,
 			stream: ({ trackId }) =>
-				Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+				Promise.resolve({ sources: [{ url: `https://api.test/${trackId}` }], status: 'ok' }),
 		},
 	});
 
@@ -270,6 +270,40 @@ describe('detail persistence', () => {
 		expect(isDetailPending(second.getState())).toBe(false);
 		expect(second.getState().details.get('a')).toStrictEqual(strip);
 		expect(second.getState().details.get('b')).toStrictEqual({ trackCount: 9 });
+	});
+
+	test('restores a detail stored before the format version without its peaks, and the answer replaces it', async () => {
+		const cuePoints = [{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' }];
+		const unversioned = {
+			byteOffset: 24,
+			pairCount: 10,
+			pairsPerSecond: 172.265625,
+			rmsRange: [32, 127],
+			url: 'https://api.test/a.peaks',
+		};
+		const answered: TrackDetail = {
+			...strip,
+			cuePoints,
+			peaks: { ...unversioned, formatVersion: 1, rmsRange: [32, 127] },
+		};
+		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
+
+		first.getState().loadQueue([makeTrack('a')]);
+		await settle();
+		localStorage.setItem(
+			queueDetailStorageKey,
+			JSON.stringify({ a: { ...strip, cuePoints, peaks: unversioned } }),
+		);
+
+		const answer = Promise.withResolvers<TrackDetail>();
+		const second = createStore(() => answer.promise, { isPersistent: true });
+
+		expect(second.getState().details.get('a')).toStrictEqual({ ...strip, cuePoints });
+
+		answer.resolve(answered);
+		await settle();
+
+		expect(second.getState().details.get('a')).toBe(answered);
 	});
 
 	test('an idle tab never deletes the detail another tab saved', () => {

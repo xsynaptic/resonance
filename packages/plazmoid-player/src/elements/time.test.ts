@@ -1,7 +1,7 @@
 import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
@@ -11,7 +11,7 @@ afterEach(() => {
 describe('<pzm-time>', () => {
 	test('reads --:--, disabled, until the duration is known', () => {
 		const { fake, part, store } = mount('pzm-time');
-		const clock = getByRole(part, 'button', { name: labels.toggleTimeMode });
+		const clock = getByRole(part, 'button', { name: defaultLabels.toggleTimeMode });
 
 		expect(clock.textContent).toBe('--:--');
 		expect(clock.hasAttribute('disabled')).toBe(true);
@@ -33,7 +33,7 @@ describe('<pzm-time>', () => {
 		store.getState().playTrack([sampleTrack('a', { durationMs: 180_000 })], 'a');
 		fake.callbacks.current?.onTime(64);
 
-		const clock = getByRole(part, 'button', { name: labels.toggleTimeMode });
+		const clock = getByRole(part, 'button', { name: defaultLabels.toggleTimeMode });
 
 		expect(clock.textContent).toBe('1:04');
 		expect(clock.getAttribute('aria-pressed')).toBe('false');

@@ -33,6 +33,7 @@ export type {
 	PlayerUrls,
 	QueuedTrack,
 	StreamResolution,
+	StreamSource,
 	Track,
 	TrackArtwork,
 	TrackDetail,

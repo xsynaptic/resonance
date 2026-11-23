@@ -4,7 +4,7 @@ import type { StreamResolution } from '@xsynaptic/plazmoid-core';
 import { stallAfterMs } from '@xsynaptic/plazmoid-core/constants';
 
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 interface HeldStream {
 	answer?: (resolution: StreamResolution) => void;
@@ -52,7 +52,7 @@ async function answerWithStream(page: Page): Promise<void> {
 		const url: unknown = track && Reflect.get(track, 'streamUrl');
 		if (typeof url !== 'string') throw new TypeError('Nothing loaded');
 
-		window.heldStream?.answer?.({ status: 'ok', url });
+		window.heldStream?.answer?.({ sources: [{ url }], status: 'ok' });
 	});
 }
 
@@ -72,7 +72,7 @@ test('a missing stream ends in error after one re-resolve', async ({
 	await harness.open({ query: { stream: 'missing' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 
-	await expect(page.getByRole('status').filter({ hasText: labels.error })).toBeVisible();
+	await expect(page.getByRole('status').filter({ hasText: defaultLabels.error })).toBeVisible();
 	expect(await harness.read()).toMatchObject({ resolveCount: 2, status: 'error' });
 
 	const { diagnostics } = await harness.read();
@@ -101,7 +101,7 @@ test('a retry after a failed load resumes from the restored position', async ({
 
 	const { currentTimeSeconds: saved } = await harness.read();
 
-	await page.getByRole('button', { exact: true, name: labels.play }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.play }).click();
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'playing' });
 
 	const { diagnostics, element, resolveCount } = await harness.read();
@@ -161,8 +161,27 @@ test('a declined type that fails to load is unplayable, with no retry', async ({
 	await harness.open({ query: { stream: 'garbage', type: 'lowercase' } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 
-	await expect(page.getByRole('status').filter({ hasText: labels.unplayable })).toBeVisible();
+	await expect(
+		page.getByRole('status').filter({ hasText: defaultLabels.unplayable }),
+	).toBeVisible();
 	expect(await harness.read()).toMatchObject({ resolveCount: 1, status: 'unplayable' });
+});
+
+test('a refused first source is passed over for the second, which plays', async ({
+	harness,
+	page,
+}) => {
+	await harness.open({ query: { fallback: 1 } });
+	await page.getByRole('button', { name: 'Play long' }).click();
+
+	await expectAdvancing(harness, 1);
+	expect(await harness.read()).toMatchObject({ resolveCount: 1, status: 'playing' });
+
+	const requests = await harness.requests();
+	const paths = requests.map((request) => request.path);
+
+	expect(paths).toContain('/audio/long.mp4');
+	expect(paths).not.toContain('/garbage/long.mp4');
 });
 
 test('pause during a hanging load settles on paused', async ({ harness, page }) => {
@@ -170,7 +189,7 @@ test('pause during a hanging load settles on paused', async ({ harness, page }) 
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expect.poll(() => harness.requests()).not.toEqual([]);
 
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
 
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'paused' });
 
@@ -222,7 +241,7 @@ test('an outside pause after a capped answer stays capped, and the next play res
 	await harness.open();
 	await holdStream(page);
 	await page.getByRole('button', { name: 'Play long' }).click();
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
 
 	await page.evaluate(async () => {
 		const state = window.playerPage?.store.getState();
@@ -263,7 +282,7 @@ test('a resolve failing as a paused load resumes stays in error, and the next pl
 	await harness.open();
 	await holdStream(page);
 	await page.getByRole('button', { name: 'Play long' }).click();
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
 
 	await page.evaluate(() => {
 		window.playerPage?.store.getState().play();
@@ -273,7 +292,7 @@ test('a resolve failing as a paused load resumes stays in error, and the next pl
 	await page.waitForTimeout(500);
 	expect(await harness.read()).toMatchObject({ element: { paused: true }, status: 'error' });
 
-	await page.getByRole('button', { exact: true, name: labels.play }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.play }).click();
 	await expect.poll(() => readHeldCalls(page)).toBe(2);
 
 	await answerWithStream(page);

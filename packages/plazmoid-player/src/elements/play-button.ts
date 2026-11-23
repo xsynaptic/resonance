@@ -18,7 +18,9 @@ export const PlayerPlayButton = buttonPart(() => ({
 		button.disabled = view.isDisabled;
 		button.legend = view.isPaused ? 'play' : 'pause';
 		button.setAttribute('aria-label', view.isPaused ? labels.play : labels.pause);
-		button.toggleAttribute('data-loading', view.isWaiting);
+		button
+			.querySelector('.sonic-button-cap')
+			?.toggleAttribute('data-pzm-essential-motion', view.isWaiting);
 	},
 	press: (state) => {
 		state.togglePaused();

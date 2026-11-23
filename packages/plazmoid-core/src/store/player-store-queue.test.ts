@@ -141,7 +141,7 @@ describe('queue editing', () => {
 
 		store.getState().playTrack(release, 'a');
 		store.getState().removeAt(0);
-		resolve({ status: 'ok', url: 'https://api.test/tracks/a/stream' });
+		resolve({ sources: [{ url: 'https://api.test/tracks/a/stream' }], status: 'ok' });
 		await Promise.resolve();
 
 		expect(fake.engine.load).not.toHaveBeenCalled();

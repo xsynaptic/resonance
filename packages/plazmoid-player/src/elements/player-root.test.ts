@@ -2,7 +2,7 @@ import { createMemoryStorage, createPlayerStore } from '@xsynaptic/plazmoid-core
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { PlayerRoot } from '#elements/player-root.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { mount, sampleTrack } from '#test/mount.ts';
 
 // A tag of its own, so the upgrade happens here whatever else in the file has already defined `pzm-root`
@@ -64,7 +64,10 @@ describe('<pzm-root>', () => {
 
 	test('takes a store handed to it before its tag was defined', () => {
 		const store = createPlayerStore({ storage: createMemoryStorage() });
-		const early = Object.assign(document.createElement('pzm-early-root'), { labels, store });
+		const early = Object.assign(document.createElement('pzm-early-root'), {
+			labels: defaultLabels,
+			store,
+		});
 
 		document.body.append(early);
 

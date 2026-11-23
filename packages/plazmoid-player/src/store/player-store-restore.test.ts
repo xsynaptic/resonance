@@ -15,7 +15,7 @@ import { createMockEngine, createWritablePlayerStore } from '@xsynaptic/plazmoid
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { definePlayerElements } from '#elements/define.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { createViewStore } from '#view/view-store.ts';
 import { openPeaks } from '#waveform/waveform-peaks.ts';
 
@@ -70,6 +70,7 @@ const writtenCuePoints = fc.array(
 const writtenPeaks = fc.record(
 	{
 		byteOffset: fc.integer({ max: 64, min: 0 }),
+		formatVersion: fc.integer({ max: 4, min: 0 }),
 		pairCount: fc.integer({ max: 20_000, min: 0 }),
 		pairsPerSecond: fc.integer({ max: 200, min: 1 }),
 		rmsRange: fc.tuple(fc.integer({ max: 20, min: 0 }), fc.integer({ max: 127, min: 20 })),
@@ -188,7 +189,7 @@ describe('restoring a stored queue', () => {
 			const unbind = bindMediaSession(store);
 			const root = document.createElement('pzm-root');
 
-			root.labels = labels;
+			root.labels = defaultLabels;
 			root.store = store;
 			root.view = createViewStore({ storage: createMemoryStorage() });
 			root.append(document.createElement('pzm-bar'));

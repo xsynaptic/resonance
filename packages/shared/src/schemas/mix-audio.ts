@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const mixAudioVersion = 7;
+export const mixAudioVersion = 8;
 
 // Measured from the decoded rendition, since its gain and codec overshoot put it apart from the master
 const StreamLoudnessSchema = z.object({
@@ -20,6 +20,7 @@ export const WaveformFactsSchema = z.object({
 		minDecibels: z.number(),
 	}),
 	byteOffset: z.number(),
+	formatVersion: z.number(),
 	pairCount: z.number(),
 	pairsPerSecond: z.number(),
 	rmsRange: z.tuple([z.number(), z.number()]).readonly(),

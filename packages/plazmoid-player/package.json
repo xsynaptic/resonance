@@ -4,12 +4,17 @@
 	"private": true,
 	"type": "module",
 	"sideEffects": [
-		"*.css"
+		"*.css",
+		"./src/define.ts",
+		"./src/define/*.ts"
 	],
 	"exports": {
 		".": "./src/index.ts",
 		"./astro": "./src/astro.ts",
 		"./constants": "./src/constants.ts",
+		"./define": "./src/define.ts",
+		"./define/*": "./src/define/*.ts",
+		"./labels": "./src/labels.ts",
 		"./player.css": "./src/player.css"
 	},
 	"imports": {

@@ -71,8 +71,14 @@ export interface TrackDetail {
 	waveformOverview?: string;
 }
 
+export type StreamResolution =
+	{ sources: ReadonlyArray<StreamSource>; status: 'ok' } | { status: 'capped' };
+
 // `type` is a MIME type with codecs, probed before loading; absent skips the probe
-export type StreamResolution = { status: 'capped' } | { status: 'ok'; type?: string; url: string };
+export interface StreamSource {
+	type?: string;
+	url: string;
+}
 
 interface MediaSnapshot {
 	networkState: number;

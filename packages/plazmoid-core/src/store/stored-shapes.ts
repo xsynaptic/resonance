@@ -15,6 +15,7 @@ const trackChecks: FieldChecks = {
 
 const peaksChecks = {
 	byteOffset: isCount,
+	formatVersion: isCount,
 	pairCount: isCount,
 	pairsPerSecond: isPositiveNumber,
 	rmsRange: (field) =>

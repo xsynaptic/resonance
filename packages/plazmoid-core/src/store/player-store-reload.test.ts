@@ -106,7 +106,7 @@ describe('queue persistence over any listening session', () => {
 				store.getState().configure({
 					urls: {
 						stream: ({ trackId }) =>
-							Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+							Promise.resolve({ sources: [{ url: `https://api.test/${trackId}` }], status: 'ok' }),
 					},
 				});
 

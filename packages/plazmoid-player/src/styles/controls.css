@@ -79,7 +79,7 @@ pzm-root sonic-button {
 }
 
 /* On the cap, since the library keeps the button's own `::after` for its touch target */
-.pzm-button-primary[data-loading] .sonic-button-cap::after {
+.pzm-button-primary [data-pzm-essential-motion]::after {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
@@ -93,7 +93,7 @@ pzm-root sonic-button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.pzm-button-primary[data-loading] .sonic-button-cap::after {
+	.pzm-button-primary [data-pzm-essential-motion]::after {
 		animation:
 			pzm-loader-appear 150ms 400ms both,
 			pzm-loader-fade 1.6s ease-in-out 400ms infinite alternate;

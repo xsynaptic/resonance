@@ -87,6 +87,7 @@ describe('<pzm-scope>', () => {
 					url: 'https://api.test/scope.bands.bin',
 				},
 				byteOffset: 24,
+				formatVersion: 1,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
 				rmsRange: [4, 40],

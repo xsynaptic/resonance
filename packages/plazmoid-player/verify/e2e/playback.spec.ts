@@ -2,21 +2,21 @@ import type { Page } from '@playwright/test';
 
 import { seekSeconds } from '#e2e/constants.ts';
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 async function openQueue(page: Page, isMobile: boolean): Promise<void> {
 	if (!isMobile) {
 		await page
-			.getByRole('region', { name: labels.nowPlaying })
-			.getByRole('button', { exact: true, name: labels.queue })
+			.getByRole('region', { name: defaultLabels.nowPlaying })
+			.getByRole('button', { exact: true, name: defaultLabels.queue })
 			.click();
 		return;
 	}
 
-	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.expand }).click();
 	await page
-		.getByRole('dialog', { name: labels.nowPlaying })
-		.getByRole('button', { exact: true, name: labels.lists })
+		.getByRole('dialog', { name: defaultLabels.nowPlaying })
+		.getByRole('button', { exact: true, name: defaultLabels.lists })
 		.click();
 }
 
@@ -33,7 +33,7 @@ test('a press on a page control plays', async ({ harness, page }) => {
 	await page.getByRole('button', { name: 'Play long' }).click();
 
 	await expectAdvancing(harness, 1);
-	await expect(page.getByRole('button', { exact: true, name: labels.pause })).toBeVisible();
+	await expect(page.getByRole('button', { exact: true, name: defaultLabels.pause })).toBeVisible();
 	expect(await harness.read()).toMatchObject({ status: 'playing' });
 	expect(await harness.observed()).toMatchObject({ audioCount: 1 });
 	expect(streamResponses).toContainEqual({
@@ -53,10 +53,10 @@ test('pause and resume keep the loaded source', async ({ harness, page }) => {
 	const { element } = await harness.read();
 	const { loadstarts } = await harness.observed();
 
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
 	await expect.poll(() => harness.read()).toMatchObject({ element: { paused: true } });
 
-	await page.getByRole('button', { exact: true, name: labels.play }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.play }).click();
 	await expect.poll(() => harness.read()).toMatchObject({ element: { paused: false } });
 	await expectAdvancing(harness, (element?.currentTime ?? 0) + 1);
 
@@ -115,7 +115,7 @@ test('the end of the play order is idle, and the next press reloads', async ({ h
 
 	await expect.poll(() => harness.read(), { timeout: 15_000 }).toMatchObject({ status: 'idle' });
 
-	await page.getByRole('button', { exact: true, name: labels.play }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.play }).click();
 
 	await expect
 		.poll(() => harness.read())
@@ -176,7 +176,7 @@ test('an outside pause after switching rows mid-play reads as paused', async ({
 	await page.evaluate(() => window.playerPage?.store.getState().getMediaElement()?.pause());
 
 	await expect.poll(() => harness.read()).toMatchObject({ isPaused: true, status: 'paused' });
-	await expect(page.getByRole('button', { exact: true, name: labels.play })).toBeVisible();
+	await expect(page.getByRole('button', { exact: true, name: defaultLabels.play })).toBeVisible();
 });
 
 test('picking the loaded row in the queue pauses and resumes it without reloading', async ({

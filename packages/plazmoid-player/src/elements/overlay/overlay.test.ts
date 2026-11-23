@@ -2,8 +2,8 @@ import { fireEvent, getAllByRole, getByRole, queryByRole } from '@testing-librar
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
+import { defaultLabels } from '#labels.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
-import { labels } from '#test/labels.ts';
 import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 
 const cuePoints = [
@@ -19,7 +19,11 @@ function mountOverlay() {
 
 	mounted.root.prepend(toggle);
 
-	return { ...mounted, dialog, toggle: getByRole(toggle, 'button', { name: labels.expand }) };
+	return {
+		...mounted,
+		dialog,
+		toggle: getByRole(toggle, 'button', { name: defaultLabels.expand }),
+	};
 }
 
 async function openOverlay({ dialog, toggle }: ReturnType<typeof mountOverlay>) {
@@ -70,7 +74,7 @@ describe('<pzm-overlay>', () => {
 
 		mounted.store.getState().loadQueue([sampleTrack('a')]);
 		await openOverlay(mounted);
-		getByRole(mounted.dialog, 'button', { name: labels.clearQueue }).click();
+		getByRole(mounted.dialog, 'button', { name: defaultLabels.clearQueue }).click();
 
 		await vi.waitFor(() => {
 			expect(mounted.dialog.open).toBe(false);
@@ -123,7 +127,7 @@ describe('<pzm-overlay>', () => {
 		await openOverlay(mounted);
 
 		await vi.waitFor(() => {
-			const groups = getAllByRole(mounted.root, 'group', { name: labels.waveformPanel });
+			const groups = getAllByRole(mounted.root, 'group', { name: defaultLabels.waveformPanel });
 
 			expect(groups).toHaveLength(1);
 			expect(groups[0]?.closest('dialog')).toBe(mounted.dialog);
@@ -166,7 +170,9 @@ describe('<pzm-overlay>', () => {
 		await openOverlay(mounted);
 
 		expect(
-			getByRole(mounted.dialog, 'tab', { name: labels.tracklist }).getAttribute('aria-selected'),
+			getByRole(mounted.dialog, 'tab', { name: defaultLabels.tracklist }).getAttribute(
+				'aria-selected',
+			),
 		).toBe('true');
 
 		const middle = getByRole(mounted.dialog, 'button', { name: /Middle/ });
@@ -186,13 +192,13 @@ describe('<pzm-overlay>', () => {
 		mounted.store.getState().playTrack([sampleTrack('a'), sampleTrack('b')], 'a');
 		await openOverlay(mounted);
 
-		const queue = getByRole(mounted.dialog, 'tab', { name: labels.queue });
+		const queue = getByRole(mounted.dialog, 'tab', { name: defaultLabels.queue });
 
 		expect(getAllByRole(mounted.dialog, 'tab').map((tab) => tab.textContent)).toStrictEqual([
-			labels.tracklist,
-			labels.queue,
+			defaultLabels.tracklist,
+			defaultLabels.queue,
 		]);
-		expect(getByRole(mounted.dialog, 'tab', { name: labels.tracklist })).toHaveProperty(
+		expect(getByRole(mounted.dialog, 'tab', { name: defaultLabels.tracklist })).toHaveProperty(
 			'disabled',
 			true,
 		);
@@ -214,8 +220,8 @@ describe('the overlay tabs', () => {
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
-		const tracklist = getByRole(mounted.dialog, 'tab', { name: labels.tracklist });
-		const queue = getByRole(mounted.dialog, 'tab', { name: labels.queue });
+		const tracklist = getByRole(mounted.dialog, 'tab', { name: defaultLabels.tracklist });
+		const queue = getByRole(mounted.dialog, 'tab', { name: defaultLabels.queue });
 
 		tracklist.focus();
 		fireEvent.keyDown(tracklist, { key: 'ArrowRight' });
@@ -244,11 +250,11 @@ describe('the overlay tabs', () => {
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
-		expect(queryByRole(mounted.dialog, 'button', { name: labels.shuffle })).toBeNull();
+		expect(queryByRole(mounted.dialog, 'button', { name: defaultLabels.shuffle })).toBeNull();
 
-		getByRole(mounted.dialog, 'tab', { name: labels.queue }).click();
+		getByRole(mounted.dialog, 'tab', { name: defaultLabels.queue }).click();
 
-		expect(getByRole(mounted.dialog, 'button', { name: labels.shuffle })).toBeDefined();
+		expect(getByRole(mounted.dialog, 'button', { name: defaultLabels.shuffle })).toBeDefined();
 	});
 
 	test('keep focus when the Tracklist goes with a focused cue', async () => {
@@ -260,7 +266,9 @@ describe('the overlay tabs', () => {
 		getByRole(mounted.dialog, 'button', { name: /Middle/ }).focus();
 		mounted.store.getState().next();
 
-		expect(document.activeElement).toBe(getByRole(mounted.dialog, 'tab', { name: labels.queue }));
+		expect(document.activeElement).toBe(
+			getByRole(mounted.dialog, 'tab', { name: defaultLabels.queue }),
+		);
 	});
 });
 
@@ -276,20 +284,20 @@ describe('the overlay sheet', () => {
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
-		const opener = getByRole(mounted.dialog, 'button', { name: labels.lists });
+		const opener = getByRole(mounted.dialog, 'button', { name: defaultLabels.lists });
 
 		opener.click();
 
-		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: labels.lists });
+		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: defaultLabels.lists });
 
 		expect(sheet).toHaveProperty('open', true);
 		expect(document.activeElement).toBe(sheet);
-		expect(getByRole(sheet, 'tab', { name: labels.tracklist }).getAttribute('aria-selected')).toBe(
-			'true',
-		);
+		expect(
+			getByRole(sheet, 'tab', { name: defaultLabels.tracklist }).getAttribute('aria-selected'),
+		).toBe('true');
 		expect(getByRole(sheet, 'button', { name: /Middle/ }).textContent).toContain('Middle');
 
-		getByRole(sheet, 'button', { name: labels.close }).click();
+		getByRole(sheet, 'button', { name: defaultLabels.close }).click();
 
 		await vi.waitFor(() => {
 			expect(sheet).toHaveProperty('open', false);
@@ -308,11 +316,11 @@ describe('the overlay sheet', () => {
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
-		const opener = getByRole(mounted.dialog, 'button', { name: labels.lists });
+		const opener = getByRole(mounted.dialog, 'button', { name: defaultLabels.lists });
 
 		opener.click();
 
-		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: labels.lists });
+		const sheet = getByRole(mounted.dialog, 'dialog', { hidden: true, name: defaultLabels.lists });
 		const tablist = getByRole(sheet, 'tablist');
 
 		fireEvent.pointerDown(tablist, { button: 0, clientY: 100, pointerId: 1 });

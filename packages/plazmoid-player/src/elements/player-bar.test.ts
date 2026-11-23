@@ -1,7 +1,8 @@
 import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
+import { formatTemplate } from '#lib/format.ts';
 import { mount } from '#test/mount.ts';
 
 afterEach(() => {
@@ -14,35 +15,33 @@ function transportLabels(part: Element): Array<null | string> {
 	);
 }
 
+function expectedTransport(seconds: number): Array<string> {
+	return [
+		defaultLabels.previous,
+		formatTemplate(defaultLabels.seekBack, { seconds }),
+		defaultLabels.play,
+		formatTemplate(defaultLabels.seekForward, { seconds }),
+		defaultLabels.next,
+	];
+}
+
 describe('<pzm-bar>', () => {
 	test('places the seek pair inside the step buttons, under one named region', () => {
-		const { part } = mount('pzm-bar');
+		const { part, store } = mount('pzm-bar');
 
-		getByRole(part, 'region', { name: labels.nowPlaying });
-		expect(transportLabels(part)).toEqual([
-			labels.previous,
-			labels.seekBack,
-			labels.play,
-			labels.seekForward,
-			labels.next,
-		]);
+		getByRole(part, 'region', { name: defaultLabels.nowPlaying });
+		expect(transportLabels(part)).toEqual(expectedTransport(store.getState().seekSeconds));
 		expect(part.querySelector('pzm-artwork')).not.toBeNull();
 		expect(part.querySelector('dialog')).not.toBeNull();
 		expect(part.querySelector('pzm-scope')).toBeNull();
 	});
 
 	test('leaves out what the root turns off', () => {
-		const { part } = mount('pzm-bar', {
+		const { part, store } = mount('pzm-bar', {
 			root: { isArtworkEnabled: false, isOverlayEnabled: false, isPanelEnabled: false },
 		});
 
-		expect(transportLabels(part)).toEqual([
-			labels.previous,
-			labels.seekBack,
-			labels.play,
-			labels.seekForward,
-			labels.next,
-		]);
+		expect(transportLabels(part)).toEqual(expectedTransport(store.getState().seekSeconds));
 		expect(part.querySelector('pzm-artwork')).toBeNull();
 		expect(part.querySelector('pzm-overlay-toggle')).toBeNull();
 		expect(part.querySelector('dialog')).toBeNull();

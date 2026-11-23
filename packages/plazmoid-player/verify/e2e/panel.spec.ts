@@ -2,15 +2,15 @@ import type { Page } from '@playwright/test';
 
 import { panelZoomStorageKey } from '#constants.ts';
 import { expect, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 // The placeholder animates otherwise, and its frames ask again whether or not the promise settles
 test.use({ reducedMotion: 'reduce' });
 
 async function openPausedPanel(page: Page, isMobile: boolean): Promise<void> {
 	await page.getByRole('button', { name: 'Play long' }).click();
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
-	if (isMobile) await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
+	if (isMobile) await page.getByRole('button', { exact: true, name: defaultLabels.expand }).click();
 	await page.evaluate(() => window.playerPage?.view.getState().setPanelOpen(true));
 }
 
@@ -65,7 +65,22 @@ test('a paused panel asks again for a chunk that failed, and paints it with no i
 		.filter((request) => request.path.endsWith('.peaks.bin') && request.range !== undefined)
 		.map((request) => request.range);
 
-	expect(new Set(peaksRanges)).toStrictEqual(new Set(['bytes=24-18023']));
+	expect(new Set(peaksRanges)).toStrictEqual(new Set(['bytes=24-24599']));
+});
+
+test('a panel handed Peaks of an unknown format version requests none', async ({
+	harness,
+	isMobile,
+	page,
+}) => {
+	await harness.open({ query: { peaks: 1, peaksVersion: 2 } });
+	await openPausedPanel(page, isMobile);
+
+	await expect(page.locator('sonic-waveform:has(:visible)')).toHaveJSProperty('peaks', undefined);
+
+	const requests = await harness.requests();
+
+	expect(requests.filter((request) => request.path.endsWith('.peaks.bin'))).toStrictEqual([]);
 });
 
 test('the zoom keys and a ctrl wheel set the panel scale, and a reload restores it', async ({

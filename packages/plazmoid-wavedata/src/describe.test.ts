@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { describeWavedata } from '#describe.ts';
 import { buildBands, buildPeaks } from '#files.ts';
+import { formatVersion } from '#format.ts';
 
 type Pair = [min: number, max: number, rms: number];
 type Frame = [low: number, mid: number, high: number];
@@ -74,6 +75,15 @@ describe('describeWavedata', () => {
 			pairCount: 4,
 			pairsPerSecond: 187.5,
 		});
+	});
+
+	test("stamps the package's format version, with and without bands", () => {
+		const peaks = peaksOf([silentPair]);
+
+		expect(describeWavedata({ peaks }).formatVersion).toBe(formatVersion);
+		expect(describeWavedata({ bands: bandsOf([[0, 0, 0]]), peaks }).formatVersion).toBe(
+			formatVersion,
+		);
 	});
 
 	test('leaves the bands out when only peaks are given', () => {

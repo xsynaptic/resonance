@@ -4,7 +4,7 @@ import { getByRole } from '@testing-library/dom';
 import { bindPageControls } from '@xsynaptic/plazmoid-core';
 import { afterEach, expect, test, vi } from 'vitest';
 
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
@@ -42,7 +42,7 @@ async function readsPerTick(length: number): Promise<number> {
 
 	store.getState().loadQueue(tracks);
 	store.getState().playAt(0);
-	getByRole(part, 'button', { name: labels.queue }).click();
+	getByRole(part, 'button', { name: defaultLabels.queue }).click();
 	await vi.waitFor(() => {
 		if (!part.querySelector(':scope pzm-tray li')) throw new Error('No tray yet');
 	});

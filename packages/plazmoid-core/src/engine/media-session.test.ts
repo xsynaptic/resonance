@@ -63,7 +63,7 @@ function loadedStore() {
 
 	store.getState().configure({
 		urls: {
-			stream: () => Promise.resolve({ status: 'ok', url: 'https://api.test/a' }),
+			stream: () => Promise.resolve({ sources: [{ url: 'https://api.test/a' }], status: 'ok' }),
 		},
 	});
 	store.getState().loadQueue(release);

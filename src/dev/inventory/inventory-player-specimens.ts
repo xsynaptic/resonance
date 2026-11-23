@@ -92,7 +92,7 @@ export function queuedUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 			const item = find(trackId);
 			if (!item) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
-			return Promise.resolve({ status: 'ok', url: item.press.streamUrl });
+			return Promise.resolve({ sources: [{ url: item.press.streamUrl }], status: 'ok' });
 		},
 	};
 }

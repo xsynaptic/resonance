@@ -1,7 +1,7 @@
 import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
@@ -14,7 +14,7 @@ describe('<pzm-step-button>', () => {
 
 		store.getState().playTrack([sampleTrack('a'), sampleTrack('b')], 'a');
 
-		const next = getByRole(part, 'button', { name: labels.next });
+		const next = getByRole(part, 'button', { name: defaultLabels.next });
 
 		next.focus();
 		next.click();

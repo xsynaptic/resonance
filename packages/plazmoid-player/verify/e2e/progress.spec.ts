@@ -1,14 +1,14 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 test.skip(({ isMobile }) => !isMobile, 'The strip exists only in the mini layout');
 
 function strip(page: Page) {
 	return page
-		.getByRole('region', { name: labels.nowPlaying })
-		.getByRole('slider', { name: labels.seek });
+		.getByRole('region', { name: defaultLabels.nowPlaying })
+		.getByRole('slider', { name: defaultLabels.seek });
 }
 
 test('a tap on the strip seeks to its share of the track', async ({ harness, page }) => {
@@ -35,9 +35,11 @@ test('a drag the browser cancels leaves the position where it was', async ({ har
 	await harness.open();
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expect(strip(page)).toBeVisible();
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
 
-	const slider = page.getByRole('region', { name: labels.nowPlaying }).locator('sonic-slider');
+	const slider = page
+		.getByRole('region', { name: defaultLabels.nowPlaying })
+		.locator('sonic-slider');
 	const { currentTimeSeconds: before } = await harness.read();
 	const box = await strip(page).boundingBox();
 	if (!box) throw new Error('The strip has no box to press');

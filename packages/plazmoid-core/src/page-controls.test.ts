@@ -14,7 +14,8 @@ import { makeTrack } from '#test/player-store.ts';
 let pageControls: PageControls | undefined;
 
 const urls: PlayerUrls = {
-	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+	stream: ({ trackId }) =>
+		Promise.resolve({ sources: [{ url: `https://api.test/${trackId}` }], status: 'ok' }),
 };
 
 afterEach(() => {

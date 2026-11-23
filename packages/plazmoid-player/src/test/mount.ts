@@ -7,11 +7,12 @@ import { createMockEngine, createWritablePlayerStore } from '@xsynaptic/plazmoid
 import type { PlayerRoot } from '#elements/player-root.ts';
 
 import { definePlayerElements } from '#elements/define.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { createViewStore } from '#view/view-store.ts';
 
 const testUrls: PlayerUrls = {
-	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+	stream: ({ trackId }) =>
+		Promise.resolve({ sources: [{ url: `https://api.test/${trackId}` }], status: 'ok' }),
 };
 
 export function landDetail(
@@ -51,7 +52,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 	for (const [name, value] of Object.entries(attributes)) part.setAttribute(name, value);
 
 	store.getState().configure({ urls: testUrls });
-	root.labels = labels;
+	root.labels = defaultLabels;
 	Object.assign(root, rootProperties);
 	root.store = store;
 	root.view = view;

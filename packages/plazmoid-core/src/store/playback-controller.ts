@@ -12,6 +12,7 @@ import type {
 
 import { snapshotMedia } from '#engine/audio-engine.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
+import { pickSource } from '#store/pick-source.ts';
 import { isAwaitingPlayback, loadedTrack } from '#store/selectors.ts';
 
 // Nothing worth resuming stays in the engine after any of these
@@ -329,12 +330,16 @@ async function streamIntoEngine({
 			return;
 		}
 
-		if (resolution.type !== undefined && !engine.canPlay(resolution.type)) {
-			attempt.isTypeDeclined = true;
+		const picked = pickSource(resolution.sources, (type) => engine.canPlay(type));
+
+		if (picked === undefined) {
+			onFail();
+			return;
 		}
 
+		attempt.isTypeDeclined = picked.isTypeDeclined;
 		attempt.hasSource = true;
-		await engine.load({ resumeAtSeconds: readPosition(), src: resolution.url });
+		await engine.load({ resumeAtSeconds: readPosition(), src: picked.source.url });
 	} catch {
 		if (!isCurrent()) return;
 

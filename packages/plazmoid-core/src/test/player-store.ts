@@ -41,7 +41,10 @@ export const release = [makeTrack('a'), makeTrack('b'), makeTrack('c')];
 export function configured(isPersistent = false): StoreApi<PlayerStore> {
 	return withResolver(
 		({ trackId }) =>
-			Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
+			Promise.resolve({
+				sources: [{ url: `https://api.test/tracks/${trackId}/stream` }],
+				status: 'ok',
+			}),
 		isPersistent,
 	);
 }
@@ -64,7 +67,7 @@ export function pendingResolver() {
 
 	return {
 		answer: (trackId: string) => {
-			pending.get(trackId)?.({ status: 'ok', url: `https://api.test/${trackId}` });
+			pending.get(trackId)?.({ sources: [{ url: `https://api.test/${trackId}` }], status: 'ok' });
 		},
 		store,
 	};

@@ -230,6 +230,26 @@ describe('<pzm-time-slider>', () => {
 		expect(readout(part)).toBe('|Forest Signal|50');
 	});
 
+	test('draws the overview for a detail whose peaks are of an unknown format version', () => {
+		const { store, strip } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
+		const drawn = strip.peaks;
+
+		expect(drawn).toBeDefined();
+		landDetail(store, 'a', {
+			peaks: {
+				byteOffset: 24,
+				formatVersion: 2,
+				pairCount: 20_000,
+				pairsPerSecond: 100,
+				rmsRange: [4, 40],
+				url: 'https://api.test/a.peaks.bin',
+			},
+			waveformOverview: overview,
+		});
+
+		expect(strip.peaks).toStrictEqual(drawn);
+	});
+
 	test('clears the last peaks on the same strip for a track measured without them', () => {
 		const { part, store, strip } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
 

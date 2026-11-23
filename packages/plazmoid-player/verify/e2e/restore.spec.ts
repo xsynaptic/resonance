@@ -1,5 +1,5 @@
 import { expect, expectAdvancing, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 test('a reload restores the queue without playing, and a press resumes where it stood', async ({
 	harness,
@@ -16,7 +16,7 @@ test('a reload restores the queue without playing, and a press resumes where it 
 	await page.reload();
 	await harness.waitForBind();
 	await expect(page.getByText('Long fixture')).toBeVisible();
-	await expect(page.getByRole('button', { exact: true, name: labels.play })).toBeVisible();
+	await expect(page.getByRole('button', { exact: true, name: defaultLabels.play })).toBeVisible();
 
 	// Anything that autoplays does so as the root connects, well inside this
 	await page.waitForTimeout(1500);
@@ -29,7 +29,7 @@ test('a reload restores the queue without playing, and a press resumes where it 
 	expect(restored.element).toBeUndefined();
 	expect(await harness.observed()).toMatchObject({ audioCount: 0, playCalls: 0 });
 
-	await page.getByRole('button', { exact: true, name: labels.play }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.play }).click();
 	await expect.poll(() => harness.read()).toMatchObject({ status: 'playing' });
 
 	const { element } = await harness.read();

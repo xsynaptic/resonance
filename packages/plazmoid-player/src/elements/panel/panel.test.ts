@@ -3,8 +3,8 @@ import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
+import { defaultLabels } from '#labels.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
-import { labels } from '#test/labels.ts';
 import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 import { chunkOf, offline, stubPeaksFetch } from '#test/peaks-fetch.ts';
 
@@ -22,6 +22,7 @@ function mountPanel() {
 		landDetail(mounted.store, trackId, {
 			peaks: {
 				byteOffset: 24,
+				formatVersion: 1,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
 				rmsRange: [4, 40],
@@ -87,6 +88,29 @@ describe('<pzm-panel>', () => {
 
 		void waveform.requestPeaks?.(0, 1);
 		expect(urls()).toStrictEqual(['https://api.test/b.peaks.bin']);
+	});
+
+	test('opens no reader for a descriptor of a format version it does not know', async () => {
+		const { urls } = stubPeaksFetch(offline);
+		const mounted = mount('pzm-panel');
+
+		mounted.store.getState().playTrack([sampleTrack('a', { durationMs: 200_000 })], 'a');
+		landDetail(mounted.store, 'a', {
+			peaks: {
+				byteOffset: 24,
+				formatVersion: 2,
+				pairCount: 20_000,
+				pairsPerSecond: 100,
+				rmsRange: [4, 40],
+				url: 'https://api.test/a.peaks.bin',
+			},
+		});
+
+		const waveform = await openPanel(mounted);
+
+		expect(waveform.peaks).toBeUndefined();
+		expect(waveform.requestPeaks).toBeUndefined();
+		expect(urls()).toStrictEqual([]);
 	});
 
 	test('settles a request for a failed chunk as its wait ends, so asking again lands the samples', async () => {
@@ -156,6 +180,7 @@ describe('<pzm-panel>', () => {
 					url: 'https://api.test/tinted.bands.bin',
 				},
 				byteOffset: 24,
+				formatVersion: 1,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
 				rmsRange: [4, 40],
@@ -184,8 +209,8 @@ describe('<pzm-panel>', () => {
 		const mounted = mountPanel();
 		const waveform = await openPanel(mounted);
 
-		expect(getByRole(mounted.part, 'group', { name: labels.waveformPanel })).toBeDefined();
-		expect(waveform.getAttribute('aria-label')).toBe(labels.waveformSeek);
+		expect(getByRole(mounted.part, 'group', { name: defaultLabels.waveformPanel })).toBeDefined();
+		expect(waveform.getAttribute('aria-label')).toBe(defaultLabels.waveformSeek);
 
 		waveform.value = 40;
 		waveform.dispatchEvent(new Event('change'));
@@ -199,8 +224,8 @@ describe('<pzm-panel>', () => {
 		mounted.view.getState().setPanelZoom(240);
 		await openPanel(mounted);
 
-		const zoomIn = getByRole(mounted.part, 'button', { name: labels.zoomIn });
-		const zoomOut = getByRole(mounted.part, 'button', { name: labels.zoomOut });
+		const zoomIn = getByRole(mounted.part, 'button', { name: defaultLabels.zoomIn });
+		const zoomOut = getByRole(mounted.part, 'button', { name: defaultLabels.zoomOut });
 
 		expect(zoomIn.getAttribute('aria-disabled')).toBe('true');
 
@@ -221,7 +246,7 @@ describe('<pzm-panel>', () => {
 		waveform.zoom = 239;
 		waveform.dispatchEvent(new Event('sonic-zoom'));
 
-		const zoomIn = getByRole(mounted.part, 'button', { name: labels.zoomIn });
+		const zoomIn = getByRole(mounted.part, 'button', { name: defaultLabels.zoomIn });
 
 		expect(mounted.view.getState().panelPxPerSecond).toBe(239);
 		expect(zoomIn.hasAttribute('aria-disabled')).toBe(false);

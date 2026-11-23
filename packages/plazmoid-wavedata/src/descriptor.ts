@@ -1,6 +1,7 @@
 export interface PeaksDescriptor {
 	bands?: BandsDescriptor;
 	byteOffset: number;
+	formatVersion: number;
 	pairCount: number;
 	pairsPerSecond: number;
 	rmsRange: readonly [quiet: number, loud: number];

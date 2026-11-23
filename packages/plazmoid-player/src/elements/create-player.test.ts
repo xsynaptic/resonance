@@ -5,11 +5,12 @@ import { createMemoryStorage, createPlayerStore } from '@xsynaptic/plazmoid-core
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { createPlayer } from '#elements/create-player.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { createViewStore } from '#view/view-store.ts';
 
 const urls: PlayerUrls = {
-	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
+	stream: ({ trackId }) =>
+		Promise.resolve({ sources: [{ url: `https://api.test/${trackId}` }], status: 'ok' }),
 };
 
 afterEach(() => {
@@ -25,7 +26,7 @@ describe('createPlayer', () => {
 			isOverlayEnabled: false,
 			isPanelEnabled: false,
 			isScopeEnabled: true,
-			labels: { ...labels, seekBack: 'Back {seconds}' },
+			labels: { ...defaultLabels, seekBack: 'Back {seconds}' },
 			seekSeconds: 15,
 			store,
 			urls,

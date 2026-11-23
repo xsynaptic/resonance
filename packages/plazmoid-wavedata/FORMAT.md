@@ -8,6 +8,8 @@ Two binary files describe one track's waveform, and a short string describes it 
 
 All integers are little-endian. Neither file is compressed, padded or aligned, and neither has a trailer.
 
+Both headers carry one version number, the format's, and the two files of a track always carry the same one. This document describes version 1.
+
 ## Before reducing
 
 A writer decodes the track and prepares four signals at the source's own sample rate. Nothing in the files records how this was done, and the fixtures start after it, so these rules are the only statement of it.
@@ -82,6 +84,7 @@ A reader never requests a header. Whoever publishes the files hands the reader a
 
 | Fact               | Value                 |
 | ------------------ | --------------------- |
+| `formatVersion`    | 1                     |
 | Peaks `byteOffset` | 24                    |
 | `pairCount`        | From the Peaks header |
 | `pairsPerSecond`   | Sample rate ÷ 256     |
@@ -92,6 +95,8 @@ A reader never requests a header. Whoever publishes the files hands the reader a
 | `bandCount`        | 3                     |
 | `minDecibels`      | −60                   |
 | `medians`          | See below             |
+
+**`formatVersion`** sits on the Peaks descriptor and covers the Bands nested in it. A reader handed a version it does not know reads neither file, and draws the track as if it had no descriptor; it never guesses at a layout from a newer writer.
 
 **`rmsRange`** is a quiet level and a loud level, in the Peaks' own units. Take the RMS byte of every pair above −60 dBFS. A stored RMS of 1 is already −42 dBFS, so that is every pair whose RMS byte is 1 or more. Sort them ascending and take the 10th and the 95th percentiles by nearest rank: with `n` values, the value at position ⌈0.10 × `n`⌉ and the value at position ⌈0.95 × `n`⌉, counting from 1. A track with no such pair has a range of `[0, 0]`.
 

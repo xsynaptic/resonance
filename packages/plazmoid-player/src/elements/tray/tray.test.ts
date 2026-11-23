@@ -10,8 +10,8 @@ import {
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { trayModule } from '#elements/tray/tray-module.ts';
+import { defaultLabels } from '#labels.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
-import { labels } from '#test/labels.ts';
 import { mount, sampleTrack } from '#test/mount.ts';
 
 const threeTracks = [sampleTrack('a'), sampleTrack('b'), sampleTrack('c')];
@@ -30,7 +30,7 @@ async function mountDraggableTray() {
 		);
 	}
 
-	const [handle] = getAllByRole(list, 'button', { name: labels.reorder });
+	const [handle] = getAllByRole(list, 'button', { name: defaultLabels.reorder });
 	if (!handle) throw new Error('The tray drew no reorder handle');
 
 	return { handle, list, mounted };
@@ -49,7 +49,7 @@ async function mountTray(tracks: Array<Track> = threeTracks) {
 
 async function openQueue() {
 	const mounted = mount('pzm-queue-button');
-	const trigger = getByRole(mounted.part, 'button', { name: labels.queue });
+	const trigger = getByRole(mounted.part, 'button', { name: defaultLabels.queue });
 
 	mounted.store.getState().loadQueue(threeTracks);
 	trigger.click();
@@ -90,14 +90,14 @@ describe('<pzm-queue-button> with its tray', () => {
 
 	test('heads the tray with Shuffle, which reads pressed while on, and Clear', async () => {
 		const { part, store } = await openQueue();
-		const shuffle = getByRole(part, 'button', { name: labels.shuffle });
+		const shuffle = getByRole(part, 'button', { name: defaultLabels.shuffle });
 
 		shuffle.click();
 
 		expect(store.getState().isShuffling).toBe(true);
 		expect(shuffle.getAttribute('aria-pressed')).toBe('true');
 
-		getByRole(part, 'button', { name: labels.clearQueue }).click();
+		getByRole(part, 'button', { name: defaultLabels.clearQueue }).click();
 
 		expect(store.getState().queue).toHaveLength(0);
 	});
@@ -127,7 +127,7 @@ describe('<pzm-queue-button> with its tray', () => {
 		vi.stubGlobal('reportError', reportError);
 
 		const { part, store, view } = mount('pzm-queue-button');
-		const trigger = getByRole(part, 'button', { name: labels.queue });
+		const trigger = getByRole(part, 'button', { name: defaultLabels.queue });
 
 		store.getState().loadQueue([sampleTrack('a')]);
 		trigger.click();
@@ -144,7 +144,7 @@ describe('<pzm-tray>', () => {
 	test('removes a row, and shows the empty message once the queue is cleared', async () => {
 		const { part, store } = await mountTray();
 
-		getAllByRole(part, 'button', { name: labels.removeFromQueue })[1]?.click();
+		getAllByRole(part, 'button', { name: defaultLabels.removeFromQueue })[1]?.click();
 
 		expect(getAllByRole(part, 'listitem').map((row) => row.textContent)).toStrictEqual([
 			expect.stringContaining('Mix a'),
@@ -154,12 +154,12 @@ describe('<pzm-tray>', () => {
 		store.getState().clearQueue();
 
 		expect(queryAllByRole(part, 'listitem')).toHaveLength(0);
-		expect(getByText(part, labels.empty).hidden).toBe(false);
+		expect(getByText(part, defaultLabels.empty).hidden).toBe(false);
 	});
 
 	test('moves a row on Alt+Arrow, announces the move and keeps focus on its handle', async () => {
 		const mounted = await mountTray();
-		const handle = getAllByRole(mounted.part, 'button', { name: labels.reorder })[1];
+		const handle = getAllByRole(mounted.part, 'button', { name: defaultLabels.reorder })[1];
 
 		handle?.focus();
 		fireEvent.keyDown(handle ?? document.body, { altKey: true, key: 'ArrowUp' });

@@ -6,6 +6,7 @@ export {
 	bandEdges,
 	bandsDecibelRange,
 	bandsHeaderBytes,
+	formatVersion,
 	overviewFullScale,
 	peaksFieldCount,
 	peaksFullScale,

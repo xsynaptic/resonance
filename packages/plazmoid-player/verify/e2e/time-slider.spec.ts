@@ -1,5 +1,5 @@
 import { expect, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 test.skip(({ isMobile }) => isMobile, 'The mini layout has no waveform to drag');
 
@@ -7,14 +7,14 @@ test('a mouse drag reads out the held time, and one let go past the cancel zone 
 	harness,
 	page,
 }) => {
-	const bar = page.getByRole('region', { name: labels.nowPlaying });
-	const slider = bar.getByRole('slider', { name: labels.seek });
+	const bar = page.getByRole('region', { name: defaultLabels.nowPlaying });
+	const slider = bar.getByRole('slider', { name: defaultLabels.seek });
 	const bubble = bar.locator('.pzm-cue-label');
 
 	await harness.open({ query: { cued: 1 } });
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expect(slider).not.toHaveAttribute('aria-valuemax', '0');
-	await page.getByRole('button', { exact: true, name: labels.pause }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.pause }).click();
 
 	const { currentTimeSeconds: before } = await harness.read();
 	const box = await slider.boundingBox();

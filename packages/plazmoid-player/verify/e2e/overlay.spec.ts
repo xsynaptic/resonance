@@ -1,20 +1,20 @@
 import { expect, test } from '#e2e/test.ts';
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 
 test.skip(({ isMobile }) => !isMobile, 'The sheet exists only in the phone layout');
 
 test('a sheet dismissed by a drag reopens on screen', async ({ harness, page }) => {
 	const opener = page
-		.getByRole('dialog', { name: labels.nowPlaying })
-		.getByRole('button', { exact: true, name: labels.lists });
-	const sheet = page.getByRole('dialog', { name: labels.lists });
+		.getByRole('dialog', { name: defaultLabels.nowPlaying })
+		.getByRole('button', { exact: true, name: defaultLabels.lists });
+	const sheet = page.getByRole('dialog', { name: defaultLabels.lists });
 
 	const settled = () =>
 		expect.poll(() => sheet.evaluate((element) => element.getAnimations().length)).toBe(0);
 
 	await harness.open();
 	await page.getByRole('button', { name: 'Play long' }).click();
-	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.expand }).click();
 	await opener.click();
 	await expect(sheet).toBeVisible();
 	await settled();
@@ -51,14 +51,14 @@ test('a touch held on the waveform swaps the title block to the cue point under 
 	harness,
 	page,
 }) => {
-	const overlay = page.getByRole('dialog', { name: labels.nowPlaying });
-	const slider = overlay.getByRole('slider', { name: labels.seek });
+	const overlay = page.getByRole('dialog', { name: defaultLabels.nowPlaying });
+	const slider = overlay.getByRole('slider', { name: defaultLabels.seek });
 	const readout = overlay.locator('.pzm-scrub-readout');
 	const bubble = overlay.locator('.pzm-cue-label');
 
 	await harness.open({ query: { cued: 1 } });
 	await page.getByRole('button', { name: 'Play long' }).click();
-	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.expand }).click();
 	await expect(slider).not.toHaveAttribute('aria-valuemax', '0');
 
 	await expect.poll(() => overlay.evaluate((element) => element.getAnimations().length)).toBe(0);

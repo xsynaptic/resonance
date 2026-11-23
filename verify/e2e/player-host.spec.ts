@@ -1,8 +1,10 @@
 import type { Page } from '@playwright/test';
 
+import { defaultLabels } from '@xsynaptic/plazmoid-player/labels';
+
 import type { SitePaths } from '#e2e/site-paths.ts';
 
-import { isDev } from '#e2e/constants.ts';
+import { isDev, streamUrlPattern } from '#e2e/constants.ts';
 import { expect, test, visit } from '#e2e/test.ts';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
@@ -109,8 +111,8 @@ async function playAListenThrough(page: Page, site: SitePaths): Promise<void> {
 	await expectAdvancing(page, heardSecondsMinimum + 1, 30_000);
 
 	await page
-		.getByRole('region', { name: t('player.nowPlaying') })
-		.getByRole('button', { exact: true, name: t('player.pause') })
+		.getByRole('region', { name: defaultLabels.nowPlaying })
+		.getByRole('button', { exact: true, name: defaultLabels.pause })
 		.click();
 }
 
@@ -226,6 +228,33 @@ test('a press plays at once, and the bar waits for its wave strip from the Libra
 	await expect
 		.poll(() => bar.locator('sonic-wavestrip').evaluate((strip) => strip.matches(':state(empty)')))
 		.toBe(false);
+});
+
+test.describe('under reduced motion', () => {
+	test.use({ reducedMotion: 'reduce' });
+
+	test("the site's motion reset leaves Play's loading ring running", async ({ page, site }) => {
+		const held = Promise.withResolvers<undefined>();
+
+		await page.route(streamUrlPattern, async (route) => {
+			await held.promise;
+			await route.fallback();
+		});
+
+		await visit(page, site.mixDetail);
+		await pressPlay(page);
+
+		const marked = page.locator('.pzm-bar [data-pzm-essential-motion]');
+
+		await expect(marked).toHaveCount(1);
+		expect(
+			await marked.evaluate(
+				(element) => getComputedStyle(element, '::after').animationIterationCount,
+			),
+		).toContain('infinite');
+
+		held.resolve(undefined);
+	});
 });
 
 test('a listen past 30 heard seconds sends one beacon', async ({ listens, page, site }) => {

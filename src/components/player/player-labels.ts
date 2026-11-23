@@ -1,45 +1,9 @@
 import type { PlayerLabels } from '@xsynaptic/plazmoid-player';
 
-import { t } from '#lib/i18n/i18n-strings.ts';
+import { defaultLabels } from '@xsynaptic/plazmoid-player/labels';
 
 export const seekSeconds = 15;
 
-// Serialized into the bar's JSON script rather than imported by the host script, which would ship the whole strings table
 export function getPlayerLabels(): PlayerLabels {
-	return {
-		capped: t('player.capped'),
-		clearQueue: t('player.clearQueue'),
-		close: t('player.close'),
-		empty: t('player.empty'),
-		error: t('player.error'),
-		expand: t('player.expand'),
-		lists: t('player.lists'),
-		loading: t('player.loading'),
-		moved: t('player.moved'),
-		mute: t('player.mute'),
-		next: t('player.next'),
-		nowPlaying: t('player.nowPlaying'),
-		pause: t('player.pause'),
-		play: t('player.play'),
-		previous: t('player.previous'),
-		queue: t('player.queue'),
-		removeFromQueue: t('player.removeFromQueue'),
-		reorder: t('player.reorder'),
-		scope: t('player.scope'),
-		seek: t('player.seek'),
-		seekBack: t('player.seekBack'),
-		seekForward: t('player.seekForward'),
-		seekPosition: t('player.seekPosition'),
-		shuffle: t('player.shuffle'),
-		timestampsPartial: t('player.timestampsPartial'),
-		toggleTimeMode: t('player.toggleTimeMode'),
-		tracklist: t('player.tracklist'),
-		unmute: t('player.unmute'),
-		unplayable: t('player.unplayable'),
-		volume: t('player.volume'),
-		waveformPanel: t('player.waveformPanel'),
-		waveformSeek: t('player.waveformSeek'),
-		zoomIn: t('player.zoomIn'),
-		zoomOut: t('player.zoomOut'),
-	};
+	return { ...defaultLabels };
 }

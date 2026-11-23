@@ -111,7 +111,7 @@ function libraryUrls(loadLibrary: () => Promise<Library>): PlayerUrls {
 				return Promise.reject(new Error(`No stream URL for ${item.trackId}`));
 			}
 
-			return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
+			return Promise.resolve({ sources: [{ type: streamType, url: streamUrl }], status: 'ok' });
 		},
 	};
 }

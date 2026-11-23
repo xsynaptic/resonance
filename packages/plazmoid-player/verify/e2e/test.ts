@@ -4,8 +4,8 @@ import type { PlaybackDiagnostic } from '@xsynaptic/plazmoid-core';
 import { test as base, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
-import { fixtureOrigin } from '#e2e/constants.ts';
-import { labels } from '#test/labels.ts';
+import { fixtureOrigin, seekSeconds } from '#e2e/constants.ts';
+import { defaultLabels } from '#labels.ts';
 
 export { expect } from '@playwright/test';
 
@@ -93,34 +93,38 @@ function observeAudio(): void {
 	});
 }
 
+function controlName(control: Exclude<BarControl, 'clearQueue'>): string {
+	return defaultLabels[control].replace('{seconds}', () => String(seekSeconds));
+}
+
 async function pressInBar(page: Page, control: BarControl): Promise<void> {
-	const bar = page.getByRole('region', { name: labels.nowPlaying });
+	const bar = page.getByRole('region', { name: defaultLabels.nowPlaying });
 
 	if (control !== 'clearQueue') {
-		await bar.getByRole('button', { exact: true, name: labels[control] }).click();
+		await bar.getByRole('button', { exact: true, name: controlName(control) }).click();
 		return;
 	}
 
-	await bar.getByRole('button', { exact: true, name: labels.queue }).click();
-	await bar.getByRole('button', { exact: true, name: labels.clearQueue }).click();
+	await bar.getByRole('button', { exact: true, name: defaultLabels.queue }).click();
+	await bar.getByRole('button', { exact: true, name: defaultLabels.clearQueue }).click();
 }
 
 async function pressInOverlay(page: Page, control: BarControl): Promise<void> {
-	const overlay = page.getByRole('dialog', { name: labels.nowPlaying });
+	const overlay = page.getByRole('dialog', { name: defaultLabels.nowPlaying });
 
-	await page.getByRole('button', { exact: true, name: labels.expand }).click();
+	await page.getByRole('button', { exact: true, name: defaultLabels.expand }).click();
 
 	if (control === 'clearQueue') {
-		await overlay.getByRole('button', { exact: true, name: labels.lists }).click();
+		await overlay.getByRole('button', { exact: true, name: defaultLabels.lists }).click();
 		await page
-			.getByRole('dialog', { name: labels.lists })
-			.getByRole('button', { exact: true, name: labels.clearQueue })
+			.getByRole('dialog', { name: defaultLabels.lists })
+			.getByRole('button', { exact: true, name: defaultLabels.clearQueue })
 			.click();
 		await expect(overlay).toBeHidden();
 		return;
 	}
 
-	await overlay.getByRole('button', { exact: true, name: labels[control] }).click();
+	await overlay.getByRole('button', { exact: true, name: controlName(control) }).click();
 	// A touch device hides the floating Close behind the cover's swipe, so Escape is the way out every project has
 	await page.keyboard.press('Escape');
 	await expect(overlay).toBeHidden();

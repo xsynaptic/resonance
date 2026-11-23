@@ -3,11 +3,10 @@ import {
 	bandEdges,
 	bandsDecibelRange,
 	bandsHeaderBytes,
-	bandsVersion,
+	formatVersion,
 	minMaxRmsKind,
 	peaksFieldCount,
 	peaksHeaderBytes,
-	peaksVersion,
 	rmsDecibelsKind,
 	samplesPerFrame,
 	samplesPerPair,
@@ -33,7 +32,7 @@ const countOffset = 12;
 
 const peaksLayout: HeaderLayout = {
 	fields: [
-		['version', 0, peaksVersion],
+		['version', 0, formatVersion],
 		['samples per pair', 8, samplesPerPair],
 		['field count', 16, peaksFieldCount],
 		['value kind', 20, minMaxRmsKind],
@@ -45,7 +44,7 @@ const peaksLayout: HeaderLayout = {
 
 const bandsLayout: HeaderLayout = {
 	fields: [
-		['version', 0, bandsVersion],
+		['version', 0, formatVersion],
 		['samples per frame', 8, samplesPerFrame],
 		['band count', 16, bandCount],
 		['first band edge', 20, bandEdges[0]],

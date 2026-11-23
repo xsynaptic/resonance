@@ -1,7 +1,7 @@
 import { SonicSlider } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
@@ -38,7 +38,7 @@ describe('<pzm-progress>', () => {
 
 		expect(inertness()).toEqual([false, 'false']);
 		expect([slider.value, slider.max]).toEqual([45, 180]);
-		expect(slider.getAttribute('aria-label')).toBe(labels.seek);
+		expect(slider.getAttribute('aria-label')).toBe(defaultLabels.seek);
 
 		store.getState().clearQueue();
 

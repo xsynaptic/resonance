@@ -11,8 +11,6 @@ export const bandEdges = [200, 2000] as const;
 
 export const overviewFullScale = 255;
 
-export const peaksVersion = 1;
+export const formatVersion = 1;
 export const minMaxRmsKind = 1;
-
-export const bandsVersion = 1;
 export const rmsDecibelsKind = 1;

@@ -31,7 +31,7 @@ const overviewExtension = '.overview.json';
 const tmpExtension = '.tmp';
 
 // Bumped whenever the bucket count, the output range or the source values change; none is visible in an mtime
-const overviewVersion = 7;
+const overviewVersion = 8;
 const overviewBuckets = 400;
 
 const rmsField = 2;

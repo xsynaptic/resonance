@@ -58,6 +58,7 @@
 			"minDecibels": -60
 		},
 		"byteOffset": 24,
+		"formatVersion": 1,
 		"pairCount": 10,
 		"pairsPerSecond": 172.265625,
 		"rmsRange": [32, 127]

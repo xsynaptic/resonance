@@ -1,11 +1,13 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
+import { validateWavedata } from '@xsynaptic/plazmoid-wavedata';
 import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import path from 'node:path';
 
 import { fixturePort } from '#e2e/constants.ts';
+import { fixturePeaks } from '#e2e/fixture-peaks.ts';
 
 interface LoggedRequest {
 	path: string;
@@ -23,21 +25,11 @@ const contentTypes: Record<string, string> = {
 
 const garbage = randomBytes(256 * 1024);
 
-const peakPairs = 6000;
-const peaks = Buffer.alloc(24 + peakPairs * 3);
+const problems = validateWavedata({ peaks: fixturePeaks });
 
-peaks.writeUInt32LE(1, 0);
-peaks.writeUInt32LE(44_100, 4);
-peaks.writeUInt32LE(441, 8);
-peaks.writeUInt32LE(peakPairs, 12);
-peaks.writeUInt32LE(3, 16);
-peaks.writeUInt32LE(1, 20);
+if (problems.length > 0) throw new Error(`The fixture Peaks are invalid: ${problems.join('; ')}`);
 
-for (let pair = 0; pair < peakPairs; pair += 1) {
-	peaks.writeInt8(-90, 24 + pair * 3);
-	peaks.writeInt8(90, 25 + pair * 3);
-	peaks.writeInt8(60, 26 + pair * 3);
-}
+const peaks = Buffer.from(fixturePeaks.buffer, fixturePeaks.byteOffset, fixturePeaks.byteLength);
 
 // Per page run, so parallel tests read only their own requests
 const requestLog = new Map<string, Array<LoggedRequest>>();

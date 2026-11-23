@@ -1,7 +1,7 @@
 import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { labels } from '#test/labels.ts';
+import { defaultLabels } from '#labels.ts';
 import { mount } from '#test/mount.ts';
 
 afterEach(() => {
@@ -15,7 +15,7 @@ describe('<pzm-status>', () => {
 
 		store.setState({ status: 'error' });
 
-		expect(region.textContent).toBe(labels.error);
+		expect(region.textContent).toBe(defaultLabels.error);
 		expect(region.dataset.status).toBe('error');
 		expect(region.dataset.visible).toBe('');
 		expect(region.querySelector('svg')).not.toBeNull();
@@ -23,11 +23,11 @@ describe('<pzm-status>', () => {
 		store.setState({ status: 'playing' });
 
 		expect(region.dataset.visible).toBeUndefined();
-		expect(region.textContent).toBe(labels.error);
+		expect(region.textContent).toBe(defaultLabels.error);
 
 		store.setState({ status: 'capped' });
 
-		expect(region.textContent).toBe(labels.capped);
+		expect(region.textContent).toBe(defaultLabels.capped);
 		expect(region.querySelector('svg')).toBeNull();
 	});
 });

@@ -5,6 +5,7 @@ import {
 	bandCount,
 	bandsDecibelRange,
 	bandsHeaderBytes,
+	formatVersion,
 	peaksFieldCount,
 	peaksFullScale,
 	peaksHeaderBytes,
@@ -37,6 +38,7 @@ export function describeWavedata({
 
 	const facts: PeaksFacts = {
 		byteOffset: peaksHeaderBytes,
+		formatVersion,
 		pairCount,
 		pairsPerSecond: sampleRate / samplesPerPair,
 		rmsRange: levelRange(fields, pairCount),

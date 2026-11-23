@@ -29,8 +29,8 @@ describe('engine errors', () => {
 		const store = withResolver(({ trackId }) => {
 			resolved.push(trackId);
 			return Promise.resolve({
+				sources: [{ url: `https://api.test/tracks/${trackId}/${String(resolved.length)}` }],
 				status: 'ok',
-				url: `https://api.test/tracks/${trackId}/${String(resolved.length)}`,
 			});
 		});
 
@@ -56,8 +56,8 @@ describe('engine errors', () => {
 		const store = withResolver(({ trackId }) => {
 			resolved.push(trackId);
 			return Promise.resolve({
+				sources: [{ url: `https://api.test/tracks/${trackId}/${String(resolved.length)}` }],
 				status: 'ok',
-				url: `https://api.test/tracks/${trackId}/${String(resolved.length)}`,
 			});
 		});
 
@@ -101,9 +101,10 @@ describe('engine errors', () => {
 	test('loads a type the probe declined, and plays it when the probe was wrong', async () => {
 		const store = withResolver(({ trackId }) =>
 			Promise.resolve({
+				sources: [
+					{ type: 'audio/mp4; codecs="Opus"', url: `https://api.test/tracks/${trackId}/stream` },
+				],
 				status: 'ok',
-				type: 'audio/mp4; codecs="Opus"',
-				url: `https://api.test/tracks/${trackId}/stream`,
 			}),
 		);
 		fake.engine.canPlay.mockReturnValue(false);
@@ -123,9 +124,8 @@ describe('engine errors', () => {
 		const store = withResolver(({ trackId }) => {
 			resolved.push(trackId);
 			return Promise.resolve({
+				sources: [{ type: 'audio/x-unplayable', url: `https://api.test/tracks/${trackId}/stream` }],
 				status: 'ok',
-				type: 'audio/x-unplayable',
-				url: `https://api.test/tracks/${trackId}/stream`,
 			});
 		});
 		fake.engine.canPlay.mockReturnValue(false);
@@ -144,9 +144,10 @@ describe('engine errors', () => {
 	test('an unsupported failure on a type the probe accepted still earns its re-resolve', async () => {
 		const store = withResolver(({ trackId }) =>
 			Promise.resolve({
+				sources: [
+					{ type: 'audio/mp4; codecs="Opus"', url: `https://api.test/tracks/${trackId}/stream` },
+				],
 				status: 'ok',
-				type: 'audio/mp4; codecs="Opus"',
-				url: `https://api.test/tracks/${trackId}/stream`,
 			}),
 		);
 
@@ -162,6 +163,50 @@ describe('engine errors', () => {
 		expect(store.getState().status).not.toBe('unplayable');
 	});
 
+	test('loads the accepted second source past a refused first, and retries its unsupported failure', async () => {
+		const resolved: Array<string> = [];
+		const store = withResolver(({ trackId }) => {
+			resolved.push(trackId);
+			return Promise.resolve({
+				sources: [
+					{ type: 'audio/x-unplayable', url: `https://api.test/tracks/${trackId}/first` },
+					{ type: 'audio/mp4; codecs="Opus"', url: `https://api.test/tracks/${trackId}/second` },
+				],
+				status: 'ok',
+			});
+		});
+		fake.engine.canPlay.mockReturnValueOnce(false);
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(1);
+		});
+
+		expect(fake.engine.load).toHaveBeenCalledWith({
+			resumeAtSeconds: 0,
+			src: 'https://api.test/tracks/a/second',
+		});
+
+		fake.callbacks.current?.onError('unsupported');
+		await vi.waitFor(() => {
+			expect(fake.engine.load).toHaveBeenCalledTimes(2);
+		});
+		expect(resolved).toStrictEqual(['a', 'a']);
+		expect(store.getState().status).not.toBe('unplayable');
+	});
+
+	test('ends an empty source list as an error at the resolve stage, without loading', async () => {
+		const store = withResolver(() => Promise.resolve({ sources: [], status: 'ok' }));
+
+		store.getState().playTrack(release, 'a');
+		await vi.waitFor(() => {
+			expect(store.getState().status).toBe('error');
+		});
+
+		expect(fake.engine.load).not.toHaveBeenCalled();
+		expect(store.getState().playbackError).toStrictEqual({ stage: 'resolve', trackId: 'a' });
+	});
+
 	test('drops a resolve that lands after the listener moved on', async () => {
 		const pending = new Map<string, (resolution: StreamResolution) => void>();
 		const store = withResolver(
@@ -175,8 +220,8 @@ describe('engine errors', () => {
 		store.getState().playTrack(release, 'b');
 
 		// The abandoned track answers last, the order that would otherwise pull the queue back
-		pending.get('b')?.({ status: 'ok', url: 'https://api.test/b' });
-		pending.get('a')?.({ status: 'ok', url: 'https://api.test/a' });
+		pending.get('b')?.({ sources: [{ url: 'https://api.test/b' }], status: 'ok' });
+		pending.get('a')?.({ sources: [{ url: 'https://api.test/a' }], status: 'ok' });
 
 		await vi.waitFor(() => {
 			expect(fake.engine.load).toHaveBeenCalledTimes(1);

@@ -9,10 +9,12 @@ import type {
 import type { ViewStoreApi } from '@xsynaptic/plazmoid-player';
 
 import { holdPresses } from '@xsynaptic/plazmoid-core/boot';
+import { describeWavedata } from '@xsynaptic/plazmoid-wavedata';
 import '@xsynaptic/plazmoid-player/player.css';
 
 import { fixtureOrigin, seekSeconds } from '#e2e/constants.ts';
-import { labels } from '#test/labels.ts';
+import { fixturePeaks } from '#e2e/fixture-peaks.ts';
+import { defaultLabels } from '#labels.ts';
 
 interface PlayerPage {
 	diagnostics: Array<PlaybackDiagnostic>;
@@ -48,18 +50,26 @@ const streamTypes = {
 	lowercase: 'audio/mp4; codecs="opus"',
 } as const;
 
+const unplayableType = 'audio/x-unplayable';
+
 const parameters = new URLSearchParams(location.search);
 
 const settings = {
 	bindDelay: Number(parameters.get('bindDelay') ?? 0),
 	detail: readChoice('detail', ['answer', 'hang']),
+	hasFallback: parameters.has('fallback'),
 	hasPeaks: parameters.has('peaks'),
 	isCued: parameters.has('cued'),
+	peaksVersion: readNumber('peaksVersion'),
 	rows: (parameters.get('rows') ?? 'long,short').split(',').filter((row) => isFixture(row)),
 	run: parameters.get('run') ?? 'manual',
 	stream: readChoice('stream', ['audio', 'missing', 'garbage', 'hang', 'flaky', 'stalled']),
 	type: readChoice('type', ['capital', 'lowercase']),
 };
+
+const { byteOffset, formatVersion, pairCount, pairsPerSecond, rmsRange } = describeWavedata({
+	peaks: fixturePeaks,
+});
 
 let resolveCount = 0;
 
@@ -76,17 +86,17 @@ const urls: PlayerUrls = {
 	},
 };
 
-// Matches the header the fixture server writes: 6000 pairs at 44100 / 441
 function detailOf({ trackId }: Track): TrackDetail {
 	return {
 		...(settings.isCued ? cued : {}),
 		...(settings.hasPeaks
 			? {
 					peaks: {
-						byteOffset: 24,
-						pairCount: 6000,
-						pairsPerSecond: 100,
-						rmsRange: [60, 60],
+						byteOffset,
+						formatVersion: settings.peaksVersion ?? formatVersion,
+						pairCount,
+						pairsPerSecond,
+						rmsRange,
 						url: peaksUrl(trackId),
 					},
 				}
@@ -106,6 +116,12 @@ function isFixture(row: string): row is keyof typeof fixtures {
 	return Object.hasOwn(fixtures, row);
 }
 
+function readNumber(name: string): number | undefined {
+	const value = parameters.get(name);
+
+	return value === null ? undefined : Number(value);
+}
+
 function readChoice<Choice extends string>(
 	name: string,
 	choices: readonly [Choice, ...Array<Choice>],
@@ -120,7 +136,22 @@ function resolveStream(track: Track): StreamResolution {
 	const url: unknown = Reflect.get(track, 'streamUrl');
 	if (typeof url !== 'string') throw new TypeError(`No stream URL for ${track.trackId}`);
 
-	return { status: 'ok', type: streamTypes[settings.type], url };
+	const source = { type: streamTypes[settings.type], url };
+
+	if (!settings.hasFallback) return { sources: [source], status: 'ok' };
+
+	return {
+		sources: [{ type: unplayableType, url: refusedUrl(track.trackId) }, source],
+		status: 'ok',
+	};
+}
+
+function refusedUrl(trackId: string): string {
+	const url = new URL(`/garbage/${trackId}.mp4`, fixtureOrigin);
+
+	url.searchParams.set('run', settings.run);
+
+	return url.href;
 }
 
 function streamUrl(trackId: string): string {
@@ -170,7 +201,7 @@ const view = createViewStore();
 
 document
 	.querySelector('[data-player-host]')
-	?.append(createPlayer({ labels, seekSeconds, store, urls, view }));
+	?.append(createPlayer({ labels: defaultLabels, seekSeconds, store, urls, view }));
 
 bindPageControls(store, document);
 presses.release();

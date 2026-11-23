@@ -171,7 +171,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	import type { PlayerLabels, ViewStoreApi } from '@xsynaptic/plazmoid-player';
 
 	import { createMemoryStorage, createPlayerStore } from '@xsynaptic/plazmoid-core';
-	import { createViewStore, definePlayerElements } from '@xsynaptic/plazmoid-player';
+	import { createViewStore } from '@xsynaptic/plazmoid-player';
 
 	import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -259,7 +259,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			if (root.isConnected) root.replaceWith(root);
 		}
 
-		definePlayerElements();
+		void import('@xsynaptic/plazmoid-player/define');
 	}
 
 	function specimenItems(items: Array<MixQueueItem>, queue: string): Array<Track> {

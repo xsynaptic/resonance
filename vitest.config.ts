@@ -29,28 +29,11 @@ export default defineConfig({
 						'.claude/worktrees/**',
 						'dist/**',
 						'verify/**',
-						'packages/astro-comments/**',
 						'packages/playback-stats/**',
 						'packages/plazmoid-core/**',
 						'packages/plazmoid-player/**',
 					],
 					name: 'site',
-				},
-			},
-			{
-				extends: true,
-				test: {
-					exclude: ['packages/astro-comments/src/element/**'],
-					include: ['packages/astro-comments/src/**/*.test.ts'],
-					name: 'astro-comments',
-				},
-			},
-			{
-				extends: true,
-				test: {
-					environment: 'happy-dom',
-					include: ['packages/astro-comments/src/element/**/*.test.ts'],
-					name: 'astro-comments-element',
 				},
 			},
 			{

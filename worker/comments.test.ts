@@ -1,5 +1,6 @@
 /* eslint-disable unicorn/no-null -- D1 answers and takes `null`, so the binding over SQLite must too */
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -15,7 +16,7 @@ const migrations = ['0001-comments.sql', '0002-thread-key.sql'].map((file) =>
 );
 
 const schema = readFileSync(
-	path.join(import.meta.dirname, '../packages/astro-comments/schema.sql'),
+	createRequire(import.meta.url).resolve('@xsynaptic/astro-comments/migrations/0000-initial.sql'),
 	'utf8',
 );
 
@@ -59,9 +60,9 @@ function createBinding() {
 }
 
 const registry = {
-	'mixes/old-slug': '/mixes/voyager/',
-	'mixes/voyager': '/mixes/voyager/',
-	'posts/a-post': '/a-post/',
+	'mixes/old-slug': { path: '/mixes/voyager/' },
+	'mixes/voyager': { path: '/mixes/voyager/' },
+	'posts/a-post': { path: '/a-post/' },
 };
 
 function createEnv(): Env {
@@ -85,7 +86,7 @@ function makeRequest(fields: Record<string, string>): Request {
 		author: 'Reader',
 		body: 'A comment worth keeping.',
 		'cf-turnstile-response': 'token',
-		renderedAt: String(Date.now() - 5000),
+		formAge: '5000',
 		...fields,
 	}).toString();
 

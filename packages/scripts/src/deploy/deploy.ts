@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { loadCommentsConfig, moderateComments, readKey } from '@xsynaptic/astro-comments/cli';
+import { loadCommentsConfig, moderateComments } from '@xsynaptic/astro-comments/cli';
 import { fetchUrl, formatError, log, runSubprocess, withStep } from '@xsynaptic/astro-scripts';
 import chalk from 'chalk';
 import path from 'node:path';
@@ -21,6 +21,7 @@ import { pullStats } from '#deploy/stats-pull.ts';
 import { pullMixcloudStats } from '#platform-stats/mixcloud-stats.ts';
 import { pullSoundcloudStats } from '#platform-stats/soundcloud-stats.ts';
 import { runCommand } from '#shared/command.ts';
+import { readKey } from '#shared/read-key.ts';
 import { pullListens } from '#stats/listens-pull.ts';
 
 interface HealthCheckFiles {

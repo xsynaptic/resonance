@@ -37,7 +37,6 @@ export default getConfig(
 			},
 		},
 		getBrowserConfig([
-			'packages/astro-comments/src/element/**/*',
 			'src/components/**/*',
 			'packages/plazmoid-core/**/*',
 			'packages/plazmoid-player/**/*',
@@ -47,7 +46,6 @@ export default getConfig(
 			files: [
 				'**/*.astro/*.{js,ts}',
 				'src/components/**/*.{ts,tsx}',
-				'packages/astro-comments/src/element/**/*.ts',
 				'packages/plazmoid-core/src/**/*.ts',
 				'packages/plazmoid-player/src/**/*.ts',
 				'packages/playback-stats/src/**/*.ts',
@@ -73,19 +71,6 @@ export default getConfig(
 					'error',
 					...browserOnlyGlobals.map((name) => ({
 						message: 'Browser code goes under src/components or in a package.',
-						name,
-					})),
-				],
-			},
-		},
-		{
-			files: ['packages/astro-comments/src/**/*.ts'],
-			ignores: ['packages/astro-comments/src/element/**'],
-			rules: {
-				'no-restricted-globals': [
-					'error',
-					...browserOnlyGlobals.map((name) => ({
-						message: 'Browser code goes under src/element.',
 						name,
 					})),
 				],
@@ -135,7 +120,6 @@ export default getConfig(
 		},
 		getWebComponentConfig([
 			'src/components/**/*.ts',
-			'packages/astro-comments/src/element/**/*.ts',
 			'packages/plazmoid-player/src/elements/**/*.ts',
 		]),
 		...getAstroConfig({ a11y: 'strict' }),

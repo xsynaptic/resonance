@@ -1,4 +1,4 @@
-import type { CommentsConfig } from '@xsynaptic/astro-comments/cli';
+import type { CommentsConfig } from '@xsynaptic/astro-comments/config';
 
 import { openCommentStore } from '@xsynaptic/astro-comments/cli';
 import { D1UnavailableError } from '@xsynaptic/astro-comments/cloudflare/node';

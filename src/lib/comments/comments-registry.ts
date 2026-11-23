@@ -1,5 +1,6 @@
-import type { ThreadRegistry } from '@xsynaptic/astro-comments';
+import type { ThreadEntry, ThreadRegistry } from '@xsynaptic/astro-comments';
 
+import { buildThreadRegistry } from '@xsynaptic/astro-comments';
 import { getContentPath } from '@xsynaptic/shared/routing';
 
 import { getPublishedMixes } from '#lib/collections/mixes/mixes-data.ts';
@@ -7,30 +8,23 @@ import { getPublishedPosts } from '#lib/collections/posts/posts-data.ts';
 import { getPublishedReviews } from '#lib/collections/reviews/reviews-data.ts';
 import { toThreadKey } from '#lib/comments/comments-data.ts';
 
-export async function buildThreadRegistry(): Promise<ThreadRegistry> {
+export async function getThreadRegistry(): Promise<ThreadRegistry> {
 	const entries = [
 		...(await getPublishedMixes()),
 		...(await getPublishedPosts()),
 		...(await getPublishedReviews()),
 	];
-	const registry: ThreadRegistry = {};
+	const threads: Array<ThreadEntry> = [];
 
 	for (const entry of entries) {
 		if (entry.data.commentsEnabled === false) continue;
 
-		const path = getContentPath(entry.collection, entry.id);
-
-		for (const id of [entry.id, ...(entry.data.formerIds ?? [])]) {
-			const key = toThreadKey(entry.collection, id);
-			const claimed = registry[key];
-
-			if (claimed !== undefined && claimed !== path) {
-				throw new Error(`Thread ${key} resolves to both ${claimed} and ${path}`);
-			}
-
-			registry[key] = path;
-		}
+		threads.push({
+			formerKeys: (entry.data.formerIds ?? []).map((id) => toThreadKey(entry.collection, id)),
+			key: toThreadKey(entry.collection, entry.id),
+			path: getContentPath(entry.collection, entry.id),
+		});
 	}
 
-	return registry;
+	return buildThreadRegistry(threads);
 }

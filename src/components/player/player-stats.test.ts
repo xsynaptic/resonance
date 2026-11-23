@@ -47,7 +47,7 @@ test('a report goes out as the beacon the worker reads', () => {
 
 	const onReport = monitor.monitorPlayback.mock.calls[0]?.[1]?.onReport;
 
-	onReport?.({ heardSeconds: 95, itemId: 'a-mix', listenId: 'listen-1' });
+	onReport?.({ heardSeconds: 95, listenId: 'listen-1', trackId: 'a-mix' });
 
 	expect(beacon).toHaveBeenCalledOnce();
 

@@ -8,9 +8,9 @@ afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-status>', () => {
+describe('<pzm-status>', () => {
 	test('reports an error with the alert mark, and keeps the words while it fades', () => {
-		const { part, store } = mount('player-status');
+		const { part, store } = mount('pzm-status');
 		const region = getByRole(part, 'status');
 
 		store.setState({ status: 'error' });

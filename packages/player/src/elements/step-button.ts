@@ -27,7 +27,7 @@ export const PlayerStepButton = buttonPart((element) => {
 			state[direction]();
 		},
 		render: () =>
-			renderSonicButton({ className: 'player-step-button', icons: [cloneIcon(direction)] }),
+			renderSonicButton({ className: 'pzm-step-button', icons: [cloneIcon(direction)] }),
 		select: stepSelectors[direction],
 	};
 });

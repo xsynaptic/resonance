@@ -1,7 +1,7 @@
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerStore } from '#store/player-store.ts';
-import type { QueueItem } from '#types.ts';
+import type { Track } from '#types.ts';
 
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bindMediaSession } from '#engine/media-session.ts';
@@ -42,16 +42,16 @@ function createFakeMediaSession(): FakeMediaSession {
 	};
 }
 
-function makeItem(itemId: string): QueueItem {
+function makeTrack(trackId: string): Track {
 	return {
 		artistLine: 'Nebula Drift',
-		itemId,
 		releaseTitle: 'Cosmic Drift',
-		title: `Track ${itemId}`,
+		title: `Track ${trackId}`,
+		trackId,
 	};
 }
 
-const release = [makeItem('a'), makeItem('b')];
+const release = [makeTrack('a'), makeTrack('b')];
 
 let mediaSession: FakeMediaSession;
 

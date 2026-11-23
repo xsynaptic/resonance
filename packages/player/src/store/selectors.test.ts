@@ -42,9 +42,9 @@ describe('currentCue', () => {
 		store.getState().loadQueue([
 			{
 				artistLine: 'Nebula Drift',
-				itemId: 'a',
 				releaseTitle: 'Cosmic Drift',
 				title: 'Mix',
+				trackId: 'a',
 			},
 		]);
 		store.setState({ currentIndex, currentTimeSeconds, details: new Map([['a', { cuePoints }]]) });
@@ -52,7 +52,7 @@ describe('currentCue', () => {
 		return store.getState();
 	}
 
-	test('names the cue the loaded item is inside', () => {
+	test('names the cue the loaded track is inside', () => {
 		expect(currentCue(cuedState(0, 90))?.title).toBe('Second');
 	});
 });

@@ -8,7 +8,7 @@ interface ButtonRender {
 }
 
 export function fillButton(button: HTMLElement, icons: ReadonlyArray<SVGSVGElement>): void {
-	button.style.setProperty('--player-icon-px', icons[0]?.getAttribute('height') ?? '');
+	button.style.setProperty('--pzm-icon-px', icons[0]?.getAttribute('height') ?? '');
 	button.append(...icons);
 }
 

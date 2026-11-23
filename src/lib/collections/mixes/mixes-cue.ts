@@ -1,4 +1,4 @@
-import type { QueueCuePoint } from '@xsynaptic/player';
+import type { CuePoint } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
 import { parseTimestampSeconds } from '@xsynaptic/shared/schemas';
@@ -11,9 +11,7 @@ import { resolveCredits, toCreditArray } from '#lib/utils/terms.ts';
 import { toFlatTracks, toTrackGroups } from '#lib/utils/track-groups.ts';
 
 // The player's index into a mix, resolved at build time because the browser has no artists catalog
-export async function getMixCuePoints(
-	entry: CollectionEntry<'mixes'>,
-): Promise<Array<QueueCuePoint>> {
+export async function getMixCuePoints(entry: CollectionEntry<'mixes'>): Promise<Array<CuePoint>> {
 	if (!hasMixTimestamps(entry)) return [];
 
 	const groups = toTrackGroups(entry.data.tracks);
@@ -32,7 +30,7 @@ export async function getMixCuePoints(
 					artistLine: (await joinArtists(toCreditArray(track.artists))) ?? '',
 					startSeconds,
 					title: track.title,
-				} satisfies QueueCuePoint;
+				} satisfies CuePoint;
 			}),
 	);
 

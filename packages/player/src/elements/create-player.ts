@@ -24,10 +24,10 @@ export function createPlayer({
 	seekSeconds,
 	store,
 	urls,
-}: PlayerOptions): HTMLElementTagNameMap['player-root'] {
+}: PlayerOptions): HTMLElementTagNameMap['pzm-root'] {
 	definePlayerElements();
 
-	const root = document.createElement('player-root');
+	const root = document.createElement('pzm-root');
 
 	root.labels = labels;
 	root.store = store;
@@ -36,7 +36,7 @@ export function createPlayer({
 	if (isPanelEnabled !== undefined) root.isPanelEnabled = isPanelEnabled;
 	if (isScopeEnabled !== undefined) root.isScopeEnabled = isScopeEnabled;
 	store.getState().configure({ seekSeconds, urls });
-	root.append(document.createElement('player-bar'));
+	root.append(document.createElement('pzm-bar'));
 
 	return root;
 }

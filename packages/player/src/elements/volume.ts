@@ -10,8 +10,8 @@ import { requireChild, template } from '#lib/render.ts';
 
 const renderControl = template(
 	/* HTML */ `
-		<div class="player-volume">
-			<player-mute-button></player-mute-button><sonic-dial max="1" readout step="0.01"></sonic-dial>
+		<div class="pzm-volume">
+			<pzm-mute-button></pzm-mute-button><sonic-dial max="1" readout step="0.01"></sonic-dial>
 		</div>
 	`,
 	HTMLDivElement,

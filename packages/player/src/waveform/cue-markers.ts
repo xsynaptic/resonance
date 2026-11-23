@@ -1,14 +1,14 @@
 import type { WaveMarker } from '@xsynaptic/sonic-ui';
 
-import type { QueueCuePoint } from '#types.ts';
+import type { CuePoint } from '#types.ts';
 
-function cueLabel({ artistLine, title }: QueueCuePoint): string {
+function cueLabel({ artistLine, title }: CuePoint): string {
 	return artistLine === '' ? title : `${artistLine} - ${title}`;
 }
 
 // Past the last timestamp of a tracklist carrying more tracks than timestamps, the label is a guess
 export function toPanelMarkers(
-	cuePoints: ReadonlyArray<QueueCuePoint>,
+	cuePoints: ReadonlyArray<CuePoint>,
 	trackCount: number,
 	partialNote: string,
 ): Array<WaveMarker> {
@@ -30,6 +30,6 @@ export function toPanelMarkers(
 	});
 }
 
-export function toStripMarkers(cuePoints: ReadonlyArray<QueueCuePoint>): Array<WaveMarker> {
+export function toStripMarkers(cuePoints: ReadonlyArray<CuePoint>): Array<WaveMarker> {
 	return cuePoints.map((cuePoint) => ({ label: cueLabel(cuePoint), start: cuePoint.startSeconds }));
 }

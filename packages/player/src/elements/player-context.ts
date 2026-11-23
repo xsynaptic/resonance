@@ -10,12 +10,10 @@ export interface PlayerContext {
 
 // Thrown rather than skipped, so a tag placed outside a root fails where it was placed
 export function playerContext(element: Element): PlayerContext {
-	const root = element.closest('player-root');
+	const root = element.closest('pzm-root');
 
 	if (!root?.store || !root.labels) {
-		throw new Error(
-			`<${element.localName}> sits outside a <player-root> holding a store and labels`,
-		);
+		throw new Error(`<${element.localName}> sits outside a <pzm-root> holding a store and labels`);
 	}
 
 	return { labels: root.labels, root, store: root.store };

@@ -2,17 +2,17 @@ import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-step-button>', () => {
+describe('<pzm-step-button>', () => {
 	test('keeps focus on next once its own press leaves nothing after the current track', () => {
-		const { part, store } = mount('player-step-button', { attributes: { direction: 'next' } });
+		const { part, store } = mount('pzm-step-button', { attributes: { direction: 'next' } });
 
-		store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
+		store.getState().playTrack([sampleTrack('a'), sampleTrack('b')], 'a');
 
 		const next = getByRole(part, 'button', { name: labels.next });
 

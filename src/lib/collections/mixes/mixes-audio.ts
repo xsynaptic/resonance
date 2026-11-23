@@ -1,4 +1,4 @@
-import type { QueuePeaks } from '@xsynaptic/player';
+import type { TrackPeaks } from '@xsynaptic/player';
 import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
 import { mixAudioPath } from '@xsynaptic/shared/constants';
@@ -28,7 +28,7 @@ export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).
 
 export interface MixAudio {
 	overview: string;
-	peaks: QueuePeaks;
+	peaks: TrackPeaks;
 	seconds: number;
 	streamUrl: string;
 }

@@ -2,21 +2,21 @@ import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-time>', () => {
+describe('<pzm-time>', () => {
 	test('reads --:--, disabled, until the duration is known', () => {
-		const { fake, part, store } = mount('player-time');
+		const { fake, part, store } = mount('pzm-time');
 		const clock = getByRole(part, 'button', { name: labels.toggleTimeMode });
 
 		expect(clock.textContent).toBe('--:--');
 		expect(clock.hasAttribute('disabled')).toBe(true);
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onTime(64);
 
 		expect(clock.textContent).toBe('--:--');
@@ -28,9 +28,9 @@ describe('<player-time>', () => {
 	});
 
 	test('flips between elapsed and remaining', () => {
-		const { fake, part, store } = mount('player-time');
+		const { fake, part, store } = mount('pzm-time');
 
-		store.getState().playTrack([queueItem('a', { durationMs: 180_000 })], 'a');
+		store.getState().playTrack([sampleTrack('a', { durationMs: 180_000 })], 'a');
 		fake.callbacks.current?.onTime(64);
 
 		const clock = getByRole(part, 'button', { name: labels.toggleTimeMode });

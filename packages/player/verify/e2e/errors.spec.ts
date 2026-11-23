@@ -47,8 +47,8 @@ async function holdStream(page: Page): Promise<void> {
 async function answerWithStream(page: Page): Promise<void> {
 	await page.evaluate(() => {
 		const state = window.playerPage?.store.getState();
-		const item = state?.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
-		const url: unknown = item && Reflect.get(item, 'streamUrl');
+		const track = state?.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
+		const url: unknown = track && Reflect.get(track, 'streamUrl');
 		if (typeof url !== 'string') throw new TypeError('Nothing loaded');
 
 		window.heldStream?.answer?.({ status: 'ok', url });

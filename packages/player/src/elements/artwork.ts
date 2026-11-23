@@ -1,17 +1,17 @@
 import type { PlayerStore } from '#store/player-types.ts';
-import type { QueueArtwork } from '#types.ts';
+import type { TrackArtwork } from '#types.ts';
 
 import { barArtworkSize } from '#constants.ts';
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
-import { displayedItem } from '#store/selectors.ts';
+import { displayedTrack } from '#store/selectors.ts';
 
 const barSize = String(barArtworkSize);
 
 const renderImage = template(
-	`<img alt="" class="player-artwork" decoding="async" height="${barSize}" loading="lazy" width="${barSize}">`,
+	`<img alt="" class="pzm-artwork" decoding="async" height="${barSize}" loading="lazy" width="${barSize}">`,
 	HTMLImageElement,
 );
 
@@ -44,7 +44,7 @@ export class PlayerArtwork extends PlayerElement {
 		);
 	}
 
-	#apply(artwork: ReadonlyArray<QueueArtwork> | undefined): void {
+	#apply(artwork: ReadonlyArray<TrackArtwork> | undefined): void {
 		const first = artwork?.[0];
 
 		if (!artwork || !first || first.src === this.#failedSrc) {
@@ -58,6 +58,6 @@ export class PlayerArtwork extends PlayerElement {
 	}
 }
 
-function selectArtwork(state: PlayerStore): ReadonlyArray<QueueArtwork> | undefined {
-	return displayedItem(state)?.artwork;
+function selectArtwork(state: PlayerStore): ReadonlyArray<TrackArtwork> | undefined {
+	return displayedTrack(state)?.artwork;
 }

@@ -54,7 +54,7 @@ interface PlayerSnapshot {
 	diagnostics: Array<PlaybackDiagnostic>;
 	element: ElementSnapshot | undefined;
 	isPaused: boolean;
-	playbackError: undefined | { itemId: string; stage: string };
+	playbackError: undefined | { stage: string; trackId: string };
 	resolveCount: number;
 	status: string;
 }

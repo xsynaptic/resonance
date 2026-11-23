@@ -4,7 +4,7 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
-import { displayedItem, isLoaded } from '#store/selectors.ts';
+import { displayedTrack, isLoaded } from '#store/selectors.ts';
 
 interface TitleView {
 	href: string | undefined;
@@ -16,9 +16,9 @@ const titleAttributes = {
 	isIdle: 'data-idle',
 } as const satisfies Partial<Record<keyof TitleView, `data-${string}`>>;
 
-const renderEmpty = template('<span class="player-track-empty"></span>', HTMLSpanElement);
-const renderLink = template('<a class="player-track-title"></a>', HTMLAnchorElement);
-const renderText = template('<span class="player-track-title"></span>', HTMLSpanElement);
+const renderEmpty = template('<span class="pzm-track-empty"></span>', HTMLSpanElement);
+const renderLink = template('<a class="pzm-track-title"></a>', HTMLAnchorElement);
+const renderText = template('<span class="pzm-track-title"></span>', HTMLSpanElement);
 
 export class PlayerTitle extends PlayerElement {
 	readonly #empty = renderEmpty();
@@ -60,11 +60,11 @@ export class PlayerTitle extends PlayerElement {
 }
 
 function selectTitle(state: PlayerStore): TitleView {
-	const item = displayedItem(state);
+	const track = displayedTrack(state);
 
 	return {
-		href: item?.releaseHref,
-		isIdle: item !== undefined && !isLoaded(state),
-		title: item?.title,
+		href: track?.releaseHref,
+		isIdle: track !== undefined && !isLoaded(state),
+		title: track?.title,
 	};
 }

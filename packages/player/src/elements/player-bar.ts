@@ -9,38 +9,34 @@ type BarOption = 'isArtworkEnabled' | 'isOverlayEnabled' | 'isPanelEnabled' | 'i
 
 const renderBar = template(
 	/* HTML */ `
-		<section class="player-bar">
-			<player-progress></player-progress><player-panel></player-panel>
-			<div class="player-bar-grid">
-				<player-artwork></player-artwork>
-				<div class="player-transport">
-					<player-step-button direction="previous"></player-step-button
-					><player-play-button></player-play-button
-					><player-step-button direction="next"></player-step-button>
+		<section class="pzm-bar">
+			<pzm-progress></pzm-progress><pzm-panel></pzm-panel>
+			<div class="pzm-bar-grid">
+				<pzm-artwork></pzm-artwork>
+				<div class="pzm-transport">
+					<pzm-step-button direction="previous"></pzm-step-button><pzm-play-button></pzm-play-button
+					><pzm-step-button direction="next"></pzm-step-button>
 				</div>
-				<div class="player-track">
-					<player-title></player-title>
-					<div class="player-track-meta">
-						<player-artist-line></player-artist-line><player-time></player-time>
-					</div>
-					<player-scrub-readout></player-scrub-readout>
+				<div class="pzm-track">
+					<pzm-title></pzm-title>
+					<div class="pzm-track-meta"><pzm-artist-line></pzm-artist-line><pzm-time></pzm-time></div>
+					<pzm-scrub-readout></pzm-scrub-readout>
 				</div>
-				<player-time-slider></player-time-slider><player-status></player-status
-				><player-scope></player-scope><player-panel-toggle></player-panel-toggle
-				><player-volume></player-volume><player-queue-button></player-queue-button
-				><player-overlay-toggle></player-overlay-toggle>
+				<pzm-time-slider></pzm-time-slider><pzm-status></pzm-status><pzm-scope></pzm-scope
+				><pzm-panel-toggle></pzm-panel-toggle><pzm-volume></pzm-volume
+				><pzm-queue-button></pzm-queue-button><pzm-overlay-toggle></pzm-overlay-toggle>
 			</div>
-			<player-overlay></player-overlay>
+			<pzm-overlay></pzm-overlay>
 		</section>
 	`,
 	HTMLElement,
 );
 
 const optionalParts: ReadonlyArray<[option: BarOption, selector: string]> = [
-	['isArtworkEnabled', 'player-artwork'],
-	['isOverlayEnabled', 'player-overlay, player-overlay-toggle'],
-	['isPanelEnabled', 'player-panel, player-panel-toggle'],
-	['isScopeEnabled', 'player-scope'],
+	['isArtworkEnabled', 'pzm-artwork'],
+	['isOverlayEnabled', 'pzm-overlay, pzm-overlay-toggle'],
+	['isPanelEnabled', 'pzm-panel, pzm-panel-toggle'],
+	['isScopeEnabled', 'pzm-scope'],
 ];
 
 // The root's options shape the bar once, as it is first placed, so a host sets them before the bar connects
@@ -66,7 +62,7 @@ function shapeBar(bar: HTMLElement, { root, store }: PlayerContext): void {
 		for (const part of bar.querySelectorAll(selector)) part.remove();
 	}
 
-	const [previous, next] = [...bar.querySelectorAll('player-step-button')];
+	const [previous, next] = [...bar.querySelectorAll('pzm-step-button')];
 
 	if (previous && next) placeSeekButtons(previous, next, store.getState().seekSeconds);
 }

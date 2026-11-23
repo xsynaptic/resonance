@@ -82,7 +82,7 @@ async function probeMixes(
 			.map(([, url = '']) => mixes.find((item) => item.url === url))
 			.find((item) => item !== undefined && item.url !== mix.url);
 
-		if (!cueSheet || !nextMix || !html.includes('data-player-payload')) continue;
+		if (!cueSheet || !nextMix || !html.includes('data-pzm-payload')) continue;
 
 		return {
 			cueSheet,

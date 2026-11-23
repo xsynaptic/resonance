@@ -38,32 +38,32 @@ import { PlayerVolume } from '#elements/volume.ts';
 
 declare global {
 	interface HTMLElementTagNameMap {
-		'player-artist-line': PlayerArtistLine;
-		'player-artwork': PlayerArtwork;
-		'player-bar': PlayerBar;
-		'player-mute-button': PlayerButtonPart;
-		'player-overlay': PlayerOverlay;
-		'player-overlay-content': PlayerOverlayContent;
-		'player-overlay-toggle': PlayerButtonPart;
-		'player-panel': PlayerPanel;
-		'player-panel-toggle': PlayerButtonPart;
-		'player-panel-zoom': PlayerPanelZoom;
-		'player-play-button': PlayerButtonPart;
-		'player-progress': PlayerProgress;
-		'player-queue-actions': PlayerQueueActions;
-		'player-queue-button': PlayerQueueButton;
-		'player-root': PlayerRoot;
-		'player-scope': PlayerScope;
-		'player-scrub-readout': PlayerScrubReadout;
-		'player-seek-button': PlayerButtonPart;
-		'player-status': PlayerStatusRegion;
-		'player-step-button': PlayerButtonPart;
-		'player-time': PlayerButtonPart;
-		'player-time-slider': PlayerTimeSlider;
-		'player-title': PlayerTitle;
-		'player-tracklist': PlayerTracklist;
-		'player-tray': PlayerTray;
-		'player-volume': PlayerVolume;
+		'pzm-artist-line': PlayerArtistLine;
+		'pzm-artwork': PlayerArtwork;
+		'pzm-bar': PlayerBar;
+		'pzm-cue-list': PlayerTracklist;
+		'pzm-mute-button': PlayerButtonPart;
+		'pzm-overlay': PlayerOverlay;
+		'pzm-overlay-content': PlayerOverlayContent;
+		'pzm-overlay-toggle': PlayerButtonPart;
+		'pzm-panel': PlayerPanel;
+		'pzm-panel-toggle': PlayerButtonPart;
+		'pzm-panel-zoom': PlayerPanelZoom;
+		'pzm-play-button': PlayerButtonPart;
+		'pzm-progress': PlayerProgress;
+		'pzm-queue-actions': PlayerQueueActions;
+		'pzm-queue-button': PlayerQueueButton;
+		'pzm-root': PlayerRoot;
+		'pzm-scope': PlayerScope;
+		'pzm-scrub-readout': PlayerScrubReadout;
+		'pzm-seek-button': PlayerButtonPart;
+		'pzm-status': PlayerStatusRegion;
+		'pzm-step-button': PlayerButtonPart;
+		'pzm-time': PlayerButtonPart;
+		'pzm-time-slider': PlayerTimeSlider;
+		'pzm-title': PlayerTitle;
+		'pzm-tray': PlayerTray;
+		'pzm-volume': PlayerVolume;
 	}
 }
 
@@ -74,28 +74,28 @@ const playerElements = [
 	['sonic-slider', SonicSlider],
 	['sonic-ticker', SonicTicker],
 	['sonic-wavestrip', SonicWavestrip],
-	['player-root', PlayerRoot],
-	['player-play-button', PlayerPlayButton],
-	['player-time', PlayerTime],
-	['player-step-button', PlayerStepButton],
-	['player-seek-button', PlayerSeekButton],
-	['player-title', PlayerTitle],
-	['player-artist-line', PlayerArtistLine],
-	['player-artwork', PlayerArtwork],
-	['player-status', PlayerStatusRegion],
-	['player-panel-toggle', PlayerPanelToggle],
-	['player-overlay-toggle', PlayerOverlayToggle],
-	['player-progress', PlayerProgress],
-	['player-queue-button', PlayerQueueButton],
-	['player-mute-button', PlayerMuteButton],
-	['player-volume', PlayerVolume],
-	['player-scope', PlayerScope],
-	['player-scrub-readout', PlayerScrubReadout],
-	['player-time-slider', PlayerTimeSlider],
-	['player-panel', PlayerPanel],
-	['player-overlay', PlayerOverlay],
-	['player-overlay-content', PlayerOverlayContent],
-	['player-bar', PlayerBar],
+	['pzm-root', PlayerRoot],
+	['pzm-play-button', PlayerPlayButton],
+	['pzm-time', PlayerTime],
+	['pzm-step-button', PlayerStepButton],
+	['pzm-seek-button', PlayerSeekButton],
+	['pzm-title', PlayerTitle],
+	['pzm-artist-line', PlayerArtistLine],
+	['pzm-artwork', PlayerArtwork],
+	['pzm-status', PlayerStatusRegion],
+	['pzm-panel-toggle', PlayerPanelToggle],
+	['pzm-overlay-toggle', PlayerOverlayToggle],
+	['pzm-progress', PlayerProgress],
+	['pzm-queue-button', PlayerQueueButton],
+	['pzm-mute-button', PlayerMuteButton],
+	['pzm-volume', PlayerVolume],
+	['pzm-scope', PlayerScope],
+	['pzm-scrub-readout', PlayerScrubReadout],
+	['pzm-time-slider', PlayerTimeSlider],
+	['pzm-panel', PlayerPanel],
+	['pzm-overlay', PlayerOverlay],
+	['pzm-overlay-content', PlayerOverlayContent],
+	['pzm-bar', PlayerBar],
 ] as const;
 
 export function definePlayerElements(): void {

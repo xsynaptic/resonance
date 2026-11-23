@@ -41,9 +41,9 @@ function doNothing(): void {
 }
 
 // The result is ignored: the next report carries the same running total, so a dropped one costs nothing
-function onReport({ heardSeconds, itemId, listenId }: PlaybackReport): void {
+function onReport({ heardSeconds, listenId, trackId }: PlaybackReport): void {
 	navigator.sendBeacon(
 		'/api/listen',
-		JSON.stringify({ id: listenId, mixId: itemId, seconds: heardSeconds }),
+		JSON.stringify({ id: listenId, mixId: trackId, seconds: heardSeconds }),
 	);
 }

@@ -7,7 +7,7 @@ import type {
 	PlayerStoreApi,
 } from '@xsynaptic/player';
 
-import { LazyModuleError, loadedItem } from '@xsynaptic/player';
+import { LazyModuleError, loadedTrack } from '@xsynaptic/player';
 
 import type { AnalyticsEvents } from '#lib/analytics/analytics-events.ts';
 
@@ -21,8 +21,8 @@ interface PlayerGate {
 }
 
 const origins = {
-	'play-playlist': 'playlist',
 	'play-track': 'mix',
+	'play-tracks': 'playlist',
 } as const;
 
 // Nothing failed on `capped` or `unplayable`, so neither carries a stage
@@ -71,11 +71,11 @@ export function bindPlayerAnalytics(store: PlayerStoreApi): () => void {
 	};
 }
 
-export function trackControlPress({ itemIds, verb }: ControlPress): void {
-	if (isSuppressed || verb === 'toggle-playlist') return;
+export function trackControlPress({ trackIds, verb }: ControlPress): void {
+	if (isSuppressed || verb === 'toggle-tracks') return;
 
 	// Every other verb plays from the top of what it queued, so the first id is the Mix that starts
-	const mix = itemIds[0];
+	const mix = trackIds[0];
 	if (mix === undefined) return;
 
 	if (verb === 'queue-track') {
@@ -150,11 +150,11 @@ function trackChunkError(event: ErrorEvent): void {
 	sendEvent('player-chunk-error', { chunk: error.chunk, reason: error.reason });
 }
 
-function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void {
+function trackDiagnostic({ kind, trackId, ...fields }: PlaybackDiagnostic): void {
 	const data: Record<string, EventValue> = {
 		...fields,
 		isStandalone,
-		mix: itemId,
+		mix: trackId,
 		version: browserVersion,
 	};
 
@@ -166,9 +166,9 @@ function trackDiagnostic({ itemId, kind, ...fields }: PlaybackDiagnostic): void 
 function trackPlaybackError(state: PlayerStore): void {
 	const { playbackError } = state;
 	const data: AnalyticsEvents['player-error'] = { status: state.status };
-	const itemId = loadedItem(state)?.itemId;
+	const trackId = loadedTrack(state)?.trackId;
 
-	if (itemId !== undefined) data.mix = itemId;
+	if (trackId !== undefined) data.mix = trackId;
 	if (playbackError) data.stage = playbackError.stage;
 
 	sendEvent('player-error', data);

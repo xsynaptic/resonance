@@ -4,13 +4,13 @@ import type { QueueState } from '#queue/queue-state.ts';
 import type { PlaybackController } from '#store/playback-controller.ts';
 import type { PlayerPersistence } from '#store/player-persistence.ts';
 import type { PlayerActions, PlayerStore } from '#store/player-types.ts';
-import type { QueueItem } from '#types.ts';
+import type { Track } from '#types.ts';
 
 import {
 	appendedQueue,
 	createQueueIds,
 	loadedQueue,
-	movedItem,
+	movedTrack,
 	refreshedQueue,
 	removedAt,
 	shuffledQueue,
@@ -23,7 +23,7 @@ type QueueActions = Pick<
 	PlayerActions,
 	| 'clearQueue'
 	| 'loadQueue'
-	| 'moveItem'
+	| 'moveTrack'
 	| 'playQueue'
 	| 'playTrack'
 	| 'queueTrack'
@@ -51,12 +51,12 @@ export function createQueueActions({
 		return { currentIndex, isShuffling, playOrder, queue };
 	}
 
-	function stamped(items: ReadonlyArray<QueueItem>) {
-		return stampQueue(items, nextQueueId);
+	function stamped(tracks: ReadonlyArray<Track>) {
+		return stampQueue(tracks, nextQueueId);
 	}
 
-	function enqueue(items: ReadonlyArray<QueueItem>, itemId?: string): void {
-		const appended = appendedQueue(queueState(), stamped(items), itemId);
+	function enqueue(tracks: ReadonlyArray<Track>, trackId?: string): void {
+		const appended = appendedQueue(queueState(), stamped(tracks), trackId);
 		if (!appended) return;
 
 		set(appended.state);
@@ -78,7 +78,7 @@ export function createQueueActions({
 				...loadedQueue(queueState(), stamped(stored.queue)),
 				currentIndex: stored.currentIndex,
 			};
-			const item =
+			const track =
 				stored.currentIndex === undefined ? undefined : stored.queue[stored.currentIndex];
 
 			set({
@@ -87,45 +87,45 @@ export function createQueueActions({
 					: { ...restored, isShuffling: true, playOrder: stored.playOrder }),
 				currentTimeSeconds: stored.currentTimeSeconds,
 				details: persistence.readDetails(),
-				durationSeconds: toDurationSeconds(item),
+				durationSeconds: toDurationSeconds(track),
 				status: 'idle',
 			});
 		},
 
-		loadQueue: (items) => {
-			if (items.length === 0) return;
+		loadQueue: (tracks) => {
+			if (tracks.length === 0) return;
 
 			playback.unload();
-			set({ ...loadedQueue(queueState(), stamped(items)), durationSeconds: undefined });
+			set({ ...loadedQueue(queueState(), stamped(tracks)), durationSeconds: undefined });
 		},
 
-		moveItem: (from, to) => {
+		moveTrack: (from, to) => {
 			const state = queueState();
 			if (!canMove(state.queue.length, from, to)) return;
 
-			set(movedItem(state, from, to));
+			set(movedTrack(state, from, to));
 		},
 
-		playQueue: (items) => {
-			if (items.length === 0) return;
+		playQueue: (tracks) => {
+			if (tracks.length === 0) return;
 
 			get().clearQueue();
-			enqueue(items);
+			enqueue(tracks);
 		},
 
-		playTrack: (releaseItems, itemId) => {
-			enqueue(releaseItems, itemId);
+		playTrack: (releaseTracks, trackId) => {
+			enqueue(releaseTracks, trackId);
 		},
 
-		queueTrack: (releaseItems, itemId) => {
-			const appended = appendedQueue(queueState(), stamped(releaseItems), itemId);
+		queueTrack: (releaseTracks, trackId) => {
+			const appended = appendedQueue(queueState(), stamped(releaseTracks), trackId);
 			if (!appended) return;
 
 			set(appended.state);
 		},
 
-		refreshQueue: (items) => {
-			const queue = refreshedQueue(get().queue, items);
+		refreshQueue: (tracks) => {
+			const queue = refreshedQueue(get().queue, tracks);
 
 			if (queue) set({ queue });
 		},

@@ -1,13 +1,13 @@
 import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
+import type { PlayerUrls, Track, TrackDetail } from '#types.ts';
 
 import { retryDelayMs } from '#lib/retry-delay.ts';
 import { isSameJson } from '#queue/queue-state.ts';
 
 // A request that brought nothing, so the bar stops waiting and draws its groove
-const noDetail: QueueItemDetail = {};
+const noDetail: TrackDetail = {};
 
 export function bindQueueDetails(api: StoreApi<PlayerStore>): void {
 	const requested = new Set<string>();
@@ -16,27 +16,27 @@ export function bindQueueDetails(api: StoreApi<PlayerStore>): void {
 	let failures = 0;
 	let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-	function land(item: QueueItem, detail: QueueItemDetail | undefined): void {
+	function land(track: Track, detail: TrackDetail | undefined): void {
 		const { details, queue } = api.getState();
-		if (queue.every((queued) => queued.itemId !== item.itemId)) return;
+		if (queue.every((queued) => queued.trackId !== track.trackId)) return;
 
-		const held = details.get(item.itemId);
+		const held = details.get(track.trackId);
 		// A failed request keeps what storage restored
 		const landed = detail ?? held ?? noDetail;
 		if (held !== undefined && isSameJson(held, landed)) return;
 
-		api.setState({ details: new Map(details).set(item.itemId, landed) });
+		api.setState({ details: new Map(details).set(track.trackId, landed) });
 	}
 
 	function forgetUnqueued(): void {
 		const { details, queue } = api.getState();
-		const queuedIds = new Set(queue.map((item) => item.itemId));
+		const queuedIds = new Set(queue.map((track) => track.trackId));
 
-		for (const itemId of requested) {
-			if (queuedIds.has(itemId)) continue;
+		for (const trackId of requested) {
+			if (queuedIds.has(trackId)) continue;
 
-			requested.delete(itemId);
-			failed.delete(itemId);
+			requested.delete(trackId);
+			failed.delete(trackId);
 		}
 
 		if (failed.size === 0) {
@@ -45,7 +45,7 @@ export function bindQueueDetails(api: StoreApi<PlayerStore>): void {
 		}
 
 		// No iterator helpers: Safari before 18.4 lacks them, and a throw here stops the player booting
-		const kept = [...details].filter(([itemId]) => queuedIds.has(itemId));
+		const kept = [...details].filter(([trackId]) => queuedIds.has(trackId));
 		if (kept.length === details.size) return;
 
 		api.setState({ details: new Map(kept) });
@@ -62,36 +62,33 @@ export function bindQueueDetails(api: StoreApi<PlayerStore>): void {
 
 		if (!resolveDetail) return;
 
-		for (const item of queue) {
-			if (requested.has(item.itemId)) continue;
+		for (const track of queue) {
+			if (requested.has(track.trackId)) continue;
 
-			requested.add(item.itemId);
-			void request(resolveDetail, item);
+			requested.add(track.trackId);
+			void request(resolveDetail, track);
 		}
 	}
 
-	async function request(
-		resolve: NonNullable<PlayerUrls['detail']>,
-		item: QueueItem,
-	): Promise<void> {
-		let detail: QueueItemDetail | undefined;
+	async function request(resolve: NonNullable<PlayerUrls['detail']>, track: Track): Promise<void> {
+		let detail: TrackDetail | undefined;
 
 		try {
-			detail = await resolve(item);
+			detail = await resolve(track);
 		} catch {
-			fail(item);
+			fail(track);
 			return;
 		}
 
 		failures = 0;
-		land(item, detail);
+		land(track, detail);
 	}
 
-	function fail(item: QueueItem): void {
-		land(item, undefined);
-		if (!requested.has(item.itemId)) return;
+	function fail(track: Track): void {
+		land(track, undefined);
+		if (!requested.has(track.trackId)) return;
 
-		failed.add(item.itemId);
+		failed.add(track.trackId);
 		if (retryTimer !== undefined) return;
 
 		failures += 1;
@@ -101,7 +98,7 @@ export function bindQueueDetails(api: StoreApi<PlayerStore>): void {
 	function retry(): void {
 		retryTimer = undefined;
 
-		for (const itemId of failed) requested.delete(itemId);
+		for (const trackId of failed) requested.delete(trackId);
 
 		failed.clear();
 		requestQueued();

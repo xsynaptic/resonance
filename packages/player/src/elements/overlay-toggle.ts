@@ -21,7 +21,7 @@ export const PlayerOverlayToggle = buttonPart(() => ({
 	},
 	render: () => {
 		const button = renderSonicButton({
-			className: 'player-overlay-toggle',
+			className: 'pzm-overlay-toggle',
 			icons: [cloneIcon('expand')],
 		});
 

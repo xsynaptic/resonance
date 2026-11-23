@@ -1,4 +1,4 @@
-import type { QueuedItem, QueueItem } from '#types.ts';
+import type { QueuedTrack, Track } from '#types.ts';
 
 import { isRecord } from '#lib/is-record.ts';
 import { identityOrder, shuffledOrder } from '#queue/queue.ts';
@@ -10,7 +10,7 @@ export interface QueueState {
 	currentIndex: number | undefined;
 	isShuffling: boolean;
 	playOrder: Array<number>;
-	queue: Array<QueuedItem>;
+	queue: Array<QueuedTrack>;
 }
 
 interface OrderedQueue {
@@ -18,22 +18,22 @@ interface OrderedQueue {
 	isShuffling: boolean;
 	// The track a shuffled order puts first, which is not always the loaded one
 	orderAround: number | undefined;
-	queue: Array<QueuedItem>;
+	queue: Array<QueuedTrack>;
 }
 
-// Items arrive stamped, so identity is assigned once at the edge rather than by every transition
+// Tracks arrive stamped, so identity is assigned once at the edge rather than by every transition
 export function appendedQueue(
 	state: QueueState,
-	items: ReadonlyArray<QueuedItem>,
-	itemId?: string,
+	tracks: ReadonlyArray<QueuedTrack>,
+	trackId?: string,
 ): undefined | { loadIndex: number; state: QueueState } {
-	if (items.length === 0) return undefined;
+	if (tracks.length === 0) return undefined;
 
 	if (state.queue.length === 0) {
-		const startIndex = itemId === undefined ? 0 : indexOfTrack(items, itemId);
+		const startIndex = trackId === undefined ? 0 : indexOfTrack(tracks, trackId);
 		if (startIndex === undefined) return undefined;
 
-		const queue = [...items];
+		const queue = [...tracks];
 
 		return {
 			loadIndex: startIndex,
@@ -46,13 +46,13 @@ export function appendedQueue(
 		};
 	}
 
-	if (itemId === undefined) return appended(state, items);
+	if (trackId === undefined) return appended(state, tracks);
 
 	// Already queued is a jump, not a second copy
-	const queued = indexOfTrack(state.queue, itemId);
+	const queued = indexOfTrack(state.queue, trackId);
 	if (queued !== undefined) return { loadIndex: queued, state };
 
-	const found = items.find((item) => item.itemId === itemId);
+	const found = tracks.find((track) => track.trackId === trackId);
 	if (!found) return undefined;
 
 	return appended(state, [found]);
@@ -68,8 +68,8 @@ export function createQueueIds(): NextQueueId {
 	};
 }
 
-export function loadedQueue(state: QueueState, items: ReadonlyArray<QueuedItem>): QueueState {
-	const queue = [...items];
+export function loadedQueue(state: QueueState, tracks: ReadonlyArray<QueuedTrack>): QueueState {
+	const queue = [...tracks];
 
 	return ordered({
 		currentIndex: undefined,
@@ -79,8 +79,8 @@ export function loadedQueue(state: QueueState, items: ReadonlyArray<QueuedItem>)
 	});
 }
 
-// A shuffled play order moves with the item rather than reshuffling under the listener
-export function movedItem(state: QueueState, from: number, to: number): QueueState {
+// A shuffled play order moves with the track rather than reshuffling under the listener
+export function movedTrack(state: QueueState, from: number, to: number): QueueState {
 	return {
 		currentIndex:
 			state.currentIndex === undefined ? undefined : movedIndex(state.currentIndex, from, to),
@@ -94,11 +94,11 @@ export function movedItem(state: QueueState, from: number, to: number): QueueSta
 
 // `undefined` when nothing differs, so an unchanged queue is not written back to storage
 export function refreshedQueue(
-	queue: ReadonlyArray<QueuedItem>,
-	items: ReadonlyArray<QueueItem>,
-): Array<QueuedItem> | undefined {
+	queue: ReadonlyArray<QueuedTrack>,
+	tracks: ReadonlyArray<Track>,
+): Array<QueuedTrack> | undefined {
 	const refreshed = queue.map((queued) => {
-		const fresh = items.find((item) => item.itemId === queued.itemId);
+		const fresh = tracks.find((track) => track.trackId === queued.trackId);
 		if (!fresh) return queued;
 
 		const candidate = { ...fresh, queueId: queued.queueId };
@@ -106,7 +106,7 @@ export function refreshedQueue(
 		return isSameJson(candidate, queued) ? queued : candidate;
 	});
 
-	return refreshed.some((item, index) => item !== queue[index]) ? refreshed : undefined;
+	return refreshed.some((track, index) => track !== queue[index]) ? refreshed : undefined;
 }
 
 export function removedAt(state: QueueState, index: number): QueueState {
@@ -131,19 +131,16 @@ export function shuffledQueue(state: QueueState, isShuffling: boolean): QueueSta
 	});
 }
 
-export function stampQueue(
-	items: ReadonlyArray<QueueItem>,
-	nextId: NextQueueId,
-): Array<QueuedItem> {
-	return items.map((item) => ({ ...item, queueId: nextId() }));
+export function stampQueue(tracks: ReadonlyArray<Track>, nextId: NextQueueId): Array<QueuedTrack> {
+	return tracks.map((track) => ({ ...track, queueId: nextId() }));
 }
 
 function appended(
 	state: QueueState,
-	items: ReadonlyArray<QueuedItem>,
+	tracks: ReadonlyArray<QueuedTrack>,
 ): { loadIndex: number; state: QueueState } {
 	const loadIndex = state.queue.length;
-	const added = items.map((_, offset) => loadIndex + offset);
+	const added = tracks.map((_, offset) => loadIndex + offset);
 
 	return {
 		loadIndex,
@@ -151,7 +148,7 @@ function appended(
 			currentIndex: state.currentIndex,
 			isShuffling: state.isShuffling,
 			playOrder: [...state.playOrder, ...added],
-			queue: [...state.queue, ...items],
+			queue: [...state.queue, ...tracks],
 		},
 	};
 }
@@ -160,8 +157,8 @@ function definedKeys(record: Record<string, unknown>): Array<string> {
 	return Object.keys(record).filter((key) => record[key] !== undefined);
 }
 
-function indexOfTrack(items: ReadonlyArray<QueueItem>, itemId: string): number | undefined {
-	const index = items.findIndex((item) => item.itemId === itemId);
+function indexOfTrack(tracks: ReadonlyArray<Track>, trackId: string): number | undefined {
+	const index = tracks.findIndex((track) => track.trackId === trackId);
 
 	return index === -1 ? undefined : index;
 }

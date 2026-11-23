@@ -7,6 +7,6 @@ export const trayModule = lazyModule('tray', async () => {
 		import('#elements/tray/tray.ts'),
 	]);
 
-	defineOnce('player-queue-actions', PlayerQueueActions);
-	defineOnce('player-tray', PlayerTray);
+	defineOnce('pzm-queue-actions', PlayerQueueActions);
+	defineOnce('pzm-tray', PlayerTray);
 });

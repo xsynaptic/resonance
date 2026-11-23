@@ -1,47 +1,47 @@
 @media (pointer: coarse) {
-	player-root sonic-button {
-		--sonic-target-size: var(--player-hit-target);
+	pzm-root sonic-button {
+		--sonic-target-size: var(--pzm-hit-target);
 	}
 
-	.player-tray-handle {
+	.pzm-tray-handle {
 		position: relative;
 	}
 
-	.player-tray-handle::before {
+	.pzm-tray-handle::before {
 		position: absolute;
-		inset: calc((var(--player-hit-target) - 100%) / -2);
+		inset: calc((var(--pzm-hit-target) - 100%) / -2);
 		content: '';
 	}
 
-	.player-transport {
-		gap: var(--player-gap);
+	.pzm-transport {
+		gap: var(--pzm-gap);
 	}
 
-	.player-overlay-tab,
-	.player-overlay-list {
+	.pzm-overlay-tab,
+	.pzm-overlay-list {
 		user-select: none;
 	}
 
-	.player-track-title {
+	.pzm-track-title {
 		position: relative;
 	}
 
-	.player-track-title::before {
+	.pzm-track-title::before {
 		position: absolute;
-		inset-block: calc((var(--player-hit-target) - 100%) / -2);
+		inset-block: calc((var(--pzm-hit-target) - 100%) / -2);
 		inset-inline: 0;
 		content: '';
 	}
 
 	@container (width >= 26rem) {
-		.player-bar-grid .player-track-title::before {
-			inset-block: calc(var(--player-gap-tight) / -2);
+		.pzm-bar-grid .pzm-track-title::before {
+			inset-block: calc(var(--pzm-gap-tight) / -2);
 		}
 	}
 
 	@container (width < 26rem) {
-		.player-bar-grid .player-track-title::before {
-			inset-block-start: calc((var(--player-hit-target) - var(--player-button-size-primary)) / -2);
+		.pzm-bar-grid .pzm-track-title::before {
+			inset-block-start: calc((var(--pzm-hit-target) - var(--pzm-button-size-primary)) / -2);
 		}
 	}
 }

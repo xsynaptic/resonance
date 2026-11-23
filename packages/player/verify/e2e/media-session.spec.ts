@@ -28,7 +28,7 @@ test.beforeEach(async ({ harness, page }) => {
 	);
 });
 
-test('the metadata carries the item, with one typed artwork entry', async ({ harness, page }) => {
+test('the metadata carries the track, with one typed artwork entry', async ({ harness, page }) => {
 	await page.getByRole('button', { name: 'Play long' }).click();
 	await expectAdvancing(harness, 1);
 

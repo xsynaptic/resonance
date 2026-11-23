@@ -1,4 +1,4 @@
-import type { QueueItem } from '#types.ts';
+import type { Track } from '#types.ts';
 
 export function identityOrder(length: number): Array<number> {
 	return Array.from({ length }, (_, index) => index);
@@ -48,6 +48,6 @@ export function shuffledOrder(
 }
 
 // Durations are carried in milliseconds and read in seconds everywhere they are used
-export function toDurationSeconds(item: QueueItem | undefined): number | undefined {
-	return item?.durationMs === undefined ? undefined : item.durationMs / 1000;
+export function toDurationSeconds(track: Track | undefined): number | undefined {
+	return track?.durationMs === undefined ? undefined : track.durationMs / 1000;
 }

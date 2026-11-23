@@ -1,13 +1,13 @@
 import { fc, test } from '@fast-check/vitest';
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
-import { queueDetailStorageKey, queueItemsStorageKey, queueStorageKey } from '#constants.ts';
+import { queueDetailStorageKey, queueStorageKey, queueTracksStorageKey } from '#constants.ts';
 import { definePlayerElements } from '#elements/define.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { bindMediaSession } from '#engine/media-session.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
-import { currentCue, displayedDetail, displayedItem } from '#store/selectors.ts';
+import { currentCue, displayedDetail, displayedTrack } from '#store/selectors.ts';
 import { labels } from '#test/labels.ts';
 import { openPeaks } from '#waveform/waveform-peaks.ts';
 
@@ -70,7 +70,7 @@ const writtenPeaks = fc.record(
 	{ noNullPrototype: true },
 );
 
-const storedItemFields = fc.record({
+const storedTrackFields = fc.record({
 	artwork: optionalField(
 		writtenArtwork,
 		withOneFieldBroken(
@@ -105,21 +105,25 @@ function writtenKeys(fields: StoredFields): Array<string> {
 	return Object.entries(fields).flatMap(([key, field]) => (field?.isWritten ? [key] : []));
 }
 
-function restore(itemFields: StoredFields, detailFields: StoredFields, currentTimeSeconds: number) {
+function restore(
+	trackFields: StoredFields,
+	detailFields: StoredFields,
+	currentTimeSeconds: number,
+) {
 	const storage = createMemoryStorage();
-	const item = {
+	const track = {
 		artistLine: 'Nebula Drift',
-		itemId: 'a',
 		releaseTitle: 'Cosmic Drift',
 		title: 'Track a',
-		...toStored(itemFields),
+		trackId: 'a',
+		...toStored(trackFields),
 	};
 
 	storage.setItem(
 		queueStorageKey,
-		JSON.stringify({ currentIndex: 0, currentTimeSeconds, itemIds: ['a'] }),
+		JSON.stringify({ currentIndex: 0, currentTimeSeconds, trackIds: ['a'] }),
 	);
-	storage.setItem(queueItemsStorageKey, JSON.stringify({ a: item }));
+	storage.setItem(queueTracksStorageKey, JSON.stringify({ a: track }));
 	storage.setItem(queueDetailStorageKey, JSON.stringify({ a: toStored(detailFields) }));
 
 	return createWritablePlayerStore({ createEngine: createMockEngine().createEngine, storage });
@@ -151,34 +155,34 @@ afterEach(() => {
 });
 
 describe('restoring a stored queue', () => {
-	test.prop([storedItemFields, storedDetailFields, fc.integer({ max: 900, min: 0 })])(
+	test.prop([storedTrackFields, storedDetailFields, fc.integer({ max: 900, min: 0 })])(
 		'whatever sits in the optional fields, the restored queue keeps what it wrote',
-		(itemFields, detailFields, currentTimeSeconds) => {
-			const state = restore(itemFields, detailFields, currentTimeSeconds).getState();
-			const item = displayedItem(state);
+		(trackFields, detailFields, currentTimeSeconds) => {
+			const state = restore(trackFields, detailFields, currentTimeSeconds).getState();
+			const track = displayedTrack(state);
 			const detail = displayedDetail(state);
 
-			expect(item?.itemId).toBe('a');
+			expect(track?.trackId).toBe('a');
 
-			for (const key of writtenKeys(itemFields)) expect(item).toHaveProperty(key);
+			for (const key of writtenKeys(trackFields)) expect(track).toHaveProperty(key);
 			for (const key of writtenKeys(detailFields)) expect(detail).toHaveProperty(key);
 		},
 	);
 
-	test.prop([storedItemFields, storedDetailFields, fc.integer({ max: 900, min: 0 })], {
+	test.prop([storedTrackFields, storedDetailFields, fc.integer({ max: 900, min: 0 })], {
 		numRuns: 20,
 	})(
 		'whatever sits in the optional fields, the player mounts',
-		(itemFields, detailFields, currentTimeSeconds) => {
-			const store = restore(itemFields, detailFields, currentTimeSeconds);
+		(trackFields, detailFields, currentTimeSeconds) => {
+			const store = restore(trackFields, detailFields, currentTimeSeconds);
 			const state = store.getState();
 			const detail = displayedDetail(state);
 			const unbind = bindMediaSession(store);
-			const root = document.createElement('player-root');
+			const root = document.createElement('pzm-root');
 
 			root.labels = labels;
 			root.store = store;
-			root.append(document.createElement('player-bar'));
+			root.append(document.createElement('pzm-bar'));
 			document.body.append(root);
 			currentCue(state);
 			if (detail?.peaks) openPeaks(detail.peaks);

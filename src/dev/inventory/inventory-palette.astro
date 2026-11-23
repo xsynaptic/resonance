@@ -87,9 +87,9 @@ const tokenGroups = [
 
 <div data-inventory-palette>
 	<div class="pt-32">
-		<player-root class="block" data-inventory-queue="palette">
-			<player-bar></player-bar>
-		</player-root>
+		<pzm-root class="block" data-inventory-queue="palette">
+			<pzm-bar></pzm-bar>
+		</pzm-root>
 	</div>
 	<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-6">
 		{tokenGroups.map((group) => (
@@ -99,14 +99,14 @@ const tokenGroups = [
 					<label class="grid grid-cols-[1.25rem_1fr_auto] items-center gap-2">
 						<span
 							class="h-5 rounded-sm border border-surface-300"
-							style={`background: var(--player-${name})`}
+							style={`background: var(--pzm-${name})`}
 						/>
 						<span class="font-mono text-xs text-ink-500 data-picked:text-highlight-400">
 							{name}
 						</span>
 						<select
 							class="rounded-sm border border-surface-400 bg-surface-800 px-1 py-0.5 text-xs"
-							data-palette-token={`--player-${name}`}
+							data-palette-token={`--pzm-${name}`}
 						>
 							<option value="">sheet: ?</option>
 							{ramps.map((ramp) => (

@@ -44,8 +44,8 @@ async function expectAdvancing(page: Page, pastSeconds: number, timeout = 10_000
 }
 
 async function expectBarIsPlaying(page: Page): Promise<void> {
-	await expect(page.locator('player-root')).toHaveCount(1);
-	await expect(page.locator('player-bar')).toHaveCount(1);
+	await expect(page.locator('pzm-root')).toHaveCount(1);
+	await expect(page.locator('pzm-bar')).toHaveCount(1);
 
 	const host = await readHost(page);
 
@@ -115,7 +115,7 @@ async function playAListenThrough(page: Page, site: SitePaths): Promise<void> {
 }
 
 function pressPlay(page: Page): Promise<void> {
-	return page.locator('[data-play-track]').first().click();
+	return page.locator('[data-pzm-play-track]').first().click();
 }
 
 function readHost(page: Page) {
@@ -176,7 +176,7 @@ test('playback survives soft navigation', { tag: '@engines' }, async ({ page, si
 		await expect(page.locator(`head link[href="${stylesheetUrl}"]`)).toHaveCount(1);
 
 		// The custom element is `display: contents`; the stylesheet's own box is the div inside it
-		const bar = await page.locator('.player-bar').boundingBox();
+		const bar = await page.locator('.pzm-bar').boundingBox();
 
 		expect(bar?.height ?? 0).toBeGreaterThan(0);
 	});
@@ -206,7 +206,7 @@ test('a press plays at once, and the bar waits for its wave strip from the Libra
 	page,
 	site,
 }) => {
-	const bar = page.locator('.player-bar');
+	const bar = page.locator('.pzm-bar');
 	const held = Promise.withResolvers<undefined>();
 
 	await observe(page);
@@ -218,7 +218,7 @@ test('a press plays at once, and the bar waits for its wave strip from the Libra
 	await visit(page, site.mixDetail);
 	await pressPlay(page);
 	await expectAdvancing(page, 1);
-	await expect(page.locator('player-root[data-pending]')).toHaveCount(1);
+	await expect(page.locator('pzm-root[data-pending]')).toHaveCount(1);
 	await expect(bar).toBeHidden();
 
 	held.resolve(undefined);

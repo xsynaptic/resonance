@@ -17,16 +17,16 @@ export interface PlaybackOptions {
 // `heardSeconds` is the listen's running total, so a report lost or repeated costs nothing
 export interface PlaybackReport {
 	heardSeconds: number;
-	itemId: string;
 	listenId: string;
+	trackId: string;
 }
 
 interface OpenListen {
 	heardSeconds: number;
-	itemId: string;
 	listenId: string;
 	// The last whole total sent; an unchanged total is not worth a request
 	reportedSeconds: number;
+	trackId: string;
 }
 
 // `seeking` names a seek outright, so this is the backstop for an engine that moves the clock without one
@@ -43,10 +43,10 @@ export function monitorPlayback(media: PlaybackMedia, options: PlaybackOptions):
 	function openListen(): void {
 		if (listen) return;
 
-		const itemId = identify();
-		if (itemId === undefined) return;
+		const trackId = identify();
+		if (trackId === undefined) return;
 
-		listen = { heardSeconds: 0, itemId, listenId: crypto.randomUUID(), reportedSeconds: 0 };
+		listen = { heardSeconds: 0, listenId: crypto.randomUUID(), reportedSeconds: 0, trackId };
 	}
 
 	function report(): void {
@@ -56,7 +56,7 @@ export function monitorPlayback(media: PlaybackMedia, options: PlaybackOptions):
 		if (total < minimumSeconds || total === listen.reportedSeconds) return;
 
 		listen.reportedSeconds = total;
-		onReport({ heardSeconds: total, itemId: listen.itemId, listenId: listen.listenId });
+		onReport({ heardSeconds: total, listenId: listen.listenId, trackId: listen.trackId });
 	}
 
 	function closeListen(): void {

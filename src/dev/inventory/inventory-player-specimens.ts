@@ -1,4 +1,4 @@
-import type { CreateAudioEngine, PlayerStoreApi, PlayerUrls, QueueItem } from '@xsynaptic/player';
+import type { CreateAudioEngine, PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/player';
 
 import type { MixQueueItem, PlayerPressRow } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -78,13 +78,14 @@ export function pendingUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 
 // Any id resolves: the tray specimen synthesizes its own to get distinct rows, and a specimen shows layout rather than resolution
 export function queuedUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
-	const find = (itemId: string) => items.find(({ press }) => press.itemId === itemId) ?? items[0];
+	const find = (trackId: string) =>
+		items.find(({ press }) => press.trackId === trackId) ?? items[0];
 
 	return {
-		detail: ({ itemId }) => Promise.resolve(find(itemId)?.detail),
-		stream: ({ itemId }) => {
-			const item = find(itemId);
-			if (!item) return Promise.reject(new Error(`No stream URL for ${itemId}`));
+		detail: ({ trackId }) => Promise.resolve(find(trackId)?.detail),
+		stream: ({ trackId }) => {
+			const item = find(trackId);
+			if (!item) return Promise.reject(new Error(`No stream URL for ${trackId}`));
 
 			return Promise.resolve({ status: 'ok', url: item.press.streamUrl });
 		},
@@ -94,14 +95,14 @@ export function queuedUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 const marqueeArtist = 'Basilisk, with Nebula Drift, Forest Signal and the Ektoplazm Sound System';
 const marqueeTitle = 'Deep Forest Transmissions From The Edge Of A Very Long Winter Night';
 
-export function marqueed(items: ReadonlyArray<PlayerPressRow>): Array<QueueItem> {
+export function marqueed(items: ReadonlyArray<PlayerPressRow>): Array<Track> {
 	const [first, ...rest] = items;
 	if (!first) return [...items];
 
 	return [{ ...first, artistLine: marqueeArtist, title: marqueeTitle }, ...rest];
 }
 
-export function withoutArtwork(items: ReadonlyArray<PlayerPressRow>): Array<QueueItem> {
+export function withoutArtwork(items: ReadonlyArray<PlayerPressRow>): Array<Track> {
 	return items.map(({ artwork: _artwork, ...item }) => item);
 }
 
@@ -115,13 +116,13 @@ const trayTitles = [
 	'Reclaim',
 ];
 
-export function trayQueue(items: ReadonlyArray<PlayerPressRow>): Array<QueueItem> {
+export function trayQueue(items: ReadonlyArray<PlayerPressRow>): Array<Track> {
 	const first = items[0];
 	if (!first) return [];
 
 	return trayTitles.map((title, index) => ({
 		...(items[index % items.length] ?? first),
-		itemId: `inventory-tray-${String(index)}`,
 		title,
+		trackId: `inventory-tray-${String(index)}`,
 	}));
 }

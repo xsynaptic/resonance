@@ -1,26 +1,26 @@
 import { SonicWavestrip } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import type { QueueCuePoint } from '#types.ts';
+import type { CuePoint } from '#types.ts';
 
-import { landDetail, mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 
 // Bytes 51, 255, 153 and 0
 const overview = 'M/+ZAA==';
 
-function cue(startSeconds: number): QueueCuePoint {
+function cue(startSeconds: number): CuePoint {
 	return { artistLine: 'Forest Signal', startSeconds, title: String(startSeconds) };
 }
 
 function mountSlider(options: {
-	cuePoints?: Array<QueueCuePoint>;
+	cuePoints?: Array<CuePoint>;
 	currentTimeSeconds: number;
 	durationSeconds: number;
 }) {
-	const mounted = mount('player-time-slider');
-	const item = queueItem('a', { durationMs: options.durationSeconds * 1000 });
+	const mounted = mount('pzm-time-slider');
+	const track = sampleTrack('a', { durationMs: options.durationSeconds * 1000 });
 
-	mounted.store.getState().playTrack([item], 'a');
+	mounted.store.getState().playTrack([track], 'a');
 	landDetail(mounted.store, 'a', {
 		waveformOverview: overview,
 		...(options.cuePoints === undefined ? {} : { cuePoints: options.cuePoints }),
@@ -53,7 +53,7 @@ function hover(strip: SonicWavestrip, seconds: number | undefined): void {
 }
 
 function readout(part: HTMLElement): string | undefined {
-	const label = part.querySelector<HTMLSpanElement>('.player-cue-label');
+	const label = part.querySelector<HTMLSpanElement>('.pzm-cue-label');
 
 	if (!label || label.hidden) return undefined;
 
@@ -89,7 +89,7 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-describe('<player-time-slider>', () => {
+describe('<pzm-time-slider>', () => {
 	test('follows the position across the duration the element reports', () => {
 		const { strip } = mountSlider({ currentTimeSeconds: 50, durationSeconds: 200 });
 
@@ -140,7 +140,7 @@ describe('<player-time-slider>', () => {
 		expect(strip.formatSpokenValue?.(65)).toBe('1 minute, 5 seconds of 50 minutes');
 	});
 
-	test('reads out the time under the pointer and the Track covering it', () => {
+	test('reads out the time under the pointer and the cue point covering it', () => {
 		const { part, strip } = mountSlider({
 			cuePoints: [cue(30), cue(90)],
 			currentTimeSeconds: 0,
@@ -177,7 +177,7 @@ describe('<player-time-slider>', () => {
 		expect(readout(part)).toBeUndefined();
 	});
 
-	test('previews the Track under a held finger in whole seconds, and lets go when the hold ends', () => {
+	test('previews the cue point under a held finger in whole seconds, and lets go when the hold ends', () => {
 		const { part, store, strip } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
 
 		hold(strip, { pointerType: 'touch', states: ['dragging'] });
@@ -189,7 +189,7 @@ describe('<player-time-slider>', () => {
 		hold(strip, { pointerType: 'touch', states: ['dragging', 'revealed'] });
 		strip.dispatchEvent(new Event('sonic-reveal'));
 		expect(store.getState().scrubPreviewSeconds).toBe(100);
-		expect(part.querySelector('.player-cue-label')?.hasAttribute('data-above')).toBe(true);
+		expect(part.querySelector('.pzm-cue-label')?.hasAttribute('data-above')).toBe(true);
 
 		hold(strip, { pointerType: 'touch', states: [] });
 		strip.dispatchEvent(new Event('sonic-reveal'));
@@ -210,10 +210,10 @@ describe('<player-time-slider>', () => {
 		expect(store.getState().scrubPreviewSeconds).toBe(100);
 	});
 
-	test('is inert before an item loads, naming a cue point only at its start and with no clock', () => {
-		const { part, store } = mount('player-time-slider');
+	test('is inert before a track loads, naming a cue point only at its start and with no clock', () => {
+		const { part, store } = mount('pzm-time-slider');
 
-		store.getState().loadQueue([queueItem('a', { durationMs: 200_000 })]);
+		store.getState().loadQueue([sampleTrack('a', { durationMs: 200_000 })]);
 		landDetail(store, 'a', { cuePoints: [cue(50)], waveformOverview: overview });
 
 		const strip = requireStrip(part);
@@ -230,10 +230,10 @@ describe('<player-time-slider>', () => {
 		expect(readout(part)).toBe('|Forest Signal|50');
 	});
 
-	test('clears the last peaks on the same strip for an item measured without them', () => {
+	test('clears the last peaks on the same strip for a track measured without them', () => {
 		const { part, store, strip } = mountSlider({ currentTimeSeconds: 0, durationSeconds: 200 });
 
-		store.getState().playTrack([queueItem('b', { durationMs: 200_000 })], 'b');
+		store.getState().playTrack([sampleTrack('b', { durationMs: 200_000 })], 'b');
 
 		expect(requireStrip(part)).toBe(strip);
 		expect(strip.peaks).toBeUndefined();

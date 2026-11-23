@@ -3,7 +3,7 @@ import type { StoreApi } from 'zustand/vanilla';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlayerStore } from '#store/player-store.ts';
-import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
+import type { PlayerUrls, Track, TrackDetail } from '#types.ts';
 
 import { queueDetailStorageKey } from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
@@ -11,10 +11,10 @@ import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
 import { isDetailPending } from '#store/selectors.ts';
 
-const strip: QueueItemDetail = { waveformOverview: 'M8w=' };
+const strip: TrackDetail = { waveformOverview: 'M8w=' };
 
-function makeItem(itemId: string): QueueItem {
-	return { artistLine: 'Nebula Drift', itemId, releaseTitle: 'Cosmic Drift', title: itemId };
+function makeTrack(trackId: string): Track {
+	return { artistLine: 'Nebula Drift', releaseTitle: 'Cosmic Drift', title: trackId, trackId };
 }
 
 function createStore(
@@ -29,7 +29,8 @@ function createStore(
 	store.getState().configure({
 		urls: {
 			detail,
-			stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
+			stream: ({ trackId }) =>
+				Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
 		},
 	});
 
@@ -54,13 +55,13 @@ afterEach(() => {
 });
 
 describe('queued detail', () => {
-	test('is awaited from the press until the host answers, then held by item id', async () => {
-		const answer = Promise.withResolvers<QueueItemDetail>();
+	test('is awaited from the press until the host answers, then held by track id', async () => {
+		const answer = Promise.withResolvers<TrackDetail>();
 		const store = createStore(() => answer.promise);
 
 		expect(isDetailPending(store.getState())).toBe(false);
 
-		store.getState().playTrack([makeItem('a')], 'a');
+		store.getState().playTrack([makeTrack('a')], 'a');
 		await settle();
 
 		expect(isDetailPending(store.getState())).toBe(true);
@@ -78,7 +79,7 @@ describe('queued detail', () => {
 	])('stops waiting when the host %s', async (_outcome, detail) => {
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a')], 'a');
+		store.getState().playTrack([makeTrack('a')], 'a');
 		await settle();
 
 		expect(isDetailPending(store.getState())).toBe(false);
@@ -88,18 +89,18 @@ describe('queued detail', () => {
 	test('never waits on a host that resolves no detail', () => {
 		const store = createStore(undefined);
 
-		store.getState().playTrack([makeItem('a')], 'a');
+		store.getState().playTrack([makeTrack('a')], 'a');
 
 		expect(isDetailPending(store.getState())).toBe(false);
 	});
 
-	test('leaves with its item, and is asked for again when the item is queued again', async () => {
+	test('leaves with its track, and is asked for again when the track is queued again', async () => {
 		const detail = vi.fn(() => Promise.resolve(strip));
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a'), makeItem('b')], 'a');
+		store.getState().playTrack([makeTrack('a'), makeTrack('b')], 'a');
 		await settle();
-		store.getState().moveItem(0, 1);
+		store.getState().moveTrack(0, 1);
 
 		expect(detail).toHaveBeenCalledTimes(2);
 
@@ -107,7 +108,7 @@ describe('queued detail', () => {
 
 		expect([...store.getState().details.keys()]).toStrictEqual(['a']);
 
-		store.getState().queueTrack([makeItem('b')], 'b');
+		store.getState().queueTrack([makeTrack('b')], 'b');
 		await settle();
 
 		expect(detail).toHaveBeenCalledTimes(3);
@@ -123,7 +124,7 @@ describe('detail retry', () => {
 			.mockResolvedValue(strip);
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a')], 'a');
+		store.getState().playTrack([makeTrack('a')], 'a');
 		await settle();
 
 		expect(store.getState().details.get('a')).toStrictEqual({});
@@ -143,7 +144,7 @@ describe('detail retry', () => {
 		const detail = vi.fn(() => (isOnline ? Promise.resolve(strip) : offline()));
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a')], 'a');
+		store.getState().playTrack([makeTrack('a')], 'a');
 		await settle();
 
 		for (const delayMs of [2000, 4000, 8000, 16_000, 30_000, 30_000]) {
@@ -164,7 +165,7 @@ describe('detail retry', () => {
 		expect(store.getState().details.get('a')).toBe(strip);
 
 		isOnline = false;
-		store.getState().queueTrack([makeItem('b')], 'b');
+		store.getState().queueTrack([makeTrack('b')], 'b');
 		await settle();
 
 		const asked = detail.mock.calls.length;
@@ -174,38 +175,38 @@ describe('detail retry', () => {
 		expect(detail).toHaveBeenCalledTimes(asked + 1);
 	});
 
-	test('waits out one delay for every item the host failed, and asks for them together', async () => {
+	test('waits out one delay for every track the host failed, and asks for them together', async () => {
 		const detail = vi.fn<NonNullable<PlayerUrls['detail']>>(offline);
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a'), makeItem('b')], 'a');
+		store.getState().playTrack([makeTrack('a'), makeTrack('b')], 'a');
 		await settle();
 		await vi.advanceTimersByTimeAsync(2000);
 		await vi.advanceTimersByTimeAsync(3999);
 
-		expect(detail.mock.calls.map(([{ itemId }]) => itemId)).toStrictEqual(['a', 'b', 'a', 'b']);
+		expect(detail.mock.calls.map(([{ trackId }]) => trackId)).toStrictEqual(['a', 'b', 'a', 'b']);
 	});
 
-	test('does not ask again for an item the host has nothing for', async () => {
+	test('does not ask again for a track the host has nothing for', async () => {
 		const detail = vi.fn(() => Promise.resolve(undefined));
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a')], 'a');
+		store.getState().playTrack([makeTrack('a')], 'a');
 		await vi.advanceTimersByTimeAsync(60_000);
 
 		expect(detail).toHaveBeenCalledOnce();
 	});
 
-	test('does not ask for an item that left the Queue while its retry was waiting', async () => {
+	test('does not ask for a track that left the Queue while its retry was waiting', async () => {
 		const detail = vi.fn<NonNullable<PlayerUrls['detail']>>(offline);
 		const store = createStore(detail);
 
-		store.getState().playTrack([makeItem('a'), makeItem('b')], 'a');
+		store.getState().playTrack([makeTrack('a'), makeTrack('b')], 'a');
 		await settle();
 		store.getState().removeAt(1);
 		await vi.advanceTimersByTimeAsync(2000);
 
-		expect(detail.mock.calls.map(([{ itemId }]) => itemId)).toStrictEqual(['a', 'b', 'a']);
+		expect(detail.mock.calls.map(([{ trackId }]) => trackId)).toStrictEqual(['a', 'b', 'a']);
 
 		store.getState().clearQueue();
 
@@ -217,12 +218,15 @@ describe('detail persistence', () => {
 	test.each([
 		['fails', offline],
 		['has nothing', () => Promise.resolve(undefined)],
-	])('never stores the empty detail of an item the host %s for', async (_outcome, detail) => {
-		const store = createStore((item) => (item.itemId === 'a' ? Promise.resolve(strip) : detail()), {
-			isPersistent: true,
-		});
+	])('never stores the empty detail of a track the host %s for', async (_outcome, detail) => {
+		const store = createStore(
+			(track) => (track.trackId === 'a' ? Promise.resolve(strip) : detail()),
+			{
+				isPersistent: true,
+			},
+		);
 
-		store.getState().loadQueue([makeItem('a'), makeItem('b')]);
+		store.getState().loadQueue([makeTrack('a'), makeTrack('b')]);
 		await settle();
 
 		expect(JSON.parse(localStorage.getItem(queueDetailStorageKey) ?? '{}')).toStrictEqual({
@@ -235,12 +239,12 @@ describe('detail persistence', () => {
 		expect(localStorage.getItem(queueDetailStorageKey)).toBeNull();
 	});
 
-	test('holds the displayed item alone, following it through an advance', async () => {
-		const store = createStore(({ itemId }) => Promise.resolve({ trackCount: itemId.length }), {
+	test('holds the displayed track alone, following it through an advance', async () => {
+		const store = createStore(({ trackId }) => Promise.resolve({ trackCount: trackId.length }), {
 			isPersistent: true,
 		});
 
-		store.getState().playTrack([makeItem('a'), makeItem('bb')], 'a');
+		store.getState().playTrack([makeTrack('a'), makeTrack('bb')], 'a');
 		await settle();
 
 		expect(JSON.parse(localStorage.getItem(queueDetailStorageKey) ?? '{}')).toStrictEqual({
@@ -254,10 +258,10 @@ describe('detail persistence', () => {
 		});
 	});
 
-	test('restores the displayed detail out of a map that holds every queued item', async () => {
+	test('restores the displayed detail out of a map that holds every queued track', async () => {
 		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
-		first.getState().loadQueue([makeItem('a'), makeItem('b')]);
+		first.getState().loadQueue([makeTrack('a'), makeTrack('b')]);
 		await settle();
 		localStorage.setItem(queueDetailStorageKey, JSON.stringify({ a: strip, b: { trackCount: 9 } }));
 
@@ -274,7 +278,7 @@ describe('detail persistence', () => {
 
 		localStorage.setItem(queueDetailStorageKey, saved);
 
-		store.getState().refreshQueue([makeItem('a')]);
+		store.getState().refreshQueue([makeTrack('a')]);
 		store.getState().clearQueue();
 		store.getState().removeAt(0);
 		store.getState().toggleShuffle();
@@ -294,7 +298,7 @@ describe('detail persistence', () => {
 	test('restores a queued detail before the host is asked, and keeps it when the host fails', async () => {
 		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
-		first.getState().loadQueue([makeItem('a')]);
+		first.getState().loadQueue([makeTrack('a')]);
 		await settle();
 
 		const second = createStore(offline, { isPersistent: true });
@@ -308,10 +312,10 @@ describe('detail persistence', () => {
 	});
 
 	test('replaces a restored detail with a newer answer, in the store and in storage', async () => {
-		const newer: QueueItemDetail = { waveformOverview: 'gIA=' };
+		const newer: TrackDetail = { waveformOverview: 'gIA=' };
 		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
-		first.getState().loadQueue([makeItem('a')]);
+		first.getState().loadQueue([makeTrack('a')]);
 		await settle();
 
 		const second = createStore(() => Promise.resolve(newer), { isPersistent: true });
@@ -327,7 +331,7 @@ describe('detail persistence', () => {
 	test('writes nothing back when the host answers with what storage already held', async () => {
 		const first = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
-		first.getState().loadQueue([makeItem('a')]);
+		first.getState().loadQueue([makeTrack('a')]);
 		await settle();
 
 		const setItem = vi.spyOn(localStorage, 'setItem');
@@ -344,7 +348,7 @@ describe('detail persistence', () => {
 	test('clears the entry as the queue empties', async () => {
 		const store = createStore(() => Promise.resolve(strip), { isPersistent: true });
 
-		store.getState().loadQueue([makeItem('a')]);
+		store.getState().loadQueue([makeTrack('a')]);
 		await settle();
 
 		expect(localStorage.getItem(queueDetailStorageKey)).not.toBeNull();

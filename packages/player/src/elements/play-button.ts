@@ -24,7 +24,7 @@ export const PlayerPlayButton = buttonPart(() => ({
 	},
 	render: () =>
 		renderSonicButton({
-			className: 'player-button-primary',
+			className: 'pzm-button-primary',
 			icons: legendIcons(['play', 'pause']),
 		}),
 	select: selectPlayButton,

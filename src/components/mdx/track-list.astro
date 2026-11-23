@@ -28,7 +28,7 @@ const hasRows = groups.some((group) => group.rows.length > 0);
 
 {isFeed && hasRows ? <TrackListFeed groups={groups} /> : undefined}
 {!isFeed && hasRows ? (
-	<section class="my-8" data-cue-mix={playerMixId}>
+	<section class="my-8" data-pzm-cue-track={playerMixId}>
 		<h2 class="heading-sub mb-3">{t('section.tracklist.heading')}</h2>
 		{groups.map((group) => (
 			<TrackListGroup group={group} />

@@ -47,14 +47,14 @@ test('a sheet dismissed by a drag reopens on screen', async ({ harness, page }) 
 	expect(await sheet.evaluate((element) => element.style.translate)).toBe('');
 });
 
-test('a touch held on the waveform swaps the title block to the Track under it, and back past the cancel zone', async ({
+test('a touch held on the waveform swaps the title block to the cue point under it, and back past the cancel zone', async ({
 	harness,
 	page,
 }) => {
 	const overlay = page.getByRole('dialog', { name: labels.nowPlaying });
 	const slider = overlay.getByRole('slider', { name: labels.seek });
-	const readout = overlay.locator('.player-scrub-readout');
-	const bubble = overlay.locator('.player-cue-label');
+	const readout = overlay.locator('.pzm-scrub-readout');
+	const bubble = overlay.locator('.pzm-cue-label');
 
 	await harness.open({ query: { cued: 1 } });
 	await page.getByRole('button', { name: 'Play long' }).click();

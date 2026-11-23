@@ -5,7 +5,7 @@ import type { PeaksReader } from '#waveform/waveform-peaks.ts';
 
 import { bind } from '#lib/bind.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { loadedDetail, loadedItem } from '#store/selectors.ts';
+import { loadedDetail, loadedTrack } from '#store/selectors.ts';
 import { applyTintCell } from '#waveform/tint-cell.ts';
 import { openPeaks } from '#waveform/waveform-peaks.ts';
 
@@ -27,7 +27,10 @@ export function bindLoadedWaveform(
 		const state = store.getState();
 
 		waveform.max =
-			state.durationSeconds ?? reader?.durationSeconds ?? toDurationSeconds(loadedItem(state)) ?? 0;
+			state.durationSeconds ??
+			reader?.durationSeconds ??
+			toDurationSeconds(loadedTrack(state)) ??
+			0;
 	};
 
 	applyTintCell(waveform);
@@ -65,5 +68,5 @@ function feedReader(
 }
 
 function selectDuration(state: PlayerStore): number | undefined {
-	return state.durationSeconds ?? toDurationSeconds(loadedItem(state));
+	return state.durationSeconds ?? toDurationSeconds(loadedTrack(state));
 }

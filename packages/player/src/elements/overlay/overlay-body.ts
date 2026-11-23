@@ -49,45 +49,45 @@ const artworkSizes =
 
 const renderBody = template(
 	/* HTML */ `
-		<div class="player-overlay-body" data-layout="columns">
-			<div class="player-overlay-layout">
-				<div class="player-overlay-art">
-					<player-artwork sizes="${artworkSizes}"></player-artwork>
+		<div class="pzm-overlay-body" data-layout="columns">
+			<div class="pzm-overlay-layout">
+				<div class="pzm-overlay-art">
+					<pzm-artwork sizes="${artworkSizes}"></pzm-artwork>
 				</div>
-				<div class="player-overlay-deck">
-					<div class="player-overlay-head">
-						<sonic-button class="player-overlay-close"></sonic-button>
-						<div class="player-track player-overlay-track">
-							<player-title></player-title>
-							<div class="player-track-meta">
-								<player-artist-line></player-artist-line><player-time></player-time>
+				<div class="pzm-overlay-deck">
+					<div class="pzm-overlay-head">
+						<sonic-button class="pzm-overlay-close"></sonic-button>
+						<div class="pzm-track pzm-overlay-track">
+							<pzm-title></pzm-title>
+							<div class="pzm-track-meta">
+								<pzm-artist-line></pzm-artist-line><pzm-time></pzm-time>
 							</div>
-							<player-scrub-readout></player-scrub-readout>
+							<pzm-scrub-readout></pzm-scrub-readout>
 						</div>
 					</div>
-					<div class="player-overlay-scrub">
-						<player-time-slider></player-time-slider><player-status></player-status>
+					<div class="pzm-overlay-scrub">
+						<pzm-time-slider></pzm-time-slider><pzm-status></pzm-status>
 					</div>
-					<div class="player-overlay-controls">
-						<div class="player-transport">
-							<player-step-button direction="previous"></player-step-button
-							><player-play-button></player-play-button
-							><player-step-button direction="next"></player-step-button>
+					<div class="pzm-overlay-controls">
+						<div class="pzm-transport">
+							<pzm-step-button direction="previous"></pzm-step-button
+							><pzm-play-button></pzm-play-button
+							><pzm-step-button direction="next"></pzm-step-button>
 						</div>
-						<player-panel-toggle></player-panel-toggle><player-volume></player-volume>
+						<pzm-panel-toggle></pzm-panel-toggle><pzm-volume></pzm-volume>
 					</div>
-					<player-panel></player-panel>
-					<div class="player-overlay-tabs">
-						<div class="player-header">
-							<div class="player-overlay-tablist" role="tablist"></div>
-							<player-queue-actions></player-queue-actions>
+					<pzm-panel></pzm-panel>
+					<div class="pzm-overlay-tabs">
+						<div class="pzm-header">
+							<div class="pzm-overlay-tablist" role="tablist"></div>
+							<pzm-queue-actions></pzm-queue-actions>
 						</div>
-						<div class="player-overlay-list" role="tabpanel"></div>
+						<div class="pzm-overlay-list" role="tabpanel"></div>
 					</div>
-					<div class="player-overlay-sheets" hidden>
-						<sonic-button popup="dialog"></sonic-button><player-panel-toggle></player-panel-toggle>
-						<dialog class="player-overlay-sheet" tabindex="-1">
-							<sonic-button class="player-overlay-close"></sonic-button>
+					<div class="pzm-overlay-sheets" hidden>
+						<sonic-button popup="dialog"></sonic-button><pzm-panel-toggle></pzm-panel-toggle>
+						<dialog class="pzm-overlay-sheet" tabindex="-1">
+							<sonic-button class="pzm-overlay-close"></sonic-button>
 						</dialog>
 					</div>
 				</div>
@@ -102,7 +102,7 @@ export function connectOverlayBody(
 	context: PlayerContext,
 	signal: AbortSignal,
 ): void {
-	defineOnce('player-tracklist', PlayerTracklist);
+	defineOnce('pzm-cue-list', PlayerTracklist);
 
 	const { labels, root, store } = context;
 	const parts = renderBodyParts();
@@ -110,8 +110,7 @@ export function connectOverlayBody(
 
 	if (!root.isArtworkEnabled) parts.art.remove();
 	if (!root.isPanelEnabled) {
-		for (const part of parts.body.querySelectorAll('player-panel, player-panel-toggle'))
-			part.remove();
+		for (const part of parts.body.querySelectorAll('pzm-panel, pzm-panel-toggle')) part.remove();
 	}
 	placeSeekButtons(parts.previous, parts.next, store.getState().seekSeconds);
 
@@ -227,19 +226,17 @@ function isModifiedClick(event: LinkClick): boolean {
 
 function renderBodyParts(): BodyParts {
 	const body = renderBody();
-	const actions = requireChild(body, 'player-queue-actions', HTMLElement);
-	const art = requireChild(body, '.player-overlay-art', HTMLElement);
-	const close = requireChild(body, '.player-overlay-close', HTMLElement);
-	const controls = requireChild(body, '.player-overlay-controls', HTMLElement);
-	const header = requireChild(body, '.player-header', HTMLElement);
-	const sheets = requireChild(body, '.player-overlay-sheets', HTMLElement);
-	const tablist = requireChild(body, '.player-overlay-tablist', HTMLElement);
-	const tabs = requireChild(body, '.player-overlay-tabs', HTMLElement);
-	const [previous, next] = requireChildren(body, 'player-step-button', 2, HTMLElement);
+	const actions = requireChild(body, 'pzm-queue-actions', HTMLElement);
+	const art = requireChild(body, '.pzm-overlay-art', HTMLElement);
+	const close = requireChild(body, '.pzm-overlay-close', HTMLElement);
+	const controls = requireChild(body, '.pzm-overlay-controls', HTMLElement);
+	const header = requireChild(body, '.pzm-header', HTMLElement);
+	const sheets = requireChild(body, '.pzm-overlay-sheets', HTMLElement);
+	const tablist = requireChild(body, '.pzm-overlay-tablist', HTMLElement);
+	const tabs = requireChild(body, '.pzm-overlay-tabs', HTMLElement);
+	const [previous, next] = requireChildren(body, 'pzm-step-button', 2, HTMLElement);
 
-	const columnsOnly = [
-		...controls.querySelectorAll<HTMLElement>(':scope > :not(.player-transport)'),
-	];
+	const columnsOnly = [...controls.querySelectorAll<HTMLElement>(':scope > :not(.pzm-transport)')];
 
 	return {
 		actions,

@@ -4,6 +4,6 @@
 @source './*.{astro,mdx}';
 
 /* Unlayered, so it beats the site's rule hiding an empty bar; this specimen exists to show that state */
-.inventory-player-empty player-root[data-empty] .player-bar {
+.inventory-player-empty pzm-root[data-empty] .pzm-bar {
 	display: block;
 }

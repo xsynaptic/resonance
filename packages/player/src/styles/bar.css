@@ -1,45 +1,45 @@
-.player-bar {
-	--player-padding-block-start: calc(var(--player-padding-block) - 1px);
-	--player-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
-	--player-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
-	--player-inset-bottom: env(safe-area-inset-bottom);
-	--player-progress-space: calc(var(--player-progress-height) + 2px);
+.pzm-bar {
+	--pzm-padding-block-start: calc(var(--pzm-padding-block) - 1px);
+	--pzm-inset-left: max(var(--pzm-padding-inline), env(safe-area-inset-left));
+	--pzm-inset-right: max(var(--pzm-padding-inline), env(safe-area-inset-right));
+	--pzm-inset-bottom: env(safe-area-inset-bottom);
+	--pzm-progress-space: calc(var(--pzm-progress-height) + 2px);
 
 	position: relative;
-	padding: var(--player-padding-block-start) var(--player-inset-right)
-		calc(var(--player-padding-block) + var(--player-inset-bottom)) var(--player-inset-left);
+	padding: var(--pzm-padding-block-start) var(--pzm-inset-right)
+		calc(var(--pzm-padding-block) + var(--pzm-inset-bottom)) var(--pzm-inset-left);
 	container-type: inline-size;
-	background-color: var(--player-surface);
-	border-top: 1px solid var(--player-bar-border);
+	background-color: var(--pzm-surface);
+	border-top: 1px solid var(--pzm-bar-border);
 }
 
 /* On the pseudo-element, since the overlay sits inside the bar and would inherit them */
-.player-bar::before {
-	--player-texture-corner: 0 100%;
-	--player-texture-reach: 60% 200%;
+.pzm-bar::before {
+	--pzm-texture-corner: 0 100%;
+	--pzm-texture-reach: 60% 200%;
 }
 
-.player-bar > player-panel > .player-panel {
-	--player-panel-inset-left: env(safe-area-inset-left);
-	--sonic-waveform-scrim: linear-gradient(to top, var(--player-panel-surface), transparent 1.75rem);
+.pzm-bar > pzm-panel > .pzm-panel {
+	--pzm-panel-inset-left: env(safe-area-inset-left);
+	--sonic-waveform-scrim: linear-gradient(to top, var(--pzm-panel-surface), transparent 1.75rem);
 
 	position: absolute;
 	inset-block-end: 100%;
 	inset-inline: 0;
-	background-color: var(--player-panel-surface);
-	border-top: 1px solid var(--player-bar-border);
+	background-color: var(--pzm-panel-surface);
+	border-top: 1px solid var(--pzm-bar-border);
 }
 
-.player-bar > player-panel > .player-panel .player-panel-zoom {
+.pzm-bar > pzm-panel > .pzm-panel .pzm-panel-zoom {
 	right: env(safe-area-inset-right);
 }
 
-.player-progress {
-	--sonic-buffered: var(--player-waveform-buffered);
-	--sonic-focus: var(--player-bar-border);
-	--sonic-lit: var(--player-progress-played);
+.pzm-progress {
+	--sonic-buffered: var(--pzm-waveform-buffered);
+	--sonic-focus: var(--pzm-bar-border);
+	--sonic-lit: var(--pzm-progress-played);
 	--sonic-reveal-delay: 150ms;
-	--sonic-scrub: var(--player-waveform-scrub);
+	--sonic-scrub: var(--pzm-waveform-scrub);
 	--sonic-slider-cap-ratio: 0;
 	--sonic-slider-groove-anchor: 1;
 	--sonic-slider-groove-hover-delay: 100ms;
@@ -48,156 +48,155 @@
 	--sonic-slider-groove-ratio: calc(1 / 3);
 	--sonic-slider-indicator-ratio: 0;
 	--sonic-slider-length: 100%;
-	--sonic-slider-size: calc(var(--player-progress-height) * 3);
-	--sonic-unlit: var(--player-waveform-base);
+	--sonic-slider-size: calc(var(--pzm-progress-height) * 3);
+	--sonic-unlit: var(--pzm-waveform-base);
 
 	display: none;
 }
 
 /* The bar's top edge, carried on the groove so it rises as the groove thickens */
-.player-progress .sonic-slider-groove::before {
+.pzm-progress .sonic-slider-groove::before {
 	position: absolute;
 	inset-block-end: 100%;
 	inset-inline: 0;
 	block-size: 1px;
 	content: '';
-	background-color: var(--player-bar-border);
+	background-color: var(--pzm-bar-border);
 }
 
-.player-bar-grid {
-	--player-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
+.pzm-bar-grid {
+	--pzm-layout: 'transport info panel volume queue expand' auto 'seek seek seek seek seek seek'
 		minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto;
-	--player-waveform-height: var(--player-waveform-height-bar);
-	--player-control-gap: 1rem;
+	--pzm-waveform-height: var(--pzm-waveform-height-bar);
+	--pzm-control-gap: 1rem;
 
 	display: grid;
-	grid-template: var(--player-layout);
-	gap: var(--player-gap-tight) var(--player-control-gap);
+	grid-template: var(--pzm-layout);
+	gap: var(--pzm-gap-tight) var(--pzm-control-gap);
 	align-items: center;
 	block-size: calc(
-		var(--player-artwork-size) - var(--player-padding-block-start) - var(--player-padding-block)
+		var(--pzm-artwork-size) - var(--pzm-padding-block-start) - var(--pzm-padding-block)
 	);
 }
 
-.player-bar-grid .player-scope {
+.pzm-bar-grid .pzm-scope {
 	display: none;
 	grid-area: scope;
 }
 
 @container (width >= 64rem) {
-	.player-bar-grid:has(> player-scope) {
-		--player-layout: 'transport info scope panel volume queue expand' auto
+	.pzm-bar-grid:has(> pzm-scope) {
+		--pzm-layout: 'transport info scope panel volume queue expand' auto
 			'seek seek seek seek seek seek seek' minmax(0, 1fr) / auto minmax(0, 1fr) auto auto auto auto
 			auto;
 	}
 
-	.player-bar-grid .player-scope {
+	.pzm-bar-grid .pzm-scope {
 		display: grid;
 	}
 }
 
-.player-artwork {
+.pzm-artwork {
 	object-fit: cover;
 }
 
 /* Full-bleed from under the bar's top border to its foot, beside the grid rows and never the panel */
-.player-bar-grid .player-artwork {
+.pzm-bar-grid .pzm-artwork {
 	position: absolute;
-	bottom: var(--player-inset-bottom);
+	bottom: var(--pzm-inset-bottom);
 	left: env(safe-area-inset-left);
-	inline-size: var(--player-artwork-size);
-	block-size: var(--player-artwork-size);
+	inline-size: var(--pzm-artwork-size);
+	block-size: var(--pzm-artwork-size);
 }
 
-.player-bar-grid:has(.player-artwork) {
+.pzm-bar-grid:has(.pzm-artwork) {
 	padding-left: calc(
-		env(safe-area-inset-left) + var(--player-artwork-size) + var(--player-gap) -
-			var(--player-inset-left)
+		env(safe-area-inset-left) + var(--pzm-artwork-size) + var(--pzm-gap) - var(--pzm-inset-left)
 	);
 }
 
 @container (26rem <= width < 40rem) {
-	.player-bar-grid .player-artwork {
+	.pzm-bar-grid .pzm-artwork {
 		display: none;
 	}
 
-	.player-bar-grid:has(.player-artwork) {
+	.pzm-bar-grid:has(.pzm-artwork) {
 		padding-left: 0;
 	}
 }
 
-.player-bar-grid .player-transport {
+.pzm-bar-grid .pzm-transport {
 	grid-area: transport;
 }
 
-.player-bar-grid .player-track {
+.pzm-bar-grid .pzm-track {
 	grid-area: info;
 }
 
-.player-bar-grid player-time-slider > .player-waveform-frame {
+.pzm-bar-grid pzm-time-slider > .pzm-waveform-frame {
 	grid-area: seek;
-	min-block-size: var(--player-waveform-height);
+	min-block-size: var(--pzm-waveform-height);
 }
 
-.player-bar-grid .player-panel-toggle > .sonic-button {
+.pzm-bar-grid .pzm-panel-toggle > .sonic-button {
 	grid-area: panel;
 }
 
-.player-bar-grid .player-volume {
-	--sonic-dial-travel: var(--player-dial-travel-bar);
+.pzm-bar-grid .pzm-volume {
+	--sonic-dial-travel: var(--pzm-dial-travel-bar);
 
 	grid-area: volume;
-	gap: var(--player-control-gap);
+	gap: var(--pzm-control-gap);
 }
 
-.player-bar-grid .player-queue {
+.pzm-bar-grid .pzm-queue {
 	grid-area: queue;
 }
 
-.player-bar-grid .player-overlay-toggle > .sonic-button {
+.pzm-bar-grid .pzm-overlay-toggle > .sonic-button {
 	grid-area: expand;
 }
 
 @container (width < 64rem) {
-	.player-bar-grid .player-seek-button {
+	.pzm-bar-grid .pzm-seek-button {
 		display: none;
 	}
 }
 
-/* Each box takes back the room around its glyph, so `--player-control-gap` is what shows between rendered edges */
+/* Each box takes back the room around its glyph, so `--pzm-control-gap` is what shows between rendered edges */
 @container (width >= 26rem) {
-	.player-bar-grid .player-transport {
-		gap: var(--player-control-gap);
+	.pzm-bar-grid .pzm-transport {
+		gap: var(--pzm-control-gap);
 	}
 
-	.player-bar-grid .player-step-button > .sonic-button {
-		margin-inline: calc((var(--player-button-size) - 1.0417rem) / -2);
+	.pzm-bar-grid .pzm-step-button > .sonic-button {
+		margin-inline: calc((var(--pzm-button-size) - 1.0417rem) / -2);
 	}
 
-	.player-bar-grid .player-seek-button > .sonic-button {
-		margin-inline: calc((var(--player-button-size) - 1.1875rem) / -2);
+	.pzm-bar-grid .pzm-seek-button > .sonic-button {
+		margin-inline: calc((var(--pzm-button-size) - 1.1875rem) / -2);
 	}
 
-	.player-bar-grid :is(.player-panel-toggle, player-mute-button > sonic-button) > .sonic-button {
-		margin-inline: calc((var(--player-button-size) - 1.0625rem) / -2);
+	.pzm-bar-grid :is(.pzm-panel-toggle, pzm-mute-button > sonic-button) > .sonic-button {
+		margin-inline: calc((var(--pzm-button-size) - 1.0625rem) / -2);
 	}
 
-	.player-bar-grid .player-overlay-toggle > .sonic-button {
-		margin-inline: calc((var(--player-button-size) - 0.9375rem) / -2);
+	.pzm-bar-grid .pzm-overlay-toggle > .sonic-button {
+		margin-inline: calc((var(--pzm-button-size) - 0.9375rem) / -2);
 	}
 
-	.player-bar-grid .player-queue > sonic-button > .sonic-button {
-		margin-inline: calc((var(--player-button-size) - 1.125rem) / -2);
+	.pzm-bar-grid .pzm-queue > sonic-button > .sonic-button {
+		margin-inline: calc((var(--pzm-button-size) - 1.125rem) / -2);
 	}
 }
 
 /* Too narrow for the tray to hang from its button without running off the left edge, so it spans the bar */
 @container (width < 30rem) {
-	.player-bar-grid .player-queue {
+	.pzm-bar-grid .pzm-queue {
 		position: static;
 	}
 
-	.player-bar-grid .player-queue-popover {
+	.pzm-bar-grid .pzm-queue-popover {
 		left: 0;
 		width: auto;
 	}
@@ -205,50 +204,50 @@
 
 /* Mini: play, the title, the clock and expand; scoped to the grid and the bar's own panel, since the overlay's dialog sits in this container too */
 @container (width < 26rem) {
-	.player-bar-grid {
-		--player-layout: 'transport info expand' auto / auto minmax(0, 1fr) auto;
+	.pzm-bar-grid {
+		--pzm-layout: 'transport info expand' auto / auto minmax(0, 1fr) auto;
 
 		block-size: auto;
-		padding-block-start: var(--player-progress-space);
+		padding-block-start: var(--pzm-progress-space);
 	}
 
-	.player-bar-grid:not(:has(> player-overlay-toggle)) {
-		--player-layout: 'transport info queue' auto / auto minmax(0, 1fr) auto;
+	.pzm-bar-grid:not(:has(> pzm-overlay-toggle)) {
+		--pzm-layout: 'transport info queue' auto / auto minmax(0, 1fr) auto;
 	}
 
-	.player-bar-grid:has(.player-artwork) {
+	.pzm-bar-grid:has(.pzm-artwork) {
 		padding-left: 0;
 	}
 
-	.player-progress {
+	.pzm-progress {
 		position: absolute;
-		inset-block-end: calc(100% - var(--player-progress-height));
+		inset-block-end: calc(100% - var(--pzm-progress-height));
 		inset-inline: 0;
 		display: block;
 	}
 
-	.player-bar-grid .player-track {
+	.pzm-bar-grid .pzm-track {
 		position: relative;
 	}
 
-	.player-bar-grid .player-scrub-readout {
+	.pzm-bar-grid .pzm-scrub-readout {
 		display: block;
 	}
 
-	.player-bar-grid .player-track:has(> player-scrub-readout[data-held]) player-time,
-	.player-bar-grid
-		.player-track:has(> player-scrub-readout[data-held][data-track])
-		:is(player-title, player-artist-line) {
+	.pzm-bar-grid .pzm-track:has(> pzm-scrub-readout[data-held]) pzm-time,
+	.pzm-bar-grid
+		.pzm-track:has(> pzm-scrub-readout[data-held][data-cue])
+		:is(pzm-title, pzm-artist-line) {
 		visibility: hidden;
 	}
 
-	.player-bar > player-panel > .player-panel,
-	.player-bar-grid .player-artwork,
-	.player-bar-grid player-time-slider > .player-waveform-frame,
-	.player-bar-grid .player-panel-toggle,
-	.player-bar-grid:has(> player-overlay-toggle) .player-queue,
-	.player-bar-grid .player-step-button,
-	.player-bar-grid .player-volume {
+	.pzm-bar > pzm-panel > .pzm-panel,
+	.pzm-bar-grid .pzm-artwork,
+	.pzm-bar-grid pzm-time-slider > .pzm-waveform-frame,
+	.pzm-bar-grid .pzm-panel-toggle,
+	.pzm-bar-grid:has(> pzm-overlay-toggle) .pzm-queue,
+	.pzm-bar-grid .pzm-step-button,
+	.pzm-bar-grid .pzm-volume {
 		display: none;
 	}
 }

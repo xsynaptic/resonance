@@ -16,7 +16,7 @@ interface ZoomParts {
 
 // Marked as a panel control, so a press here never starts a drag of the waveform beneath
 const renderControl = template(
-	'<div class="player-panel-zoom" data-panel-control></div>',
+	'<div class="pzm-panel-zoom" data-panel-control></div>',
 	HTMLDivElement,
 );
 
@@ -60,7 +60,7 @@ export class PlayerPanelZoom extends PlayerElement {
 
 function renderZoomButton(icon: 'zoomIn' | 'zoomOut') {
 	return renderSonicButton({
-		className: 'player-button-pill',
+		className: 'pzm-button-pill',
 		icons: [cloneIcon(icon)],
 	});
 }

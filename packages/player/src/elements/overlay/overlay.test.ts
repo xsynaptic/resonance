@@ -4,7 +4,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { overlayBodyModule } from '#elements/overlay/overlay-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
-import { landDetail, mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 
 const cuePoints = [
 	{ artistLine: 'Nebula Drift', startSeconds: 0, title: 'Opening' },
@@ -12,8 +12,8 @@ const cuePoints = [
 ];
 
 function mountOverlay() {
-	const mounted = mount('player-overlay');
-	const toggle = document.createElement('player-overlay-toggle');
+	const mounted = mount('pzm-overlay');
+	const toggle = document.createElement('pzm-overlay-toggle');
 	const dialog = mounted.part.querySelector('dialog');
 	if (!dialog) throw new Error('The overlay rendered no dialog');
 
@@ -26,7 +26,7 @@ async function openOverlay({ dialog, toggle }: ReturnType<typeof mountOverlay>) 
 	toggle.click();
 
 	return vi.waitFor(() => {
-		const close = dialog.querySelector<HTMLButtonElement>('.player-overlay-close');
+		const close = dialog.querySelector<HTMLButtonElement>('.pzm-overlay-close');
 		if (!close) throw new Error('The overlay body has not arrived');
 
 		return close;
@@ -39,11 +39,11 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-describe('<player-overlay>', () => {
+describe('<pzm-overlay>', () => {
 	test('opens on expand, and closes from close and from the dialog dropping open', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().loadQueue([queueItem('a'), queueItem('b')]);
+		mounted.store.getState().loadQueue([sampleTrack('a'), sampleTrack('b')]);
 
 		const close = await openOverlay(mounted);
 
@@ -68,7 +68,7 @@ describe('<player-overlay>', () => {
 	test('closes once the queue empties', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().loadQueue([queueItem('a')]);
+		mounted.store.getState().loadQueue([sampleTrack('a')]);
 		await openOverlay(mounted);
 		getByRole(mounted.dialog, 'button', { name: labels.clearQueue }).click();
 
@@ -81,7 +81,7 @@ describe('<player-overlay>', () => {
 	test('slides out on Escape through the store, and a reopen mid-exit stays open', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().loadQueue([queueItem('a')]);
+		mounted.store.getState().loadQueue([sampleTrack('a')]);
 		await openOverlay(mounted);
 		mounted.dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
 
@@ -104,7 +104,7 @@ describe('<player-overlay>', () => {
 
 		const mounted = mountOverlay();
 
-		mounted.store.getState().loadQueue([queueItem('a')]);
+		mounted.store.getState().loadQueue([sampleTrack('a')]);
 		mounted.toggle.click();
 
 		await vi.waitFor(() => {
@@ -117,8 +117,8 @@ describe('<player-overlay>', () => {
 	test('draws one waveform panel while it is open', async () => {
 		const mounted = mountOverlay();
 
-		mounted.root.append(document.createElement('player-panel'));
-		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		mounted.root.append(document.createElement('pzm-panel'));
+		mounted.store.getState().playTrack([sampleTrack('a')], 'a');
 		mounted.store.getState().setPanelOpen(true);
 		await openOverlay(mounted);
 
@@ -133,7 +133,7 @@ describe('<player-overlay>', () => {
 	test('closes for a plain link click and stays open for a modified one', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().loadQueue([queueItem('a', { releaseHref: '/releases/winter' })]);
+		mounted.store.getState().loadQueue([sampleTrack('a', { releaseHref: '/releases/winter' })]);
 		await openOverlay(mounted);
 
 		const link = getByRole(mounted.dialog, 'link');
@@ -161,7 +161,7 @@ describe('<player-overlay>', () => {
 	test('seeks from a cue in the Tracklist and marks the current one', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a', { durationMs: 180_000 })], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a', { durationMs: 180_000 })], 'a');
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
@@ -180,10 +180,10 @@ describe('<player-overlay>', () => {
 		).toBe('false');
 	});
 
-	test('holds the Tracklist tab disabled for an item without cue points', async () => {
+	test('holds the Tracklist tab disabled for a track without cue points', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a'), sampleTrack('b')], 'a');
 		await openOverlay(mounted);
 
 		const queue = getByRole(mounted.dialog, 'tab', { name: labels.queue });
@@ -210,7 +210,7 @@ describe('the overlay tabs', () => {
 	test('move with the arrow keys, Home and End', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a')], 'a');
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
@@ -240,7 +240,7 @@ describe('the overlay tabs', () => {
 	test('carry Shuffle and Clear in their row only while the Queue shows', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a')], 'a');
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
@@ -254,7 +254,7 @@ describe('the overlay tabs', () => {
 	test('keep focus when the Tracklist goes with a focused cue', async () => {
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a'), queueItem('b')], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a'), sampleTrack('b')], 'a');
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 		getByRole(mounted.dialog, 'button', { name: /Middle/ }).focus();
@@ -272,7 +272,7 @@ describe('the overlay sheet', () => {
 
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a')], 'a');
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 
@@ -304,7 +304,7 @@ describe('the overlay sheet', () => {
 
 		const mounted = mountOverlay();
 
-		mounted.store.getState().playTrack([queueItem('a')], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a')], 'a');
 		landDetail(mounted.store, 'a', { cuePoints });
 		await openOverlay(mounted);
 

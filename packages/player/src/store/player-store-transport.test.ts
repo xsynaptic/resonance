@@ -7,7 +7,7 @@ import type { PlayerStore } from '#store/player-store.ts';
 import {
 	configured,
 	fake,
-	makeItem,
+	makeTrack,
 	pendingResolver,
 	release,
 	resetEngine,
@@ -143,7 +143,7 @@ describe('transport', () => {
 	test('ignores a delta while no duration is known', () => {
 		const store = configured();
 
-		const { durationMs: _durationMs, ...unmeasured } = makeItem('a');
+		const { durationMs: _durationMs, ...unmeasured } = makeTrack('a');
 
 		store.getState().playTrack([unmeasured], 'a');
 		fake.callbacks.current?.onTime(10);

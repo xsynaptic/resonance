@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import type { QueueItem } from '#types.ts';
+import type { Track } from '#types.ts';
 
 import { preloadWhenQueued } from '#lib/preload-when-queued.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 
-const item = {
+const track = {
 	artistLine: 'Nebula Drift',
 	durationMs: 180_000,
-	itemId: 'a',
 	releaseTitle: 'Cosmic Drift',
 	title: 'Track a',
-} satisfies QueueItem;
+	trackId: 'a',
+} satisfies Track;
 
 function stubIdle() {
 	const pending: Array<() => void> = [];
@@ -43,8 +43,8 @@ describe('preloadWhenQueued', () => {
 
 		expect(idle.pending).toHaveLength(0);
 
-		store.getState().loadQueue([item]);
-		store.getState().loadQueue([item, { ...item, itemId: 'b' }]);
+		store.getState().loadQueue([track]);
+		store.getState().loadQueue([track, { ...track, trackId: 'b' }]);
 
 		expect(idle.pending).toHaveLength(1);
 		expect(preload).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe('preloadWhenQueued', () => {
 		const store = createPlayerStore({ storage: createMemoryStorage() });
 		const preload = vi.fn();
 
-		store.getState().loadQueue([item]);
+		store.getState().loadQueue([track]);
 
 		const unbind = preloadWhenQueued(store, preload);
 

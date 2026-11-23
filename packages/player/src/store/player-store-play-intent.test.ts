@@ -156,8 +156,8 @@ describe('play intent', () => {
 		'a press on a %s track re-resolves rather than playing what the engine holds',
 		async (status, resolution) => {
 			const resolved: Array<string> = [];
-			const store = withResolver(({ itemId }) => {
-				resolved.push(itemId);
+			const store = withResolver(({ trackId }) => {
+				resolved.push(trackId);
 				return Promise.resolve(resolution);
 			});
 			fake.engine.canPlay.mockReturnValue(false);

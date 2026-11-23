@@ -1,10 +1,10 @@
-import type { QueueItem, QueueItemDetail } from '#types.ts';
+import type { Track, TrackDetail } from '#types.ts';
 
 import { isRecord } from '#lib/is-record.ts';
 
 type FieldChecks = Record<string, (value: unknown) => boolean>;
 
-const itemChecks: FieldChecks = {
+const trackChecks: FieldChecks = {
 	artwork: (value) => isArrayOf(value, isArtwork),
 	// `Intl.DurationFormat` throws past the safe-integer range
 	durationMs: (value) => isNonNegativeNumber(value) && value <= Number.MAX_SAFE_INTEGER,
@@ -18,7 +18,7 @@ const detailChecks: FieldChecks = {
 	waveformOverview: (value) => typeof value === 'string',
 };
 
-export function toStoredDetail(value: unknown): QueueItemDetail | undefined {
+export function toStoredDetail(value: unknown): TrackDetail | undefined {
 	if (!isRecord(value)) return undefined;
 
 	const detail = keepValidFields(value, detailChecks);
@@ -26,13 +26,13 @@ export function toStoredDetail(value: unknown): QueueItemDetail | undefined {
 	return isDetail(detail) ? detail : undefined;
 }
 
-// Unknown fields are kept because resolvers expect the item exactly as the host queued it
-export function toStoredItem(value: unknown): QueueItem | undefined {
+// Unknown fields are kept because resolvers expect the track exactly as the host queued it
+export function toStoredTrack(value: unknown): Track | undefined {
 	if (!isRecord(value)) return undefined;
 
-	const item = keepValidFields(value, itemChecks);
+	const track = keepValidFields(value, trackChecks);
 
-	return isItem(item) ? item : undefined;
+	return isTrack(track) ? track : undefined;
 }
 
 function hasFields(value: unknown, checks: FieldChecks): boolean {
@@ -72,8 +72,8 @@ function isPeaks(value: unknown): boolean {
 	);
 }
 
-function isArrayOf(value: unknown, isValid: (item: unknown) => boolean): boolean {
-	return Array.isArray(value) && value.every((item) => isValid(item));
+function isArrayOf(value: unknown, isValid: (track: unknown) => boolean): boolean {
+	return Array.isArray(value) && value.every((track) => isValid(track));
 }
 
 function isArtwork(value: unknown): boolean {
@@ -98,7 +98,7 @@ function isCuePoint(value: unknown): boolean {
 	});
 }
 
-function isDetail(value: unknown): value is QueueItemDetail {
+function isDetail(value: unknown): value is TrackDetail {
 	return isRecord(value) && hasOptionalFields(value, detailChecks);
 }
 
@@ -106,13 +106,13 @@ function isFiniteNumber(value: unknown): value is number {
 	return typeof value === 'number' && Number.isFinite(value);
 }
 
-function isItem(value: unknown): value is QueueItem {
+function isTrack(value: unknown): value is Track {
 	if (!isRecord(value)) return false;
 
 	return (
-		['artistLine', 'itemId', 'releaseTitle', 'title'].every(
+		['artistLine', 'trackId', 'releaseTitle', 'title'].every(
 			(key) => typeof value[key] === 'string',
-		) && hasOptionalFields(value, itemChecks)
+		) && hasOptionalFields(value, trackChecks)
 	);
 }
 

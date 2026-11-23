@@ -12,9 +12,9 @@ const store = vi.hoisted(() => ({ getState: () => ({ refreshQueue }) }));
 const elements = vi.hoisted(() => ({
 	bindMediaSession: vi.fn(),
 	bindPageControls: vi.fn(() => ({ refresh: vi.fn(), unbind: vi.fn() })),
-	createPlayer: vi.fn(() => document.createElement('player-root')),
+	createPlayer: vi.fn(() => document.createElement('pzm-root')),
 	createPlayerStore: vi.fn(() => store),
-	loadedItem: vi.fn(),
+	loadedTrack: vi.fn(),
 }));
 
 // Bound for real under `NODE_ENV=production`, where `import.meta.env.DEV` stops short-circuiting it
@@ -38,10 +38,10 @@ const libraryEntry = {
 	detail: { trackCount: 3 },
 	press: {
 		artistLine: 'Basilisk',
-		itemId: 'a',
 		releaseTitle: 'A',
 		streamUrl: '/a.mp4',
 		title: 'A',
+		trackId: 'a',
 	},
 };
 
@@ -54,9 +54,9 @@ function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 	});
 
 	document.body.innerHTML = `
-		${hasPayload ? '<div data-player-payload="[]"></div>' : ''}
-		<button data-play-track="a"><span>Play</span></button>
-		<button data-queue-track="a">Queue</button>
+		${hasPayload ? '<div data-pzm-payload="[]"></div>' : ''}
+		<button data-pzm-play-track="a"><span>Play</span></button>
+		<button data-pzm-queue-track="a">Queue</button>
 		<div data-player-host><script type="application/json">${config}</script></div>
 	`;
 }
@@ -105,7 +105,7 @@ describe('startPlayer', () => {
 
 		expect(elements.createPlayer).not.toHaveBeenCalled();
 
-		control('[data-play-track] span').click();
+		control('[data-pzm-play-track] span').click();
 
 		await vi.waitFor(() => {
 			expect(elements.bindPageControls).toHaveBeenCalledWith(store, document, {
@@ -116,11 +116,11 @@ describe('startPlayer', () => {
 		expect(elements.createPlayer).toHaveBeenCalledWith(
 			expect.objectContaining({ isScopeEnabled: true, seekSeconds: 30, store }),
 		);
-		expect(document.querySelector('[data-player-host] > player-root')).not.toBeNull();
+		expect(document.querySelector('[data-player-host] > pzm-root')).not.toBeNull();
 		expect(elements.bindMediaSession).toHaveBeenCalledWith(store);
 		expect(stats.bindPlayerStats).toHaveBeenCalledWith(store, expect.any(Function));
 		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(store);
-		expect(control('[data-play-track]').hasAttribute(heldPressAttribute)).toBe(true);
+		expect(control('[data-pzm-play-track]').hasAttribute(heldPressAttribute)).toBe(true);
 	});
 
 	test('a later page load that brings a payload starts the player, and only once', async () => {
@@ -135,7 +135,7 @@ describe('startPlayer', () => {
 
 		expect(elements.createPlayer).not.toHaveBeenCalled();
 
-		document.body.insertAdjacentHTML('afterbegin', '<div data-player-payload="[]"></div>');
+		document.body.insertAdjacentHTML('afterbegin', '<div data-pzm-payload="[]"></div>');
 		startPlayer();
 		startPlayer();
 
@@ -157,7 +157,7 @@ describe('startPlayer', () => {
 		});
 
 		await expect(urls.detail?.(libraryEntry.press)).resolves.toStrictEqual(libraryEntry.detail);
-		await expect(urls.detail?.({ ...libraryEntry.press, itemId: 'b' })).resolves.toBeUndefined();
+		await expect(urls.detail?.({ ...libraryEntry.press, trackId: 'b' })).resolves.toBeUndefined();
 		expect(fetchLibrary).toHaveBeenCalledExactlyOnceWith('/api/player/library.json?v=abc', {
 			signal: expect.any(AbortSignal) as AbortSignal,
 		});
@@ -213,14 +213,14 @@ describe('startPlayer', () => {
 		vi.stubGlobal('requestIdleCallback', () => 0);
 		mountPage({ hasPayload: true });
 		startPlayer();
-		control('[data-play-track]').click();
+		control('[data-pzm-play-track]').click();
 
 		await vi.waitFor(() => {
 			expect(elements.bindPageControls).toHaveBeenCalledOnce();
 		});
 
-		control('[data-queue-track]').click();
+		control('[data-pzm-queue-track]').click();
 
-		expect(control('[data-queue-track]').hasAttribute(heldPressAttribute)).toBe(false);
+		expect(control('[data-pzm-queue-track]').hasAttribute(heldPressAttribute)).toBe(false);
 	});
 });

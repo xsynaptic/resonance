@@ -5,7 +5,7 @@ import type { StreamResolution } from '#types.ts';
 import {
 	configured,
 	fake,
-	makeItem,
+	makeTrack,
 	release,
 	resetEngine,
 	withResolver,
@@ -57,11 +57,11 @@ describe('playQueue', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'b');
-		store.getState().playQueue([makeItem('x'), makeItem('y')]);
+		store.getState().playQueue([makeTrack('x'), makeTrack('y')]);
 
 		const state = store.getState();
 
-		expect(state.queue.map((item) => item.itemId)).toStrictEqual(['x', 'y']);
+		expect(state.queue.map((track) => track.trackId)).toStrictEqual(['x', 'y']);
 		expect(state.currentIndex).toBe(0);
 		expect(fake.engine.reset).toHaveBeenCalledOnce();
 	});
@@ -81,13 +81,13 @@ describe('queueTrack', () => {
 	test('appends the clicked track without loading or playing it', () => {
 		const store = configured();
 
-		store.getState().loadQueue([makeItem('x')]);
+		store.getState().loadQueue([makeTrack('x')]);
 		store.getState().queueTrack(release, 'c');
 
 		const state = store.getState();
 
 		expect(state.queue).toHaveLength(2);
-		expect(state.queue[1]?.itemId).toBe('c');
+		expect(state.queue[1]?.trackId).toBe('c');
 		expect(state.currentIndex).toBeUndefined();
 		expect(state.status).toBe('idle');
 		expect(fake.engine.load).not.toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe('queue editing', () => {
 
 		store.getState().playTrack(release, 'a');
 		fake.callbacks.current?.onStatus('playing');
-		store.getState().loadQueue([makeItem('x')]);
+		store.getState().loadQueue([makeTrack('x')]);
 
 		expect(fake.engine.reset).toHaveBeenCalled();
 		expect(store.getState()).toMatchObject({
@@ -124,12 +124,12 @@ describe('queue editing', () => {
 		});
 	});
 
-	test('gives every enqueued item an id, including a second copy of the same track', () => {
+	test('gives every enqueued track an id, including a second copy of the same track', () => {
 		const store = configured();
 
 		store.getState().loadQueue([...release, ...release]);
 
-		const ids = store.getState().queue.map((item) => item.queueId);
+		const ids = store.getState().queue.map((track) => track.queueId);
 
 		expect(ids).toHaveLength(6);
 		expect(new Set(ids).size).toBe(6);

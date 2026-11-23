@@ -149,7 +149,7 @@ function contentY(list: HTMLElement, clientY: number): number {
 
 // Measures the list once: every later frame reads these rather than the layout
 function openSession(list: HTMLElement, event: RowPointer, from: number): DragSession | undefined {
-	const rows = [...list.querySelectorAll<HTMLElement>('.player-tray-item')];
+	const rows = [...list.querySelectorAll<HTMLElement>('.pzm-tray-track')];
 	const row = rows[from];
 	if (!row) return undefined;
 

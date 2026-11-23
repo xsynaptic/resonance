@@ -4,21 +4,21 @@ import { SonicWaveform } from '@xsynaptic/sonic-ui';
 
 import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore, PlayerStoreApi } from '#store/player-store.ts';
-import type { QueueItem, QueueItemDetail } from '#types.ts';
+import type { Track, TrackDetail } from '#types.ts';
 
 import { defineOnce } from '#elements/define-once.ts';
 import { PlayerPanelZoom } from '#elements/panel/panel-zoom.ts';
 import { formatSpokenPosition } from '#elements/time-slider/spoken-time.ts';
 import { bind } from '#lib/bind.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { loadedDetail, loadedItem } from '#store/selectors.ts';
+import { loadedDetail, loadedTrack } from '#store/selectors.ts';
 import { panelZoomMax, panelZoomMin } from '#store/zoom-levels.ts';
 import { bindLoadedWaveform } from '#waveform/bind-loaded-waveform.ts';
 import { toPanelMarkers } from '#waveform/cue-markers.ts';
 
 interface PanelSource {
-	detail: QueueItemDetail | undefined;
-	item: QueueItem | undefined;
+	detail: TrackDetail | undefined;
+	track: Track | undefined;
 }
 
 const renderSurface = template(
@@ -32,8 +32,8 @@ const renderSurface = template(
 				step="0"
 				zoomable
 			></sonic-waveform>
-			<p class="player-panel-now"></p>
-			<player-panel-zoom></player-panel-zoom>
+			<p class="pzm-panel-now"></p>
+			<pzm-panel-zoom></pzm-panel-zoom>
 		</div>
 	`,
 	HTMLDivElement,
@@ -44,7 +44,7 @@ export function connectPanelSurface(
 	{ labels, store }: PlayerContext,
 	signal: AbortSignal,
 ): void {
-	defineOnce('player-panel-zoom', PlayerPanelZoom);
+	defineOnce('pzm-panel-zoom', PlayerPanelZoom);
 	defineOnce('sonic-waveform', SonicWaveform);
 
 	panel.removeAttribute('aria-hidden');
@@ -53,7 +53,7 @@ export function connectPanelSurface(
 	panel.replaceChildren(...renderSurface().children);
 
 	const waveform = requireChild(panel, 'sonic-waveform', SonicWaveform);
-	const now = requireChild(panel, '.player-panel-now', HTMLParagraphElement);
+	const now = requireChild(panel, '.pzm-panel-now', HTMLParagraphElement);
 
 	waveform.setAttribute('aria-label', labels.waveformSeek);
 	// A `max` of 0 is a length nobody knows yet
@@ -88,7 +88,7 @@ export function connectPanelSurface(
 		store,
 		selectPanelSource,
 		(source) => {
-			showItem(waveform, source, labels.timestampsPartial);
+			showTrack(waveform, source, labels.timestampsPartial);
 		},
 		signal,
 	);
@@ -135,22 +135,22 @@ function renderLabel({ artist, label = '', title }: WaveMarker, element: HTMLEle
 
 	const artistPart = document.createElement('span');
 
-	artistPart.className = 'player-panel-label-artist';
+	artistPart.className = 'pzm-panel-label-artist';
 	artistPart.textContent = artist;
 	element.append(artistPart, ` - ${title}`);
 }
 
 function selectPanelSource(state: PlayerStore): PanelSource {
-	return { detail: loadedDetail(state), item: loadedItem(state) };
+	return { detail: loadedDetail(state), track: loadedTrack(state) };
 }
 
-function showItem(
+function showTrack(
 	waveform: SonicWaveform,
-	{ detail, item }: PanelSource,
+	{ detail, track }: PanelSource,
 	partialNote: string,
 ): void {
 	const cuePoints = detail?.cuePoints ?? [];
 
-	waveform.disabled = item === undefined;
+	waveform.disabled = track === undefined;
 	waveform.markers = toPanelMarkers(cuePoints, detail?.trackCount ?? cuePoints.length, partialNote);
 }

@@ -2,29 +2,29 @@ import { fc, test } from '@fast-check/vitest';
 import { describe, expect, vi } from 'vitest';
 
 import type { QueueState } from '#queue/queue-state.ts';
-import type { QueuedItem, QueueItem } from '#types.ts';
+import type { QueuedTrack, Track } from '#types.ts';
 
 import {
 	appendedQueue,
 	createQueueIds,
 	loadedQueue,
-	movedItem,
+	movedTrack,
 	refreshedQueue,
 	removedAt,
 	shuffledQueue,
 	stampQueue,
 } from '#queue/queue-state.ts';
 
-function makeItem(itemId: string): QueueItem {
+function makeTrack(trackId: string): Track {
 	return {
 		artistLine: 'Nebula Drift',
-		itemId,
 		releaseTitle: 'Cosmic Drift',
-		title: `Track ${itemId}`,
+		title: `Track ${trackId}`,
+		trackId,
 	};
 }
 
-const release = [makeItem('a'), makeItem('b'), makeItem('c')];
+const release = [makeTrack('a'), makeTrack('b'), makeTrack('c')];
 
 const nextId = createQueueIds();
 
@@ -61,16 +61,16 @@ function seededRandom(seed: number): () => number {
 	};
 }
 
-function stamp(items: ReadonlyArray<QueueItem>): Array<QueuedItem> {
-	return stampQueue(items, nextId);
+function stamp(tracks: ReadonlyArray<Track>): Array<QueuedTrack> {
+	return stampQueue(tracks, nextId);
 }
 
-function trackIds(queue: ReadonlyArray<QueuedItem>): Array<string> {
-	return queue.map((item) => item.itemId);
+function queueTrackIds(queue: ReadonlyArray<QueuedTrack>): Array<string> {
+	return queue.map((track) => track.trackId);
 }
 
-function withQueue(items: ReadonlyArray<QueueItem>, currentIndex: number | undefined): QueueState {
-	const loaded = loadedQueue(emptyState(), stamp(items));
+function withQueue(tracks: ReadonlyArray<Track>, currentIndex: number | undefined): QueueState {
+	const loaded = loadedQueue(emptyState(), stamp(tracks));
 
 	return { ...loaded, currentIndex };
 }
@@ -79,7 +79,7 @@ describe('loadedQueue', () => {
 	test('replaces the queue and loads nothing out of it', () => {
 		const state = loadedQueue(emptyState(), stamp(release));
 
-		expect(trackIds(state.queue)).toStrictEqual(['a', 'b', 'c']);
+		expect(queueTrackIds(state.queue)).toStrictEqual(['a', 'b', 'c']);
 		expect(state.playOrder).toStrictEqual([0, 1, 2]);
 		expect(state.currentIndex).toBeUndefined();
 	});
@@ -90,7 +90,7 @@ describe('appendedQueue', () => {
 		const appended = appendedQueue(emptyState(), stamp(release));
 
 		expect(appended?.loadIndex).toBe(0);
-		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c']);
+		expect(queueTrackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c']);
 	});
 
 	test('refuses a named track the release does not carry', () => {
@@ -98,10 +98,10 @@ describe('appendedQueue', () => {
 	});
 
 	test('appends every track to a running queue and loads the first appended', () => {
-		const appended = appendedQueue(withQueue([makeItem('x')], 0), stamp(release));
+		const appended = appendedQueue(withQueue([makeTrack('x')], 0), stamp(release));
 
 		expect(appended?.loadIndex).toBe(1);
-		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'a', 'b', 'c']);
+		expect(queueTrackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'a', 'b', 'c']);
 	});
 
 	test('jumps to a track already queued rather than appending a second copy', () => {
@@ -113,14 +113,14 @@ describe('appendedQueue', () => {
 	});
 
 	test('appends only the named track when a queue is running', () => {
-		const appended = appendedQueue(withQueue([makeItem('x')], 0), stamp(release), 'c');
+		const appended = appendedQueue(withQueue([makeTrack('x')], 0), stamp(release), 'c');
 
 		expect(appended?.loadIndex).toBe(1);
-		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'c']);
+		expect(queueTrackIds(appended?.state.queue ?? [])).toStrictEqual(['x', 'c']);
 	});
 
 	test('leaves the loaded index alone, since loading it is the caller step', () => {
-		const appended = appendedQueue(withQueue(release, 1), stamp([makeItem('d')]));
+		const appended = appendedQueue(withQueue(release, 1), stamp([makeTrack('d')]));
 
 		expect(appended?.state.currentIndex).toBe(1);
 		expect(appended?.loadIndex).toBe(3);
@@ -128,7 +128,7 @@ describe('appendedQueue', () => {
 
 	test('keeps a shuffled order and puts every appended track at its end', () => {
 		const shuffling = { ...withQueue(release, 2), isShuffling: true, playOrder: [2, 0, 1] };
-		const appended = appendedQueue(shuffling, stamp([makeItem('d'), makeItem('e')]));
+		const appended = appendedQueue(shuffling, stamp([makeTrack('d'), makeTrack('e')]));
 
 		expect(appended?.loadIndex).toBe(3);
 		expect(appended?.state.playOrder).toStrictEqual([2, 0, 1, 3, 4]);
@@ -136,18 +136,18 @@ describe('appendedQueue', () => {
 
 	test('puts a named track at the end of a shuffled order', () => {
 		const shuffling = { ...withQueue(release, 2), isShuffling: true, playOrder: [2, 0, 1] };
-		const appended = appendedQueue(shuffling, stamp([makeItem('d'), makeItem('e')]), 'e');
+		const appended = appendedQueue(shuffling, stamp([makeTrack('d'), makeTrack('e')]), 'e');
 
-		expect(trackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c', 'e']);
+		expect(queueTrackIds(appended?.state.queue ?? [])).toStrictEqual(['a', 'b', 'c', 'e']);
 		expect(appended?.state.playOrder).toStrictEqual([2, 0, 1, 3]);
 	});
 });
 
 describe('refreshedQueue', () => {
-	test('gives a stored item from an older build the page fields, keeping its queue id and place', () => {
-		const legacy = { ...makeItem('b'), artworkUrl: '/b-512.webp' };
-		const queue = stamp([makeItem('a'), legacy, makeItem('c')]);
-		const fresh = { ...makeItem('b'), artwork: [{ src: '/b-120.webp', width: 120 }] };
+	test('gives a stored track from an older build the page fields, keeping its queue id and place', () => {
+		const legacy = { ...makeTrack('b'), artworkUrl: '/b-512.webp' };
+		const queue = stamp([makeTrack('a'), legacy, makeTrack('c')]);
+		const fresh = { ...makeTrack('b'), artwork: [{ src: '/b-120.webp', width: 120 }] };
 
 		const refreshed = refreshedQueue(queue, [fresh]);
 
@@ -162,12 +162,12 @@ describe('refreshedQueue', () => {
 
 	test('answers nothing when the page carries the same fields in another key order', () => {
 		const queue = stamp([
-			{ ...makeItem('a'), artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 120 }] },
+			{ ...makeTrack('a'), artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 120 }] },
 		]);
 		const fresh = Object.assign(
 			{ title: 'Track a' },
 			{
-				...makeItem('a'),
+				...makeTrack('a'),
 				artwork: [Object.assign({ width: 120 }, { src: 'a.jpg', type: 'image/jpeg' })],
 			},
 		);
@@ -176,19 +176,19 @@ describe('refreshedQueue', () => {
 	});
 
 	test('answers nothing when the page carries a key holding undefined that storage dropped', () => {
-		const fresh = makeItem('a');
+		const fresh = makeTrack('a');
 
 		Reflect.set(fresh, 'releaseHref', undefined);
 
-		expect(refreshedQueue(stamp([makeItem('a')]), [fresh])).toBeUndefined();
+		expect(refreshedQueue(stamp([makeTrack('a')]), [fresh])).toBeUndefined();
 	});
 
-	test('refreshes an item whose nested field changed', () => {
+	test('refreshes a track whose nested field changed', () => {
 		const queue = stamp([
-			{ ...makeItem('a'), artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 120 }] },
+			{ ...makeTrack('a'), artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 120 }] },
 		]);
 		const fresh = {
-			...makeItem('a'),
+			...makeTrack('a'),
 			artwork: [{ src: 'a.jpg', type: 'image/jpeg', width: 240 }],
 		};
 
@@ -198,17 +198,17 @@ describe('refreshedQueue', () => {
 		});
 	});
 
-	test('refreshes an item that gained or lost a field', () => {
-		const queue = stamp([{ ...makeItem('a'), durationMs: 12 }]);
+	test('refreshes a track that gained or lost a field', () => {
+		const queue = stamp([{ ...makeTrack('a'), durationMs: 12 }]);
 
-		expect(refreshedQueue(queue, [makeItem('a')])).toBeDefined();
+		expect(refreshedQueue(queue, [makeTrack('a')])).toBeDefined();
 		expect(
-			refreshedQueue(stamp([makeItem('a')]), [{ ...makeItem('a'), durationMs: 12 }]),
+			refreshedQueue(stamp([makeTrack('a')]), [{ ...makeTrack('a'), durationMs: 12 }]),
 		).toBeDefined();
 	});
 
 	test('answers nothing when the page carries none of the queued tracks', () => {
-		expect(refreshedQueue(stamp(release), [makeItem('z')])).toBeUndefined();
+		expect(refreshedQueue(stamp(release), [makeTrack('z')])).toBeUndefined();
 	});
 });
 
@@ -216,7 +216,7 @@ describe('removedAt', () => {
 	test('leaves nothing loaded when the loaded track goes', () => {
 		const state = removedAt(withQueue(release, 1), 1);
 
-		expect(trackIds(state.queue)).toStrictEqual(['a', 'c']);
+		expect(queueTrackIds(state.queue)).toStrictEqual(['a', 'c']);
 		expect(state.currentIndex).toBeUndefined();
 	});
 
@@ -236,17 +236,17 @@ describe('removedAt', () => {
 	});
 });
 
-describe('movedItem', () => {
+describe('movedTrack', () => {
 	test('moves the row and follows the loaded track', () => {
-		const state = movedItem(withQueue(release, 0), 0, 2);
+		const state = movedTrack(withQueue(release, 0), 0, 2);
 
-		expect(trackIds(state.queue)).toStrictEqual(['b', 'c', 'a']);
+		expect(queueTrackIds(state.queue)).toStrictEqual(['b', 'c', 'a']);
 		expect(state.currentIndex).toBe(2);
 	});
 
 	test('remaps a shuffled order rather than reshuffling it', () => {
 		const shuffling = { ...withQueue(release, 0), isShuffling: true, playOrder: [0, 2, 1] };
-		const state = movedItem(shuffling, 0, 2);
+		const state = movedTrack(shuffling, 0, 2);
 
 		expect(state.playOrder).toStrictEqual([2, 1, 0]);
 	});
@@ -267,10 +267,10 @@ describe('shuffledQueue', () => {
 interface QueueStep {
 	from: number;
 	isLoaded: boolean;
-	itemPick: number | undefined;
 	kind: 'clear' | 'jump' | 'load' | 'move' | 'queue' | 'remove' | 'shuffle';
 	releaseSize: number;
 	to: number;
+	trackPick: number | undefined;
 }
 
 // Only five track ids, so the same track often gets queued twice under different queue ids
@@ -280,10 +280,10 @@ const queueSteps = fc.array(
 	fc.record({
 		from: fc.nat(),
 		isLoaded: fc.boolean(),
-		itemPick: fc.option(fc.integer({ max: releaseIds.length, min: 0 }), { nil: undefined }),
 		kind: fc.constantFrom('clear', 'jump', 'load', 'move', 'queue', 'remove', 'shuffle'),
 		releaseSize: fc.integer({ max: 4, min: 1 }),
 		to: fc.nat(),
+		trackPick: fc.option(fc.integer({ max: releaseIds.length, min: 0 }), { nil: undefined }),
 	}),
 	{ maxLength: 16, size: 'max' },
 );
@@ -300,13 +300,14 @@ function playOrderIds(state: QueueState): Array<string | undefined> {
 	return state.playOrder.map((index) => state.queue[index]?.queueId);
 }
 
-function stampedRelease(step: QueueStep): Array<QueuedItem> {
-	return stamp(releaseIds.slice(0, step.releaseSize).map(makeItem));
+function stampedRelease(step: QueueStep): Array<QueuedTrack> {
+	return stamp(releaseIds.slice(0, step.releaseSize).map(makeTrack));
 }
 
 function queuedRelease(state: QueueState, step: QueueStep): QueueState {
-	const itemId = step.itemPick === undefined ? undefined : (releaseIds[step.itemPick] ?? 'missing');
-	const appended = appendedQueue(state, stampedRelease(step), itemId);
+	const trackId =
+		step.trackPick === undefined ? undefined : (releaseIds[step.trackPick] ?? 'missing');
+	const appended = appendedQueue(state, stampedRelease(step), trackId);
 
 	if (!appended) return state;
 	if (!step.isLoaded) return appended.state;
@@ -327,7 +328,7 @@ const queueStepActions: Record<
 		const from = step.from % length;
 		const to = step.to % length;
 
-		return from === to ? state : movedItem(state, from, to);
+		return from === to ? state : movedTrack(state, from, to);
 	},
 	queue: queuedRelease,
 	remove: (state, step) =>
@@ -336,13 +337,15 @@ const queueStepActions: Record<
 };
 
 function queueIdChanges(before: QueueState, after: QueueState) {
-	const afterIds = new Set(after.queue.map((item) => item.queueId));
-	const beforeIds = new Set(before.queue.map((item) => item.queueId));
+	const afterIds = new Set(after.queue.map((track) => track.queueId));
+	const beforeIds = new Set(before.queue.map((track) => track.queueId));
 
 	return {
-		added: after.queue.filter((item) => !beforeIds.has(item.queueId)).map((item) => item.queueId),
+		added: after.queue
+			.filter((track) => !beforeIds.has(track.queueId))
+			.map((track) => track.queueId),
 		removed: new Set(
-			before.queue.filter((item) => !afterIds.has(item.queueId)).map((item) => item.queueId),
+			before.queue.filter((track) => !afterIds.has(track.queueId)).map((track) => track.queueId),
 		),
 	};
 }
@@ -359,7 +362,7 @@ function expectLoadedTrackKept(before: QueueState, after: QueueState, step: Queu
 	);
 }
 
-// Filling an empty queue while shuffling reshuffles it around the first track, so this only holds once the queue has items
+// Filling an empty queue while shuffling reshuffles it around the first track, so this only holds once the queue has tracks
 function expectRunningOrderKept(before: QueueState, after: QueueState, step: QueueStep): void {
 	if (!before.isShuffling || before.queue.length === 0 || !orderKeepingSteps.has(step.kind)) return;
 

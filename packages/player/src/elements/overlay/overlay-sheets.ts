@@ -19,7 +19,7 @@ export function bindSheets(
 ): SheetControls {
 	const opener = requireChild(sheets, ':scope > sonic-button', HTMLElement);
 	const dialog = requireChild(sheets, 'dialog', HTMLDialogElement);
-	const close = requireChild(sheets, '.player-overlay-close', HTMLElement);
+	const close = requireChild(sheets, '.pzm-overlay-close', HTMLElement);
 
 	const exit = dialogExit(
 		dialog,

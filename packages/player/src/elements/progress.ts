@@ -13,7 +13,7 @@ import { isLoaded } from '#store/selectors.ts';
 
 const renderStrip = template(
 	/* HTML */ `
-		<div class="player-progress">
+		<div class="pzm-progress">
 			<sonic-slider
 				double-press="none"
 				entry="none"

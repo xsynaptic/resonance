@@ -1,182 +1,182 @@
 /* One surface for every boxed readout: the typed entries and the dial's */
-player-root {
-	--sonic-entry-selection: var(--player-control-active);
-	--sonic-glass: var(--player-popover);
-	--sonic-glass-edge: var(--player-border);
-	--sonic-glass-font: var(--player-font-mono);
-	--sonic-glass-text: var(--player-clock);
-	--sonic-radius: var(--player-radius);
+pzm-root {
+	--sonic-entry-selection: var(--pzm-control-active);
+	--sonic-glass: var(--pzm-popover);
+	--sonic-glass-edge: var(--pzm-border);
+	--sonic-glass-font: var(--pzm-font-mono);
+	--sonic-glass-text: var(--pzm-clock);
+	--sonic-radius: var(--pzm-radius);
 	--sonic-readout-depth: 0;
-	--sonic-readout-size: var(--player-readout-size);
+	--sonic-readout-size: var(--pzm-readout-size);
 }
 
 /* Mapped here, not on `:root`, so a host overriding the player tokens also restyles the dial */
-.player-volume {
-	--sonic-cap: var(--player-dial-cap);
-	--sonic-cap-hover: var(--player-dial-cap-hover);
-	--sonic-dial-face-drift: var(--player-dial-face-drift);
-	--sonic-dial-gap-ratio: var(--player-dial-gap-ratio);
-	--sonic-dial-indicator-ratio: var(--player-dial-indicator-ratio);
-	--sonic-dial-indicator-taper: var(--player-dial-indicator-taper);
-	--sonic-dial-ridge-pitch: var(--player-dial-ridge-pitch);
-	--sonic-dial-ring-ratio: var(--player-dial-ring-ratio);
-	--sonic-dial-size: var(--player-dial-size);
-	--sonic-dial-sweep: var(--player-dial-sweep);
-	--sonic-dial-travel: var(--player-dial-travel);
-	--sonic-dimmed: var(--player-dial-dimmed);
-	--sonic-focus: var(--player-dial-focus);
-	--sonic-ink: var(--player-dial-ink);
-	--sonic-light-tilt: var(--player-dial-light-tilt);
-	--sonic-lit: var(--player-dial-lit);
-	--sonic-relief: var(--player-dial-relief);
-	--sonic-unlit: var(--player-dial-unlit);
+.pzm-volume {
+	--sonic-cap: var(--pzm-dial-cap);
+	--sonic-cap-hover: var(--pzm-dial-cap-hover);
+	--sonic-dial-face-drift: var(--pzm-dial-face-drift);
+	--sonic-dial-gap-ratio: var(--pzm-dial-gap-ratio);
+	--sonic-dial-indicator-ratio: var(--pzm-dial-indicator-ratio);
+	--sonic-dial-indicator-taper: var(--pzm-dial-indicator-taper);
+	--sonic-dial-ridge-pitch: var(--pzm-dial-ridge-pitch);
+	--sonic-dial-ring-ratio: var(--pzm-dial-ring-ratio);
+	--sonic-dial-size: var(--pzm-dial-size);
+	--sonic-dial-sweep: var(--pzm-dial-sweep);
+	--sonic-dial-travel: var(--pzm-dial-travel);
+	--sonic-dimmed: var(--pzm-dial-dimmed);
+	--sonic-focus: var(--pzm-dial-focus);
+	--sonic-ink: var(--pzm-dial-ink);
+	--sonic-light-tilt: var(--pzm-dial-light-tilt);
+	--sonic-lit: var(--pzm-dial-lit);
+	--sonic-relief: var(--pzm-dial-relief);
+	--sonic-unlit: var(--pzm-dial-unlit);
 
 	display: flex;
 	flex-shrink: 0;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 	align-items: center;
 }
 
-/* On the button itself, so the dial's tokens on `.player-volume` never reach the mute button beside it */
-player-root sonic-button {
-	--sonic-button-icon-ratio: calc(var(--player-icon-px) / var(--player-button-px));
+/* On the button itself, so the dial's tokens on `.pzm-volume` never reach the mute button beside it */
+pzm-root sonic-button {
+	--sonic-button-icon-ratio: calc(var(--pzm-icon-px) / var(--pzm-button-px));
 	--sonic-button-press-scale: 0.95;
-	--sonic-button-size: calc(var(--player-button-px) / 16 * 1rem);
+	--sonic-button-size: calc(var(--pzm-button-px) / 16 * 1rem);
 	--sonic-cap: initial;
 	--sonic-cap-hover: initial;
 
 	/* sonic-ui fades a disabled cap by default; the inert ink already marks it here */
 	--sonic-disabled-opacity: 1;
 	--sonic-focus-glow: 0;
-	--sonic-focus-outline: var(--player-focus-width) solid var(--player-focus-ring);
-	--sonic-focus-outline-offset: var(--player-focus-offset);
+	--sonic-focus-outline: var(--pzm-focus-width) solid var(--pzm-focus-ring);
+	--sonic-focus-outline-offset: var(--pzm-focus-offset);
 	--sonic-ink: initial;
-	--sonic-ink-disabled: var(--player-control-inert);
-	--sonic-ink-hover: var(--player-control-hover);
-	--sonic-lit: var(--player-control-active);
-	--sonic-lit-hover: var(--player-control-active-hover);
-	--sonic-radius: var(--player-radius);
+	--sonic-ink-disabled: var(--pzm-control-inert);
+	--sonic-ink-hover: var(--pzm-control-hover);
+	--sonic-lit: var(--pzm-control-active);
+	--sonic-lit-hover: var(--pzm-control-active-hover);
+	--sonic-radius: var(--pzm-radius);
 	--sonic-relief: 0;
 
-	color: var(--player-control);
+	color: var(--pzm-control);
 }
 
-.player-button-small {
-	--player-button-px: var(--player-button-px-small);
+.pzm-button-small {
+	--pzm-button-px: var(--pzm-button-px-small);
 }
 
-.player-button-primary {
-	--player-button-px: var(--player-button-px-primary);
+.pzm-button-primary {
+	--pzm-button-px: var(--pzm-button-px-primary);
 	--sonic-button-face-radius-ratio: 0.5;
 	--sonic-button-radius-ratio: 0.5;
-	--sonic-cap: var(--player-play-fill);
+	--sonic-cap: var(--pzm-play-fill);
 	--sonic-cap-edge: transparent;
-	--sonic-cap-hover: var(--player-play-fill-hover);
+	--sonic-cap-hover: var(--pzm-play-fill-hover);
 	--sonic-disabled-opacity: 0.4;
-	--sonic-ink: var(--player-play-glyph);
-	--sonic-ink-disabled: var(--player-play-glyph);
-	--sonic-ink-hover: var(--player-play-glyph-hover);
+	--sonic-ink: var(--pzm-play-glyph);
+	--sonic-ink-disabled: var(--pzm-play-glyph);
+	--sonic-ink-hover: var(--pzm-play-glyph-hover);
 }
 
 /* On the cap, since the library keeps the button's own `::after` for its touch target */
-.player-button-primary[data-loading] .sonic-button-cap::after {
+.pzm-button-primary[data-loading] .sonic-button-cap::after {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
 	content: '';
-	border: 2px solid var(--player-loader-track);
-	border-top-color: var(--player-loader);
+	border: 2px solid var(--pzm-loader-track);
+	border-top-color: var(--pzm-loader);
 	border-radius: inherit;
 	animation:
-		player-loader-appear 150ms 400ms both,
-		player-loader-spin 900ms linear infinite;
+		pzm-loader-appear 150ms 400ms both,
+		pzm-loader-spin 900ms linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.player-button-primary[data-loading] .sonic-button-cap::after {
+	.pzm-button-primary[data-loading] .sonic-button-cap::after {
 		animation:
-			player-loader-appear 150ms 400ms both,
-			player-loader-fade 1.6s ease-in-out 400ms infinite alternate;
+			pzm-loader-appear 150ms 400ms both,
+			pzm-loader-fade 1.6s ease-in-out 400ms infinite alternate;
 	}
 }
 
-@keyframes player-loader-appear {
+@keyframes pzm-loader-appear {
 	from {
 		opacity: 0;
 	}
 }
 
-@keyframes player-loader-spin {
+@keyframes pzm-loader-spin {
 	to {
 		rotate: 1turn;
 	}
 }
 
-@keyframes player-loader-fade {
+@keyframes pzm-loader-fade {
 	from {
-		border-top-color: var(--player-loader-track);
+		border-top-color: var(--pzm-loader-track);
 	}
 
 	to {
-		border-top-color: var(--player-loader);
+		border-top-color: var(--pzm-loader);
 	}
 }
 
-.player-transport {
+.pzm-transport {
 	display: flex;
 	flex-shrink: 0;
-	gap: var(--player-gap-small);
+	gap: var(--pzm-gap-small);
 	align-items: center;
 }
 
-.player-seek-button {
-	--sonic-ink: color-mix(in oklab, var(--player-control) 80%, var(--player-surface));
+.pzm-seek-button {
+	--sonic-ink: color-mix(in oklab, var(--pzm-control) 80%, var(--pzm-surface));
 }
 
 /* Takes back the step glyph's inset, so step to seek sits as close as seek to play */
-player-step-button + player-seek-button > .player-seek-button > .sonic-button {
+pzm-step-button + pzm-seek-button > .pzm-seek-button > .sonic-button {
 	margin-inline-start: -0.375rem;
 }
 
-player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-button {
+pzm-seek-button:has(+ pzm-step-button) > .pzm-seek-button > .sonic-button {
 	margin-inline-end: -0.375rem;
 }
 
-:is(.player-waveform-frame, .player-panel) {
-	--sonic-focus: var(--player-focus-ring);
-	--sonic-scrub: var(--player-waveform-scrub);
+:is(.pzm-waveform-frame, .pzm-panel) {
+	--sonic-focus: var(--pzm-focus-ring);
+	--sonic-scrub: var(--pzm-waveform-scrub);
 }
 
-.player-waveform-frame {
-	--sonic-buffered: var(--player-waveform-buffered);
-	--sonic-focus-radius: var(--player-radius);
-	--sonic-lit: var(--player-waveform-played);
-	--sonic-marker: var(--player-cue-dot);
+.pzm-waveform-frame {
+	--sonic-buffered: var(--pzm-waveform-buffered);
+	--sonic-focus-radius: var(--pzm-radius);
+	--sonic-lit: var(--pzm-waveform-played);
+	--sonic-marker: var(--pzm-cue-dot);
 	--sonic-reveal-delay: 150ms;
-	--sonic-unplayed: var(--player-waveform-base);
+	--sonic-unplayed: var(--pzm-waveform-base);
 	--sonic-wavestrip-groove-size: 0.25rem;
 	--sonic-wavestrip-length: 100%;
 	--sonic-wavestrip-marker-edge-width: 1px;
-	--sonic-wavestrip-marker-size: var(--player-cue-size);
+	--sonic-wavestrip-marker-size: var(--pzm-cue-size);
 
 	position: relative;
-	block-size: var(--player-waveform-height);
+	block-size: var(--pzm-waveform-height);
 }
 
-.player-waveform-frame sonic-wavestrip:not([disabled]) {
+.pzm-waveform-frame sonic-wavestrip:not([disabled]) {
 	--sonic-touch-action: none;
 }
 
-.player-scope {
-	--sonic-lit: var(--player-waveform-played);
+.pzm-scope {
+	--sonic-lit: var(--pzm-waveform-played);
 	--sonic-screen-radius-ratio: 0.25;
 	--sonic-screen-size: 2rem;
-	--sonic-waveform-base: var(--player-waveform-played);
+	--sonic-waveform-base: var(--pzm-waveform-played);
 	--sonic-waveform-ends: transparent;
-	--sonic-waveform-grid: var(--player-waveform-played);
+	--sonic-waveform-grid: var(--pzm-waveform-played);
 	--sonic-waveform-length: 100%;
-	--sonic-waveform-peaks: var(--player-scope-peaks);
-	--sonic-waveform-playhead: color-mix(in oklab, var(--player-waveform-played) 20%, transparent);
+	--sonic-waveform-peaks: var(--pzm-scope-peaks);
+	--sonic-waveform-playhead: color-mix(in oklab, var(--pzm-waveform-played) 20%, transparent);
 	--sonic-waveform-playhead-width: 1px;
 	--sonic-waveform-size: var(--sonic-screen-size);
 
@@ -187,22 +187,22 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 	overflow: hidden;
 }
 
-.player-scope-trace {
+.pzm-scope-trace {
 	display: grid;
 	align-content: center;
 	inline-size: 100%;
 	block-size: 100%;
-	filter: drop-shadow(0 0 2px color-mix(in oklab, var(--player-waveform-played) 50%, transparent));
+	filter: drop-shadow(0 0 2px color-mix(in oklab, var(--pzm-waveform-played) 50%, transparent));
 	mask-image: linear-gradient(to right, rgb(0 0 0 / 55%), #000 15% 85%, rgb(0 0 0 / 55%));
 	mask-repeat: no-repeat;
-	transition: opacity var(--player-transition-slow);
+	transition: opacity var(--pzm-transition-slow);
 }
 
-.player-scope:has(.player-scope-toggle[aria-pressed='false']) .player-scope-trace {
+.pzm-scope:has(.pzm-scope-toggle[aria-pressed='false']) .pzm-scope-trace {
 	opacity: 0;
 }
 
-.player-scope-toggle {
+.pzm-scope-toggle {
 	position: absolute;
 	inset: 0;
 	padding: 0;
@@ -214,7 +214,7 @@ player-seek-button:has(+ player-step-button) > .player-seek-button > .sonic-butt
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.player-scope-trace {
+	.pzm-scope-trace {
 		transition-duration: 1ms;
 	}
 }

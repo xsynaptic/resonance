@@ -6,9 +6,9 @@ import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
 import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
-import { displayedItem } from '#store/selectors.ts';
+import { displayedTrack } from '#store/selectors.ts';
 
-const renderLine = template('<span class="player-track-artist"></span>', HTMLSpanElement);
+const renderLine = template('<span class="pzm-track-artist"></span>', HTMLSpanElement);
 
 export class PlayerArtistLine extends PlayerElement {
 	readonly #ticker = document.createElement('sonic-ticker');
@@ -40,5 +40,5 @@ function lineAround(ticker: SonicTicker): HTMLSpanElement {
 }
 
 function selectArtistLine(state: PlayerStore): string | undefined {
-	return displayedItem(state)?.artistLine;
+	return displayedTrack(state)?.artistLine;
 }

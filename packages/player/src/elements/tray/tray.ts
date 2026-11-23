@@ -1,6 +1,6 @@
 import type { PlayerContext } from '#elements/player-context.ts';
 import type { PlayerStore } from '#store/player-types.ts';
-import type { QueuedItem } from '#types.ts';
+import type { QueuedTrack } from '#types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
@@ -20,10 +20,10 @@ interface TrayParts {
 
 const renderTray = template(
 	/* HTML */ `
-		<div class="player-tray">
-			<ul class="player-tray-list"></ul>
-			<p class="player-tray-empty"></p>
-			<p aria-live="polite" class="player-tray-status" role="status"></p>
+		<div class="pzm-tray">
+			<ul class="pzm-tray-list"></ul>
+			<p class="pzm-tray-empty"></p>
+			<p aria-live="polite" class="pzm-tray-status" role="status"></p>
 		</div>
 	`,
 	HTMLDivElement,
@@ -86,7 +86,7 @@ function bindReorder(
 	const move = (from: number, to: number): void => {
 		const total = store.getState().queue.length;
 
-		store.getState().moveItem(from, to);
+		store.getState().moveTrack(from, to);
 		status.textContent = formatTemplate(labels.moved, { position: to + 1, total });
 	};
 	const drag = createRowDrag(() => list, move, signal);
@@ -128,8 +128,8 @@ function bindReorder(
 	list.addEventListener('pointercancel', drag.onPointerCancel, { signal });
 }
 
-function indexOfQueued(queue: ReadonlyArray<QueuedItem>, queueId: string): number {
-	return queue.findIndex((item) => item.queueId === queueId);
+function indexOfQueued(queue: ReadonlyArray<QueuedTrack>, queueId: string): number {
+	return queue.findIndex((track) => track.queueId === queueId);
 }
 
 function renderTrayParts(): TrayParts {

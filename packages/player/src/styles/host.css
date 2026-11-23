@@ -1,34 +1,34 @@
-player-root {
+pzm-root {
 	display: block;
-	font-family: var(--player-font-family);
+	font-family: var(--pzm-font-family);
 }
 
 :is(
-	player-artist-line,
-	player-artwork,
-	player-bar,
-	player-mute-button,
-	player-overlay,
-	player-overlay-content,
-	player-overlay-toggle,
-	player-panel,
-	player-panel-toggle,
-	player-panel-zoom,
-	player-play-button,
-	player-progress,
-	player-queue-actions,
-	player-queue-button,
-	player-scope,
-	player-scrub-readout,
-	player-seek-button,
-	player-status,
-	player-step-button,
-	player-time,
-	player-time-slider,
-	player-title,
-	player-tracklist,
-	player-tray,
-	player-volume
+	pzm-artist-line,
+	pzm-artwork,
+	pzm-bar,
+	pzm-mute-button,
+	pzm-overlay,
+	pzm-overlay-content,
+	pzm-overlay-toggle,
+	pzm-panel,
+	pzm-panel-toggle,
+	pzm-panel-zoom,
+	pzm-play-button,
+	pzm-progress,
+	pzm-queue-actions,
+	pzm-queue-button,
+	pzm-scope,
+	pzm-scrub-readout,
+	pzm-seek-button,
+	pzm-status,
+	pzm-step-button,
+	pzm-time,
+	pzm-time-slider,
+	pzm-title,
+	pzm-cue-list,
+	pzm-tray,
+	pzm-volume
 ):not([hidden]) {
 	display: contents;
 }

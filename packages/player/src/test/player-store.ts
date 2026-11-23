@@ -3,9 +3,9 @@ import type { StoreApi } from 'zustand/vanilla';
 import { vi } from 'vitest';
 
 import type { PlayerStore } from '#store/player-store.ts';
-import type { PlayerUrls, QueueItem, StreamResolution } from '#types.ts';
+import type { PlayerUrls, StreamResolution, Track } from '#types.ts';
 
-import { queueItemsStorageKey, queueStorageKey } from '#constants.ts';
+import { queueStorageKey, queueTracksStorageKey } from '#constants.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
@@ -14,8 +14,8 @@ export interface StoredOrderRecord {
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
 	isShuffling: boolean;
-	itemIds: Array<string>;
 	playOrder: Array<number>;
+	trackIds: Array<string>;
 }
 
 // Replaced per test, so nothing a store did survives into the next one
@@ -25,23 +25,23 @@ export function resetEngine(): void {
 	fake = createMockEngine();
 }
 
-export function makeItem(id: string): QueueItem {
+export function makeTrack(id: string): Track {
 	return {
 		artistLine: 'Nebula Drift',
 		durationMs: 180_000,
-		itemId: id,
 		releaseHref: '/releases/cosmic-drift',
 		releaseTitle: 'Cosmic Drift',
 		title: `Track ${id}`,
+		trackId: id,
 	};
 }
 
-export const release = [makeItem('a'), makeItem('b'), makeItem('c')];
+export const release = [makeTrack('a'), makeTrack('b'), makeTrack('c')];
 
 export function configured(isPersistent = false): StoreApi<PlayerStore> {
 	return withResolver(
-		({ itemId }) =>
-			Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${itemId}/stream` }),
+		({ trackId }) =>
+			Promise.resolve({ status: 'ok', url: `https://api.test/tracks/${trackId}/stream` }),
 		isPersistent,
 	);
 }
@@ -56,15 +56,15 @@ export function hidePage(): void {
 export function pendingResolver() {
 	const pending = new Map<string, (resolution: StreamResolution) => void>();
 	const store = withResolver(
-		({ itemId }) =>
+		({ trackId }) =>
 			new Promise<StreamResolution>((resolve) => {
-				pending.set(itemId, resolve);
+				pending.set(trackId, resolve);
 			}),
 	);
 
 	return {
-		answer: (itemId: string) => {
-			pending.get(itemId)?.({ status: 'ok', url: `https://api.test/${itemId}` });
+		answer: (trackId: string) => {
+			pending.get(trackId)?.({ status: 'ok', url: `https://api.test/${trackId}` });
 		},
 		store,
 	};
@@ -74,17 +74,14 @@ export function persisted(): StoreApi<PlayerStore> {
 	return configured(true);
 }
 
-export function storeQueue(
-	queue: ReadonlyArray<QueueItem>,
-	order: Partial<StoredOrderRecord>,
-): void {
+export function storeQueue(queue: ReadonlyArray<Track>, order: Partial<StoredOrderRecord>): void {
 	localStorage.setItem(
 		queueStorageKey,
-		JSON.stringify({ ...order, itemIds: queue.map((item) => item.itemId) }),
+		JSON.stringify({ ...order, trackIds: queue.map((track) => track.trackId) }),
 	);
 	localStorage.setItem(
-		queueItemsStorageKey,
-		JSON.stringify(Object.fromEntries(queue.map((item) => [item.itemId, item]))),
+		queueTracksStorageKey,
+		JSON.stringify(Object.fromEntries(queue.map((track) => [track.trackId, track]))),
 	);
 }
 

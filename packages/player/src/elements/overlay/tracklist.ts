@@ -1,7 +1,7 @@
 import { formatClock } from '@xsynaptic/sonic-ui';
 
 import type { PlayerStore } from '#store/player-types.ts';
-import type { QueueCuePoint } from '#types.ts';
+import type { CuePoint } from '#types.ts';
 
 import { playerContext } from '#elements/player-context.ts';
 import { PlayerElement } from '#elements/player-element.ts';
@@ -12,26 +12,26 @@ import { currentCue, displayedDetail, isLoaded } from '#store/selectors.ts';
 
 interface CueRow {
 	button: HTMLButtonElement;
-	cue: QueueCuePoint;
+	cue: CuePoint;
 	node: HTMLLIElement;
 }
 
 interface MarksView {
-	current: QueueCuePoint | undefined;
+	current: CuePoint | undefined;
 	isLoaded: boolean;
 }
 
-const cueOfButton = new WeakMap<Element, QueueCuePoint>();
+const cueOfButton = new WeakMap<Element, CuePoint>();
 
-const renderList = template('<ol class="player-overlay-tracklist"></ol>', HTMLOListElement);
+const renderList = template('<ol class="pzm-overlay-cue-list"></ol>', HTMLOListElement);
 
 const renderRow = template(
 	/* HTML */ `
 		<li>
-			<button class="player-overlay-cue" type="button">
-				<span class="player-overlay-cue-time"></span
-				><span class="player-overlay-cue-head"><span class="player-overlay-cue-title"></span></span
-				><span class="player-overlay-cue-artist"></span>
+			<button class="pzm-overlay-cue" type="button">
+				<span class="pzm-overlay-cue-time"></span
+				><span class="pzm-overlay-cue-head"><span class="pzm-overlay-cue-title"></span></span
+				><span class="pzm-overlay-cue-artist"></span>
 			</button>
 		</li>
 	`,
@@ -86,13 +86,13 @@ function applyMarks(rows: ReadonlyArray<CueRow>, marks: MarksView): void {
 	}
 }
 
-function renderCue(cue: QueueCuePoint): CueRow {
+function renderCue(cue: CuePoint): CueRow {
 	const node = renderRow();
 	const button = requireChild(node, 'button', HTMLButtonElement);
 	const [time, head, title, artist] = requireChildren(node, 'span', 4, HTMLSpanElement);
 	const playing = cloneIcon('playing');
 
-	playing.classList.add('player-row-playing');
+	playing.classList.add('pzm-row-playing');
 	head.append(playing);
 	cueOfButton.set(button, cue);
 	time.textContent = formatClock(cue.startSeconds);
@@ -104,7 +104,7 @@ function renderCue(cue: QueueCuePoint): CueRow {
 	return { button, cue, node };
 }
 
-function selectCuePoints(state: PlayerStore): ReadonlyArray<QueueCuePoint> | undefined {
+function selectCuePoints(state: PlayerStore): ReadonlyArray<CuePoint> | undefined {
 	return displayedDetail(state)?.cuePoints;
 }
 

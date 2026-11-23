@@ -4,14 +4,14 @@ import { PlayerRoot } from '#elements/player-root.ts';
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createPlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
-// A tag of its own, so the upgrade happens here whatever else in the file has already defined `player-root`
+// A tag of its own, so the upgrade happens here whatever else in the file has already defined `pzm-root`
 class EarlyRoot extends PlayerRoot {}
 
 function defineEarlyRoot() {
-	if (!customElements.get('player-early-root')) {
-		customElements.define('player-early-root', EarlyRoot);
+	if (!customElements.get('pzm-early-root')) {
+		customElements.define('pzm-early-root', EarlyRoot);
 	}
 }
 
@@ -19,15 +19,15 @@ afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-root>', () => {
+describe('<pzm-root>', () => {
 	test('mirrors the state a host styles against', () => {
-		const { root, store } = mount('player-time');
+		const { root, store } = mount('pzm-time');
 
 		expect(root.dataset.status).toBe('idle');
 		expect(root.dataset.empty).toBe('');
 		expect(root.dataset.paused).toBe('');
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 
 		expect(root.dataset.status).toBe('loading');
 		expect(root.dataset.empty).toBeUndefined();
@@ -40,8 +40,8 @@ describe('<player-root>', () => {
 		expect(root.dataset.muted).toBe('');
 	});
 
-	test('marks itself pending while the displayed item waits on its detail', async () => {
-		const { root, store } = mount('player-time');
+	test('marks itself pending while the displayed track waits on its detail', async () => {
+		const { root, store } = mount('pzm-time');
 		const answer = Promise.withResolvers<undefined>();
 
 		store.getState().configure({
@@ -50,7 +50,7 @@ describe('<player-root>', () => {
 				stream: () => Promise.resolve({ status: 'capped' }),
 			},
 		});
-		store.getState().loadQueue([queueItem('a')]);
+		store.getState().loadQueue([sampleTrack('a')]);
 
 		await vi.waitFor(() => {
 			expect(root.dataset.pending).toBe('');
@@ -65,7 +65,7 @@ describe('<player-root>', () => {
 
 	test('takes a store handed to it before its tag was defined', () => {
 		const store = createPlayerStore({ storage: createMemoryStorage() });
-		const early = Object.assign(document.createElement('player-early-root'), { labels, store });
+		const early = Object.assign(document.createElement('pzm-early-root'), { labels, store });
 
 		document.body.append(early);
 

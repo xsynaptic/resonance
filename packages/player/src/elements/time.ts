@@ -14,7 +14,7 @@ interface TimeView {
 const emptyClock = '--:--';
 
 const renderButton = template(
-	`<button class="player-time" type="button">${emptyClock}</button>`,
+	`<button class="pzm-time" type="button">${emptyClock}</button>`,
 	HTMLButtonElement,
 );
 

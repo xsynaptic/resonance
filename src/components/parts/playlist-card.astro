@@ -14,7 +14,7 @@ const { playlist } = Astro.props;
 
 <button
 	class="group block w-full cursor-pointer rounded-lg border border-surface-700 bg-surface-600 p-2 text-left"
-	data-play-playlist={playlist.items.map((item) => item.itemId).join(' ')}
+	data-pzm-play-tracks={playlist.items.map((item) => item.trackId).join(' ')}
 	type="button"
 >
 	<span class="media-frame relative isolate block aspect-3/2 w-full overflow-hidden rounded-xs">
@@ -33,13 +33,13 @@ const { playlist } = Astro.props;
 			<span class="flex size-16 items-center @max-card-compact:size-12 justify-center rounded-full bg-highlight-500 text-highlight-200 shadow-md shadow-highlight-950/60 transition group-hover:scale-110 group-hover:bg-highlight-400 group-hover:text-highlight-100 group-focus-visible:scale-110 group-focus-visible:bg-highlight-400 group-focus-visible:text-highlight-100">
 				<svg
 					aria-hidden="true"
-					class="ml-1 size-7 fill-current group-data-playing:hidden @max-card-compact:ml-0.5 @max-card-compact:size-5"
+					class="ml-1 size-7 fill-current group-data-pzm-playing:hidden @max-card-compact:ml-0.5 @max-card-compact:size-5"
 				>
 					<use href="#icon:play"></use>
 				</svg>
 				<svg
 					aria-hidden="true"
-					class="hidden size-7 fill-current group-data-playing:block @max-card-compact:size-5"
+					class="hidden size-7 fill-current group-data-pzm-playing:block @max-card-compact:size-5"
 				>
 					<use href="#icon:pause"></use>
 				</svg>
@@ -52,10 +52,10 @@ const { playlist } = Astro.props;
 			{playlist.title}
 		</span>
 	</span>
-	<span class="sr-only group-data-playing:hidden">
+	<span class="sr-only group-data-pzm-playing:hidden">
 		{formatStringTemplate(t('home.playlists.play'), { title: playlist.title })}
 	</span>
-	<span class="sr-only hidden group-data-playing:inline">
+	<span class="sr-only hidden group-data-pzm-playing:inline">
 		{formatStringTemplate(t('home.playlists.pause'), { title: playlist.title })}
 	</span>
 </button>

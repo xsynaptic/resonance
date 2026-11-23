@@ -9,7 +9,7 @@ import { createPlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
 const urls: PlayerUrls = {
-	stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
+	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
 };
 
 afterEach(() => {
@@ -33,10 +33,10 @@ describe('createPlayer', () => {
 		document.body.append(root);
 
 		getByRole(root, 'button', { name: 'Back 15' });
-		expect(root.querySelector('player-artwork')).toBeNull();
-		expect(root.querySelector('player-overlay-toggle')).toBeNull();
-		expect(root.querySelector('player-panel-toggle')).toBeNull();
-		expect(root.querySelector('player-scope')).not.toBeNull();
+		expect(root.querySelector('pzm-artwork')).toBeNull();
+		expect(root.querySelector('pzm-overlay-toggle')).toBeNull();
+		expect(root.querySelector('pzm-panel-toggle')).toBeNull();
+		expect(root.querySelector('pzm-scope')).not.toBeNull();
 		expect(store.getState().urls).toBe(urls);
 	});
 });

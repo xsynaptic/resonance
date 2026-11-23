@@ -5,27 +5,27 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { panelSurfaceModule } from '#elements/panel/panel-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
-import { landDetail, mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 import { chunkOf, offline, stubPeaksFetch } from '#test/peaks-fetch.ts';
 
 function mountPanel() {
-	const mounted = mount('player-panel');
+	const mounted = mount('pzm-panel');
 
 	mounted.store
 		.getState()
 		.playTrack(
-			[queueItem('a', { durationMs: 200_000 }), queueItem('b', { durationMs: 200_000 })],
+			[sampleTrack('a', { durationMs: 200_000 }), sampleTrack('b', { durationMs: 200_000 })],
 			'a',
 		);
 
-	for (const itemId of ['a', 'b']) {
-		landDetail(mounted.store, itemId, {
+	for (const trackId of ['a', 'b']) {
+		landDetail(mounted.store, trackId, {
 			peaks: {
 				byteOffset: 24,
 				pairCount: 20_000,
 				pairsPerSecond: 100,
 				rmsRange: [4, 40],
-				url: `https://api.test/${itemId}.peaks.bin`,
+				url: `https://api.test/${trackId}.peaks.bin`,
 			},
 		});
 	}
@@ -61,7 +61,7 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-describe('<player-panel>', () => {
+describe('<pzm-panel>', () => {
 	test('holds nothing until it opens, and nothing again once closed', async () => {
 		const mounted = mountPanel();
 
@@ -141,9 +141,9 @@ describe('<player-panel>', () => {
 	test('tints the loaded track with its bands and draws its body', async () => {
 		stubPeaksFetch(offline);
 
-		const mounted = mount('player-panel');
+		const mounted = mount('pzm-panel');
 
-		mounted.store.getState().playTrack([queueItem('a', { durationMs: 200_000 })], 'a');
+		mounted.store.getState().playTrack([sampleTrack('a', { durationMs: 200_000 })], 'a');
 		landDetail(mounted.store, 'a', {
 			peaks: {
 				bands: {
@@ -172,7 +172,7 @@ describe('<player-panel>', () => {
 	});
 
 	test('takes its tint cell from the tokens, leaving out a reading set to none', async () => {
-		setTintTokens('--player-tint-hue: none; --player-tint-dynamics: energy');
+		setTintTokens('--pzm-tint-hue: none; --pzm-tint-dynamics: energy');
 
 		const waveform = await openPanel(mountPanel());
 

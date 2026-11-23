@@ -25,136 +25,136 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 <Section note="Every root holds its own store on a silent engine, so nothing plays." title="Player">
 	<Specimen
-		name="player-bar"
+		name="pzm-bar"
 		note="The tier follows the bar's width, not the viewport; Expand opens the real overlay."
 		source="packages/player/src/elements/player-bar.ts"
 	>
 		<Variant label="full width">
-			<player-root class="block" data-inventory-queue="bar">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="bar">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="no artwork">
-			<player-root class="block" data-inventory-queue="no-artwork">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="no-artwork">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="32rem, artwork dropped">
-			<player-root class="block max-w-lg" data-inventory-queue="bar">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block max-w-lg" data-inventory-queue="bar">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="320px mini, marquee">
-			<player-root class="block max-w-xs" data-inventory-queue="marquee">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block max-w-xs" data-inventory-queue="marquee">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="320px mini, isOverlayEnabled=false">
 			<div class="pt-96">
-				<player-root
+				<pzm-root
 					class="block max-w-xs"
 					data-inventory-overlay="off"
 					data-inventory-queue="marquee"
 				>
-					<player-bar></player-bar>
-				</player-root>
+					<pzm-bar></pzm-bar>
+				</pzm-root>
 			</div>
 		</Variant>
 	</Specimen>
 	<Specimen
-		name="player-bar states"
+		name="pzm-bar states"
 		note="Emulate <code>prefers-reduced-motion</code> for the loader and panel fallbacks."
 		source="packages/player/src/store/selectors.ts"
 	>
 		<Variant label="idle">
-			<player-root class="block" data-inventory-queue="idle">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="idle">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="empty, hidden on the site">
 			<div class="inventory-player-empty">
-				<player-root class="block" data-inventory-queue="empty">
-					<player-bar></player-bar>
-				</player-root>
+				<pzm-root class="block" data-inventory-queue="empty">
+					<pzm-bar></pzm-bar>
+				</pzm-root>
 			</div>
 		</Variant>
 		<Variant label="error">
-			<player-root class="block" data-inventory-queue="error">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="error">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="loading; a press cancels">
-			<player-root class="block" data-inventory-queue="loading">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="loading">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="no peaks, a plain groove">
-			<player-root class="block" data-inventory-queue="no-peaks">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="no-peaks">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</Variant>
 		<Variant label="panel open; hover a cue dot for its label">
 			<div class="pt-32">
-				<player-root class="block" data-inventory-queue="panel">
-					<player-bar></player-bar>
-				</player-root>
+				<pzm-root class="block" data-inventory-queue="panel">
+					<pzm-bar></pzm-bar>
+				</pzm-root>
 			</div>
 		</Variant>
 		<Variant label="panel pending">
 			<div class="pt-32">
-				<player-root class="block" data-inventory-queue="panel-pending">
-					<player-bar></player-bar>
-				</player-root>
+				<pzm-root class="block" data-inventory-queue="panel-pending">
+					<pzm-bar></pzm-bar>
+				</pzm-root>
 			</div>
 		</Variant>
 	</Specimen>
-	<Specimen name="player-overlay-content" source="packages/player/src/elements/overlay/">
+	<Specimen name="pzm-overlay-content" source="packages/player/src/elements/overlay/">
 		<Variant label="390x844 phone">
-			<player-root
+			<pzm-root
 				class="block h-211 w-97.5 max-w-full border border-surface-400"
 				data-inventory-queue="overlay"
 			>
-				<player-overlay-content></player-overlay-content>
-			</player-root>
+				<pzm-overlay-content></pzm-overlay-content>
+			</pzm-root>
 		</Variant>
 		<Variant label="844x390 phone landscape">
-			<player-root
+			<pzm-root
 				class="block h-97.5 w-211 max-w-full border border-surface-400"
 				data-inventory-queue="overlay"
 			>
-				<player-overlay-content></player-overlay-content>
-			</player-root>
+				<pzm-overlay-content></pzm-overlay-content>
+			</pzm-root>
 		</Variant>
 		<Variant label="900x800 columns">
-			<player-root
+			<pzm-root
 				class="block h-200 w-225 max-w-full border border-surface-400"
 				data-inventory-queue="overlay"
 			>
-				<player-overlay-content></player-overlay-content>
-			</player-root>
+				<pzm-overlay-content></pzm-overlay-content>
+			</pzm-root>
 		</Variant>
 	</Specimen>
-	<Specimen name="player-volume" source="packages/player/src/elements/volume.ts">
+	<Specimen name="pzm-volume" source="packages/player/src/elements/volume.ts">
 		<Variant label="default">
-			<player-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="volume">
-				<player-volume></player-volume>
-			</player-root>
+			<pzm-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="volume">
+				<pzm-volume></pzm-volume>
+			</pzm-root>
 		</Variant>
 		<Variant label="muted at 30%">
-			<player-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="muted">
-				<player-volume></player-volume>
-			</player-root>
+			<pzm-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="muted">
+				<pzm-volume></pzm-volume>
+			</pzm-root>
 		</Variant>
 	</Specimen>
 	<Specimen
-		name="player-tray"
+		name="pzm-tray"
 		note="Drag a handle, or Alt+ArrowUp/Down on a focused one."
 		source="packages/player/src/elements/tray/"
 	>
 		<div class="pt-96">
-			<player-root class="block" data-inventory-queue="tray">
-				<player-bar></player-bar>
-			</player-root>
+			<pzm-root class="block" data-inventory-queue="tray">
+				<pzm-bar></pzm-bar>
+			</pzm-root>
 		</div>
 	</Specimen>
 	<Specimen
@@ -167,7 +167,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 </Section>
 <script id="inventory-player" is:inline set:html={specimenData} type="application/json"></script>
 <script>
-	import type { PlayerLabels, PlayerStoreApi, PlayerUrls, QueueItem } from '@xsynaptic/player';
+	import type { PlayerLabels, PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/player';
 
 	import { createMemoryStorage, createPlayerStore, definePlayerElements } from '@xsynaptic/player';
 
@@ -233,7 +233,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 
 		const { items, labels, seekSeconds } = JSON.parse(source) as SpecimenData;
 
-		for (const root of page.querySelectorAll('player-root')) {
+		for (const root of page.querySelectorAll('pzm-root')) {
 			const queue = root.dataset.inventoryQueue;
 			if (queue === undefined || root.store) continue;
 
@@ -258,7 +258,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		definePlayerElements();
 	}
 
-	function specimenItems(items: Array<MixQueueItem>, queue: string): Array<QueueItem> {
+	function specimenItems(items: Array<MixQueueItem>, queue: string): Array<Track> {
 		const rows = items.map(({ press }) => press);
 
 		if (queue === 'marquee') return marqueed(rows);

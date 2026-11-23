@@ -2,9 +2,9 @@ import type {
 	PlaybackDiagnostic,
 	PlayerStoreApi,
 	PlayerUrls,
-	QueueItem,
-	QueueItemDetail,
 	StreamResolution,
+	Track,
+	TrackDetail,
 } from '@xsynaptic/player';
 
 import { holdPresses } from '@xsynaptic/player/boot';
@@ -25,7 +25,7 @@ declare global {
 	}
 }
 
-const cued: QueueItemDetail = {
+const cued: TrackDetail = {
 	cuePoints: [{ artistLine: 'Cue Artist', startSeconds: 20, title: 'Cue Title' }],
 	waveformOverview: btoa(
 		String.fromCodePoint(
@@ -66,16 +66,16 @@ const unanswered = new Promise<undefined>(() => {
 });
 
 const urls: PlayerUrls = {
-	detail: (item) => (settings.detail === 'hang' ? unanswered : Promise.resolve(detailOf(item))),
-	stream: (item) => {
+	detail: (track) => (settings.detail === 'hang' ? unanswered : Promise.resolve(detailOf(track))),
+	stream: (track) => {
 		resolveCount += 1;
 
-		return Promise.resolve(resolveStream(item));
+		return Promise.resolve(resolveStream(track));
 	},
 };
 
 // Matches the header the fixture server writes: 6000 pairs at 44100 / 441
-function detailOf({ itemId }: QueueItem): QueueItemDetail {
+function detailOf({ trackId }: Track): TrackDetail {
 	return {
 		...(settings.isCued ? cued : {}),
 		...(settings.hasPeaks
@@ -85,15 +85,15 @@ function detailOf({ itemId }: QueueItem): QueueItemDetail {
 						pairCount: 6000,
 						pairsPerSecond: 100,
 						rmsRange: [60, 60],
-						url: peaksUrl(itemId),
+						url: peaksUrl(trackId),
 					},
 				}
 			: {}),
 	};
 }
 
-function peaksUrl(itemId: string): string {
-	const url = new URL(`/peaks/${itemId}.peaks.bin`, fixtureOrigin);
+function peaksUrl(trackId: string): string {
+	const url = new URL(`/peaks/${trackId}.peaks.bin`, fixtureOrigin);
 
 	url.searchParams.set('run', settings.run);
 
@@ -113,16 +113,16 @@ function readChoice<Choice extends string>(
 	return choices.find((choice) => choice === value) ?? choices[0];
 }
 
-// Read off the item, since a queue restored from storage carries the URL it was saved with
-function resolveStream(item: QueueItem): StreamResolution {
-	const url: unknown = Reflect.get(item, 'streamUrl');
-	if (typeof url !== 'string') throw new TypeError(`No stream URL for ${item.itemId}`);
+// Read off the track, since a queue restored from storage carries the URL it was saved with
+function resolveStream(track: Track): StreamResolution {
+	const url: unknown = Reflect.get(track, 'streamUrl');
+	if (typeof url !== 'string') throw new TypeError(`No stream URL for ${track.trackId}`);
 
 	return { status: 'ok', type: streamTypes[settings.type], url };
 }
 
-function streamUrl(itemId: string): string {
-	const url = new URL(`/${settings.stream}/${itemId}.mp4`, fixtureOrigin);
+function streamUrl(trackId: string): string {
+	const url = new URL(`/${settings.stream}/${trackId}.mp4`, fixtureOrigin);
 
 	url.searchParams.set('run', settings.run);
 
@@ -136,18 +136,18 @@ function wait(milliseconds: number): Promise<void> {
 }
 
 function writePayload(): void {
-	const items = settings.rows.map((itemId) => ({
+	const tracks = settings.rows.map((trackId) => ({
 		artistLine: 'Fixture Artist',
 		artwork: [{ src: `${fixtureOrigin}/audio/art.png`, type: 'image/png', width: 512 }],
-		durationMs: fixtures[itemId].durationMs,
-		itemId,
+		durationMs: fixtures[trackId].durationMs,
 		releaseTitle: 'Fixtures',
-		streamUrl: streamUrl(itemId),
-		title: fixtures[itemId].title,
+		streamUrl: streamUrl(trackId),
+		title: fixtures[trackId].title,
+		trackId,
 	}));
 	const payload = document.createElement('div');
 
-	payload.dataset.playerPayload = JSON.stringify(items);
+	payload.dataset.pzmPayload = JSON.stringify(tracks);
 	payload.hidden = true;
 	document.body.append(payload);
 }

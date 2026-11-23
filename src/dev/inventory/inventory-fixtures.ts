@@ -85,10 +85,10 @@ const itemWithoutPeaks: MixQueueItem = {
 	press: {
 		artistLine: 'A Hand-Built Fixture',
 		durationMs: 2_400_000,
-		itemId: 'inventory-no-peaks',
 		releaseTitle: 'Inventory Sample',
 		streamUrl: '/inventory/player/#player',
 		title: 'A Mix With No Measured Peaks',
+		trackId: 'inventory-no-peaks',
 	},
 };
 

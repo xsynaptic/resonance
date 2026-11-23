@@ -22,7 +22,7 @@ const { mix, playerItems, playerLabels } = await getInventoryFixtures();
 			<Variant label="with PlayerControls">
 				{mix?.queueItem ? (
 					<AudioLinks cueSlug={mix.cueSlug} files={mix.files} links={mix.links}>
-						<PlayerControls itemId={mix.queueItem.press.itemId} />
+						<PlayerControls itemId={mix.queueItem.press.trackId} />
 					</AudioLinks>
 				) : undefined}
 			</Variant>

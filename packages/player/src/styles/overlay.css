@@ -1,5 +1,5 @@
-.player-overlay,
-.player-overlay-sheet {
+.pzm-overlay,
+.pzm-overlay-sheet {
 	box-sizing: border-box;
 	width: 100%;
 	max-width: none;
@@ -8,281 +8,281 @@
 	padding: 0 0 calc(100lvh - 100dvh);
 	margin: 0;
 	overflow: clip;
-	color: var(--player-title);
+	color: var(--pzm-title);
 	touch-action: none;
 	outline: none;
-	background-color: var(--player-surface);
+	background-color: var(--pzm-surface);
 	border: 0;
-	transition: translate var(--player-transition-slow);
+	transition: translate var(--pzm-transition-slow);
 }
 
 @starting-style {
-	.player-overlay[open],
-	.player-overlay-sheet[open] {
+	.pzm-overlay[open],
+	.pzm-overlay-sheet[open] {
 		translate: 0 100%;
 	}
 }
 
-:root:has(.player-overlay:modal) {
+:root:has(.pzm-overlay:modal) {
 	overflow: hidden;
 }
 
-.player-overlay[data-grabbing],
-.player-overlay-sheet[data-grabbing] {
+.pzm-overlay[data-grabbing],
+.pzm-overlay-sheet[data-grabbing] {
 	transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.player-overlay,
-	.player-overlay-sheet {
+	.pzm-overlay,
+	.pzm-overlay-sheet {
 		transition-duration: 1ms;
 	}
 }
 
-.player-overlay-art,
-.player-overlay-art .player-artwork {
+.pzm-overlay-art,
+.pzm-overlay-art .pzm-artwork {
 	touch-action: none;
 }
 
-.player-overlay-art {
-	background-color: var(--player-artwork-well);
+.pzm-overlay-art {
+	background-color: var(--pzm-artwork-well);
 }
 
-.player-overlay-art:not(:has(.player-artwork)) {
+.pzm-overlay-art:not(:has(.pzm-artwork)) {
 	display: none;
 }
 
-.player-overlay-body {
-	--player-overlay-inset-top: max(var(--player-gap-tight), env(safe-area-inset-top));
-	--player-overlay-inset-right: max(var(--player-padding-inline), env(safe-area-inset-right));
-	--player-overlay-inset-bottom: max(var(--player-padding-inline), env(safe-area-inset-bottom));
-	--player-overlay-inset-left: max(var(--player-padding-inline), env(safe-area-inset-left));
+.pzm-overlay-body {
+	--pzm-overlay-inset-top: max(var(--pzm-gap-tight), env(safe-area-inset-top));
+	--pzm-overlay-inset-right: max(var(--pzm-padding-inline), env(safe-area-inset-right));
+	--pzm-overlay-inset-bottom: max(var(--pzm-padding-inline), env(safe-area-inset-bottom));
+	--pzm-overlay-inset-left: max(var(--pzm-padding-inline), env(safe-area-inset-left));
 
 	position: relative;
 	box-sizing: border-box;
 	block-size: 100%;
-	container: player-overlay / size;
+	container: pzm-overlay / size;
 	overflow: hidden;
-	background-color: var(--player-surface);
+	background-color: var(--pzm-surface);
 }
 
-.player-overlay-layout {
+.pzm-overlay-layout {
 	display: grid;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 	block-size: 100%;
 }
 
-.player-overlay-deck {
+.pzm-overlay-deck {
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	grid-area: deck;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 	min-inline-size: 0;
 	min-block-size: 0;
 	isolation: isolate;
 }
 
-.player-overlay-deck::before {
-	--player-texture-corner: 0 0;
+.pzm-overlay-deck::before {
+	--pzm-texture-corner: 0 0;
 }
 
-.player-overlay-head {
+.pzm-overlay-head {
 	position: relative;
 }
 
-.player-overlay-head > .player-overlay-close > .sonic-button {
+.pzm-overlay-head > .pzm-overlay-close > .sonic-button {
 	position: absolute;
 	inset-block-start: -0.125rem;
 	inset-inline-end: -0.625rem;
-	z-index: var(--player-z-raised);
+	z-index: var(--pzm-z-raised);
 }
 
-.player-overlay-track :is(.player-track-title, .player-track-empty) {
-	padding-inline-end: calc(var(--player-button-size) + var(--player-gap-tight));
+.pzm-overlay-track :is(.pzm-track-title, .pzm-track-empty) {
+	padding-inline-end: calc(var(--pzm-button-size) + var(--pzm-gap-tight));
 }
 
-.player-overlay-track .player-track-title {
-	font-size: var(--player-font-size-large);
+.pzm-overlay-track .pzm-track-title {
+	font-size: var(--pzm-font-size-large);
 	line-height: 1.75rem;
 }
 
-.player-overlay-track .player-track-meta {
+.pzm-overlay-track .pzm-track-meta {
 	min-block-size: 1.25rem;
 }
 
-.player-overlay-track .player-track-artist {
-	font-size: var(--player-font-size);
+.pzm-overlay-track .pzm-track-artist {
+	font-size: var(--pzm-font-size);
 	line-height: 1.25rem;
 }
 
-.player-overlay-track :is(.player-time, .player-scrub-readout-clock) {
+.pzm-overlay-track :is(.pzm-time, .pzm-scrub-readout-clock) {
 	line-height: 1.25rem;
 }
 
-.player-overlay-scrub {
+.pzm-overlay-scrub {
 	position: relative;
 }
 
-.player-overlay-controls {
+.pzm-overlay-controls {
 	display: flex;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 	align-items: center;
 }
 
-.player-overlay-controls .player-transport {
+.pzm-overlay-controls .pzm-transport {
 	gap: 1rem;
 }
 
-.player-overlay-deck .player-button-primary {
-	--player-button-px: var(--player-button-px-hero);
-	--sonic-button-icon-ratio: calc(30 / var(--player-button-px));
+.pzm-overlay-deck .pzm-button-primary {
+	--pzm-button-px: var(--pzm-button-px-hero);
+	--sonic-button-icon-ratio: calc(30 / var(--pzm-button-px));
 }
 
-.player-overlay-sheets {
+.pzm-overlay-sheets {
 	display: flex;
-	gap: var(--player-gap-wide);
+	gap: var(--pzm-gap-wide);
 	justify-content: center;
 }
 
-.player-overlay-sheets[hidden] {
+.pzm-overlay-sheets[hidden] {
 	display: none;
 }
 
 /* The lists bleed by the row inset, so a row's hover reaches past the text while the text lines up with the deck */
-.player-overlay-tabs {
+.pzm-overlay-tabs {
 	display: flex;
 	flex: 1 1 0;
 	flex-direction: column;
 	min-block-size: 0;
-	margin-inline: calc(-1 * var(--player-row-inset));
+	margin-inline: calc(-1 * var(--pzm-row-inset));
 }
 
-.player-overlay-tablist {
+.pzm-overlay-tablist {
 	display: flex;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 	align-self: stretch;
 	margin-inline-end: auto;
 }
 
-.player-overlay-tab {
+.pzm-overlay-tab {
 	display: flex;
 	align-items: center;
 	margin-bottom: -1px;
-	font-size: var(--player-font-size);
+	font-size: var(--pzm-font-size);
 	font-weight: 500;
 	line-height: 1.25rem;
-	color: var(--player-meta);
+	color: var(--pzm-meta);
 	border-bottom: 2px solid transparent;
 	transition:
-		color var(--player-transition),
-		border-color var(--player-transition);
+		color var(--pzm-transition),
+		border-color var(--pzm-transition);
 }
 
 @media (hover: hover) {
-	.player-overlay-tab:hover {
-		color: var(--player-meta-hover);
+	.pzm-overlay-tab:hover {
+		color: var(--pzm-meta-hover);
 	}
 }
 
-.player-overlay-tab:focus-visible {
-	color: var(--player-meta-hover);
+.pzm-overlay-tab:focus-visible {
+	color: var(--pzm-meta-hover);
 }
 
-.player-overlay-tab:disabled {
-	color: var(--player-hint);
+.pzm-overlay-tab:disabled {
+	color: var(--pzm-hint);
 }
 
-.player-overlay-tab[aria-selected='true'] {
-	color: var(--player-title);
-	border-bottom-color: var(--player-control-active);
+.pzm-overlay-tab[aria-selected='true'] {
+	color: var(--pzm-title);
+	border-bottom-color: var(--pzm-control-active);
 }
 
-.player-overlay-tabs > player-queue-actions > .player-queue-actions {
+.pzm-overlay-tabs > pzm-queue-actions > .pzm-queue-actions {
 	justify-content: flex-end;
-	padding: var(--player-gap-tight) var(--player-row-inset);
+	padding: var(--pzm-gap-tight) var(--pzm-row-inset);
 }
 
-.player-overlay-list {
+.pzm-overlay-list {
 	flex: 1 1 0;
 	min-block-size: 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 }
 
-.player-overlay-sheet[open] {
-	--player-row-inset: var(--player-overlay-inset-left);
+.pzm-overlay-sheet[open] {
+	--pzm-row-inset: var(--pzm-overlay-inset-left);
 
 	display: flex;
 	flex-direction: column;
-	gap: var(--player-gap);
-	padding: var(--player-overlay-inset-top) var(--player-overlay-inset-right)
-		calc(var(--player-overlay-inset-bottom) + 100lvh - 100dvh) var(--player-overlay-inset-left);
+	gap: var(--pzm-gap);
+	padding: var(--pzm-overlay-inset-top) var(--pzm-overlay-inset-right)
+		calc(var(--pzm-overlay-inset-bottom) + 100lvh - 100dvh) var(--pzm-overlay-inset-left);
 }
 
-.player-overlay-tracklist {
+.pzm-overlay-cue-list {
 	padding: 0;
 	margin: 0;
 	list-style: none;
 }
 
-.player-overlay-tracklist > li {
+.pzm-overlay-cue-list > li {
 	contain-intrinsic-size: auto 3.25rem;
 	content-visibility: auto;
 }
 
-.player-overlay-cue {
+.pzm-overlay-cue {
 	display: grid;
 	grid-template:
 		'time title' auto
-		'time artist' auto / var(--player-clock-width) minmax(0, 1fr);
-	column-gap: var(--player-gap-tight);
+		'time artist' auto / var(--pzm-clock-width) minmax(0, 1fr);
+	column-gap: var(--pzm-gap-tight);
 	width: 100%;
-	padding-block: var(--player-gap-tight);
+	padding-block: var(--pzm-gap-tight);
 	text-align: left;
 }
 
-.player-overlay-cue-time {
+.pzm-overlay-cue-time {
 	grid-area: time;
-	font-family: var(--player-font-mono);
-	font-size: var(--player-font-size-small);
+	font-family: var(--pzm-font-mono);
+	font-size: var(--pzm-font-size-small);
 	font-variant-numeric: tabular-nums;
 	line-height: 1.25rem;
-	color: var(--player-clock);
+	color: var(--pzm-clock);
 }
 
-.player-overlay-cue-head {
+.pzm-overlay-cue-head {
 	grid-area: title;
-	font-size: var(--player-font-size);
+	font-size: var(--pzm-font-size);
 	line-height: 1.25rem;
 }
 
-.player-overlay-cue-title {
+.pzm-overlay-cue-title {
 	font-weight: 500;
-	color: var(--player-title);
+	color: var(--pzm-title);
 }
 
-.player-overlay-cue-head > .player-row-playing {
+.pzm-overlay-cue-head > .pzm-row-playing {
 	display: inline;
-	margin-inline-start: var(--player-gap-small);
+	margin-inline-start: var(--pzm-gap-small);
 	vertical-align: baseline;
 }
 
-.player-overlay-cue-artist {
+.pzm-overlay-cue-artist {
 	grid-area: artist;
-	font-size: var(--player-font-size-small);
+	font-size: var(--pzm-font-size-small);
 	line-height: 1rem;
-	color: var(--player-meta);
+	color: var(--pzm-meta);
 }
 
-.player-overlay-cue[aria-current='true'] .player-overlay-cue-title {
-	color: var(--player-cue-artist);
+.pzm-overlay-cue[aria-current='true'] .pzm-overlay-cue-title {
+	color: var(--pzm-cue-artist);
 }
 
-.player-overlay-cue[aria-current='true'] .player-overlay-cue-artist {
-	color: var(--player-cue-title);
+.pzm-overlay-cue[aria-current='true'] .pzm-overlay-cue-artist {
+	color: var(--pzm-cue-title);
 }
 
-.player-overlay-cue[aria-current='true'] .player-overlay-cue-time {
-	color: var(--player-clock-hover);
+.pzm-overlay-cue[aria-current='true'] .pzm-overlay-cue-time {
+	color: var(--pzm-clock-hover);
 }

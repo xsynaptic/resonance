@@ -9,7 +9,7 @@ import { observeResize } from '#lib/observe-resize.ts';
 import { requireChild, template } from '#lib/render.ts';
 
 const renderScreen = template(
-	'<div class="player-scope sonic-screen"><div class="player-scope-trace"></div><button aria-pressed="true" class="player-scope-toggle" type="button"></button></div>',
+	'<div class="pzm-scope sonic-screen"><div class="pzm-scope-trace"></div><button aria-pressed="true" class="pzm-scope-toggle" type="button"></button></div>',
 	HTMLDivElement,
 );
 
@@ -21,7 +21,7 @@ export class PlayerScope extends PlayerElement {
 	protected connect(signal: AbortSignal): void {
 		const { labels, store } = playerContext(this);
 		const screen = this.#screen;
-		const box = requireChild(screen, '.player-scope-trace', HTMLDivElement);
+		const box = requireChild(screen, '.pzm-scope-trace', HTMLDivElement);
 		const toggle = requireChild(screen, 'button', HTMLButtonElement);
 		let isTracing = isPlayingInBar(store.getState());
 		let surface: ScopeSurface | undefined;

@@ -16,6 +16,6 @@ const { items } = Astro.props;
 {items.length > 0 ? (
 	<>
 		{audioOrigin ? <link crossorigin="anonymous" href={audioOrigin} rel="preconnect" /> : undefined}
-		<div data-player-payload={JSON.stringify(items)} hidden />
+		<div data-pzm-payload={JSON.stringify(items)} hidden />
 	</>
 ) : undefined}

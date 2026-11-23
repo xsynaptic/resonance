@@ -89,7 +89,7 @@ export class PlayerRoot extends PlayerElement {
 		this.upgradeProperty('store');
 
 		const store = this.#store;
-		if (!store) throw new Error('<player-root> connected without a store');
+		if (!store) throw new Error('<pzm-root> connected without a store');
 
 		bind(
 			store,

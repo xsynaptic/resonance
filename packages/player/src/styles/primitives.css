@@ -1,176 +1,175 @@
-:is(.player-bar, .player-overlay-deck)::before,
-.player-overlay-body[data-layout='columns'] .player-overlay-art::before {
+:is(.pzm-bar, .pzm-overlay-deck)::before,
+.pzm-overlay-body[data-layout='columns'] .pzm-overlay-art::before {
 	position: absolute;
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
 	content: '';
-	background-color: var(--player-texture);
+	background-color: var(--pzm-texture);
 	mask:
-		var(--player-texture-image) var(--player-texture-corner) / var(--player-texture-size) repeat
-			intersect,
+		var(--pzm-texture-image) var(--pzm-texture-corner) / var(--pzm-texture-size) repeat intersect,
 		radial-gradient(
-				ellipse var(--player-texture-reach) at var(--player-texture-corner),
+				ellipse var(--pzm-texture-reach) at var(--pzm-texture-corner),
 				#000,
 				transparent
 			)
 			no-repeat;
 }
 
-.player-cue-label,
-.player-status {
+.pzm-cue-label,
+.pzm-status {
 	box-sizing: border-box;
-	block-size: var(--player-readout-size);
+	block-size: var(--pzm-readout-size);
 	padding: 0 0.375rem;
-	line-height: calc(var(--player-readout-size) - 2px);
-	background-color: var(--player-popover);
-	border: 1px solid var(--player-border);
-	border-radius: var(--player-radius);
+	line-height: calc(var(--pzm-readout-size) - 2px);
+	background-color: var(--pzm-popover);
+	border: 1px solid var(--pzm-border);
+	border-radius: var(--pzm-radius);
 }
 
-.player-popover {
-	background-color: var(--player-popover);
-	border: 1px solid var(--player-border);
-	border-radius: var(--player-radius-large);
-	box-shadow: var(--player-shadow-popover);
-	animation-name: player-popover-in;
-	animation-duration: var(--player-duration-slow);
-	animation-timing-function: var(--player-ease);
+.pzm-popover {
+	background-color: var(--pzm-popover);
+	border: 1px solid var(--pzm-border);
+	border-radius: var(--pzm-radius-large);
+	box-shadow: var(--pzm-shadow-popover);
+	animation-name: pzm-popover-in;
+	animation-duration: var(--pzm-duration-slow);
+	animation-timing-function: var(--pzm-ease);
 	animation-fill-mode: both;
 }
 
-@keyframes player-popover-in {
+@keyframes pzm-popover-in {
 	from {
 		opacity: 0;
-		transform: translateY(var(--player-gap-small));
+		transform: translateY(var(--pzm-gap-small));
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.player-popover {
+	.pzm-popover {
 		animation: none;
 	}
 }
 
 /* Registered, so the cap's fill can fade; the library swaps it on hover with no transition */
-@property --player-pill-cap {
+@property --pzm-pill-cap {
 	syntax: '<color>';
 	inherits: true;
 	initial-value: transparent;
 }
 
-.player-button-pill {
-	--player-pill-fill: var(--player-pill);
-	--player-pill-speed: 150ms;
-	--player-pill-cap: var(--player-pill-fill);
-	--player-pill-edge: var(--player-pill-fill);
+.pzm-button-pill {
+	--pzm-pill-fill: var(--pzm-pill);
+	--pzm-pill-speed: 150ms;
+	--pzm-pill-cap: var(--pzm-pill-fill);
+	--pzm-pill-edge: var(--pzm-pill-fill);
 	--sonic-button-bevel-ratio: 0;
 	--sonic-button-face-radius-ratio: 0.5;
 	--sonic-button-radius-ratio: 0.5;
-	--sonic-cap: var(--player-pill-cap);
-	--sonic-cap-edge: var(--player-pill-edge);
-	--sonic-cap-hover: var(--player-pill-cap);
-	--sonic-fade-duration: var(--player-pill-speed);
-	--sonic-ink: var(--player-pill-text);
-	--sonic-ink-hover: var(--player-meta-hover);
+	--sonic-cap: var(--pzm-pill-cap);
+	--sonic-cap-edge: var(--pzm-pill-edge);
+	--sonic-cap-hover: var(--pzm-pill-cap);
+	--sonic-fade-duration: var(--pzm-pill-speed);
+	--sonic-ink: var(--pzm-pill-text);
+	--sonic-ink-hover: var(--pzm-meta-hover);
 
-	transition: --player-pill-cap var(--player-pill-speed) var(--player-ease);
+	transition: --pzm-pill-cap var(--pzm-pill-speed) var(--pzm-ease);
 }
 
 @media (hover: hover) {
-	.player-button-pill:has(> .sonic-button:not([aria-disabled='true']):hover) {
-		--player-pill-fill: var(--player-pill-hover);
-		--player-pill-speed: 50ms;
+	.pzm-button-pill:has(> .sonic-button:not([aria-disabled='true']):hover) {
+		--pzm-pill-fill: var(--pzm-pill-hover);
+		--pzm-pill-speed: 50ms;
 	}
 }
 
-.player-button-pill:has(> .sonic-button:focus-visible) {
-	--player-pill-fill: var(--player-pill-hover);
-	--player-pill-speed: 50ms;
+.pzm-button-pill:has(> .sonic-button:focus-visible) {
+	--pzm-pill-fill: var(--pzm-pill-hover);
+	--pzm-pill-speed: 50ms;
 }
 
-.player-button-pill:has(> .sonic-button[aria-pressed='true']) {
-	--player-pill: var(--player-pill-active);
-	--player-pill-hover: var(--player-pill-active-hover);
+.pzm-button-pill:has(> .sonic-button[aria-pressed='true']) {
+	--pzm-pill: var(--pzm-pill-active);
+	--pzm-pill-hover: var(--pzm-pill-active-hover);
 }
 
-.player-button-pill:has(> .sonic-button[aria-disabled='true']) {
-	--player-pill-cap: var(--player-pill-inert);
-	--player-pill-edge: var(--player-pill);
-	--sonic-ink-disabled: var(--player-control-inert);
+.pzm-button-pill:has(> .sonic-button[aria-disabled='true']) {
+	--pzm-pill-cap: var(--pzm-pill-inert);
+	--pzm-pill-edge: var(--pzm-pill);
+	--sonic-ink-disabled: var(--pzm-control-inert);
 }
 
-.player-header {
+.pzm-header {
 	display: flex;
 	flex-shrink: 0;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 	align-items: center;
-	min-block-size: var(--player-hit-target);
-	padding-inline: var(--player-row-inset);
-	border-bottom: 1px solid var(--player-border);
+	min-block-size: var(--pzm-hit-target);
+	padding-inline: var(--pzm-row-inset);
+	border-bottom: 1px solid var(--pzm-border);
 }
 
-.player-header-title {
+.pzm-header-title {
 	margin-inline-end: auto;
-	font-size: var(--player-font-size);
+	font-size: var(--pzm-font-size);
 	font-weight: 500;
 	line-height: 1.25rem;
-	color: var(--player-title);
+	color: var(--pzm-title);
 }
 
-.player-queue-actions {
+.pzm-queue-actions {
 	display: flex;
-	gap: var(--player-gap);
+	gap: var(--pzm-gap);
 }
 
 /* A row's ring sits inside it, since the scroller around it clips anything drawn outside */
-:is(.player-tray-item, .player-overlay-cue) {
-	--player-focus-offset: calc(-1 * var(--player-focus-width));
+:is(.pzm-tray-track, .pzm-overlay-cue) {
+	--pzm-focus-offset: calc(-1 * var(--pzm-focus-width));
 
-	padding-inline: var(--player-row-inset);
-	transition: background-color var(--player-transition);
+	padding-inline: var(--pzm-row-inset);
+	transition: background-color var(--pzm-transition);
 }
 
 @media (hover: hover) {
-	.player-tray-item:hover,
-	.player-overlay-cue:enabled:hover {
-		background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+	.pzm-tray-track:hover,
+	.pzm-overlay-cue:enabled:hover {
+		background-color: color-mix(in oklab, var(--pzm-hover) 60%, transparent);
 	}
 }
 
-.player-tray-item:focus-within,
-.player-overlay-cue:focus-visible {
-	background-color: color-mix(in oklab, var(--player-hover) 60%, transparent);
+.pzm-tray-track:focus-within,
+.pzm-overlay-cue:focus-visible {
+	background-color: color-mix(in oklab, var(--pzm-hover) 60%, transparent);
 }
 
-.player-row-playing {
+.pzm-row-playing {
 	visibility: hidden;
 	flex-shrink: 0;
-	color: var(--player-current-icon);
+	color: var(--pzm-current-icon);
 }
 
-:is(.player-tray-item[data-current], .player-overlay-cue[aria-current='true']) .player-row-playing {
+:is(.pzm-tray-track[data-current], .pzm-overlay-cue[aria-current='true']) .pzm-row-playing {
 	visibility: visible;
 }
 
 /* Bars bounce only while sound is coming out, so a pause or a stall holds them still */
 @media (prefers-reduced-motion: no-preference) {
-	player-root:not([data-paused], [data-waiting]) .player-row-playing rect {
+	pzm-root:not([data-paused], [data-waiting]) .pzm-row-playing rect {
 		transform-origin: bottom;
 		transform-box: fill-box;
-		animation: player-row-playing 800ms ease-in-out infinite alternate;
+		animation: pzm-row-playing 800ms ease-in-out infinite alternate;
 	}
 
-	player-root .player-row-playing rect:nth-child(2) {
+	pzm-root .pzm-row-playing rect:nth-child(2) {
 		animation-delay: -300ms;
 	}
 
-	player-root .player-row-playing rect:nth-child(3) {
+	pzm-root .pzm-row-playing rect:nth-child(3) {
 		animation-delay: -550ms;
 	}
 }
 
-@keyframes player-row-playing {
+@keyframes pzm-row-playing {
 	from {
 		scale: 1 0.3;
 	}

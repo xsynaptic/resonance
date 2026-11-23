@@ -1,57 +1,57 @@
-.player-panel,
-.player-scope {
-	--sonic-waveform-peaks-depth: var(--player-tint-peaks-depth);
-	--sonic-waveform-tint-1: var(--player-tint-1);
-	--sonic-waveform-tint-2: var(--player-tint-2);
-	--sonic-waveform-tint-3: var(--player-tint-3);
-	--sonic-waveform-tint-4: var(--player-tint-4);
-	--sonic-waveform-tint-5: var(--player-tint-5);
-	--sonic-waveform-tint-sensitivity: var(--player-tint-sensitivity);
-	--sonic-waveform-tint-smoothing: var(--player-tint-smoothing);
-	--sonic-waveform-tint-steps: var(--player-tint-steps);
+.pzm-panel,
+.pzm-scope {
+	--sonic-waveform-peaks-depth: var(--pzm-tint-peaks-depth);
+	--sonic-waveform-tint-1: var(--pzm-tint-1);
+	--sonic-waveform-tint-2: var(--pzm-tint-2);
+	--sonic-waveform-tint-3: var(--pzm-tint-3);
+	--sonic-waveform-tint-4: var(--pzm-tint-4);
+	--sonic-waveform-tint-5: var(--pzm-tint-5);
+	--sonic-waveform-tint-sensitivity: var(--pzm-tint-sensitivity);
+	--sonic-waveform-tint-smoothing: var(--pzm-tint-smoothing);
+	--sonic-waveform-tint-steps: var(--pzm-tint-steps);
 }
 
-.player-panel {
-	--sonic-lit: var(--player-panel-wave);
-	--sonic-marker: var(--player-panel-cue);
-	--sonic-waveform-base: var(--player-panel-wave);
-	--sonic-waveform-ends: var(--player-panel-ends);
-	--sonic-waveform-ghost: var(--player-panel-ghost);
-	--sonic-waveform-grid: var(--player-panel-grid);
-	--sonic-waveform-label: var(--player-cue-title);
+.pzm-panel {
+	--sonic-lit: var(--pzm-panel-wave);
+	--sonic-marker: var(--pzm-panel-cue);
+	--sonic-waveform-base: var(--pzm-panel-wave);
+	--sonic-waveform-ends: var(--pzm-panel-ends);
+	--sonic-waveform-ghost: var(--pzm-panel-ghost);
+	--sonic-waveform-grid: var(--pzm-panel-grid);
+	--sonic-waveform-label: var(--pzm-cue-title);
 	--sonic-waveform-label-fade-end: 0.75;
 	--sonic-waveform-label-fade-start: 0.25;
-	--sonic-waveform-label-font-size: var(--player-font-size);
+	--sonic-waveform-label-font-size: var(--pzm-font-size);
 	--sonic-waveform-label-inset-block: 0.25rem;
-	--sonic-waveform-label-inset-inline: calc(1rem + var(--player-panel-inset-left, 0px));
+	--sonic-waveform-label-inset-inline: calc(1rem + var(--pzm-panel-inset-left, 0px));
 	--sonic-waveform-label-line-height: 1.25rem;
 	--sonic-waveform-length: 100%;
-	--sonic-waveform-peaks: var(--player-panel-wave-peaks);
-	--sonic-waveform-placeholder: var(--player-panel-placeholder);
-	--sonic-waveform-playhead: var(--player-playhead);
+	--sonic-waveform-peaks: var(--pzm-panel-wave-peaks);
+	--sonic-waveform-placeholder: var(--pzm-panel-placeholder);
+	--sonic-waveform-playhead: var(--pzm-playhead);
 	--sonic-waveform-playhead-width: 1px;
 
 	/* As tall as the label's row */
-	--sonic-waveform-scrim: linear-gradient(to top, var(--player-surface), transparent 1.75rem);
-	--sonic-waveform-size: var(--player-panel-height);
+	--sonic-waveform-scrim: linear-gradient(to top, var(--pzm-surface), transparent 1.75rem);
+	--sonic-waveform-size: var(--pzm-panel-height);
 
 	position: relative;
-	height: var(--player-panel-height);
+	height: var(--pzm-panel-height);
 	overflow: hidden;
 	user-select: none;
 	background-image: linear-gradient(
 		to bottom,
 		transparent,
-		color-mix(in oklab, var(--player-panel-well) 70%, transparent) 50%,
+		color-mix(in oklab, var(--pzm-panel-well) 70%, transparent) 50%,
 		transparent
 	);
 	background-repeat: no-repeat;
-	animation: player-panel-in var(--player-transition-slow);
+	animation: pzm-panel-in var(--pzm-transition-slow);
 }
 
-@keyframes player-panel-in {
+@keyframes pzm-panel-in {
 	from {
-		clip-path: var(--player-panel-roll, inset(100% 0 0));
+		clip-path: var(--pzm-panel-roll, inset(100% 0 0));
 	}
 
 	to {
@@ -60,17 +60,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.player-panel {
+	.pzm-panel {
 		animation: none;
 	}
 }
 
-.player-panel-label-artist {
-	color: var(--player-cue-artist);
+.pzm-panel-label-artist {
+	color: var(--pzm-cue-artist);
 }
 
 /* The waveform's own labels are hidden from assistive tech, so the current Track is said here */
-.player-panel-now {
+.pzm-panel-now {
 	position: absolute;
 	inline-size: 1px;
 	block-size: 1px;
@@ -79,16 +79,16 @@
 	clip-path: inset(50%);
 }
 
-.player-panel-zoom {
+.pzm-panel-zoom {
 	position: absolute;
 	top: 0;
 	right: 0;
 	display: flex;
-	gap: var(--player-gap-small);
-	padding: var(--player-gap-small);
+	gap: var(--pzm-gap-small);
+	padding: var(--pzm-gap-small);
 }
 
-.player-panel-zoom sonic-button {
-	--player-button-px: 16;
-	--sonic-button-icon-ratio: calc(10 / var(--player-button-px));
+.pzm-panel-zoom sonic-button {
+	--pzm-button-px: 16;
+	--sonic-button-icon-ratio: calc(10 / var(--pzm-button-px));
 }

@@ -1,6 +1,6 @@
 import type { WaveformBands, WaveformPeaks } from '@xsynaptic/sonic-ui';
 
-import type { QueueBands, QueuePeaks } from '#types.ts';
+import type { TrackBands, TrackPeaks } from '#types.ts';
 
 import { retryDelayMs } from '#lib/retry-delay.ts';
 
@@ -42,7 +42,7 @@ interface ChunkRequest {
 	isHeld: boolean;
 }
 
-export function openPeaks(source: QueuePeaks): PeaksReader {
+export function openPeaks(source: TrackPeaks): PeaksReader {
 	const cached = cache.get(source.url);
 	if (cached) return cached;
 
@@ -81,7 +81,7 @@ async function fetchRange(
 	}
 }
 
-function createBandsTwin(source: QueueBands, pairsPerSecond: number): BandsTwin {
+function createBandsTwin(source: TrackBands, pairsPerSecond: number): BandsTwin {
 	const { bandCount, byteOffset, frameCount, framesPerSecond, medians, minDecibels, url } = source;
 	const bytesTotal = frameCount * bandCount;
 
@@ -122,7 +122,7 @@ function createReader({
 	pairsPerSecond,
 	rmsRange,
 	url,
-}: QueuePeaks): PeaksReader {
+}: TrackPeaks): PeaksReader {
 	const samples = new Int8Array(pairCount * 2);
 	const rms = new Int8Array(pairCount);
 	const bands = bandsSource && createBandsTwin(bandsSource, pairsPerSecond);

@@ -1,53 +1,53 @@
-.player-cue-label {
+.pzm-cue-label {
 	position: absolute;
-	z-index: var(--player-z-raised);
-	max-width: min(var(--player-cue-label-max), var(--player-cue-room, 100%));
-	margin-top: calc(var(--player-cue-size) / 2 + 0.25rem);
+	z-index: var(--pzm-z-raised);
+	max-width: min(var(--pzm-cue-label-max), var(--pzm-cue-room, 100%));
+	margin-top: calc(var(--pzm-cue-size) / 2 + 0.25rem);
 	overflow: hidden;
 	text-overflow: ellipsis;
-	font-size: var(--player-font-size-small);
+	font-size: var(--pzm-font-size-small);
 	white-space: nowrap;
 	pointer-events: none;
 }
 
-.player-cue-label[data-side='end'] {
+.pzm-cue-label[data-side='end'] {
 	translate: -100%;
 }
 
-.player-cue-label[data-above] {
+.pzm-cue-label[data-above] {
 	margin-top: 0;
 	translate: 0 calc(-100% - 0.25rem);
 }
 
-.player-cue-label[data-above][data-side='end'] {
+.pzm-cue-label[data-above][data-side='end'] {
 	translate: -100% calc(-100% - 0.25rem);
 }
 
 /* Mono reads a step larger than the sans beside it at the same size */
-.player-cue-time {
-	font-family: var(--player-font-mono);
+.pzm-cue-time {
+	font-family: var(--pzm-font-mono);
 	font-size: 0.6875rem;
 	font-variant-numeric: tabular-nums;
-	color: var(--player-clock);
+	color: var(--pzm-clock);
 }
 
-.player-cue-time:not(:empty):has(~ :not(:empty))::after {
+.pzm-cue-time:not(:empty):has(~ :not(:empty))::after {
 	padding-inline: 0.3em;
-	color: var(--player-cue-title);
+	color: var(--pzm-cue-title);
 	content: '-';
 }
 
-.player-cue-artist {
+.pzm-cue-artist {
 	font-weight: 500;
-	color: var(--player-cue-artist);
+	color: var(--pzm-cue-artist);
 }
 
-.player-cue-artist:not(:empty)::after {
+.pzm-cue-artist:not(:empty)::after {
 	padding-inline: 0.3em;
-	color: var(--player-cue-title);
+	color: var(--pzm-cue-title);
 	content: '-';
 }
 
-.player-cue-title {
-	color: var(--player-cue-title);
+.pzm-cue-title {
+	color: var(--pzm-cue-title);
 }

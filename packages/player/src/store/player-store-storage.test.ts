@@ -6,7 +6,7 @@ import { createPlayerStore } from '#store/player-store.ts';
 import {
 	fake,
 	hidePage,
-	makeItem,
+	makeTrack,
 	persisted,
 	release,
 	resetEngine,
@@ -56,7 +56,7 @@ describe('storage', () => {
 			expect(store.getState().queue).toHaveLength(0);
 
 			store.getState().setVolume(0.7);
-			store.getState().loadQueue([makeItem('x')]);
+			store.getState().loadQueue([makeTrack('x')]);
 			vi.runAllTimers();
 
 			expect(setItem).not.toHaveBeenCalled();

@@ -2,22 +2,22 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerStorage } from '#lib/storage.ts';
 import type { PlayerState, PlayerStore } from '#store/player-types.ts';
-import type { PlayerTimeMode, QueuedItem, QueueItem, QueueItemDetail } from '#types.ts';
+import type { PlayerTimeMode, QueuedTrack, Track, TrackDetail } from '#types.ts';
 
 import {
 	mutedStorageKey,
 	panelOpenStorageKey,
 	panelZoomStorageKey,
 	queueDetailStorageKey,
-	queueItemsStorageKey,
 	queueStorageKey,
+	queueTracksStorageKey,
 	timeModeStorageKey,
 	volumeStorageKey,
 } from '#constants.ts';
 import { isRecord } from '#lib/is-record.ts';
 import { readStored, removeStored, writeStored } from '#lib/storage.ts';
-import { displayedDetail, displayedItem } from '#store/selectors.ts';
-import { toStoredDetail, toStoredItem } from '#store/stored-shapes.ts';
+import { displayedDetail, displayedTrack } from '#store/selectors.ts';
+import { toStoredDetail, toStoredTrack } from '#store/stored-shapes.ts';
 import { isPanelZoom } from '#store/zoom-levels.ts';
 
 const volumeWriteDelayMs = 250;
@@ -25,7 +25,7 @@ const volumeWriteDelayMs = 250;
 export interface PlayerPersistence {
 	// Bound after the stored state lands, so restoring it writes nothing back
 	bind: () => void;
-	readDetails: () => Map<string, QueueItemDetail>;
+	readDetails: () => Map<string, TrackDetail>;
 	// Unclamped: the preference actions own the volume range, so a hand-edited entry is corrected in one place
 	readPreferences: () => StoredPreferences;
 	readQueue: () => StoredQueue | undefined;
@@ -44,14 +44,14 @@ interface StoredQueue {
 	currentTimeSeconds: number;
 	isShuffling: boolean;
 	playOrder: Array<number> | undefined;
-	queue: Array<QueueItem>;
+	queue: Array<Track>;
 }
 
 interface StoredOrder extends Pick<
 	PlayerState,
 	'currentIndex' | 'currentTimeSeconds' | 'isShuffling' | 'playOrder'
 > {
-	itemIds: Array<string>;
+	trackIds: Array<string>;
 }
 
 // Per store rather than per module, so a second store never inherits a pending write
@@ -62,13 +62,13 @@ export function createPlayerPersistence(
 	const volume = createVolumeWriter(storage);
 	let isBound = false;
 
-	let areItemsStored = false;
-	let persistedDetail: QueueItemDetail | undefined;
+	let areTracksStored = false;
+	let persistedDetail: TrackDetail | undefined;
 	let persistedDetailId: string | undefined;
 	let persistedIndex: number | undefined;
-	let persistedItems: ReadonlySet<QueuedItem> = new Set();
+	let persistedTracks: ReadonlySet<QueuedTrack> = new Set();
 	let persistedOrder: Array<number> = [];
-	let persistedQueue: Array<QueuedItem> = [];
+	let persistedQueue: Array<QueuedTrack> = [];
 
 	// A tab leaving with a queue it never touched would overwrite whatever another tab saved since
 	let hasUnsavedPosition = false;
@@ -80,12 +80,15 @@ export function createPlayerPersistence(
 		hasUnsavedPosition = false;
 		if (queue.length === 0) return;
 
-		if (queue.length !== persistedItems.size || queue.some((item) => !persistedItems.has(item))) {
-			persistedItems = new Set(queue);
+		if (
+			queue.length !== persistedTracks.size ||
+			queue.some((track) => !persistedTracks.has(track))
+		) {
+			persistedTracks = new Set(queue);
 			writeStored(
 				storage,
-				queueItemsStorageKey,
-				JSON.stringify(Object.fromEntries(queue.map((item) => [item.itemId, item]))),
+				queueTracksStorageKey,
+				JSON.stringify(Object.fromEntries(queue.map((track) => [track.trackId, track]))),
 			);
 		}
 
@@ -96,8 +99,8 @@ export function createPlayerPersistence(
 				currentIndex,
 				currentTimeSeconds,
 				isShuffling,
-				itemIds: queue.map((item) => item.itemId),
 				playOrder,
+				trackIds: queue.map((track) => track.trackId),
 			} satisfies StoredOrder),
 		);
 	}
@@ -108,14 +111,14 @@ export function createPlayerPersistence(
 	}
 
 	function persistDetail(state: PlayerStore): void {
-		const itemId = displayedItem(state)?.itemId;
+		const trackId = displayedTrack(state)?.trackId;
 		const detail = displayedDetail(state);
 
-		if (itemId === persistedDetailId && detail === persistedDetail) return;
+		if (trackId === persistedDetailId && detail === persistedDetail) return;
 
-		persistedDetailId = itemId;
+		persistedDetailId = trackId;
 		persistedDetail = detail;
-		writeDetail(storage, itemId, detail);
+		writeDetail(storage, trackId, detail);
 	}
 
 	// Queue changes write straight away; the position drifting between them goes out when the page is left
@@ -139,9 +142,9 @@ export function createPlayerPersistence(
 			return;
 		}
 
-		persistedItems = new Set();
+		persistedTracks = new Set();
 		removeStored(storage, queueStorageKey);
-		removeStored(storage, queueItemsStorageKey);
+		removeStored(storage, queueTracksStorageKey);
 	}
 
 	return {
@@ -154,8 +157,8 @@ export function createPlayerPersistence(
 
 			({ currentIndex: persistedIndex, playOrder: persistedOrder, queue: persistedQueue } = state);
 			persistedDetail = displayedDetail(state);
-			persistedDetailId = displayedItem(state)?.itemId;
-			if (areItemsStored) persistedItems = new Set(state.queue);
+			persistedDetailId = displayedTrack(state)?.trackId;
+			if (areTracksStored) persistedTracks = new Set(state.queue);
 
 			api.subscribe((next, previous) => {
 				if (next.currentTimeSeconds !== previous.currentTimeSeconds) hasUnsavedPosition = true;
@@ -174,7 +177,7 @@ export function createPlayerPersistence(
 		readQueue() {
 			const stored = readStoredQueue(storage);
 
-			areItemsStored = stored !== undefined;
+			areTracksStored = stored !== undefined;
 
 			return stored;
 		},
@@ -224,20 +227,20 @@ function onPageLeft(flush: () => void): void {
 	window.addEventListener('pagehide', flush);
 }
 
-function readStoredDetails(storage: PlayerStorage | undefined): Map<string, QueueItemDetail> {
+function readStoredDetails(storage: PlayerStorage | undefined): Map<string, TrackDetail> {
 	const stored = readStored(storage, queueDetailStorageKey);
 	if (stored === undefined) return new Map();
 
 	try {
 		const parsed: unknown = JSON.parse(stored);
-		const details = new Map<string, QueueItemDetail>();
+		const details = new Map<string, TrackDetail>();
 
 		if (!isRecord(parsed)) return details;
 
-		for (const [itemId, value] of Object.entries(parsed)) {
+		for (const [trackId, value] of Object.entries(parsed)) {
 			const detail = toStoredDetail(value);
 
-			if (detail) details.set(itemId, detail);
+			if (detail) details.set(trackId, detail);
 		}
 
 		return details;
@@ -253,8 +256,8 @@ function readStoredFlag(storage: PlayerStorage | undefined, key: string): boolea
 	return stored === 'true';
 }
 
-function readStoredItems(storage: PlayerStorage | undefined): Map<string, unknown> {
-	const stored = readStored(storage, queueItemsStorageKey);
+function readStoredTracks(storage: PlayerStorage | undefined): Map<string, unknown> {
+	const stored = readStored(storage, queueTracksStorageKey);
 	if (stored === undefined) return new Map();
 
 	const parsed: unknown = JSON.parse(stored);
@@ -286,9 +289,9 @@ function readStoredQueue(storage: PlayerStorage | undefined): StoredQueue | unde
 
 	try {
 		const parsed = JSON.parse(stored) as Partial<Record<keyof StoredOrder, unknown>>;
-		const positions = storedPositions(storage, parsed.itemIds);
+		const positions = storedPositions(storage, parsed.trackIds);
 
-		const queue = positions.filter((item) => item !== undefined);
+		const queue = positions.filter((track) => track !== undefined);
 		if (queue.length === 0) return undefined;
 
 		const currentIndex = storedQueueIndex(positions, parsed.currentIndex);
@@ -325,25 +328,25 @@ function readStoredVolume(storage: PlayerStorage | undefined): number | undefine
 
 function storedPositions(
 	storage: PlayerStorage | undefined,
-	itemIds: unknown,
-): Array<QueueItem | undefined> {
-	if (!Array.isArray(itemIds)) return [];
+	trackIds: unknown,
+): Array<Track | undefined> {
+	if (!Array.isArray(trackIds)) return [];
 
-	const items = readStoredItems(storage);
+	const tracks = readStoredTracks(storage);
 
-	return itemIds.map((itemId: unknown) =>
-		typeof itemId === 'string' ? toStoredItem(items.get(itemId)) : undefined,
+	return trackIds.map((trackId: unknown) =>
+		typeof trackId === 'string' ? toStoredTrack(tracks.get(trackId)) : undefined,
 	);
 }
 
 function storedQueueIndex(
-	positions: ReadonlyArray<QueueItem | undefined>,
+	positions: ReadonlyArray<Track | undefined>,
 	currentIndex: unknown,
 ): number | undefined {
 	if (typeof currentIndex !== 'number' || !Number.isSafeInteger(currentIndex)) return undefined;
 	if (positions[currentIndex] === undefined) return undefined;
 
-	return positions.slice(0, currentIndex).filter((item) => item !== undefined).length;
+	return positions.slice(0, currentIndex).filter((track) => track !== undefined).length;
 }
 
 function storedTimeSeconds(currentTimeSeconds: unknown): number {
@@ -354,15 +357,15 @@ function storedTimeSeconds(currentTimeSeconds: unknown): number {
 
 function writeDetail(
 	storage: PlayerStorage | undefined,
-	itemId: string | undefined,
-	detail: QueueItemDetail | undefined,
+	trackId: string | undefined,
+	detail: TrackDetail | undefined,
 ): void {
-	if (itemId === undefined || detail === undefined || Object.keys(detail).length === 0) {
+	if (trackId === undefined || detail === undefined || Object.keys(detail).length === 0) {
 		removeStored(storage, queueDetailStorageKey);
 		return;
 	}
 
-	writeStored(storage, queueDetailStorageKey, JSON.stringify({ [itemId]: detail }));
+	writeStored(storage, queueDetailStorageKey, JSON.stringify({ [trackId]: detail }));
 }
 
 function writePreferences(

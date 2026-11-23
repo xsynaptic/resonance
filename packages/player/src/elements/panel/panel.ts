@@ -8,12 +8,12 @@ import { bind } from '#lib/bind.ts';
 import { template } from '#lib/render.ts';
 import { supersede } from '#lib/supersede.ts';
 
-const renderPanel = template('<div aria-hidden="true" class="player-panel"></div>', HTMLDivElement);
+const renderPanel = template('<div aria-hidden="true" class="pzm-panel"></div>', HTMLDivElement);
 
 export class PlayerPanel extends PlayerElement {
 	protected connect(signal: AbortSignal): void {
 		const context = playerContext(this);
-		const isShown = this.closest('player-overlay-content') === null ? isShownInBar : isPanelOpen;
+		const isShown = this.closest('pzm-overlay-content') === null ? isShownInBar : isPanelOpen;
 		const opened = supersede(signal);
 
 		const close = (): void => {

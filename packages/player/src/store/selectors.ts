@@ -1,5 +1,5 @@
 import type { PlayerState, PlayerStore } from '#store/player-types.ts';
-import type { QueueCuePoint, QueuedItem, QueueItemDetail } from '#types.ts';
+import type { CuePoint, QueuedTrack, TrackDetail } from '#types.ts';
 
 import { cueIndexAt } from '#queue/cue-points.ts';
 import { nextInOrder, previousInOrder } from '#queue/queue.ts';
@@ -26,21 +26,21 @@ export function canStepForward(state: PlayerStore): boolean {
 	return nextInOrder(state.playOrder, state.currentIndex) !== undefined;
 }
 
-export function currentCue(state: PlayerStore): QueueCuePoint | undefined {
+export function currentCue(state: PlayerStore): CuePoint | undefined {
 	const cuePoints = loadedDetail(state)?.cuePoints;
 	if (!cuePoints) return undefined;
 
 	return cuePoints[cueIndexAt(cuePoints, state.currentTimeSeconds)];
 }
 
-export function displayedDetail(state: PlayerStore): QueueItemDetail | undefined {
-	const item = displayedItem(state);
+export function displayedDetail(state: PlayerStore): TrackDetail | undefined {
+	const track = displayedTrack(state);
 
-	return item && state.details.get(item.itemId);
+	return track && state.details.get(track.trackId);
 }
 
-export function displayedItem(state: PlayerStore): QueuedItem | undefined {
-	if (state.currentIndex !== undefined) return loadedItem(state);
+export function displayedTrack(state: PlayerStore): QueuedTrack | undefined {
+	if (state.currentIndex !== undefined) return loadedTrack(state);
 
 	const first = state.playOrder[0];
 
@@ -52,23 +52,25 @@ export function isAwaitingPlayback(state: PlayerStore): boolean {
 }
 
 export function isDetailPending(state: PlayerStore): boolean {
-	const item = displayedItem(state);
+	const track = displayedTrack(state);
 
-	return item !== undefined && state.urls?.detail !== undefined && !state.details.has(item.itemId);
+	return (
+		track !== undefined && state.urls?.detail !== undefined && !state.details.has(track.trackId)
+	);
 }
 
 export function isLoaded(state: PlayerStore): boolean {
 	return state.currentIndex !== undefined;
 }
 
-export function loadedDetail(state: PlayerStore): QueueItemDetail | undefined {
-	const item = loadedItem(state);
+export function loadedDetail(state: PlayerStore): TrackDetail | undefined {
+	const track = loadedTrack(state);
 
-	return item && state.details.get(item.itemId);
+	return track && state.details.get(track.trackId);
 }
 
-export function loadedItem(
+export function loadedTrack(
 	state: Pick<PlayerStore, 'currentIndex' | 'queue'>,
-): QueuedItem | undefined {
+): QueuedTrack | undefined {
 	return state.currentIndex === undefined ? undefined : state.queue[state.currentIndex];
 }

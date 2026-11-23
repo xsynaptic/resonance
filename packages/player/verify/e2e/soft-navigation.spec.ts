@@ -13,7 +13,7 @@ test('a router swap without moveBefore keeps the open panel and playback bound',
 	const waveform = await page.locator('sonic-waveform').elementHandle();
 
 	await page.evaluate(() => {
-		const root = document.querySelector('player-root');
+		const root = document.querySelector('pzm-root');
 		const host = root?.parentElement;
 		if (!root || !host) throw new Error('The player is not mounted');
 

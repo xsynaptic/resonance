@@ -136,7 +136,7 @@
 }
 
 /* The row the playhead is in, marked by the player island */
-.track-item[data-cue-current] {
-	background-image: linear-gradient(to right, var(--player-playhead) 3px, transparent 3px);
+.track-item[data-pzm-cue-current] {
+	background-image: linear-gradient(to right, var(--pzm-playhead) 3px, transparent 3px);
 	background-repeat: no-repeat;
 }

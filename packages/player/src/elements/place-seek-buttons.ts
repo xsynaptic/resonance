@@ -1,6 +1,6 @@
 export function placeSeekButtons(previous: Element, next: Element, seconds: number): void {
-	const back = document.createElement('player-seek-button');
-	const forward = document.createElement('player-seek-button');
+	const back = document.createElement('pzm-seek-button');
+	const forward = document.createElement('pzm-seek-button');
 
 	back.setAttribute('seconds', String(-seconds));
 	forward.setAttribute('seconds', String(seconds));

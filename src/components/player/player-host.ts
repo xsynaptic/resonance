@@ -1,4 +1,4 @@
-import type { PlayerLabels, PlayerUrls, QueueItem } from '@xsynaptic/player';
+import type { PlayerLabels, PlayerUrls, Track } from '@xsynaptic/player';
 
 import { bindAstroRouter, loadPersistedStylesheet } from '@xsynaptic/player/astro';
 import { holdPresses, isPlayerActionable } from '@xsynaptic/player/boot';
@@ -42,7 +42,7 @@ async function loadPlayer(host: Element): Promise<void> {
 	await Promise.all([wanted, loadPersistedStylesheet(config.stylesheetUrl)]);
 
 	const [
-		{ bindMediaSession, bindPageControls, createPlayer, createPlayerStore, loadedItem },
+		{ bindMediaSession, bindPageControls, createPlayer, createPlayerStore, loadedTrack },
 		{ bindPlayerStats },
 		{ bindPlayerAnalytics, trackControlPress },
 	] = await Promise.all([
@@ -88,22 +88,22 @@ async function loadPlayer(host: Element): Promise<void> {
 	bindAstroRouter(store, controls);
 	// Once per document, since Safari reconnects the persisted root on every navigation and a root's binding would clear the lock screen each time
 	bindMediaSession(store);
-	bindPlayerStats(store, () => loadedItem(store.getState())?.itemId);
+	bindPlayerStats(store, () => loadedTrack(store.getState())?.trackId);
 	bindPlayerAnalytics(store);
 }
 
 // The stream comes from the press row, so a press never waits on the Library
 function libraryUrls(loadLibrary: () => Promise<Library>): PlayerUrls {
 	return {
-		detail: async ({ itemId }) => {
+		detail: async ({ trackId }) => {
 			const library = await loadLibrary();
 
-			return library.get(itemId)?.detail;
+			return library.get(trackId)?.detail;
 		},
 		stream: (item) => {
 			const streamUrl = pressRowStreamUrl(item);
 			if (streamUrl === undefined) {
-				return Promise.reject(new Error(`No stream URL for ${item.itemId}`));
+				return Promise.reject(new Error(`No stream URL for ${item.trackId}`));
 			}
 
 			return Promise.resolve({ status: 'ok', type: streamType, url: streamUrl });
@@ -149,11 +149,11 @@ async function fetchLibrary(url: string): Promise<Library> {
 
 	const entries = (await response.json()) as Array<MixQueueItem>;
 
-	return new Map(entries.map((entry) => [entry.press.itemId, entry]));
+	return new Map(entries.map((entry) => [entry.press.trackId, entry]));
 }
 
 // Every item this host queues is a press row, and the store keeps its fields through a reload
-function pressRowStreamUrl(item: QueueItem): string | undefined {
+function pressRowStreamUrl(item: Track): string | undefined {
 	const value: unknown = Reflect.get(item, 'streamUrl');
 
 	return typeof value === 'string' ? value : undefined;

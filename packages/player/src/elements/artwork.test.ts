@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
 const artwork = [
 	{ src: '/artwork-120.webp', width: 120 },
@@ -11,13 +11,13 @@ afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-artwork>', () => {
+describe('<pzm-artwork>', () => {
 	test('lists the renditions and collapses once the image fails, until another source arrives', () => {
-		const { part, store } = mount('player-artwork');
+		const { part, store } = mount('pzm-artwork');
 
 		expect(part.querySelector('img')).toBeNull();
 
-		store.getState().loadQueue([queueItem('a', { artwork })]);
+		store.getState().loadQueue([sampleTrack('a', { artwork })]);
 
 		const image = part.querySelector('img');
 
@@ -28,7 +28,9 @@ describe('<player-artwork>', () => {
 
 		expect(part.querySelector('img')).toBeNull();
 
-		store.getState().loadQueue([queueItem('b', { artwork: [{ src: '/other.webp', width: 120 }] })]);
+		store
+			.getState()
+			.loadQueue([sampleTrack('b', { artwork: [{ src: '/other.webp', width: 120 }] })]);
 
 		expect(part.querySelector('img')?.getAttribute('src')).toBe('/other.webp');
 	});

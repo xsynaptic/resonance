@@ -3,17 +3,17 @@ import type { PlayerStore } from '#store/player-types.ts';
 
 import { bind } from '#lib/bind.ts';
 import { requireChild, template } from '#lib/render.ts';
-import { displayedDetail, displayedItem } from '#store/selectors.ts';
+import { displayedDetail, displayedTrack } from '#store/selectors.ts';
 
 type OverlayList = 'queue' | 'tracklist';
 
 interface TabsView {
-	itemId: string | undefined;
 	lists: ReadonlyArray<OverlayList>;
+	trackId: string | undefined;
 }
 
 const renderTab = template(
-	'<button class="player-overlay-tab" role="tab" type="button"></button>',
+	'<button class="pzm-overlay-tab" role="tab" type="button"></button>',
 	HTMLButtonElement,
 );
 
@@ -29,7 +29,7 @@ export function bindTabs(
 ): void {
 	const tablist = requireChild(tabs, '[role="tablist"]', HTMLElement);
 	const panel = requireChild(tabs, '[role="tabpanel"]', HTMLElement);
-	const actions = requireChild(tabs, 'player-queue-actions', HTMLElement);
+	const actions = requireChild(tabs, 'pzm-queue-actions', HTMLElement);
 	const id = overlayId();
 	const buttons = { queue: renderTab(), tracklist: renderTab() } satisfies Record<
 		OverlayList,
@@ -41,7 +41,7 @@ export function bindTabs(
 	const render = (view: TabsView): void => {
 		const shown = shownList(view.lists, chosen);
 		const wasFocused = tabs.contains(document.activeElement);
-		const key = shown === 'tracklist' ? `tracklist:${view.itemId ?? ''}` : shown;
+		const key = shown === 'tracklist' ? `tracklist:${view.trackId ?? ''}` : shown;
 
 		applyTabs(buttons, view.lists, shown);
 		actions.hidden = shown !== 'queue';
@@ -130,11 +130,11 @@ function nextTabIndex(key: string, index: number, count: number): number | undef
 function overlayId(): string {
 	idCount += 1;
 
-	return `player-overlay-${String(idCount)}`;
+	return `pzm-overlay-${String(idCount)}`;
 }
 
 function renderList(list: OverlayList): HTMLElement {
-	return document.createElement(list === 'tracklist' ? 'player-tracklist' : 'player-tray');
+	return document.createElement(list === 'tracklist' ? 'pzm-cue-list' : 'pzm-tray');
 }
 
 function selectLists(state: PlayerStore): ReadonlyArray<OverlayList> {
@@ -142,7 +142,7 @@ function selectLists(state: PlayerStore): ReadonlyArray<OverlayList> {
 }
 
 function selectTabs(state: PlayerStore): TabsView {
-	return { itemId: displayedItem(state)?.queueId, lists: selectLists(state) };
+	return { lists: selectLists(state), trackId: displayedTrack(state)?.queueId };
 }
 
 function shownList(lists: ReadonlyArray<OverlayList>, chosen: OverlayList): OverlayList {

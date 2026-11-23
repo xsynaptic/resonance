@@ -28,7 +28,7 @@ export const PlayerPanelToggle = buttonPart(() => ({
 	},
 	render: () => {
 		const button = renderSonicButton({
-			className: 'player-panel-toggle',
+			className: 'pzm-panel-toggle',
 			icons: [cloneIcon('waveform')],
 		});
 

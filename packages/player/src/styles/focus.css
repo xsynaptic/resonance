@@ -1,12 +1,12 @@
 :is(
-	.player-overlay-cue,
-	.player-overlay-tab,
-	.player-scope-toggle,
-	.player-time,
-	.player-track-title,
-	.player-tray-handle,
-	.player-tray-pick
+	.pzm-overlay-cue,
+	.pzm-overlay-tab,
+	.pzm-scope-toggle,
+	.pzm-time,
+	.pzm-track-title,
+	.pzm-tray-handle,
+	.pzm-tray-pick
 ):focus-visible {
-	outline: var(--player-focus-width) solid var(--player-focus-ring);
-	outline-offset: var(--player-focus-offset);
+	outline: var(--pzm-focus-width) solid var(--pzm-focus-ring);
+	outline-offset: var(--pzm-focus-offset);
 }

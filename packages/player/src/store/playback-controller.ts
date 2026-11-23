@@ -6,13 +6,13 @@ import type {
 	EngineDiagnostic,
 	PlaybackErrorStage,
 	PlayerStatus,
-	QueuedItem,
+	QueuedTrack,
 	StreamResolution,
 } from '#types.ts';
 
 import { snapshotMedia } from '#engine/audio-engine.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { isAwaitingPlayback, loadedItem } from '#store/selectors.ts';
+import { isAwaitingPlayback, loadedTrack } from '#store/selectors.ts';
 
 // Nothing worth resuming stays in the engine after any of these
 const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
@@ -20,7 +20,7 @@ const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 
 const unplayableState = { isPaused: true, status: 'unplayable' } satisfies Partial<PlayerStore>;
 
 export interface PlaybackController {
-	// `undefined` unless the engine holds the loaded item, since a restored queue stands where the element does not
+	// `undefined` unless the engine holds the loaded track, since a restored queue stands where the element does not
 	currentTime: () => number | undefined;
 	loadIndex: (index: number, shouldAutoplay: boolean, options?: LoadOptions) => void;
 	mediaElement: () => HTMLMediaElement | undefined;
@@ -115,20 +115,20 @@ export function createPlaybackController(
 		{ isRetry = false, resumeAtSeconds = 0 }: LoadOptions = {},
 	): void {
 		const { queue, urls } = get();
-		const item = queue[index];
-		if (!item || urls === undefined) return;
+		const track = queue[index];
+		if (!track || urls === undefined) return;
 
-		set(loadingState({ index, item, resumeAtSeconds, shouldAutoplay }));
+		set(loadingState({ index, resumeAtSeconds, shouldAutoplay, track }));
 
 		const activeEngine = ensureEngine();
 
 		// Silenced before the next track resolves, so nothing on screen disagrees with what is heard
-		if (isSwitch(loadedQueueId, item.queueId)) activeEngine.reset();
+		if (isSwitch(loadedQueueId, track.queueId)) activeEngine.reset();
 
 		const attempt: LoadAttempt = { hasSource: false, isRetry, isTypeDeclined: false };
 
 		loading = attempt;
-		loadedQueueId = item.queueId;
+		loadedQueueId = track.queueId;
 
 		void streamIntoEngine({
 			attempt,
@@ -141,7 +141,7 @@ export function createPlaybackController(
 				fail('resolve');
 			},
 			readPosition: () => get().currentTimeSeconds,
-			stream: () => urls.stream(item),
+			stream: () => urls.stream(track),
 		});
 	}
 
@@ -192,10 +192,10 @@ function createDiagnostics(api: StoreApi<PlayerStore>, attempt: () => LoadAttemp
 	let retriedStage: PlaybackErrorStage | undefined;
 
 	function report(diagnostic: EngineDiagnostic): void {
-		const itemId = loadedItem(api.getState())?.itemId;
-		if (itemId === undefined) return;
+		const trackId = loadedTrack(api.getState())?.trackId;
+		if (trackId === undefined) return;
 
-		api.setState({ diagnostic: { ...diagnostic, isRetry: attempt()?.isRetry ?? false, itemId } });
+		api.setState({ diagnostic: { ...diagnostic, isRetry: attempt()?.isRetry ?? false, trackId } });
 	}
 
 	return {
@@ -223,11 +223,11 @@ function endAttempt(
 
 // Without a current track there is nothing to pin the failure to, so the status carries it alone
 function errorState(state: PlayerStore, stage: PlaybackErrorStage) {
-	const itemId = loadedItem(state)?.itemId;
+	const trackId = loadedTrack(state)?.trackId;
 
 	return {
 		isPaused: true,
-		playbackError: itemId === undefined ? undefined : { itemId, stage },
+		playbackError: trackId === undefined ? undefined : { stage, trackId },
 		status: 'error',
 	} satisfies Partial<PlayerStore>;
 }
@@ -237,7 +237,7 @@ function heldTime(
 	state: PlayerStore,
 	loadedQueueId: string | undefined,
 ): number | undefined {
-	if (loadedItem(state)?.queueId !== loadedQueueId) return undefined;
+	if (loadedTrack(state)?.queueId !== loadedQueueId) return undefined;
 
 	return engine?.currentTime();
 }
@@ -249,19 +249,19 @@ function isSwitch(loadedQueueId: string | undefined, queueId: string): boolean {
 // Positions the store on a track before anything has resolved; the duration is the queue's until metadata lands
 function loadingState({
 	index,
-	item,
 	resumeAtSeconds,
 	shouldAutoplay,
+	track,
 }: {
 	index: number;
-	item: QueuedItem;
 	resumeAtSeconds: number;
 	shouldAutoplay: boolean;
+	track: QueuedTrack;
 }) {
 	return {
 		currentIndex: index,
 		currentTimeSeconds: resumeAtSeconds,
-		durationSeconds: toDurationSeconds(item),
+		durationSeconds: toDurationSeconds(track),
 		isPaused: !shouldAutoplay,
 		playbackError: undefined,
 		status: shouldAutoplay ? 'loading' : 'paused',
@@ -286,7 +286,7 @@ function pressOutcome(state: PlayerStore, loadedQueueId: string | undefined): Pr
 	if (isAwaitingPlayback(state)) return 'ignore';
 
 	// A restored or stopped queue is positioned with nothing in the engine, so the press loads it where it stands
-	if (terminalStatuses.has(state.status) || loadedItem(state)?.queueId !== loadedQueueId) {
+	if (terminalStatuses.has(state.status) || loadedTrack(state)?.queueId !== loadedQueueId) {
 		return { index: state.currentIndex, resumeAtSeconds: state.currentTimeSeconds };
 	}
 

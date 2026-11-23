@@ -2,7 +2,7 @@ import { SonicWaveform } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { scopeSurfaceModule } from '#elements/scope/scope-module.ts';
-import { landDetail, mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 
 function mountPlaying(width: number) {
 	Object.defineProperty(HTMLDivElement.prototype, 'clientWidth', {
@@ -10,9 +10,9 @@ function mountPlaying(width: number) {
 		value: width,
 	});
 
-	const mounted = mount('player-scope');
+	const mounted = mount('pzm-scope');
 
-	mounted.store.getState().playTrack([queueItem('a')], 'a');
+	mounted.store.getState().playTrack([sampleTrack('a')], 'a');
 
 	return mounted;
 }
@@ -32,7 +32,7 @@ afterEach(() => {
 	Reflect.deleteProperty(HTMLDivElement.prototype, 'clientWidth');
 });
 
-describe('<player-scope>', () => {
+describe('<pzm-scope>', () => {
 	test('holds no waveform until it plays, then scrolls an inert one only while playing', async () => {
 		const { fake, part } = mountPlaying(96);
 
@@ -63,7 +63,7 @@ describe('<player-scope>', () => {
 
 		expect(waveform.playing).toBe(true);
 
-		part.querySelector('.player-scope-trace')?.dispatchEvent(new Event('transitionend'));
+		part.querySelector('.pzm-scope-trace')?.dispatchEvent(new Event('transitionend'));
 
 		expect(waveform.playing).toBe(false);
 

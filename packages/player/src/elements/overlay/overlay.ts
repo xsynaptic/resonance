@@ -6,7 +6,7 @@ import { bind } from '#lib/bind.ts';
 import { dialogExit } from '#lib/dialog-exit.ts';
 import { template } from '#lib/render.ts';
 
-const renderDialog = template('<dialog class="player-overlay"></dialog>', HTMLDialogElement);
+const renderDialog = template('<dialog class="pzm-overlay"></dialog>', HTMLDialogElement);
 
 export class PlayerOverlay extends PlayerElement {
 	readonly #dialog = renderDialog();
@@ -61,7 +61,7 @@ export class PlayerOverlay extends PlayerElement {
 
 				close();
 				dialog.showModal();
-				dialog.append(document.createElement('player-overlay-content'));
+				dialog.append(document.createElement('pzm-overlay-content'));
 			},
 			signal,
 		);

@@ -9,7 +9,7 @@ test('a mouse drag reads out the held time, and one let go past the cancel zone 
 }) => {
 	const bar = page.getByRole('region', { name: labels.nowPlaying });
 	const slider = bar.getByRole('slider', { name: labels.seek });
-	const bubble = bar.locator('.player-cue-label');
+	const bubble = bar.locator('.pzm-cue-label');
 
 	await harness.open({ query: { cued: 1 } });
 	await page.getByRole('button', { name: 'Play long' }).click();

@@ -7,11 +7,11 @@ export type EngineDiagnostic = MediaSnapshot &
 		| { kind: 'retry-recovered'; stage: PlaybackErrorStage }
 	);
 
-export type PlaybackDiagnostic = EngineDiagnostic & { isRetry: boolean; itemId: string };
+export type PlaybackDiagnostic = EngineDiagnostic & { isRetry: boolean; trackId: string };
 
 export interface PlaybackError {
-	itemId: string;
 	stage: PlaybackErrorStage;
+	trackId: string;
 }
 
 export type PlaybackErrorStage = 'decode' | 'network' | 'resolve' | 'unsupported';
@@ -61,16 +61,16 @@ export type PlayerStatus =
 
 export type PlayerTimeMode = 'elapsed' | 'remaining';
 
-// Each resolver is handed the item as the host queued it, its own extra fields included, even after a reload
+// Each resolver is handed the track as the host queued it, its own extra fields included, even after a reload
 export interface PlayerUrls {
 	// `undefined` settles on a plain groove and the panel's grid; a rejection draws the same and is asked again
-	detail?: ((item: QueueItem) => Promise<QueueItemDetail | undefined>) | undefined;
-	stream: (item: QueueItem) => Promise<StreamResolution>;
+	detail?: ((track: Track) => Promise<TrackDetail | undefined>) | undefined;
+	stream: (track: Track) => Promise<StreamResolution>;
 }
 
 // The full-resolution Peaks, range-requested a window at a time; the header's facts ride here so it is never requested
-export interface QueuePeaks {
-	bands?: QueueBands;
+export interface TrackPeaks {
+	bands?: TrackBands;
 	// Where the first pair starts, past the file's header
 	byteOffset: number;
 	pairCount: number;
@@ -80,7 +80,7 @@ export interface QueuePeaks {
 	url: string;
 }
 
-export interface QueueBands {
+export interface TrackBands {
 	bandCount: number;
 	// Where the first frame starts, past the file's header
 	byteOffset: number;
@@ -94,41 +94,41 @@ export interface QueueBands {
 }
 
 // One square rendition; `width` is its size in pixels
-export interface QueueArtwork {
+export interface TrackArtwork {
 	src: string;
 	type?: string;
 	width: number;
 }
 
 // One timestamped track in a mix, resolved at build time because the browser has no artists catalog
-export interface QueueCuePoint {
+export interface CuePoint {
 	// Empty where the track carries no credit
 	artistLine: string;
 	startSeconds: number;
 	title: string;
 }
 
-// The store stamps an id as items are enqueued, so a row keeps its node across a reorder
-export interface QueuedItem extends QueueItem {
+// The store stamps an id as tracks are enqueued, so a row keeps its node across a reorder
+export interface QueuedTrack extends Track {
 	queueId: string;
 }
 
-export interface QueueItem {
+export interface Track {
 	artistLine: string;
 	// Ascending by width
-	artwork?: ReadonlyArray<QueueArtwork>;
+	artwork?: ReadonlyArray<TrackArtwork>;
 	durationMs?: number;
-	itemId: string;
 	// Absent renders the title as plain text
 	releaseHref?: string;
 	releaseTitle: string;
 	title: string;
+	trackId: string;
 }
 
-export interface QueueItemDetail {
+export interface TrackDetail {
 	// Timestamped tracks, in order
-	cuePoints?: ReadonlyArray<QueueCuePoint>;
-	peaks?: QueuePeaks;
+	cuePoints?: ReadonlyArray<CuePoint>;
+	peaks?: TrackPeaks;
 	// The whole tracklist, so a mix indexed in part can say where the index runs out
 	trackCount?: number;
 	// Base64 of one byte per bucket, 255 at the loudest; absent draws a plain groove

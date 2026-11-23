@@ -14,7 +14,7 @@ const { playlists } = Astro.props;
 
 const items = [
 	...new Map(
-		playlists.flatMap((playlist) => playlist.items).map((item) => [item.itemId, item]),
+		playlists.flatMap((playlist) => playlist.items).map((item) => [item.trackId, item]),
 	).values(),
 ];
 ---

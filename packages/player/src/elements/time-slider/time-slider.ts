@@ -1,7 +1,7 @@
 import { formatClock, SonicWavestrip } from '@xsynaptic/sonic-ui';
 
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerLabels, QueueCuePoint } from '#types.ts';
+import type { CuePoint, PlayerLabels } from '#types.ts';
 
 import { bindBuffered } from '#elements/bind-buffered.ts';
 import { bindScrubPreview } from '#elements/bind-scrub-preview.ts';
@@ -13,12 +13,12 @@ import { bind } from '#lib/bind.ts';
 import { requireChild, template } from '#lib/render.ts';
 import { cueIndexAt } from '#queue/cue-points.ts';
 import { toDurationSeconds } from '#queue/queue.ts';
-import { displayedDetail, displayedItem, isLoaded } from '#store/selectors.ts';
+import { displayedDetail, displayedTrack, isLoaded } from '#store/selectors.ts';
 import { toStripMarkers } from '#waveform/cue-markers.ts';
 import { decodeOverview } from '#waveform/overview-values.ts';
 
 interface Readout {
-	cuePoint: QueueCuePoint | undefined;
+	cuePoint: CuePoint | undefined;
 	hasClock: boolean;
 	index: number;
 	isAbove: boolean;
@@ -36,18 +36,18 @@ interface StripParts {
 
 interface StripView {
 	cueDurationSeconds: number | undefined;
-	cuePoints: ReadonlyArray<QueueCuePoint> | undefined;
+	cuePoints: ReadonlyArray<CuePoint> | undefined;
 	durationSeconds: number | undefined;
 	isLoaded: boolean;
 	// As the detail carries it, so the view compares by value
 	overview: string | undefined;
 }
 
-const noCuePoints: ReadonlyArray<QueueCuePoint> = [];
+const noCuePoints: ReadonlyArray<CuePoint> = [];
 
 const renderFrame = template(
 	/* HTML */ `
-		<div class="player-waveform-frame">
+		<div class="pzm-waveform-frame">
 			<sonic-wavestrip
 				cancellable
 				double-press="none"
@@ -56,9 +56,9 @@ const renderFrame = template(
 				spoken-step="1"
 				step="0"
 			></sonic-wavestrip
-			><span aria-hidden="true" class="player-cue-label" hidden
-				><span class="player-cue-time"></span><span class="player-cue-artist"></span
-				><span class="player-cue-title"></span
+			><span aria-hidden="true" class="pzm-cue-label" hidden
+				><span class="pzm-cue-time"></span><span class="pzm-cue-artist"></span
+				><span class="pzm-cue-title"></span
 			></span>
 		</div>
 	`,
@@ -153,7 +153,7 @@ function readoutFor(strip: SonicWavestrip, view: StripView): Readout | undefined
 	const cuePoint = cuePoints[index];
 	const hasClock = isTimed(view);
 
-	// An unloaded strip has no clock to give, and names a Track only on its dot
+	// An unloaded strip has no clock to give, and names a cue point only on its dot
 	if (!hasClock && cuePoint?.startSeconds !== seconds) return undefined;
 
 	return {
@@ -166,15 +166,15 @@ function readoutFor(strip: SonicWavestrip, view: StripView): Readout | undefined
 }
 
 function readParts(frame: HTMLDivElement): StripParts {
-	const label = requireChild(frame, '.player-cue-label', HTMLSpanElement);
+	const label = requireChild(frame, '.pzm-cue-label', HTMLSpanElement);
 
 	return {
-		artist: requireChild(label, '.player-cue-artist', HTMLSpanElement),
+		artist: requireChild(label, '.pzm-cue-artist', HTMLSpanElement),
 		frame,
 		label,
 		strip: requireChild(frame, 'sonic-wavestrip', SonicWavestrip),
-		time: requireChild(label, '.player-cue-time', HTMLSpanElement),
-		title: requireChild(label, '.player-cue-title', HTMLSpanElement),
+		time: requireChild(label, '.pzm-cue-time', HTMLSpanElement),
+		title: requireChild(label, '.pzm-cue-title', HTMLSpanElement),
 	};
 }
 
@@ -182,7 +182,7 @@ function selectStrip(state: PlayerStore): StripView {
 	const detail = displayedDetail(state);
 
 	return {
-		cueDurationSeconds: toDurationSeconds(displayedItem(state)),
+		cueDurationSeconds: toDurationSeconds(displayedTrack(state)),
 		cuePoints: detail?.cuePoints,
 		durationSeconds: state.durationSeconds,
 		isLoaded: isLoaded(state),
@@ -210,7 +210,7 @@ function writeReadout(
 
 	label.toggleAttribute('data-above', isAbove);
 	label.dataset.side = side;
-	label.style.setProperty('--player-cue-room', `${String(room)}px`);
+	label.style.setProperty('--pzm-cue-room', `${String(room)}px`);
 	label.style.left = `${String(x)}px`;
 	label.style.top = `${String(isAbove ? 0 : markerRow(strip, index))}px`;
 	artist.textContent = cuePoint?.artistLine ?? '';

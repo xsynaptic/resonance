@@ -1,99 +1,99 @@
 /* The package's tokens default to its own palette; this maps every one onto the theme, so none falls through */
 :root {
 	/* The bar sits on the footer's band, so the two dark strips at the foot of the page read as one */
-	--player-surface: var(--color-surface-800);
-	--player-panel-surface: var(--color-surface-700);
-	--player-panel-well: var(--color-surface-700);
-	--player-artwork-well: var(--color-surface-950);
-	--player-list-well: var(--color-surface-900);
-	--player-texture: var(--color-surface-600);
-	--player-texture-image: url('/patterns/maze.svg');
-	--player-texture-size: 48px;
-	--player-popover: var(--color-surface-900);
-	--player-hover: var(--color-surface-500);
-	--player-border: var(--color-surface-700);
-	--player-pill: var(--color-surface-500);
-	--player-pill-hover: var(--color-surface-400);
-	--player-pill-text: var(--color-ink-500);
-	--player-pill-active: var(--color-highlight-800);
-	--player-pill-active-hover: var(--color-highlight-700);
-	--player-pill-inert: var(--color-surface-900);
-	--player-bar-border: var(--color-surface-950);
-	--player-title: var(--color-ink-200);
-	--player-meta: var(--color-ink-600);
-	--player-meta-hover: var(--color-ink-200);
-	--player-hint: var(--color-ink-700);
-	--player-alert: var(--color-highlight-400);
-	--player-alert-icon: var(--color-highlight-600);
-	--player-clock: var(--color-accent-500);
-	--player-clock-hover: var(--color-accent-400);
+	--pzm-surface: var(--color-surface-800);
+	--pzm-panel-surface: var(--color-surface-700);
+	--pzm-panel-well: var(--color-surface-700);
+	--pzm-artwork-well: var(--color-surface-950);
+	--pzm-list-well: var(--color-surface-900);
+	--pzm-texture: var(--color-surface-600);
+	--pzm-texture-image: url('/patterns/maze.svg');
+	--pzm-texture-size: 48px;
+	--pzm-popover: var(--color-surface-900);
+	--pzm-hover: var(--color-surface-500);
+	--pzm-border: var(--color-surface-700);
+	--pzm-pill: var(--color-surface-500);
+	--pzm-pill-hover: var(--color-surface-400);
+	--pzm-pill-text: var(--color-ink-500);
+	--pzm-pill-active: var(--color-highlight-800);
+	--pzm-pill-active-hover: var(--color-highlight-700);
+	--pzm-pill-inert: var(--color-surface-900);
+	--pzm-bar-border: var(--color-surface-950);
+	--pzm-title: var(--color-ink-200);
+	--pzm-meta: var(--color-ink-600);
+	--pzm-meta-hover: var(--color-ink-200);
+	--pzm-hint: var(--color-ink-700);
+	--pzm-alert: var(--color-highlight-400);
+	--pzm-alert-icon: var(--color-highlight-600);
+	--pzm-clock: var(--color-accent-500);
+	--pzm-clock-hover: var(--color-accent-400);
 
 	/* Orange throughout, so a control reads the same in the bar as in the overlay; brighter orange marks hover and engaged */
-	--player-control: var(--color-highlight-600);
-	--player-control-hover: var(--color-highlight-400);
-	--player-control-active: var(--color-highlight-400);
-	--player-control-active-hover: var(--color-highlight-300);
-	--player-control-inert: var(--color-ink-900);
-	--player-play-fill: var(--color-highlight-500);
-	--player-play-fill-hover: var(--color-highlight-400);
-	--player-play-glyph: var(--color-highlight-200);
-	--player-play-glyph-hover: var(--color-highlight-100);
-	--player-loader: var(--color-highlight-200);
-	--player-loader-track: var(--color-highlight-700);
-	--player-drag-handle: var(--color-surface-400);
-	--player-drag-handle-hover: var(--color-surface-300);
-	--player-current: var(--color-highlight-400);
-	--player-current-icon: var(--color-accent-500);
-	--player-current-meta: var(--color-highlight-600);
-	--player-focus-ring: var(--color-accent-500);
-	--player-waveform-base: var(--color-surface-500);
-	--player-waveform-buffered: var(--color-surface-300);
-	--player-waveform-played: var(--color-ink-100);
-	--player-waveform-scrub: var(--color-ink-400);
-	--player-progress-played: var(--color-ink-500);
-	--player-panel-wave: var(--color-ink-100);
-	--player-tint-hue: spectral;
-	--player-tint-dynamics: energy;
-	--player-tint-1: var(--color-ink-500);
-	--player-tint-2: var(--color-ink-400);
-	--player-tint-3: var(--color-ink-200);
-	--player-tint-4: var(--color-ink-100);
-	--player-tint-5: var(--color-ink-50);
-	--player-tint-steps: 0;
-	--player-tint-sensitivity: 18;
-	--player-tint-smoothing: 100ms;
-	--player-tint-peaks-depth: 0.25;
-	--player-panel-ghost: var(--color-highlight-600);
-	--player-panel-grid: var(--color-surface-600);
-	--player-panel-ends: var(--color-surface-500);
-	--player-panel-cue: var(--color-ink-100);
-	--player-panel-placeholder: var(--color-ink-700);
-	--player-playhead: var(--color-highlight-400);
-	--player-cue-dot: var(--color-accent-400);
-	--player-cue-artist: var(--color-highlight-400);
-	--player-cue-title: var(--color-highlight-600);
-	--player-dial-cap: var(--color-surface-400);
-	--player-dial-cap-hover: var(--color-surface-300);
-	--player-dial-ink: var(--color-surface-50);
-	--player-dial-lit: var(--color-highlight-500);
-	--player-dial-unlit: var(--color-surface-950);
-	--player-dial-dimmed: var(--color-highlight-700);
-	--player-dial-focus: var(--color-accent-500);
-	--player-font-family: var(--font-body);
-	--player-font-mono: var(--font-mono);
+	--pzm-control: var(--color-highlight-600);
+	--pzm-control-hover: var(--color-highlight-400);
+	--pzm-control-active: var(--color-highlight-400);
+	--pzm-control-active-hover: var(--color-highlight-300);
+	--pzm-control-inert: var(--color-ink-900);
+	--pzm-play-fill: var(--color-highlight-500);
+	--pzm-play-fill-hover: var(--color-highlight-400);
+	--pzm-play-glyph: var(--color-highlight-200);
+	--pzm-play-glyph-hover: var(--color-highlight-100);
+	--pzm-loader: var(--color-highlight-200);
+	--pzm-loader-track: var(--color-highlight-700);
+	--pzm-drag-handle: var(--color-surface-400);
+	--pzm-drag-handle-hover: var(--color-surface-300);
+	--pzm-current: var(--color-highlight-400);
+	--pzm-current-icon: var(--color-accent-500);
+	--pzm-current-meta: var(--color-highlight-600);
+	--pzm-focus-ring: var(--color-accent-500);
+	--pzm-waveform-base: var(--color-surface-500);
+	--pzm-waveform-buffered: var(--color-surface-300);
+	--pzm-waveform-played: var(--color-ink-100);
+	--pzm-waveform-scrub: var(--color-ink-400);
+	--pzm-progress-played: var(--color-ink-500);
+	--pzm-panel-wave: var(--color-ink-100);
+	--pzm-tint-hue: spectral;
+	--pzm-tint-dynamics: energy;
+	--pzm-tint-1: var(--color-ink-500);
+	--pzm-tint-2: var(--color-ink-400);
+	--pzm-tint-3: var(--color-ink-200);
+	--pzm-tint-4: var(--color-ink-100);
+	--pzm-tint-5: var(--color-ink-50);
+	--pzm-tint-steps: 0;
+	--pzm-tint-sensitivity: 18;
+	--pzm-tint-smoothing: 100ms;
+	--pzm-tint-peaks-depth: 0.25;
+	--pzm-panel-ghost: var(--color-highlight-600);
+	--pzm-panel-grid: var(--color-surface-600);
+	--pzm-panel-ends: var(--color-surface-500);
+	--pzm-panel-cue: var(--color-ink-100);
+	--pzm-panel-placeholder: var(--color-ink-700);
+	--pzm-playhead: var(--color-highlight-400);
+	--pzm-cue-dot: var(--color-accent-400);
+	--pzm-cue-artist: var(--color-highlight-400);
+	--pzm-cue-title: var(--color-highlight-600);
+	--pzm-dial-cap: var(--color-surface-400);
+	--pzm-dial-cap-hover: var(--color-surface-300);
+	--pzm-dial-ink: var(--color-surface-50);
+	--pzm-dial-lit: var(--color-highlight-500);
+	--pzm-dial-unlit: var(--color-surface-950);
+	--pzm-dial-dimmed: var(--color-highlight-700);
+	--pzm-dial-focus: var(--color-accent-500);
+	--pzm-font-family: var(--font-body);
+	--pzm-font-mono: var(--font-mono);
 }
 
-.player-overlay-body {
-	--player-panel-well: var(--color-surface-900);
+.pzm-overlay-body {
+	--pzm-panel-well: var(--color-surface-900);
 }
 
 /* Hiding an empty bar is the host's call, so it sits here rather than in the player's sheet; the dock collapses to where `MainTopButton` sits with the flag off */
-player-root[data-empty] .player-bar {
+pzm-root[data-empty] .pzm-bar {
 	display: none;
 }
 
 /* A pending bar waits on the Library for its strip, so it arrives whole or as a plain groove */
-player-root[data-pending] .player-bar {
+pzm-root[data-pending] .pzm-bar {
 	display: none;
 }
 
@@ -102,8 +102,8 @@ player-root[data-pending] .player-bar {
 	display: contents;
 }
 
-[data-track-id][data-playing] .player-controls-play,
-[data-track-id]:not([data-playing]) .player-controls-pause {
+[data-pzm-track-id][data-pzm-playing] .player-controls-play,
+[data-pzm-track-id]:not([data-pzm-playing]) .player-controls-pause {
 	display: none;
 }
 
@@ -116,7 +116,7 @@ player-root[data-pending] .player-bar {
 	grid-area: 1 / 1;
 }
 
-[data-track-id][data-queued] .player-controls-add,
-[data-track-id]:not([data-queued]) .player-controls-queued {
+[data-pzm-track-id][data-pzm-queued] .player-controls-add,
+[data-pzm-track-id]:not([data-pzm-queued]) .player-controls-queued {
 	visibility: hidden;
 }

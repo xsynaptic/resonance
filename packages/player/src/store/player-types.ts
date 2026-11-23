@@ -8,9 +8,9 @@ import type {
 	PlayerStatus,
 	PlayerTimeMode,
 	PlayerUrls,
-	QueuedItem,
-	QueueItem,
-	QueueItemDetail,
+	QueuedTrack,
+	Track,
+	TrackDetail,
 } from '#types.ts';
 
 // Property syntax so an element can select one action without tripping `unbound-method`
@@ -23,22 +23,22 @@ export interface PlayerActions {
 	// Created on the first load, so an observer waits for it
 	getMediaElement: () => HTMLMediaElement | undefined;
 	// Replaces the queue and unloads whatever played; nothing plays until a gesture asks
-	loadQueue: (items: ReadonlyArray<QueueItem>) => void;
-	// A shuffled play order moves with the item rather than reshuffling
-	moveItem: (from: number, to: number) => void;
+	loadQueue: (tracks: ReadonlyArray<Track>) => void;
+	// A shuffled play order moves with the track rather than reshuffling
+	moveTrack: (from: number, to: number) => void;
 	next: () => void;
 	pause: () => void;
 	// Never pauses, for a remote that sends play and pause as separate actions
 	play: () => void;
 	playAt: (index: number) => void;
-	playQueue: (items: ReadonlyArray<QueueItem>) => void;
+	playQueue: (tracks: ReadonlyArray<Track>) => void;
 	// Empty queue loads the whole release at the clicked track; a running queue appends that track and jumps to it
-	playTrack: (releaseItems: ReadonlyArray<QueueItem>, itemId: string) => void;
+	playTrack: (releaseTracks: ReadonlyArray<Track>, trackId: string) => void;
 	previous: () => void;
 	// Appends the way `playTrack` does and stops there; a track already in the queue stays where it is
-	queueTrack: (releaseItems: ReadonlyArray<QueueItem>, itemId: string) => void;
-	// Swaps in the fresh copy of every queued item it is handed, so a queue restored from an older build picks up new fields
-	refreshQueue: (items: ReadonlyArray<QueueItem>) => void;
+	queueTrack: (releaseTracks: ReadonlyArray<Track>, trackId: string) => void;
+	// Swaps in the fresh copy of every queued track it is handed, so a queue restored from an older build picks up new fields
+	refreshQueue: (tracks: ReadonlyArray<Track>) => void;
 	removeAt: (index: number) => void;
 	seek: (seconds: number) => void;
 	// Clamped into the loaded track, so the seek buttons and the lock screen cannot run past either end
@@ -66,8 +66,8 @@ export interface PlayerState {
 	// Index into `queue`, not `playOrder`
 	currentIndex: number | undefined;
 	currentTimeSeconds: number;
-	// By `itemId`, for queued items only; an entry means the host has answered, so an absent one is still on its way
-	details: ReadonlyMap<string, QueueItemDetail>;
+	// By `trackId`, for queued tracks only; an entry means the host has answered, so an absent one is still on its way
+	details: ReadonlyMap<string, TrackDetail>;
 	// A fresh object per report, so its identity marks each one; never persisted
 	diagnostic: PlaybackDiagnostic | undefined;
 	durationSeconds: number | undefined;
@@ -85,7 +85,7 @@ export interface PlayerState {
 	playbackError: PlaybackError | undefined;
 	// A permutation of queue indices
 	playOrder: Array<number>;
-	queue: Array<QueuedItem>;
+	queue: Array<QueuedTrack>;
 	scrubPreviewSeconds: number | undefined;
 	// Read once, as the bar and the overlay connect
 	seekSeconds: number;

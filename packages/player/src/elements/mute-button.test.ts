@@ -8,9 +8,9 @@ afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-mute-button>', () => {
+describe('<pzm-mute-button>', () => {
 	test('names the press for what it does next', () => {
-		const { part, store } = mount('player-mute-button');
+		const { part, store } = mount('pzm-mute-button');
 
 		getByRole(part, 'button', { name: labels.mute }).click();
 
@@ -23,7 +23,7 @@ describe('<player-mute-button>', () => {
 	});
 
 	test('reads a fader dragged to zero as muted', () => {
-		const { part, store } = mount('player-mute-button');
+		const { part, store } = mount('pzm-mute-button');
 
 		store.getState().setVolume(0);
 

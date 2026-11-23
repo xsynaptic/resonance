@@ -2,7 +2,7 @@ import { SonicSlider } from '@xsynaptic/sonic-ui';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 function mountStrip() {
-	const mounted = mount('player-progress');
+	const mounted = mount('pzm-progress');
 	const slider = mounted.part.querySelector('sonic-slider');
 
 	if (!(slider instanceof SonicSlider)) throw new TypeError('The strip rendered no slider');
@@ -22,14 +22,14 @@ function mountStrip() {
 	};
 }
 
-describe('<player-progress>', () => {
+describe('<pzm-progress>', () => {
 	test('is disabled and hidden from assistive technology until a duration is known', () => {
 		const { fake, slider, store } = mountStrip();
 		const inertness = () => [slider.disabled, slider.getAttribute('aria-hidden')];
 
 		expect(inertness()).toEqual([true, 'true']);
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onTime(45);
 
 		expect(inertness()).toEqual([true, 'true']);
@@ -48,7 +48,7 @@ describe('<player-progress>', () => {
 	test('seeks once to where the slider commits', () => {
 		const { fake, seeks, slider, store } = mountStrip();
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onDuration(180);
 
 		slider.value = 135;
@@ -64,7 +64,7 @@ describe('<player-progress>', () => {
 	test('speaks the position against the duration', () => {
 		const { fake, slider, store } = mountStrip();
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onDuration(180);
 
 		expect(slider.formatSpokenValue?.(45)).toBe('45 seconds of 3 minutes');
@@ -81,7 +81,7 @@ describe('<player-progress>', () => {
 			start: () => 0,
 		}));
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onDuration(180);
 
 		expect(slider.buffered).toEqual([[0, 30]]);
@@ -103,7 +103,7 @@ describe('<player-progress>', () => {
 			start: () => 0,
 		}));
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onDuration(180);
 
 		rangeCount = 0;

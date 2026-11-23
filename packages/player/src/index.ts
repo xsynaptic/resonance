@@ -10,8 +10,9 @@ export { bindPageControls } from '#page-controls.ts';
 export type { ControlPress, PageControls } from '#page-controls.ts';
 export { createPlayerStore } from '#store/player-store.ts';
 export type { PlayerStore, PlayerStoreApi, PlayerStoreOptions } from '#store/player-store.ts';
-export { loadedItem } from '#store/selectors.ts';
+export { loadedTrack } from '#store/selectors.ts';
 export type {
+	CuePoint,
 	EngineDiagnostic,
 	PlaybackDiagnostic,
 	PlaybackError,
@@ -19,10 +20,9 @@ export type {
 	PlayerLabels,
 	PlayerStatus,
 	PlayerUrls,
-	QueueArtwork,
-	QueueCuePoint,
-	QueueItem,
-	QueueItemDetail,
-	QueuePeaks,
 	StreamResolution,
+	Track,
+	TrackArtwork,
+	TrackDetail,
+	TrackPeaks,
 } from '#types.ts';

@@ -76,7 +76,7 @@ export function createWritablePlayerStore(options?: PlayerStoreOptions): StoreAp
 	// Inside the initializer `get()` is empty and its return overwrites any `set`
 	for (const hydrate of hydrationSteps) hydrate();
 
-	// After the stored detail lands, so a restored item is asked for without first reading as pending
+	// After the stored detail lands, so a restored track is asked for without first reading as pending
 	bindQueueDetails(store);
 
 	return store;

@@ -13,7 +13,7 @@ interface ActionParts {
 	shuffle: SonicButton;
 }
 
-const renderActions = template('<div class="player-queue-actions"></div>', HTMLDivElement);
+const renderActions = template('<div class="pzm-queue-actions"></div>', HTMLDivElement);
 
 export class PlayerQueueActions extends PlayerElement {
 	readonly #parts = renderActionParts();
@@ -56,7 +56,7 @@ function isShuffling(state: PlayerStore): boolean {
 function renderAction() {
 	const button = document.createElement('sonic-button');
 
-	button.className = 'player-button-pill player-tray-action';
+	button.className = 'pzm-button-pill pzm-tray-action';
 	button.append(document.createElement('span'));
 
 	return button;

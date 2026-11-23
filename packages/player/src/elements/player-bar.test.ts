@@ -9,14 +9,14 @@ afterEach(() => {
 });
 
 function transportLabels(part: Element): Array<null | string> {
-	return [...part.querySelectorAll(':scope .player-transport button')].map((button) =>
+	return [...part.querySelectorAll(':scope .pzm-transport button')].map((button) =>
 		button.getAttribute('aria-label'),
 	);
 }
 
-describe('<player-bar>', () => {
+describe('<pzm-bar>', () => {
 	test('places the seek pair inside the step buttons, under one named region', () => {
-		const { part } = mount('player-bar');
+		const { part } = mount('pzm-bar');
 
 		getByRole(part, 'region', { name: labels.nowPlaying });
 		expect(transportLabels(part)).toEqual([
@@ -26,13 +26,13 @@ describe('<player-bar>', () => {
 			labels.seekForward,
 			labels.next,
 		]);
-		expect(part.querySelector('player-artwork')).not.toBeNull();
+		expect(part.querySelector('pzm-artwork')).not.toBeNull();
 		expect(part.querySelector('dialog')).not.toBeNull();
-		expect(part.querySelector('player-scope')).toBeNull();
+		expect(part.querySelector('pzm-scope')).toBeNull();
 	});
 
 	test('leaves out what the root turns off', () => {
-		const { part } = mount('player-bar', {
+		const { part } = mount('pzm-bar', {
 			root: { isArtworkEnabled: false, isOverlayEnabled: false, isPanelEnabled: false },
 		});
 
@@ -43,21 +43,21 @@ describe('<player-bar>', () => {
 			labels.seekForward,
 			labels.next,
 		]);
-		expect(part.querySelector('player-artwork')).toBeNull();
-		expect(part.querySelector('player-overlay-toggle')).toBeNull();
+		expect(part.querySelector('pzm-artwork')).toBeNull();
+		expect(part.querySelector('pzm-overlay-toggle')).toBeNull();
 		expect(part.querySelector('dialog')).toBeNull();
-		expect(part.querySelector('player-panel, player-panel-toggle')).toBeNull();
+		expect(part.querySelector('pzm-panel, pzm-panel-toggle')).toBeNull();
 	});
 
 	test('keeps its one bar across a reconnect', async () => {
-		const { part, root } = mount('player-bar');
+		const { part, root } = mount('pzm-bar');
 
 		root.remove();
 		// The disconnect settles on a microtask; a same-task reconnect never reaches the bar
 		await Promise.resolve();
 		document.body.append(root);
 
-		expect(part.querySelectorAll('.player-bar')).toHaveLength(1);
+		expect(part.querySelectorAll('.pzm-bar')).toHaveLength(1);
 		expect(transportLabels(part)).toHaveLength(5);
 	});
 });

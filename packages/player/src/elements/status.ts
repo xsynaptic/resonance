@@ -21,7 +21,7 @@ const statusAttributes = { isVisible: 'data-visible' } as const satisfies Record
 >;
 
 const renderRegion = template(
-	'<span aria-live="polite" class="player-status" role="status"></span>',
+	'<span aria-live="polite" class="pzm-status" role="status"></span>',
 	HTMLSpanElement,
 );
 

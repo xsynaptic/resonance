@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { StoredOrderRecord } from '#test/player-store.ts';
-import type { QueueItem } from '#types.ts';
+import type { Track } from '#types.ts';
 
-import { queueItemsStorageKey, queueStorageKey } from '#constants.ts';
+import { queueStorageKey, queueTracksStorageKey } from '#constants.ts';
 import {
 	fake,
 	hidePage,
-	makeItem,
+	makeTrack,
 	persisted,
 	release,
 	resetEngine,
@@ -19,11 +19,8 @@ function leavePage(): void {
 	window.dispatchEvent(new Event('pagehide'));
 }
 
-function storedItems(): Record<string, QueueItem> {
-	return JSON.parse(localStorage.getItem(queueItemsStorageKey) ?? '{}') as Record<
-		string,
-		QueueItem
-	>;
+function storedTracks(): Record<string, Track> {
+	return JSON.parse(localStorage.getItem(queueTracksStorageKey) ?? '{}') as Record<string, Track>;
 }
 
 function storedOrder(): null | StoredOrderRecord {
@@ -38,16 +35,16 @@ describe('queue persistence', () => {
 
 		store.getState().playTrack(release, 'b');
 
-		expect(storedOrder()?.itemIds).toStrictEqual(['a', 'b', 'c']);
+		expect(storedOrder()?.trackIds).toStrictEqual(['a', 'b', 'c']);
 		expect(storedOrder()?.currentIndex).toBe(1);
-		expect(Object.keys(storedItems())).toStrictEqual(['a', 'b', 'c']);
+		expect(Object.keys(storedTracks())).toStrictEqual(['a', 'b', 'c']);
 
 		store.getState().clearQueue();
 		expect(localStorage.getItem(queueStorageKey)).toBeNull();
-		expect(localStorage.getItem(queueItemsStorageKey)).toBeNull();
+		expect(localStorage.getItem(queueTracksStorageKey)).toBeNull();
 	});
 
-	test('an advance, a reorder and a shuffle write the order and leave the items alone', () => {
+	test('an advance, a reorder and a shuffle write the order and leave the tracks alone', () => {
 		const store = persisted();
 
 		store.getState().playTrack(release, 'a');
@@ -55,7 +52,7 @@ describe('queue persistence', () => {
 		const setItem = vi.spyOn(localStorage, 'setItem');
 
 		store.getState().next();
-		store.getState().moveItem(0, 2);
+		store.getState().moveTrack(0, 2);
 		store.getState().toggleShuffle();
 
 		expect(setItem.mock.calls.map(([key]) => key)).toStrictEqual([
@@ -63,27 +60,27 @@ describe('queue persistence', () => {
 			queueStorageKey,
 			queueStorageKey,
 		]);
-		expect(storedOrder()?.itemIds).toStrictEqual(['b', 'c', 'a']);
+		expect(storedOrder()?.trackIds).toStrictEqual(['b', 'c', 'a']);
 
 		setItem.mockRestore();
 		localStorage.clear();
 	});
 
-	test('writes the items when one is added, removed or refreshed', () => {
+	test('writes the tracks when one is added, removed or refreshed', () => {
 		const store = persisted();
 
 		store.getState().loadQueue(release);
-		store.getState().queueTrack([makeItem('d')], 'd');
+		store.getState().queueTrack([makeTrack('d')], 'd');
 
-		expect(Object.keys(storedItems())).toStrictEqual(['a', 'b', 'c', 'd']);
+		expect(Object.keys(storedTracks())).toStrictEqual(['a', 'b', 'c', 'd']);
 
 		store.getState().removeAt(0);
 
-		expect(Object.keys(storedItems())).toStrictEqual(['b', 'c', 'd']);
+		expect(Object.keys(storedTracks())).toStrictEqual(['b', 'c', 'd']);
 
-		store.getState().refreshQueue([{ ...makeItem('b'), title: 'Fresh' }]);
+		store.getState().refreshQueue([{ ...makeTrack('b'), title: 'Fresh' }]);
 
-		expect(storedItems().b?.title).toBe('Fresh');
+		expect(storedTracks().b?.title).toBe('Fresh');
 
 		localStorage.clear();
 	});
@@ -91,35 +88,35 @@ describe('queue persistence', () => {
 	test('restores an id stored twice as two rows, and follows the loaded one', () => {
 		localStorage.setItem(
 			queueStorageKey,
-			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'b', 'a'] }),
+			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, trackIds: ['a', 'b', 'a'] }),
 		);
 		localStorage.setItem(
-			queueItemsStorageKey,
-			JSON.stringify({ a: makeItem('a'), b: makeItem('b') }),
+			queueTracksStorageKey,
+			JSON.stringify({ a: makeTrack('a'), b: makeTrack('b') }),
 		);
 
 		const { currentIndex, queue } = persisted().getState();
 
-		expect(queue.map((item) => item.itemId)).toStrictEqual(['a', 'b', 'a']);
-		expect(new Set(queue.map((item) => item.queueId)).size).toBe(3);
+		expect(queue.map((track) => track.trackId)).toStrictEqual(['a', 'b', 'a']);
+		expect(new Set(queue.map((track) => track.queueId)).size).toBe(3);
 		expect(currentIndex).toBe(2);
 
 		localStorage.clear();
 	});
 
-	test('drops a stored id that has no item and follows the loaded one past it', () => {
+	test('drops a stored id that has no track and follows the loaded one past it', () => {
 		localStorage.setItem(
 			queueStorageKey,
-			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'gone', 'c'] }),
+			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, trackIds: ['a', 'gone', 'c'] }),
 		);
 		localStorage.setItem(
-			queueItemsStorageKey,
-			JSON.stringify({ a: makeItem('a'), c: makeItem('c') }),
+			queueTracksStorageKey,
+			JSON.stringify({ a: makeTrack('a'), c: makeTrack('c') }),
 		);
 
 		const store = persisted();
 
-		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'c']);
+		expect(store.getState().queue.map((track) => track.trackId)).toStrictEqual(['a', 'c']);
 		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
 
 		localStorage.clear();
@@ -129,7 +126,7 @@ describe('queue persistence', () => {
 	test('leaves a queue another tab saved when a store that held nothing unloads', () => {
 		persisted();
 
-		const saved = JSON.stringify({ itemIds: ['a', 'b', 'c'] });
+		const saved = JSON.stringify({ trackIds: ['a', 'b', 'c'] });
 
 		leavePage();
 		localStorage.setItem(queueStorageKey, saved);
@@ -206,9 +203,9 @@ describe('queue persistence', () => {
 
 		const second = persisted();
 
-		second.getState().playTrack([makeItem('d')], 'd');
+		second.getState().playTrack([makeTrack('d')], 'd');
 
-		const ids = second.getState().queue.map((item) => item.queueId);
+		const ids = second.getState().queue.map((track) => track.queueId);
 
 		expect(new Set(ids).size).toBe(ids.length);
 
@@ -236,7 +233,7 @@ describe('queue persistence', () => {
 		resetEngine();
 
 		const second = persisted();
-		const saved = JSON.stringify({ itemIds: ['y'] });
+		const saved = JSON.stringify({ trackIds: ['y'] });
 
 		leavePage();
 		localStorage.setItem(queueStorageKey, saved);
@@ -268,7 +265,7 @@ describe('queue persistence', () => {
 		const random = vi.spyOn(Math, 'random').mockReturnValue(0);
 		const first = persisted();
 
-		first.getState().loadQueue([...release, makeItem('d')]);
+		first.getState().loadQueue([...release, makeTrack('d')]);
 		first.getState().toggleShuffle();
 
 		const { playOrder } = first.getState();
@@ -298,19 +295,19 @@ describe('queue persistence', () => {
 		localStorage.clear();
 	});
 
-	test('drops a malformed stored item and follows the loaded one past it', () => {
+	test('drops a malformed stored track and follows the loaded one past it', () => {
 		localStorage.setItem(
 			queueStorageKey,
-			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, itemIds: ['a', 'b', 'c'] }),
+			JSON.stringify({ currentIndex: 2, currentTimeSeconds: 42, trackIds: ['a', 'b', 'c'] }),
 		);
 		localStorage.setItem(
-			queueItemsStorageKey,
-			JSON.stringify({ a: makeItem('a'), b: { itemId: 5 }, c: makeItem('c') }),
+			queueTracksStorageKey,
+			JSON.stringify({ a: makeTrack('a'), b: { trackId: 5 }, c: makeTrack('c') }),
 		);
 
 		const store = persisted();
 
-		expect(store.getState().queue.map((item) => item.itemId)).toStrictEqual(['a', 'c']);
+		expect(store.getState().queue.map((track) => track.trackId)).toStrictEqual(['a', 'c']);
 		expect(store.getState()).toMatchObject({ currentIndex: 1, currentTimeSeconds: 42 });
 
 		localStorage.clear();

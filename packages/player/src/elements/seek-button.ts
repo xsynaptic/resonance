@@ -22,8 +22,7 @@ export const PlayerSeekButton = buttonPart((element) => {
 		press: (state) => {
 			state.seekBy(seconds);
 		},
-		render: () =>
-			renderSonicButton({ className: 'player-seek-button', icons: [seekIcon(seconds)] }),
+		render: () => renderSonicButton({ className: 'pzm-seek-button', icons: [seekIcon(seconds)] }),
 		select: isLoaded,
 	};
 });

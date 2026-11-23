@@ -24,15 +24,15 @@ interface TrayOpening {
 	title: string;
 }
 
-const renderControl = template('<div class="player-queue"></div>', HTMLDivElement);
+const renderControl = template('<div class="pzm-queue"></div>', HTMLDivElement);
 
 const renderPopover = template(
 	/* HTML */ `
-		<div class="player-popover player-queue-popover">
-			<div class="player-header">
-				<span class="player-header-title"></span><player-queue-actions></player-queue-actions>
+		<div class="pzm-popover pzm-queue-popover">
+			<div class="pzm-header">
+				<span class="pzm-header-title"></span><pzm-queue-actions></pzm-queue-actions>
 			</div>
-			<player-tray></player-tray>
+			<pzm-tray></pzm-tray>
 		</div>
 	`,
 	HTMLDivElement,
@@ -101,7 +101,7 @@ async function openTray(
 
 	const popover = renderPopover();
 
-	requireChild(popover, '.player-header-title', HTMLElement).textContent = title;
+	requireChild(popover, '.pzm-header-title', HTMLElement).textContent = title;
 	control.prepend(popover);
 	signal.addEventListener(
 		'abort',

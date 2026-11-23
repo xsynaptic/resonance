@@ -5,16 +5,16 @@ import type { PlayerStore } from '#store/player-types.ts';
 
 import { createMemoryStorage } from '#lib/storage.ts';
 import { createWritablePlayerStore } from '#store/player-store.ts';
-import { fake, hidePage, makeItem, resetEngine } from '#test/player-store.ts';
+import { fake, hidePage, makeTrack, resetEngine } from '#test/player-store.ts';
 
 beforeEach(resetEngine);
 
 type ListenerStep =
 	| { at: number; kind: 'play-at' | 'remove' }
 	| { from: number; kind: 'move'; to: number }
-	| { itemIds: Array<string>; kind: 'load' }
-	| { itemIds: Array<string>; kind: 'play-track' | 'queue-track'; pick: number }
 	| { kind: 'listen'; quarters: number }
+	| { kind: 'load'; trackIds: Array<string> }
+	| { kind: 'play-track' | 'queue-track'; pick: number; trackIds: Array<string> }
 	| { kind: 'shuffle' };
 
 const catalogIds = ['a', 'b', 'c', 'd'];
@@ -23,11 +23,11 @@ const releaseOfIds = fc.subarray(catalogIds, { minLength: 1 });
 
 const listenerSteps = fc.array(
 	fc.oneof(
-		fc.record({ itemIds: releaseOfIds, kind: fc.constant('load' as const) }),
+		fc.record({ kind: fc.constant('load' as const), trackIds: releaseOfIds }),
 		fc.record({
-			itemIds: releaseOfIds,
 			kind: fc.constantFrom('play-track' as const, 'queue-track' as const),
 			pick: fc.nat(),
+			trackIds: releaseOfIds,
 		}),
 		fc.record({ from: fc.nat(), kind: fc.constant('move' as const), to: fc.nat() }),
 		fc.record({ at: fc.nat(), kind: fc.constantFrom('play-at' as const, 'remove' as const) }),
@@ -52,11 +52,11 @@ function takeStep(store: ReturnType<typeof createWritablePlayerStore>, step: Lis
 			return;
 		}
 		case 'load': {
-			state.loadQueue(step.itemIds.map(makeItem));
+			state.loadQueue(step.trackIds.map(makeTrack));
 			return;
 		}
 		case 'move': {
-			state.moveItem(step.from % length, step.to % length);
+			state.moveTrack(step.from % length, step.to % length);
 			return;
 		}
 		case 'play-at': {
@@ -65,13 +65,13 @@ function takeStep(store: ReturnType<typeof createWritablePlayerStore>, step: Lis
 		}
 		case 'play-track':
 		case 'queue-track': {
-			const release = step.itemIds.map(makeItem);
-			const itemId = step.itemIds[step.pick % step.itemIds.length];
-			if (itemId === undefined) return;
+			const release = step.trackIds.map(makeTrack);
+			const trackId = step.trackIds[step.pick % step.trackIds.length];
+			if (trackId === undefined) return;
 
 			const action = step.kind === 'play-track' ? state.playTrack : state.queueTrack;
 
-			action(release, itemId);
+			action(release, trackId);
 			return;
 		}
 		case 'remove': {
@@ -91,7 +91,7 @@ function toRestorable(state: PlayerStore) {
 		currentTimeSeconds: state.currentIndex === undefined ? 0 : state.currentTimeSeconds,
 		isShuffling: state.queue.length > 0 && state.isShuffling,
 		playOrder: state.playOrder,
-		queue: state.queue.map(({ queueId: _queueId, ...item }) => item),
+		queue: state.queue.map(({ queueId: _queueId, ...track }) => track),
 	};
 }
 
@@ -105,8 +105,8 @@ describe('queue persistence over any listening session', () => {
 
 				store.getState().configure({
 					urls: {
-						stream: ({ itemId }) =>
-							Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
+						stream: ({ trackId }) =>
+							Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
 					},
 				});
 

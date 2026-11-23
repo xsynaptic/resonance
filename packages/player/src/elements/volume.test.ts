@@ -15,9 +15,9 @@ afterEach(() => {
 	volumeMock.canSet = true;
 });
 
-describe('<player-volume>', () => {
+describe('<pzm-volume>', () => {
 	test('holds the level through a mute, dimmed', () => {
-		const { part, store } = mount('player-volume');
+		const { part, store } = mount('pzm-volume');
 
 		store.getState().setVolume(0.3);
 		getByRole(part, 'button', { name: labels.mute }).click();
@@ -29,7 +29,7 @@ describe('<player-volume>', () => {
 	});
 
 	test('unmutes at the new level when the dial turns', () => {
-		const { part, store } = mount('player-volume');
+		const { part, store } = mount('pzm-volume');
 
 		store.getState().setVolume(0.3);
 		store.getState().toggleMuted();
@@ -42,7 +42,7 @@ describe('<player-volume>', () => {
 	test('leaves only the mute where volume is read-only', () => {
 		volumeMock.canSet = false;
 
-		const { part } = mount('player-volume');
+		const { part } = mount('pzm-volume');
 
 		expect(queryByRole(part, 'slider')).toBeNull();
 		expect(getByRole(part, 'button', { name: labels.mute })).toBeDefined();

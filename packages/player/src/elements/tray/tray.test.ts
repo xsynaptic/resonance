@@ -7,14 +7,14 @@ import {
 } from '@testing-library/dom';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import type { QueueItem } from '#types.ts';
+import type { Track } from '#types.ts';
 
 import { trayModule } from '#elements/tray/tray-module.ts';
 import { LazyModuleError } from '#lib/lazy-module.ts';
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
-const threeItems = [queueItem('a'), queueItem('b'), queueItem('c')];
+const threeTracks = [sampleTrack('a'), sampleTrack('b'), sampleTrack('c')];
 
 // happy-dom lays nothing out, so each row reports a 40px slot down the list
 async function mountDraggableTray() {
@@ -37,33 +37,33 @@ async function mountDraggableTray() {
 }
 
 // The tray alone, outside the popover whose dismiss happy-dom misreads once a press removes its own row
-async function mountTray(items: Array<QueueItem> = threeItems) {
+async function mountTray(tracks: Array<Track> = threeTracks) {
 	await trayModule.load();
 
-	const mounted = mount('player-tray');
+	const mounted = mount('pzm-tray');
 
-	mounted.store.getState().loadQueue(items);
+	mounted.store.getState().loadQueue(tracks);
 
 	return mounted;
 }
 
 async function openQueue() {
-	const mounted = mount('player-queue-button');
+	const mounted = mount('pzm-queue-button');
 	const trigger = getByRole(mounted.part, 'button', { name: labels.queue });
 
-	mounted.store.getState().loadQueue(threeItems);
+	mounted.store.getState().loadQueue(threeTracks);
 	trigger.click();
 
 	return { ...mounted, tray: await waitForTray(mounted.part), trigger };
 }
 
 function queuedIds({ store }: ReturnType<typeof mount>): Array<string> {
-	return store.getState().queue.map((item) => item.itemId);
+	return store.getState().queue.map((track) => track.trackId);
 }
 
 async function waitForTray(part: HTMLElement): Promise<HTMLElement> {
 	return vi.waitFor(() => {
-		const tray = part.querySelector('player-tray');
+		const tray = part.querySelector('pzm-tray');
 		if (!tray?.firstElementChild) throw new Error('The tray has not arrived');
 
 		return tray;
@@ -76,7 +76,7 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-describe('<player-queue-button> with its tray', () => {
+describe('<pzm-queue-button> with its tray', () => {
 	test('opens on a press and plays the row picked', async () => {
 		const { store, tray, trigger } = await openQueue();
 
@@ -108,7 +108,7 @@ describe('<player-queue-button> with its tray', () => {
 		document.body.click();
 
 		expect(store.getState().isTrayOpen).toBe(false);
-		expect(part.querySelector('player-tray')).toBeNull();
+		expect(part.querySelector('pzm-tray')).toBeNull();
 
 		trigger.click();
 		fireEvent.keyDown(getByRole(await waitForTray(part), 'button', { name: /Mix b/ }), {
@@ -126,10 +126,10 @@ describe('<player-queue-button> with its tray', () => {
 		vi.spyOn(trayModule, 'load').mockRejectedValueOnce(offline);
 		vi.stubGlobal('reportError', reportError);
 
-		const { part, store } = mount('player-queue-button');
+		const { part, store } = mount('pzm-queue-button');
 		const trigger = getByRole(part, 'button', { name: labels.queue });
 
-		store.getState().loadQueue([queueItem('a')]);
+		store.getState().loadQueue([sampleTrack('a')]);
 		trigger.click();
 
 		await vi.waitFor(() => {
@@ -140,7 +140,7 @@ describe('<player-queue-button> with its tray', () => {
 	});
 });
 
-describe('<player-tray>', () => {
+describe('<pzm-tray>', () => {
 	test('removes a row, and shows the empty message once the queue is cleared', async () => {
 		const { part, store } = await mountTray();
 

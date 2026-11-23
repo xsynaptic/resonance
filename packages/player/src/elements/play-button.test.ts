@@ -2,17 +2,17 @@ import { getByRole } from '@testing-library/dom';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { labels } from '#test/labels.ts';
-import { mount, queueItem } from '#test/mount.ts';
+import { mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
 });
 
-describe('<player-play-button>', () => {
+describe('<pzm-play-button>', () => {
 	test('follows intent and marks a load toward playback', () => {
-		const { fake, part, store } = mount('player-play-button');
+		const { fake, part, store } = mount('pzm-play-button');
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 
 		const host = part.querySelector('sonic-button');
 
@@ -31,9 +31,9 @@ describe('<player-play-button>', () => {
 
 	// Safari has no `moveBefore`, so the router's move arrives as a disconnect and a connect
 	test('binds once after a disconnect and a connect', async () => {
-		const { fake, part, root, store } = mount('player-play-button');
+		const { fake, part, root, store } = mount('pzm-play-button');
 
-		store.getState().playTrack([queueItem('a')], 'a');
+		store.getState().playTrack([sampleTrack('a')], 'a');
 		fake.callbacks.current?.onStatus('playing');
 		root.remove();
 		document.body.append(root);

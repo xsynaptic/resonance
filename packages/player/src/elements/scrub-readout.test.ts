@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { landDetail, mount, queueItem } from '#test/mount.ts';
+import { landDetail, mount, sampleTrack } from '#test/mount.ts';
 
 afterEach(() => {
 	document.body.replaceChildren();
 });
 
 function mountReadout() {
-	const mounted = mount('player-scrub-readout');
+	const mounted = mount('pzm-scrub-readout');
 
-	mounted.store.getState().playTrack([queueItem('a', { durationMs: 200_000 })], 'a');
+	mounted.store.getState().playTrack([sampleTrack('a', { durationMs: 200_000 })], 'a');
 	landDetail(mounted.store, 'a', {
 		cuePoints: [
 			{ artistLine: 'Night Ferry', startSeconds: 50, title: 'Aurora' },
@@ -21,19 +21,19 @@ function mountReadout() {
 }
 
 function slots(part: HTMLElement): Array<string> {
-	const layer = part.querySelector('.player-scrub-readout');
+	const layer = part.querySelector('.pzm-scrub-readout');
 
 	return [...(layer?.children ?? [])].map((slot) => slot.textContent);
 }
 
-describe('<player-scrub-readout>', () => {
-	test("shows the covering Track and the scrub position in the clock's own mode", () => {
+describe('<pzm-scrub-readout>', () => {
+	test("shows the covering cue point and the scrub position in the clock's own mode", () => {
 		const { part, store } = mountReadout();
 
 		store.getState().setScrubPreview(100);
 
 		expect(part.dataset.held).toBeDefined();
-		expect(part.dataset.track).toBeDefined();
+		expect(part.dataset.cue).toBeDefined();
 		expect(slots(part)).toStrictEqual(['Aurora', 'Night Ferry', '1:40']);
 
 		store.getState().toggleTimeMode();
@@ -42,13 +42,13 @@ describe('<player-scrub-readout>', () => {
 		expect(slots(part)).toStrictEqual(['Untitled', '', '−1:10']);
 	});
 
-	test('keeps the Mix on the text lines before the first Track starts', () => {
+	test('keeps the track on the text lines before the first cue point starts', () => {
 		const { part, store } = mountReadout();
 
 		store.getState().setScrubPreview(20);
 
 		expect(part.dataset.held).toBeDefined();
-		expect(part.dataset.track).toBeUndefined();
+		expect(part.dataset.cue).toBeUndefined();
 		expect(slots(part)).toStrictEqual(['Mix a', 'Forest Signal', '0:20']);
 	});
 

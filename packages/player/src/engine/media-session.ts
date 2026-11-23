@@ -1,7 +1,7 @@
 import type { PlayerStore, PlayerStoreApi } from '#store/player-types.ts';
-import type { PlayerStatus, QueuedItem } from '#types.ts';
+import type { PlayerStatus, QueuedTrack } from '#types.ts';
 
-import { loadedItem } from '#store/selectors.ts';
+import { loadedTrack } from '#store/selectors.ts';
 
 const mediaSessionArtworkMaxWidth = 512;
 
@@ -55,14 +55,14 @@ export function bindMediaSession(store: PlayerStoreApi): () => void {
 	};
 
 	const project = (state: PlayerStore): void => {
-		const item = loadedItem(state);
+		const track = loadedTrack(state);
 
-		if (item?.queueId !== boundQueueId) {
-			boundQueueId = item?.queueId;
+		if (track?.queueId !== boundQueueId) {
+			boundQueueId = track?.queueId;
 			// A switch mid-play passes only through loading, so the next track's start would read as no change
 			boundState = undefined;
 			reported = undefined;
-			setMetadata(item);
+			setMetadata(track);
 		}
 
 		// Loading is a step on the way to a state, not one of its own
@@ -76,7 +76,7 @@ export function bindMediaSession(store: PlayerStoreApi): () => void {
 
 			if (playbackState === 'playing') {
 				resendFromSeconds = state.currentTimeSeconds;
-				setMetadata(item);
+				setMetadata(track);
 			}
 
 			navigator.mediaSession.playbackState = playbackState;
@@ -84,7 +84,7 @@ export function bindMediaSession(store: PlayerStoreApi): () => void {
 
 		if (isResendDue(resendFromSeconds, state.currentTimeSeconds)) {
 			resendFromSeconds = undefined;
-			setMetadata(item);
+			setMetadata(track);
 		}
 
 		reportPosition(state, playbackState);
@@ -219,20 +219,20 @@ function positionStateFor({
 	};
 }
 
-function setMetadata(item: QueuedItem | undefined): void {
-	if (item === undefined) {
+function setMetadata(track: QueuedTrack | undefined): void {
+	if (track === undefined) {
 		// eslint-disable-next-line unicorn/no-null -- the platform API clears with null
 		navigator.mediaSession.metadata = null;
 		return;
 	}
 
-	const artwork = (item.artwork ?? []).findLast(
+	const artwork = (track.artwork ?? []).findLast(
 		({ width }) => width <= mediaSessionArtworkMaxWidth,
 	);
 
 	navigator.mediaSession.metadata = new MediaMetadata({
-		album: item.releaseTitle,
-		artist: item.artistLine,
+		album: track.releaseTitle,
+		artist: track.artistLine,
 		artwork:
 			artwork === undefined
 				? []
@@ -243,6 +243,6 @@ function setMetadata(item: QueuedItem | undefined): void {
 							...(artwork.type === undefined ? {} : { type: artwork.type }),
 						},
 					],
-		title: item.title,
+		title: track.title,
 	});
 }

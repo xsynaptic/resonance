@@ -138,8 +138,8 @@ describe('monitorPlayback', () => {
 	});
 
 	test('a playback the identify hook declines is never reported', () => {
-		let itemId: string | undefined = 'voyager';
-		const page = createPage({ identify: () => itemId });
+		let trackId: string | undefined = 'voyager';
+		const page = createPage({ identify: () => trackId });
 
 		page.bind();
 		page.emit('playing', { paused: false });
@@ -149,7 +149,7 @@ describe('monitorPlayback', () => {
 
 		expect(page.reports.map((report) => report.heardSeconds)).toEqual([40]);
 
-		itemId = undefined;
+		trackId = undefined;
 		page.emit('playing', { paused: false });
 		page.hear(60);
 		page.emit('pause', { paused: true });
@@ -158,8 +158,8 @@ describe('monitorPlayback', () => {
 	});
 
 	test('emptied closes the listen, and the next play opens another', () => {
-		let itemId = 'voyager';
-		const page = createPage({ identify: () => itemId });
+		let trackId = 'voyager';
+		const page = createPage({ identify: () => trackId });
 
 		page.bind();
 		page.emit('playing', { paused: false });
@@ -167,15 +167,15 @@ describe('monitorPlayback', () => {
 		page.emit('pause', { paused: true });
 		page.emit('emptied');
 
-		itemId = 'uroboros';
+		trackId = 'uroboros';
 		page.emit('playing', { paused: false });
 		page.hear(50);
 		page.emit('pause', { paused: true });
 
 		const [first, second] = page.reports;
 
-		expect(first?.itemId).toBe('voyager');
-		expect(second?.itemId).toBe('uroboros');
+		expect(first?.trackId).toBe('voyager');
+		expect(second?.trackId).toBe('uroboros');
 		expect(second?.heardSeconds).toBe(50);
 		expect(second?.listenId).not.toBe(first?.listenId);
 	});

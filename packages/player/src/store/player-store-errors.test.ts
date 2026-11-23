@@ -26,11 +26,11 @@ beforeEach(resetEngine);
 describe('engine errors', () => {
 	test('re-resolves once on a failure, then reports the second as an error', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ itemId }) => {
-			resolved.push(itemId);
+		const store = withResolver(({ trackId }) => {
+			resolved.push(trackId);
 			return Promise.resolve({
 				status: 'ok',
-				url: `https://api.test/tracks/${itemId}/${String(resolved.length)}`,
+				url: `https://api.test/tracks/${trackId}/${String(resolved.length)}`,
 			});
 		});
 
@@ -48,16 +48,16 @@ describe('engine errors', () => {
 
 		fake.callbacks.current?.onError('network');
 		expect(store.getState().status).toBe('error');
-		expect(store.getState().playbackError).toStrictEqual({ itemId: 'a', stage: 'network' });
+		expect(store.getState().playbackError).toStrictEqual({ stage: 'network', trackId: 'a' });
 	});
 
 	test('re-resolves again after a failure that follows playback', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ itemId }) => {
-			resolved.push(itemId);
+		const store = withResolver(({ trackId }) => {
+			resolved.push(trackId);
 			return Promise.resolve({
 				status: 'ok',
-				url: `https://api.test/tracks/${itemId}/${String(resolved.length)}`,
+				url: `https://api.test/tracks/${trackId}/${String(resolved.length)}`,
 			});
 		});
 
@@ -84,8 +84,8 @@ describe('engine errors', () => {
 
 	test('stops at a capped resolve without loading or re-resolving', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ itemId }) => {
-			resolved.push(itemId);
+		const store = withResolver(({ trackId }) => {
+			resolved.push(trackId);
 			return Promise.resolve({ status: 'capped' });
 		});
 
@@ -99,11 +99,11 @@ describe('engine errors', () => {
 	});
 
 	test('loads a type the probe declined, and plays it when the probe was wrong', async () => {
-		const store = withResolver(({ itemId }) =>
+		const store = withResolver(({ trackId }) =>
 			Promise.resolve({
 				status: 'ok',
 				type: 'audio/mp4; codecs="Opus"',
-				url: `https://api.test/tracks/${itemId}/stream`,
+				url: `https://api.test/tracks/${trackId}/stream`,
 			}),
 		);
 		fake.engine.canPlay.mockReturnValue(false);
@@ -120,12 +120,12 @@ describe('engine errors', () => {
 
 	test('an unsupported failure on a declined type is unplayable, without a re-resolve', async () => {
 		const resolved: Array<string> = [];
-		const store = withResolver(({ itemId }) => {
-			resolved.push(itemId);
+		const store = withResolver(({ trackId }) => {
+			resolved.push(trackId);
 			return Promise.resolve({
 				status: 'ok',
 				type: 'audio/x-unplayable',
-				url: `https://api.test/tracks/${itemId}/stream`,
+				url: `https://api.test/tracks/${trackId}/stream`,
 			});
 		});
 		fake.engine.canPlay.mockReturnValue(false);
@@ -142,11 +142,11 @@ describe('engine errors', () => {
 	});
 
 	test('an unsupported failure on a type the probe accepted still earns its re-resolve', async () => {
-		const store = withResolver(({ itemId }) =>
+		const store = withResolver(({ trackId }) =>
 			Promise.resolve({
 				status: 'ok',
 				type: 'audio/mp4; codecs="Opus"',
-				url: `https://api.test/tracks/${itemId}/stream`,
+				url: `https://api.test/tracks/${trackId}/stream`,
 			}),
 		);
 
@@ -165,9 +165,9 @@ describe('engine errors', () => {
 	test('drops a resolve that lands after the listener moved on', async () => {
 		const pending = new Map<string, (resolution: StreamResolution) => void>();
 		const store = withResolver(
-			({ itemId }) =>
+			({ trackId }) =>
 				new Promise<StreamResolution>((resolve) => {
-					pending.set(itemId, resolve);
+					pending.set(trackId, resolve);
 				}),
 		);
 
@@ -226,7 +226,7 @@ describe('engine errors', () => {
 });
 
 describe('diagnostics', () => {
-	test('stamps each report with the loaded item and whether its attempt is the re-resolve', () => {
+	test('stamps each report with the loaded track and whether its attempt is the re-resolve', () => {
 		const store = configured();
 
 		store.getState().playTrack(release, 'a');
@@ -235,7 +235,7 @@ describe('diagnostics', () => {
 			kind: 'media-error',
 			message: 'gone',
 		});
-		expect(store.getState().diagnostic).toMatchObject({ isRetry: false, itemId: 'a' });
+		expect(store.getState().diagnostic).toMatchObject({ isRetry: false, trackId: 'a' });
 
 		fake.callbacks.current?.onError('network');
 		fake.callbacks.current?.onDiagnostic?.({
@@ -246,8 +246,8 @@ describe('diagnostics', () => {
 		});
 		expect(store.getState().diagnostic).toMatchObject({
 			isRetry: true,
-			itemId: 'a',
 			kind: 'stall',
+			trackId: 'a',
 		});
 	});
 

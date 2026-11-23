@@ -1,4 +1,4 @@
-import type { QueueArtwork, QueueItem, QueueItemDetail } from '@xsynaptic/player';
+import type { Track, TrackArtwork, TrackDetail } from '@xsynaptic/player';
 import type { CollectionEntry } from 'astro:content';
 
 import { barArtworkSize } from '@xsynaptic/player/constants';
@@ -17,13 +17,13 @@ import { getWorkTitle } from '#lib/utils/work-title.ts';
 const artworkWidths = [barArtworkSize, barArtworkSize * 2, 512, 900, 1800];
 
 // The stream is resolved at build time, so the island's resolver reads it off the queue
-export interface PlayerPressRow extends QueueItem {
+export interface PlayerPressRow extends Track {
 	streamUrl: string;
 }
 
 // Both parts come from one call, so a page's press row and the Library's cannot disagree within a build
 export interface MixQueueItem {
-	detail: QueueItemDetail;
+	detail: TrackDetail;
 	press: PlayerPressRow;
 }
 
@@ -49,11 +49,11 @@ export async function getMixQueueItem(
 		press: {
 			artistLine: work.credit?.name ?? t('site.title'),
 			durationMs: audio.seconds * 1000,
-			itemId: entry.id,
 			releaseHref: getContentPath('mixes', entry.id),
 			releaseTitle: entry.data.title,
 			streamUrl: audio.streamUrl,
 			title: entry.data.title,
+			trackId: entry.id,
 			...(artwork ? { artwork } : {}),
 		},
 	};
@@ -61,7 +61,7 @@ export async function getMixQueueItem(
 
 // Cropped square and capped at the source's short side, so every `w` descriptor is the rendition's true width
 // The global `constrained` layout would emit a breakpoint `srcset` per call; `none` yields the one image asked for
-async function getArtwork(mediaPath: string | undefined): Promise<Array<QueueArtwork> | undefined> {
+async function getArtwork(mediaPath: string | undefined): Promise<Array<TrackArtwork> | undefined> {
 	const image = mediaPath ? getMediaImage(mediaPath) : undefined;
 	if (!image) return undefined;
 

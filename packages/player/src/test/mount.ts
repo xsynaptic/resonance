@@ -2,7 +2,7 @@ import type { StoreApi } from 'zustand/vanilla';
 
 import type { PlayerRoot } from '#elements/player-root.ts';
 import type { PlayerStore } from '#store/player-types.ts';
-import type { PlayerUrls, QueueItem, QueueItemDetail } from '#types.ts';
+import type { PlayerUrls, Track, TrackDetail } from '#types.ts';
 
 import { definePlayerElements } from '#elements/define.ts';
 import { createMockEngine } from '#engine/audio-engine-mock.ts';
@@ -11,15 +11,15 @@ import { createWritablePlayerStore } from '#store/player-store.ts';
 import { labels } from '#test/labels.ts';
 
 const testUrls: PlayerUrls = {
-	stream: ({ itemId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${itemId}` }),
+	stream: ({ trackId }) => Promise.resolve({ status: 'ok', url: `https://api.test/${trackId}` }),
 };
 
 export function landDetail(
 	store: StoreApi<PlayerStore>,
-	itemId: string,
-	detail: QueueItemDetail,
+	trackId: string,
+	detail: TrackDetail,
 ): void {
-	store.setState({ details: new Map(store.getState().details).set(itemId, detail) });
+	store.setState({ details: new Map(store.getState().details).set(trackId, detail) });
 }
 
 interface MountOptions {
@@ -44,7 +44,7 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 		createEngine: fake.createEngine,
 		storage: createMemoryStorage(),
 	});
-	const root = document.createElement('player-root');
+	const root = document.createElement('pzm-root');
 	const part = document.createElement(tag);
 
 	for (const [name, value] of Object.entries(attributes)) part.setAttribute(name, value);
@@ -60,12 +60,12 @@ export function mount<Tag extends keyof HTMLElementTagNameMap>(
 }
 
 // No duration unless a test names one, so the clock can be seen waiting on metadata
-export function queueItem(itemId: string, overrides: Partial<QueueItem> = {}): QueueItem {
+export function sampleTrack(trackId: string, overrides: Partial<Track> = {}): Track {
 	return {
 		artistLine: 'Forest Signal',
-		itemId,
 		releaseTitle: 'Winter Transmissions',
-		title: `Mix ${itemId}`,
+		title: `Mix ${trackId}`,
+		trackId,
 		...overrides,
 	};
 }

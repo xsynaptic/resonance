@@ -11,7 +11,7 @@ afterEach(() => {
 describe('holdPresses', () => {
 	test('marks only the latest press, and none once released', async () => {
 		document.body.innerHTML =
-			'<button data-play-track="a"></button><button data-queue-track="b"></button><button data-queue-track="c"></button>';
+			'<button data-pzm-play-track="a"></button><button data-pzm-queue-track="b"></button><button data-pzm-queue-track="c"></button>';
 
 		const [first, second, third] = document.querySelectorAll('button');
 		const held = holdPresses(document);

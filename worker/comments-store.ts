@@ -10,7 +10,7 @@ export interface D1Binding {
 	};
 }
 
-const insertComment = `INSERT INTO comments (id, thread, parent_id, author, author_email, author_url, gravatar_hash, body, status, source, created_at, ip_hash)
+const insertComment = `INSERT INTO comments (id, thread, parent_id, author, author_email, author_url, email_hash, body, status, source, created_at, ip_hash)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'web', ?, ?)`;
 
 const selectApprovedParent = `SELECT id FROM comments WHERE id = ? AND thread = ? AND status = 'approved'`;
@@ -39,7 +39,7 @@ function toInsertValues(comment: NewComment): Array<null | number | string> {
 		comment.author,
 		toNullable(comment.authorEmail),
 		toNullable(comment.authorUrl),
-		toNullable(comment.gravatarHash),
+		toNullable(comment.emailHash),
 		comment.body,
 		comment.createdAt,
 		toNullable(comment.ipHash),

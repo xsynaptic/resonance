@@ -11,8 +11,10 @@ export const approvedCommentSchema = z.object({
 	author_url: z.string().nullable(),
 	body: z.string(),
 	created_at: z.number(),
-	gravatar_hash: z.string().nullable(),
+	email_hash: z.string().nullable(),
 	id: z.string(),
+	// SQLite has no boolean, so D1 answers 0 or 1
+	is_owner: z.literal([0, 1]),
 	parent_id: z.string().nullable(),
 	thread: z.string(),
 });

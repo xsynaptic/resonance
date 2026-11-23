@@ -112,6 +112,8 @@ Every page is one of two shapes:
 
 **Thread**: The key a Comment attaches to, and the Comments gathered under it. The key is an opaque string the site mints, `<collection>/<entryId>` here, holding the slug the Entry had when the Comment was written, so a renamed Entry gathers its former Threads through `formerIds`. _Avoid_: conversation, discussion, post id, URI, page.
 
+**Owner**: The site speaking in its own Thread (Basilisk here), WordPress's `bypostauthor`; set by moderation or an import, never by the form. _Avoid_: author (the commenter), admin, moderator.
+
 ### Provenance
 
 **Triage**: The manual pass over Drafts deciding what publishes. _Avoid_: cleanup, review, curation.

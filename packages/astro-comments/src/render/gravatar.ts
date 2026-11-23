@@ -7,16 +7,16 @@ export interface CommentAvatar {
 const gravatarUrl = 'https://www.gravatar.com/avatar';
 
 export function toGravatarAvatar(
-	gravatarHash: null | string,
+	emailHash: null | string,
 	size: number,
 ): CommentAvatar | undefined {
-	if (gravatarHash === null) return undefined;
+	if (emailHash === null) return undefined;
 
-	const url = toGravatarUrl(gravatarHash, size);
+	const url = toGravatarUrl(emailHash, size);
 
-	return { srcSet: `${url} 1x, ${toGravatarUrl(gravatarHash, size * 2)} 2x`, url };
+	return { srcSet: `${url} 1x, ${toGravatarUrl(emailHash, size * 2)} 2x`, url };
 }
 
-function toGravatarUrl(gravatarHash: string, size: number): string {
-	return `${gravatarUrl}/${gravatarHash}?d=blank&s=${String(size)}`;
+function toGravatarUrl(emailHash: string, size: number): string {
+	return `${gravatarUrl}/${emailHash}?d=blank&s=${String(size)}`;
 }

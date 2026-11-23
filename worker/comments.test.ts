@@ -15,8 +15,13 @@ const migrations = ['0001-comments.sql', '0002-thread-key.sql'].map((file) =>
 	readFileSync(path.join(import.meta.dirname, '../migrations/comments', file), 'utf8'),
 );
 
-const legacyRow = `INSERT INTO comments (id, collection, entry_id, parent_id, author, body, status, source, created_at, wp_post_id)
-VALUES (?, ?, ?, ?, 'Reader', 'An old comment.', ?, 'wordpress', 1577836800, 42)`;
+const schema = readFileSync(
+	path.join(import.meta.dirname, '../packages/astro-comments/schema.sql'),
+	'utf8',
+);
+
+const legacyRow = `INSERT INTO comments (id, collection, entry_id, parent_id, author, gravatar_hash, body, status, source, created_at, wp_post_id)
+VALUES (?, ?, ?, ?, 'Reader', 'a-hash', 'An old comment.', ?, 'wordpress', 1577836800, 42)`;
 
 let database: DatabaseSync;
 
@@ -109,9 +114,10 @@ describe('the thread key migration', () => {
 				author_url: null,
 				body: 'An old comment.',
 				created_at: 1_577_836_800,
-				gravatar_hash: null,
+				email_hash: 'a-hash',
 				id: 'wp-1',
 				ip_hash: null,
+				is_owner: 0,
 				parent_id: null,
 				source: 'wordpress',
 				status: 'approved',
@@ -123,9 +129,10 @@ describe('the thread key migration', () => {
 				author_url: null,
 				body: 'An old comment.',
 				created_at: 1_577_836_800,
-				gravatar_hash: null,
+				email_hash: 'a-hash',
 				id: 'wp-2',
 				ip_hash: null,
+				is_owner: 0,
 				parent_id: 'wp-1',
 				source: 'wordpress',
 				status: 'pending',
@@ -134,16 +141,39 @@ describe('the thread key migration', () => {
 		]);
 	});
 
-	test('leaves the status and thread indexes, and nothing on the old columns', () => {
+	test("marks only Basilisk's comments as the Owner's", () => {
+		migrate([
+			['wp-134', 'posts', 'a-post', null, 'approved'],
+			['wp-135', 'posts', 'a-post', null, 'approved'],
+		]);
+
+		expect(database.prepare('SELECT id, is_owner FROM comments ORDER BY id').all()).toEqual([
+			{ id: 'wp-134', is_owner: 1 },
+			{ id: 'wp-135', is_owner: 0 },
+		]);
+	});
+
+	test('refuses a status outside the four', () => {
 		migrate();
 
-		const indexes = database
-			.prepare(
-				`SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'comments' AND sql IS NOT NULL ORDER BY name`,
-			)
-			.all();
+		expect(() => {
+			database.exec(
+				`INSERT INTO comments (id, thread, author, body, status, created_at) VALUES ('x', 'posts/a-post', 'Reader', 'A comment.', 'deleted', 0)`,
+			);
+		}).toThrow('CHECK constraint failed');
+	});
 
-		expect(indexes).toEqual([{ name: 'comments_status' }, { name: 'comments_thread' }]);
+	test('builds the table and indexes of the package schema, and nothing on the old columns', () => {
+		migrate();
+
+		const fresh = new DatabaseSync(':memory:');
+		const tableSql = `SELECT type, name, sql FROM sqlite_master WHERE tbl_name = 'comments' ORDER BY name`;
+
+		fresh.exec(schema);
+
+		expect(database.prepare(tableSql).all()).toEqual(fresh.prepare(tableSql).all());
+
+		fresh.close();
 	});
 });
 
@@ -165,7 +195,7 @@ describe('the D1 comment store', () => {
 		await expect(store.hasApprovedParent('mixes/voyager', 'missing')).resolves.toBe(false);
 	});
 
-	test('inserts a pending web comment, with SQL NULL for every absent field', async () => {
+	test("inserts a pending web comment, never the Owner's, with SQL NULL for every absent field", async () => {
 		migrate();
 
 		await createD1CommentStore(createBinding()).insert({
@@ -183,9 +213,10 @@ describe('the D1 comment store', () => {
 				author_url: null,
 				body: 'A comment worth keeping.',
 				created_at: 1_763_899_200,
-				gravatar_hash: null,
+				email_hash: null,
 				id: 'k7d2mqzx4a',
 				ip_hash: null,
+				is_owner: 0,
 				parent_id: null,
 				source: 'web',
 				status: 'pending',
@@ -203,7 +234,7 @@ describe('the D1 comment store', () => {
 			authorUrl: 'https://example.test/',
 			body: 'A reply.',
 			createdAt: 1_763_899_200,
-			gravatarHash: 'gravatar-hash',
+			emailHash: 'email-hash',
 			id: 'k7d2mqzx4a',
 			ipHash: 'ip-hash',
 			parentId: 'wp-1',
@@ -213,7 +244,7 @@ describe('the D1 comment store', () => {
 		expect(database.prepare('SELECT * FROM comments').get()).toMatchObject({
 			author_email: 'reader@example.test',
 			author_url: 'https://example.test/',
-			gravatar_hash: 'gravatar-hash',
+			email_hash: 'email-hash',
 			ip_hash: 'ip-hash',
 			parent_id: 'wp-1',
 			thread: 'posts/a-post',

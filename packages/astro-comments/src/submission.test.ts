@@ -7,7 +7,7 @@ import { defaultMessages } from '#messages.ts';
 import { handleCommentSubmission } from '#submission.ts';
 
 // SHA-256 of `reader@example.test` and of `test-salt203.0.113.7`, computed outside this suite
-const gravatarHashOfLowercasedEmail =
+const emailHashOfLowercasedEmail =
 	'2cecb651356e138bd83a5215c4d7c5a3ebfb923a0c316de1b218797417911c5e';
 const saltedIpHash = 'c73444b80046bb2a92443cb729729d63ccd35a41c85e822a6557d6fc277cc93d';
 
@@ -352,7 +352,7 @@ describe('handleCommentSubmission', () => {
 		]);
 	});
 
-	test('stores the email as submitted, plus a Gravatar hash of its lowercased form', async () => {
+	test('stores the email as submitted, plus a hash of its lowercased form', async () => {
 		const { config, inserted } = createHarness();
 
 		await handleCommentSubmission(
@@ -362,7 +362,7 @@ describe('handleCommentSubmission', () => {
 
 		expect(inserted.at(-1)).toMatchObject({
 			authorEmail: 'Reader@Example.TEST',
-			gravatarHash: gravatarHashOfLowercasedEmail,
+			emailHash: emailHashOfLowercasedEmail,
 		});
 	});
 

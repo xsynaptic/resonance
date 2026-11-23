@@ -34,7 +34,7 @@ export interface NewComment {
 	authorUrl?: string;
 	body: string;
 	createdAt: number;
-	gravatarHash?: string;
+	emailHash?: string;
 	id: string;
 	ipHash?: string;
 	parentId?: string;
@@ -236,7 +236,7 @@ async function toNewComment(
 
 	if (submission.authorEmail !== undefined) {
 		comment.authorEmail = submission.authorEmail;
-		comment.gravatarHash = await sha256(submission.authorEmail.toLowerCase());
+		comment.emailHash = await sha256(submission.authorEmail.toLowerCase());
 	}
 
 	if (submission.authorUrl !== undefined) comment.authorUrl = submission.authorUrl;

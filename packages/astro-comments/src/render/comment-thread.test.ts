@@ -8,19 +8,20 @@ import type { ApprovedComment } from '#schemas.ts';
 import { buildThread } from '#render/comment-thread.ts';
 
 interface CommentFixture {
-	gravatarHash?: string;
+	emailHash?: string;
 	id: string;
 	parentId?: string;
 }
 
 function toComments(fixtures: Array<CommentFixture>): Array<ApprovedComment> {
-	return fixtures.map(({ gravatarHash, id, parentId }, index) => ({
+	return fixtures.map(({ emailHash, id, parentId }, index) => ({
 		author: id,
 		author_url: null,
 		body: id,
 		created_at: 1_577_836_800 + index * 60,
-		gravatar_hash: gravatarHash ?? null,
+		email_hash: emailHash ?? null,
 		id,
+		is_owner: 0,
 		parent_id: parentId ?? null,
 		thread: 'posts/entry',
 	}));
@@ -118,7 +119,7 @@ describe('buildThread', () => {
 
 	test('the depth cap and avatar size are options', () => {
 		const comments = toComments([
-			{ gravatarHash: 'a-hash', id: 'a' },
+			{ emailHash: 'a-hash', id: 'a' },
 			{ id: 'b', parentId: 'a' },
 			{ id: 'c', parentId: 'b' },
 		]);

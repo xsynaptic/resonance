@@ -11,6 +11,7 @@ export interface CommentNode {
 	bodyHtml: string;
 	date: Date;
 	id: string;
+	isOwner: boolean;
 	replies: Array<CommentNode>;
 }
 
@@ -74,10 +75,11 @@ function toNode(comment: ApprovedComment, avatarSize: number): CommentNode {
 	return {
 		author: comment.author,
 		authorHref: toAuthorHref(comment.author_url ?? undefined),
-		avatar: toGravatarAvatar(comment.gravatar_hash, avatarSize),
+		avatar: toGravatarAvatar(comment.email_hash, avatarSize),
 		bodyHtml: renderCommentBody(comment.body),
 		date: new Date(comment.created_at * 1000),
 		id: comment.id,
+		isOwner: comment.is_owner === 1,
 		replies: [],
 	};
 }

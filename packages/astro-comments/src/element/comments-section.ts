@@ -1,23 +1,48 @@
-import {
-	clearStoredDetails,
-	readStoredDetails,
-	saveStoredDetails,
-	storedFields,
-} from '#components/comments/comment-form-memory.ts';
-import { TurnstileWidget } from '#components/comments/comment-turnstile.ts';
+import type { CommentChallengeWidget } from '#element/challenge-widget.ts';
+import type { FormMemory } from '#element/form-memory.ts';
 
-class CommentsSection extends HTMLElement {
+import { BaseElement } from '#element/base-element.ts';
+import { createFormMemory, storedFields } from '#element/form-memory.ts';
+import { commentFields } from '#fields.ts';
+
+export interface CommentsSectionOptions {
+	// One widget per section, since a widget tracks the instance it rendered
+	challenge: () => CommentChallengeWidget;
+	storageKey: string;
+}
+
+const commentsSectionElementName = 'comments-section';
+
+// The parser constructs the element with no arguments, so registration leaves its options here
+let sectionOptions: CommentsSectionOptions | undefined;
+
+export class CommentsSectionElement extends BaseElement {
 	#abortController: AbortController | undefined;
+	#memory: FormMemory;
 	#replyOrigin: HTMLElement | undefined;
-	#widget = new TurnstileWidget();
+	#widget: CommentChallengeWidget;
 
-	// Handed over as an attribute so the string dictionary stays out of the client bundle
+	// Handed over as an attribute so the site's strings stay out of the client bundle
 	get #errorMessage() {
 		return this.dataset.errorMessage ?? '';
 	}
 
 	get #form() {
-		return this.querySelector<HTMLFormElement>('[data-comment-form]');
+		const form = this.querySelector<HTMLFormElement>('[data-comment-form]');
+
+		if (!form) throw new Error('The comments section is missing its [data-comment-form].');
+
+		return form;
+	}
+
+	constructor() {
+		super();
+
+		if (!sectionOptions)
+			throw new Error('Register <comments-section> through defineCommentsSection()');
+
+		this.#memory = createFormMemory(sectionOptions.storageKey);
+		this.#widget = sectionOptions.challenge();
 	}
 
 	connectedCallback() {
@@ -26,7 +51,7 @@ class CommentsSection extends HTMLElement {
 		const { signal } = this.#abortController;
 
 		// The page is prerendered, so a build-time value would make the endpoint's time trap useless
-		this.#field('renderedAt').value = String(Date.now());
+		this.#field(commentFields.renderedAt).value = String(Date.now());
 
 		this.#restoreDetails();
 		this.#showNoticeFromQuery();
@@ -35,10 +60,12 @@ class CommentsSection extends HTMLElement {
 			button.hidden = false;
 		}
 
-		this.#toggle('[data-open-form]', true);
+		// A reconnect can find the form already open, and its widget was removed on disconnect
+		this.#toggle('[data-open-form]', this.#form.hidden !== false);
+		this.#renderChallenge();
 
 		this.addEventListener('click', this.#handleClick, { signal });
-		this.#form?.addEventListener('submit', this.#handleSubmit, { signal });
+		this.#form.addEventListener('submit', this.#handleSubmit, { signal });
 	}
 
 	disconnectedCallback() {
@@ -48,7 +75,7 @@ class CommentsSection extends HTMLElement {
 	}
 
 	#clearDetails() {
-		clearStoredDetails();
+		this.#memory.clear();
 
 		const remember = this.querySelector<HTMLInputElement>('[data-remember]');
 
@@ -71,8 +98,6 @@ class CommentsSection extends HTMLElement {
 	#collapseForm() {
 		const form = this.#form;
 
-		if (!form) return;
-
 		this.#replyOrigin?.setAttribute('aria-expanded', 'false');
 		this.#returnFormHome();
 
@@ -89,7 +114,9 @@ class CommentsSection extends HTMLElement {
 	}
 
 	#handleAccepted(form: HTMLFormElement) {
-		const body = form.querySelector<HTMLTextAreaElement>('textarea[name="body"]');
+		const body = form.querySelector<HTMLTextAreaElement>(
+			`textarea[name="${CSS.escape(commentFields.body)}"]`,
+		);
 
 		if (body) body.value = '';
 
@@ -125,27 +152,18 @@ class CommentsSection extends HTMLElement {
 	// The native POST stays the fallback, so nothing is prevented until the fetch path is taken
 	#handleSubmit = (event: SubmitEvent) => {
 		this.#saveDetails();
-
-		const form = this.#form;
-
-		if (!form) return;
-
 		event.preventDefault();
 
-		void this.#submit(form);
+		void this.#submit(this.#form);
 	};
 
 	#openForm() {
-		const form = this.#form;
-
-		if (!form) return;
-
-		form.hidden = false;
+		this.#form.hidden = false;
 		this.#toggle('[data-open-form]', false);
 
-		this.#renderTurnstile();
+		this.#renderChallenge();
 
-		this.#field('author').focus();
+		this.#field(commentFields.author).focus();
 	}
 
 	async #readMessage(response: Response) {
@@ -167,18 +185,17 @@ class CommentsSection extends HTMLElement {
 		return this.#errorMessage;
 	}
 
-	#renderTurnstile() {
-		const form = this.#form;
-		const container = this.querySelector<HTMLElement>('[data-turnstile]');
+	#renderChallenge() {
+		const container = this.querySelector<HTMLElement>('[data-comment-challenge]');
 
-		// The widget animates, so it stays unloaded until someone opens the form
-		if (!form || !container || form.hidden) return;
+		// A challenge may animate, so it stays unloaded until someone opens the form
+		if (!container || this.#form.hidden) return;
 
-		void this.#widget.render(container, container.dataset.turnstileSitekey ?? '');
+		void this.#widget.render(container);
 	}
 
 	#restoreDetails() {
-		const stored = readStoredDetails();
+		const stored = this.#memory.read();
 
 		if (!stored) return;
 
@@ -196,13 +213,12 @@ class CommentsSection extends HTMLElement {
 	}
 
 	#returnFormHome() {
-		const form = this.#form;
 		const home = this.querySelector('[data-comment-form-home]');
 
-		if (!form || !home) return;
+		if (!home) return;
 
-		home.append(form);
-		this.#field('parentId').value = '';
+		home.append(this.#form);
+		this.#field(commentFields.parentId).value = '';
 	}
 
 	#saveDetails() {
@@ -219,7 +235,7 @@ class CommentsSection extends HTMLElement {
 			details[name] = this.#field(name).value;
 		}
 
-		saveStoredDetails(details);
+		this.#memory.save(details);
 	}
 
 	#setSubmitDisabled(form: HTMLFormElement, isDisabled: boolean) {
@@ -261,9 +277,10 @@ class CommentsSection extends HTMLElement {
 
 	#startReply(button: HTMLElement) {
 		const commentId = button.dataset.reply;
-		const form = this.#form;
 
-		if (!commentId || !form) return;
+		if (!commentId) return;
+
+		const form = this.#form;
 
 		// The button reads as a toggle while its own reply is open
 		if (!form.hidden && this.#replyOrigin === button) {
@@ -280,12 +297,12 @@ class CommentsSection extends HTMLElement {
 		comment.after(form);
 		form.hidden = false;
 		this.#toggle('[data-open-form]', false);
-		this.#field('parentId').value = commentId;
-		this.#renderTurnstile();
+		this.#field(commentFields.parentId).value = commentId;
+		this.#renderChallenge();
 
 		this.#replyOrigin = button;
 		button.setAttribute('aria-expanded', 'true');
-		this.#field('author').focus();
+		this.#field(commentFields.author).focus();
 	}
 
 	async #submit(form: HTMLFormElement) {
@@ -310,8 +327,8 @@ class CommentsSection extends HTMLElement {
 		} finally {
 			this.#setSubmitDisabled(form, false);
 
-			// The Turnstile token is single-use, so either outcome needs a fresh widget
-			this.#renderTurnstile();
+			// A challenge token is single-use, so either outcome needs a fresh widget
+			this.#renderChallenge();
 		}
 	}
 
@@ -322,12 +339,15 @@ class CommentsSection extends HTMLElement {
 	}
 }
 
-if (!customElements.get('comments-section')) {
-	customElements.define('comments-section', CommentsSection);
+export function defineCommentsSection(options: CommentsSectionOptions): void {
+	if (customElements.get(commentsSectionElementName)) return;
+
+	sectionOptions = options;
+	customElements.define(commentsSectionElementName, CommentsSectionElement);
 }
 
 declare global {
 	interface HTMLElementTagNameMap {
-		'comments-section': CommentsSection;
+		'comments-section': CommentsSectionElement;
 	}
 }

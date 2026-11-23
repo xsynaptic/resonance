@@ -2,18 +2,15 @@
 import { getContentPath } from '@xsynaptic/shared/routing';
 import { TURNSTILE_SITE_KEY } from 'astro:env/server';
 
-import type { CommentsCollection } from '#lib/comments/comments-data.ts';
-
 import Anchor from '#components/parts/anchor.astro';
 import Button from '#components/parts/button.astro';
 import { t } from '#lib/i18n/i18n-strings.ts';
 
 interface Props {
-	collection: CommentsCollection;
-	entryId: string;
+	thread: string;
 }
 
-const { collection, entryId } = Astro.props;
+const { thread } = Astro.props;
 
 // Turnstile answers 110200 for any hostname a real site key does not list, localhost included
 const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURNSTILE_SITE_KEY;
@@ -42,10 +39,9 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 			</button>
 		</div>
 		<p class="text-sm text-ink-500">{t('comments.form.moderationNote')}</p>
-		<input name="collection" type="hidden" value={collection} />
-		<input name="entryId" type="hidden" value={entryId} />
-		<input data-parent-id name="parentId" type="hidden" value="" />
-		<input data-rendered-at name="renderedAt" type="hidden" value="" />
+		<input name="thread" type="hidden" value={thread} />
+		<input name="parentId" type="hidden" value="" />
+		<input name="renderedAt" type="hidden" value="" />
 		<div aria-hidden="true" class="comment-trap">
 			<input autocomplete="off" name="website" tabindex="-1" type="text" />
 		</div>
@@ -144,7 +140,7 @@ const turnstileSiteKey = import.meta.env.DEV ? '1x00000000000000000000AA' : TURN
 				{t('comments.form.clearStored')}
 			</button>
 		</div>
-		<div data-turnstile data-turnstile-sitekey={turnstileSiteKey}></div>
+		<div data-comment-challenge data-sitekey={turnstileSiteKey}></div>
 		<p
 			class="rounded-sm border border-highlight-800 bg-highlight-950 p-3 text-sm text-ink-200"
 			data-comment-error

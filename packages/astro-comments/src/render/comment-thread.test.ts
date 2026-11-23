@@ -1,29 +1,28 @@
 /* eslint-disable unicorn/no-null -- a D1 row leaves these columns `null`, so the fixtures must too */
-import type { ApprovedComment } from '@xsynaptic/shared/comments';
-
 import { fc, test } from '@fast-check/vitest';
 import { describe, expect } from 'vitest';
 
-import type { CommentNode } from '#lib/comments/comments-thread.ts';
+import type { CommentNode } from '#render/comment-thread.ts';
+import type { ApprovedComment } from '#schemas.ts';
 
-import { buildThread } from '#lib/comments/comments-thread.ts';
+import { buildThread } from '#render/comment-thread.ts';
 
 interface CommentFixture {
+	gravatarHash?: string;
 	id: string;
 	parentId?: string;
 }
 
 function toComments(fixtures: Array<CommentFixture>): Array<ApprovedComment> {
-	return fixtures.map(({ id, parentId }, index) => ({
+	return fixtures.map(({ gravatarHash, id, parentId }, index) => ({
 		author: id,
 		author_url: null,
 		body: id,
-		collection: 'posts',
 		created_at: 1_577_836_800 + index * 60,
-		entry_id: 'entry',
-		gravatar_hash: null,
+		gravatar_hash: gravatarHash ?? null,
 		id,
 		parent_id: parentId ?? null,
+		thread: 'posts/entry',
 	}));
 }
 
@@ -115,6 +114,26 @@ describe('buildThread', () => {
 				],
 			],
 		]);
+	});
+
+	test('the depth cap and avatar size are options', () => {
+		const comments = toComments([
+			{ gravatarHash: 'a-hash', id: 'a' },
+			{ id: 'b', parentId: 'a' },
+			{ id: 'c', parentId: 'b' },
+		]);
+		const thread = buildThread(comments, { avatarSize: 32, maximumDepth: 2 });
+
+		expect(toShape(thread)).toEqual([
+			[
+				'a',
+				[
+					['b', []],
+					['c', []],
+				],
+			],
+		]);
+		expect(thread[0]?.avatar?.url).toBe('https://www.gravatar.com/avatar/a-hash?d=blank&s=32');
 	});
 
 	test.prop([repliesToEarlierComments])(

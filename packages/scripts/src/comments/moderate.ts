@@ -32,19 +32,10 @@ type ModeratedStatus = Exclude<CommentStatus, 'pending'>;
 
 type PendingRow = Pick<
 	CommentRow,
-	| 'author'
-	| 'author_email'
-	| 'author_url'
-	| 'body'
-	| 'collection'
-	| 'created_at'
-	| 'entry_id'
-	| 'id'
-	| 'parent_id'
+	'author' | 'author_email' | 'author_url' | 'body' | 'created_at' | 'id' | 'parent_id' | 'thread'
 >;
 
-const commentColumns =
-	'id, collection, entry_id, parent_id, author, author_email, author_url, body, created_at';
+const commentColumns = 'id, thread, parent_id, author, author_email, author_url, body, created_at';
 
 const pendingQuery = `
 	SELECT ${commentColumns}
@@ -135,7 +126,7 @@ function printComment(comment: PendingRow, marker: string): void {
 
 	const lines = [
 		'',
-		`  ${marker}  ${chalk.cyan(`${comment.collection}/${comment.entry_id}`)}`,
+		`  ${marker}  ${chalk.cyan(comment.thread)}`,
 		chalk.dim(`  ${'─'.repeat(bodyWidth)}`),
 		`  ${identity.join('  ')}`,
 		chalk.dim(`  ${meta.join(' · ')}`),

@@ -9,7 +9,7 @@ afterEach(() => {
 describe('<player-seek-button>', () => {
 	test('stays disabled until a track is loaded, and again once the queue clears', () => {
 		const { part, store } = mount('player-seek-button', { attributes: { seconds: '-30' } });
-		const isDisabled = () => part.querySelector('sonic-button')?.disabled;
+		const isDisabled = () => part.querySelector('sonic-button')?.softDisabled;
 
 		expect(isDisabled()).toBe(true);
 

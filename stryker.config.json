@@ -4,14 +4,21 @@
 	"testRunner": "vitest",
 	"plugins": ["@stryker-mutator/vitest-runner"],
 	"coverageAnalysis": "perTest",
-	"mutate": ["worker/**/*.ts", "packages/playback-stats/src/**/*.ts", "!**/*.test.ts"],
+	"mutate": [
+		"worker/**/*.ts",
+		"packages/astro-comments/src/*.ts",
+		"packages/playback-stats/src/**/*.ts",
+		"!**/*.test.ts"
+	],
 	"ignorePatterns": [
 		"**",
 		"!package.json",
 		"!tsconfig.json",
 		"!vitest.config.ts",
 		"!worker/**",
+		"!packages/astro-comments/**",
 		"!packages/playback-stats/**",
+		"!migrations/comments/**",
 		"!migrations/stats/**",
 		"!src/lib/i18n/**",
 		"!src/lib/astro-env-stub.ts",

@@ -1,0 +1,24 @@
+{
+	"name": "@xsynaptic/astro-comments",
+	"version": "0.0.0",
+	"description": "Static, moderated comments for Astro sites: schemas, a submission handler, rendering and a headless form element",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": "./src/index.ts",
+		"./element": "./src/element/index.ts",
+		"./render": "./src/render/index.ts"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"dependencies": {
+		"markdown-it": "^15.0.3",
+		"sanitize-html": "^2.18.2",
+		"zod": "^4.6.7"
+	},
+	"devDependencies": {
+		"@types/sanitize-html": "^2.16.2"
+	}
+}

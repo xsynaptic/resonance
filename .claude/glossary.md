@@ -106,6 +106,12 @@ Every page is one of two shapes:
 
 **List Page**: A paginated listing of many Entries with no subject of its own. _Avoid_: archive, index, feed, stream.
 
+### Comments
+
+**Comment**: A visitor's response to an Entry, held for moderation and shown once approved. It may reply to another Comment on the same Thread. _Avoid_: reply (for one that answers nothing), response, feedback, review (a Collection).
+
+**Thread**: The key a Comment attaches to, and the Comments gathered under it. The key is an opaque string the site mints, `<collection>/<entryId>` here, holding the slug the Entry had when the Comment was written, so a renamed Entry gathers its former Threads through `formerIds`. _Avoid_: conversation, discussion, post id, URI, page.
+
 ### Provenance
 
 **Triage**: The manual pass over Drafts deciding what publishes. _Avoid_: cleanup, review, curation.

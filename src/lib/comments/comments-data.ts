@@ -1,9 +1,9 @@
-import type { ApprovedComment } from '@xsynaptic/shared/comments';
+import type { ApprovedComment } from '@xsynaptic/astro-comments';
+import type { CommentNode } from '@xsynaptic/astro-comments/render';
 
-import type { CommentNode } from '#lib/comments/comments-thread.ts';
+import { buildThread } from '@xsynaptic/astro-comments/render';
 
-import { readCommentsByEntry } from '#lib/comments/comments-snapshot.ts';
-import { buildThread } from '#lib/comments/comments-thread.ts';
+import { readCommentsByThread } from '#lib/comments/comments-snapshot.ts';
 
 export type CommentsCollection = 'mixes' | 'posts' | 'reviews';
 
@@ -12,20 +12,24 @@ export interface EntryComments {
 	thread: Array<CommentNode>;
 }
 
-// D1 keeps the slug a comment was written against, so a renamed entry answers for its former ids too
+// A thread key holds the slug a comment was written against, so a renamed entry answers for its former ids too
 export async function getEntryComments(
 	collection: CommentsCollection,
 	entryId: string,
 	formerIds?: Array<string>,
 ): Promise<EntryComments> {
-	const commentsByEntry = await readCommentsByEntry();
+	const commentsByThread = await readCommentsByThread();
 	const comments: Array<ApprovedComment> = [];
 
 	for (const id of [entryId, ...(formerIds ?? [])]) {
-		comments.push(...(commentsByEntry.get(`${collection}/${id}`) ?? []));
+		comments.push(...(commentsByThread.get(toThreadKey(collection, id)) ?? []));
 	}
 
 	comments.sort((left, right) => left.created_at - right.created_at);
 
 	return { count: comments.length, thread: buildThread(comments) };
+}
+
+export function toThreadKey(collection: CommentsCollection, entryId: string): string {
+	return `${collection}/${entryId}`;
 }

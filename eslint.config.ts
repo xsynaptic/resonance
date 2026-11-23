@@ -37,6 +37,7 @@ export default getConfig(
 			},
 		},
 		getBrowserConfig([
+			'packages/astro-comments/src/element/**/*',
 			'src/components/**/*',
 			'packages/player/**/*',
 			'packages/playback-stats/**/*',
@@ -45,6 +46,7 @@ export default getConfig(
 			files: [
 				'**/*.astro/*.{js,ts}',
 				'src/components/**/*.{ts,tsx}',
+				'packages/astro-comments/src/element/**/*.ts',
 				'packages/player/src/**/*.ts',
 				'packages/playback-stats/src/**/*.ts',
 			],
@@ -75,6 +77,19 @@ export default getConfig(
 			},
 		},
 		{
+			files: ['packages/astro-comments/src/**/*.ts'],
+			ignores: ['packages/astro-comments/src/element/**'],
+			rules: {
+				'no-restricted-globals': [
+					'error',
+					...browserOnlyGlobals.map((name) => ({
+						message: 'Browser code goes under src/element.',
+						name,
+					})),
+				],
+			},
+		},
+		{
 			files: [
 				'verify/e2e/**/*',
 				'packages/player/verify/e2e/**/*',
@@ -95,7 +110,11 @@ export default getConfig(
 				'unicorn/template-indent': 'off',
 			},
 		},
-		getWebComponentConfig(['src/components/**/*.ts', 'packages/player/src/elements/**/*.ts']),
+		getWebComponentConfig([
+			'src/components/**/*.ts',
+			'packages/astro-comments/src/element/**/*.ts',
+			'packages/player/src/elements/**/*.ts',
+		]),
 		...getAstroConfig({ a11y: 'strict' }),
 	],
 	{

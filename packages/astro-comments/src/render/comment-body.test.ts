@@ -1,7 +1,7 @@
 import { fc, it } from '@fast-check/vitest';
 import { describe, expect, test } from 'vitest';
 
-import { isSafeUrl, renderCommentBody, toAuthorHref } from '#lib/utils/comment-markdown.ts';
+import { isSafeUrl, renderCommentBody, toAuthorHref } from '#render/comment-body.ts';
 
 const allowedTags = new Set(['a', 'br', 'code', 'em', 'p', 'strong']);
 

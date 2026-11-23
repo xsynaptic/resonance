@@ -1,3 +1,5 @@
+import type { CommentChallengeWidget } from '@xsynaptic/astro-comments/element';
+
 interface TurnstileApi {
 	remove: (widgetId: string) => void;
 	render: (
@@ -10,7 +12,7 @@ const turnstileScriptUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.j
 
 let turnstileReady: Promise<TurnstileApi | undefined> | undefined;
 
-export class TurnstileWidget {
+export class TurnstileWidget implements CommentChallengeWidget {
 	#widgetId: string | undefined;
 
 	async remove(): Promise<void> {
@@ -26,7 +28,7 @@ export class TurnstileWidget {
 	}
 
 	// Moving the form re-parents the widget's iframe, which reloads it, so it is rebuilt from scratch
-	async render(container: HTMLElement, sitekey: string): Promise<void> {
+	async render(container: HTMLElement): Promise<void> {
 		const api = await loadTurnstile();
 
 		// A disconnect while the script loads, or a submit settling after one, would strand the widget
@@ -39,7 +41,11 @@ export class TurnstileWidget {
 
 		container.replaceChildren();
 
-		this.#widgetId = api.render(container, { sitekey, size: 'compact', theme: 'dark' });
+		this.#widgetId = api.render(container, {
+			sitekey: container.dataset.sitekey ?? '',
+			size: 'compact',
+			theme: 'dark',
+		});
 	}
 }
 

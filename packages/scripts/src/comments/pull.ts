@@ -1,8 +1,9 @@
-import type { ApprovedComment, CommentsSnapshot, CommentStatus } from '@xsynaptic/shared/comments';
+import type { ApprovedComment } from '@xsynaptic/astro-comments';
+import type { CommentsSnapshot, CommentStatus } from '@xsynaptic/shared/comments';
 
+import { approvedCommentSchema } from '@xsynaptic/astro-comments';
 import { formatError, log, withStep } from '@xsynaptic/astro-scripts';
 import {
-	approvedCommentSchema,
 	commentsSnapshotPath,
 	commentsSnapshotSchema,
 	queryComments,
@@ -19,10 +20,10 @@ export interface PullCommentsOptions {
 
 // Pending rows are selected only so they can be counted; the snapshot holds the approved ones
 const snapshotQuery = `
-	SELECT id, collection, entry_id, parent_id, author, author_url, gravatar_hash, body, created_at, status
+	SELECT id, thread, parent_id, author, author_url, email_hash, is_owner, body, created_at, status
 	FROM comments
 	WHERE status IN ('approved', 'pending')
-	ORDER BY collection, entry_id, created_at
+	ORDER BY thread, created_at
 `;
 
 // Returns the pending count, or undefined when a stale snapshot stood in for an unreachable D1

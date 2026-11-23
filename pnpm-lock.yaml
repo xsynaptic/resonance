@@ -178,6 +178,9 @@ importers:
 
   .:
     dependencies:
+      '@xsynaptic/astro-comments':
+        specifier: workspace:*
+        version: link:packages/astro-comments
       '@xsynaptic/playback-stats':
         specifier: workspace:*
         version: link:packages/playback-stats
@@ -302,9 +305,6 @@ importers:
       lefthook:
         specifier: ^2.2.2
         version: 2.2.2
-      markdown-it:
-        specifier: ^15.0.3
-        version: 15.0.3
       ohash:
         specifier: ^2.0.12
         version: 2.0.12
@@ -351,6 +351,22 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
 
+  packages/astro-comments:
+    dependencies:
+      markdown-it:
+        specifier: ^15.0.3
+        version: 15.0.3
+      sanitize-html:
+        specifier: ^2.18.2
+        version: 2.18.2
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@types/sanitize-html':
+        specifier: ^2.16.2
+        version: 2.16.2
+
   packages/content:
     devDependencies:
       '@types/react':
@@ -392,6 +408,9 @@ importers:
       '@types/react':
         specifier: ^19.3.0
         version: 19.3.0
+      '@xsynaptic/astro-comments':
+        specifier: workspace:*
+        version: link:../astro-comments
       '@xsynaptic/astro-image-pipeline':
         specifier: ^0.16.0
         version: 0.16.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))
@@ -437,6 +456,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@xsynaptic/astro-comments':
+        specifier: workspace:*
+        version: link:../astro-comments
       '@xsynaptic/astro-image-pipeline':
         specifier: ^0.16.0
         version: 0.16.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(sharp@0.35.5(@types/node@24.19.2))

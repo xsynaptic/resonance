@@ -66,7 +66,6 @@ const strings = {
 	'comments.error.entryMissing': 'That entry does not exist.',
 	'comments.error.invalid': 'That submission was not valid.',
 	'comments.error.parentMissing': 'That reply target does not exist.',
-	'comments.error.rejected': 'That submission was not accepted.',
 	'comments.error.tooFast': 'That was too fast. Please try again.',
 	'comments.error.tooLarge': 'That submission was too large.',
 	'comments.error.unexpected': 'Something went wrong here. Please try again in a moment.',

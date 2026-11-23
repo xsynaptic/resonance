@@ -17,29 +17,27 @@ export interface OrphansOptions {
 	rootPath: string;
 }
 
-interface EntryGroup {
-	approved: number;
-	collection: string;
-	entryId: string;
+interface GroupRow {
 	pending: number;
+	thread: string;
+	total: number;
 }
 
-interface GroupRow {
-	collection: string;
-	entry_id: string;
+interface ThreadGroup {
+	approved: number;
 	pending: number;
-	total: number;
+	thread: string;
 }
 
 // Rejected and spam rows are unrenderable by intent, so they are not orphans
 const groupQuery = `
-	SELECT collection, entry_id,
+	SELECT thread,
 		COUNT(*) AS total,
 		SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending
 	FROM comments
 	WHERE status IN ('approved', 'pending')
-	GROUP BY collection, entry_id
-	ORDER BY collection, entry_id
+	GROUP BY thread
+	ORDER BY thread
 `;
 
 const commentedCollections = ['mixes', 'posts', 'reviews'] as const;
@@ -55,15 +53,14 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 
 		return withAstroContent((content) => getCollectionEntries(content, [...commentedCollections]));
 	});
-	const resolvable = collectResolvableIds(entries);
+	const resolvable = collectResolvableThreads(entries);
 
-	const orphans: Array<EntryGroup> = rows
-		.filter((row) => !resolvable.has(`${row.collection}/${row.entry_id}`))
+	const orphans: Array<ThreadGroup> = rows
+		.filter((row) => !resolvable.has(row.thread))
 		.map((row) => ({
 			approved: row.total - row.pending,
-			collection: row.collection,
-			entryId: row.entry_id,
 			pending: row.pending,
+			thread: row.thread,
 		}));
 
 	if (orphans.length === 0) {
@@ -80,25 +77,25 @@ export async function reportOrphans(options: OrphansOptions): Promise<void> {
 	log.detail('These wait in D1 until the entry is published or lists the slug in `formerIds`');
 }
 
-function byCountDescending(left: EntryGroup, right: EntryGroup): number {
+function byCountDescending(left: ThreadGroup, right: ThreadGroup): number {
 	const difference = right.approved + right.pending - (left.approved + left.pending);
 
 	if (difference !== 0) return difference;
 
-	return `${left.collection}/${left.entryId}`.localeCompare(`${right.collection}/${right.entryId}`);
+	return left.thread.localeCompare(right.thread);
 }
 
-function formatGroup(group: EntryGroup): string {
+function formatGroup(group: ThreadGroup): string {
 	const counts = [
 		`${String(group.approved)} approved`,
 		group.pending === 0 ? undefined : chalk.yellow(`${String(group.pending)} pending`),
 	].filter((part) => part !== undefined);
 
-	return `${chalk.cyan(`${group.collection}/${group.entryId}`)}  ${chalk.dim(counts.join(' · '))}`;
+	return `${chalk.cyan(group.thread)}  ${chalk.dim(counts.join(' · '))}`;
 }
 
 // Drafts never reach the content store, so their comments read as orphaned until the draft is published
-function collectResolvableIds(entries: Array<ContentEntry>): Set<string> {
+function collectResolvableThreads(entries: Array<ContentEntry>): Set<string> {
 	return new Set(
 		entries.flatMap((entry) => [
 			`${entry.collection}/${entry.id}`,

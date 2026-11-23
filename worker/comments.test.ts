@@ -1,116 +1,94 @@
-/* eslint-disable unicorn/no-null -- D1 answers and takes `null`, so the stub and the expected bindings must too */
-import { afterEach, describe, expect, test, vi } from 'vitest';
+/* eslint-disable unicorn/no-null -- D1 answers and takes `null`, so the binding over SQLite must too */
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { t } from '#lib/i18n/i18n-strings.ts';
-import { handleCommentSubmission } from '#worker/comments.ts';
+import { createD1CommentStore } from '#worker/comments-store.ts';
+import { handleComment } from '#worker/comments.ts';
 
-const ipSalt = 'test-salt';
+type Binding = Array<null | number | string>;
 
-// SHA-256 of `reader@example.test` and of `test-salt203.0.113.7`, computed outside this suite
-const gravatarHashOfLowercasedEmail =
-	'2cecb651356e138bd83a5215c4d7c5a3ebfb923a0c316de1b218797417911c5e';
-const saltedIpHash = 'c73444b80046bb2a92443cb729729d63ccd35a41c85e822a6557d6fc277cc93d';
+// A `URL` here would be the Workers one, which Node's `readFileSync` does not accept
+const migrations = ['0001-comments.sql', '0002-thread-key.sql'].map((file) =>
+	readFileSync(path.join(import.meta.dirname, '../migrations/comments', file), 'utf8'),
+);
 
-// Bound parameter positions in the INSERT; `status` and `source` are SQL literals and take none
-const columns = {
-	author: 4,
-	authorEmail: 5,
-	authorUrl: 6,
-	body: 8,
-	collection: 1,
-	createdAt: 9,
-	entryId: 2,
-	gravatarHash: 7,
-	id: 0,
-	ipHash: 10,
-	parentId: 3,
-} as const;
+const schema = readFileSync(
+	path.join(import.meta.dirname, '../packages/astro-comments/schema.sql'),
+	'utf8',
+);
 
-interface BoundStatement {
-	sql: string;
-	values: Array<unknown>;
+const legacyRow = `INSERT INTO comments (id, collection, entry_id, parent_id, author, gravatar_hash, body, status, source, created_at, wp_post_id)
+VALUES (?, ?, ?, ?, 'Reader', 'a-hash', 'An old comment.', ?, 'wordpress', 1577836800, 42)`;
+
+let database: DatabaseSync;
+
+beforeEach(() => {
+	database = new DatabaseSync(':memory:');
+});
+
+afterEach(() => {
+	database.close();
+	vi.restoreAllMocks();
+});
+
+function migrate(legacyRows: Array<Binding> = []): void {
+	const [initial = '', threadKey = ''] = migrations;
+
+	database.exec(initial);
+
+	for (const row of legacyRows) database.prepare(legacyRow).run(...row);
+
+	database.exec(threadKey);
 }
 
-interface EnvStub {
-	env: Env;
-	statements: Array<BoundStatement>;
-}
+function createBinding() {
+	return {
+		prepare: (sql: string) => {
+			const statement = database.prepare(sql);
 
-interface EnvStubOptions {
-	approvedParentIds?: Array<string>;
-	entryPaths?: Array<string>;
-	ipSalt?: string;
-}
-
-type FieldOverrides = Record<string, string | undefined>;
-
-function createEnv({
-	approvedParentIds = [],
-	entryPaths = ['/mixes/voyager/'],
-	ipSalt: salt = ipSalt,
-}: EnvStubOptions = {}): EnvStub {
-	const statements: Array<BoundStatement> = [];
-
-	const database = {
-		prepare(sql: string) {
 			return {
-				bind(...values: Array<unknown>) {
-					statements.push({ sql, values });
-
-					return {
-						first: () => Promise.resolve(approvedParentIds.includes(String(values[0])) ? {} : null),
-						run: () => Promise.resolve({}),
-					};
-				},
+				bind: (...values: Binding) => ({
+					first: () => Promise.resolve(statement.get(...values) ?? null),
+					run: () => Promise.resolve(statement.run(...values)),
+				}),
 			};
 		},
 	};
-
-	const assets = {
-		fetch: (input: Request | string | URL) => {
-			const isBuilt = entryPaths.includes(toPathname(input));
-
-			return Promise.resolve(new Response(undefined, { status: isBuilt ? 200 : 404 }));
-		},
-	};
-
-	return {
-		env: {
-			ASSETS: assets,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- structural D1 fake; no real D1Database is ever constructed
-			DB: database,
-			IP_SALT: salt,
-			TURNSTILE_SECRET_KEY: 'secret',
-		} as Env,
-		statements,
-	};
 }
 
-function makeRequest({
-	fields: fieldOverrides = {},
-	headers: headerOverrides = {},
-}: { fields?: FieldOverrides; headers?: Record<string, string> } = {}): Request {
-	const fields: FieldOverrides = {
+function createEnv(builtPaths: Array<string>): Env {
+	return {
+		ASSETS: {
+			fetch: (input: URL) =>
+				Promise.resolve(
+					new Response(undefined, { status: builtPaths.includes(input.pathname) ? 200 : 404 }),
+				),
+		},
+		DB: createBinding(),
+		IP_SALT: 'test-salt',
+		TURNSTILE_SECRET_KEY: 'secret',
+	} as unknown as Env;
+}
+
+function makeRequest(fields: Record<string, string>): Request {
+	const body = new URLSearchParams({
 		author: 'Reader',
 		body: 'A comment worth keeping.',
 		'cf-turnstile-response': 'token',
-		collection: 'mixes',
-		entryId: 'voyager',
 		renderedAt: String(Date.now() - 5000),
-		...fieldOverrides,
-	};
-
-	const body = new URLSearchParams(
-		Object.entries(fields).filter(([, value]) => value !== undefined) as Array<[string, string]>,
-	).toString();
+		...fields,
+	}).toString();
 
 	return new Request('https://example.test/api/comments', {
 		body,
 		headers: {
-			accept: 'application/json',
+			accept: 'text/html',
+			'CF-Connecting-IP': '203.0.113.7',
 			'content-length': String(new TextEncoder().encode(body).length),
 			'content-type': 'application/x-www-form-urlencoded',
-			...headerOverrides,
 		},
 		method: 'POST',
 	});
@@ -119,203 +97,217 @@ function makeRequest({
 function stubSiteverify(isVerified: boolean) {
 	return vi
 		.spyOn(globalThis, 'fetch')
-		.mockResolvedValue(Response.json({ success: isVerified }, { status: 200 }));
+		.mockImplementation(() => Promise.resolve(Response.json({ success: isVerified })));
 }
 
-function toPathname(input: Request | string | URL): string {
-	return new URL(input instanceof Request ? input.url : input).pathname;
-}
+describe('the thread key migration', () => {
+	test('keys every row by its collection and entry, and keeps everything else', () => {
+		migrate([
+			['wp-1', 'mixes', 'voyager', null, 'approved'],
+			['wp-2', 'posts', 'a-post', 'wp-1', 'pending'],
+		]);
 
-afterEach(() => {
-	vi.restoreAllMocks();
+		expect(database.prepare('SELECT * FROM comments ORDER BY id').all()).toEqual([
+			{
+				author: 'Reader',
+				author_email: null,
+				author_url: null,
+				body: 'An old comment.',
+				created_at: 1_577_836_800,
+				email_hash: 'a-hash',
+				id: 'wp-1',
+				ip_hash: null,
+				is_owner: 0,
+				parent_id: null,
+				source: 'wordpress',
+				status: 'approved',
+				thread: 'mixes/voyager',
+			},
+			{
+				author: 'Reader',
+				author_email: null,
+				author_url: null,
+				body: 'An old comment.',
+				created_at: 1_577_836_800,
+				email_hash: 'a-hash',
+				id: 'wp-2',
+				ip_hash: null,
+				is_owner: 0,
+				parent_id: 'wp-1',
+				source: 'wordpress',
+				status: 'pending',
+				thread: 'posts/a-post',
+			},
+		]);
+	});
+
+	test("marks only Basilisk's comments as the Owner's", () => {
+		migrate([
+			['wp-134', 'posts', 'a-post', null, 'approved'],
+			['wp-135', 'posts', 'a-post', null, 'approved'],
+		]);
+
+		expect(database.prepare('SELECT id, is_owner FROM comments ORDER BY id').all()).toEqual([
+			{ id: 'wp-134', is_owner: 1 },
+			{ id: 'wp-135', is_owner: 0 },
+		]);
+	});
+
+	test('refuses a status outside the four', () => {
+		migrate();
+
+		expect(() => {
+			database.exec(
+				`INSERT INTO comments (id, thread, author, body, status, created_at) VALUES ('x', 'posts/a-post', 'Reader', 'A comment.', 'deleted', 0)`,
+			);
+		}).toThrow('CHECK constraint failed');
+	});
+
+	test('builds the table and indexes of the package schema, and nothing on the old columns', () => {
+		migrate();
+
+		const fresh = new DatabaseSync(':memory:');
+		const tableSql = `SELECT type, name, sql FROM sqlite_master WHERE tbl_name = 'comments' ORDER BY name`;
+
+		fresh.exec(schema);
+
+		expect(database.prepare(tableSql).all()).toEqual(fresh.prepare(tableSql).all());
+
+		fresh.close();
+	});
 });
 
-describe('handleCommentSubmission', () => {
-	test('throws when the IP salt is unset, rather than hashing against "undefined"', async () => {
-		const { env } = createEnv({ ipSalt: '' });
+describe('the D1 comment store', () => {
+	test('finds a parent only when it is approved on the same thread', async () => {
+		migrate([
+			['approved-here', 'mixes', 'voyager', null, 'approved'],
+			['pending-here', 'mixes', 'voyager', null, 'pending'],
+			['approved-elsewhere', 'mixes', 'other', null, 'approved'],
+		]);
 
-		await expect(handleCommentSubmission(makeRequest(), env)).rejects.toThrow('IP_SALT is not set');
-	});
+		const store = createD1CommentStore(createBinding());
 
-	test('rejects a body over the size cap', async () => {
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(
-			makeRequest({ fields: { body: 'x'.repeat(40_000) } }),
-			env,
+		await expect(store.hasApprovedParent('mixes/voyager', 'approved-here')).resolves.toBe(true);
+		await expect(store.hasApprovedParent('mixes/voyager', 'pending-here')).resolves.toBe(false);
+		await expect(store.hasApprovedParent('mixes/voyager', 'approved-elsewhere')).resolves.toBe(
+			false,
 		);
-
-		expect(response.status).toBe(413);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.tooLarge') });
+		await expect(store.hasApprovedParent('mixes/voyager', 'missing')).resolves.toBe(false);
 	});
 
-	test('rejects a body of unknown size, which cannot be capped', async () => {
-		const { env } = createEnv();
-		const request = makeRequest();
+	test("inserts a pending web comment, never the Owner's, with SQL NULL for every absent field", async () => {
+		migrate();
 
-		request.headers.delete('content-length');
-
-		const response = await handleCommentSubmission(request, env);
-
-		expect(response.status).toBe(413);
-	});
-
-	test('rejects a body that is not a form', async () => {
-		const { env } = createEnv();
-		const request = new Request('https://example.test/api/comments', {
-			body: 'not a form',
-			headers: {
-				accept: 'application/json',
-				'content-length': '10',
-				'content-type': 'text/plain',
-			},
-			method: 'POST',
+		await createD1CommentStore(createBinding()).insert({
+			author: 'Reader',
+			body: 'A comment worth keeping.',
+			createdAt: 1_763_899_200,
+			id: 'k7d2mqzx4a',
+			thread: 'mixes/voyager',
 		});
 
-		const response = await handleCommentSubmission(request, env);
-
-		expect(response.status).toBe(400);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.unreadable') });
+		expect(database.prepare('SELECT * FROM comments').all()).toEqual([
+			{
+				author: 'Reader',
+				author_email: null,
+				author_url: null,
+				body: 'A comment worth keeping.',
+				created_at: 1_763_899_200,
+				email_hash: null,
+				id: 'k7d2mqzx4a',
+				ip_hash: null,
+				is_owner: 0,
+				parent_id: null,
+				source: 'web',
+				status: 'pending',
+				thread: 'mixes/voyager',
+			},
+		]);
 	});
 
-	test('rejects a filled honeypot, and ignores an untouched one', async () => {
-		const { env } = createEnv();
-		const trapped = await handleCommentSubmission(
-			makeRequest({ fields: { website: 'spam.test' } }),
-			env,
-		);
+	test('writes each field to its own column', async () => {
+		migrate();
 
-		expect(trapped.status).toBe(400);
-		await expect(trapped.json()).resolves.toEqual({ message: t('comments.error.rejected') });
+		await createD1CommentStore(createBinding()).insert({
+			author: 'Reader',
+			authorEmail: 'reader@example.test',
+			authorUrl: 'https://example.test/',
+			body: 'A reply.',
+			createdAt: 1_763_899_200,
+			emailHash: 'email-hash',
+			id: 'k7d2mqzx4a',
+			ipHash: 'ip-hash',
+			parentId: 'wp-1',
+			thread: 'posts/a-post',
+		});
 
+		expect(database.prepare('SELECT * FROM comments').get()).toMatchObject({
+			author_email: 'reader@example.test',
+			author_url: 'https://example.test/',
+			email_hash: 'email-hash',
+			ip_hash: 'ip-hash',
+			parent_id: 'wp-1',
+			thread: 'posts/a-post',
+		});
+	});
+});
+
+describe('handleComment', () => {
+	test('looks a post up at the site root and a mix under its collection', async () => {
 		stubSiteverify(true);
+		migrate();
 
-		const untouched = await handleCommentSubmission(
-			makeRequest({ fields: { website: '  ' } }),
-			env,
+		const env = createEnv(['/a-post/', '/mixes/voyager/']);
+		const post = await handleComment(makeRequest({ thread: 'posts/a-post' }), env);
+		const mix = await handleComment(makeRequest({ thread: 'mixes/voyager' }), env);
+
+		expect(post.headers.get('location')).toBe(
+			'https://example.test/a-post/?comment=received#comments',
 		);
-
-		expect(untouched.status).toBe(201);
+		expect(mix.headers.get('location')).toBe(
+			'https://example.test/mixes/voyager/?comment=received#comments',
+		);
 	});
 
-	test('rejects an entry id outside the slug pattern before it reaches the assets binding', async () => {
-		const { env } = createEnv();
+	test('refuses a thread outside the commented collections without a page lookup', async () => {
+		migrate();
+
+		const env = createEnv(['/pages/about/']);
 		const assets = vi.spyOn(env.ASSETS, 'fetch');
-		const response = await handleCommentSubmission(
-			makeRequest({ fields: { entryId: '../../etc/passwd' } }),
-			env,
-		);
+		const response = await handleComment(makeRequest({ thread: 'pages/about' }), env);
 
 		expect(response.status).toBe(400);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.invalid') });
+		await expect(response.text()).resolves.toBe(`${t('comments.error.entryMissing')}\n`);
 		expect(assets).not.toHaveBeenCalled();
 	});
 
-	test('rejects a form filled in under three seconds', async () => {
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(
-			makeRequest({ fields: { renderedAt: String(Date.now() - 100) } }),
-			env,
-		);
-
-		expect(response.status).toBe(400);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.tooFast') });
-	});
-
-	test('rejects an entry with no built page', async () => {
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(
-			makeRequest({ fields: { entryId: 'no-such-mix' } }),
-			env,
-		);
-
-		expect(response.status).toBe(400);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.entryMissing') });
-	});
-
-	test('looks a post up at the site root and a mix under its collection', async () => {
-		const requested: Array<string> = [];
-		const { env } = createEnv({ entryPaths: [] });
-
-		vi.spyOn(env.ASSETS, 'fetch').mockImplementation((input) => {
-			requested.push(toPathname(input));
-
-			return Promise.resolve(new Response(undefined, { status: 404 }));
-		});
-
-		await handleCommentSubmission(
-			makeRequest({ fields: { collection: 'posts', entryId: 'a-post' } }),
-			env,
-		);
-		await handleCommentSubmission(makeRequest(), env);
-
-		expect(requested).toEqual(['/a-post/', '/mixes/voyager/']);
-	});
-
-	test('rejects a reply whose parent is not approved on this entry', async () => {
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(
-			makeRequest({ fields: { parentId: 'gone' } }),
-			env,
-		);
-
-		expect(response.status).toBe(400);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.parentMissing') });
-	});
-
-	test('accepts a reply to an approved parent', async () => {
+	test('stores an accepted reply under its thread with the salted IP hash', async () => {
 		stubSiteverify(true);
+		migrate([['wp-1', 'mixes', 'voyager', null, 'approved']]);
 
-		const { env, statements } = createEnv({ approvedParentIds: ['parent-id'] });
-		const response = await handleCommentSubmission(
-			makeRequest({ fields: { parentId: 'parent-id' } }),
-			env,
+		const response = await handleComment(
+			makeRequest({ parentId: 'wp-1', thread: 'mixes/voyager' }),
+			createEnv(['/mixes/voyager/']),
 		);
 
-		expect(response.status).toBe(201);
-		expect(statements.at(-1)?.values[columns.parentId]).toBe('parent-id');
-	});
-
-	test('rejects a submission Turnstile will not verify', async () => {
-		stubSiteverify(false);
-
-		const { env, statements } = createEnv();
-		const response = await handleCommentSubmission(makeRequest(), env);
-
-		expect(response.status).toBe(403);
-		await expect(response.json()).resolves.toEqual({ message: t('comments.error.challenge') });
-		expect(statements).toEqual([]);
-	});
-
-	test('never reaches siteverify on a local rejection', async () => {
-		const siteverify = stubSiteverify(true);
-		const { env } = createEnv();
-
-		const rejected = [
-			makeRequest({ fields: { body: 'x'.repeat(40_000) } }),
-			makeRequest({ fields: { website: 'spam.test' } }),
-			makeRequest({ fields: { author: undefined } }),
-			makeRequest({ fields: { renderedAt: String(Date.now() - 100) } }),
-			makeRequest({ fields: { entryId: 'no-such-mix' } }),
-			makeRequest({ fields: { parentId: 'gone' } }),
-		];
-
-		for (const request of rejected) {
-			const response = await handleCommentSubmission(request, env);
-
-			expect(response.ok).toBe(false);
-		}
-
-		expect(siteverify).not.toHaveBeenCalled();
+		expect(response.status).toBe(303);
+		expect(
+			database
+				.prepare(`SELECT thread, parent_id, ip_hash FROM comments WHERE source = 'web'`)
+				.get(),
+		).toEqual({
+			ip_hash: 'c73444b80046bb2a92443cb729729d63ccd35a41c85e822a6557d6fc277cc93d',
+			parent_id: 'wp-1',
+			thread: 'mixes/voyager',
+		});
 	});
 
 	test('sends the token, the secret and the client IP to siteverify', async () => {
 		const siteverify = stubSiteverify(true);
-		const { env } = createEnv();
 
-		await handleCommentSubmission(
-			makeRequest({ headers: { 'CF-Connecting-IP': '203.0.113.7' } }),
-			env,
-		);
+		migrate();
+
+		await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv(['/mixes/voyager/']));
 
 		const [url, init] = siteverify.mock.calls[0] ?? [];
 		const sent = init?.body as FormData;
@@ -326,76 +318,31 @@ describe('handleCommentSubmission', () => {
 		expect(sent.get('remoteip')).toBe('203.0.113.7');
 	});
 
-	test('inserts a pending web comment and answers 201 with JSON', async () => {
-		stubSiteverify(true);
+	test('answers a siteverify outage as a server error, not a failed challenge', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(undefined, { status: 503 }));
+		vi.spyOn(console, 'error').mockImplementation(vi.fn());
+		migrate();
 
-		const { env, statements } = createEnv();
-		const response = await handleCommentSubmission(makeRequest(), env);
+		const response = await handleComment(
+			makeRequest({ thread: 'mixes/voyager' }),
+			createEnv(['/mixes/voyager/']),
+		);
 
-		expect(response.status).toBe(201);
-
-		const insert = statements.at(-1);
-
-		expect(insert?.sql).toContain(`'pending', 'web'`);
-		expect(insert?.values).toEqual([
-			expect.stringMatching(/^[a-z2-7]{10}$/),
-			'mixes',
-			'voyager',
-			null,
-			'Reader',
-			null,
-			null,
-			null,
-			'A comment worth keeping.',
-			expect.closeTo(Math.floor(Date.now() / 1000), -1),
-			null,
-		]);
+		expect(response.status).toBe(500);
+		await expect(response.text()).resolves.toBe(`${t('comments.error.unexpected')}\n`);
 	});
 
-	test('stores the email as submitted, plus a Gravatar hash of its lowercased form', async () => {
-		stubSiteverify(true);
+	test('answers a failed challenge with the site copy', async () => {
+		stubSiteverify(false);
+		migrate();
 
-		const { env, statements } = createEnv();
-
-		await handleCommentSubmission(
-			makeRequest({ fields: { authorEmail: 'Reader@Example.TEST' } }),
-			env,
+		const response = await handleComment(
+			makeRequest({ thread: 'mixes/voyager' }),
+			createEnv(['/mixes/voyager/']),
 		);
 
-		const values = statements.at(-1)?.values ?? [];
-
-		expect(values[columns.authorEmail]).toBe('Reader@Example.TEST');
-		expect(values[columns.gravatarHash]).toBe(gravatarHashOfLowercasedEmail);
-	});
-
-	test('stores the client IP only as a salted hash', async () => {
-		stubSiteverify(true);
-
-		const { env, statements } = createEnv();
-
-		await handleCommentSubmission(
-			makeRequest({ headers: { 'CF-Connecting-IP': '203.0.113.7' } }),
-			env,
-		);
-
-		const values = statements.at(-1)?.values ?? [];
-
-		expect(values[columns.ipHash]).toBe(saltedIpHash);
-		expect(values).not.toContain('203.0.113.7');
-	});
-
-	test('redirects a native form post back to the entry', async () => {
-		stubSiteverify(true);
-
-		const { env } = createEnv();
-		const response = await handleCommentSubmission(
-			makeRequest({ headers: { accept: 'text/html' } }),
-			env,
-		);
-
-		expect(response.status).toBe(303);
-		expect(response.headers.get('location')).toBe(
-			'https://example.test/mixes/voyager/?comment=received#comments',
-		);
+		expect(response.status).toBe(403);
+		await expect(response.text()).resolves.toBe(`${t('comments.error.challenge')}\n`);
+		expect(database.prepare('SELECT COUNT(*) AS count FROM comments').get()).toEqual({ count: 0 });
 	});
 });

@@ -32,6 +32,7 @@
 		"#*": "./src/*"
 	},
 	"dependencies": {
+		"@xsynaptic/astro-comments": "workspace:*",
 		"@xsynaptic/playback-stats": "workspace:*",
 		"@xsynaptic/player": "workspace:*",
 		"astro": "^7.4.13",
@@ -75,7 +76,6 @@
 		"happy-dom": "^21.0.4",
 		"knip": "^6.46.1",
 		"lefthook": "^2.2.2",
-		"markdown-it": "^15.0.3",
 		"ohash": "^2.0.12",
 		"pagefind": "^1.6.0",
 		"prettier": "^3.10.1",

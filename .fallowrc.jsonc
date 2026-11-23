@@ -70,7 +70,7 @@
 			{ "from": "packages", "allow": [], "allowTypeOnly": ["lib"] },
 			{ "from": "lib", "allow": ["packages"] },
 			{ "from": "components", "allow": ["lib", "packages"] },
-			{ "from": "worker", "allow": ["lib"] },
+			{ "from": "worker", "allow": ["lib", "packages"] },
 		],
 	},
 }

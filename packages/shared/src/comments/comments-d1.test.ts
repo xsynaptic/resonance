@@ -1,12 +1,8 @@
 /* eslint-disable unicorn/no-null -- a D1 row leaves these columns `null`, so the fixture must too */
+import { approvedCommentSchema } from '@xsynaptic/astro-comments';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import {
-	approvedCommentSchema,
-	commentRowSchema,
-	queryComments,
-	toIdLiteral,
-} from '#comments/comments-d1.ts';
+import { commentRowSchema, queryComments, toIdLiteral } from '#comments/comments-d1.ts';
 
 const execFile = vi.hoisted(() => vi.fn());
 
@@ -64,16 +60,15 @@ describe('approvedCommentSchema', () => {
 			author_email: 'reader@example.test',
 			author_url: null,
 			body: 'A comment worth keeping.',
-			collection: 'mixes',
 			created_at: 1_577_836_800,
-			entry_id: 'voyager',
-			gravatar_hash: 'a-hash',
+			email_hash: 'a-hash',
 			id: 'abc123',
 			ip_hash: 'another-hash',
+			is_owner: 0,
 			parent_id: null,
 			source: 'web',
 			status: 'approved',
-			wp_post_id: null,
+			thread: 'mixes/voyager',
 		});
 
 		const approved = approvedCommentSchema.parse(row);

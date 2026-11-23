@@ -10,8 +10,9 @@ export const PlayerSeekButton = buttonPart((element) => {
 	const seconds = readSeconds(element);
 
 	return {
+		// Soft rather than `disabled`, which would drop focus to the page as the track unloads
 		apply: (button: SonicButton, isTrackLoaded: boolean) => {
-			button.disabled = !isTrackLoaded;
+			button.softDisabled = !isTrackLoaded;
 		},
 		connect: (button, { labels }) => {
 			const label = seconds < 0 ? labels.seekBack : labels.seekForward;

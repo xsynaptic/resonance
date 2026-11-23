@@ -1,18 +1,14 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-// The real widget fetches Cloudflare's script on render
-const widget = vi.hoisted(() => ({ remove: vi.fn(), render: vi.fn() }));
+import { defineCommentsSection } from '#element/comments-section.ts';
+import { createFormMemory } from '#element/form-memory.ts';
 
-vi.mock('#components/comments/comment-turnstile.ts', () => ({
-	TurnstileWidget: class {
-		remove = widget.remove;
-		render = widget.render;
-	},
-}));
+const widget = { remove: vi.fn(), render: vi.fn() };
 
-import { readStoredDetails, saveStoredDetails } from '#components/comments/comment-form-memory.ts';
-import '#components/comments/comments-section.ts';
+const memory = createFormMemory('test-comment-form');
+
+defineCommentsSection({ challenge: () => widget, storageKey: 'test-comment-form' });
 
 const errorMessage = 'Your comment could not be posted.';
 
@@ -36,17 +32,16 @@ function mountSection(): HTMLFormElement {
 			<div data-comment-form-home>
 				<button data-open-form hidden type="button">Leave a comment</button>
 				<form action="/api/comments" data-comment-form hidden method="post">
-					<input name="collection" type="hidden" value="posts">
-					<input data-parent-id name="parentId" type="hidden" value="">
-					<input data-rendered-at name="renderedAt" type="hidden" value="">
-					<input name="entryId" type="hidden" value="a-post">
+					<input name="thread" type="hidden" value="posts/a-post">
+					<input name="parentId" type="hidden" value="">
+					<input name="renderedAt" type="hidden" value="">
 					<input name="author" value="Ada">
 					<input name="authorEmail" value="">
 					<input name="authorUrl" value="">
 					<textarea name="body">A comment</textarea>
 					<input data-remember type="checkbox">
 					<button data-clear-stored hidden type="button">Forget me</button>
-					<div data-turnstile data-turnstile-sitekey="test-key"></div>
+					<div data-comment-challenge data-sitekey="test-key"></div>
 					<p data-comment-error hidden></p>
 					<button type="submit">Post comment</button>
 				</form>
@@ -247,7 +242,48 @@ describe('a submitted comment form', () => {
 			expect(button?.disabled).toBe(false);
 		});
 
-		expect(widget.render).toHaveBeenCalledWith(element('[data-turnstile]'), 'test-key');
+		expect(widget.render).toHaveBeenCalledWith(element('[data-comment-challenge]'));
+	});
+});
+
+describe('a section that leaves the page', () => {
+	test('moved with its form open, rebuilds the removed widget and keeps the open button hidden', () => {
+		mountSection();
+
+		const section = element('comments-section');
+
+		element('[data-open-form]').click();
+		document.body.append(section);
+
+		expect(widget.remove).toHaveBeenCalledOnce();
+		expect(widget.render).toHaveBeenCalledTimes(2);
+		expect(element('[data-open-form]').hidden).toBe(true);
+	});
+
+	test('removed mid-request, shows no error for the request it aborted', async () => {
+		const form = mountSection();
+		const section = element('comments-section');
+		const error = element('[data-comment-error]');
+
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(
+				(_url: string, options: RequestInit) =>
+					new Promise((_resolve, rejectRequest) => {
+						options.signal?.addEventListener('abort', () => {
+							rejectRequest(new DOMException('Aborted', 'AbortError'));
+						});
+					}),
+			),
+		);
+		submit(form);
+		section.remove();
+
+		await vi.waitFor(() => {
+			expect(form.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false);
+		});
+
+		expect(error.hidden).toBe(true);
 	});
 });
 
@@ -262,7 +298,7 @@ describe('remembered details', () => {
 			expect(fetch).toHaveBeenCalledOnce();
 		});
 
-		expect(readStoredDetails()).toBeUndefined();
+		expect(memory.read()).toBeUndefined();
 	});
 
 	test('opting in stores the name, email and URL but not the comment', async () => {
@@ -276,11 +312,11 @@ describe('remembered details', () => {
 			expect(fetch).toHaveBeenCalledOnce();
 		});
 
-		expect(readStoredDetails()).toEqual({ author: 'Ada', authorEmail: '', authorUrl: '' });
+		expect(memory.read()).toEqual({ author: 'Ada', authorEmail: '', authorUrl: '' });
 	});
 
 	test('fill the form on the next visit, and unticking the box forgets them', async () => {
-		saveStoredDetails({ author: 'Grace', authorEmail: 'grace@example.com', authorUrl: '' });
+		memory.save({ author: 'Grace', authorEmail: 'grace@example.com', authorUrl: '' });
 
 		const form = mountSection();
 
@@ -295,6 +331,6 @@ describe('remembered details', () => {
 			expect(fetch).toHaveBeenCalledOnce();
 		});
 
-		expect(readStoredDetails()).toBeUndefined();
+		expect(memory.read()).toBeUndefined();
 	});
 });

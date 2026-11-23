@@ -12,10 +12,10 @@ import { imgGroupSatteriPlugin } from '@xsynaptic/satteri-img-group';
 import { imageCachePath, sitemapLastmodPath } from '@xsynaptic/shared/constants';
 import { getUrlPathIndexing } from '@xsynaptic/shared/sitemap';
 import { defineConfig, envField, fontProviders } from 'astro/config';
-import oneDarkPro from 'shiki/themes/one-dark-pro.mjs';
 
 import devAudio from '#dev/audio/audio-integration.ts';
 import devInventory from '#dev/inventory/inventory-integration.ts';
+import { shikiTheme } from '#lib/utils/shiki-theme.ts';
 
 // `astro:env` is unavailable while the config evaluates, hence `process.env`
 const siteUrl = process.env.DEPLOY_SITE_URL ?? 'https://djbasilisk.com/';
@@ -120,7 +120,7 @@ export default defineConfig({
 				}),
 			],
 		}),
-		shikiConfig: { theme: { ...oneDarkPro, bg: 'var(--color-surface-800)' } },
+		shikiConfig: { theme: shikiTheme },
 	},
 	site: import.meta.env.PROD ? siteUrl : 'http://localhost:4321/',
 	vite: {

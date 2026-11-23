@@ -33,7 +33,8 @@
 	--text-4xl--line-height: 1.1;
 }
 
-@theme {
+/* Shiki writes token colours as inline `var()`, which Tailwind never scans */
+@theme static {
 	/* 500 is the content well, 700 the header band, 800 the page and inset panels, 900 the footer band */
 	--color-surface-50: oklch(79.6% 0.0099 237deg);
 	--color-surface-100: oklch(71% 0.0161 237deg);

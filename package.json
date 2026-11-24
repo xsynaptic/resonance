@@ -37,7 +37,7 @@
 		"@xsynaptic/plazmoid-core": "^0.2.0",
 		"@xsynaptic/plazmoid-player": "^0.2.0",
 		"@xsynaptic/plazmoid-stats": "^0.1.1",
-		"@xsynaptic/sonic-ui": "~0.32.0",
+		"@xsynaptic/sonic-ui": "~0.32.1",
 		"astro": "^7.4.13",
 		"p-memoize": "^9.0.0",
 		"yaml": "^2.9.1"
@@ -74,10 +74,10 @@
 		"@xsynaptic/web-components": "^0.1.1",
 		"eslint": "^10.15.0",
 		"eslint-plugin-jsx-a11y": "^6.10.2",
-		"fallow": "^3.45.0",
+		"fallow": "^3.47.0",
 		"globals": "^17.14.0",
 		"happy-dom": "^21.0.4",
-		"knip": "^6.46.1",
+		"knip": "^6.48.0",
 		"lefthook": "^2.2.2",
 		"ohash": "^2.0.12",
 		"pagefind": "^1.6.0",
@@ -91,10 +91,10 @@
 		"tailwindcss": "^4.3.5",
 		"typescript": "^6.0.3",
 		"vitest": "^5.1.1",
-		"wrangler": "^4.165.0",
+		"wrangler": "^4.166.0",
 		"zod": "^4.6.7"
 	},
-	"packageManager": "pnpm@12.21.0",
+	"packageManager": "pnpm@12.23.0",
 	"engines": {
 		"node": "^24.19.0"
 	}

@@ -1,4 +1,4 @@
-import type { PeaksDescriptor } from '@xsynaptic/plazmoid-wavedata';
+import type { WavedataDescriptor } from '@xsynaptic/plazmoid-wavedata';
 import type { MixAudioEntry } from '@xsynaptic/shared/schemas';
 
 import { mixAudioPath } from '@xsynaptic/shared/constants';
@@ -21,10 +21,9 @@ export const downloadBaseUrl = new URL('artifacts/', FILES_URL).href;
 export const audioOrigin = import.meta.env.DEV ? undefined : new URL(FILES_URL).origin;
 
 export interface MixAudio {
-	overview: string;
-	peaks: PeaksDescriptor;
 	seconds: number;
 	streamUrl: string;
+	waveform: WavedataDescriptor;
 }
 
 // The dev routes serve only filenames that appear here
@@ -61,22 +60,14 @@ async function buildIndex(): Promise<MixAudioIndex> {
 	const mixes = await readMixes(path.join(CONTENT_DATA_PATH, mixAudioPath));
 
 	for (const mix of mixes) {
+		const { path: waveformPath, ...facts } = mix.waveform;
 		const audio: MixAudio = {
-			overview: mix.overview,
-			peaks: {
-				...mix.facts,
-				bands: {
-					...mix.facts.bands,
-					url: `${waveformBaseUrl}${encodeURIComponent(mix.bands)}`,
-				},
-				url: `${waveformBaseUrl}${encodeURIComponent(mix.peaks)}`,
-			},
 			seconds: mix.seconds,
 			streamUrl: `${streamBaseUrl}${encodeURIComponent(mix.stream)}`,
+			waveform: { ...facts, url: `${waveformBaseUrl}${encodeURIComponent(waveformPath)}` },
 		};
 
-		index.waveformFiles.add(mix.peaks);
-		index.waveformFiles.add(mix.bands);
+		index.waveformFiles.add(waveformPath);
 		index.streams.add(mix.stream);
 
 		for (const source of mix.sources) index.byFile.set(source, audio);

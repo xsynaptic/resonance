@@ -10,10 +10,8 @@ import type { AudioSource } from '#audio/audio-sources.ts';
 
 import { audioSourceDir, streamsDir } from '#audio/audio-paths.ts';
 import { collectAudioSources } from '#audio/audio-sources.ts';
-import { collectBands } from '#audio/bands.ts';
-import { collectPeaks } from '#audio/peaks.ts';
 import { collectRenditions, readRenditionLoudness } from '#audio/renditions.ts';
-import { readOverview } from '#audio/waveforms.ts';
+import { collectWavedata, readStoredWaveform } from '#audio/waveforms.ts';
 import { contentDataPath } from '#shared/content-path.ts';
 
 const tmpExtension = '.tmp';
@@ -37,7 +35,7 @@ export async function generateAudioManifest(options: ManifestOptions): Promise<v
 
 	const { entries, incomplete, sourceCount } = await collectManifestEntries(rootPath);
 
-	const text = `Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition, peaks, bands and an overview`;
+	const text = `Manifest: ${String(entries.length)} of ${String(sourceCount)} mixes carry a rendition and a waveform`;
 
 	await withStep(text, async () => {
 		if (incomplete.length > 0) {
@@ -71,7 +69,7 @@ export async function readManifestFiles(
 
 		return {
 			streams: mixes.map((mix) => mix.stream),
-			waveformFiles: mixes.flatMap((mix) => [mix.peaks, mix.bands]),
+			waveformFiles: mixes.map((mix) => mix.waveform.path),
 		};
 	} catch {
 		return { streams: [], waveformFiles: [] };
@@ -96,8 +94,7 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 
 	const sources = await collectAudioSources(path.join(rootPath, audioSourceDir));
 	const renditions = await collectRenditions(path.join(rootPath, streamsDir));
-	const peakFiles = await collectPeaks(cacheDir);
-	const bandFiles = await collectBands(cacheDir);
+	const wavedataFiles = await collectWavedata(cacheDir);
 
 	const entries: Array<MixAudioEntry> = [];
 	const incomplete: Array<string> = [];
@@ -105,15 +102,14 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	for (const source of sources) {
 		const stream = renditions.get(source.base);
 		const entry = await resolveEntry({
-			bands: bandFiles.get(source.base),
 			cacheDir,
 			loudness:
 				stream === undefined
 					? undefined
 					: await readRenditionLoudness(path.join(rootPath, streamsDir, stream)),
-			peaks: peakFiles.get(source.base),
 			source,
 			stream,
+			wavedata: wavedataFiles.get(source.base),
 		});
 
 		if (entry) entries.push(entry);
@@ -123,38 +119,32 @@ async function collectManifestEntries(rootPath: string): Promise<ManifestEntries
 	return { entries, incomplete, sourceCount: sources.length };
 }
 
-// A mix missing its rendition, loudness tags, peaks, bands or overview is left out rather than half-published
+// A mix missing its rendition, loudness tags or waveform is left out rather than half-published
 async function resolveEntry({
-	bands,
 	cacheDir,
 	loudness,
-	peaks,
 	source,
 	stream,
+	wavedata,
 }: {
-	bands: string | undefined;
 	cacheDir: string;
 	loudness: StreamLoudness | undefined;
-	peaks: string | undefined;
 	source: AudioSource;
 	stream: string | undefined;
+	wavedata: string | undefined;
 }): Promise<MixAudioEntry | undefined> {
-	if (bands === undefined || loudness === undefined || peaks === undefined || stream === undefined)
-		return undefined;
+	if (loudness === undefined || stream === undefined || wavedata === undefined) return undefined;
 
-	const overview = await readOverview(cacheDir, source.base);
-	if (overview === undefined) return undefined;
+	const stored = await readStoredWaveform(cacheDir, source.base);
+	if (stored?.file !== wavedata) return undefined;
 
 	return {
-		bands,
 		base: source.base,
-		facts: overview.facts,
 		loudness,
-		overview: overview.values,
-		peaks,
-		seconds: overview.seconds,
+		seconds: stored.seconds,
 		sources: source.files,
 		stream,
+		waveform: { ...stored.facts, path: stored.file },
 	};
 }
 

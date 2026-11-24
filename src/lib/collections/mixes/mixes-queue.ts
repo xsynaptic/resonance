@@ -39,8 +39,7 @@ export async function getMixQueueItem(
 
 	return {
 		detail: {
-			peaks: audio.peaks,
-			waveformOverview: audio.overview,
+			waveform: audio.waveform,
 			// Only alongside the cue points it qualifies; on its own the count tells the panel nothing
 			...(cuePoints.length > 0
 				? { cuePoints, trackCount: toFlatTracks(entry.data.tracks).length || cuePoints.length }

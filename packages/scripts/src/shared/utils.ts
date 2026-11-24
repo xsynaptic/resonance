@@ -31,19 +31,6 @@ export async function ensureSshKeychain(): Promise<void> {
 	}
 }
 
-export async function readFileHead(file: string, bytes: number): Promise<Buffer> {
-	const handle = await fs.open(file, 'r');
-
-	try {
-		const head = Buffer.alloc(bytes);
-		const { bytesRead } = await handle.read(head, 0, bytes, 0);
-
-		return head.subarray(0, bytesRead);
-	} finally {
-		await handle.close();
-	}
-}
-
 export async function requireBinaries(
 	binaries: ReadonlyArray<string>,
 	formula: string,

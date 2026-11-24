@@ -27,7 +27,7 @@ const rsyncFlags = [
 
 const transferredOriginal = /\.(?:flac|mp3)$/i;
 const transferredRendition = /\.mp4$/i;
-const transferredWaveformFile = /\.bin$/i;
+const transferredWaveformFile = /\.wavedata$/i;
 
 export interface DeployedAudio {
 	originals: Array<string>;
@@ -69,7 +69,7 @@ const derivedLegs: Array<DerivedLeg> = [
 		transferred: transferredRendition,
 	},
 	{
-		// The overviews share this directory but are inlined into pages, so nothing serves them
+		// The facts share this directory but are inlined into pages, so nothing serves them
 		excludes: [...rsyncExcludes, '*.json'],
 		key: 'waveformFiles',
 		label: 'Waveform files',

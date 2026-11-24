@@ -1,62 +1,38 @@
-import {
-	bandCount,
-	bandsHeaderBytes,
-	describeWavedata,
-	overviewFullScale,
-	parsePeaksHeader,
-	peaksFieldCount,
-	peaksHeaderBytes,
-	samplesPerPair,
-	validateWavedata,
-} from '@xsynaptic/plazmoid-wavedata';
-import { WaveformFactsSchema } from '@xsynaptic/shared/schemas';
+import { headerBytes, pairsPerRecord, recordBytes } from '@xsynaptic/plazmoid-wavedata';
+import { WavedataFactsSchema } from '@xsynaptic/shared/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
-import type { MixAnalysis } from '#audio/analysis.ts';
-
 import { analyzeMix } from '#audio/analysis.ts';
 import { openWaveformsCache } from '#audio/audio-sources.ts';
-import { bandsRole, collectBands, readBandsHeader } from '#audio/bands.ts';
-import { landHashedOutput } from '#audio/hashed-outputs.ts';
-import { collectPeaks, peaksRole, readPeaksHeader } from '#audio/peaks.ts';
+import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
 import { hashFile, requireBinaries } from '#shared/utils.ts';
 
 const concurrency = 6;
-// One extension for both binaries; the role in the name says which is which
-const binaryExtension = '.bin';
-const overviewExtension = '.overview.json';
+const wavedataExtension = '.wavedata';
+const factsExtension = '.facts.json';
 const tmpExtension = '.tmp';
 
-// Bumped whenever the bucket count, the output range or the source values change; none is visible in an mtime
-const overviewVersion = 8;
-const overviewBuckets = 400;
+const wavedataPattern = /^(?<base>.+)\.[0-9a-f]{12}\.wavedata$/;
 
-const rmsField = 2;
+// Bumped whenever the analysis or the stored shape changes; neither is visible in an mtime
+const factsVersion = 9;
 
 // Rejecting a stale shape here is what stops it reaching a page
-const OverviewSchema = z.object({
-	facts: WaveformFactsSchema,
+const StoredWaveformSchema = z.object({
+	facts: WavedataFactsSchema,
+	file: z.string(),
 	seconds: z.number(),
-	values: z.string(),
-	version: z.literal(overviewVersion),
+	version: z.literal(factsVersion),
 });
 
-export type WaveformOverview = z.infer<typeof OverviewSchema>;
-
-export interface DistilledPeaks {
-	seconds: number;
-	// One byte per bucket, 255 at the loudest
-	values: Buffer;
-}
+export type StoredWaveform = z.infer<typeof StoredWaveformSchema>;
 
 interface WaveformJob {
-	bands: string | undefined;
 	base: string;
-	overview: string;
-	peaks: string | undefined;
+	file: string | undefined;
 	source: string;
 }
 
@@ -65,232 +41,106 @@ interface WaveformsOptions {
 	rootPath: string;
 }
 
-// Per bucket the RMS of its pairs' RMS, which is the RMS of its samples
-// Values are normalized here rather than in a renderer, so consumers never need the source units
-export function distillWaveform(peaks: Uint8Array): DistilledPeaks {
-	const { pairCount: pairs, sampleRate } = parsePeaksHeader(peaks);
-	if (peaks.length < peaksHeaderBytes + pairs * peaksFieldCount)
-		throw new Error('Peaks are truncated');
-
-	const fields = new Int8Array(
-		peaks.buffer,
-		peaks.byteOffset + peaksHeaderBytes,
-		pairs * peaksFieldCount,
-	);
-	const bucketCount = Math.min(overviewBuckets, pairs);
-	const buckets: Array<number> = [];
-	let peak = 0;
-
-	for (let bucket = 0; bucket < bucketCount; bucket += 1) {
-		const start = Math.floor((bucket * pairs) / bucketCount);
-		const end = Math.max(Math.floor(((bucket + 1) * pairs) / bucketCount), start + 1);
-		let sumOfSquares = 0;
-
-		for (let pair = start; pair < end; pair += 1) {
-			const rms = fields[pair * peaksFieldCount + rmsField] ?? 0;
-
-			sumOfSquares += rms * rms;
-		}
-
-		const rms = Math.sqrt(sumOfSquares / (end - start));
-		if (rms > peak) peak = rms;
-		buckets.push(rms);
-	}
-
-	return {
-		seconds: Math.round(((pairs * samplesPerPair) / sampleRate) * 10) / 10,
-		values: Buffer.from(
-			buckets.map((rms) => (peak > 0 ? Math.round((rms / peak) * overviewFullScale) : 0)),
-		),
-	};
+export async function collectWavedata(cacheDir: string): Promise<Map<string, string>> {
+	return collectHashedOutputs(cacheDir, wavedataPattern, 'waveform files');
 }
 
-// All three land in `.cache/` and are regenerable; `deploy-audio` ships the first two, the overviews only feed the manifest
 export async function generateWaveforms(options: WaveformsOptions): Promise<void> {
 	const { dryRun = false, rootPath } = options;
 
 	const { cacheDir, sources } = await openWaveformsCache(rootPath, tmpExtension);
-	const [peakFiles, bandFiles] = await Promise.all([
-		collectPeaks(cacheDir),
-		collectBands(cacheDir),
-	]);
+	const files = await collectWavedata(cacheDir);
 
 	const jobs = sources.map((source): WaveformJob => ({
-		bands: bandFiles.get(source.base),
 		base: source.base,
-		overview: overviewPath(cacheDir, source.base),
-		peaks: peakFiles.get(source.base),
+		file: files.get(source.base),
 		source: source.path,
 	}));
 
-	const plans = await Promise.all(jobs.map((job) => planJob(job, cacheDir)));
-	const pending = jobs
-		.map((job, index) => ({ job, plan: plans[index] ?? 'analyze' }))
-		.filter((entry) => entry.plan !== 'skip');
+	const current = await Promise.all(jobs.map((job) => isWaveformCurrent(job, cacheDir)));
+	const pending = jobs.filter((_, index) => current[index] !== true);
 
 	await runBatchStep({
 		concurrency,
-		describe: ({ job, plan }) => `${plan}: ${job.base}`,
+		describe: (job) => `analyze: ${job.base}`,
 		dryRun,
 		label: 'Waveforms',
 		noun: 'waveform',
 		pending,
 		// Below the plan, so a machine with nothing to analyze never fails a deploy over a missing binary
 		prepare: async () => {
-			if (pending.every(({ plan }) => plan !== 'analyze')) return;
+			if (pending.length === 0) return;
 
 			await requireBinaries(['ffmpeg', 'ffprobe'], 'ffmpeg');
 		},
-		run: async ({ job, plan }) => {
-			const analysis =
-				plan === 'analyze' ? await analyze(job, cacheDir) : await readAnalysis(job, cacheDir);
-
-			await distill(job, analysis);
-
-			return path.basename(job.overview);
-		},
+		run: (job) => analyze(job, cacheDir),
 		skipped: jobs.length - pending.length,
-		verb: { infinitive: 'derive', past: 'derived' },
+		verb: { infinitive: 'analyze', past: 'analyzed' },
 	});
 }
 
 // `undefined` for a missing file as for a stale shape, since either way there is nothing to publish
-export async function readOverview(
+export async function readStoredWaveform(
 	cacheDir: string,
 	base: string,
-): Promise<undefined | WaveformOverview> {
+): Promise<StoredWaveform | undefined> {
 	try {
-		const parsed: unknown = JSON.parse(await fs.readFile(overviewPath(cacheDir, base), 'utf8'));
+		const parsed: unknown = JSON.parse(await fs.readFile(factsPath(cacheDir, base), 'utf8'));
 
-		return OverviewSchema.parse(parsed);
+		return StoredWaveformSchema.parse(parsed);
 	} catch {
 		return undefined;
 	}
 }
 
-async function analyze(job: WaveformJob, cacheDir: string): Promise<MixAnalysis> {
+// The facts are written after the file they name, so an interrupted run reads as stale here
+async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 	const analysis = await analyzeMix(job.source);
-	const problems = validateWavedata(analysis);
+	const facts = WavedataFactsSchema.parse(analysis.facts);
+	const tmp = path.join(cacheDir, `${job.base}${wavedataExtension}${tmpExtension}`);
 
-	if (problems.length > 0) {
-		throw new Error(`Waveform data for "${job.base}" is not valid: ${problems.join('; ')}`);
-	}
+	await fs.writeFile(tmp, analysis.file);
 
-	await Promise.all([
-		landAnalysis(cacheDir, job.base, {
-			bytes: analysis.peaks,
-			existing: job.peaks,
-			role: peaksRole,
-		}),
-		landAnalysis(cacheDir, job.base, {
-			bytes: analysis.bands,
-			existing: job.bands,
-			role: bandsRole,
-		}),
-	]);
+	const name = `${job.base}.${await hashFile(tmp)}${wavedataExtension}`;
 
-	return analysis;
-}
+	await landHashedOutput(tmp, cacheDir, { existing: job.file, name });
 
-async function distill(job: WaveformJob, { bands, peaks }: MixAnalysis): Promise<void> {
-	const { seconds, values } = distillWaveform(peaks);
-	const overview: WaveformOverview = {
-		facts: describeWavedata({ bands, peaks }),
-		seconds,
-		values: values.toString('base64'),
-		version: overviewVersion,
+	const stored: StoredWaveform = {
+		facts,
+		file: name,
+		seconds: analysis.seconds,
+		version: factsVersion,
 	};
-	const tmp = `${job.overview}${tmpExtension}`;
+	const target = factsPath(cacheDir, job.base);
 
-	await fs.writeFile(tmp, `${JSON.stringify(overview)}\n`, 'utf8');
-	await fs.rename(tmp, job.overview);
+	await fs.writeFile(`${target}${tmpExtension}`, `${JSON.stringify(stored)}\n`, 'utf8');
+	await fs.rename(`${target}${tmpExtension}`, target);
+
+	return name;
 }
 
-// A stale rate or layout reads as not current through the header, so no external version constant is needed
-async function isAnalysisCurrent(job: WaveformJob, cacheDir: string): Promise<boolean> {
-	if (job.peaks === undefined || job.bands === undefined) return false;
+function factsPath(cacheDir: string, base: string): string {
+	return path.join(cacheDir, `${base}${factsExtension}`);
+}
 
-	const peaks = path.join(cacheDir, job.peaks);
-	const bands = path.join(cacheDir, job.bands);
+async function isWaveformCurrent(job: WaveformJob, cacheDir: string): Promise<boolean> {
+	if (job.file === undefined) return false;
+
+	const stored = await readStoredWaveform(cacheDir, job.base);
+
+	if (stored?.file !== job.file) return false;
+
+	const expectedBytes =
+		headerBytes + Math.ceil(stored.facts.pairCount / pairsPerRecord) * recordBytes(true);
 
 	try {
-		const [peaksStat, bandsStat, sourceStat, peaksHeader, bandsHeader] = await Promise.all([
-			fs.stat(peaks),
-			fs.stat(bands),
+		const [fileStat, sourceStat] = await Promise.all([
+			fs.stat(path.join(cacheDir, job.file)),
 			fs.stat(job.source),
-			readPeaksHeader(peaks),
-			readBandsHeader(bands),
 		]);
 
-		return (
-			peaksStat.mtimeMs >= sourceStat.mtimeMs &&
-			bandsStat.mtimeMs >= sourceStat.mtimeMs &&
-			peaksStat.size === peaksHeaderBytes + peaksHeader.pairCount * peaksFieldCount &&
-			bandsStat.size === bandsHeaderBytes + bandsHeader.frameCount * bandCount
-		);
+		return fileStat.mtimeMs >= sourceStat.mtimeMs && fileStat.size === expectedBytes;
 	} catch {
 		return false;
 	}
-}
-
-async function isOverviewCurrent(
-	job: WaveformJob,
-	cacheDir: string,
-	sources: Array<string>,
-): Promise<boolean> {
-	try {
-		const [overviewStat, ...sourceStats] = await Promise.all(
-			[job.overview, ...sources].map((file) => fs.stat(file)),
-		);
-
-		if (sourceStats.some((source) => (overviewStat?.mtimeMs ?? 0) < source.mtimeMs)) return false;
-	} catch {
-		return false;
-	}
-
-	// A bucket count or range change leaves the mtimes untouched, so the stored version is the check
-	return (await readOverview(cacheDir, job.base)) !== undefined;
-}
-
-async function landAnalysis(
-	cacheDir: string,
-	base: string,
-	{ bytes, existing, role }: { bytes: Uint8Array; existing: string | undefined; role: string },
-): Promise<void> {
-	const tmp = path.join(cacheDir, `${base}.${role}${binaryExtension}${tmpExtension}`);
-
-	await fs.writeFile(tmp, bytes);
-	await landHashedOutput(tmp, cacheDir, {
-		existing,
-		name: `${base}.${role}.${await hashFile(tmp)}${binaryExtension}`,
-	});
-}
-
-function overviewPath(cacheDir: string, base: string): string {
-	return path.join(cacheDir, `${base}${overviewExtension}`);
-}
-
-async function planJob(
-	job: WaveformJob,
-	cacheDir: string,
-): Promise<'analyze' | 'distill' | 'skip'> {
-	if (job.peaks === undefined || job.bands === undefined) return 'analyze';
-	if (!(await isAnalysisCurrent(job, cacheDir))) return 'analyze';
-
-	const sources = [path.join(cacheDir, job.peaks), path.join(cacheDir, job.bands)];
-
-	return (await isOverviewCurrent(job, cacheDir, sources)) ? 'skip' : 'distill';
-}
-
-async function readAnalysis(job: WaveformJob, cacheDir: string): Promise<MixAnalysis> {
-	if (job.peaks === undefined || job.bands === undefined) {
-		throw new Error(`No peaks and bands on disk for "${job.base}"`);
-	}
-
-	const [peaks, bands] = await Promise.all([
-		fs.readFile(path.join(cacheDir, job.peaks)),
-		fs.readFile(path.join(cacheDir, job.bands)),
-	]);
-
-	return { bands, peaks };
 }

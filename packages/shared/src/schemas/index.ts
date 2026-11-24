@@ -9,7 +9,7 @@ export type {
 export {
 	MixAudioDocumentSchema,
 	mixAudioVersion,
-	WaveformFactsSchema,
+	WavedataFactsSchema,
 } from '#schemas/mix-audio.ts';
 
 export type { MixAudioEntry, StreamLoudness } from '#schemas/mix-audio.ts';

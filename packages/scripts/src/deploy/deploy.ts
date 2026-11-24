@@ -195,6 +195,12 @@ async function probeAll(
 			);
 		}
 
+		// A range into encoded bytes is useless to the player even when it answers 206
+		const contentEncoding = response.headers.get('content-encoding');
+		if (contentEncoding !== null) {
+			throw new Error(`Range probe returned Content-Encoding '${contentEncoding}': ${url}`);
+		}
+
 		log.success(`${name} OK (206, ${contentRange}, ${contentType})`);
 	}
 }

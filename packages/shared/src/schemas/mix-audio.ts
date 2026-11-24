@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const mixAudioVersion = 8;
+export const mixAudioVersion = 9;
 
 // Measured from the decoded rendition, since its gain and codec overshoot put it apart from the master
 const StreamLoudnessSchema = z.object({
@@ -10,34 +10,27 @@ const StreamLoudnessSchema = z.object({
 
 export type StreamLoudness = z.infer<typeof StreamLoudnessSchema>;
 
-export const WaveformFactsSchema = z.object({
-	bands: z.object({
-		bandCount: z.number(),
-		byteOffset: z.number(),
-		frameCount: z.number(),
-		framesPerSecond: z.number(),
-		medians: z.number().array().readonly(),
-		minDecibels: z.number(),
-	}),
-	byteOffset: z.number(),
-	formatVersion: z.number(),
+// Strict, so a field a newer writer adds fails here instead of being dropped before the player
+export const WavedataFactsSchema = z.strictObject({
+	bands: z.strictObject({ medians: z.tuple([z.number(), z.number(), z.number()]).readonly() }),
+	formatVersion: z.literal(2),
+	mode: z.literal('overall'),
+	overview: z.string(),
 	pairCount: z.number(),
-	pairsPerSecond: z.number(),
 	rmsRange: z.tuple([z.number(), z.number()]).readonly(),
+	sampleRate: z.number(),
 });
+
+const MixWaveformSchema = WavedataFactsSchema.extend({ path: z.string() });
 
 // `sources` lists every file sharing the base, so a consumer looks up a name it already has
 const MixAudioEntrySchema = z.object({
-	bands: z.string(),
 	base: z.string(),
-	facts: WaveformFactsSchema,
 	loudness: StreamLoudnessSchema,
-	// Base64 of one byte per bucket, 255 at the loudest
-	overview: z.string(),
-	peaks: z.string(),
 	seconds: z.number(),
 	sources: z.string().array(),
 	stream: z.string(),
+	waveform: MixWaveformSchema,
 });
 
 export type MixAudioEntry = z.infer<typeof MixAudioEntrySchema>;

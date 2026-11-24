@@ -270,9 +270,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 		if (queue === 'tray') return trayQueue(rows);
 
 		if (queue === 'no-peaks') {
-			return items
-				.filter(({ detail }) => detail.waveformOverview === undefined)
-				.map(({ press }) => press);
+			return items.filter(({ detail }) => detail.waveform === undefined).map(({ press }) => press);
 		}
 
 		return rows;

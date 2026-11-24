@@ -65,7 +65,7 @@ export const failingUrls: PlayerUrls = {
 };
 
 // This page answers a range request with a 200, so no chunk lands and the panel holds on its placeholder
-const pendingPeaksUrl = '/inventory/player/';
+const pendingWaveformUrl = '/inventory/player/';
 
 export function pendingUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 	const urls = queuedUrls(items);
@@ -74,9 +74,9 @@ export function pendingUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 		...urls,
 		detail: async (item) => {
 			const detail = await urls.detail?.(item);
-			if (!detail?.peaks) return detail;
+			if (!detail?.waveform) return detail;
 
-			return { ...detail, peaks: { ...detail.peaks, url: pendingPeaksUrl } };
+			return { ...detail, waveform: { ...detail.waveform, url: pendingWaveformUrl } };
 		},
 	};
 }

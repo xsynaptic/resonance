@@ -1,97 +1,71 @@
+import type { WavedataFacts } from '@xsynaptic/plazmoid-wavedata';
+
 import { readSubprocess } from '@xsynaptic/astro-scripts';
-import { bandCount, bandEdges, buildBands, buildPeaks } from '@xsynaptic/plazmoid-wavedata';
+import { createWavedataWriter, validateWavedata } from '@xsynaptic/plazmoid-wavedata';
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import path from 'node:path';
-
-import { createBandAccumulator } from '#audio/bands.ts';
-import { createPairAccumulator } from '#audio/peaks.ts';
-
-// The mono mix, then the low, mid and high bands split from it
-const channelCount = 1 + bandCount;
-const sampleBytes = 4;
-const sampleSetBytes = channelCount * sampleBytes;
-
-export interface AnalysisReducer {
-	finish: () => { fields: Buffer; levels: Buffer };
-	push: (chunk: Buffer) => void;
-}
+import { z } from 'zod';
 
 export interface MixAnalysis {
-	bands: Uint8Array;
-	peaks: Uint8Array;
+	facts: WavedataFacts;
+	file: Uint8Array;
+	seconds: number;
 }
+
+const ProbeSchema = z.object({
+	streams: z
+		.tuple([
+			z.object({
+				duration_ts: z.number().int().positive(),
+				sample_rate: z.coerce.number().int().positive(),
+				time_base: z.string(),
+			}),
+		])
+		.rest(z.unknown()),
+});
 
 export async function analyzeMix(source: string): Promise<MixAnalysis> {
-	const sampleRate = await readSampleRate(source);
-	// An equal-weight mono mix; ffmpeg's default downmix is 1.41 times louder and would clip the peaks
-	const filter = `[0:a]pan=mono|c0=0.5*c0+0.5*c1,asplit=2[full][split];[split]acrossover=split=${bandEdges.join(' ')}:order=4th[low][mid][high];[full][low][mid][high]amerge=inputs=${String(channelCount)}[analysis]`;
-	const reducer = createAnalysisReducer();
-
-	await new Promise<void>((resolve, reject) => {
-		const ffmpeg = spawn(
-			'ffmpeg',
-			[
-				'-nostdin',
-				'-v',
-				'error',
-				'-vn',
-				'-i',
-				source,
-				'-filter_complex',
-				filter,
-				'-map',
-				'[analysis]',
-				'-f',
-				'f32le',
-				'-',
-			],
-			{ stdio: ['ignore', 'pipe', 'inherit'] },
-		);
-
-		ffmpeg.stdout.on('data', reducer.push);
-		ffmpeg.on('error', reject);
-		ffmpeg.on('close', (code) => {
-			if (code !== 0) {
-				reject(new Error(`ffmpeg exited ${String(code)} on ${path.basename(source)}`));
-				return;
-			}
-			resolve();
-		});
+	const name = path.basename(source);
+	const { frameCount, sampleRate } = await readSourceLength(source);
+	const writer = createWavedataWriter({ hasBands: true, mode: 'overall', sampleRate });
+	const ffmpeg = spawn('ffmpeg', writer.analysisArguments(source), {
+		stdio: ['ignore', 'pipe', 'inherit'],
 	});
-
-	const { fields, levels } = reducer.finish();
-
-	return { bands: buildBands(levels, sampleRate), peaks: buildPeaks(fields, sampleRate) };
-}
-
-export function createAnalysisReducer(): AnalysisReducer {
-	const pairs = createPairAccumulator();
-	const bands = createBandAccumulator();
-	let carry: Buffer = Buffer.alloc(0);
-
-	return {
-		finish: () => ({ fields: pairs.finish(), levels: bands.finish() }),
-		push: (chunk) => {
-			const data = carry.length > 0 ? Buffer.concat([carry, chunk]) : chunk;
-			const sampleSets = Math.floor(data.length / sampleSetBytes);
-
-			for (let sampleSet = 0; sampleSet < sampleSets; sampleSet += 1) {
-				const offset = sampleSet * sampleSetBytes;
-
-				pairs.add(data.readFloatLE(offset));
-				bands.add(
-					data.readFloatLE(offset + sampleBytes),
-					data.readFloatLE(offset + sampleBytes * 2),
-					data.readFloatLE(offset + sampleBytes * 3),
-				);
-			}
-
-			carry = data.subarray(sampleSets * sampleSetBytes);
-		},
+	const feed = async (): Promise<void> => {
+		for await (const chunk of ffmpeg.stdout) writer.push(chunk as Buffer);
 	};
+	// Awaited together, so a failed spawn rejects here instead of going unhandled
+	const [[code]] = (await Promise.all([once(ffmpeg, 'close'), feed()])) as [
+		[null | number],
+		undefined,
+	];
+
+	if (code !== 0) throw new Error(`ffmpeg exited ${String(code)} on ${name}`);
+
+	const { facts, file, sampleCount } = writer.finish();
+
+	// ffmpeg exits 0 on a truncated or damaged source, so this is the only proof the whole mix was read
+	if (sampleCount !== frameCount) {
+		throw new Error(
+			`The analysis of ${name} read ${String(sampleCount)} frames, but the source has ${String(frameCount)}`,
+		);
+	}
+
+	const problems = validateWavedata(file);
+
+	if (problems.length > 0) {
+		throw new Error(`Waveform data for ${name} is not valid: ${problems.join('; ')}`);
+	}
+
+	return { facts, file, seconds: Math.round((sampleCount / sampleRate) * 10) / 10 };
 }
 
-async function readSampleRate(source: string): Promise<number> {
+// `duration_ts` counts frames only when the time base is one frame, as FLAC's is
+async function readSourceLength(
+	source: string,
+): Promise<{ frameCount: number; sampleRate: number }> {
+	const name = path.basename(source);
 	const result = await readSubprocess([
 		'ffprobe',
 		'-v',
@@ -99,16 +73,21 @@ async function readSampleRate(source: string): Promise<number> {
 		'-select_streams',
 		'a:0',
 		'-show_entries',
-		'stream=sample_rate',
+		'stream=sample_rate,time_base,duration_ts',
 		'-of',
-		'default=nw=1:nk=1',
+		'json',
 		source,
 	]);
-	const sampleRate = Number(result.stdout.trim());
+	const parsed = ProbeSchema.safeParse(JSON.parse(result.stdout));
 
-	if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0) {
-		throw new Error(`No sample rate from ffprobe for ${path.basename(source)}`);
+	if (!parsed.success) throw new Error(`No sample rate and frame count from ffprobe for ${name}`);
+
+	const [{ duration_ts: frameCount, sample_rate: sampleRate, time_base: timeBase }] =
+		parsed.data.streams;
+
+	if (timeBase !== `1/${String(sampleRate)}`) {
+		throw new Error(`The time base of ${name} is ${timeBase}, so ffprobe gives no frame count`);
 	}
 
-	return sampleRate;
+	return { frameCount, sampleRate };
 }

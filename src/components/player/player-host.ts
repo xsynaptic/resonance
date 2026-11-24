@@ -1,8 +1,6 @@
-import type { PlayerUrls, Track } from '@xsynaptic/plazmoid-core';
+import type { PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/plazmoid-core';
 import type { PlayerLabels } from '@xsynaptic/plazmoid-player';
-
-import { holdPresses, isPlayerActionable } from '@xsynaptic/plazmoid-core/boot';
-import { bindAstroRouter, loadPersistedStylesheet } from '@xsynaptic/plazmoid-player/astro';
+import type { AstroPlayerConfig } from '@xsynaptic/plazmoid-player/astro';
 
 import type { MixQueueItem } from '#lib/collections/mixes/mixes-queue.ts';
 
@@ -20,81 +18,58 @@ const libraryTimeoutMs = 10_000;
 
 type Library = Map<string, MixQueueItem>;
 
-// Keyed by the host element, which the router carries into every page it persists the bar through
-const started = new WeakSet<Element>();
+export function configurePlayer(host: Element): AstroPlayerConfig {
+	const { labels, libraryUrl, seekSeconds, stylesheetUrl } = readConfig(host);
+	const loadLibrary = createLibraryLoader(libraryUrl);
+	let prefetched: Promise<Library | undefined> | undefined;
 
-// Called again on each page load, since a soft navigation can bring the first payload
-export function startPlayer(): void {
-	const host = document.querySelector('[data-player-host]');
-	if (!host || started.has(host) || !isPlayerActionable(document)) return;
+	return {
+		load: async () => {
+			prefetched = prefetchLibrary(loadLibrary);
 
-	started.add(host);
-	void loadPlayer(host);
-}
+			const [{ bindPlayerStats }, { bindPlayerAnalytics, trackControlPress }] = await Promise.all([
+				import('#components/player/player-stats.ts'),
+				import('#components/player/player-analytics.ts'),
+			]);
 
-async function loadPlayer(host: Element): Promise<void> {
-	const config = readConfig(host);
-	const presses = holdPresses(document);
+			return {
+				onPress: trackControlPress,
+				onReady: ({ store, view }) => {
+					void bindPlayerStats(store);
+					bindPlayerAnalytics(store, view);
+				},
+			};
+		},
+		player: { isScopeEnabled: true, labels, seekSeconds },
+		stylesheetUrl,
+		urls: (store) => {
+			const refreshQueue = queueRefresher(store);
 
-	const wanted = Promise.race([whenIdle(), presses.pressed]);
-	const loadLibrary = createLibraryLoader(config.libraryUrl);
-	const booted = bootLibrary(wanted, loadLibrary);
+			void prefetched?.then((library) => {
+				if (library) refreshQueue(library);
+			});
 
-	await Promise.all([wanted, loadPersistedStylesheet(config.stylesheetUrl)]);
-
-	const [
-		{ bindMediaSession, bindPageControls, createPlayerStore, loadedTrack },
-		{ createPlayer, createViewStore },
-		{ bindPlayerStats },
-		{ bindPlayerAnalytics, trackControlPress },
-	] = await Promise.all([
-		import('@xsynaptic/plazmoid-core'),
-		import('@xsynaptic/plazmoid-player'),
-		import('#components/player/player-stats.ts'),
-		import('#components/player/player-analytics.ts'),
-	]);
-
-	const store = createPlayerStore();
-	const view = createViewStore();
-	let hasRefreshed = false;
-
-	// A stored Queue catches up on any page, its content-hashed stream and artwork URLs included
-	function refreshQueue(library: Library): void {
-		if (hasRefreshed) return;
-
-		hasRefreshed = true;
-		store.getState().refreshQueue([...library.values()].map(({ press }) => press));
-	}
-
-	host.append(
-		createPlayer({
-			isScopeEnabled: true,
-			labels: config.labels,
-			seekSeconds: config.seekSeconds,
-			store,
-			urls: libraryUrls(async () => {
+			return libraryUrls(async () => {
 				const library = await loadLibrary();
 
 				refreshQueue(library);
 
 				return library;
-			}),
-			view,
-		}),
-	);
+			});
+		},
+	};
+}
 
-	void booted.then((library) => {
-		if (library) refreshQueue(library);
-	});
+// A stored Queue catches up on any page, its content-hashed stream and artwork URLs included
+function queueRefresher(store: PlayerStoreApi): (library: Library) => void {
+	let hasRefreshed = false;
 
-	const controls = bindPageControls(store, document, { onPress: trackControlPress });
+	return (library) => {
+		if (hasRefreshed) return;
 
-	presses.release();
-	bindAstroRouter(view, controls);
-	// Once per document, since Safari reconnects the persisted root on every navigation and a root's binding would clear the lock screen each time
-	bindMediaSession(store);
-	bindPlayerStats(store, () => loadedTrack(store.getState())?.trackId);
-	bindPlayerAnalytics(store, view);
+		hasRefreshed = true;
+		store.getState().refreshQueue([...library.values()].map(({ press }) => press));
+	};
 }
 
 // The stream comes from the press row, so a press never waits on the Library
@@ -135,12 +110,7 @@ function createLibraryLoader(url: string): () => Promise<Library> {
 	};
 }
 
-async function bootLibrary(
-	wanted: Promise<void>,
-	loadLibrary: () => Promise<Library>,
-): Promise<Library | undefined> {
-	await wanted;
-
+async function prefetchLibrary(loadLibrary: () => Promise<Library>): Promise<Library | undefined> {
 	try {
 		return await loadLibrary();
 	} catch {
@@ -169,17 +139,4 @@ function readConfig(host: Element): PlayerBarConfig {
 	if (!source) throw new Error('The player host carries no script of labels and options');
 
 	return JSON.parse(source) as PlayerBarConfig;
-}
-
-function whenIdle(): Promise<void> {
-	return new Promise((resolve) => {
-		if (typeof requestIdleCallback === 'function') {
-			requestIdleCallback(() => {
-				resolve();
-			});
-			return;
-		}
-
-		setTimeout(resolve, 200);
-	});
 }

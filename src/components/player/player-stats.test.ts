@@ -16,8 +16,11 @@ function storeWithElement() {
 	const element = document.createElement('audio');
 
 	return {
-		getState: () => ({ getMediaElement: () => element }),
-		subscribe: vi.fn(() => vi.fn()),
+		getState: () => ({
+			currentIndex: 0,
+			getMediaElement: () => element,
+			queue: [{ trackId: 'a-mix' }],
+		}),
 	} as unknown as Parameters<typeof bindPlayerStats>[0];
 }
 
@@ -33,17 +36,18 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-test('a playing element is monitored', () => {
-	bindPlayerStats(storeWithElement(), () => 'a-mix');
+test('a playing element is monitored under the loaded track', async () => {
+	await bindPlayerStats(storeWithElement());
 
 	expect(monitor.monitorPlayback).toHaveBeenCalledOnce();
+	expect(monitor.monitorPlayback.mock.calls[0]?.[1]?.identify()).toBe('a-mix');
 });
 
-test('a report goes out as the beacon the worker reads', () => {
+test('a report goes out as the beacon the worker reads', async () => {
 	const beacon = vi.fn((_url: string, _body: string): void => undefined);
 
 	vi.stubGlobal('navigator', { sendBeacon: beacon });
-	bindPlayerStats(storeWithElement(), () => 'a-mix');
+	await bindPlayerStats(storeWithElement());
 
 	const onReport = monitor.monitorPlayback.mock.calls[0]?.[1]?.onReport;
 
@@ -57,48 +61,18 @@ test('a report goes out as the beacon the worker reads', () => {
 	expect(JSON.parse(String(body))).toEqual({ id: 'listen-1', mixId: 'a-mix', seconds: 95 });
 });
 
-test('an element that appears after binding is monitored once', () => {
-	const media: { element?: HTMLAudioElement } = {};
-	let listener: (() => void) | undefined;
-	const notify = (): void => listener?.();
-	const store = {
-		getState: () => ({ getMediaElement: () => media.element }),
-		subscribe: (subscribed: () => void) => {
-			listener = subscribed;
-			return () => {
-				listener = undefined;
-			};
-		},
-	} as unknown as Parameters<typeof bindPlayerStats>[0];
-
-	bindPlayerStats(store, () => 'a-mix');
-	notify();
-
-	expect(monitor.monitorPlayback).not.toHaveBeenCalled();
-
-	media.element = document.createElement('audio');
-	notify();
-	notify();
-
-	expect(monitor.monitorPlayback).toHaveBeenCalledOnce();
-	expect(monitor.monitorPlayback.mock.calls[0]?.[0]).toBe(media.element);
-});
-
-test('an opted-out browser is never monitored', () => {
+test('an opted-out browser is never monitored', async () => {
 	localStorage.setItem(statsOptOutStorageKey, '1');
 
-	const unbind = bindPlayerStats(storeWithElement(), () => 'a-mix');
+	await bindPlayerStats(storeWithElement());
 
 	expect(monitor.monitorPlayback).not.toHaveBeenCalled();
-	expect(() => {
-		unbind();
-	}).not.toThrow();
 });
 
-test('Do Not Track is never monitored', () => {
+test('Do Not Track is never monitored', async () => {
 	vi.stubGlobal('navigator', { doNotTrack: '1' });
 
-	bindPlayerStats(storeWithElement(), () => 'a-mix');
+	await bindPlayerStats(storeWithElement());
 
 	expect(monitor.monitorPlayback).not.toHaveBeenCalled();
 });

@@ -26,7 +26,7 @@ const fastPlaybackRate = 4;
 
 const heardSecondsMinimum = 30;
 
-// `loadPlayer` awaits the stylesheet; one second sits inside WebKit's gesture window, which expires by eight
+// The boot awaits the stylesheet; one second sits inside WebKit's gesture window, which expires by eight
 const stylesheetDelayMs = 1000;
 
 test.describe.configure({ timeout: 45_000 });
@@ -140,7 +140,7 @@ function readHost(page: Page) {
 
 async function readStylesheetUrl(page: Page): Promise<string> {
 	const config = await page
-		.locator('[data-player-host] script[type="application/json"]')
+		.locator('[data-pzm-host] script[type="application/json"]')
 		.first()
 		.textContent();
 

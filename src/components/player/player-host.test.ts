@@ -1,45 +1,21 @@
 // @vitest-environment happy-dom
-import type { PlayerUrls } from '@xsynaptic/plazmoid-core';
+import type { PlayerStoreApi, PlayerUrls } from '@xsynaptic/plazmoid-core';
+import type { ViewStoreApi } from '@xsynaptic/plazmoid-player';
 
-import { heldPressAttribute } from '@xsynaptic/plazmoid-core/constants';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';
 
-const refreshQueue = vi.hoisted(() => vi.fn());
-const store = vi.hoisted(() => ({ getState: () => ({ refreshQueue }) }));
-
-const view = vi.hoisted(() => ({}));
-
-const core = vi.hoisted(() => ({
-	bindMediaSession: vi.fn(),
-	bindPageControls: vi.fn(() => ({ refresh: vi.fn(), unbind: vi.fn() })),
-	createPlayerStore: vi.fn(() => store),
-	loadedTrack: vi.fn(),
-}));
-
-const elements = vi.hoisted(() => ({
-	createPlayer: vi.fn(() => document.createElement('pzm-root')),
-	createViewStore: vi.fn(() => view),
-}));
-
-// Bound for real under `NODE_ENV=production`, where `import.meta.env.DEV` stops short-circuiting it
-const stats = vi.hoisted(() => ({ bindPlayerStats: vi.fn() }));
 const analytics = vi.hoisted(() => ({ bindPlayerAnalytics: vi.fn(), trackControlPress: vi.fn() }));
+const stats = vi.hoisted(() => ({ bindPlayerStats: vi.fn() }));
 
-vi.mock('@xsynaptic/plazmoid-core', () => core);
-vi.mock('@xsynaptic/plazmoid-player', () => elements);
 vi.mock('#components/player/player-analytics.ts', () => analytics);
 vi.mock('#components/player/player-stats.ts', () => stats);
 
-import { startPlayer } from '#components/player/player-host.ts';
+import { configurePlayer } from '#components/player/player-host.ts';
 
-function control(selector: string): HTMLElement {
-	const found = document.querySelector<HTMLElement>(selector);
-	if (!found) throw new Error(`No control matches ${selector}`);
-
-	return found;
-}
+const refreshQueue = vi.fn();
+const store = { getState: () => ({ refreshQueue }) } as unknown as PlayerStoreApi;
 
 const libraryEntry = {
 	detail: { trackCount: 3 },
@@ -52,7 +28,8 @@ const libraryEntry = {
 	},
 };
 
-function mountPage({ hasPayload }: { hasPayload: boolean }): void {
+function createHost(): Element {
+	const host = document.createElement('div');
 	const config = JSON.stringify({
 		labels: getPlayerLabels(),
 		libraryUrl: '/api/player/library.json?v=abc',
@@ -60,96 +37,51 @@ function mountPage({ hasPayload }: { hasPayload: boolean }): void {
 		stylesheetUrl: 'data:text/css,',
 	});
 
-	document.body.innerHTML = `
-		${hasPayload ? '<div data-pzm-payload="[]"></div>' : ''}
-		<button data-pzm-play-track="a"><span>Play</span></button>
-		<button data-pzm-queue-track="a">Queue</button>
-		<div data-player-host><script type="application/json">${config}</script></div>
-	`;
+	host.innerHTML = `<script type="application/json">${config}</script>`;
+
+	return host;
 }
 
-async function startWithUrls(): Promise<PlayerUrls> {
-	vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
-		callback();
+async function boot(): Promise<PlayerUrls> {
+	const { load, urls } = configurePlayer(createHost());
 
-		return 0;
-	});
-	mountPage({ hasPayload: true });
-	startPlayer();
+	await load?.();
 
-	await vi.waitFor(() => {
-		expect(elements.createPlayer).toHaveBeenCalledOnce();
-	});
-
-	const [{ urls }] = elements.createPlayer.mock.lastCall as unknown as [{ urls: PlayerUrls }];
-
-	return urls;
+	return urls(store);
 }
 
 function settle(): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, 50));
+	return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-beforeEach(() => {
-	vi.stubGlobal(
-		'fetch',
-		vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
-	);
-});
-
 afterEach(() => {
-	document.body.replaceChildren();
 	vi.clearAllMocks();
 	vi.unstubAllGlobals();
 });
 
-describe('startPlayer', () => {
-	test('a press before idle loads the player at once and is held for the page controls', async () => {
-		vi.stubGlobal('requestIdleCallback', () => 0);
-		mountPage({ hasPayload: true });
-		startPlayer();
-		await settle();
-
-		expect(elements.createPlayer).not.toHaveBeenCalled();
-
-		control('[data-pzm-play-track] span').click();
-
-		await vi.waitFor(() => {
-			expect(core.bindPageControls).toHaveBeenCalledWith(store, document, {
-				onPress: analytics.trackControlPress,
-			});
-		});
-
-		expect(elements.createPlayer).toHaveBeenCalledWith(
-			expect.objectContaining({ isScopeEnabled: true, seekSeconds: 30, store, view }),
+describe('configurePlayer', () => {
+	test('the bar shows the scope and the seek step, presses are tracked, and stats and analytics bind once ready', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
 		);
-		expect(document.querySelector('[data-player-host] > pzm-root')).not.toBeNull();
-		expect(core.bindMediaSession).toHaveBeenCalledWith(store);
-		expect(stats.bindPlayerStats).toHaveBeenCalledWith(store, expect.any(Function));
-		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledWith(store, view);
-		expect(control('[data-pzm-play-track]').hasAttribute(heldPressAttribute)).toBe(true);
-	});
 
-	test('a later page load that brings a payload starts the player, and only once', async () => {
-		vi.stubGlobal('requestIdleCallback', (callback: () => void) => {
-			callback();
+		const { load, player, stylesheetUrl } = configurePlayer(createHost());
+		const hooks = await load?.();
+		const view = {} as ViewStoreApi;
 
-			return 0;
+		hooks?.onReady?.({
+			controls: { refresh: vi.fn(), unbind: vi.fn() },
+			root: document.createElement('pzm-root'),
+			store,
+			view,
 		});
-		mountPage({ hasPayload: false });
-		startPlayer();
-		await settle();
 
-		expect(elements.createPlayer).not.toHaveBeenCalled();
-
-		document.body.insertAdjacentHTML('afterbegin', '<div data-pzm-payload="[]"></div>');
-		startPlayer();
-		startPlayer();
-
-		await vi.waitFor(() => {
-			expect(elements.createPlayer).toHaveBeenCalledOnce();
-		});
-		expect(core.bindMediaSession).toHaveBeenCalledOnce();
+		expect(player).toMatchObject({ isScopeEnabled: true, seekSeconds: 30 });
+		expect(stylesheetUrl).toBe('data:text/css,');
+		expect(hooks?.onPress).toBe(analytics.trackControlPress);
+		expect(stats.bindPlayerStats).toHaveBeenCalledExactlyOnceWith(store);
+		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledExactlyOnceWith(store, view);
 	});
 
 	test('the Library refreshes the stored Queue with its press rows, and answers for detail', async () => {
@@ -157,7 +89,7 @@ describe('startPlayer', () => {
 
 		vi.stubGlobal('fetch', fetchLibrary);
 
-		const urls = await startWithUrls();
+		const urls = await boot();
 
 		await vi.waitFor(() => {
 			expect(refreshQueue).toHaveBeenCalledWith([libraryEntry.press]);
@@ -180,8 +112,9 @@ describe('startPlayer', () => {
 
 		vi.stubGlobal('fetch', fetchLibrary);
 
-		const urls = await startWithUrls();
+		const urls = await boot();
 
+		await settle();
 		await expect(urls.detail?.(libraryEntry.press)).rejects.toThrow('Failed to fetch');
 		expect(refreshQueue).not.toHaveBeenCalled();
 
@@ -204,7 +137,7 @@ describe('startPlayer', () => {
 
 		vi.stubGlobal('fetch', fetchLibrary);
 
-		const urls = await startWithUrls();
+		const urls = await boot();
 		const answer = urls.detail?.(libraryEntry.press);
 
 		timeout.abort();
@@ -214,20 +147,5 @@ describe('startPlayer', () => {
 		expect(fetchLibrary).toHaveBeenCalledOnce();
 
 		timeoutSignal.mockRestore();
-	});
-
-	test('a press once the page controls are bound is left to them', async () => {
-		vi.stubGlobal('requestIdleCallback', () => 0);
-		mountPage({ hasPayload: true });
-		startPlayer();
-		control('[data-pzm-play-track]').click();
-
-		await vi.waitFor(() => {
-			expect(core.bindPageControls).toHaveBeenCalledOnce();
-		});
-
-		control('[data-pzm-queue-track]').click();
-
-		expect(control('[data-pzm-queue-track]').hasAttribute(heldPressAttribute)).toBe(false);
 	});
 });

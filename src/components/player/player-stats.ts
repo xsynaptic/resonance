@@ -1,6 +1,7 @@
 import type { PlayerStoreApi } from '@xsynaptic/plazmoid-core';
 import type { PlaybackReport } from '@xsynaptic/plazmoid-stats';
 
+import { loadedTrack, whenMediaElement } from '@xsynaptic/plazmoid-core';
 import { monitorPlayback } from '@xsynaptic/plazmoid-stats';
 
 import { isOptedOut } from '#components/player/player-opt-out.ts';
@@ -8,36 +9,16 @@ import { isOptedOut } from '#components/player/player-opt-out.ts';
 // The Worker refuses to open a listen below this, so nothing shorter is worth a request
 const minimumSeconds = 30;
 
-export function bindPlayerStats(
-	store: PlayerStoreApi,
-	identify: () => string | undefined,
-): () => void {
-	if (import.meta.env.DEV || navigator.doNotTrack === '1' || isOptedOut()) return doNothing;
+export async function bindPlayerStats(store: PlayerStoreApi): Promise<void> {
+	if (import.meta.env.DEV || navigator.doNotTrack === '1' || isOptedOut()) return;
 
-	const element = store.getState().getMediaElement();
+	const element = await whenMediaElement(store);
 
-	if (element) return monitorPlayback(element, { identify, minimumSeconds, onReport });
-
-	// The engine is built on the first load, so the monitor waits for the element to exist
-	let unmonitor: (() => void) | undefined;
-
-	const unsubscribe = store.subscribe(() => {
-		const loaded = store.getState().getMediaElement();
-
-		if (!loaded) return;
-
-		unsubscribe();
-		unmonitor = monitorPlayback(loaded, { identify, minimumSeconds, onReport });
+	monitorPlayback(element, {
+		identify: () => loadedTrack(store.getState())?.trackId,
+		minimumSeconds,
+		onReport,
 	});
-
-	return () => {
-		unsubscribe();
-		unmonitor?.();
-	};
-}
-
-function doNothing(): void {
-	// Nothing was bound, so there is nothing to unbind
 }
 
 // The result is ignored: the next report carries the same running total, so a dropped one costs nothing

@@ -182,17 +182,17 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0(wrangler@4.165.0(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))
       '@xsynaptic/plazmoid-core':
-        specifier: ^0.1.1
-        version: 0.1.1(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
+        specifier: ^0.2.0
+        version: 0.2.0(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
       '@xsynaptic/plazmoid-player':
-        specifier: ^0.1.1
-        version: 0.1.1(@types/react@19.3.0)(@xsynaptic/plazmoid-core@0.1.1(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))(@xsynaptic/sonic-ui@0.31.0)(react@19.3.1)
+        specifier: ^0.2.0
+        version: 0.2.0(@types/react@19.3.0)(@xsynaptic/plazmoid-core@0.2.0(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))(@xsynaptic/sonic-ui@0.32.0)(react@19.3.1)
       '@xsynaptic/plazmoid-stats':
         specifier: ^0.1.1
         version: 0.1.1
       '@xsynaptic/sonic-ui':
-        specifier: ~0.31.0
-        version: 0.31.0
+        specifier: ~0.32.0
+        version: 0.32.0
       astro:
         specifier: ^7.4.13
         version: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
@@ -2772,8 +2772,8 @@ packages:
     engines: {node: '>=24'}
     hasBin: true
 
-  '@xsynaptic/plazmoid-core@0.1.1':
-    resolution: {integrity: sha512-77jQ/x+UKq5RpqJ8MBUrdgPcoy76x1ExXiKHjJKsMykoK9fUZ63jZaG/tXOF/INzGZ2y9VRmDrqPVWa0l2bq8A==}
+  '@xsynaptic/plazmoid-core@0.2.0':
+    resolution: {integrity: sha512-2rvEs/XOPLYr4XJLSEdJ/QKnDLuBhg8SEcnrZ1h1KYkG4724Vicfp5tYYdcV4WRwfoOvQhP8k87WHLS65N69yA==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
       vitest: ^5.1.1
@@ -2781,12 +2781,12 @@ packages:
       vitest:
         optional: true
 
-  '@xsynaptic/plazmoid-player@0.1.1':
-    resolution: {integrity: sha512-sDgrg+lWAbylTcXtK1+2EOU7RWADGEy8T/10crvdRSpJCxN16GcLcRfImda1J6IcC7W509GkBQcpJxWPE5AYJQ==}
+  '@xsynaptic/plazmoid-player@0.2.0':
+    resolution: {integrity: sha512-HRiZHEX8oj2T5rYX7pqlawezSnoGCW/fYGqDGRN7Gu9YvbL9/WqxS0aavx53c+Yga9HO5+thC/7CJveggws9cQ==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
-      '@xsynaptic/plazmoid-core': ^0.1.1
-      '@xsynaptic/sonic-ui': ~0.31.0
+      '@xsynaptic/plazmoid-core': ^0.2.0
+      '@xsynaptic/sonic-ui': ~0.32.0
 
   '@xsynaptic/plazmoid-stats@0.1.1':
     resolution: {integrity: sha512-6Y83SSx/1JypRW6pU0CCjA60Le4+BJoXvxrPO0XqtbgYa9difMpKs3RptfMRXXPZfvjna1BWczNw6EuytFhF/A==}
@@ -2806,8 +2806,8 @@ packages:
     peerDependencies:
       satteri: ^0.10.0 || ^0.11.0
 
-  '@xsynaptic/sonic-ui@0.31.0':
-    resolution: {integrity: sha512-PIfQ8C2gbWXTe7cA3HK2fiwwMQV7hN+Avc7lSM33MOonMz4Zbb7k+3gq47kOvl3FwnkXquE2wntuJp0gt2BIQQ==}
+  '@xsynaptic/sonic-ui@0.32.0':
+    resolution: {integrity: sha512-AmtFb7mfiy6H9tuJqisTZ6LSoC8DPQoVoRU7arrMvcpMlyABFCZUVU7H7mVp3Eu41EVHC6+Y9m4U8E9OdCSEHg==}
     engines: {node: '>=24.0.0'}
 
   '@xsynaptic/stylelint-config@1.1.7':
@@ -8400,7 +8400,7 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@xsynaptic/plazmoid-core@0.1.1(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))':
+  '@xsynaptic/plazmoid-core@0.2.0(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))':
     dependencies:
       '@xsynaptic/plazmoid-wavedata': 0.1.1
       zustand: 5.1.0(@types/react@19.3.0)(react@19.3.1)
@@ -8412,11 +8412,11 @@ snapshots:
       - react
       - use-sync-external-store
 
-  '@xsynaptic/plazmoid-player@0.1.1(@types/react@19.3.0)(@xsynaptic/plazmoid-core@0.1.1(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))(@xsynaptic/sonic-ui@0.31.0)(react@19.3.1)':
+  '@xsynaptic/plazmoid-player@0.2.0(@types/react@19.3.0)(@xsynaptic/plazmoid-core@0.2.0(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))))(@xsynaptic/sonic-ui@0.32.0)(react@19.3.1)':
     dependencies:
-      '@xsynaptic/plazmoid-core': 0.1.1(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
+      '@xsynaptic/plazmoid-core': 0.2.0(@types/react@19.3.0)(react@19.3.1)(vitest@5.1.1(@types/node@24.19.2)(happy-dom@21.0.4)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
       '@xsynaptic/plazmoid-wavedata': 0.1.1
-      '@xsynaptic/sonic-ui': 0.31.0
+      '@xsynaptic/sonic-ui': 0.32.0
       zustand: 5.1.0(@types/react@19.3.0)(react@19.3.1)
     transitivePeerDependencies:
       - '@types/react'
@@ -8438,7 +8438,7 @@ snapshots:
       satteri: 0.11.7
       zod: 4.6.7
 
-  '@xsynaptic/sonic-ui@0.31.0': {}
+  '@xsynaptic/sonic-ui@0.32.0': {}
 
   '@xsynaptic/stylelint-config@1.1.7(postcss@8.5.33)(stylelint-order@8.1.3(stylelint@17.16.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.16.0(supports-color@10.2.2)(typescript@6.0.3))':
     dependencies:

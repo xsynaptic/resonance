@@ -3,6 +3,7 @@
 	"type": "module",
 	"version": "2.0.0",
 	"private": true,
+	"description": "Astro source for djbasilisk.com, an archive of DJ mixes, music reviews, and writing about electronic music",
 	"scripts": {
 		"dev": "astro dev",
 		"build": "pnpm scripts build",
@@ -33,10 +34,10 @@
 	},
 	"dependencies": {
 		"@xsynaptic/astro-comments": "^0.4.0",
-		"@xsynaptic/plazmoid-core": "^0.1.1",
-		"@xsynaptic/plazmoid-player": "^0.1.1",
+		"@xsynaptic/plazmoid-core": "^0.2.0",
+		"@xsynaptic/plazmoid-player": "^0.2.0",
 		"@xsynaptic/plazmoid-stats": "^0.1.1",
-		"@xsynaptic/sonic-ui": "~0.31.0",
+		"@xsynaptic/sonic-ui": "~0.32.0",
 		"astro": "^7.4.13",
 		"p-memoize": "^9.0.0",
 		"yaml": "^2.9.1"

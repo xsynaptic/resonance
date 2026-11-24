@@ -16,7 +16,7 @@ export default defineCommentsConfig({
 		},
 	},
 	ignoredOrphans: draftThreads,
-	ownerEmails: [process.env.COMMENTS_OWNER_EMAIL],
+	owners: { basilisk: [process.env.COMMENTS_OWNER_EMAIL] },
 	snapshotDirectory: 'node_modules/.cache/comments',
 	threadRegistry: 'dist/comment-threads.json',
 });

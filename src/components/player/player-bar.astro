@@ -12,12 +12,13 @@ const config = JSON.stringify({
 }).replaceAll('<', String.raw`\u003c`);
 ---
 
-<div data-player-host transition:persist="player">
+<div data-pzm-host transition:persist="player">
 	<script is:inline set:html={config} type="application/json"></script>
 </div>
 <script>
-	import { startPlayer } from '#components/player/player-host.ts';
+	import { startAstroPlayer } from '@xsynaptic/plazmoid-player/astro';
 
-	startPlayer();
-	document.addEventListener('astro:page-load', startPlayer);
+	import { configurePlayer } from '#components/player/player-host.ts';
+
+	startAstroPlayer(configurePlayer);
 </script>

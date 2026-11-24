@@ -63,6 +63,8 @@ const strings = {
 		'What the writing is about, from charts and interviews to graphic design.',
 	'collection.themes.title': 'Themes',
 	'comments.error.challenge': 'The challenge did not pass. Please reload the page and try again.',
+	'comments.error.challengePending':
+		'The challenge has not finished yet. Please wait a moment and try again.',
 	'comments.error.closed': 'This entry is closed to new comments.',
 	'comments.error.entryMissing': 'That entry does not exist.',
 	'comments.error.invalid': 'That submission was not valid.',

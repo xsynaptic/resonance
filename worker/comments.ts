@@ -11,6 +11,7 @@ import { t } from '#lib/i18n/i18n-strings.ts';
 
 const commentMessages = {
 	challenge: t('comments.error.challenge'),
+	challengePending: t('comments.error.challengePending'),
 	closed: t('comments.error.closed'),
 	invalid: t('comments.error.invalid'),
 	parentMissing: t('comments.error.parentMissing'),

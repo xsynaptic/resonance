@@ -280,8 +280,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(supports-color@10.2.2)
       '@xsynaptic/plazmoid-wavedata':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@xsynaptic/satteri-auto-import':
         specifier: ^0.2.2
         version: 0.2.2(satteri@0.11.7)
@@ -397,8 +397,8 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(satteri@0.11.7)
       '@xsynaptic/plazmoid-wavedata':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@xsynaptic/shared':
         specifier: workspace:*
         version: link:../shared
@@ -2794,6 +2794,10 @@ packages:
 
   '@xsynaptic/plazmoid-wavedata@0.2.0':
     resolution: {integrity: sha512-ByWQ0yt/6BpBxHZPtivZtYF+13ogObycH+A0VdDPNf4vDpFkxDfrRnbv6AjBb5KYxOYsdAFDOUn8iyD88IVilg==}
+    engines: {node: '>=24.0.0'}
+
+  '@xsynaptic/plazmoid-wavedata@0.3.0':
+    resolution: {integrity: sha512-fDlj8TUup2kof8YKrYcMckxAqpn+E+E+qyTxgAb80jPsINNp1UrpKwu/rV3fZhSLeOVEloyvy5zRIfmLRDNWSg==}
     engines: {node: '>=24.0.0'}
 
   '@xsynaptic/satteri-auto-import@0.2.2':
@@ -8418,6 +8422,8 @@ snapshots:
   '@xsynaptic/plazmoid-stats@0.1.1': {}
 
   '@xsynaptic/plazmoid-wavedata@0.2.0': {}
+
+  '@xsynaptic/plazmoid-wavedata@0.3.0': {}
 
   '@xsynaptic/satteri-auto-import@0.2.2(satteri@0.11.7)':
     dependencies:

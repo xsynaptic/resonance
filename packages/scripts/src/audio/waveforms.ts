@@ -1,10 +1,10 @@
 import { headerBytes, pairsPerRecord, recordBytes } from '@xsynaptic/plazmoid-wavedata';
+import { writeSourceWavedata } from '@xsynaptic/plazmoid-wavedata/node';
 import { WavedataFactsSchema } from '@xsynaptic/shared/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
-import { analyzeMix } from '#audio/analysis.ts';
 import { openWaveformsCache } from '#audio/audio-sources.ts';
 import { collectHashedOutputs, landHashedOutput } from '#audio/hashed-outputs.ts';
 import { runBatchStep } from '#shared/batch-run.ts';
@@ -95,7 +95,11 @@ export async function readStoredWaveform(
 
 // The facts are written after the file they name, so an interrupted run reads as stale here
 async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
-	const analysis = await analyzeMix(job.source);
+	const analysis = await writeSourceWavedata({
+		hasBands: true,
+		mode: 'overall',
+		source: job.source,
+	});
 	const facts = WavedataFactsSchema.parse(analysis.facts);
 	const tmp = path.join(cacheDir, `${job.base}${wavedataExtension}${tmpExtension}`);
 
@@ -108,7 +112,7 @@ async function analyze(job: WaveformJob, cacheDir: string): Promise<string> {
 	const stored: StoredWaveform = {
 		facts,
 		file: name,
-		seconds: analysis.seconds,
+		seconds: Math.round((analysis.sampleCount / analysis.sampleRate) * 10) / 10,
 		version: factsVersion,
 	};
 	const target = factsPath(cacheDir, job.base);

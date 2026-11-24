@@ -65,7 +65,7 @@
 		"@xsynaptic/astro-syndication": "^0.2.0",
 		"@xsynaptic/eslint-config": "^6.10.0",
 		"@xsynaptic/mdxlint-config": "^2.0.0",
-		"@xsynaptic/plazmoid-wavedata": "^0.2.0",
+		"@xsynaptic/plazmoid-wavedata": "^0.3.0",
 		"@xsynaptic/satteri-auto-import": "^0.2.2",
 		"@xsynaptic/satteri-img-group": "^2.0.2",
 		"@xsynaptic/scripts": "workspace:*",

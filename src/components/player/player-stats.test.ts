@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { PlaybackMedia, PlaybackOptions } from '@xsynaptic/playback-stats';
+import type { PlaybackMedia, PlaybackOptions } from '@xsynaptic/plazmoid-stats';
 
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
@@ -7,7 +7,7 @@ const monitor = vi.hoisted(() => ({
 	monitorPlayback: vi.fn((_media: PlaybackMedia, _options: PlaybackOptions) => vi.fn()),
 }));
 
-vi.mock('@xsynaptic/playback-stats', () => monitor);
+vi.mock('@xsynaptic/plazmoid-stats', () => monitor);
 
 import { statsOptOutStorageKey } from '#components/main/main-storage-keys.ts';
 import { bindPlayerStats } from '#components/player/player-stats.ts';

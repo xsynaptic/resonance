@@ -27,7 +27,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	<Specimen
 		name="pzm-bar"
 		note="The tier follows the bar's width, not the viewport; Expand opens the real overlay."
-		source="packages/plazmoid-player/src/elements/player-bar.ts"
+		source="@xsynaptic/plazmoid-player"
 	>
 		<Variant label="full width">
 			<pzm-root class="block" data-inventory-queue="bar">
@@ -64,7 +64,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	<Specimen
 		name="pzm-bar states"
 		note="Emulate <code>prefers-reduced-motion</code> for the loader and panel fallbacks."
-		source="packages/plazmoid-core/src/store/selectors.ts"
+		source="@xsynaptic/plazmoid-core"
 	>
 		<Variant label="idle">
 			<pzm-root class="block" data-inventory-queue="idle">
@@ -108,7 +108,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</div>
 		</Variant>
 	</Specimen>
-	<Specimen name="pzm-overlay-content" source="packages/plazmoid-player/src/elements/overlay/">
+	<Specimen name="pzm-overlay-content" source="@xsynaptic/plazmoid-player">
 		<Variant label="390x844 phone">
 			<pzm-root
 				class="block h-211 w-97.5 max-w-full border border-surface-400"
@@ -134,7 +134,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 			</pzm-root>
 		</Variant>
 	</Specimen>
-	<Specimen name="pzm-volume" source="packages/plazmoid-player/src/elements/volume.ts">
+	<Specimen name="pzm-volume" source="@xsynaptic/plazmoid-player">
 		<Variant label="default">
 			<pzm-root class="flex bg-surface-900 px-4 py-2.5" data-inventory-queue="volume">
 				<pzm-volume></pzm-volume>
@@ -149,7 +149,7 @@ const specimenData = JSON.stringify({ items, labels, seekSeconds }).replaceAll(
 	<Specimen
 		name="pzm-tray"
 		note="Drag a handle, or Alt+ArrowUp/Down on a focused one."
-		source="packages/plazmoid-player/src/elements/tray/"
+		source="@xsynaptic/plazmoid-player"
 	>
 		<div class="pt-96">
 			<pzm-root class="block" data-inventory-queue="tray">

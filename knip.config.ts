@@ -30,9 +30,6 @@ export default {
 			// `react` is the tsconfig's `jsxImportSource` for MDX typings; only `@types/react` is installed
 			ignoreDependencies: ['mdxlint', 'react'],
 		},
-		'packages/plazmoid-player': {
-			entry: ['verify/e2e/page/host.ts'],
-		},
 		'packages/scripts': {
 			ignoreBinaries: ['ffmpeg', 'ssh-add'],
 			ignoreDependencies: ['@fontsource/.+', '@types/react', 'react'],

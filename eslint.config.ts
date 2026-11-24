@@ -36,22 +36,9 @@ export default getConfig(
 				'unicorn/no-array-sort': 'error',
 			},
 		},
-		getBrowserConfig([
-			'src/components/**/*',
-			'packages/plazmoid-core/**/*',
-			'packages/plazmoid-player/**/*',
-			'packages/plazmoid-wavedata/**/*',
-			'packages/playback-stats/**/*',
-		]),
+		getBrowserConfig(['src/components/**/*']),
 		{
-			files: [
-				'**/*.astro/*.{js,ts}',
-				'src/components/**/*.{ts,tsx}',
-				'packages/plazmoid-core/src/**/*.ts',
-				'packages/plazmoid-player/src/**/*.ts',
-				'packages/plazmoid-wavedata/src/**/*.ts',
-				'packages/playback-stats/src/**/*.ts',
-			],
+			files: ['**/*.astro/*.{js,ts}', 'src/components/**/*.{ts,tsx}'],
 			ignores: ['**/*.test.{ts,tsx}'],
 			rules: {
 				'no-restricted-properties': [
@@ -72,47 +59,14 @@ export default getConfig(
 				'no-restricted-globals': [
 					'error',
 					...browserOnlyGlobals.map((name) => ({
-						message: 'Browser code goes under src/components or in a package.',
+						message: 'Browser code goes under src/components.',
 						name,
 					})),
 				],
 			},
 		},
 		{
-			// Dependencies run one way: the player imports core, never the reverse
-			files: ['packages/plazmoid-core/**/*.ts'],
-			rules: {
-				'@typescript-eslint/no-restricted-imports': [
-					'error',
-					{
-						paths: [
-							{
-								allowTypeImports: true,
-								message: 'Core takes only types from wavedata; write `import type`',
-								name: '@xsynaptic/plazmoid-wavedata',
-							},
-						],
-						patterns: [
-							{
-								group: ['@xsynaptic/plazmoid-player', '@xsynaptic/plazmoid-player/*'],
-								message: 'Core is headless; the player imports core, never the reverse.',
-							},
-							{
-								group: ['@xsynaptic/sonic-ui', '@xsynaptic/sonic-ui/*'],
-								message: 'Core is headless; controls belong to the player.',
-							},
-						],
-					},
-				],
-			},
-		},
-		{
-			files: [
-				'verify/e2e/**/*',
-				'packages/plazmoid-player/verify/e2e/**/*',
-				'packages/plazmoid-player/playwright.config.ts',
-				'playwright.config.ts',
-			],
+			files: ['verify/e2e/**/*', 'playwright.config.ts'],
 			languageOptions: {
 				globals: { ...globals.node, ...globals.browser },
 			},
@@ -120,17 +74,7 @@ export default getConfig(
 				'unicorn/prefer-global-this': 'off',
 			},
 		},
-		{
-			// Prettier formats the `/* HTML */` literals these elements render from; the rule reindents what it just laid out
-			files: ['packages/plazmoid-player/src/elements/**/*.ts'],
-			rules: {
-				'unicorn/template-indent': 'off',
-			},
-		},
-		getWebComponentConfig([
-			'src/components/**/*.ts',
-			'packages/plazmoid-player/src/elements/**/*.ts',
-		]),
+		getWebComponentConfig(['src/components/**/*.ts']),
 		...getAstroConfig({ a11y: 'strict' }),
 	],
 	{

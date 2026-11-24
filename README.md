@@ -10,7 +10,7 @@ Resonance is a sibling of [Spectral Codex](https://github.com/xsynaptic/spectral
 
 The centrepiece of the site. Mixes run anywhere from one to eight hours, so the player is built for long-form listening rather than a track dropped into an embed.
 
-- Written from scratch as native web components over a `zustand/vanilla` store, with no framework; heavier parts (the overlay, the queue tray, the waveform panel) lazy load on first use
+- Written from scratch as native web components over a `zustand/vanilla` store, with no framework, and published as the [Plazmoid](https://github.com/xsynaptic/plazmoid) packages; heavier parts (the overlay, the queue tray, the waveform panel) lazy load on first use
 - Survives page navigation via Astro's `<ClientRouter />`, so the music keeps playing while you browse
 - A queue visitors can add to and reorder, restored per browser after a reload without autoplaying
 - Curated Playlists on the homepage: pick a style, lean back, and the next mix picks up when one ends
@@ -27,7 +27,7 @@ The centrepiece of the site. Mixes run anywhere from one to eight hours, so the 
 
 ### Listening Stats
 
-- Listens counted on the site itself, where a Listen means at least 30 seconds of audio actually advanced; heard time is reported by a small [playback stats package](./packages/playback-stats) and stored in Cloudflare D1
+- Listens counted on the site itself, where a Listen means at least 30 seconds of audio actually advanced; heard time is reported by [`@xsynaptic/plazmoid-stats`](https://github.com/xsynaptic/plazmoid/tree/main/packages/plazmoid-stats) and stored in Cloudflare D1
 - Download counts aggregated from file server logs, with the historical figures reconstructed from years of rescued logs under corrected counting rules
 - Mixcloud and SoundCloud play counts pulled from their APIs into append-only snapshots tracked alongside the content
 

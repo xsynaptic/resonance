@@ -70,7 +70,7 @@ export function bindPlayerAnalytics(store: PlayerStoreApi, view: ViewStoreApi): 
 }
 
 export function trackControlPress({ trackIds, verb }: ControlPress): void {
-	if (isSuppressed || verb === 'toggle-tracks') return;
+	if (isSuppressed || verb === 'toggle-tracks' || verb === 'queue-tracks') return;
 
 	// Every other verb plays from the top of what it queued, so the first id is the Mix that starts
 	const mix = trackIds[0];

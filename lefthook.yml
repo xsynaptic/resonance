@@ -14,7 +14,7 @@ check:
         parallel: true
         jobs:
           - name: css
-            run: stylelint "{src,packages/plazmoid-player}/**/*.{css,astro}" --cache --cache-location node_modules/.cache/stylelint/
+            run: stylelint "src/**/*.{css,astro}" --cache --cache-location node_modules/.cache/stylelint/
           - name: format
             run: prettier --check . --cache --log-level warn
           - name: js
@@ -53,7 +53,7 @@ fix:
         piped: true
         jobs:
           - name: css
-            run: stylelint "{src,packages/plazmoid-player}/**/*.{css,astro}" --fix --cache --cache-location node_modules/.cache/stylelint/
+            run: stylelint "src/**/*.{css,astro}" --fix --cache --cache-location node_modules/.cache/stylelint/
           - name: format
             run: prettier --write . --cache --list-different
           - name: js

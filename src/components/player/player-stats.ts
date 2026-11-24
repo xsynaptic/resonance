@@ -1,7 +1,7 @@
-import type { PlaybackReport } from '@xsynaptic/playback-stats';
 import type { PlayerStoreApi } from '@xsynaptic/plazmoid-core';
+import type { PlaybackReport } from '@xsynaptic/plazmoid-stats';
 
-import { monitorPlayback } from '@xsynaptic/playback-stats';
+import { monitorPlayback } from '@xsynaptic/plazmoid-stats';
 
 import { isOptedOut } from '#components/player/player-opt-out.ts';
 

@@ -27,7 +27,7 @@
 		"@xsynaptic/astro-comments": "^0.3.0",
 		"@xsynaptic/astro-image-pipeline": "^0.16.0",
 		"@xsynaptic/astro-scripts": "^0.17.0",
-		"@xsynaptic/plazmoid-wavedata": "workspace:*",
+		"@xsynaptic/plazmoid-wavedata": "^0.1.1",
 		"@xsynaptic/shared": "workspace:*",
 		"astro": "^7.4.13",
 		"chalk": "^6.0.1",

@@ -17,58 +17,8 @@ export default defineConfig({
 	},
 	test: {
 		env: { SITE: 'http://localhost:4321/' },
-		environmentOptions: { happyDOM: { settings: { enableCSSFileLoading: true } } },
-		projects: [
-			{
-				extends: true,
-				test: {
-					// Vitest 4 replaces `defaultExclude` rather than merging, so `node_modules` and `.git` must be restated here
-					exclude: [
-						'**/node_modules/**',
-						'**/.git/**',
-						'.claude/worktrees/**',
-						'dist/**',
-						'verify/**',
-						'packages/playback-stats/**',
-						'packages/plazmoid-core/**',
-						'packages/plazmoid-player/**',
-						'packages/plazmoid-wavedata/**',
-					],
-					name: 'site',
-				},
-			},
-			{
-				extends: true,
-				test: {
-					environment: 'happy-dom',
-					include: ['packages/plazmoid-core/**/*.test.ts'],
-					name: 'plazmoid-core',
-				},
-			},
-			{
-				extends: true,
-				test: {
-					environment: 'happy-dom',
-					include: ['packages/plazmoid-player/**/*.test.ts'],
-					name: 'plazmoid-player',
-				},
-			},
-			{
-				extends: true,
-				test: {
-					include: ['packages/plazmoid-wavedata/**/*.test.ts'],
-					name: 'plazmoid-wavedata',
-				},
-			},
-			{
-				extends: true,
-				test: {
-					environment: 'happy-dom',
-					include: ['packages/playback-stats/**/*.test.ts'],
-					name: 'playback-stats',
-				},
-			},
-		],
+		// Vitest 4 replaces `defaultExclude` rather than merging, so `node_modules` and `.git` must be restated here
+		exclude: ['**/node_modules/**', '**/.git/**', '.claude/worktrees/**', 'dist/**', 'verify/**'],
 		silent: 'passed-only',
 	},
 });

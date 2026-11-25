@@ -6,13 +6,16 @@ import { sha256 } from '#worker/sha256.ts';
 const maximumBodyCharacters = 1024;
 
 const reportSchema = z.strictObject({
-	id: z.uuid(),
-	mixId: z
+	durationSeconds: z.number().int().min(0).max(86_400).optional(),
+	heardSeconds: z.number().int().min(1).max(86_400),
+	listenId: z.uuid(),
+	trackId: z
 		.string()
 		.max(200)
 		.regex(/^[a-z0-9-]+$/),
-	seconds: z.number().int().min(1).max(86_400),
 });
+
+const minimumSeconds = 30;
 
 type Report = z.infer<typeof reportSchema>;
 
@@ -21,7 +24,7 @@ type Report = z.infer<typeof reportSchema>;
 const upsertListen = `
 INSERT INTO listens (id, mix_id, day, started_at, updated_at, heard_seconds, visitor)
 SELECT ?1, ?2, ?3, ?4 - MIN(?5, 360), ?4, MIN(?5, 360), ?6
-WHERE (?5 >= 30 AND (SELECT COUNT(*) FROM listens WHERE visitor = ?6 AND day = ?3) < 50)
+WHERE (?5 >= ?7 AND (SELECT COUNT(*) FROM listens WHERE visitor = ?6 AND day = ?3) < 100)
    OR EXISTS (SELECT 1 FROM listens WHERE id = ?1)
 ON CONFLICT (id) DO UPDATE SET
   heard_seconds = MAX(heard_seconds, MIN(?5, excluded.updated_at - started_at + 60)),
@@ -55,10 +58,25 @@ export async function handleListenReport(request: Request, env: Env): Promise<Re
 	);
 
 	await env.STATS.prepare(upsertListen)
-		.bind(report.id, report.mixId, day, now, report.seconds, visitor)
+		.bind(
+			report.listenId,
+			report.trackId,
+			day,
+			now,
+			report.heardSeconds,
+			visitor,
+			openingSeconds(report.durationSeconds),
+		)
 		.run();
 
 	return noContent();
+}
+
+// The rule plazmoid-stats reports by; the duration is the client's claim, and the daily cap bounds what a forged one buys
+function openingSeconds(durationSeconds: number | undefined): number {
+	if (durationSeconds === undefined) return minimumSeconds;
+
+	return Math.min(minimumSeconds, durationSeconds - 1);
 }
 
 function noContent(): Response {

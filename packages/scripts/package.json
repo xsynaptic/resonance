@@ -25,7 +25,7 @@
 		"@fontsource/manrope": "^5.3.0",
 		"@types/react": "^19.3.0",
 		"@xsynaptic/astro-comments": "^0.5.0",
-		"@xsynaptic/astro-image-pipeline": "^0.16.0",
+		"@xsynaptic/astro-image-pipeline": "^0.17.0",
 		"@xsynaptic/astro-scripts": "^0.17.0",
 		"@xsynaptic/plazmoid-wavedata": "^0.3.0",
 		"@xsynaptic/shared": "workspace:*",

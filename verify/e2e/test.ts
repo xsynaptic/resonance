@@ -1,4 +1,5 @@
 import type { Page, Response, Route } from '@playwright/test';
+import type { PlaybackReport } from '@xsynaptic/plazmoid-stats';
 
 import { test as base, expect } from '@playwright/test';
 import { createUmamiStub } from '@xsynaptic/analytics/umami/testing';
@@ -22,12 +23,6 @@ export const { getSentEvents, stubUmami } = createUmamiStub<AnalyticsEvents>();
 
 interface ConsoleGuard {
 	allow: (...patterns: Array<RegExp>) => void;
-}
-
-interface ListenBeacon {
-	id: string;
-	mixId: string;
-	seconds: number;
 }
 
 // Lowercase as nginx serves it; the player probes for the capital spelling itself
@@ -84,17 +79,17 @@ async function fulfillAudio(route: Route): Promise<void> {
 }
 
 // `astro preview` has no Worker behind this path, and prod mode must never write a Listen
-async function fulfillListen(route: Route, beacons: Array<ListenBeacon>): Promise<void> {
+async function fulfillListen(route: Route, beacons: Array<PlaybackReport>): Promise<void> {
 	const body = route.request().postData();
 
-	if (body !== null) beacons.push(JSON.parse(body) as ListenBeacon);
+	if (body !== null) beacons.push(JSON.parse(body) as PlaybackReport);
 
 	await route.fulfill({ status: 204 });
 }
 
 export const test = base.extend<{
 	consoleGuard: ConsoleGuard;
-	listens: Array<ListenBeacon>;
+	listens: Array<PlaybackReport>;
 	site: SitePaths;
 }>({
 	consoleGuard: [

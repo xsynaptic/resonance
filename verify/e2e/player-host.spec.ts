@@ -264,6 +264,6 @@ test('a listen past 30 heard seconds sends one beacon', async ({ listens, page, 
 	await playAListenThrough(page, site);
 
 	await expect.poll(() => listens.length).toBe(1);
-	expect(listens[0]?.mixId).toBe(site.mixDetail.split('/').at(-2));
-	expect(listens[0]?.seconds).toBeGreaterThanOrEqual(heardSecondsMinimum);
+	expect(listens[0]?.trackId).toBe(site.mixDetail.split('/').at(-2));
+	expect(listens[0]?.heardSeconds).toBeGreaterThanOrEqual(heardSecondsMinimum);
 });

@@ -43,7 +43,7 @@ test('a playing element is monitored under the loaded track', async () => {
 	expect(monitor.monitorPlayback.mock.calls[0]?.[1]?.identify()).toBe('a-mix');
 });
 
-test('a report goes out as the beacon the worker reads', async () => {
+test('a report goes out whole as the beacon, its duration included for the short-track rule', async () => {
 	const beacon = vi.fn((_url: string, _body: string): void => undefined);
 
 	vi.stubGlobal('navigator', { sendBeacon: beacon });
@@ -51,14 +51,16 @@ test('a report goes out as the beacon the worker reads', async () => {
 
 	const onReport = monitor.monitorPlayback.mock.calls[0]?.[1]?.onReport;
 
-	onReport?.({ heardSeconds: 95, listenId: 'listen-1', trackId: 'a-mix' });
+	const report = { durationSeconds: 20, heardSeconds: 19, listenId: 'listen-1', trackId: 'a-mix' };
+
+	onReport?.(report);
 
 	expect(beacon).toHaveBeenCalledOnce();
 
 	const [url, body] = beacon.mock.calls[0] ?? [];
 
 	expect(url).toBe('/api/listen');
-	expect(JSON.parse(String(body))).toEqual({ id: 'listen-1', mixId: 'a-mix', seconds: 95 });
+	expect(JSON.parse(String(body))).toStrictEqual(report);
 });
 
 test('an opted-out browser is never monitored', async () => {

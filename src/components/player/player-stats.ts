@@ -6,7 +6,7 @@ import { monitorPlayback } from '@xsynaptic/plazmoid-stats';
 
 import { isOptedOut } from '#components/player/player-opt-out.ts';
 
-// The Worker refuses to open a listen below this, so nothing shorter is worth a request
+// The Worker opens a Listen on the same threshold, so nothing shorter is worth a request
 const minimumSeconds = 30;
 
 export async function bindPlayerStats(store: PlayerStoreApi): Promise<void> {
@@ -22,9 +22,6 @@ export async function bindPlayerStats(store: PlayerStoreApi): Promise<void> {
 }
 
 // The result is ignored: the next report carries the same running total, so a dropped one costs nothing
-function onReport({ heardSeconds, listenId, trackId }: PlaybackReport): void {
-	navigator.sendBeacon(
-		'/api/listen',
-		JSON.stringify({ id: listenId, mixId: trackId, seconds: heardSeconds }),
-	);
+function onReport(report: PlaybackReport): void {
+	navigator.sendBeacon('/api/listen', JSON.stringify(report));
 }

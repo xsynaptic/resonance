@@ -110,7 +110,7 @@ const listenId = toListenId(1);
 
 describe('handleListenReport', () => {
 	test('a same-origin report opens one listen, back-dated by the seconds it carries', async () => {
-		const response = await post({ id: listenId, mixId: 'voyager', seconds: 300 });
+		const response = await post({ heardSeconds: 300, listenId, trackId: 'voyager' });
 		const [row] = rows();
 
 		expect(response.status).toBe(204);
@@ -122,50 +122,69 @@ describe('handleListenReport', () => {
 	});
 
 	test('the row keeps the larger total, capped by how long the listen has been open', async () => {
-		await post({ id: listenId, mixId: 'voyager', seconds: 300 });
+		await post({ heardSeconds: 300, listenId, trackId: 'voyager' });
 
 		vi.advanceTimersByTime(300_000);
-		await post({ id: listenId, mixId: 'voyager', seconds: 600 });
+		await post({ heardSeconds: 600, listenId, trackId: 'voyager' });
 
 		expect(rows()[0]?.heard_seconds).toBe(600);
 
-		await post({ id: listenId, mixId: 'voyager', seconds: 600 });
+		await post({ heardSeconds: 600, listenId, trackId: 'voyager' });
 
 		expect(rows()[0]?.heard_seconds).toBe(600);
 
 		vi.advanceTimersByTime(10_000);
-		await post({ id: listenId, mixId: 'voyager', seconds: 5000 });
+		await post({ heardSeconds: 5000, listenId, trackId: 'voyager' });
 
 		expect(rows()[0]?.heard_seconds).toBe(670);
 
-		await post({ id: listenId, mixId: 'voyager', seconds: 300 });
+		await post({ heardSeconds: 300, listenId, trackId: 'voyager' });
 
 		expect(rows()[0]?.heard_seconds).toBe(670);
 	});
 
 	test('a first report under 30 s writes nothing, and an enormous one starts clipped', async () => {
-		await post({ id: listenId, mixId: 'voyager', seconds: 20 });
+		await post({ heardSeconds: 20, listenId, trackId: 'voyager' });
 
 		expect(rows()).toHaveLength(0);
 
-		await post({ id: listenId, mixId: 'voyager', seconds: 86_400 });
+		await post({ heardSeconds: 86_400, listenId, trackId: 'voyager' });
 
 		expect(rows()[0]?.heard_seconds).toBe(360);
 	});
 
-	test('the 51st new listen of a day writes nothing, while the first still updates', async () => {
-		for (let index = 0; index < 50; index += 1) {
-			await post({ id: toListenId(index), mixId: 'voyager', seconds: 60 });
+	test('a track shorter than 30 s opens on all but its last second, and a long one still needs 30', async () => {
+		await post({ durationSeconds: 10, heardSeconds: 8, listenId, trackId: 'voyager' });
+
+		expect(rows()).toHaveLength(0);
+
+		await post({ durationSeconds: 10, heardSeconds: 9, listenId, trackId: 'voyager' });
+
+		expect(rows()[0]?.heard_seconds).toBe(9);
+
+		await post({
+			durationSeconds: 3600,
+			heardSeconds: 29,
+			listenId: toListenId(2),
+			trackId: 'voyager',
+		});
+
+		expect(rows()).toHaveLength(1);
+	});
+
+	test('the 101st new listen of a day writes nothing, all on one mix, while the first still updates', async () => {
+		for (let index = 0; index < 100; index += 1) {
+			await post({ heardSeconds: 60, listenId: toListenId(index), trackId: 'voyager' });
 		}
 
-		expect(rows()).toHaveLength(50);
+		expect(rows()).toHaveLength(100);
 
-		await post({ id: toListenId(50), mixId: 'voyager', seconds: 60 });
+		await post({ heardSeconds: 60, listenId: toListenId(100), trackId: 'voyager' });
 
-		expect(rows()).toHaveLength(50);
+		expect(rows()).toHaveLength(100);
 
 		vi.advanceTimersByTime(120_000);
-		await post({ id: toListenId(0), mixId: 'voyager', seconds: 120 });
+		await post({ heardSeconds: 120, listenId: toListenId(0), trackId: 'voyager' });
 
 		const first = rows().find((row) => row.id === toListenId(0));
 
@@ -173,16 +192,16 @@ describe('handleListenReport', () => {
 	});
 
 	test('a listen id cannot move to another mix, and survives a change of network', async () => {
-		await post({ id: listenId, mixId: 'voyager', seconds: 300 });
+		await post({ heardSeconds: 300, listenId, trackId: 'voyager' });
 		vi.advanceTimersByTime(60_000);
 
-		await post({ id: listenId, mixId: 'uroboros', seconds: 600 });
+		await post({ heardSeconds: 600, listenId, trackId: 'uroboros' });
 
 		expect(rows()).toHaveLength(1);
 		expect(rows()[0]?.heard_seconds).toBe(300);
 
 		await post(
-			{ id: listenId, mixId: 'voyager', seconds: 360 },
+			{ heardSeconds: 360, listenId, trackId: 'voyager' },
 			{ 'cf-connecting-ip': '203.0.113.9' },
 		);
 
@@ -190,7 +209,7 @@ describe('handleListenReport', () => {
 	});
 
 	test('anything but a same-origin beacon with a client IP writes nothing', async () => {
-		const report = { id: listenId, mixId: 'voyager', seconds: 300 };
+		const report = { heardSeconds: 300, listenId, trackId: 'voyager' };
 
 		for (const overrides of [
 			{ 'sec-fetch-site': undefined },
@@ -208,9 +227,9 @@ describe('handleListenReport', () => {
 	// Whitespace keeps the oversized report valid JSON, so only the size guard can turn it away
 	test('an oversized, malformed or padded body writes nothing', async () => {
 		const bodies = [
-			JSON.stringify({ id: listenId, mixId: 'voyager', seconds: 300 }) + ' '.repeat(1024),
+			JSON.stringify({ heardSeconds: 300, listenId, trackId: 'voyager' }) + ' '.repeat(1024),
 			'{',
-			JSON.stringify({ extra: 1, id: listenId, mixId: 'voyager', seconds: 300 }),
+			JSON.stringify({ extra: 1, heardSeconds: 300, listenId, trackId: 'voyager' }),
 		];
 
 		for (const body of bodies) {
@@ -223,11 +242,14 @@ describe('handleListenReport', () => {
 	});
 
 	test('the visitor is a digest of the salt, the day, the client IP and the user agent', async () => {
-		await post({ id: listenId, mixId: 'voyager', seconds: 300 });
+		await post({ heardSeconds: 300, listenId, trackId: 'voyager' });
 
 		expect(rows()[0]?.visitor).toBe(visitorDigest);
 
-		await post({ id: toListenId(2), mixId: 'voyager', seconds: 300 }, { 'user-agent': undefined });
+		await post(
+			{ heardSeconds: 300, listenId: toListenId(2), trackId: 'voyager' },
+			{ 'user-agent': undefined },
+		);
 
 		expect(rows().find((row) => row.id === toListenId(2))?.visitor).toBe(visitorDigestWithoutAgent);
 	});
@@ -235,7 +257,7 @@ describe('handleListenReport', () => {
 	test('a missing salt throws rather than hashing against the literal `undefined`', async () => {
 		await expect(
 			handleListenReport(
-				createRequest({ id: listenId, mixId: 'voyager', seconds: 300 }),
+				createRequest({ heardSeconds: 300, listenId, trackId: 'voyager' }),
 				createEnv(''),
 			),
 		).rejects.toThrow('IP_SALT');
@@ -246,15 +268,15 @@ interface ListenReport {
 	clockStepSeconds: number;
 	ip: string;
 	listen: number;
-	mixId: string;
 	seconds: number;
+	trackId: string;
 }
 
 interface OpenedListen {
 	claimedSeconds: number;
-	mixId: string;
 	openedAt: number;
 	openingSeconds: number;
+	trackId: string;
 }
 
 // Assumes the Worker's clock never goes backwards between reports; only Cloudflare's clock sync guarantees that
@@ -266,14 +288,14 @@ const anyListenReports = fc.array(
 		clockStepSeconds: forwardClockStep,
 		ip: fc.constantFrom('198.51.100.7', '203.0.113.9'),
 		listen: fc.integer({ max: 3, min: 0 }),
-		mixId: fc.oneof(
-			{ arbitrary: fc.constant('voyager'), weight: 4 },
-			{ arbitrary: fc.constant('uroboros'), weight: 1 },
-		),
 		seconds: fc.oneof(
 			fc.integer({ max: 40, min: 1 }),
 			fc.integer({ max: 400, min: 340 }),
 			fc.integer({ max: 86_400, min: 1 }),
+		),
+		trackId: fc.oneof(
+			{ arbitrary: fc.constant('voyager'), weight: 4 },
+			{ arbitrary: fc.constant('uroboros'), weight: 1 },
 		),
 	}),
 	{ maxLength: 30, minLength: 1 },
@@ -299,8 +321,8 @@ const honestListenReports = fc
 				clockStepSeconds: 0,
 				ip: '198.51.100.7',
 				listen: 0,
-				mixId: 'voyager',
 				seconds: openingSeconds,
+				trackId: 'voyager',
 			},
 		];
 
@@ -311,7 +333,13 @@ const honestListenReports = fc
 				: Math.min(86_400, latest + Math.floor(heardShare * clockStepSeconds));
 
 			if (!isResent) totals.push(seconds);
-			reports.push({ clockStepSeconds, ip: '198.51.100.7', listen: 0, mixId: 'voyager', seconds });
+			reports.push({
+				clockStepSeconds,
+				ip: '198.51.100.7',
+				listen: 0,
+				seconds,
+				trackId: 'voyager',
+			});
 		}
 
 		return reports;
@@ -339,7 +367,7 @@ async function sendReports(
 		now += report.clockStepSeconds * 1000;
 		vi.setSystemTime(now);
 		await post(
-			{ id, mixId: report.mixId, seconds: report.seconds },
+			{ heardSeconds: report.seconds, listenId: id, trackId: report.trackId },
 			{ 'cf-connecting-ip': report.ip },
 		);
 
@@ -364,9 +392,9 @@ describe('handleListenReport over any sequence of reports', () => {
 						expect(after.heard_seconds).toBe(Math.min(report.seconds, 360));
 						opened.set(report.listen, {
 							claimedSeconds: report.seconds,
-							mixId: report.mixId,
 							openedAt: nowSeconds(),
 							openingSeconds: report.seconds,
+							trackId: report.trackId,
 						});
 					}
 
@@ -376,11 +404,11 @@ describe('handleListenReport over any sequence of reports', () => {
 				const listen = opened.get(report.listen);
 
 				if (!after || !listen) throw new Error('A stored listen disappeared');
-				if (report.mixId === listen.mixId) {
+				if (report.trackId === listen.trackId) {
 					listen.claimedSeconds = Math.max(listen.claimedSeconds, report.seconds);
 				}
 
-				expect(after.mix_id).toBe(listen.mixId);
+				expect(after.mix_id).toBe(listen.trackId);
 				expect(after.heard_seconds).toBeGreaterThanOrEqual(before.heard_seconds);
 				expect(after.heard_seconds).toBeLessThanOrEqual(listen.claimedSeconds);
 				expect(after.heard_seconds).toBeLessThanOrEqual(

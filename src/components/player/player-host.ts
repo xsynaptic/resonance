@@ -1,4 +1,4 @@
-import type { PlayerStoreApi, PlayerUrls, Track } from '@xsynaptic/plazmoid-core';
+import type { PlayerStoreApi, PlayerUrls } from '@xsynaptic/plazmoid-core';
 import type { PlayerLabels } from '@xsynaptic/plazmoid-player';
 import type { AstroPlayerConfig } from '@xsynaptic/plazmoid-player/astro';
 
@@ -11,15 +11,22 @@ interface PlayerBarConfig {
 	stylesheetUrl: string;
 }
 
-// The MP4 sample entry code, capital included; Safari answers the lowercase spelling with an empty string
-const streamType = 'audio/mp4; codecs="Opus"';
+const configChecks = {
+	labels: (value) => typeof value === 'object' && value !== null,
+	libraryUrl: (value) => typeof value === 'string',
+	seekSeconds: (value) => typeof value === 'number',
+	stylesheetUrl: (value) => typeof value === 'string',
+} satisfies Record<keyof PlayerBarConfig, (value: unknown) => boolean>;
 
 const libraryTimeoutMs = 10_000;
 
 type Library = Map<string, MixQueueItem>;
 
-export function configurePlayer(host: Element): AstroPlayerConfig {
-	const { labels, libraryUrl, seekSeconds, stylesheetUrl } = readConfig(host);
+export function configurePlayer(_host: Element, data: unknown): AstroPlayerConfig {
+	if (!isPlayerBarConfig(data))
+		throw new Error('The player host carries no script of labels and options');
+
+	const { labels, libraryUrl, seekSeconds, stylesheetUrl } = data;
 	const loadLibrary = createLibraryLoader(libraryUrl);
 	let prefetched: Promise<Library | undefined> | undefined;
 
@@ -27,20 +34,21 @@ export function configurePlayer(host: Element): AstroPlayerConfig {
 		load: async () => {
 			prefetched = prefetchLibrary(loadLibrary);
 
-			const [{ bindPlayerStats }, { bindPlayerAnalytics, trackControlPress }] = await Promise.all([
+			const [{ bindPlayerStats }, { trackControlPress, trackPlayerEvent }] = await Promise.all([
 				import('#components/player/player-stats.ts'),
 				import('#components/player/player-analytics.ts'),
 			]);
 
 			return {
+				onEvent: trackPlayerEvent,
 				onPress: trackControlPress,
-				onReady: ({ store, view }) => {
+				onReady: ({ store }) => {
 					void bindPlayerStats(store);
-					bindPlayerAnalytics(store, view);
 				},
 			};
 		},
-		player: { isScopeEnabled: true, labels, seekSeconds },
+		player: { isScopeEnabled: true, labels },
+		seekSeconds,
 		stylesheetUrl,
 		urls: (store) => {
 			const refreshQueue = queueRefresher(store);
@@ -72,21 +80,13 @@ function queueRefresher(store: PlayerStoreApi): (library: Library) => void {
 	};
 }
 
-// The stream comes from the press row, so a press never waits on the Library
+// The stream rides the press row as `sources`, so a press never waits on the Library
 function libraryUrls(loadLibrary: () => Promise<Library>): PlayerUrls {
 	return {
 		detail: async ({ trackId }) => {
 			const library = await loadLibrary();
 
 			return library.get(trackId)?.detail;
-		},
-		stream: (item) => {
-			const streamUrl = pressRowStreamUrl(item);
-			if (streamUrl === undefined) {
-				return Promise.reject(new Error(`No stream URL for ${item.trackId}`));
-			}
-
-			return Promise.resolve({ sources: [{ type: streamType, url: streamUrl }], status: 'ok' });
 		},
 	};
 }
@@ -127,16 +127,8 @@ async function fetchLibrary(url: string): Promise<Library> {
 	return new Map(entries.map((entry) => [entry.press.trackId, entry]));
 }
 
-// Every item this host queues is a press row, and the store keeps its fields through a reload
-function pressRowStreamUrl(item: Track): string | undefined {
-	const value: unknown = Reflect.get(item, 'streamUrl');
+function isPlayerBarConfig(data: unknown): data is PlayerBarConfig {
+	if (typeof data !== 'object' || data === null) return false;
 
-	return typeof value === 'string' ? value : undefined;
-}
-
-function readConfig(host: Element): PlayerBarConfig {
-	const source = host.querySelector('script[type="application/json"]')?.textContent;
-	if (!source) throw new Error('The player host carries no script of labels and options');
-
-	return JSON.parse(source) as PlayerBarConfig;
+	return Object.entries(configChecks).every(([key, check]) => check(Reflect.get(data, key)));
 }

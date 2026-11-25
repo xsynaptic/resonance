@@ -1,15 +1,6 @@
 import type { EventValue } from '@xsynaptic/analytics';
-import type {
-	ControlPress,
-	PlaybackDiagnostic,
-	PlayerStatus,
-	PlayerStore,
-	PlayerStoreApi,
-} from '@xsynaptic/plazmoid-core';
-import type { ViewStoreApi } from '@xsynaptic/plazmoid-player';
-
-import { loadedTrack } from '@xsynaptic/plazmoid-core';
-import { LazyModuleError } from '@xsynaptic/plazmoid-player';
+import type { ControlPress, PlaybackDiagnostic, PlaybackEvent } from '@xsynaptic/plazmoid-core';
+import type { PlayerEvent } from '@xsynaptic/plazmoid-player/astro';
 
 import type { AnalyticsEvents } from '#lib/analytics/analytics-events.ts';
 
@@ -20,9 +11,6 @@ const origins = {
 	'play-track': 'mix',
 	'play-tracks': 'playlist',
 } as const;
-
-// Nothing failed on `capped` or `unplayable`, so neither carries a stage
-const terminalStatuses: ReadonlySet<PlayerStatus> = new Set(['capped', 'error', 'unplayable']);
 
 // Read once, since none of the three can change while the document is open
 const isSuppressed = import.meta.env.DEV || navigator.doNotTrack === '1' || isOptedOut();
@@ -35,38 +23,27 @@ const browserVersion = describeBrowser(navigator.userAgent);
 // iOS 26 opens any Home Screen site as a web app, where WebKit's lock-screen audio bugs live
 const isStandalone = matchMedia('(display-mode: standalone)').matches;
 
-export function bindPlayerAnalytics(store: PlayerStoreApi, view: ViewStoreApi): () => void {
-	if (isSuppressed) return doNothing;
+export function trackPlayerEvent(event: PlaybackEvent | PlayerEvent): void {
+	if (isSuppressed) return;
 
-	const connection = new AbortController();
-
-	let { status } = store.getState();
-	let diagnostic = store.getState().diagnostic;
-
-	// Selected and compared rather than read straight, since `currentTimeSeconds` moves about four times a second
-	const unsubscribe = store.subscribe((state) => {
-		if (state.diagnostic !== diagnostic) {
-			diagnostic = state.diagnostic;
-			if (diagnostic) trackDiagnostic(diagnostic);
+	switch (event.kind) {
+		case 'chunk-failed': {
+			sendEvent('player-chunk-error', { chunk: event.chunk, reason: event.reason });
+			break;
 		}
-
-		if (state.status === status) return;
-
-		({ status } = state);
-		if (terminalStatuses.has(status)) trackPlaybackError(state);
-	});
-	const unsubscribeView = view.subscribe((next, previous) => {
-		if (next.isPanelOpen && !previous.isPanelOpen) sendEvent('player-panel-open');
-		if (next.isOverlayOpen && !previous.isOverlayOpen) sendEvent('player-overlay-open');
-	});
-
-	window.addEventListener('error', trackChunkError, { signal: connection.signal });
-
-	return () => {
-		connection.abort();
-		unsubscribe();
-		unsubscribeView();
-	};
+		case 'diagnostic': {
+			trackDiagnostic(event.diagnostic);
+			break;
+		}
+		case 'failed': {
+			trackPlaybackError(event);
+			break;
+		}
+		case 'opened': {
+			sendEvent(event.part === 'panel' ? 'player-panel-open' : 'player-overlay-open');
+			break;
+		}
+	}
 }
 
 export function trackControlPress({ trackIds, verb }: ControlPress): void {
@@ -107,10 +84,6 @@ function describeBrowser(userAgent: string): string {
 	return `${browser} / ${system ?? 'other'}`;
 }
 
-function doNothing(): void {
-	// Nothing was bound, so there is nothing to unbind
-}
-
 function matchVersion(
 	userAgent: string,
 	families: ReadonlyArray<readonly [string, RegExp]>,
@@ -123,13 +96,6 @@ function matchVersion(
 	}
 
 	return undefined;
-}
-
-function trackChunkError(event: ErrorEvent): void {
-	const error: unknown = event.error;
-	if (!(error instanceof LazyModuleError)) return;
-
-	sendEvent('player-chunk-error', { chunk: error.chunk, reason: error.reason });
 }
 
 function trackDiagnostic({ kind, trackId, ...fields }: PlaybackDiagnostic): void {
@@ -145,13 +111,16 @@ function trackDiagnostic({ kind, trackId, ...fields }: PlaybackDiagnostic): void
 	sendEvent(`player-${kind}`, data);
 }
 
-function trackPlaybackError(state: PlayerStore): void {
-	const { playbackError } = state;
-	const data: AnalyticsEvents['player-error'] = { status: state.status };
-	const trackId = loadedTrack(state)?.trackId;
+// Nothing failed on `capped` or `unplayable`, so neither carries a stage
+function trackPlaybackError({
+	error,
+	status,
+	trackId,
+}: Extract<PlaybackEvent, { kind: 'failed' }>): void {
+	const data: AnalyticsEvents['player-error'] = { status };
 
 	if (trackId !== undefined) data.mix = trackId;
-	if (playbackError) data.stage = playbackError.stage;
+	if (error) data.stage = error.stage;
 
 	sendEvent('player-error', data);
 }

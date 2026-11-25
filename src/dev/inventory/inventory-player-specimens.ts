@@ -71,7 +71,6 @@ export function pendingUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 	const urls = queuedUrls(items);
 
 	return {
-		...urls,
 		detail: async (item) => {
 			const detail = await urls.detail?.(item);
 			if (!detail?.waveform) return detail;
@@ -83,17 +82,9 @@ export function pendingUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
 
 // Any id resolves: the tray specimen synthesizes its own to get distinct rows, and a specimen shows layout rather than resolution
 export function queuedUrls(items: ReadonlyArray<MixQueueItem>): PlayerUrls {
-	const find = (trackId: string) =>
-		items.find(({ press }) => press.trackId === trackId) ?? items[0];
-
 	return {
-		detail: ({ trackId }) => Promise.resolve(find(trackId)?.detail),
-		stream: ({ trackId }) => {
-			const item = find(trackId);
-			if (!item) return Promise.reject(new Error(`No stream URL for ${trackId}`));
-
-			return Promise.resolve({ sources: [{ url: item.press.streamUrl }], status: 'ok' });
-		},
+		detail: ({ trackId }) =>
+			Promise.resolve((items.find(({ press }) => press.trackId === trackId) ?? items[0])?.detail),
 	};
 }
 

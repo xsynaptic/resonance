@@ -1,4 +1,4 @@
-import type { Track, TrackArtwork, TrackDetail } from '@xsynaptic/plazmoid-core';
+import type { StreamSource, Track, TrackArtwork, TrackDetail } from '@xsynaptic/plazmoid-core';
 import type { CollectionEntry } from 'astro:content';
 
 import { barArtworkSize } from '@xsynaptic/plazmoid-player/constants';
@@ -16,9 +16,11 @@ import { getWorkTitle } from '#lib/utils/work-title.ts';
 // The bar at 1x and 2x, then the lock screen and the overlay's larger slots
 const artworkWidths = [barArtworkSize, barArtworkSize * 2, 512, 900, 1800];
 
-// The stream is resolved at build time, so the island's resolver reads it off the queue
+// The MP4 sample entry code, capital included; Safari answers the lowercase spelling with an empty string
+const streamType = 'audio/mp4; codecs="Opus"';
+
 export interface PlayerPressRow extends Track {
-	streamUrl: string;
+	sources: ReadonlyArray<StreamSource>;
 }
 
 // Both parts come from one call, so a page's press row and the Library's cannot disagree within a build
@@ -50,7 +52,7 @@ export async function getMixQueueItem(
 			durationMs: audio.seconds * 1000,
 			releaseHref: getContentPath('mixes', entry.id),
 			releaseTitle: entry.data.title,
-			streamUrl: audio.streamUrl,
+			sources: [{ type: streamType, url: audio.streamUrl }],
 			title: entry.data.title,
 			trackId: entry.id,
 			...(artwork ? { artwork } : {}),

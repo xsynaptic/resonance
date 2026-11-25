@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { getPlayerLabels } from '#components/player/player-labels.ts';
 
-const analytics = vi.hoisted(() => ({ bindPlayerAnalytics: vi.fn(), trackControlPress: vi.fn() }));
+const analytics = vi.hoisted(() => ({ trackControlPress: vi.fn(), trackPlayerEvent: vi.fn() }));
 const stats = vi.hoisted(() => ({ bindPlayerStats: vi.fn() }));
 
 vi.mock('#components/player/player-analytics.ts', () => analytics);
@@ -22,28 +22,23 @@ const libraryEntry = {
 	press: {
 		artistLine: 'Basilisk',
 		releaseTitle: 'A',
-		streamUrl: '/a.mp4',
+		sources: [{ type: 'audio/mp4; codecs="Opus"', url: '/a.mp4' }],
 		title: 'A',
 		trackId: 'a',
 	},
 };
 
-function createHost(): Element {
-	const host = document.createElement('div');
-	const config = JSON.stringify({
-		labels: getPlayerLabels(),
-		libraryUrl: '/api/player/library.json?v=abc',
-		seekSeconds: 30,
-		stylesheetUrl: 'data:text/css,',
-	});
+const host = document.createElement('div');
 
-	host.innerHTML = `<script type="application/json">${config}</script>`;
-
-	return host;
-}
+const hostData = {
+	labels: getPlayerLabels(),
+	libraryUrl: '/api/player/library.json?v=abc',
+	seekSeconds: 30,
+	stylesheetUrl: 'data:text/css,',
+};
 
 async function boot(): Promise<PlayerUrls> {
-	const { load, urls } = configurePlayer(createHost());
+	const { load, urls } = configurePlayer(host, hostData);
 
 	await load?.();
 
@@ -60,28 +55,38 @@ afterEach(() => {
 });
 
 describe('configurePlayer', () => {
-	test('the bar shows the scope and the seek step, presses are tracked, and stats and analytics bind once ready', async () => {
+	test('the bar shows the scope and the seek step, presses and events are tracked, and stats bind once ready', async () => {
 		vi.stubGlobal(
 			'fetch',
 			vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
 		);
 
-		const { load, player, stylesheetUrl } = configurePlayer(createHost());
+		const { load, player, seekSeconds, stylesheetUrl } = configurePlayer(host, hostData);
 		const hooks = await load?.();
-		const view = {} as ViewStoreApi;
 
 		hooks?.onReady?.({
 			controls: { refresh: vi.fn(), unbind: vi.fn() },
 			root: document.createElement('pzm-root'),
 			store,
-			view,
+			view: {} as ViewStoreApi,
 		});
 
-		expect(player).toMatchObject({ isScopeEnabled: true, seekSeconds: 30 });
+		expect(player).toMatchObject({ isScopeEnabled: true });
+		expect(seekSeconds).toBe(30);
 		expect(stylesheetUrl).toBe('data:text/css,');
+		expect(hooks?.onEvent).toBe(analytics.trackPlayerEvent);
 		expect(hooks?.onPress).toBe(analytics.trackControlPress);
 		expect(stats.bindPlayerStats).toHaveBeenCalledExactlyOnceWith(store);
-		expect(analytics.bindPlayerAnalytics).toHaveBeenCalledExactlyOnceWith(store, view);
+	});
+
+	test('a host with no script, or one of another shape, is refused before anything reads it', () => {
+		const { libraryUrl: _libraryUrl, ...withoutLibrary } = hostData;
+
+		expect(() => configurePlayer(host, undefined)).toThrow('no script of labels and options');
+		expect(() => configurePlayer(host, withoutLibrary)).toThrow('no script of labels and options');
+		expect(() => configurePlayer(host, { ...hostData, labels: 'Play' })).toThrow(
+			'no script of labels and options',
+		);
 	});
 
 	test('the Library refreshes the stored Queue with its press rows, and answers for detail', async () => {

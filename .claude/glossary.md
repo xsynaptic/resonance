@@ -20,7 +20,7 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Tracklist**: The ordered sequence of Tracks in a Mix, timestamped where known. _Avoid_: playlist, setlist.
 
-**Track**: One piece of music in a Tracklist, carrying its own Credits. Never an Entry. _Avoid_: song, tune, cut.
+**Track**: One piece of music in a Tracklist, carrying its own Credits. Never an Entry. The `track` key in player analytics is plazmoid's `trackId`, which names a Mix here. _Avoid_: song, tune, cut.
 
 **Cue Sheet**: A downloadable index of a Mix's Tracklist that lets a player seek between Tracks. _Avoid_: chapters, markers, index.
 
@@ -54,7 +54,7 @@ The glossary of terms this project uses. Names here are binding: use the term, a
 
 **Queue**: The Mixes the player plays next, in order, which a visitor adds to and reorders. _Avoid_: playlist, up next, list.
 
-**Listen**: One play of one Mix on this site in which at least 30 seconds of audio actually advanced. **Listening time** is the sum of those seconds. _Avoid_: play (Mixcloud's and SoundCloud's unit), stream (the file server's byte count), view, hit.
+**Listen**: One play of one Mix on this site in which at least 30 seconds of audio actually advanced, or all but the last second of a shorter Mix. **Listening time** is the sum of those seconds. _Avoid_: play (Mixcloud's and SoundCloud's unit), stream (the file server's byte count), view, hit.
 
 **Library**: Every Mix with audio, in the shape the player queues, served to the player as one file. _Avoid_: catalogue, catalog (the Catalog is the listing projection), index, manifest.
 

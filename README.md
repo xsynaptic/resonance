@@ -27,7 +27,7 @@ The centrepiece of the site. Mixes run anywhere from one to eight hours, so the 
 
 ### Listening Stats
 
-- Listens counted on the site itself, where a Listen means at least 30 seconds of audio actually advanced; heard time is reported by [`@xsynaptic/plazmoid-stats`](https://github.com/xsynaptic/plazmoid/tree/main/packages/plazmoid-stats) and stored in Cloudflare D1
+- Listens counted on the site itself, where a Listen means at least 30 seconds of audio actually advanced (or all but the last second of a shorter Mix); heard time is reported by [`@xsynaptic/plazmoid-stats`](https://github.com/xsynaptic/plazmoid/tree/main/packages/plazmoid-stats) and stored in Cloudflare D1
 - Download counts aggregated from file server logs, with the historical figures reconstructed from years of rescued logs under corrected counting rules
 - Mixcloud and SoundCloud play counts pulled from their APIs into append-only snapshots tracked alongside the content
 

@@ -20,7 +20,7 @@ const SelectionSchema = z
 	})
 	.strict()
 	.refine((value) => value.title !== undefined || value.entryId !== undefined, {
-		message: 'A selection needs a title, an entryId, or both',
+		error: 'A selection needs a title, an entryId, or both',
 	});
 
 export type SelectionValue = z.infer<typeof SelectionSchema>;

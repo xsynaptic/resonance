@@ -42,9 +42,10 @@ beforeEach(() => {
 	vi.setSystemTime(new Date('2026-09-16T12:00:00Z'));
 });
 
+// `@fast-check/vitest` 0.6.0 skips the hook after its first run and Vitest repeats it after the last
 afterEach(() => {
 	vi.useRealTimers();
-	database.close();
+	if (database.isOpen) database.close();
 });
 
 function createEnv(salt = 'test-salt'): Env {
@@ -356,8 +357,6 @@ async function sendReports(
 		after: ListenRow | undefined,
 	) => void,
 ): Promise<void> {
-	database.exec('DELETE FROM listens');
-
 	let now = startOfRun;
 
 	for (const report of reports) {

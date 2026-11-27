@@ -101,10 +101,10 @@ function makeRequest(fields: Record<string, string>): Request {
 	});
 }
 
-function stubSiteverify(isVerified: boolean) {
+function stubSiteverify(isVerified: boolean, hostname = 'djbasilisk.com') {
 	return vi
 		.spyOn(globalThis, 'fetch')
-		.mockImplementation(() => Promise.resolve(Response.json({ success: isVerified })));
+		.mockImplementation(() => Promise.resolve(Response.json({ hostname, success: isVerified })));
 }
 
 describe('the thread key migration', () => {
@@ -282,6 +282,16 @@ describe('handleComment', () => {
 
 		expect(response.status).toBe(403);
 		await expect(response.json()).resolves.toEqual({ message: t('comments.error.challenge') });
+		expect(database.prepare('SELECT COUNT(*) AS count FROM comments').get()).toEqual({ count: 0 });
+	});
+
+	test('refuses a token solved on another host', async () => {
+		stubSiteverify(true, 'elsewhere.example');
+		migrate();
+
+		const response = await handleComment(makeRequest({ thread: 'mixes/voyager' }), createEnv());
+
+		expect(response.status).toBe(403);
 		expect(database.prepare('SELECT COUNT(*) AS count FROM comments').get()).toEqual({ count: 0 });
 	});
 });

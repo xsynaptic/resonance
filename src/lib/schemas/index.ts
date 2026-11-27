@@ -17,7 +17,7 @@ function isNotFutureDate(date: Date) {
 // YAML parses `YYYY-MM-DD` and `YYYY-MM-DD HH:mm:ss` into UTC dates, so frontmatter leaves them bare
 // A time without seconds stays a string and fails here, which is the quirk to know
 const DateSchema = z.date().refine(isNotFutureDate, {
-	message: 'Dates must not be in the future.',
+	error: 'Dates must not be in the future.',
 });
 
 export const contentBaseSchema = {

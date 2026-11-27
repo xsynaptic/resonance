@@ -22,9 +22,14 @@ const commentMessages = {
 	unreadable: t('comments.error.unreadable'),
 } satisfies Partial<CommentMessages>;
 
+// The custom domain in `wrangler.jsonc`; the Worker answers on no other host
+const turnstileHostnames = ['djbasilisk.com'];
+
 export function handleComment(request: Request, env: Env): Promise<Response> {
 	return handleCommentSubmission(request, {
-		challenge: createTurnstileChallenge(env.TURNSTILE_SECRET_KEY),
+		challenge: createTurnstileChallenge(env.TURNSTILE_SECRET_KEY, {
+			hostnames: turnstileHostnames,
+		}),
 		getClientIp: (incoming) => incoming.headers.get('CF-Connecting-IP') ?? undefined,
 		ipSalt: env.IP_SALT,
 		messages: commentMessages,
